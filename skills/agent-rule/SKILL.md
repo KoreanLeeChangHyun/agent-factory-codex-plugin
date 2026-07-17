@@ -207,6 +207,19 @@ state-model, DOM ownership, security, or performance edits:
 7. In the final answer, name sources used and local verification commands when
    relevant.
 
+For filesystem security boundaries, a path check is not proof that a later
+path operation is safe. When an attacker can mutate directories between check
+and use, anchor traversal and mutation to trusted directory descriptors, reject
+symlinks without following them, and add an adversarial regression test that
+performs the swap between validation and use. Static pre-existing-symlink tests
+alone do not cover this race.
+
+For executable command evidence, validate the exact recorded invocation with
+the installed command parser and preserve the accepted option order. For final
+repository evidence, update human-facing reports first, capture repository
+state afterward, register the capture, and verify a second capture has the same
+changed-path set except for an explicitly bounded evidence-registration delta.
+
 Prefer authoritative sources in this order:
 
 1. Official project documentation for the exact tool or framework.

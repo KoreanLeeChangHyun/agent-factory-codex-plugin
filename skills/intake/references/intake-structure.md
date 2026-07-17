@@ -100,6 +100,14 @@ Capability skills add or replace individual content items with
   Work Unit basis remain in their owning sections rather than a duplicate
   synthesis object.
 
+The profile-required `evidence` family is satisfied by `evidence`,
+`web-evidence`, `internal-evidence`, `user-evidence`, or `interview`; capability
+skills do not add a duplicate generic evidence item only to satisfy readiness.
+Every `specification-impact` item records `attributes.status` as exactly one of
+`aligned`, `not-applicable`, or `gap-accepted-for-work-unit`. An accepted gap
+must be carried into an executable Work Unit basis rather than treated as an
+aligned Specification.
+
 ## Validation And Readiness
 
 The manager validates every component independently and then validates package
@@ -116,6 +124,9 @@ semantic checks pass. New feedback may reopen `ready` to `draft`.
 Use terminal `closed` for completed historical records and terminal
 `superseded` for records replaced by a later canonical decision or contract.
 Both require an evidence-backed disposition item and must not be reopened.
+A canonical mutation reopens `ready` as `draft` and invalidates semantic
+readiness in the same transaction. Canonical mutation is rejected for terminal
+`closed` and `superseded` packages.
 
 ## Scale Boundary
 

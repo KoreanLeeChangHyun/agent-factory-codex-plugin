@@ -51,7 +51,10 @@ the former custom manifest layout as conforming.
   specification. Record its refs, status, changes, and reason as a
   `specification-impact` content item in the canonical Intake package's
   `work-unit-basis` section through the `intake` manager's
-  `section-item-put` command, then run `validate`.
+  `section-item-put` command, then run `validate`. Set
+  `attributes.status` to `aligned`, `not-applicable`, or
+  `gap-accepted-for-work-unit`; the last state records an accepted
+  Specification gap that an executable Work Unit basis will address.
 - During Execution, update specification source when scoped implementation or
   verification reveals a new accepted design fact, then return requirement or
   scope changes to Intake.

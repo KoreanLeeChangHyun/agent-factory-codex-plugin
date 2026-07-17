@@ -6,10 +6,14 @@
       "id": "HUMAN-CHECKLIST-001",
       "kind": "human-checklist",
       "content": [
-        "Confirm ready mutation policy matches intended lifecycle.",
-        "Confirm terminal packages are immutable.",
-        "Review evidence-family and specification-resolution terminology.",
-        "Review test evidence and remaining risks."
+        "`ready` Intake mutation과 명시적 `ready -> draft` 전이가 semantic readiness를 원자적으로 무효화하는지 확인합니다.",
+        "`closed`와 `superseded` package가 canonical byte 변경 없이 mutation을 거부하는지 확인합니다.",
+        "transaction parent를 검사와 사용 사이 symlink로 바꾸는 회귀 테스트와 외부 byte 보존을 검토합니다.",
+        "commit 실패 복구가 최초 package descriptor를 재사용하는지 검토합니다.",
+        "specialized evidence family, specification resolution status, section-wide item id uniqueness 계약을 검토합니다.",
+        "canonical `codex --ask-for-approval ... exec` 명령과 readiness 옵션 순서 검증을 확인합니다.",
+        "보고서 갱신 후 캡처한 worktree inspect 증거와 두 번째 changed-path 검증을 확인합니다.",
+        "등록된 검증 evidence와 남은 Human 승인·merge 결정을 확인합니다."
       ]
     },
     {
@@ -17,9 +21,12 @@
       "kind": "human-review-method",
       "content": {
         "inspect": [
-          "Review the scoped diff.",
-          "Run or inspect the recorded test commands and evidence.",
-          "Approve or request rework; decide merge or promotion separately."
+          "`git diff -- skills .agent-factory/work-units/intake-manager-contract-hardening`로 scoped diff를 검토합니다.",
+          "`blocks/evidence/verification.json`에서 74개 테스트와 parser/schema/diff/compile 검증 결과를 확인합니다.",
+          "`blocks/evidence/ai-review.json`에서 해소된 finding과 open finding 0건을 확인합니다.",
+          "`blocks/evidence/worktree-inspect.json`이 최종 변경 경로를 포함하는지 확인합니다.",
+          "필요하면 Work Unit의 TEST-001 명령을 재실행합니다.",
+          "결과를 승인하거나 rework를 요청합니다. merge와 PR promotion은 별도 Human 결정으로 유지합니다."
         ]
       }
     },
@@ -30,7 +37,8 @@
         "status": "pending"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-17T16:59:34+00:00"
       }
     }
   ],

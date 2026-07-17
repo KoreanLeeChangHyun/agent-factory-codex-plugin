@@ -43,6 +43,8 @@ person.
 6. Add each structured result to `evidence-and-findings` through the sibling
    Intake manager's `section-item-put` command, normally with kind
    `internal-evidence`.
+   This kind satisfies the Intake profile's `evidence` family without a
+   duplicate generic `evidence` item.
 7. Run the sibling Intake manager's `validate` command immediately after the
    update.
 8. Feed accepted findings into their owning requirement, decision, or Work

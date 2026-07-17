@@ -8,6 +8,7 @@ import fcntl
 import importlib.util
 import json
 import os
+import shlex
 import shutil
 import sys
 import tempfile
@@ -251,6 +252,24 @@ def validate_ready_semantics(package: Path) -> None:
     expected_branch = f"work-unit/{package.name}"
     if context["content"]["branch"] != expected_branch:
         raise ManagerError(f"execution context branch must equal {expected_branch}")
+    invocation = context["content"]["execInvocation"]
+    if not isinstance(invocation, str) or not invocation.strip():
+        raise ManagerError("execution context execInvocation must be a non-empty string")
+    try:
+        invocation_parts = shlex.split(invocation)
+    except ValueError as error:
+        raise ManagerError(f"execution context execInvocation is not valid shell syntax: {error}") from error
+    if invocation_parts[:1] == ["codex"] and "exec" in invocation_parts:
+        exec_index = invocation_parts.index("exec")
+        approval_options = {
+            index
+            for index, part in enumerate(invocation_parts)
+            if part == "--ask-for-approval" or part.startswith("--ask-for-approval=")
+        }
+        if any(index > exec_index for index in approval_options):
+            raise ManagerError(
+                "Codex global option --ask-for-approval must appear before the exec subcommand"
+            )
     basis = find_kind(package, "intake-basis-ref")
     references = [] if basis is None else basis.get("sourceRefs", [])
     valid = [

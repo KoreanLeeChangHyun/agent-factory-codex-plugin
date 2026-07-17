@@ -130,7 +130,12 @@ def create_ready_intake(root: Path, intake_id: str = "source-intake") -> Path:
             item("OPEN-STATUS-001", "open-items-status", "No blockers"),
         ],
         "work-unit-basis": [
-            item("SPEC-001", "specification-impact", "Work Unit v4"),
+            item(
+                "SPEC-001",
+                "specification-impact",
+                {"status": "aligned"},
+                attributes={"status": "aligned"},
+            ),
             item("BASIS-001", "work-unit-basis", "Implement v4 package"),
         ],
     }
@@ -312,6 +317,23 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(result["status"], "ready")
             self.assertEqual(result["validationMode"], "full")
 
+    def test_shared_intake_mutation_policy_does_not_reopen_working_work_unit(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            run_cli("transition", str(package), "working")
+            before = json.loads((package / "data" / "metadata.json").read_text(encoding="utf-8"))
+            update = value_file(root, "working-update.json", item("PLAN-002", "plan-step", "Execute"))
+
+            run_cli("section-item-put", str(package), "plan", "--value-file", str(update))
+
+            after = json.loads((package / "data" / "metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(after["lifecycle"]["status"], "working")
+            self.assertEqual(after["readiness"], before["readiness"])
+
     def test_missing_anchor_item_rejected_without_mutating_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -399,6 +421,33 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             result = run_cli("transition", str(package), "ready", check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("execution context branch must equal", result.stderr)
+
+    def test_ready_rejects_codex_global_option_after_exec_subcommand(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"]["execInvocation"] = (
+                "codex exec --sandbox danger-full-access --ask-for-approval never "
+                f"-C /workspace/worktrees/{package.name} 'Execute the Work Unit'"
+            )
+            source = value_file(root, "invalid-exec-context.json", context)
+            run_cli("section-item-put", str(package), "execution-context", "--value-file", str(source))
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("must appear before the exec subcommand", rejected.stderr)
+
+            context["content"]["execInvocation"] = (
+                "codex --ask-for-approval never exec --sandbox danger-full-access "
+                f"-C /workspace/worktrees/{package.name} 'Execute the Work Unit'"
+            )
+            source = value_file(root, "valid-exec-context.json", context)
+            run_cli("section-item-put", str(package), "execution-context", "--value-file", str(source))
+            payload = json.loads(run_cli("transition", str(package), "ready").stdout)
+            self.assertEqual(payload["status"], "ready")
 
     def test_review_and_done_transitions_enforce_results_and_atomic_human_approval(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

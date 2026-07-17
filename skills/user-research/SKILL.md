@@ -35,6 +35,8 @@ observed behavior or generalize beyond the sampled people and situations.
    researcher influence, missing user groups, and contradictory evidence.
 6. Add each structured result to `evidence-and-findings` through the sibling
    Intake manager's `section-item-put` command with kind `user-evidence`.
+   This kind satisfies the Intake profile's `evidence` family without a
+   duplicate generic `evidence` item.
 7. Run the Intake manager's separate `validate` command immediately.
 8. Feed accepted evidence into its owning requirement, constraint, decision,
    success criterion, or Work Unit basis item. Route Human-only choices to

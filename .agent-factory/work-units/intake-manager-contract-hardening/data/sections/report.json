@@ -6,13 +6,21 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": null,
-        "remainingRisks": []
+        "status": "complete",
+        "summary": "Intake transaction과 lifecycle 경계, evidence family·specification resolution·section-wide id 계약을 강화했습니다. 재검토에서 발견된 TOCTOU symlink race는 동일 package descriptor 기반 작업과 공격적 회귀 테스트로 차단했고, 잘못된 Codex CLI 옵션 순서는 canonical 실행 컨텍스트와 readiness 검증으로 수정했습니다. stale inspect 재발 방지를 위해 report-before-inspect 및 두 번째 changed-path 확인을 실행 규칙으로 추가했습니다. 최종 74개 테스트, CLI parser smoke test, 두 schema check, diff check, Python compile이 모두 통과했습니다.",
+        "remainingRisks": [
+          "Human 최종 검토와 승인 또는 rework 결정이 남아 있습니다.",
+          "merge와 PR promotion은 별도 Human 결정이며 수행하지 않았습니다.",
+          "원격 repository가 구성되어 있지 않습니다."
+        ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/verification.json",
+          "blocks/evidence/ai-review.json",
+          "blocks/evidence/worktree-inspect.json"
+        ]
       }
     }
   ],

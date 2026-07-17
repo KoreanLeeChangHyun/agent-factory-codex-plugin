@@ -1,0 +1,42 @@
+{
+  "workUnitId": "intake-manager-contract-hardening",
+  "recordedAt": "2026-07-18T01:35:51+09:00",
+  "testDrivenDevelopment": {
+    "result": "pass",
+    "initialRegressionRun": "failed as expected before implementation",
+    "coveredContracts": [
+      "descriptor-anchored commit and recovery resist a parent symlink swap between check and use",
+      "commit and recovery reject pre-existing symlink escapes while preserving outside bytes",
+      "ready mutation and explicit draft transition invalidate semantic readiness",
+      "terminal Intake mutation rejects canonical byte changes",
+      "specialized evidence-kind family readiness",
+      "section-wide content item id uniqueness",
+      "explicit specification-impact resolution status",
+      "canonical interview decision and open-item summary kinds",
+      "shared Work Unit manager lifecycle isolation",
+      "Work Unit readiness rejects Codex global options placed after the exec subcommand"
+    ]
+  },
+  "commands": [
+    {"command": "python3 -m unittest discover -s skills/intake/tests -p 'test_*.py'", "exitCode": 0, "result": "pass", "testsRun": 31, "durationSeconds": 61.101},
+    {"command": "python3 -m unittest discover -s skills/work-unit-planner/tests -p 'test_*.py'", "exitCode": 0, "result": "pass", "testsRun": 14, "durationSeconds": 203.317},
+    {"command": "python3 -m unittest discover -s skills/lifecycle/tests -p 'test_*.py'", "exitCode": 0, "result": "pass", "testsRun": 9, "durationSeconds": 0.039},
+    {"command": "python3 -m unittest discover -s skills/work-unit-execution/tests -p 'test_*.py'", "exitCode": 0, "result": "pass", "testsRun": 20, "durationSeconds": 3.429},
+    {"command": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening --help", "exitCode": 0, "result": "pass", "purpose": "installed CLI parser smoke test for recorded global/subcommand option order"},
+    {"command": "python3 skills/intake/scripts/intake.py check-schemas", "exitCode": 0, "result": "pass", "schemaVersion": "2.0.0", "profile": "intake@2.0.0"},
+    {"command": "python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas", "exitCode": 0, "result": "pass", "schemaVersion": "4.0.0", "profile": "work-unit@4.0.0"},
+    {"command": "git diff --check", "exitCode": 0, "result": "pass"},
+    {"command": "python3 -m py_compile skills/intake/scripts/intake.py skills/intake/tests/test_intake_manager.py skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py", "exitCode": 0, "result": "pass"},
+    {"command": "python3 skills/work-unit-planner/assets/scripts/work_unit.py validate .agent-factory/work-units/intake-manager-contract-hardening --full", "exitCode": 0, "result": "pass", "status": "working", "validationMode": "full"}
+  ],
+  "finalEvidenceConsistency": {
+    "result": "pass",
+    "sequence": "reports updated -> inspect captured -> evidence registered -> inspect repeated",
+    "firstChangedPathCount": 28,
+    "secondChangedPathCount": 28,
+    "sameChangedPathSet": true,
+    "onlyFirst": [],
+    "onlySecond": []
+  },
+  "summary": {"testsRun": 74, "failures": 0, "errors": 0, "result": "pass"}
+}

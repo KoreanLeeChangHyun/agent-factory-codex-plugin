@@ -1,0 +1,26 @@
+{
+  "workUnitId": "intake-manager-contract-hardening",
+  "recordedAt": "2026-07-18T01:35:51+09:00",
+  "result": "pass",
+  "checklistResult": "pass",
+  "reviewAreas": [
+    "Intake basis traceability and recorded scope",
+    "descriptor-anchored commit, recovery, staging, backup, replace, delete, and cleanup boundaries",
+    "ready, draft, closed, and superseded lifecycle invariants",
+    "Work Unit shared-manager compatibility",
+    "evidence family and specification resolution profile semantics",
+    "section-wide anchor identity uniqueness",
+    "Codex execution command parser compatibility",
+    "final report and worktree evidence sequencing",
+    "regression coverage and verification evidence"
+  ],
+  "resolvedFindings": [
+    {"severity": "blocking", "finding": "Explicit ready-to-draft transition retained stale semantic readiness.", "resolution": "Added a failing regression test and reused atomic semantic readiness invalidation for the transition."},
+    {"severity": "blocking", "finding": "A symlinked .manager/transactions parent could redirect staging and backup state outside the package.", "resolution": "Added failing escape tests and moved package-relative transaction operations to no-follow directory descriptors."},
+    {"severity": "blocking", "finding": "A parent directory could be replaced by a symlink after path validation and before commit use.", "resolution": "Reproduced the race, added an adversarial between-check-and-use test, and anchored commit and recovery to the same package descriptor."},
+    {"severity": "blocking", "finding": "The canonical codex exec invocation placed --ask-for-approval after the exec subcommand and was rejected by the installed CLI.", "resolution": "Corrected the invocation, parser-smoke-tested it, and added Work Unit readiness validation plus regression coverage."},
+    {"severity": "process", "finding": "Worktree inspect evidence was captured before final report changes and became stale.", "resolution": "Made report-before-inspect and second-capture changed-path verification mandatory in the execution and agent rules."}
+  ],
+  "openFindings": [],
+  "blockingDefects": 0
+}

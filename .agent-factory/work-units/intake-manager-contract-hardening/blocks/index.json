@@ -1,3 +1,32 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/ai-review.json",
+      "mediaType": "application/json",
+      "description": "Final AI review findings and resolutions",
+      "sha256": "cb45bd0f5717101cbc76d470bb81ded103799759cfcb504095fb66e70059ee95",
+      "sizeBytes": 2153
+    },
+    {
+      "path": "blocks/evidence/verification.json",
+      "mediaType": "application/json",
+      "description": "Final regression, parser, schema, diff, compile, and evidence consistency verification",
+      "sha256": "d5cf82ca28b90417449864135e52dde42d6858c630a33b9d02643d1bd34e3350",
+      "sizeBytes": 3268
+    },
+    {
+      "path": "blocks/evidence/worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Canonical final worktree inspect result captured after report updates",
+      "sha256": "90958472d682e287c88d2c502ea594f01843f0486ff4000c1db53e8c77fe5598",
+      "sizeBytes": 2949
+    },
+    {
+      "path": "blocks/evidence/worktree-prepare.json",
+      "mediaType": "application/json",
+      "description": "Canonical worktree prepare command result",
+      "sha256": "4f97b905fb0b0cbbd2b9b0483ed7d01ea2d12125919de52be7bac5a9452410ca",
+      "sizeBytes": 1487
+    }
+  ]
 }

@@ -59,7 +59,12 @@ three-choice decision format.
   rationale, answer, and decision state in `evidence-and-findings` through the
   sibling Intake manager's `section-item-put` command with kind `interview`.
 - Record the accepted decision as a separate traceable item in
-  `decisions-and-open-items` through `section-item-put`.
+  `decisions-and-open-items` through `section-item-put` with kind `decision-status`.
+  Record the current blocking and non-blocking summary as
+  kind `open-items-status`; use `open-item` only for an individual unresolved
+  item with explicit blocking and resolved attributes.
+- An `interview` item satisfies the Intake profile's `evidence` family without
+  a duplicate generic `evidence` item.
 - Do not create a separate Markdown or JSON interview source of truth.
 - Keep each recorded decision traceable to its related requirement,
   specification-impact, or Work Unit basis item.

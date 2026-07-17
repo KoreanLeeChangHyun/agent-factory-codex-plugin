@@ -6,13 +6,17 @@
       "id": "AC-001",
       "kind": "acceptance-criterion",
       "content": [
-        "Outside-package writes through journal symlinks are rejected.",
+        "Outside-package writes through static journal symlinks are rejected.",
+        "A parent symlink swap between validation and transaction use is rejected without changing outside bytes.",
+        "Commit failure recovery remains anchored to the originally opened package directory.",
         "Ready mutation atomically returns Intake to draft and clears semantic readiness.",
         "Terminal mutation is rejected without byte changes.",
         "Specialized capability evidence satisfies the evidence family.",
         "Section-wide duplicate item ids are rejected.",
         "Specification resolution states are explicit and ready-validatable.",
-        "Decision item kinds are documented consistently."
+        "Decision item kinds are documented consistently.",
+        "Work Unit readiness rejects a Codex global option recorded after the exec subcommand.",
+        "Final inspect evidence is captured after reports and its changed-path set is rechecked."
       ],
       "sourceRefs": [
         {
@@ -31,10 +35,11 @@
       "kind": "definition-of-done",
       "content": [
         "Scoped code and skill contracts are updated.",
-        "New regression tests pass.",
+        "Reproduced defects have adversarial regression tests.",
         "All related existing tests pass.",
+        "Recorded execution commands pass the installed CLI parser.",
         "AI review finds no unresolved blocking defect.",
-        "Human review checklist and method are ready."
+        "Human review checklist and final-state evidence are ready."
       ]
     },
     {
@@ -42,12 +47,15 @@
       "kind": "test-criterion",
       "content": {
         "commands": [
-          "python3 -m unittest discover -s skills/intake/tests -v",
-          "python3 -m unittest discover -s skills/work-unit-planner/tests -v",
-          "python3 -m unittest discover -s skills/lifecycle/tests -v",
-          "python3 -m unittest discover -s skills/work-unit-execution/tests -v",
+          "python3 -m unittest discover -s skills/intake/tests -p 'test_*.py'",
+          "python3 -m unittest discover -s skills/work-unit-planner/tests -p 'test_*.py'",
+          "python3 -m unittest discover -s skills/lifecycle/tests -p 'test_*.py'",
+          "python3 -m unittest discover -s skills/work-unit-execution/tests -p 'test_*.py'",
+          "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening --help",
           "python3 skills/intake/scripts/intake.py check-schemas",
-          "python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas"
+          "python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas",
+          "git diff --check",
+          "python3 -m py_compile skills/intake/scripts/intake.py skills/intake/tests/test_intake_manager.py skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py"
         ]
       }
     },
@@ -56,15 +64,21 @@
       "kind": "quality-check",
       "content": {
         "checks": [
-          "Security regression",
+          "Static and adversarial TOCTOU security regression",
           "Lifecycle invariant regression",
           "Cross-skill contract consistency",
-          "Shared Work Unit manager compatibility"
-        ]
+          "Shared Work Unit manager compatibility",
+          "Installed CLI parser compatibility",
+          "Final evidence sequencing"
+        ],
+        "result": "모든 quality check와 관련 회귀 테스트가 통과했습니다."
       },
       "attributes": {
-        "status": "pending",
-        "evidence": []
+        "status": "pass",
+        "evidence": [
+          "blocks/evidence/verification.json",
+          "blocks/evidence/ai-review.json"
+        ]
       }
     }
   ],

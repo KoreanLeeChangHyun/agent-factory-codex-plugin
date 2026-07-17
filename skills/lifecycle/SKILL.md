@@ -162,6 +162,9 @@ Use these routes:
 - When the Human submits `/goal <work-unit-id>` or otherwise provides only a
   Work Unit id as the Goal objective, resolve the id to
   `<project-root>/.agent-factory/work-units/<work-unit-id>/` before planning.
+- A named Work Unit may also execute in a fresh `codex exec` session. Treat its
+  explicit Work Unit id and recorded execution context as the execution
+  identity; do not require persistent Goal mode for this route.
 - For named Work Unit Goal execution in this project, work in Korean for
   planning, progress updates, review summaries, reports, and other
   Human-readable communication. Keep commands, file paths, identifiers, code,

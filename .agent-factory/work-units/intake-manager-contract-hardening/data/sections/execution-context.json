@@ -8,14 +8,20 @@
       "content": {
         "goalId": "intake-manager-contract-hardening",
         "objective": "Execute the ready Work Unit in a fresh codex exec session without hidden chat context.",
-        "execInvocation": "codex exec --sandbox danger-full-access --ask-for-approval never -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening \"Execute the ready Agent Factory Work Unit intake-manager-contract-hardening. Read and validate the complete package, use the recorded branch and worktree, implement the scoped changes, run verification, perform AI review, and update the Work Unit report evidence.\"",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening \"Execute the ready Agent Factory Work Unit intake-manager-contract-hardening. Read and validate the complete package, use the recorded branch and worktree, implement the scoped changes, run verification, perform AI review, and update the Work Unit report evidence.\"",
         "executionAgent": "Codex",
         "repository": "/home/deus/workspace/agent-factory/codex-plugins",
         "baseRef": "main",
         "branch": "work-unit/intake-manager-contract-hardening",
         "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening",
-        "setupState": "pending",
-        "cleanupState": "not-requested"
+        "setupState": "prepared",
+        "cleanupState": "not-requested",
+        "baseCommit": "3b4ed411716c9d6445b9eaa41b889bdb02d1ad9c"
+      },
+      "attributes": {
+        "evidence": [
+          "blocks/evidence/worktree-prepare.json"
+        ]
       }
     }
   ],

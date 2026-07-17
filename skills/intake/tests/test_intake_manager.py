@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -65,6 +66,77 @@ def item(item_id: str, kind: str, content: object, **attributes: object) -> dict
     if attributes:
         value["attributes"] = attributes
     return value
+
+
+def load_manager() -> object:
+    spec = importlib.util.spec_from_file_location("intake_manager_under_test", SCRIPT)
+    if spec is None or spec.loader is None:
+        raise AssertionError(f"cannot load Intake manager: {SCRIPT}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def populate_ready_intake(
+    root: Path,
+    package: Path,
+    *,
+    evidence_kind: str = "evidence",
+    specification_status: str = "aligned",
+) -> None:
+    required_items = {
+        "request-and-goal": [
+            item("REQUEST-001", "human-request", "Intake 고도화"),
+            item("OUTCOME-001", "desired-outcome", "실행 가능한 Work Unit basis"),
+            item("SUCCESS-001", "success-criterion", "검증 통과"),
+        ],
+        "context-and-scope": [
+            item("CONTEXT-001", "context", "현재 Intake v2"),
+            item("SCOPE-001", "scope", "Intake manager"),
+            item("OUT-001", "out-of-scope", "기존 데이터 migration"),
+        ],
+        "stakeholders-and-approval": [
+            item("STAKEHOLDER-001", "stakeholder", "Human"),
+            item("OWNER-001", "decision-owner", "Human"),
+            item("APPROVAL-001", "approval-boundary", "Human Review"),
+        ],
+        "evidence-and-findings": [item("EVIDENCE-001", evidence_kind, "검증 근거")],
+        "requirements-and-constraints": [
+            item("REQUIREMENT-001", "requirement", "필수 섹션 검증"),
+            item("AC-001", "acceptance-criterion", "누락 시 거부"),
+        ],
+        "decisions-and-open-items": [
+            item("DECISION-001", "decision-status", "결정 완료"),
+            item("OPEN-STATUS-001", "open-items-status", "차단 항목 없음"),
+        ],
+        "work-unit-basis": [
+            item(
+                "SPEC-001",
+                "specification-impact",
+                {"status": specification_status},
+                status=specification_status,
+            ),
+            item("BASIS-001", "work-unit-basis", "manager 구현"),
+        ],
+    }
+    for section_id, items in required_items.items():
+        source = value_file(root, f"{section_id}.json", items)
+        run_cli("section-items-put", str(package), section_id, "--value-file", str(source))
+    readiness = value_file(
+        root,
+        "readiness.json",
+        {
+            "contractValid": False,
+            "evidenceComplete": True,
+            "requirementsComplete": True,
+            "specificationConsistent": True,
+            "executionReady": True,
+            "reviewedAt": "2026-07-16T00:00:00+00:00",
+            "findings": [],
+        },
+    )
+    run_cli("metadata-set", str(package), "readiness", "--value-file", str(readiness))
+    run_cli("transition", str(package), "validating")
 
 
 class IntakeManagerTests(unittest.TestCase):
@@ -160,6 +232,114 @@ class IntakeManagerTests(unittest.TestCase):
             self.assertEqual(title_path.read_bytes(), original)
             self.assertFalse(journal_path.exists())
             self.assertFalse(transaction_root.exists())
+
+    def test_commit_rejects_symlinked_parent_escape(self) -> None:
+        manager = load_manager()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            outside = root / "outside"
+            outside.mkdir()
+            escaped = outside / "escaped.json"
+            escaped.write_text("preserve", encoding="utf-8")
+            (package / "data" / "redirect").symlink_to(outside, target_is_directory=True)
+
+            with self.assertRaises(manager.ManagerError):
+                manager.commit_transaction(
+                    package,
+                    json_writes={package / "data" / "redirect" / "escaped.json": {"changed": True}},
+                )
+
+            self.assertEqual(escaped.read_text(encoding="utf-8"), "preserve")
+
+    def test_commit_rejects_symlinked_transaction_state_root(self) -> None:
+        manager = load_manager()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            outside = root / "outside-transactions"
+            outside.mkdir()
+            manager_root = package / ".manager"
+            manager_root.mkdir()
+            (manager_root / "transactions").symlink_to(outside, target_is_directory=True)
+            title = package / "data" / "title.json"
+            before = title.read_bytes()
+
+            with self.assertRaises(manager.ManagerError):
+                manager.commit_transaction(package, json_writes={title: {"title": "blocked"}})
+
+            self.assertEqual(title.read_bytes(), before)
+            self.assertEqual(list(outside.iterdir()), [])
+
+    def test_commit_resists_parent_symlink_swap_between_check_and_use(self) -> None:
+        manager = load_manager()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            redirect = package / "data" / "redirect"
+            redirect.mkdir()
+            target = redirect / "escaped.json"
+            target.write_text("inside", encoding="utf-8")
+            outside = root / "outside-race"
+            outside.mkdir()
+            escaped = outside / "escaped.json"
+            escaped.write_text("outside-preserve", encoding="utf-8")
+            original_check = manager.checked_package_target
+            swapped = False
+
+            def racing_check(package_path: Path, candidate: Path, label: str) -> Path:
+                nonlocal swapped
+                relative = original_check(package_path, candidate, label)
+                if candidate == target and label == "transaction target" and not swapped:
+                    redirect.rename(package / "data" / "redirect-original")
+                    redirect.symlink_to(outside, target_is_directory=True)
+                    swapped = True
+                return relative
+
+            manager.checked_package_target = racing_check
+            try:
+                with self.assertRaises(manager.ManagerError):
+                    manager.commit_transaction(package, json_writes={target: {"changed": True}})
+            finally:
+                manager.checked_package_target = original_check
+
+            self.assertTrue(swapped)
+            self.assertEqual(escaped.read_text(encoding="utf-8"), "outside-preserve")
+
+    def test_recovery_rejects_symlinked_parent_escape_and_preserves_outside_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            outside = root / "outside"
+            outside.mkdir()
+            escaped = outside / "escaped.json"
+            escaped.write_text("preserve", encoding="utf-8")
+            (package / "data" / "redirect").symlink_to(outside, target_is_directory=True)
+            transaction_root = package / ".manager" / "transactions" / "interrupted"
+            backup = transaction_root / "backup" / "0.old"
+            backup.parent.mkdir(parents=True)
+            backup.write_text("overwritten", encoding="utf-8")
+            journal = {
+                "version": 1,
+                "id": "interrupted",
+                "entries": [
+                    {
+                        "path": "data/redirect/escaped.json",
+                        "existed": True,
+                        "backup": "backup/0.old",
+                        "stage": "stage/0.new",
+                    }
+                ],
+            }
+            journal_path = package / ".manager" / "transaction.json"
+            journal_path.parent.mkdir(exist_ok=True)
+            journal_path.write_text(json.dumps(journal), encoding="utf-8")
+
+            result = run_cli("validate", str(package), check=False)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("transaction target", result.stderr)
+            self.assertEqual(escaped.read_text(encoding="utf-8"), "preserve")
 
     def test_section_items_put_batches_large_updates_in_one_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -262,6 +442,19 @@ class IntakeManagerTests(unittest.TestCase):
             result = run_cli("section-put", str(package), "--value-file", str(source), check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("section and subsection ids must be unique", result.stderr)
+
+            section["subsections"] = [
+                {
+                    "id": "request-details",
+                    "title": "Request details",
+                    "content": [item("CROSS-CONTAINER", "desired-outcome", "subsection")],
+                }
+            ]
+            section["content"] = [item("CROSS-CONTAINER", "human-request", "section")]
+            source = value_file(root, "cross-container-duplicates.json", section)
+            result = run_cli("section-put", str(package), "--value-file", str(source), check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("unique across top-level section", result.stderr)
 
     def test_metadata_semantic_failure_preserves_canonical_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -455,7 +648,12 @@ class IntakeManagerTests(unittest.TestCase):
                     item("OPEN-STATUS-001", "open-items-status", "차단 항목 없음"),
                 ],
                 "work-unit-basis": [
-                    item("SPEC-001", "specification-impact", "관련 명세 정합성 확인"),
+                    item(
+                        "SPEC-001",
+                        "specification-impact",
+                        {"status": "aligned"},
+                        status="aligned",
+                    ),
                     item("BASIS-001", "work-unit-basis", "manager 구현"),
                 ],
             }
@@ -482,6 +680,115 @@ class IntakeManagerTests(unittest.TestCase):
             self.assertEqual(payload["status"], "ready")
             metadata = json.loads((package / "data" / "metadata.json").read_text())
             self.assertTrue(metadata["readiness"]["contractValid"])
+
+    def test_specialized_evidence_kinds_satisfy_ready_evidence_family(self) -> None:
+        for evidence_kind in ("web-evidence", "internal-evidence", "user-evidence", "interview"):
+            with self.subTest(evidence_kind=evidence_kind), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                package = create_package(root)
+                populate_ready_intake(root, package, evidence_kind=evidence_kind)
+                payload = json.loads(run_cli("transition", str(package), "ready").stdout)
+                self.assertEqual(payload["status"], "ready")
+
+    def test_ready_requires_explicit_specification_resolution_status(self) -> None:
+        accepted = ("aligned", "not-applicable", "gap-accepted-for-work-unit")
+        for status in accepted:
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                package = create_package(root)
+                populate_ready_intake(root, package, specification_status=status)
+                self.assertEqual(
+                    json.loads(run_cli("transition", str(package), "ready").stdout)["status"],
+                    "ready",
+                )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            populate_ready_intake(root, package, specification_status="pending")
+            result = run_cli("transition", str(package), "ready", check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("specification-impact status", result.stderr)
+
+    def test_ready_mutation_reopens_draft_and_invalidates_semantic_readiness(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            populate_ready_intake(root, package)
+            run_cli("transition", str(package), "ready")
+
+            run_cli("title-set", str(package), "변경된 Intake")
+
+            metadata = json.loads((package / "data" / "metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(metadata["lifecycle"]["status"], "draft")
+            self.assertTrue(metadata["readiness"]["contractValid"])
+            for field in (
+                "evidenceComplete",
+                "requirementsComplete",
+                "specificationConsistent",
+                "executionReady",
+            ):
+                self.assertFalse(metadata["readiness"][field])
+            self.assertIsNone(metadata["readiness"]["reviewedAt"])
+
+    def test_explicit_ready_to_draft_transition_invalidates_semantic_readiness(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            populate_ready_intake(root, package)
+            run_cli("transition", str(package), "ready")
+
+            run_cli("transition", str(package), "draft")
+
+            metadata = json.loads((package / "data" / "metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(metadata["lifecycle"]["status"], "draft")
+            self.assertTrue(metadata["readiness"]["contractValid"])
+            self.assertFalse(metadata["readiness"]["evidenceComplete"])
+            self.assertFalse(metadata["readiness"]["requirementsComplete"])
+            self.assertFalse(metadata["readiness"]["specificationConsistent"])
+            self.assertFalse(metadata["readiness"]["executionReady"])
+            self.assertIsNone(metadata["readiness"]["reviewedAt"])
+
+    def test_terminal_mutation_is_rejected_without_canonical_byte_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            evidence = root / "disposition.json"
+            evidence.write_text('{"decision":"close"}', encoding="utf-8")
+            disposition = {
+                "id": "DISPOSITION-001",
+                "kind": "disposition",
+                "content": "Historical work is complete",
+                "attributes": {"targetStatus": "closed"},
+                "sourceRefs": [
+                    {
+                        "artifactType": "decision-record",
+                        "id": "close-decision",
+                        "path": "disposition.json",
+                    }
+                ],
+            }
+            source = value_file(root, "closed-disposition.json", disposition)
+            run_cli("section-item-put", str(package), "decisions-and-open-items", "--value-file", str(source))
+            run_cli("transition", str(package), "closed")
+            canonical = {
+                path.relative_to(package): path.read_bytes()
+                for path in package.rglob("*")
+                if path.is_file() and ".manager" not in path.parts
+            }
+
+            result = run_cli("title-set", str(package), "변경 금지", check=False)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("terminal Intake", result.stderr)
+            self.assertEqual(
+                canonical,
+                {
+                    path.relative_to(package): path.read_bytes()
+                    for path in package.rglob("*")
+                    if path.is_file() and ".manager" not in path.parts
+                },
+            )
 
     def test_blocked_transition_requires_unresolved_blocking_item(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -551,6 +858,12 @@ class IntakeManagerTests(unittest.TestCase):
         self.assertIn("request-and-goal", structure)
         self.assertIn("Use `intake` for every Intake package", lifecycle)
         self.assertIn("Use `user-research`", lifecycle)
+        self.assertIn("kind `decision-status`", (skills_root / "interview" / "SKILL.md").read_text())
+        self.assertIn("kind `open-items-status`", (skills_root / "interview" / "SKILL.md").read_text())
+        execution_skill = (skills_root / "work-unit-execution" / "SKILL.md").read_text()
+        normalized_execution_skill = " ".join(execution_skill.split())
+        self.assertIn("codex --ask-for-approval <policy> exec", normalized_execution_skill)
+        self.assertIn("reported changed-path set", normalized_execution_skill)
 
     def test_intake_capability_routing_is_bidirectional(self) -> None:
         skills_root = SKILL_ROOT.parent

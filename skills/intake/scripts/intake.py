@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import sys
 import tempfile
 import time
@@ -55,6 +56,8 @@ PROTECTED_METADATA_FIELDS = {
     "updatedAt",
 }
 STYLE_KEYS = {"style", "styles", "css", "stylevars", "stylevariables"}
+DIRECTORY_OPEN_FLAGS = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
+FILE_OPEN_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
 
 
 class ManagerError(RuntimeError):
@@ -118,6 +121,31 @@ def validate_schemas() -> dict[str, dict[str, Any]]:
     optional_ids = [entry["id"] for entry in current_profile.get("optionalSections", [])]
     if set(required_ids) & set(optional_ids) or len(optional_ids) != len(set(optional_ids)):
         raise ManagerError("Intake profile optional section ids must be unique and disjoint")
+    families = current_profile.get("kindFamilies", {})
+    if not isinstance(families, dict) or any(
+        not isinstance(name, str)
+        or not name
+        or not isinstance(members, list)
+        or not members
+        or len(members) != len(set(members))
+        or not all(isinstance(member, str) and member for member in members)
+        for name, members in families.items()
+    ):
+        raise ManagerError("Intake profile kind families must contain unique non-empty kind names")
+    attribute_contracts = current_profile.get("kindAttributeContracts", {})
+    if not isinstance(attribute_contracts, dict) or any(
+        not isinstance(kind, str)
+        or not isinstance(contract, dict)
+        or set(contract) != {"attribute", "allowedValues"}
+        or not isinstance(contract["attribute"], str)
+        or not contract["attribute"]
+        or not isinstance(contract["allowedValues"], list)
+        or not contract["allowedValues"]
+        or len(contract["allowedValues"]) != len(set(contract["allowedValues"]))
+        or not all(isinstance(value, str) and value for value in contract["allowedValues"])
+        for kind, contract in attribute_contracts.items()
+    ):
+        raise ManagerError("Intake profile kind attribute contracts are invalid")
     return contracts
 
 
@@ -164,6 +192,208 @@ def safe_relative_path(value: str, label: str) -> Path:
     if candidate.is_absolute() or not candidate.parts or ".." in candidate.parts:
         raise ManagerError(f"{label} must be a safe relative path: {value}")
     return candidate
+
+
+def checked_package_target(package: Path, target: Path, label: str) -> Path:
+    try:
+        relative = target.relative_to(package)
+    except ValueError as error:
+        raise ManagerError(f"{label} escapes canonical package: {target}") from error
+    try:
+        target.resolve(strict=False).relative_to(package.resolve())
+    except ValueError as error:
+        raise ManagerError(f"{label} escapes canonical package through a symlink: {relative}") from error
+    for component in target.parents:
+        if component == package:
+            break
+        if component.is_symlink():
+            raise ManagerError(f"{label} parent must not be a symlink: {component}")
+    if target.is_symlink():
+        raise ManagerError(f"{label} must not be a symlink: {relative}")
+    return relative
+
+
+@contextmanager
+def package_descriptor(package: Path) -> Iterable[int]:
+    try:
+        descriptor = os.open(package, DIRECTORY_OPEN_FLAGS)
+    except OSError as error:
+        raise ManagerError(f"cannot securely open canonical package: {package}: {error}") from error
+    try:
+        yield descriptor
+    finally:
+        os.close(descriptor)
+
+
+@contextmanager
+def relative_parent_descriptor(
+    package_fd: int,
+    relative: Path,
+    *,
+    create: bool = False,
+) -> Iterable[tuple[int, str]]:
+    safe = safe_relative_path(relative.as_posix(), "package-relative file")
+    descriptor = os.dup(package_fd)
+    try:
+        for component in safe.parts[:-1]:
+            if create:
+                try:
+                    os.mkdir(component, mode=0o700, dir_fd=descriptor)
+                except FileExistsError:
+                    pass
+            try:
+                child = os.open(component, DIRECTORY_OPEN_FLAGS, dir_fd=descriptor)
+            except OSError as error:
+                raise ManagerError(
+                    f"cannot securely traverse package-relative parent {safe.parent}: {error}"
+                ) from error
+            os.close(descriptor)
+            descriptor = child
+        yield descriptor, safe.name
+    finally:
+        os.close(descriptor)
+
+
+def relative_file_exists(package_fd: int, relative: Path) -> bool:
+    try:
+        with relative_parent_descriptor(package_fd, relative) as (parent_fd, name):
+            try:
+                details = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            except FileNotFoundError:
+                return False
+            if not stat.S_ISREG(details.st_mode):
+                raise ManagerError(f"package-relative target must be a regular file: {relative}")
+            return True
+    except ManagerError as error:
+        if isinstance(error.__cause__, FileNotFoundError):
+            return False
+        raise
+
+
+def write_bytes_relative(package_fd: int, relative: Path, content: bytes) -> None:
+    with relative_parent_descriptor(package_fd, relative, create=True) as (parent_fd, name):
+        temporary_name = f".{name}.{uuid.uuid4().hex}.tmp"
+        descriptor = -1
+        try:
+            descriptor = os.open(
+                temporary_name,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+                0o600,
+                dir_fd=parent_fd,
+            )
+            with os.fdopen(descriptor, "wb") as handle:
+                descriptor = -1
+                handle.write(content)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary_name, name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
+            try:
+                os.unlink(temporary_name, dir_fd=parent_fd)
+            except FileNotFoundError:
+                pass
+
+
+def write_json_relative(package_fd: int, relative: Path, value: Any) -> None:
+    content = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False).encode("utf-8") + b"\n"
+    write_bytes_relative(package_fd, relative, content)
+
+
+def copy_relative_file(package_fd: int, source: Path, target: Path) -> None:
+    with relative_parent_descriptor(package_fd, source) as (source_parent_fd, source_name):
+        try:
+            source_fd = os.open(source_name, FILE_OPEN_FLAGS, dir_fd=source_parent_fd)
+        except OSError as error:
+            raise ManagerError(f"cannot securely open package-relative file {source}: {error}") from error
+        try:
+            if not stat.S_ISREG(os.fstat(source_fd).st_mode):
+                raise ManagerError(f"package-relative source must be a regular file: {source}")
+            chunks: list[bytes] = []
+            while chunk := os.read(source_fd, 1024 * 1024):
+                chunks.append(chunk)
+        finally:
+            os.close(source_fd)
+    write_bytes_relative(package_fd, target, b"".join(chunks))
+
+
+def copy_external_file_relative(package_fd: int, source: Path, target: Path) -> None:
+    try:
+        content = source.read_bytes()
+    except OSError as error:
+        raise ManagerError(f"cannot read transaction input file {source}: {error}") from error
+    write_bytes_relative(package_fd, target, content)
+
+
+def replace_relative_file(package_fd: int, source: Path, target: Path) -> None:
+    with relative_parent_descriptor(package_fd, source) as (source_parent_fd, source_name):
+        try:
+            details = os.stat(source_name, dir_fd=source_parent_fd, follow_symlinks=False)
+        except OSError as error:
+            raise ManagerError(f"cannot inspect staged file {source}: {error}") from error
+        if not stat.S_ISREG(details.st_mode):
+            raise ManagerError(f"staged source must be a regular file: {source}")
+        with relative_parent_descriptor(package_fd, target, create=True) as (target_parent_fd, target_name):
+            os.replace(
+                source_name,
+                target_name,
+                src_dir_fd=source_parent_fd,
+                dst_dir_fd=target_parent_fd,
+            )
+
+
+def unlink_relative(package_fd: int, relative: Path) -> None:
+    with relative_parent_descriptor(package_fd, relative) as (parent_fd, name):
+        try:
+            os.unlink(name, dir_fd=parent_fd)
+        except FileNotFoundError:
+            pass
+
+
+def load_object_relative(package_fd: int, relative: Path, label: str) -> dict[str, Any]:
+    with relative_parent_descriptor(package_fd, relative) as (parent_fd, name):
+        try:
+            descriptor = os.open(name, FILE_OPEN_FLAGS, dir_fd=parent_fd)
+        except OSError as error:
+            raise ManagerError(f"cannot securely open {label}: {relative}: {error}") from error
+        try:
+            with os.fdopen(descriptor, "r", encoding="utf-8") as handle:
+                value = json.load(handle, parse_constant=reject_constant)
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            raise ManagerError(f"cannot read strict JSON from {relative}: {error}") from error
+    if not isinstance(value, dict):
+        raise ManagerError(f"{label} must be a JSON object: {relative}")
+    return value
+
+
+def remove_tree_relative(package_fd: int, relative: Path) -> None:
+    def remove_child(parent_fd: int, name: str) -> None:
+        try:
+            child_fd = os.open(name, DIRECTORY_OPEN_FLAGS, dir_fd=parent_fd)
+        except FileNotFoundError:
+            return
+        except OSError:
+            os.unlink(name, dir_fd=parent_fd)
+            return
+        try:
+            with os.scandir(child_fd) as entries:
+                for entry in entries:
+                    if entry.is_dir(follow_symlinks=False):
+                        remove_child(child_fd, entry.name)
+                    else:
+                        os.unlink(entry.name, dir_fd=child_fd)
+        finally:
+            os.close(child_fd)
+        os.rmdir(name, dir_fd=parent_fd)
+
+    try:
+        with relative_parent_descriptor(package_fd, relative) as (parent_fd, name):
+            remove_child(parent_fd, name)
+    except ManagerError as error:
+        if isinstance(error.__cause__, FileNotFoundError):
+            return
+        raise
 
 
 def section_path(package: Path, section_id: str) -> Path:
@@ -244,40 +474,42 @@ def package_lock(package: Path, timeout: float = 10.0) -> Iterable[None]:
             fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
-def recover_transaction(package: Path) -> None:
-    journal_path = package / JOURNAL_PATH
-    manager_root = package / MANAGER_PATH
-    if manager_root.is_symlink():
-        raise ManagerError(f"manager state directory must not be a symlink: {manager_root}")
-    if not journal_path.exists():
-        shutil.rmtree(manager_root / "transactions", ignore_errors=True)
+def recover_transaction_with_descriptor(package_fd: int) -> None:
+    if not relative_file_exists(package_fd, JOURNAL_PATH):
+        remove_tree_relative(package_fd, MANAGER_PATH / "transactions")
         return
-    journal = load_object(journal_path, "transaction journal")
+    journal = load_object_relative(package_fd, JOURNAL_PATH, "transaction journal")
     if set(journal) != {"version", "id", "entries"} or journal["version"] != 1:
         raise ManagerError("transaction journal has an unsupported shape or version")
     if not isinstance(journal["id"], str) or not journal["id"].isalnum():
         raise ManagerError("transaction journal id is invalid")
     if not isinstance(journal["entries"], list):
         raise ManagerError("transaction journal entries must be an array")
-    transaction_root = package / MANAGER_PATH / "transactions" / journal["id"]
+    transaction_relative = MANAGER_PATH / "transactions" / journal["id"]
     for entry in journal["entries"]:
         if not isinstance(entry, dict) or set(entry) != {"path", "existed", "backup", "stage"}:
             raise ManagerError("transaction journal entry has an unsupported shape")
         if not isinstance(entry["existed"], bool):
             raise ManagerError("transaction journal existed flag must be boolean")
         relative = safe_relative_path(entry["path"], "transaction target")
-        target = package / relative
-        if entry["existed"]:
-            backup_relative = safe_relative_path(entry["backup"], "transaction backup")
-            if backup_relative.parts[0] != "backup":
-                raise ManagerError("transaction backup must remain under backup/")
-            backup = transaction_root / backup_relative
-            assert_plain_path(backup, "file")
-            copy_file_atomically(backup, target)
-        else:
-            target.unlink(missing_ok=True)
-    journal_path.unlink(missing_ok=True)
-    shutil.rmtree(transaction_root, ignore_errors=True)
+        try:
+            if entry["existed"]:
+                relative_file_exists(package_fd, relative)
+                backup_relative = safe_relative_path(entry["backup"], "transaction backup")
+                if backup_relative.parts[0] != "backup":
+                    raise ManagerError("transaction backup must remain under backup/")
+                copy_relative_file(package_fd, transaction_relative / backup_relative, relative)
+            else:
+                unlink_relative(package_fd, relative)
+        except ManagerError as error:
+            raise ManagerError(f"cannot securely recover transaction target {relative}: {error}") from error
+    unlink_relative(package_fd, JOURNAL_PATH)
+    remove_tree_relative(package_fd, transaction_relative)
+
+
+def recover_transaction(package: Path) -> None:
+    with package_descriptor(package) as package_fd:
+        recover_transaction_with_descriptor(package_fd)
 
 
 def commit_transaction(
@@ -291,61 +523,57 @@ def commit_transaction(
     json_writes = json_writes or {}
     file_writes = file_writes or {}
     deletes = list(deletes)
-    manager_root = package / MANAGER_PATH
-    if manager_root.is_symlink():
-        raise ManagerError(f"manager state directory must not be a symlink: {manager_root}")
     transaction_id = uuid.uuid4().hex
-    transaction_root = package / MANAGER_PATH / "transactions" / transaction_id
-    stage_root = transaction_root / "stage"
-    backup_root = transaction_root / "backup"
+    transaction_relative = MANAGER_PATH / "transactions" / transaction_id
+    checked_package_target(package, package / transaction_relative, "transaction state")
+    stage_root = transaction_relative / "stage"
+    backup_root = transaction_relative / "backup"
     entries: list[dict[str, Any]] = []
     targets = list(json_writes) + list(file_writes) + list(deletes)
     if len(targets) != len(set(targets)):
         raise ManagerError("transaction target paths must be unique")
-    try:
-        for index, target in enumerate(targets):
-            try:
-                relative = target.relative_to(package)
-            except ValueError as error:
-                raise ManagerError(f"transaction target escapes Intake package: {target}") from error
-            stage_name = f"{index}.new"
-            backup_name = f"{index}.old"
-            existed = target.exists()
-            if target.is_symlink():
-                raise ManagerError(f"transaction target must not be a symlink: {relative}")
-            if existed:
-                copy_file_atomically(target, backup_root / backup_name)
-            if target in json_writes:
-                stage = stage_root / stage_name
-                write_json_atomically(stage, json_writes[target])
-            elif target in file_writes:
-                copy_file_atomically(file_writes[target], stage_root / stage_name)
-            entries.append(
-                {
-                    "path": relative.as_posix(),
-                    "existed": existed,
-                    "backup": f"backup/{backup_name}",
-                    "stage": None if target in deletes else f"stage/{stage_name}",
-                }
-            )
-        journal = {"version": 1, "id": transaction_id, "entries": entries}
-        write_json_atomically(package / JOURNAL_PATH, journal)
-        for entry in entries:
-            target = package / entry["path"]
-            if entry["stage"] is None:
-                target.unlink(missing_ok=True)
+    with package_descriptor(package) as package_fd:
+        try:
+            for index, target in enumerate(targets):
+                relative = checked_package_target(package, target, "transaction target")
+                stage_name = f"{index}.new"
+                backup_name = f"{index}.old"
+                existed = relative_file_exists(package_fd, relative)
+                if existed:
+                    copy_relative_file(package_fd, relative, backup_root / backup_name)
+                if target in json_writes:
+                    write_json_relative(package_fd, stage_root / stage_name, json_writes[target])
+                elif target in file_writes:
+                    copy_external_file_relative(package_fd, file_writes[target], stage_root / stage_name)
+                entries.append(
+                    {
+                        "path": relative.as_posix(),
+                        "existed": existed,
+                        "backup": f"backup/{backup_name}",
+                        "stage": None if target in deletes else f"stage/{stage_name}",
+                    }
+                )
+            journal = {"version": 1, "id": transaction_id, "entries": entries}
+            write_json_relative(package_fd, JOURNAL_PATH, journal)
+            for entry in entries:
+                target_relative = Path(entry["path"])
+                if entry["stage"] is None:
+                    unlink_relative(package_fd, target_relative)
+                else:
+                    replace_relative_file(
+                        package_fd,
+                        transaction_relative / entry["stage"],
+                        target_relative,
+                    )
+            validate_package(package, full=full_validation)
+        except Exception:
+            if relative_file_exists(package_fd, JOURNAL_PATH):
+                recover_transaction_with_descriptor(package_fd)
             else:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                os.replace(transaction_root / entry["stage"], target)
-        validate_package(package, full=full_validation)
-    except Exception:
-        if (package / JOURNAL_PATH).exists():
-            recover_transaction(package)
-        else:
-            shutil.rmtree(transaction_root, ignore_errors=True)
-        raise
-    (package / JOURNAL_PATH).unlink(missing_ok=True)
-    shutil.rmtree(transaction_root, ignore_errors=True)
+                remove_tree_relative(package_fd, transaction_relative)
+            raise
+        unlink_relative(package_fd, JOURNAL_PATH)
+        remove_tree_relative(package_fd, transaction_relative)
 
 
 def file_sha256(path: Path) -> str:
@@ -365,9 +593,34 @@ def updated_metadata(package: Path) -> dict[str, Any]:
     metadata = load_metadata(package)
     metadata["documentVersion"] = next_document_version(metadata["documentVersion"])
     metadata["updatedAt"] = now()
+    apply_mutation_lifecycle(metadata)
     metadata["readiness"]["contractValid"] = True
     validate_instance("metadata", metadata)
     return metadata
+
+
+def apply_mutation_lifecycle(metadata: dict[str, Any]) -> None:
+    if metadata.get("artifactType") != "intake":
+        return
+    status = metadata["lifecycle"]["status"]
+    if status in {"closed", "superseded"}:
+        raise ManagerError(f"terminal Intake does not allow mutation: {status}")
+    if status != "ready":
+        return
+    metadata["lifecycle"]["status"] = "draft"
+    invalidate_semantic_readiness(metadata)
+
+
+def invalidate_semantic_readiness(metadata: dict[str, Any]) -> None:
+    readiness = metadata["readiness"]
+    for field in (
+        "evidenceComplete",
+        "requirementsComplete",
+        "specificationConsistent",
+        "executionReady",
+    ):
+        readiness[field] = False
+    readiness["reviewedAt"] = None
 
 
 def reject_actual_style(value: Any, location: str = "content") -> None:
@@ -441,6 +694,14 @@ def summarize_section(section: dict[str, Any]) -> dict[str, Any]:
     typed_refs: list[dict[str, Any]] = []
     block_refs: list[str] = []
     dispositions: list[dict[str, Any]] = []
+    kind_attributes: dict[str, list[dict[str, Any]]] = {}
+    section_item_ids = [
+        entry["id"]
+        for container in [section, *section["subsections"]]
+        for entry in container["content"]
+    ]
+    if len(section_item_ids) != len(set(section_item_ids)):
+        raise ManagerError(f"content item ids must be unique across top-level section {section['id']}")
     for container in [section, *section["subsections"]]:
         item_ids = [entry["id"] for entry in container["content"]]
         if len(item_ids) != len(set(item_ids)):
@@ -453,6 +714,7 @@ def summarize_section(section: dict[str, Any]) -> dict[str, Any]:
             if "blockRef" in content_item:
                 block_refs.append(content_item["blockRef"])
             attributes = content_item.get("attributes", {})
+            kind_attributes.setdefault(content_item["kind"], []).append(attributes)
             if content_item["kind"] == "disposition":
                 dispositions.append(
                     {
@@ -474,6 +736,7 @@ def summarize_section(section: dict[str, Any]) -> dict[str, Any]:
         "typedRefs": typed_refs,
         "blockRefs": block_refs,
         "dispositions": dispositions,
+        "kindAttributes": kind_attributes,
     }
 
 
@@ -614,11 +877,26 @@ def validate_profile(metadata: dict[str, Any], summaries: list[dict[str, Any]]) 
     by_id = {summary["id"]: summary for summary in summaries}
     for section_rule in profile()["requiredSections"]:
         kinds = by_id[section_rule["id"]]["kinds"]
-        missing = [kind for kind in section_rule["requiredKinds"] if kind not in kinds]
+        families = profile().get("kindFamilies", {})
+        missing = [
+            kind
+            for kind in section_rule["requiredKinds"]
+            if kind not in kinds and not (set(families.get(kind, [])) & kinds)
+        ]
         if missing:
             raise ManagerError(
                 f"ready Intake section {section_rule['id']} is missing required content kinds: {', '.join(missing)}"
             )
+    for kind, contract in profile().get("kindAttributeContracts", {}).items():
+        values = [
+            attributes.get(contract["attribute"])
+            for summary in summaries
+            for attributes in summary["kindAttributes"].get(kind, [])
+        ]
+        invalid = [value for value in values if value not in contract["allowedValues"]]
+        if not values or invalid:
+            rendered = ", ".join(repr(value) for value in invalid) if invalid else "missing"
+            raise ManagerError(f"ready Intake {kind} status is invalid: {rendered}")
     pending_interviews = [item_id for summary in summaries for item_id in summary["pendingInterviews"]]
     if pending_interviews:
         raise ManagerError(f"ready Intake contains pending interviews: {', '.join(pending_interviews)}")
@@ -844,6 +1122,7 @@ def command_metadata_set(args: argparse.Namespace) -> None:
     candidate[args.field] = replacement_value(args)
     candidate["documentVersion"] = next_document_version(candidate["documentVersion"])
     candidate["updatedAt"] = now()
+    apply_mutation_lifecycle(candidate)
     candidate["readiness"]["contractValid"] = True
     validate_instance("metadata", candidate)
     summaries = summarize_sections(package, load_toc(package))
@@ -1011,6 +1290,8 @@ def command_transition(args: argparse.Namespace) -> None:
     if args.status not in allowed:
         raise ManagerError(f"invalid Intake transition: {current} -> {args.status}")
     metadata["lifecycle"]["status"] = args.status
+    if current == "ready" and args.status == "draft":
+        invalidate_semantic_readiness(metadata)
     metadata["documentVersion"] = next_document_version(metadata["documentVersion"])
     metadata["updatedAt"] = now()
     metadata["readiness"]["contractValid"] = True

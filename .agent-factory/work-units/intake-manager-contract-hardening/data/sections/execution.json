@@ -6,13 +6,40 @@
       "id": "EXECUTION-RESULT-001",
       "kind": "execution-result",
       "content": {
-        "status": "pending",
-        "changedArtifacts": [],
-        "commands": []
+        "status": "complete",
+        "changedArtifacts": [
+          "skills/intake/scripts/intake.py",
+          "skills/intake/assets/profiles/intake.profile.json",
+          "skills/intake/tests/test_intake_manager.py",
+          "skills/intake/SKILL.md",
+          "skills/intake/references/intake-structure.md",
+          "skills/analysis/SKILL.md",
+          "skills/web-search/SKILL.md",
+          "skills/user-research/SKILL.md",
+          "skills/interview/SKILL.md",
+          "skills/specification/SKILL.md",
+          "skills/lifecycle/SKILL.md",
+          "skills/lifecycle/references/lifecycle.md",
+          "skills/work-unit-execution/SKILL.md",
+          "skills/work-unit-planner/assets/scripts/work_unit.py",
+          "skills/work-unit-planner/tests/test_work_unit_manager.py",
+          "skills/agent-rule/SKILL.md"
+        ],
+        "commands": [
+          "python3 -m unittest discover -s skills/intake/tests -p 'test_*.py'",
+          "python3 -m unittest discover -s skills/work-unit-planner/tests -p 'test_*.py'",
+          "python3 -m unittest discover -s skills/lifecycle/tests -p 'test_*.py'",
+          "python3 -m unittest discover -s skills/work-unit-execution/tests -p 'test_*.py'",
+          "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening --help",
+          "python3 skills/intake/scripts/intake.py check-schemas",
+          "python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas",
+          "git diff --check",
+          "python3 -m py_compile skills/intake/scripts/intake.py skills/intake/tests/test_intake_manager.py skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py"
+        ]
       },
       "attributes": {
-        "status": "pending",
-        "verificationResult": "pending"
+        "status": "complete",
+        "verificationResult": "pass"
       }
     }
   ],

@@ -136,7 +136,14 @@ decision, Specification, or contract replaces it. Record disposition evidence
 before either transition. Do not use these states to hide unresolved active
 work.
 
-Every successful mutation increments `documentVersion` once. The manager
+Every successful mutation increments `documentVersion` once. A mutation of a
+`ready` Intake atomically returns it to `draft`, sets semantic readiness flags
+to `false`, and clears `readiness.reviewedAt`; `closed` and `superseded` Intake
+packages reject mutation. This Intake lifecycle rule is conditional on
+`artifactType: intake` because the Work Unit manager reuses the common
+sectioned-package mechanics.
+
+The manager
 serializes package access with a project-runtime lock and commits multi-file
 changes through a recovery journal. On the next manager invocation, an
 interrupted transaction is restored to its recorded preimage before the

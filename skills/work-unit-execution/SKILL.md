@@ -28,7 +28,10 @@ its JSON result.
 ## Execution Workflow
 
 1. Resolve and read the complete named Work Unit package.
-2. Confirm that a Goal session and `exec` execution are active.
+2. Confirm that execution is running in either a named Goal session or a fresh
+   `codex exec` session, with the Work Unit identity and execution context
+   explicitly resolved. Persistent Goal mode is not required for the
+   `codex exec` route.
 3. Resolve the repository, base ref, Work Unit id, and worktree path. Derive the
    branch as `work-unit/<work-unit-id>`.
 4. Run `scripts/worktree.py prepare` before editing when the linked worktree
@@ -37,10 +40,21 @@ its JSON result.
    `context.worktreePath`.
 6. Run `scripts/worktree.py inspect` before reporting or asking for Human
    review.
-7. Record the exact command and canonical JSON result in the Work Unit
+7. Validate every recorded execution command against the installed CLI parser
+   before treating the execution context as ready. Record the exact command
+   that passed, not a reconstructed equivalent. For Codex, global options such
+   as `--ask-for-approval` precede the `exec` subcommand:
+   `codex --ask-for-approval <policy> exec --sandbox <mode> -C <worktree> <prompt>`.
+8. Update execution, review, report, and Human-review sections before the final
+   inspect capture. Then run `inspect`, register its exact result, and run it
+   once more to verify that the reported changed-path set is still current.
+   Evidence registration may only change already-reported evidence/index paths;
+   record that bounded registration delta explicitly when content hashes cannot
+   be a fixed point.
+9. Record the exact command and canonical JSON result in the Work Unit
    execution evidence. Treat a nonzero exit code or `ok: false` as refusal, not
    as permission to bypass validation.
-8. Run `cleanup` only after an explicit Human cleanup decision. Preserve the
+10. Run `cleanup` only after an explicit Human cleanup decision. Preserve the
    dedicated branch for Human merge, rework, or later disposal decisions.
 
 ## Commands

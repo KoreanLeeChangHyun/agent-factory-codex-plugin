@@ -177,8 +177,10 @@ The initialization Goal should include:
 
 ## Named Work Unit Goal Execution
 
-When the Human starts a fresh session with `/goal <work-unit-id>`, treat the
-Goal objective as a request to execute that exact Work Unit package.
+When the Human starts a fresh session with `/goal <work-unit-id>` or invokes a
+fresh `codex exec` session with an explicit Work Unit id and its recorded
+execution context, treat the request as execution of that exact Work Unit
+package. The `codex exec` route does not require persistent Goal mode.
 
 Use this resolution flow:
 

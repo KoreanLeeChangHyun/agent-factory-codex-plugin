@@ -6,10 +6,12 @@
       "id": "AI-CHECKLIST-001",
       "kind": "ai-checklist",
       "content": [
-        "Every change traces to the Intake basis.",
-        "No package escape remains in commit or recovery.",
+        "Every change traces to the Intake basis or the Human-requested rework prevention boundary.",
+        "No package escape remains across static symlinks or a between-check-and-use parent swap.",
+        "Commit failure recovery reuses the same anchored package descriptor.",
         "Intake-specific state logic does not break Work Unit execution writes.",
-        "Schema/profile/skill terminology is consistent.",
+        "Recorded Codex execution commands use parser-accepted global option order.",
+        "Final worktree evidence is captured after human-facing reports.",
         "Tests cover reproduced failures."
       ]
     },
@@ -17,12 +19,20 @@
       "id": "AI-REVIEW-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "findings": []
+        "status": "pass",
+        "summary": "재검토에서 TOCTOU symlink race, 잘못된 Codex CLI 옵션 순서, stale inspect evidence를 확인했습니다. 경로 작업은 동일 package descriptor에 고정했고, 실행 컨텍스트 readiness 검증과 report-before-inspect 게이트를 추가했습니다.",
+        "findings": [],
+        "resolvedFindings": [
+          "ready에서 draft로 명시 전이할 때 semantic readiness가 남는 문제를 테스트 우선으로 수정했습니다.",
+          ".manager/transactions symlink가 staging과 backup을 package 밖으로 돌릴 수 있는 문제를 descriptor 기반으로 수정했습니다.",
+          "검사와 사용 사이 parent symlink 교체 경쟁을 재현하고 동일 package descriptor 기반 commit/recovery로 차단했습니다.",
+          "실제 CLI가 거부하던 codex exec 옵션 순서를 수정하고 readiness 회귀 검증을 추가했습니다.",
+          "보고서보다 먼저 생성되어 낡았던 inspect 증거의 생성 순서를 계약으로 고정했습니다."
+        ]
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass"
       }
     }
   ],

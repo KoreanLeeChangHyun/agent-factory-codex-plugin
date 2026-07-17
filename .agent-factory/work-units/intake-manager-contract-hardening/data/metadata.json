@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.15",
+  "documentVersion": "1.0.40",
   "id": "intake-manager-contract-hardening",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "ready"
+    "status": "done"
   },
   "createdAt": "2026-07-17T11:28:13+00:00",
-  "updatedAt": "2026-07-17T11:42:08+00:00",
+  "updatedAt": "2026-07-17T16:59:34+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

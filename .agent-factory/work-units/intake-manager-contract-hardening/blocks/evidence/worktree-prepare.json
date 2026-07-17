@@ -1,0 +1,42 @@
+{
+  "command": "prepare",
+  "context": {
+    "baseCommit": "3b4ed411716c9d6445b9eaa41b889bdb02d1ad9c",
+    "baseRef": "main",
+    "branch": "work-unit/intake-manager-contract-hardening",
+    "changes": [],
+    "dirty": false,
+    "headCommit": "3b4ed411716c9d6445b9eaa41b889bdb02d1ad9c",
+    "lockReason": "Agent Factory Work Unit execution: work-unit/intake-manager-contract-hardening",
+    "locked": true,
+    "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+    "reused": false,
+    "workUnitId": "intake-manager-contract-hardening",
+    "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening"
+  },
+  "error": null,
+  "ok": true,
+  "operations": [
+    {
+      "args": [
+        "git",
+        "-C",
+        "/home/deus/workspace/agent-factory/codex-plugins",
+        "worktree",
+        "add",
+        "--lock",
+        "--reason",
+        "Agent Factory Work Unit execution: work-unit/intake-manager-contract-hardening",
+        "-b",
+        "work-unit/intake-manager-contract-hardening",
+        "/home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening",
+        "3b4ed411716c9d6445b9eaa41b889bdb02d1ad9c"
+      ],
+      "returnCode": 0,
+      "stderr": "Preparing worktree (new branch 'work-unit/intake-manager-contract-hardening')",
+      "stdout": "HEAD is now at 3b4ed41 docs: record exec work unit route"
+    }
+  ],
+  "schemaVersion": "1.0.0",
+  "state": "prepared"
+}

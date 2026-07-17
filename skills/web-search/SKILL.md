@@ -17,6 +17,8 @@ web remains web evidence; conducting or reviewing a participant study does not.
 - Record each external source and finding in the active Intake package's
   `evidence-and-findings` section through the sibling Intake manager's
   `section-item-put` command, normally with kind `web-evidence`.
+- `web-evidence` satisfies the Intake profile's `evidence` family; do not add a
+  duplicate generic `evidence` item only for readiness.
 - Do not create a separate Markdown, HTML, or JSON web-search source of truth.
 - Put non-JSON supporting material under the Intake package's `blocks/`
   directory through the manager's `block-put` command.
