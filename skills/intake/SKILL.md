@@ -68,9 +68,13 @@ Store one sectioned package at:
 
 Read `references/intake-structure.md` before authoring or reviewing a package.
 The profile in `assets/profiles/intake.profile.json` owns required and optional
-sections. Component schemas under `assets/schema/` own field shapes. The Python
-manager owns all canonical writes, table-of-contents generation, block
-integrity, validation, and transitions. Do not edit package JSON directly.
+sections. The Intake metadata schema remains under `assets/schema/`; shared
+title, table-of-contents, section, and block-index schemas come from
+`lifecycle/assets/schema/sectioned-document/`. The Intake adapter configures the
+lifecycle-owned Python engine, which owns all canonical writes,
+table-of-contents generation, block integrity, and transaction mechanics;
+Intake retains its transitions and semantic validation. Do not edit package
+JSON directly.
 
 The title renders as H1, top-level sections as H2, and optional subsections as
 H3. Reject deeper nesting. Keep large content in its own section file and large

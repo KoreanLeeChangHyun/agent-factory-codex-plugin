@@ -50,6 +50,9 @@ style objects, or style-variable values. Renderers and themes own presentation.
   sections plus purpose-specific required sections.
 - `work-unit-planner/assets/profiles/work-unit.profile.json` owns Work Unit
   sections.
+- `lifecycle/assets/schema/sectioned-document/` owns the shared title,
+  table-of-contents, section, and block-index component schemas. Artifact
+  skills own only artifact-specific metadata schemas and profiles.
 - `lifecycle/assets/schema/document-profile.schema.json` validates the
   Specification registry and Work Unit profile shape. The
   Intake manager validates its operational profile and required content-kind
@@ -67,8 +70,14 @@ The sectioned document package stores `data/metadata.json`, `data/title.json`,
 and optional `blocks/**`. Intake v2 and Work Unit v4 implement this physical
 contract.
 
+The lifecycle-owned `assets/scripts/sectioned_document.py` implements the
+shared package I/O, table-of-contents, section, block, transaction, and
+validation mechanics. Artifact managers configure that engine with their own
+metadata schema, profile, package root, lifecycle, readiness, and semantic
+validation rules.
+
 Specification profiles are registered contracts; a Specification manager and
-profile schemas must implement the same physical package before a package is
+artifact-specific schemas must configure the same engine before a package is
 claimed as conforming. Work Unit v4 uses the common package directly and
 validates typed Intake basis references deterministically.
 

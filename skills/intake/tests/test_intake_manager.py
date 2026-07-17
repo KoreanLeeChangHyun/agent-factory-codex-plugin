@@ -284,7 +284,7 @@ class IntakeManagerTests(unittest.TestCase):
             outside.mkdir()
             escaped = outside / "escaped.json"
             escaped.write_text("outside-preserve", encoding="utf-8")
-            original_check = manager.checked_package_target
+            original_check = manager.base.checked_package_target
             swapped = False
 
             def racing_check(package_path: Path, candidate: Path, label: str) -> Path:
@@ -296,12 +296,12 @@ class IntakeManagerTests(unittest.TestCase):
                     swapped = True
                 return relative
 
-            manager.checked_package_target = racing_check
+            manager.base.checked_package_target = racing_check
             try:
                 with self.assertRaises(manager.ManagerError):
                     manager.commit_transaction(package, json_writes={target: {"changed": True}})
             finally:
-                manager.checked_package_target = original_check
+                manager.base.checked_package_target = original_check
 
             self.assertTrue(swapped)
             self.assertEqual(escaped.read_text(encoding="utf-8"), "outside-preserve")

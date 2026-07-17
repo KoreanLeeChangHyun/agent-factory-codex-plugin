@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-factory.local/schemas/intake/v2/title.schema.json",
+  "$id": "https://agent-factory.local/schemas/common/sectioned-document/title.schema.json",
   "title": "Agent Factory Document Title",
   "type": "object",
   "additionalProperties": false,

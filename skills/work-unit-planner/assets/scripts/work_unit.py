@@ -20,13 +20,14 @@ from typing import Any, Iterable
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_ROOT.parent.parent
-INTAKE_MANAGER = SKILL_ROOT.parent / "intake" / "scripts" / "intake.py"
+COMMON_MANAGER = SKILL_ROOT.parent / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
+COMMON_SCHEMA_ROOT = SKILL_ROOT.parent / "lifecycle" / "assets" / "schema" / "sectioned-document"
 
 
 def load_base_manager() -> Any:
-    spec = importlib.util.spec_from_file_location("agent_factory_sectioned_manager", INTAKE_MANAGER)
+    spec = importlib.util.spec_from_file_location("agent_factory_sectioned_document", COMMON_MANAGER)
     if spec is None or spec.loader is None:
-        raise RuntimeError(f"cannot load sectioned manager: {INTAKE_MANAGER}")
+        raise RuntimeError(f"cannot load sectioned document manager: {COMMON_MANAGER}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -35,21 +36,30 @@ def load_base_manager() -> Any:
 base = load_base_manager()
 ManagerError = base.ManagerError
 
-# The Intake manager owns the common sectioned-package mechanics. Point that
-# implementation at the Work Unit contracts, then replace artifact semantics.
-base.SKILL_ROOT = SKILL_ROOT
-base.SCHEMA_ROOT = SKILL_ROOT / "assets" / "schema"
-base.PROFILE_PATH = SKILL_ROOT / "assets" / "profiles" / "work-unit.profile.json"
-base.SCHEMA_PATHS = {
-    "metadata": base.SCHEMA_ROOT / "metadata.schema.json",
-    "title": base.SCHEMA_ROOT / "title.schema.json",
-    "toc": base.SCHEMA_ROOT / "table-of-contents.schema.json",
-    "section": base.SCHEMA_ROOT / "section.schema.json",
-    "blocks": base.SCHEMA_ROOT / "blocks.schema.json",
-}
-base.profile.cache_clear()
-base.schemas.cache_clear()
-base.validate_schemas.cache_clear()
+# Configure the lifecycle-owned package engine with the Work Unit contracts,
+# then replace artifact-specific semantic hooks.
+base.configure_contract(
+    skill_root=SKILL_ROOT,
+    profile_path=SKILL_ROOT / "assets" / "profiles" / "work-unit.profile.json",
+    metadata_schema_path=SKILL_ROOT / "assets" / "schema" / "metadata.schema.json",
+    structural_schema_root=COMMON_SCHEMA_ROOT,
+    artifact_type="work-unit",
+    artifact_label="Work Unit",
+    package_collection="work-units",
+    lock_collection="work-units",
+    lifecycle_phase="work-unit",
+    initial_status="backlog",
+    initial_readiness={
+        "contractValid": True,
+        "intakeTraceabilityValid": False,
+        "definitionComplete": False,
+        "executionContextComplete": False,
+        "verificationPlanComplete": False,
+        "reviewedAt": None,
+        "findings": [],
+    },
+    generated_by="Agent Factory work-unit manager",
+)
 
 
 def profile() -> dict[str, Any]:

@@ -6,7 +6,9 @@ description: Use when transforming a validated ready Agent Factory Intake packag
 # Work Unit Planner
 
 Transform a validated `ready` Intake package into a self-contained Work Unit.
-This skill owns the Work Unit v4 section profile, schemas, and package manager.
+This skill owns the Work Unit v4 section profile, metadata schema, artifact
+adapter, and semantic rules. Lifecycle owns the shared sectioned-document
+engine and structural component schemas.
 Read `lifecycle/references/lifecycle.md`,
 `lifecycle/references/common-document-contract.md`, and
 `references/work-unit-structure.md` before creating or reviewing a package.
