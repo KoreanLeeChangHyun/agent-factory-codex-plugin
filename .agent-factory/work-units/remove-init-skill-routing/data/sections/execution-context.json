@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "remove-init-skill-routing",
+        "objective": "Execute the approved init skill removal Work Unit.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/remove-init-skill-routing \"Execute Work Unit remove-init-skill-routing.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/remove-init-skill-routing",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/remove-init-skill-routing",
+        "setupState": "pending",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

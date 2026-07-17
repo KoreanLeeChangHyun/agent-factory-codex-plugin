@@ -1,0 +1,22 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "Agent Factory skills에서 별도 초기화(init) 스킬과 초기화 라우팅을 제거한다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": "Agent Factory는 별도 초기화 질문 없이 canonical Intake로 직접 시작한다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": "init skill과 의미 참조가 제거되고 Specification 생성은 영향이 있을 때만 선택적으로 수행된다."
+    }
+  ],
+  "subsections": []
+}

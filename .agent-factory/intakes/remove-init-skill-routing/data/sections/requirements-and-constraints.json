@@ -1,0 +1,27 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": "Agent Factory의 시작점은 Intake여야 하며 별도 init skill에 의존하지 않아야 한다."
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": "Specification 생성은 현재 필수가 아니며 영향이 있을 때만 확인 또는 갱신해야 한다."
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "skills/init이 존재하지 않는다",
+        "활성 skill 문서에 init 라우팅이 없다",
+        "Specification은 조건부 단계로 서술된다",
+        "관련 검증이 통과한다"
+      ]
+    }
+  ],
+  "subsections": []
+}

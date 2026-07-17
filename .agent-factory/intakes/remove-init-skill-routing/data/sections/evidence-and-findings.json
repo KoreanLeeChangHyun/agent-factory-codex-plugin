@@ -1,0 +1,12 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": "skills/init에는 SKILL.md와 agents/openai.yaml만 있으며 lifecycle과 specification 문서가 의미적으로 참조한다."
+    }
+  ],
+  "subsections": []
+}

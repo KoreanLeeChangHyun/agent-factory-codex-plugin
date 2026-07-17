@@ -1,0 +1,31 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "현재 skills/init은 lifecycle 진입 라우팅과 신규 프로젝트의 Specification 생성 흐름을 중복 소유한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "skills/init 삭제",
+        "lifecycle 직접 Intake 진입",
+        "Specification 선택성 명시",
+        "관련 테스트 갱신"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "테스트 fixture의 git init",
+        "역사적 lifecycle artifact 수정",
+        "Specification capability 자체 삭제"
+      ]
+    }
+  ],
+  "subsections": []
+}

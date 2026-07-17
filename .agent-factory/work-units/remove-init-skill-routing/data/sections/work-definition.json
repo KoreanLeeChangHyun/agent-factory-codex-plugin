@@ -1,0 +1,37 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Remove the init skill and route Agent Factory directly through Intake without making Specification creation mandatory."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "delete skills/init",
+        "update lifecycle routing and reference",
+        "update specification adoption wording",
+        "add regression validation"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "git init test fixtures",
+        "historical artifacts",
+        "removing specification capability",
+        "automatic commit or merge"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "A validated skill set with no active init skill or init routing and explicit conditional Specification handling."
+    }
+  ],
+  "subsections": []
+}

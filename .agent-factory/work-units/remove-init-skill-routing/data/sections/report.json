@@ -1,0 +1,19 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Not executed"
+      },
+      "attributes": {
+        "verificationResult": "not-run",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

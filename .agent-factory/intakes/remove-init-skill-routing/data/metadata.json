@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.10",
+  "id": "remove-init-skill-routing",
+  "artifactType": "intake",
+  "projectId": "agent-factory-codex-plugins",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "ready"
+  },
+  "createdAt": "2026-07-17T17:23:13+00:00",
+  "updatedAt": "2026-07-17T17:23:34+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": true,
+    "requirementsComplete": true,
+    "specificationConsistent": true,
+    "executionReady": true,
+    "reviewedAt": "2026-07-18T02:20:00+09:00",
+    "findings": []
+  }
+}

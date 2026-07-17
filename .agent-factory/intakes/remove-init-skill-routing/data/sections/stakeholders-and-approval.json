@@ -1,0 +1,22 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": "Agent Factory 사용자와 Codex 실행 에이전트"
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Human이 skill 삭제와 merge를 승인한다."
+    }
+  ],
+  "subsections": []
+}

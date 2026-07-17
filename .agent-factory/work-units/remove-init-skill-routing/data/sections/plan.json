@@ -1,0 +1,27 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "Plan: inspect all active init references, skill inventory tests, and plugin discovery behavior."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Work: add failing contract tests, delete skills/init, and rewrite lifecycle/specification routing."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "AI Review: search for dangling active references and confirm Specification remains conditional."
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": "Report: record verification and Human review material."
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,50 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "skills/init is absent",
+        "active skills contain no init routing",
+        "lifecycle starts at Intake",
+        "Specification creation is explicitly conditional",
+        "historical artifacts and git init fixtures remain untouched"
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "contract regression test added",
+        "skill validation passes",
+        "related tests pass",
+        "AI review and Human review material recorded"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "rg -n init active skill files",
+          "python3 -m unittest discover -s skills/lifecycle/tests -p 'test_*.py'",
+          "python3 -m unittest discover -s skills/intake/tests -p 'test_*.py'",
+          "quick_validate.py for modified skills",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "Not run",
+      "attributes": {
+        "status": "not-run",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

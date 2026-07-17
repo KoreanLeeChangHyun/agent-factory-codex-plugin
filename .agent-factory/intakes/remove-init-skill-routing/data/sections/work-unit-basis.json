@@ -1,0 +1,23 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "Specification package 생성이나 변경이 아니라 lifecycle skill routing 변경이다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": "init skill을 삭제하고 lifecycle/specification 문서를 Intake 직접 진입 및 조건부 Specification 계약으로 정합화한다."
+    }
+  ],
+  "subsections": []
+}

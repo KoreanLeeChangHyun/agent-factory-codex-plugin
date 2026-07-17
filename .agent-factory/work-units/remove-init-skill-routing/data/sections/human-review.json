@@ -1,0 +1,32 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": [
+        "init skill directory removal",
+        "direct Intake routing",
+        "conditional Specification wording",
+        "test results"
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": "Inspect the scoped diff, search results, and registered verification evidence; then approve or request rework. Merge remains a separate Human decision."
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

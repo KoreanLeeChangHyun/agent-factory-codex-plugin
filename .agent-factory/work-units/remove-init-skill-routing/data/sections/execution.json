@@ -1,0 +1,18 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-001",
+      "kind": "execution-result",
+      "content": {
+        "status": "not-started"
+      },
+      "attributes": {
+        "status": "not-started",
+        "verificationResult": "not-run"
+      }
+    }
+  ],
+  "subsections": []
+}

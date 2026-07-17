@@ -1,0 +1,22 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "Human이 init skill 제거와 Intake 직접 시작을 승인했다."
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "Specification capability는 유지하되 생성은 조건부로 둔다."
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-items-status",
+      "content": "차단 미결정 없음"
+    }
+  ],
+  "subsections": []
+}
