@@ -28,7 +28,8 @@
         "summary": "Pending Human Review"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-17T18:27:49+00:00"
       }
     }
   ],

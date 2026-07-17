@@ -11,7 +11,10 @@
         "remainingRisks": [
           "Specification manager implementation remains a separate scoped task."
         ],
-        "commit": "15a33c8828175f7d77d3d8abffb3de4b18a1af4d"
+        "commit": "15a33c8828175f7d77d3d8abffb3de4b18a1af4d",
+        "mergeCommit": "ba5c7ed",
+        "integratedMainHead": "bd73089f49c8057181ce80b7addeab5c0421775f",
+        "mergeDecision": "Human requested commit and merge"
       },
       "attributes": {
         "verificationResult": "pass",
