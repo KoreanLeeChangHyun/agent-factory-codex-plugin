@@ -11,6 +11,23 @@ SKILLS = Path(__file__).resolve().parents[2]
 
 
 class SkillMetadataTests(unittest.TestCase):
+    def test_lifecycle_starts_with_intake_without_init_skill_or_mandatory_specification(self) -> None:
+        self.assertFalse((SKILLS / "init" / "SKILL.md").exists())
+        self.assertFalse((SKILLS / "init" / "agents" / "openai.yaml").exists())
+        lifecycle = (SKILLS / "lifecycle" / "SKILL.md").read_text(encoding="utf-8")
+        lifecycle_reference = (
+            SKILLS / "lifecycle" / "references" / "lifecycle.md"
+        ).read_text(encoding="utf-8")
+        specification = (SKILLS / "specification" / "SKILL.md").read_text(encoding="utf-8")
+        normalized_specification = " ".join(specification.split())
+
+        self.assertNotIn("Use `init`", lifecycle)
+        self.assertNotIn("route through `init`", lifecycle)
+        self.assertIn("start with `intake`", lifecycle)
+        self.assertNotIn("Goal-Based Initialization", lifecycle_reference)
+        self.assertIn("Specification creation is not mandatory", normalized_specification)
+        self.assertIn("only when the recorded impact requires it", normalized_specification)
+
     def test_openai_yaml_interfaces_follow_skill_creator_contract(self) -> None:
         paths = sorted(SKILLS.glob("*/agents/openai.yaml"))
         skill_directories = sorted(path.parent for path in SKILLS.glob("*/SKILL.md"))

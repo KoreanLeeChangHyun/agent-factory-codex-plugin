@@ -1,0 +1,1 @@
+{"workUnitId":"remove-init-skill-routing","recordedAt":"2026-07-18T02:35:00+09:00","result":"pass","reviewAreas":["init skill discovery removal","direct Intake lifecycle entry","conditional Specification impact","historical artifact preservation","git init fixture preservation"],"openFindings":[],"blockingDefects":0}

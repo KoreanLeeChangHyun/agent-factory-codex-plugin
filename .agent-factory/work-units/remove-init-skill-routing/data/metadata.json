@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.11",
+  "documentVersion": "1.0.25",
   "id": "remove-init-skill-routing",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugins",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "ready"
+    "status": "done"
   },
   "createdAt": "2026-07-17T17:25:07+00:00",
-  "updatedAt": "2026-07-17T17:25:29+00:00",
+  "updatedAt": "2026-07-17T18:25:32+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

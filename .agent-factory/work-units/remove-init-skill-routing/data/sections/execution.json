@@ -6,11 +6,21 @@
       "id": "EXECUTION-001",
       "kind": "execution-result",
       "content": {
-        "status": "not-started"
+        "status": "complete",
+        "changedArtifacts": [
+          "skills/init/SKILL.md (deleted)",
+          "skills/init/agents/openai.yaml (deleted)",
+          "skills/lifecycle/SKILL.md",
+          "skills/lifecycle/references/lifecycle.md",
+          "skills/lifecycle/agents/openai.yaml",
+          "skills/specification/SKILL.md",
+          "skills/lifecycle/tests/test_skill_metadata.py"
+        ],
+        "testsRun": 41
       },
       "attributes": {
-        "status": "not-started",
-        "verificationResult": "not-run"
+        "status": "complete",
+        "verificationResult": "pass"
       }
     }
   ],

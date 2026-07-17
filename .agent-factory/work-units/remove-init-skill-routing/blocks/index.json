@@ -1,3 +1,32 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/ai-review.json",
+      "mediaType": "application/json",
+      "description": "Init removal AI review",
+      "sha256": "7b3649a40360f4bd0af3e6b34af874ba671f7ca902a9673a4074a3057d51322e",
+      "sizeBytes": 319
+    },
+    {
+      "path": "blocks/evidence/verification.json",
+      "mediaType": "application/json",
+      "description": "Init removal verification results",
+      "sha256": "c9abd13db4d4a2f04491c0d4f847da3c4f4fe472b1c72a9ba629763972944eef",
+      "sizeBytes": 682
+    },
+    {
+      "path": "blocks/evidence/worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final worktree inspect including evidence registration path",
+      "sha256": "f108d05309636fbb0141b17d0282aa54ce4920e12fd6c84c23d5bb031389fe2b",
+      "sizeBytes": 2256
+    },
+    {
+      "path": "blocks/evidence/worktree-prepare.json",
+      "mediaType": "application/json",
+      "description": "Canonical worktree prepare result",
+      "sha256": "53823eda304ec25bd17f560d546da540e897d00e6722707f5e0b442218d2c135",
+      "sizeBytes": 1156
+    }
+  ]
 }

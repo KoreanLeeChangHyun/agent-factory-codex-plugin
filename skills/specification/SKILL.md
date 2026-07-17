@@ -119,15 +119,20 @@ During Work Unit Execution, when a new requirement changes design artifacts:
 4. If it does not change Project Core, update only the relevant Design Document
    and Design Report detail.
 
-## Adoption Timing
+## Project Timing
 
-### New Project Initialization
+Specification creation is not mandatory. During Intake, record the
+Specification impact and create or update a Specification only when the
+recorded impact requires it. A `not-applicable` result is complete and must not
+be replaced with an empty Specification package.
 
-For new project initialization, collect explicit Human facts in Intake, resolve
-specification status, transition Intake to `ready`, create a Work Unit from its
-basis, and use that Work Unit during Execution to create the Design Document
-and Design Report plus a minimal canonical Project Core package when one does
-not already exist.
+### New Project Start
+
+For a new project, collect explicit Human facts in Intake and resolve
+Specification status. Transition Intake to `ready` and create a Work Unit from
+its basis. Create a Design Document, Design Report, or minimal Project Core only
+when the recorded impact requires it and the Work Unit names it as expected
+output.
 
 ### In-Progress Project Adoption
 
