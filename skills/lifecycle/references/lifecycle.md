@@ -39,7 +39,7 @@ Intake:
     -> analyze internal code, databases, data, configuration, logs, tests, and runtime when needed
     -> observe users, operators, workflows, and usage context when direct user evidence is needed and authorized
     -> interview the Human when a Human-only decision is needed
-    -> check and update relevant specifications
+    -> record Specification impact and check or update a Specification only when required
     -> repeat manager apply -> validation -> semantic review -> revision
     -> transition the canonical Intake package to ready only when it can define one or more executable Work Units
 
@@ -83,7 +83,7 @@ Agent Factory lifecycle adoption can start at different project timings. The
 first task is to identify the timing, then route the work without bypassing the
 lifecycle.
 
-### New Project Initialization
+### New Project Start
 
 Use this route when the project is starting or has no meaningful existing
 baseline.
@@ -155,25 +155,6 @@ documentation, or maintenance work.
 - Use those Work Units during Execution to update Project Core, Design Document,
   Design Report, implementation, or operational documentation within their scope.
 - Return new operation or maintenance requests to Intake.
-
-## Goal-Based Initialization
-
-Agent Factory initialization should prefer Goal mode when available. The Goal
-keeps the adoption route alive across baseline collection, Project Core, Design
-Report, Work Unit planning, review, merge or rework, and promotion decisions.
-Recommend Goal mode when useful, but create a Goal only after an explicit Human
-request to create it.
-
-The initialization Goal should include:
-
-- Determine the current adoption timing.
-- Collect only explicit baseline facts.
-- Complete and validate a canonical Intake package before Work Units.
-- Create self-contained Work Units from validated ready Intake packages.
-- Use Work Units to create or update Project Core and Design Report when those
-  artifacts are the expected output.
-- Keep Human approval, merge, deployment, operation, maintenance, and PR
-  promotion decisions with the Human during Review.
 
 ## Named Work Unit Goal Execution
 

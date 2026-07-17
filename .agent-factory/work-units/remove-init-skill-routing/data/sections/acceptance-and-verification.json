@@ -39,10 +39,15 @@
     {
       "id": "QUALITY-001",
       "kind": "quality-check",
-      "content": "Not run",
+      "content": {
+        "result": "41 tests, two skill validations, active-reference search, and diff check passed."
+      },
       "attributes": {
-        "status": "not-run",
-        "evidence": []
+        "status": "pass",
+        "evidence": [
+          "blocks/evidence/verification.json",
+          "blocks/evidence/ai-review.json"
+        ]
       }
     }
   ],

@@ -12,10 +12,16 @@
         "executionAgent": "Codex",
         "repository": "/home/deus/workspace/agent-factory/codex-plugins",
         "baseRef": "main",
+        "baseCommit": "edd416f8714e51bb6911b8bd4683fe79200fb3e4",
         "branch": "work-unit/remove-init-skill-routing",
         "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/remove-init-skill-routing",
-        "setupState": "pending",
+        "setupState": "prepared",
         "cleanupState": "not-requested"
+      },
+      "attributes": {
+        "evidence": [
+          "blocks/evidence/worktree-prepare.json"
+        ]
       }
     }
   ],

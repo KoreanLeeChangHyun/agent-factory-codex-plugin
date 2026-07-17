@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Init"
-  short_description: "Start Agent Factory lifecycle adoption."
-  default_prompt: "Use $init to initialize Agent Factory lifecycle adoption, ask for the current adoption timing, and route through the correct lifecycle."

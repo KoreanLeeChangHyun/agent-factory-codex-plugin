@@ -1,6 +1,6 @@
 ---
 name: lifecycle
-description: Use when Codex must follow the Agent Factory lifecycle across Agent Factory init, adoption timing, Project Core, Design Report, Work Units, named /goal work-unit-id Work Unit execution, AI execution records, Human review, merge or rework, and Human-decided PR promotion.
+description: Use when Codex must follow the Agent Factory lifecycle from Intake through Work Units, execution, Human review, merge or rework, and Human-decided PR promotion.
 ---
 
 # Agent Factory Lifecycle
@@ -73,23 +73,23 @@ Detailed lifecycle rules are in `references/lifecycle.md`. Read that reference
 when creating or updating Project Core, Design Report, Work Units, execution
 records, review output files, or handoff material.
 
-## Adoption Timing
+## Lifecycle Entry
 
-Agent Factory adoption can begin at project initialization, in the middle of a
-project, at the end of a project, or during maintenance. Do not assume one
-fixed entry point.
+Agent Factory work can begin when a project starts, while it is in progress, at
+release handoff, or during maintenance. Always start with `intake`; do not add a
+separate entry skill or mandatory pre-Intake questionnaire.
 
-When the timing is not explicit, route through `init` first. The
-init flow asks the Human for the current timing and prefers Goal mode because
-baseline collection, Project Core, Design Report, Work Units, and review can be
-long-running.
+When timing is not explicit, record that uncertainty in Intake and use
+`interview` only when the timing changes scope or another Human-owned decision.
+Goal mode may be recommended for long-running work, but it is not a lifecycle
+phase and may be created only on explicit Human request.
 
 Use these routes:
 
-- New project initialization: complete a canonical Intake, transition it to
-  `ready`, create Work Units from its Work Unit basis entries, and use those
-  Work Units during Execution to create Project Core, Design Document, and
-  Design Report output.
+- New project start: complete a canonical Intake, transition it to `ready`, and
+  create Work Units from its accepted basis. Create or update Specification,
+  Project Core, Design Document, or Design Report only when the Intake impact
+  decision and Work Unit scope require those outputs.
 - In-progress project adoption: collect the current project baseline through
   Intake, validate specification alignment, transition Intake to `ready`, and
   create Work Units only from its Work Unit basis entries.
@@ -106,8 +106,6 @@ Use these routes:
 - Use `fact-only` for all Agent Factory lifecycle work.
 - Use `intake` for every Intake package, the five Intake-related skill domains, its manager
   validation loop, and readiness handoff to `work-unit-planner`.
-- Use `init` when starting lifecycle adoption or when the current
-  adoption timing is unknown.
 - Use `interview` when the Human must decide scope, priority,
   architecture, approval boundaries, risk, or promotion.
 - Use `web-search` when recording web research, external-source
@@ -202,8 +200,8 @@ Use these routes:
   checklist, Human review method, and unresolved items for the execution
   session to work without relying on hidden context from the defining session.
 - For code Work Units, define tests before implementation.
-- Create a Goal only when the Human explicitly requests Goal creation. An
-  init recommendation, active lifecycle, or available Goal tool is not itself
+- Create a Goal only when the Human explicitly requests Goal creation. A Goal
+  recommendation, active lifecycle, or available Goal tool is not itself
   authorization.
 - During Execution, prepare evidence, AI review results, a Human checklist, and
   a Human review method that explains what to inspect, how to inspect it, and

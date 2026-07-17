@@ -6,16 +6,22 @@
       "id": "HUMAN-CHECK-001",
       "kind": "human-checklist",
       "content": [
-        "init skill directory removal",
-        "direct Intake routing",
-        "conditional Specification wording",
-        "test results"
+        "skills/init의 두 discovery 파일이 삭제됐는지 확인합니다.",
+        "lifecycle이 별도 초기화 없이 Intake로 시작하는지 확인합니다.",
+        "Specification 생성이 not-applicable을 허용하는 조건부 단계인지 확인합니다.",
+        "41개 테스트와 skill validation 결과를 확인합니다."
       ]
     },
     {
       "id": "HUMAN-METHOD-001",
       "kind": "human-review-method",
-      "content": "Inspect the scoped diff, search results, and registered verification evidence; then approve or request rework. Merge remains a separate Human decision."
+      "content": {
+        "inspect": [
+          "삭제된 skills/init 파일과 lifecycle/specification diff를 검토합니다.",
+          "blocks/evidence/verification.json과 ai-review.json을 확인합니다.",
+          "승인 또는 rework를 결정합니다. merge는 별도 결정입니다."
+        ]
+      }
     },
     {
       "id": "HUMAN-RESULT-001",
