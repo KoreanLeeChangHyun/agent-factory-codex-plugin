@@ -1,0 +1,56 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "공통 sectioned-document core는 skills/lifecycle이 소유한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Intake와 Work Unit은 공통 core를 사용하되 profile, lifecycle, readiness 및 artifact semantic validation을 각각 소유한다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "공통 구조 schema는 lifecycle 아래의 단일 source of truth로 사용한다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "기존 CLI command와 canonical package 외부 동작을 보존한다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Intake와 Work Unit manager test suites가 통과한다."
+      }
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "repository search에서 Work Unit production code의 Intake manager import가 사라진다."
+      }
+    },
+    {
+      "id": "AC-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "lifecycle이 공통 engine과 structure schema를 소유하며 artifact managers는 이를 명시적으로 구성한다."
+      }
+    }
+  ],
+  "subsections": []
+}

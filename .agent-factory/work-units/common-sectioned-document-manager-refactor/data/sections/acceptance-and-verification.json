@@ -1,0 +1,68 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Work Unit production manager가 Intake manager를 import하지 않는다."
+      }
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Intake와 Work Unit CLI 및 package validation 외부 동작이 보존된다."
+      }
+    },
+    {
+      "id": "AC-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "공통 title, TOC, section, blocks schema가 lifecycle 아래 단일 source로 사용된다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "scoped code complete",
+          "focused and relevant regression tests pass",
+          "AI checklist complete",
+          "Human checklist and review method ready",
+          "verification evidence registered"
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "python3 -m unittest skills.intake.tests.test_intake_manager",
+          "python3 -m unittest skills.work-unit-planner.tests.test_work_unit_manager",
+          "python3 -m unittest skills.lifecycle.tests.test_document_profiles"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "summary": "Python compilation, all five repository skill test files, schema/profile checks, dependency search, and git diff check passed."
+      },
+      "attributes": {
+        "status": "pass",
+        "evidence": [
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/post-review-verification.txt",
+          "blocks/evidence/commit-verification.txt"
+        ]
+      },
+      "blockRef": "blocks/evidence/verification.txt"
+    }
+  ],
+  "subsections": []
+}

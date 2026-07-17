@@ -1,0 +1,32 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "공통 문서 골격 코드를 분석하고 통일된 위치로 수정한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "Intake와 Work Unit이 lifecycle 소유의 동일한 sectioned-document core를 사용하고 Specification manager도 같은 core를 사용할 수 있다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "Work Unit이 Intake manager를 import하지 않는다.",
+          "공통 package mutation과 validation 동작이 기존 테스트에서 보존된다.",
+          "공통 구조 스키마의 단일 소유 위치가 lifecycle 아래에 존재한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

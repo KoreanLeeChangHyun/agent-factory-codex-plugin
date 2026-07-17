@@ -1,0 +1,47 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "order": 1,
+        "action": "현행 manager와 schema 의존성 회귀 테스트를 먼저 추가한다."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "order": 2,
+        "action": "공통 package engine과 구조 schema를 lifecycle assets로 추출한다."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "order": 3,
+        "action": "Intake와 Work Unit manager를 artifact adapter로 전환한다."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "order": 4,
+        "action": "focused tests, schema/profile tests와 전체 관련 test suite를 실행한다."
+      }
+    },
+    {
+      "id": "PLAN-005",
+      "kind": "plan-step",
+      "content": {
+        "order": 5,
+        "action": "AI Review와 Human Review 자료를 기록한다."
+      }
+    }
+  ],
+  "subsections": []
+}

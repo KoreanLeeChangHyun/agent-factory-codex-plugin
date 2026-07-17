@@ -1,0 +1,21 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "common-sectioned-document-manager-refactor",
+        "objective": "공통 sectioned-document core를 lifecycle로 추출하고 artifact adapter를 전환한다.",
+        "execInvocation": "/goal common-sectioned-document-manager-refactor",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/common-sectioned-document-manager-refactor",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/common-sectioned-document-manager-refactor"
+      }
+    }
+  ],
+  "subsections": []
+}

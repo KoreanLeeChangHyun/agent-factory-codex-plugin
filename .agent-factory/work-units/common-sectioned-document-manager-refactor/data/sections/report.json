@@ -1,0 +1,28 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "summary": "Common sectioned-document package mechanics and four structural schemas now have lifecycle ownership. Intake and Work Unit CLI compatibility and regression tests pass. Human review, merge, and promotion remain pending.",
+        "specificationResult": "aligned",
+        "remainingRisks": [
+          "Specification manager implementation remains a separate scoped task."
+        ],
+        "commit": "15a33c8828175f7d77d3d8abffb3de4b18a1af4d"
+      },
+      "attributes": {
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/post-review-verification.txt",
+          "blocks/evidence/commit-verification.txt"
+        ]
+      },
+      "blockRef": "blocks/evidence/verification.txt"
+    }
+  ],
+  "subsections": []
+}

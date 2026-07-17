@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "Ready Intake의 lifecycle-owned common manager refactor basis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "common-sectioned-document-manager-refactor",
+          "path": ".agent-factory/intakes/common-sectioned-document-manager-refactor",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

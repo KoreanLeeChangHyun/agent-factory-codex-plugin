@@ -1,0 +1,49 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "공통 sectioned-document core와 구조 schema를 lifecycle로 추출하고 Intake 및 Work Unit adapter를 전환한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/lifecycle/assets/",
+          "skills/intake/scripts/intake.py",
+          "skills/work-unit-planner/assets/scripts/work_unit.py",
+          "관련 tests 및 references"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "artifact lifecycle/readiness 의미 변경",
+          "canonical package migration",
+          "merge, PR promotion, deployment"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "outputs": [
+          "lifecycle-owned common manager",
+          "single-source structural schemas",
+          "Intake and Work Unit adapters",
+          "passing regression tests"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

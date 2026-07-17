@@ -1,0 +1,35 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "scope preserved",
+          "artifact semantics unchanged",
+          "common ownership correct",
+          "tests sufficient",
+          "no hidden Intake dependency"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "Scope and contract ownership are aligned. Artifact lifecycle/readiness semantics remain separate through adapter-specific configuration and Work Unit hooks. Structural schema drift and the Work Unit-to-Intake production dependency were removed.",
+        "remainingRisks": [
+          "Specification still needs its own metadata schema and manager adapter before it can claim physical conformance."
+        ]
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass"
+      },
+      "blockRef": "blocks/evidence/verification.txt"
+    }
+  ],
+  "subsections": []
+}

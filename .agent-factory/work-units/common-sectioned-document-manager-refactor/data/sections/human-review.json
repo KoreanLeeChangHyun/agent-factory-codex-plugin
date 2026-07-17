@@ -1,0 +1,36 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "공통 core 위치 확인",
+          "Intake 및 Work Unit CLI 동작 확인",
+          "Specification manager 확장 가능성 확인",
+          "테스트 증거 확인"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "변경 diff와 등록된 테스트 로그를 검토하고 승인 또는 rework를 결정한다. merge와 PR promotion은 별도 Human 결정이다."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "summary": "Pending Human Review"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

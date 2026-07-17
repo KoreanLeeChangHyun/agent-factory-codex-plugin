@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "4.0.0",
+  "documentVersion": "1.0.30",
+  "id": "common-sectioned-document-manager-refactor",
+  "artifactType": "work-unit",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "work-unit",
+    "status": "review"
+  },
+  "createdAt": "2026-07-17T17:42:23+00:00",
+  "updatedAt": "2026-07-17T18:22:14+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory work-unit manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "intakeTraceabilityValid": true,
+    "definitionComplete": true,
+    "executionContextComplete": true,
+    "verificationPlanComplete": true,
+    "reviewedAt": "2026-07-18T00:00:00+09:00",
+    "findings": []
+  }
+}

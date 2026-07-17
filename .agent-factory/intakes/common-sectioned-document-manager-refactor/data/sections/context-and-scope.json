@@ -1,0 +1,38 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "currentState": "skills/work-unit-planner/assets/scripts/work_unit.py가 skills/intake/scripts/intake.py를 공통 manager로 동적 import하고 설정을 교체한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/lifecycle/assets/",
+          "skills/intake/scripts/intake.py",
+          "skills/work-unit-planner/assets/scripts/work_unit.py",
+          "관련 schema, tests, skill references"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "문서별 lifecycle 상태 의미 변경",
+          "readiness 정책 변경",
+          "기존 canonical package migration",
+          "Human 승인·merge·PR promotion"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

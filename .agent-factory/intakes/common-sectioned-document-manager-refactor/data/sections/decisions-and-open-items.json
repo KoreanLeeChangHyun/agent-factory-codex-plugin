@@ -1,0 +1,32 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "공통 core와 구조 schema의 소유 위치는 skills/lifecycle/assets이며 Intake와 Work Unit은 artifact adapter가 된다.",
+        "basis": "Human의 수정 요청과 repository evidence"
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risk": "동적 module loading과 monkeypatch 기반 테스트가 refactor 중 깨질 수 있다.",
+        "mitigation": "CLI compatibility와 focused regression tests를 먼저 유지한다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "blocking": false,
+        "items": []
+      }
+    }
+  ],
+  "subsections": []
+}

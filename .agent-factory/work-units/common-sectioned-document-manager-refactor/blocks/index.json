@@ -1,0 +1,25 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/evidence/commit-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Committed HEAD regression, schema, dependency, and clean worktree verification",
+      "sha256": "934390a7d6ffe32a354994bf2b0d805993a1f3cf419cd403b502a89bfb50ced0",
+      "sizeBytes": 1925
+    },
+    {
+      "path": "blocks/evidence/post-review-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Post-AI-review generic engine and regression verification evidence",
+      "sha256": "867db185f6ce04575486a338375e10522c4a88a1a8b695790c24890fb1247315",
+      "sizeBytes": 1495
+    },
+    {
+      "path": "blocks/evidence/verification.txt",
+      "mediaType": "text/plain",
+      "description": "TDD, regression, contract, dependency, and canonical worktree verification evidence",
+      "sha256": "8dc669092acc596d111eb7d6f7eb3278256143f6c4c9c79f06d5fce4d209e561",
+      "sizeBytes": 6043
+    }
+  ]
+}

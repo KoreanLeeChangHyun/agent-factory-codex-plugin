@@ -1,0 +1,32 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "aligned",
+        "reason": "기존 common-document-contract의 ownership을 코드 구조에 반영하며 계약 의미를 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "aligned"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "공통 sectioned-document core를 lifecycle로 추출하고 Intake 및 Work Unit adapter를 전환한다.",
+        "expectedOutputs": [
+          "lifecycle-owned common manager",
+          "lifecycle-owned structural schemas",
+          "artifact adapters",
+          "regression tests and documentation updates"
+        ],
+        "executionOrder": 1
+      }
+    }
+  ],
+  "subsections": []
+}

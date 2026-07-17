@@ -1,0 +1,56 @@
+Work Unit: common-sectioned-document-manager-refactor
+Execution branch: work-unit/common-sectioned-document-manager-refactor
+Execution worktree: /home/deus/workspace/agent-factory/codex-plugins-worktrees/common-sectioned-document-manager-refactor
+Base commit: edd416f8714e51bb6911b8bd4683fe79200fb3e4
+
+TDD red evidence
+Command: python3 skills/lifecycle/tests/test_document_profiles.py
+Result: FAILED (failures=1) because skills/lifecycle/assets/scripts/sectioned_document.py did not exist.
+
+Focused verification
+Command: python3 -m py_compile skills/lifecycle/assets/scripts/sectioned_document.py skills/intake/scripts/intake.py skills/work-unit-planner/assets/scripts/work_unit.py
+Result: exit 0.
+
+Command: python3 skills/lifecycle/tests/test_document_profiles.py
+Result: Ran 7 tests; OK.
+
+Command: python3 skills/intake/tests/test_intake_manager.py
+Result: exit 0; all test cases passed.
+
+Command: python3 skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: exit 0; all test cases passed.
+
+Relevant complete skill test set
+Commands:
+  python3 skills/intake/tests/test_intake_manager.py
+  python3 skills/lifecycle/tests/test_document_profiles.py
+  python3 skills/lifecycle/tests/test_skill_metadata.py
+  python3 skills/work-unit-execution/tests/test_worktree.py
+  python3 skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: combined exit 0.
+
+Contract verification
+Command: python3 skills/intake/scripts/intake.py check-schemas
+Result: valid=true, schemaVersion=2.0.0, profile=intake@2.0.0.
+
+Command: python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas
+Result: valid=true, schemaVersion=4.0.0, profile=work-unit@4.0.0.
+
+Command: git diff --check
+Result: exit 0.
+
+Dependency search
+Command: rg for production INTAKE_MANAGER and deleted artifact-local structural schema paths.
+Result: no production references found. The only INTAKE_MANAGER text is the regression assertion that forbids it.
+
+Execution deviation
+The Work Unit lifecycle transition from ready to working was recorded after the first scoped edits instead of immediately before them. No scope, code, package, or verification requirement changed as a result.
+
+First final worktree inspection
+Result: ok=true, state=dirty, branch and worktree match the Work Unit, locked=true, headCommit=edd416f8714e51bb6911b8bd4683fe79200fb3e4, and 21 scoped changed paths were reported.
+
+Canonical prepare JSON
+{"command":"prepare","context":{"baseCommit":"edd416f8714e51bb6911b8bd4683fe79200fb3e4","baseRef":"main","branch":"work-unit/common-sectioned-document-manager-refactor","changes":[],"dirty":false,"headCommit":"edd416f8714e51bb6911b8bd4683fe79200fb3e4","lockReason":"Agent Factory Work Unit execution: work-unit/common-sectioned-document-manager-refactor","locked":true,"repository":"/home/deus/workspace/agent-factory/codex-plugins","reused":false,"workUnitId":"common-sectioned-document-manager-refactor","worktreePath":"/home/deus/workspace/agent-factory/codex-plugins-worktrees/common-sectioned-document-manager-refactor"},"error":null,"ok":true,"operations":[{"args":["git","-C","/home/deus/workspace/agent-factory/codex-plugins","worktree","add","--lock","--reason","Agent Factory Work Unit execution: work-unit/common-sectioned-document-manager-refactor","-b","work-unit/common-sectioned-document-manager-refactor","/home/deus/workspace/agent-factory/codex-plugins-worktrees/common-sectioned-document-manager-refactor","edd416f8714e51bb6911b8bd4683fe79200fb3e4"],"returnCode":0,"stderr":"Preparing worktree (new branch 'work-unit/common-sectioned-document-manager-refactor')","stdout":"HEAD is now at edd416f docs: plan init skill removal"}],"schemaVersion":"1.0.0","state":"prepared"}
+
+Canonical final inspect JSON (both consecutive captures were identical)
+{"command":"inspect","context":{"branch":"work-unit/common-sectioned-document-manager-refactor","changes":[{"path":"skills/intake/SKILL.md","status":" M"},{"path":"skills/intake/assets/schema/blocks.schema.json","status":" D"},{"path":"skills/intake/assets/schema/section.schema.json","status":" D"},{"path":"skills/intake/assets/schema/table-of-contents.schema.json","status":" D"},{"path":"skills/intake/assets/schema/title.schema.json","status":" D"},{"path":"skills/intake/scripts/intake.py","status":" M"},{"path":"skills/intake/tests/test_intake_manager.py","status":" M"},{"path":"skills/lifecycle/references/common-document-contract.md","status":" M"},{"path":"skills/lifecycle/tests/test_document_profiles.py","status":" M"},{"path":"skills/work-unit-planner/SKILL.md","status":" M"},{"path":"skills/work-unit-planner/assets/schema/blocks.schema.json","status":" D"},{"path":"skills/work-unit-planner/assets/schema/section.schema.json","status":" D"},{"path":"skills/work-unit-planner/assets/schema/table-of-contents.schema.json","status":" D"},{"path":"skills/work-unit-planner/assets/schema/title.schema.json","status":" D"},{"path":"skills/work-unit-planner/assets/scripts/work_unit.py","status":" M"},{"path":"skills/work-unit-planner/references/work-unit-structure.md","status":" M"},{"path":"skills/lifecycle/assets/schema/sectioned-document/blocks.schema.json","status":"??"},{"path":"skills/lifecycle/assets/schema/sectioned-document/section.schema.json","status":"??"},{"path":"skills/lifecycle/assets/schema/sectioned-document/table-of-contents.schema.json","status":"??"},{"path":"skills/lifecycle/assets/schema/sectioned-document/title.schema.json","status":"??"},{"path":"skills/lifecycle/assets/scripts/sectioned_document.py","status":"??"}],"dirty":true,"headCommit":"edd416f8714e51bb6911b8bd4683fe79200fb3e4","lockReason":"Agent Factory Work Unit execution: work-unit/common-sectioned-document-manager-refactor","locked":true,"repository":"/home/deus/workspace/agent-factory/codex-plugins","workUnitId":"common-sectioned-document-manager-refactor","worktreePath":"/home/deus/workspace/agent-factory/codex-plugins-worktrees/common-sectioned-document-manager-refactor"},"error":null,"ok":true,"operations":[],"schemaVersion":"1.0.0","state":"dirty"}

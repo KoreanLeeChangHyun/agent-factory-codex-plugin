@@ -1,0 +1,29 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "summary": "Lifecycle-owned sectioned-document engine and structural schemas were extracted. Intake and Work Unit now configure the shared engine; Work Unit no longer imports Intake.",
+        "changedAreas": [
+          "skills/lifecycle/assets/scripts/sectioned_document.py",
+          "skills/lifecycle/assets/schema/sectioned-document/",
+          "Intake and Work Unit adapters, tests, and contract documentation"
+        ],
+        "deviations": [
+          "The ready-to-working transition was recorded after initial scoped edits; this did not alter scope or verification."
+        ],
+        "commit": "15a33c8828175f7d77d3d8abffb3de4b18a1af4d",
+        "postCommitWorktreeState": "clean"
+      },
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass"
+      },
+      "blockRef": "blocks/evidence/verification.txt"
+    }
+  ],
+  "subsections": []
+}

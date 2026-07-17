@@ -1,0 +1,30 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py; skills/intake/scripts/intake.py; 각 assets/schema; 관련 tests",
+        "method": "repository inspection and diff",
+        "findings": [
+          "Work Unit manager의 INTAKE_MANAGER 상수가 Intake script를 가리킨다.",
+          "Work Unit manager는 Intake module의 SKILL_ROOT, SCHEMA_ROOT, PROFILE_PATH와 validation 함수를 런타임에 교체한다.",
+          "Intake manager는 1510 lines이며 package IO, transaction, TOC, blocks, typed refs와 Intake 의미 규칙을 함께 소유한다.",
+          "title, section, blocks schema는 주로 artifact 명칭만 다르고 중복되어 있다.",
+          "TOC schema는 두 artifact 사이에서 id pattern과 minItems 등 공통 구조 규칙이 drift했다."
+        ],
+        "interpretations": [
+          "공통 엔진이 Intake에 속해 있어 의존 방향과 공통 계약 소유권이 일치하지 않는다.",
+          "공통 구조와 artifact 의미 규칙을 분리하면 Specification manager 추가 시 Intake 의존을 피할 수 있다."
+        ],
+        "limitations": [
+          "기존 package data migration은 이번 범위에서 검증하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
