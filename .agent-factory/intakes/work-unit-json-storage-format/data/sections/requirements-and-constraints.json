@@ -1,0 +1,27 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "heading": "Work Unit acceptance criteria 후보",
+        "text": "- 결과 보고서 전용 JSON Schema를 먼저 정의하고 required field, 추가 필드 정책과 순서 보존 배열을 명시한다.\n- 새 package 생성 결과에는 canonical Markdown 파일이 없고 canonical result JSON이 존재한다.\n- manager의 `create`, `migrate`, `validate`, `show`, `update`, `transition` 경계를 새 계약에 맞춘다.\n- JSON parse, schema validation과 domain invariant 검증을 통과한 데이터만 renderer 입력이 될 수 있다.\n- duplicate key, 누락·추가·잘못된 type, 비정상 깊이·크기 입력의 실패 동작을 테스트한다.\n- renderer 관련 계약에는 `eval` 금지, plain text의 `textContent` 사용, raw HTML sink 금지와 XSS fixture 검증을 포함한다.\n- 기존 package의 source byte를 자동 변경하거나 삭제하지 않고 지원·migration 동작을 명시한다.\n- 관련 Design Document가 실행 전에 존재하는지 확인하고, design-impacting 변경 후 업데이트하거나 no-update reason을 review와 report evidence에 기록한다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.Work Unit acceptance criteria 후보",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

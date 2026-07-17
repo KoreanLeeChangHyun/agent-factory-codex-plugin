@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-design-document-profile-system.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/design-document-profile-system.json",
+      "sha256": "e7de1229e4b4259e5bbbcbe4cfa76bd4d713a3c78f9408797800cee43e450555",
+      "sizeBytes": 14421
+    }
+  ]
+}

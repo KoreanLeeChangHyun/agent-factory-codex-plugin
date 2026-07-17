@@ -1,0 +1,111 @@
+---
+name: work-unit-planner
+description: Use when transforming a validated ready Agent Factory Intake package into executable Work Units for a named /goal work-unit-id. Work Units are self-contained execution and review units with Plan, Work, AI Review, Report, verification, separate AI and Human checklists, and Human approval boundaries.
+---
+
+# Work Unit Planner
+
+Transform a validated `ready` Intake package into a self-contained Work Unit.
+This skill owns the Work Unit v4 section profile, schemas, and package manager.
+Read `lifecycle/references/lifecycle.md`,
+`lifecycle/references/common-document-contract.md`, and
+`references/work-unit-structure.md` before creating or reviewing a package.
+
+## Planning Boundary
+
+- Apply the Interview Decision Gate from `fact-only` before asking for a
+  decision or declaring planning complete.
+- Resolve the source Intake with its manager and run full validation. Do not
+  trust status text alone.
+- The source Intake must be `ready`, have no blocking open item, and contain the
+  selected item in `work-unit-basis`.
+- Create an `intake-basis-ref` whose typed source reference points to the Intake
+  package root and anchors the selected `{sectionId, itemId}`. The Work Unit
+  manager deterministically validates package identity, TOC integrity, anchor
+  existence, and Intake readiness.
+- Preserve applicable Specification, evidence, requirement, and decision refs
+  from Intake. Preserve explicit `not-applicable` results; do not invent design
+  coverage.
+- Do not create executable Work Units from vague ideas, direct chat context, or
+  unvalidated notes. Ask when a fresh execution session would lack a material
+  decision.
+
+## Package Rules
+
+- Store each package at
+  `<project-root>/.agent-factory/work-units/<work-unit-id>/`; directory and
+  metadata ids must match.
+- Use only `assets/scripts/work_unit.py` to create and mutate canonical data.
+  Run `validate --full` before transition to `ready` or handoff.
+- Canonical data is strict JSON. Actual CSS or style data is forbidden.
+- Do not manually edit the manager-owned table of contents or block index.
+- Use registered `blocks/**` for large logs, screenshots, and other non-JSON
+  evidence. Passing review evidence must be non-empty and registered.
+- The manager serializes mutations with a project-runtime package lock,
+  increments `documentVersion` once per mutation, and recovers interrupted
+  transactions from `.manager/transaction.json`.
+- Existing incompatible data need not be rewritten or accepted by v4. Never
+  relabel incompatible storage as a conforming package.
+
+## Required Sections
+
+The exact section and required-kind contract is owned by
+`assets/profiles/work-unit.profile.json`:
+
+1. `basis`
+2. `work-definition`
+3. `plan`
+4. `execution-context`
+5. `acceptance-and-verification`
+6. `execution`
+7. `ai-review`
+8. `human-review`
+9. `report`
+
+Title is H1, sections are H2, and optional subsections are H3. Deeper hierarchy
+is invalid. TOC array order owns document order.
+
+## Execution Contract
+
+- The Work Unit definition session and execution session are separate. A fresh
+  session receiving only `/goal <work-unit-id>` must be able to execute it.
+- Record the goal, scope, exclusions, expected output, plan, acceptance
+  criteria, Definition of Done, tests, quality checks, AI checklist, Human
+  checklist, Human review method, evidence requirements, risks, and unresolved
+  items in canonical section items.
+- Record execution context with goal id, objective, exec invocation, execution
+  agent, repository, base ref, dedicated `work-unit/<work-unit-id>` branch, and
+  absolute linked worktree path.
+- `work-unit-execution` owns Git worktree and branch side effects. Planning must
+  not create, remove, unlock, merge, or promote them.
+- Execute Plan -> Work -> AI Review -> Report. Code Work Units use TDD.
+- A transition to `review` requires passing execution verification, quality
+  evidence, AI review/checklist, and report verification evidence.
+- A transition to `done` requires `--human-review approved`; approval status and
+  timestamp are committed atomically with the lifecycle transition.
+- Human approval, rework, merge, deployment, and PR promotion remain Human
+  decisions. AI completion means review material is ready, not that Human
+  approval already occurred.
+- Work Unit outputs are internal. Do not automatically promote them to Customer
+  Deliverables.
+
+## Commands
+
+The manager supports schema checks, creation, focused/full display, title and
+metadata replacement, single/batch section item updates, optional section
+management, block registration/removal, validation, and lifecycle transitions.
+Prefer `--value-file` for large JSON values. See
+`references/work-unit-structure.md` for exact examples and validation gates.
+
+## Output
+
+- Decompose oversized requests into independently executable and reviewable
+  Work Units with explicit dependencies and execution order.
+- List created ids in dependency order.
+- Include Human checklist and Human review method requirements in Definition of
+  Done.
+- List unresolved decisions separately.
+- When creating Work Units, include this exact label followed by a code block
+  containing only one id per line:
+
+`생성한 Work Unit 이름`

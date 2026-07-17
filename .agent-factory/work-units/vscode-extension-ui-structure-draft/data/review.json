@@ -1,0 +1,20 @@
+{
+  "aiReview": "pass",
+  "aiChecklistResult": "pass",
+  "humanReview": "pending",
+  "state": "ready_for_human_review",
+  "comments": [
+    "Work Unit의 15개 acceptance criteria, testCriteria, AI checklist와 13개 quality gate를 현재 source, report, Draft 2020-12 schema, 27개 구조 검사와 16개 file:// browser evidence에 대조해 통과했다.",
+    "Design Document가 실행 전 없음을 확인했고 Project Core, 요구사항, UI 상태 계약, 결정·diagram metadata·baseline snapshot·change event collection, 검증·추적성, 두 diagram source와 reference source를 신규 작성했다.",
+    "Report generator가 manifest의 schema·section·collection·diagram과 Work Unit review JSON을 실제로 읽어 파생 data script를 만들고, report shell은 generated data와 renderer만 로드하며 DOM projection 불일치 시 실패하도록 확인했다.",
+    "네 탭, active TabHeader·Body 쌍, selected-only 단계 표시, Done 숨김, 정상 5단계 순서, title-only fixed-height card, 허용·불허 DnD, Review→Done Human guard, scroll과 Blocked 분리를 검증했다.",
+    "실행 가능한 VS Code extension, package.json, runtime source, 미승인 host·framework·API·제품 시각 디자인은 생성하지 않았다.",
+    "기본 및 full-page rendering을 직접 시각 점검했고 잘림이나 겹침 없이 구조, Human checklist, governance 상세와 미정 항목이 표시됨을 확인했다.",
+    "Human Review, 승인 또는 재작업, 병합과 PR 승격은 pending이다."
+  ],
+  "remainingRisk": [
+    "Report의 checkbox, 초기 선택, computed card height와 배치는 비규범적 검토 도구로 표시했지만 제품 UI 결정으로 오해하지 않도록 Human Review에서 다시 확인해야 한다.",
+    "제품의 칸반 높이와 overflow 시작 기준이 미정이므로 자연 report 상태에서는 단계가 내용에 맞춰 확장되며, 실제 제품 scroll 활성 조건은 후속 결정 뒤 검증해야 한다.",
+    "전용 HTML/CSS 표준 linter와 프로젝트 고정 browser dependency가 없어 현재 검증은 Node 구조 검사, local npm cache의 Playwright와 system Chrome에 의존한다."
+  ]
+}

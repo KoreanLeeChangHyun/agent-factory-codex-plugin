@@ -1,0 +1,10 @@
+[
+  "PYTHONDONTWRITEBYTECODE=1 python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py check-schemas",
+  "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s .codex/skills/work-unit-planner-af/tests -p 'test_*.py'",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py create <temporary>/created-unit <complete required arguments>",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py show <temporary>/created-unit report",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py update <temporary>/created-unit report summary '\"Smoke update passed\"'",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate <temporary>/created-unit",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py migrate <temporary>/legacy-source <temporary>/migrated-unit <complete required arguments>",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate <temporary>/migrated-unit"
+]

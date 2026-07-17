@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "JSON + 블록 단일 원천, Dashboard·Kanban·Viewer·Context Workspace 확장, 별도 Agent 확장, Goal·exec·Git branch·worktree Execution 설계가 좋은 방향인지 검증한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

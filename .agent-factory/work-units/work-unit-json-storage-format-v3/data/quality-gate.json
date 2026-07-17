@@ -1,0 +1,19 @@
+{
+  "requiredChecks": [
+    "8개 canonical JSON Schema가 Draft 2020-12와 도메인 계약 3.0.0에 맞게 self-validating인지 확인한다.",
+    "manager 전체 unittest 회귀 테스트가 통과하는지 확인한다.",
+    "임시 3.0.0 package create 후 즉시 full validate가 통과하는지 확인한다.",
+    "legacy source-preserving migrate와 1.0.0, 2.0.0 unsupported-version 동작을 확인한다.",
+    "active contract 경로에서 result.md 필수 참조가 제거되고 historical 예시만 남았는지 확인한다."
+  ],
+  "evidence": [
+    "evidence/logs/check-schemas.log",
+    "evidence/logs/unittest-discover.log",
+    "evidence/logs/create-validate-migrate-smoke.log",
+    "evidence/logs/source-preservation.log",
+    "evidence/tests.json",
+    "evidence/logs/active-self-migration.log"
+  ],
+  "state": "pass",
+  "qualityScore": 100
+}

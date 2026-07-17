@@ -1,0 +1,41 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/work-unit-execution-repository-decision.json",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": {
+        "inspectedPath": "/home/deus/workspace/skills",
+        "gitRepository": false,
+        "parentGitRepositoryFound": false
+      },
+      "attributes": {
+        "sourceKey": "repositoryEvidence",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

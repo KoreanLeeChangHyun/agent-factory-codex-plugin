@@ -1,0 +1,65 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "No conforming Specification package governs these manager-internal contract fixes.",
+        "references": [
+          "skills/intake/SKILL.md",
+          "skills/intake/references/intake-structure.md",
+          "skills/lifecycle/references/common-document-contract.md"
+        ]
+      },
+      "attributes": {
+        "status": "not-applicable"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "skill",
+          "id": "intake",
+          "path": "skills/intake/SKILL.md"
+        }
+      ]
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Harden Intake manager contracts with regression coverage.",
+        "scopeRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "REQ-004",
+          "REQ-005",
+          "REQ-006"
+        ],
+        "acceptanceRef": "AC-001",
+        "executionOrder": 1,
+        "dependencies": []
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        },
+        {
+          "artifactType": "document-profile",
+          "id": "intake-profile",
+          "path": "skills/intake/assets/profiles/intake.profile.json"
+        },
+        {
+          "artifactType": "skill",
+          "id": "intake",
+          "path": "skills/intake/SKILL.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,28 @@
+{
+  "designDocumentRefs": [
+    "docs/design-documents/vscode-extension-ui-structure"
+  ],
+  "requirementRefs": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json"
+  ],
+  "decisionRefs": [
+    "INTAKE-DECISION-004",
+    "INTAKE-DECISION-005",
+    "INTAKE-DECISION-006",
+    "INTAKE-DECISION-007",
+    "INTAKE-DECISION-008",
+    "INTAKE-DECISION-009",
+    "INTAKE-DECISION-010",
+    "INTAKE-DECISION-011"
+  ],
+  "implementationRefs": [],
+  "testRefs": [
+    "Design Document JSON strict parse",
+    "Design Document package schema validation",
+    "4탭과 연결 관계 구조 검사"
+  ],
+  "reviewRefs": [
+    "Human review of four-tab MVP design"
+  ],
+  "workUnitDependencyRefs": []
+}

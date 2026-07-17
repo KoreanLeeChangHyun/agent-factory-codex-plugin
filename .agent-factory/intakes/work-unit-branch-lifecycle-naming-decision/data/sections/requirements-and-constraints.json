@@ -1,0 +1,68 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "requirement",
+      "content": [
+        "Work Unit마다 전용 worktree와 branch를 하나씩 사용한다.",
+        "재실행과 rework는 동일 pair에서 이어간다.",
+        "branch 이름은 work-unit/<work-unit-id> 형식을 사용한다."
+      ],
+      "attributes": {
+        "sourceKey": "synthesis.requirements",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "requirement",
+      "content": [
+        "동일 Work Unit의 병렬 Execution 정책은 현재 결정 범위에 포함되지 않는다."
+      ],
+      "attributes": {
+        "sourceKey": "synthesis.constraints",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "acceptance-criterion",
+      "content": [
+        "Work Unit id에서 work-unit/<work-unit-id> branch가 결정적으로 파생된다.",
+        "동일 Work Unit의 재실행과 rework가 기존 등록 pair를 재사용한다.",
+        "planner와 lifecycle이 같은 execution context 계약을 사용한다."
+      ],
+      "attributes": {
+        "sourceKey": "synthesis.acceptanceCriteria",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

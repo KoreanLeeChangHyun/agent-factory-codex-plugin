@@ -1,0 +1,11 @@
+{
+  "id": "change-history",
+  "events": [
+    {
+      "date": "2026-07-14",
+      "type": "design-document-created",
+      "change": "확정된 Human Fact와 Work Unit 범위로 초기 Design Document 초안을 생성했다.",
+      "basis": "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json"
+    }
+  ]
+}

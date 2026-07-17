@@ -1,0 +1,140 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "recordType": "intake-requirements-basis"
+      },
+      "attributes": {
+        "sourceKey": "recordType",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "schemaStatus": "pre-contract-basis"
+      },
+      "attributes": {
+        "sourceKey": "schemaStatus",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": {
+        "recordedAt": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "recordedAt",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": {
+        "lifecyclePhase": "intake"
+      },
+      "attributes": {
+        "sourceKey": "lifecyclePhase",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "context",
+      "content": [
+        "기본 생명주기는 Intake -> Work Unit -> Execution이며 필요에 따라 feedback으로 루프를 반복한다.",
+        "Intake Agent는 인터뷰, 코드 분석, 웹 검색, 데이터 분석 등 Work Unit 생성에 필요한 작업을 수행하고 최종적으로 Work Unit을 생성한다.",
+        "Intake 산출물은 docs/intakes에 저장한다.",
+        "Intake 하나를 하나의 디렉터리 패키지로 관리한다.",
+        "Intake를 참고하여 생성된 Work Unit은 docs/work-units에 저장한다.",
+        "Work Unit은 설계 문서 작성과 코드 작성 등 다양한 활동을 포함할 수 있다.",
+        "설계 문서 작성 Work Unit의 산출물은 docs/design-documents에 저장한다.",
+        "Execution Agent는 Goal, exec, 전용 Git branch와 worktree를 사용해 실행한다.",
+        "모든 의미 데이터는 구조화된 JSON으로 저장한다.",
+        "코드, 다이어그램, SVG, 이미지, 표처럼 별도 형식이 필요한 블록은 해당 확장자의 별도 파일로 생성하고 JSON에서 참조한다.",
+        "AI는 canonical JSON 원문을 직접 읽는다.",
+        "Human은 동일한 canonical JSON을 VS Code 확장 Viewer로 읽는다.",
+        "Human 전용 Markdown 또는 HTML 원본과 Viewer 전용 복제 데이터는 만들지 않는다.",
+        "Human과 AI가 보는 데이터의 일관성이 목표다.",
+        "VS Code 확장은 Agent 확장과 Workspace 확장으로 분리한다.",
+        "Workspace 확장의 최종 MVP 탭은 Dashboard, Kanban, Viewer, Context 네 개다.",
+        "Kanban에서 Work Unit 카드를 선택하면 Viewer가 해당 Work Unit을 연다.",
+        "Kanban에서 Work Unit을 DnD로 조정하고 Execution에 바로 제출하며 그 결과를 Agent 확장과 연동하는 기능이 필요하다.",
+        "Kanban DnD, Execution 제출, Agent 확장 연동은 현재 4탭 MVP와 별도로 다룰 수 있다.",
+        "Work Unit은 스킬 문서 갱신, 데이터 마이그레이션, Workspace 확장, Agent 확장의 네 단계로 분해하고 이 순서로 실행한다.",
+        "Viewer는 Intake, Work Unit, Design Document를 포함한 규격화된 JSON과 블록 산출물을 하나의 공통 Viewer로 표시한다.",
+        "Context 탭은 AGENTS.md와 Agent Factory Skills를 관리한다.",
+        "이번 범위는 Dashboard, Kanban, Viewer, Context 네 탭과 명시된 연결 관계까지다.",
+        "Intake, Design Document, Work Unit은 제목, metadata, table of contents, section, content와 필요 시 block으로 구성되는 공통 문서 모델을 사용한다.",
+        "공통 문서 모델의 section은 기본적으로 평면이며 필요한 경우 subsection 한 단계만 허용한다. 문서 title은 H1, top-level section은 H2, subsection은 H3로 렌더링하고 H4 이상은 허용하지 않는다.",
+        "block은 단순 첨부가 아니라 section content의 정확한 위치와 의미 관계를 통해 연결된다.",
+        "큰 Design Document는 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/로 분할한다.",
+        "문서 JSON은 데이터와 의미 구조만 담당하고 실제 시각 스타일은 포함하지 않는다.",
+        "문서 metadata에는 프로젝트 디자인 테마를 선택하는 theme 이름만 저장하며 Viewer가 해당 테마에 따라 렌더링한다.",
+        "프로젝트별 동적 테마 구성 시스템은 현재 JSON 규격 및 네 Work Unit과 분리한 별도 작업이다.",
+        "세 문서의 필수 metadata와 필수 section은 지금까지의 인터뷰 내용을 기준으로 공식 자료를 조사해 결정한다.",
+        "Work Unit에는 Goal, exec, Git repository, base ref, 전용 branch와 linked worktree를 포함하는 필수 execution context가 있어야 한다.",
+        "Work Unit의 dedicated branch와 linked worktree를 만드는 주체는 Execution Agent다.",
+        "Execution Agent가 일관된 worktree lifecycle을 수행하도록 전용 Agent Factory 스킬과 deterministic script가 필요하다.",
+        "Work Unit당 worktree 1개와 branch 1개를 사용하며 재실행과 rework는 동일한 pair에서 이어간다.",
+        "Work Unit branch 이름은 work-unit/<work-unit-id> 형식을 사용한다.",
+        "Agent Factory canonical artifact root는 /home/deus/workspace/skills/.agent-factory 디렉터리다.",
+        "VS Code Workspace Extension은 /home/deus/workspace/skills/.agent-factory 안에 있는 canonical JSON과 connected block을 읽어 표시한다.",
+        "기존 docs 하위 Agent Factory 산출물은 migration Work Unit에서 상대 구조를 보존해 .agent-factory로 이동하며 migration 완료 후 docs fallback source를 유지하지 않는다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

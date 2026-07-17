@@ -1,0 +1,45 @@
++zsh:3> manager=.codex/skills/work-unit-planner-af/assets/scripts/work_unit.py 
++zsh:4> tmp=/tmp/work-unit-json-storage-format-smoke 
++zsh:5> rm -rf /tmp/work-unit-json-storage-format-smoke
++zsh:6> mkdir -p /tmp/work-unit-json-storage-format-smoke/legacy-source
++zsh:7> printf '# Legacy source\nsource bytes stay unchanged\n'
++zsh:8> before=+zsh:8> sha256sum /tmp/work-unit-json-storage-format-smoke/legacy-source/unit.md
++zsh:8> before=+zsh:8> cut '-d ' -f1
++zsh:8> before=3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c 
++zsh:9> python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py create /tmp/work-unit-json-storage-format-smoke/created-unit --id created-unit --title 'Created smoke unit' --goal 'Verify create and validate' --scope 'JSON package creation' --out-of-scope 'Derived rendering' --assumption 'Temporary smoke fixture' --constraint 'Preserve canonical contract' --plan 'Create then validate' --acceptance-criterion 'Package validates' --definition-of-done 'Evidence is visible' --test-criterion 'Validate command passes' --ai-checklist-item 'Check validation' --human-checklist-item 'Inspect the package' --human-review-method 'Inspect JSON and validation output' --quality-check 'Full package validation' --requirement-ref manual-smoke --expected-output 'Validated temporary package' --execution-order 1
++zsh:10> python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate /tmp/work-unit-json-storage-format-smoke/created-unit
+{"valid": true, "schemaVersion": "3.0.0", "files": ["/tmp/work-unit-json-storage-format-smoke/created-unit/data/work-unit.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/execution.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/review.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/quality-gate.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/traceability.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/report.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/evidence/commands.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/evidence/tests.json"]}
++zsh:11> test -f /tmp/work-unit-json-storage-format-smoke/created-unit/data/report.json
++zsh:12> test ! -e /tmp/work-unit-json-storage-format-smoke/created-unit/output
++zsh:13> python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py show /tmp/work-unit-json-storage-format-smoke/created-unit report
+{
+  "summary": "아직 실행되지 않았습니다.",
+  "artifactRefs": [],
+  "verification": {
+    "result": "not_run",
+    "evidenceRefs": []
+  },
+  "remainingRisk": [],
+  "unresolvedItems": [],
+  "designDocument": {
+    "status": "not_checked",
+    "refs": [],
+    "reason": "관련 Design Document 확인 결과가 아직 기록되지 않았습니다."
+  }
+}
++zsh:14> python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py update /tmp/work-unit-json-storage-format-smoke/created-unit report summary '"Smoke update passed"'
++zsh:15> python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate /tmp/work-unit-json-storage-format-smoke/created-unit
+{"valid": true, "schemaVersion": "3.0.0", "files": ["/tmp/work-unit-json-storage-format-smoke/created-unit/data/work-unit.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/execution.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/review.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/quality-gate.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/traceability.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/data/report.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/evidence/commands.json", "/tmp/work-unit-json-storage-format-smoke/created-unit/evidence/tests.json"]}
++zsh:16> python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py migrate /tmp/work-unit-json-storage-format-smoke/legacy-source /tmp/work-unit-json-storage-format-smoke/migrated-unit --id migrated-unit --title 'Migrated smoke unit' --goal 'Verify source-preserving migration' --scope 'JSON package migration' --out-of-scope 'Legacy source mutation' --assumption 'Temporary legacy fixture' --constraint 'Preserve source bytes' --plan 'Migrate then validate' --acceptance-criterion 'Source hash is unchanged' --definition-of-done 'Migrated package validates' --test-criterion 'Compare source hashes' --ai-checklist-item 'Check source hash' --human-checklist-item 'Inspect migration evidence' --human-review-method 'Compare hashes and validation output' --quality-check 'Full package validation' --requirement-ref manual-migration-smoke --expected-output 'Validated migrated package' --execution-order 1
++zsh:17> after=+zsh:17> sha256sum /tmp/work-unit-json-storage-format-smoke/legacy-source/unit.md
++zsh:17> after=+zsh:17> cut '-d ' -f1
++zsh:17> after=3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c 
++zsh:18> test 3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c '=' 3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c
++zsh:19> python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate /tmp/work-unit-json-storage-format-smoke/migrated-unit
+{"valid": true, "schemaVersion": "3.0.0", "files": ["/tmp/work-unit-json-storage-format-smoke/migrated-unit/data/work-unit.json", "/tmp/work-unit-json-storage-format-smoke/migrated-unit/data/execution.json", "/tmp/work-unit-json-storage-format-smoke/migrated-unit/data/review.json", "/tmp/work-unit-json-storage-format-smoke/migrated-unit/data/quality-gate.json", "/tmp/work-unit-json-storage-format-smoke/migrated-unit/data/traceability.json", "/tmp/work-unit-json-storage-format-smoke/migrated-unit/data/report.json", "/tmp/work-unit-json-storage-format-smoke/migrated-unit/evidence/commands.json", "/tmp/work-unit-json-storage-format-smoke/migrated-unit/evidence/tests.json"]}
++zsh:20> test -f /tmp/work-unit-json-storage-format-smoke/migrated-unit/data/report.json
++zsh:21> test ! -e /tmp/work-unit-json-storage-format-smoke/migrated-unit/output
++zsh:22> printf 'source_sha256_before=%s\nsource_sha256_after=%s\n' 3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c 3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c
+source_sha256_before=3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c
+source_sha256_after=3b1c8150530910e89e86fe5c7d756e0ce5ab1be1fe09b8d590f5491d79df282c
++zsh:23> rm -rf /tmp/work-unit-json-storage-format-smoke

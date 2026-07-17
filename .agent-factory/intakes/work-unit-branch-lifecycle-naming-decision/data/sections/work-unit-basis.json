@@ -1,0 +1,48 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "refs": [],
+        "changes": [],
+        "reason": "현재 specification package에는 Work Unit branch와 worktree 생명주기 계약이 없고, 이 운영 계약은 work-unit-execution 및 lifecycle 스킬이 소유한다."
+      },
+      "attributes": {
+        "sourceKey": "specification",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "work-unit-basis",
+      "content": [
+        "Work Unit execution manager와 관련 스킬이 전용 pair cardinality, 동일 pair 재사용, work-unit/<work-unit-id> branch 규칙을 계속 검증하도록 구현하거나 회귀 검증한다."
+      ],
+      "attributes": {
+        "sourceKey": "synthesis.workUnitBasis",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

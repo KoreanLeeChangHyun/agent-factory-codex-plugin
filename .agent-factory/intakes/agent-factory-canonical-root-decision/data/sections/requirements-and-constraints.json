@@ -1,0 +1,28 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "requirement",
+      "content": [
+        "실제 이동은 migration Work Unit Execution에서 source mapping과 schema validation을 완료한 뒤 수행한다.",
+        "migration 완료 전 docs source를 삭제하거나 덮어쓰지 않는다.",
+        "Human과 AI는 migration 이후 동일 .agent-factory canonical data를 사용한다."
+      ],
+      "attributes": {
+        "sourceKey": "constraints",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

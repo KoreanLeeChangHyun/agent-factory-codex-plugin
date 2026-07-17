@@ -1,0 +1,7 @@
+Command (executed 2026-07-14 from /home/deus/workspace/skills):
+python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-execution-context-sufficiency-research
+
+Exit code: 0
+
+Output:
+{"valid": true, "schemaVersion": "3.0.0", "files": ["docs/work-units/work-unit-execution-context-sufficiency-research/data/work-unit.json", "docs/work-units/work-unit-execution-context-sufficiency-research/data/execution.json", "docs/work-units/work-unit-execution-context-sufficiency-research/data/review.json", "docs/work-units/work-unit-execution-context-sufficiency-research/data/quality-gate.json", "docs/work-units/work-unit-execution-context-sufficiency-research/data/traceability.json", "docs/work-units/work-unit-execution-context-sufficiency-research/data/report.json", "docs/work-units/work-unit-execution-context-sufficiency-research/evidence/commands.json", "docs/work-units/work-unit-execution-context-sufficiency-research/evidence/tests.json"]}

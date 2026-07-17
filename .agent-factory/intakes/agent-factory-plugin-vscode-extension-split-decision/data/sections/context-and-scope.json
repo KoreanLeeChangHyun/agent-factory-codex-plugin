@@ -1,0 +1,88 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/research/agent-factory-plugin-vscode-extension-architecture.json",
+        "docs/work-units/workspace-extension-four-tab-mvp",
+        "docs/work-units/agent-extension-goal-execution-integration"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": [
+        "Agent Factory는 브랜드 이름이다.",
+        "Agent Factory 기능을 두 개의 VS Code 창으로 제공한다.",
+        "VS Code 확장은 Agent Extension과 Workspace Extension 두 개로 분리한다.",
+        "두 VS Code 확장은 독립 역할이 아니며 Agent Factory Plugin의 스킬과 연동한다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

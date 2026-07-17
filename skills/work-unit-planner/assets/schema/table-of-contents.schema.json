@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-factory.local/schemas/work-unit/v4/table-of-contents.schema.json",
+  "title": "Agent Factory Work Unit Table Of Contents",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["managerOwned", "sections", "sha256"],
+  "properties": {
+    "managerOwned": {"const": true},
+    "sections": {"type": "array", "items": {"$ref": "#/$defs/sectionEntry"}},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*$"},
+    "sectionEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "subsections"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "path": {"type": "string", "pattern": "^data/sections/[A-Za-z0-9._-]+\\.json$"},
+        "subsections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id"],
+            "properties": {"id": {"$ref": "#/$defs/id"}}
+          }
+        }
+      }
+    }
+  }
+}

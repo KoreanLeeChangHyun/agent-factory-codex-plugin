@@ -1,0 +1,5 @@
+1. work-unit-execution-skill-worktree-manager
+2. agent-factory-skill-docs-json-block-contract
+3. agent-factory-json-block-data-migration
+4. workspace-extension-four-tab-mvp
+5. agent-extension-goal-execution-integration

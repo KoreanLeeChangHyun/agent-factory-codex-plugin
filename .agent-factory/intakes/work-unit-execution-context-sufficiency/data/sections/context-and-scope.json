@@ -1,0 +1,221 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "web-research"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": {
+        "basis_request": "Human request 2026-07-14: 조사한 내용을 기록하고 이를 위한 Work Unit을 생성한다."
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.basis_request",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": {
+        "related_artifacts": ""
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.related_artifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "context",
+      "content": {
+        "sources": ""
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.sources",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "context",
+      "content": {
+        "- https": "//scrumguides.org/scrum-guide.html"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.- https",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "scope",
+      "content": {
+        "heading": "저장소 점검 범위와 명령",
+        "text": "```text\nrg -n '\"version\"|\"status\"|sourceDesignRefs|unresolvedItems|ready|basis|blocking|x-packageStateConsistency' docs/work-units/*/data/work-unit.json .codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json\nrg -n 'ready|validate|unresolved|preflight|sourceDesignRefs|traceability' .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py .codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py .codex/skills/agent-factory-lifecycle-af/references/lifecycle.md\nrg -n '/goal|Goal objective|lacks enough basis|fresh session|preflight|readiness' .codex/skills docs -g '*.py' -g '*.js' -g '*.mjs' -g '*.json' -g '*.md'\npython3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-json-storage-format-v3\npython3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/vscode-extension-ui-structure-draft\npython3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-json-storage-format\nsha256sum .codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json /home/deus/.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json\ndiff -u /home/deus/.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json .codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json\n```\n\n의미적으로 빈약한 패키지가 통과하는지 확인하기 위해 manager의 필수 인수에 모두 `x`를 넣은 임시 `context-poor` 패키지를 `create`한 뒤 `validate`했다. 임시 패키지는 검증 후 삭제했다. 전체 재현 명령과 출력은 관련 Work Unit의 `evidence/logs/context-poor-counterexample.log`에 기록한다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.저장소 점검 범위와 명령",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "context",
+      "content": {
+        "heading": "웹 출처 (Web Source Table)",
+        "text": "| 출처 | 등급 | 신선도 | 핵심 근거 | 이 조사에서의 사용 경계 |\n| --- | --- | --- | --- | --- |\n| [OpenAI, Using PLANS.md for multi-hour problem solving](https://developers.openai.com/cookbook/articles/codex_exec_plans) | T2 primary expert | F5 — 2025-10-07 발행 | ExecPlan 독자는 현재 worktree와 단일 계획 파일만 가진 저장소 초보자로 가정되며, 계획은 이전 기억이나 외부 문맥 없이 자기완결적이어야 한다. | Agent Factory 계약 자체가 아니라 무히스토리 실행 문서 충분성의 비교 기준으로만 사용한다. |\n| [JSON Schema, What is JSON Schema?](https://json-schema.org/overview/what-is-jsonschema) | T1 authoritative primary | F5 — 2026 공식 문서, 현재 최신 dialect `2020-12` 명시 | JSON Schema는 JSON 구조와 제약을 선언하며 validator는 인스턴스가 선언된 schema에 부합하는지 검사한다. | schema-valid가 선언되지 않은 의미 조건까지 자동 보장하지 않는다는 판단에 사용한다. |\n| [JSON Schema, string](https://json-schema.org/understanding-json-schema/reference/string) | T1 authoritative primary | F5 — 2026 공식 문서 | 빈 문자열도 단순 `type: string`에는 유효하며 길이 제한은 `minLength` 같은 명시적 keyword가 필요하다. | `minLength: 1`도 `x`의 업무 의미를 판정하지 못한다는 반례 해석에 사용한다. |\n| [NASA, Appendix C: How to Write a Good Requirement](https://www.nasa.gov/reference/appendix-c-how-to-write-a-good-requirement/) | T1 authoritative primary | F1 — 공식 현행 reference 페이지이나 본문 발행·수정일 미표시 | 요구사항은 명확·비모호하고 가능한 한 완전해야 하며, 가정은 명시되고, 상위 요구에 양방향 추적되며, 검증 기준을 세울 수 있어야 한다. 제품 요구사항에 personnel/task assignment를 섞지 말라는 지침도 있다. | 일반 요구 품질 기준으로만 사용하며 Agent Factory 필드나 조직 역할을 새로 요구하는 근거로 사용하지 않는다. |\n| [NASA, 4.2 Technical Requirements Definition](https://www.nasa.gov/reference/4-2-technical-requirements-definition/) | T1 authoritative primary | F1 — 공식 현행 reference 페이지이나 본문 발행·수정일 미표시 | 요구사항은 stakeholder expectation에 추적되고, 유효한 가정에 근거하며, 실행 결과를 검증할 충분한 정보를 가져야 한다. 요구만 보고 소통 없이 구현하면 다른 해석의 원치 않는 결과를 만들 위험이 있다고 명시한다. | 의미적 readiness가 구조 검증과 별도라는 비교 근거로만 사용한다. |\n| [The Scrum Guide](https://scrumguides.org/scrum-guide.html) | T1 authoritative primary | F3 — 2020 공식 Guide, 현재 공식 사이트에서 제공 | refinement는 backlog item에 설명·순서·크기 같은 상세를 더해 투명성을 높이며, Definition of Done은 필요한 품질 측정을 충족한 상태의 공식 설명이다. | Agent Factory에 Scrum 역할을 도입하지 않고 Ready/Done에 투명한 기준이 필요하다는 보조 근거로만 사용한다. |\n\n최고 출처 등급은 `T1 authoritative primary`이다. NASA 두 페이지의 발행·수정일이 표시되지 않아 freshness는 `F1`로 보수적으로 기록했지만, 두 자료는 비시점성 요구공학 원칙에만 사용했으며 2026-07-14 현재 공식 URL 접근성을 확인했다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.웹 출처 (Web Source Table)",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0009",
+      "kind": "context",
+      "content": {
+        "heading": "1. 현재 v3는 충분한 실행 문맥을 **표현할 수 있다**",
+        "text": "`work-unit.schema.json`은 목표, 범위와 제외 범위, 가정·제약, 계획, 수용 기준, Definition of Done, 테스트 기준, AI/Human checklist, Human review method, expected output, dependencies와 unresolved items를 담는다. lifecycle 문서도 신규 세션이 이 패키지를 실행 source of truth로 사용하도록 명시한다. 따라서 작성자가 구체적이고 추적 가능한 내용을 채우면, 무히스토리 세션에 필요한 문맥을 한 패키지로 전달할 표현 공간은 존재한다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.1. 현재 v3는 충분한 실행 문맥을 **표현할 수 있다**",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0010",
+      "kind": "context",
+      "content": {
+        "heading": "2. 현재 v3는 그 문맥의 **의미적 충분성을 보장하지 않는다**",
+        "text": "현재 schema는 대부분 비어 있지 않은 문자열 또는 배열을 요구한다. JSON Schema 공식 설명과 실제 `context-poor` 반례가 함께 보여 주듯, 구조적 유효성은 선언된 형식 제약의 충족을 뜻할 뿐 `x`가 실행 가능한 목표나 검증 가능한 기준인지 판단하지 않는다. manager는 새 패키지를 무조건 `ready`로 생성하며 validator에는 별도 semantic readiness 판정이 없다.\n\n따라서 다음 명제는 구분해야 한다.\n\n- `schema-valid`: 현재 JSON 구조·값 형식·package state 계약에 부합한다.\n- `ready`: 현재 manager가 생성 시 부여하며 상태 조합상 실행 전 상태다.\n- `fresh-session executable`: 신규 Agent가 숨은 문맥 없이 범위와 성공 조건을 이해하고 실행·검증·보고할 수 있다.\n\n현재 계약에서 앞의 두 상태만으로 세 번째 상태가 논리적으로 보장되지는 않는다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.2. 현재 v3는 그 문맥의 **의미적 충분성을 보장하지 않는다**",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0011",
+      "kind": "context",
+      "content": {
+        "heading": "5. project v3와 `$CODEX_HOME` 설치본이 동일 계약이 아니다",
+        "text": "Agent Factory lifecycle은 `$CODEX_HOME/skills/`를 active location으로 설명하지만, 이 프로젝트 Work Unit이 지정한 project v3 manager와 HOME 설치본은 현재 동기화되어 있지 않다. HOME에는 manager 자체와 v3 report/evidence schema가 없고 `work-unit.schema.json`도 이전 형태다. 따라서 project v3의 검증 결과를 HOME 설치본 전체에 일반화할 수 없다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.5. project v3와 `$CODEX_HOME` 설치본이 동일 계약이 아니다",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

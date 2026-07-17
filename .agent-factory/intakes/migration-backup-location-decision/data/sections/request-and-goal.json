@@ -1,0 +1,41 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "JSON + block migration이 검증된 뒤 기존 원본을 이동해 보존할 .backup 위치를 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-migration-backup-location-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "migration-backup-location-decision-source-1",
+          "path": ".agent-factory/intakes/migration-backup-location-decision/blocks/legacy-source/01-migration-backup-location-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "human-request",
+      "content": "마이그레이션 완료 후 원본을 보관할 .backup 위치를 어디로 할 것인가?",
+      "attributes": {
+        "sourceKey": "question",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-migration-backup-location-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "migration-backup-location-decision-source-1",
+          "path": ".agent-factory/intakes/migration-backup-location-decision/blocks/legacy-source/01-migration-backup-location-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

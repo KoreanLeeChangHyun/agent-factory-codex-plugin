@@ -1,0 +1,70 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": {
+        "heading": "결정 질문",
+        "text": "현재 필수 `output/result.md`를 어떤 JSON 계약으로 대체할 것인가?"
+      },
+      "attributes": {
+        "sourceKey": "markdown.결정 질문",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "heading": "현재 결정",
+        "text": "2026-07-14 Human이 A를 선택했다.\n\n- 새 major contract에서 `data/report.json`을 canonical result로 추가한다.\n- 필수 `output/result.md`를 제거한다.\n- HTML과 Markdown은 선택적 파생물로만 둔다.\n- 기존 package는 자동 덮어쓰기 없이 별도 migration 경계로 보존한다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.현재 결정",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "superseded",
+        "reason": "The historical Work Unit storage decision is replaced by the sectioned Work Unit v4 contract.",
+        "currentStateEvidence": [
+          "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+          "skills/work-unit-planner/references/work-unit-structure.md"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "superseded",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,24 @@
+{
+  "id": "api-design",
+  "version": "1.0.0",
+  "artifactType": "specification",
+  "documentClass": "interface-design",
+  "maximumSectionDepth": 2,
+  "commonRequiredSections": [
+    {"id": "purpose-and-scope", "contains": ["purpose", "scope"]},
+    {"id": "basis-and-relations", "contains": ["source basis", "typed artifact relations"]},
+    {"id": "decisions-and-open-items", "contains": ["accepted decisions", "unresolved items"]},
+    {"id": "verification-and-traceability", "contains": ["verification strategy", "traceability"]}
+  ],
+  "profileRequiredSections": [
+    {"id": "api-overview", "contains": ["API boundary", "consumers"]},
+    {"id": "operations-and-endpoints", "contains": ["operations", "endpoints"]},
+    {"id": "schemas-and-payloads", "contains": ["schemas", "payloads"]},
+    {"id": "authentication-and-authorization", "contains": ["authentication", "authorization"]},
+    {"id": "errors-and-compatibility", "contains": ["error behavior", "compatibility"]}
+  ],
+  "optionalSections": [],
+  "blockGuidance": "Allow connected OpenAPI JSON or YAML blocks and record their relation to prose summaries.",
+  "storageContract": "sectioned-document-package-v2",
+  "implementationStatus": "registered"
+}

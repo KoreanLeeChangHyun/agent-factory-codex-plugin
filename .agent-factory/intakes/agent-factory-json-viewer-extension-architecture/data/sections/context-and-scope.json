@@ -1,0 +1,92 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "web-research"
+      },
+      "attributes": {
+        "sourceKey": "type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/work-units/agent-factory-skill-docs-json-block-contract",
+        "docs/work-units/agent-factory-json-block-data-migration",
+        "docs/work-units/workspace-extension-four-tab-mvp",
+        "docs/work-units/agent-extension-goal-execution-integration"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "scope",
+      "content": [
+        "JSON descriptor와 별도 block/resource package 구조",
+        "JSON Schema 기반 계약과 검증",
+        "VS Code View Container, Tree View, Webview와 공통 Viewer",
+        "Workspace 확장과 Agent 확장의 분리 및 연동",
+        "Git branch와 worktree 기반 실행 격리",
+        "Webview 및 package-local resource 보안 경계"
+      ],
+      "attributes": {
+        "sourceKey": "researchScope",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

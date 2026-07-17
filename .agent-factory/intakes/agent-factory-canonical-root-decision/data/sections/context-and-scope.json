@@ -1,0 +1,111 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/work-units/agent-factory-json-block-data-migration",
+        "docs/work-units/workspace-extension-four-tab-mvp"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": [
+        "기존 docs 아래의 Agent Factory 산출물을 hidden Agent Factory directory로 이동한다.",
+        "오타가 없는 .agent-factory를 canonical directory name으로 사용한다.",
+        "VS Code Workspace Extension은 /home/deus/workspace/skills/.agent-factory 정보를 읽어 표시한다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "context",
+      "content": [
+        ".agent-factory/intakes/",
+        ".agent-factory/interviews/",
+        ".agent-factory/research/",
+        ".agent-factory/specifications/",
+        ".agent-factory/work-units/",
+        ".agent-factory/design-documents/"
+      ],
+      "attributes": {
+        "sourceKey": "targetExamples",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md",
+      "mediaType": "text/markdown",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/work-unit-json-storage-format-self-migration.md",
+      "sha256": "37f8f7391f6ea9254e30b18b53b0cc13f6a22f36486371d4372dbaf89ae30436",
+      "sizeBytes": 4362
+    }
+  ]
+}

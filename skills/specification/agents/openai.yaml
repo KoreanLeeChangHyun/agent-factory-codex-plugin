@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Factory Specification"
+  short_description: "Align versioned Specification profiles and reports."
+  default_prompt: "Use $specification to check or update a profile-driven Agent Factory Specification and its Human-facing report."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-project-core-storage-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/project-core-storage-decision.json",
+      "sha256": "8e2068857383a91f0cab62c0bfdd1f326bc9a0d5ff5211dc77b678d9c4f31518",
+      "sizeBytes": 2392
+    }
+  ]
+}

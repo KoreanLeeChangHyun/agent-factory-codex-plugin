@@ -1,0 +1,183 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/research/execution-agent-worktree-skill-placement.json",
+        "docs/work-units/work-unit-execution-skill-worktree-manager"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": {
+        "version": "1.0.0"
+      },
+      "attributes": {
+        "sourceKey": "version",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "context",
+      "content": {
+        "lifecyclePhase": "intake"
+      },
+      "attributes": {
+        "sourceKey": "lifecyclePhase",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "context",
+      "content": {
+        "createdAt": "2026-07-16T07:00:00+00:00"
+      },
+      "attributes": {
+        "sourceKey": "createdAt",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "context",
+      "content": {
+        "updatedAt": "2026-07-16T07:02:17+00:00"
+      },
+      "attributes": {
+        "sourceKey": "updatedAt",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0009",
+      "kind": "context",
+      "content": [
+        "Human은 Work Unit당 worktree 1개와 branch 1개 사용을 결정했다.",
+        "Human은 재실행과 rework에서 동일 worktree와 branch pair 재사용을 결정했다.",
+        "Human은 branch 이름을 work-unit/<work-unit-id>로 결정했다.",
+        "현재 work-unit-execution, lifecycle, work-unit-planner 스킬은 이 결정을 반영한다."
+      ],
+      "attributes": {
+        "sourceKey": "synthesis.facts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXECUTION-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "intake-manager-contract-hardening",
+        "objective": "Execute the ready Work Unit without hidden chat context.",
+        "execInvocation": "/goal intake-manager-contract-hardening",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/intake-manager-contract-hardening",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening",
+        "setupState": "pending",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,517 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": [
+        {
+          "id": "INTAKE-DECISION-001",
+          "decision": "Intake 하나당 docs/intakes/<intake-id>/ 패키지를 사용한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-002",
+          "decision": "구조화된 JSON을 canonical source로 사용하고 별도 형식 블록은 package-local 파일 참조로 연결한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-003",
+          "decision": "AI는 canonical JSON을 직접 읽고 Human 가시성은 VS Code 확장 Viewer가 동일 JSON을 렌더링하여 제공한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-004",
+          "decision": "Agent Factory 생명주기는 Intake -> Work Unit -> Execution을 기본으로 하고 필요할 때 feedback으로 반복한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-005",
+          "decision": "Intake, Work Unit, Design Document를 각각 docs/intakes, docs/work-units, docs/design-documents 아래의 규격화된 JSON과 블록 패키지로 저장한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-006",
+          "decision": "Workspace 확장의 최종 MVP 정보 구조는 Dashboard, Kanban, Viewer, Context 네 탭이다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-007",
+          "decision": "Intake, Work Unit, Design Document의 개별 뷰어는 하나의 공통 Viewer로 통합하고 artifact type과 id로 대상 산출물을 연다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-008",
+          "decision": "Kanban에서 Work Unit 카드를 선택하면 공통 Viewer가 해당 Work Unit을 여는 연결을 제공한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-009",
+          "decision": "Context 탭은 AGENTS.md와 Agent Factory Skills를 관리한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-010",
+          "decision": "Execution Agent는 Goal, exec, 전용 Git branch와 worktree를 사용한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-011",
+          "decision": "Kanban DnD 상태 조정, Execution 즉시 제출과 Agent 확장 결과 연동은 현재 4탭 MVP Work Unit과 분리한 후속 범위로 관리한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-012",
+          "decision": "Work Unit 실행 순서는 스킬 문서 갱신 -> 데이터 마이그레이션 -> Workspace 확장 -> Agent 확장이다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-013",
+          "decision": "Intake, Design Document, Work Unit은 metadata, title, table of contents, section, content와 optional block을 갖는 공통 JSON 문서 모델을 사용한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-014",
+          "decision": "공통 section depth는 최대 2이며 title은 H1, top-level section은 H2, subsection은 H3로 렌더링하고 H4 이상은 허용하지 않는다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-015",
+          "decision": "block은 section content의 배치 위치와 의미 관계를 통해 별도 확장자 파일에 연결한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-016",
+          "decision": "큰 Design Document는 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/로 분할한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-017",
+          "decision": "문서 JSON에는 실제 스타일을 저장하지 않고 metadata에 theme 이름만 저장하며 Viewer가 프로젝트 테마에 따라 렌더링한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-018",
+          "decision": "프로젝트별 동적 테마 구성 시스템은 현재 네 Work Unit과 분리한 별도 작업으로 관리한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-019",
+          "decision": "공통 필수 metadata는 id, artifactType, schemaVersion, documentVersion, projectId, lifecycle, createdAt, updatedAt, language, theme, provenance와 relations로 제한한다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-020",
+          "decision": "Intake 필수 section은 request-and-goal, context-and-scope, stakeholders-and-approval, evidence-and-findings, requirements-and-constraints, decisions-and-open-items, work-unit-basis이다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-021",
+          "decision": "Design Document 필수 section은 project-core, design-drivers, context-and-scope, architecture-and-strategy, design-views, design-decisions, quality-security-and-risks, verification-and-traceability, work-unit-decomposition이다.",
+          "status": "superseded",
+          "supersededBy": [
+            "INTAKE-DECISION-023",
+            "INTAKE-DECISION-024",
+            "INTAKE-DECISION-025"
+          ]
+        },
+        {
+          "id": "INTAKE-DECISION-022",
+          "decision": "Work Unit 필수 section은 basis, work-definition, plan, execution-context, acceptance-and-verification, execution, ai-review, human-review, report이며 execution-context에는 Goal, exec, repository, base ref, dedicated branch와 linked worktree가 포함된다.",
+          "status": "accepted"
+        },
+        {
+          "id": "INTAKE-DECISION-023",
+          "decision": "docs/design-documents/<document-id>/는 Agent Factory에서 requirements, interface design, model과 architecture를 포함하는 광의의 specification and design artifact package root로 사용하고, 각 문서는 공통 base contract와 versioned document profile을 조합한다.",
+          "status": "superseded",
+          "basis": "docs/research/design-document-profile-system.json",
+          "supersededBy": [
+            "INTAKE-DECISION-027"
+          ]
+        },
+        {
+          "id": "INTAKE-DECISION-024",
+          "decision": "Design Document 공통 필수 metadata에는 documentClass와 documentProfile.id, documentProfile.version을 추가하고 공통 필수 section은 purpose-and-scope, basis-and-relations, decisions-and-open-items, verification-and-traceability로 제한한다.",
+          "status": "superseded",
+          "basis": "docs/research/design-document-profile-system.json",
+          "supersededBy": [
+            "INTAKE-DECISION-030"
+          ]
+        },
+        {
+          "id": "INTAKE-DECISION-025",
+          "decision": "초기 Design Document profile은 requirements-specification, api-design, data-model, class-architecture이며 각 profile registry가 required and optional sections, block 계약, JSON Schema, renderer adapter와 migration compatibility를 소유한다.",
+          "status": "superseded",
+          "basis": "docs/research/design-document-profile-system.json",
+          "supersededBy": [
+            "INTAKE-DECISION-029",
+            "INTAKE-DECISION-031"
+          ]
+        },
+        {
+          "id": "INTAKE-DECISION-026",
+          "decision": "Viewer는 registry에 없는 document profile의 공통 base 구조를 generic view로 표시할 수 있지만 완전 유효한 문서로 판정하지 않고 base-valid-profile-unresolved 상태와 누락 profile id/version을 표시한다.",
+          "status": "superseded",
+          "basis": "docs/research/design-document-profile-system.json",
+          "supersededBy": [
+            "INTAKE-DECISION-031"
+          ]
+        },
+        {
+          "id": "INTAKE-DECISION-027",
+          "decision": "requirements, interface design, model과 architecture를 포함하는 모든 명세서 package의 canonical root는 docs/specifications/<document-id>/이며 category 하위 폴더를 강제하지 않고 JSON metadata가 분류를 소유한다.",
+          "status": "accepted",
+          "basis": "docs/interviews/specifications-root-name-decision.json"
+        },
+        {
+          "id": "INTAKE-DECISION-028",
+          "decision": "Project Core는 docs/specifications/project-core/의 단일 canonical package로 저장하고 project-core profile을 사용하며 다른 명세서는 governed-by typed relation으로 참조하고 내용을 복제하지 않는다.",
+          "status": "accepted",
+          "basis": "docs/interviews/project-core-storage-decision.json"
+        },
+        {
+          "id": "INTAKE-DECISION-029",
+          "decision": "명세서 종류별 profile id와 version, documentClass, section, block, JSON Schema, Viewer renderer mapping 및 compatibility and migration 규칙은 Agent Factory 스킬이 canonical source로 소유한다.",
+          "status": "accepted",
+          "basis": "docs/interviews/specification-profile-skill-ownership-decision.json"
+        },
+        {
+          "id": "INTAKE-DECISION-030",
+          "decision": "Specification 공통 필수 metadata에는 documentClass와 documentProfile.id, documentProfile.version을 추가하고 공통 필수 section은 purpose-and-scope, basis-and-relations, decisions-and-open-items, verification-and-traceability로 제한한다.",
+          "status": "accepted",
+          "basis": "docs/research/design-document-profile-system.json"
+        },
+        {
+          "id": "INTAKE-DECISION-031",
+          "decision": "초기 Specification profile은 project-core, requirements-specification, api-design, data-model, class-architecture이며 미등록 profile은 Viewer에서 공통 base generic view까지만 허용하고 base-valid-profile-unresolved로 판정한다.",
+          "status": "accepted",
+          "basis": [
+            "docs/research/design-document-profile-system.json",
+            "docs/interviews/project-core-storage-decision.json"
+          ]
+        },
+        {
+          "id": "INTAKE-DECISION-032",
+          "decision": "migration 결과의 schema와 참조 검증이 통과한 뒤 정확한 source and destination 이동 목록에 대한 최종 Human 확인을 받고, 기존 원본을 프로젝트 루트 .backup/<migration-id>/ 아래에 기존 상대 경로를 유지해 이동하며 기존 backup을 덮어쓰지 않는다.",
+          "status": "accepted",
+          "basis": "docs/interviews/migration-backup-location-decision.json"
+        },
+        {
+          "id": "INTAKE-DECISION-033",
+          "decision": "모든 Work Unit Execution의 canonical Git repository root는 /home/deus/workspace/skills이며 첫 Execution 전에 이 경로를 Git 저장소로 초기화해야 하고 각 Execution은 Goal, exec, dedicated branch와 linked worktree를 사용한다.",
+          "status": "accepted",
+          "basis": "docs/interviews/work-unit-execution-repository-decision.json"
+        },
+        {
+          "id": "INTAKE-DECISION-034",
+          "decision": "Work Unit의 dedicated branch와 linked worktree 생성·검증·정리는 Execution Agent가 수행하며 canonical owner는 .codex/skills/work-unit-execution-af/이고 deterministic implementation은 scripts/worktree.py에 둔다.",
+          "status": "accepted",
+          "basis": "docs/research/execution-agent-worktree-skill-placement.json"
+        },
+        {
+          "id": "INTAKE-DECISION-035",
+          "decision": "work-unit-planner-af는 execution-context 계약만 검증하고 Git mutation을 수행하지 않으며 agent-factory-lifecycle-af는 실행 스킬로 라우팅하고 Agent 확장은 동일 work-unit-execution-af script contract를 재사용한다.",
+          "status": "accepted",
+          "basis": "docs/research/execution-agent-worktree-skill-placement.json"
+        },
+        {
+          "id": "INTAKE-DECISION-036",
+          "decision": "Work Unit당 linked worktree 1개와 dedicated branch 1개를 사용하고 재실행 및 rework에서 동일 pair를 재사용하며 branch 이름은 work-unit/<work-unit-id> 형식으로 생성한다.",
+          "status": "accepted",
+          "basis": "docs/interviews/work-unit-branch-lifecycle-naming-decision.json"
+        },
+        {
+          "id": "INTAKE-DECISION-037",
+          "decision": "Agent Factory canonical artifact root를 /home/deus/workspace/skills/.agent-factory/로 변경하고 기존 /home/deus/workspace/skills/docs/ 하위 상대 구조를 migration하여 이동한다. VS Code Workspace Extension은 /home/deus/workspace/skills/.agent-factory만 canonical source로 읽으며 migration 완료 후 docs fallback을 사용하지 않는다.",
+          "status": "accepted",
+          "basis": "docs/interviews/agent-factory-canonical-root-decision.json"
+        }
+      ],
+      "attributes": {
+        "sourceKey": "decisions",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "open-item",
+      "content": "migration별 <migration-id> 생성 규칙은 migration Work Unit Execution에서 충돌 없는 값으로 정의하고 evidence에 기록해야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "open-item",
+      "content": "실제 VS Code 확장 구현 저장소, 구현 언어, 프레임워크와 VS Code API는 현재 저장소 근거로 확인되지 않았다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[2]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "open-item",
+      "content": "Intake package의 최종 JSON Schema 필드, 상태 모델과 manager 명령 계약은 Work Unit Execution에서 schema-first로 정의해야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[3]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "open-item",
+      "content": "표와 다이어그램에서 canonical JSON 모델과 파생 렌더링 파일의 세부 형식은 해당 블록 유형별 명시적 계약이 필요하다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[4]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "open-item",
+      "content": "Dashboard가 표시할 구체적인 집계 항목과 조작은 정해지지 않았다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[5]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "open-item",
+      "content": "Context 탭에서 AGENTS.md와 Skills에 제공할 구체적인 생성, 편집, 활성화 및 검증 동작은 정해지지 않았다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[6]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "open-item",
+      "content": "Kanban DnD의 허용 상태 전환, Execution 제출 조건·실패 처리와 Agent 확장 연동 계약은 후속 Intake에서 정해야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[7]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0009",
+      "kind": "open-item",
+      "content": "프로젝트별 동적 Theme Registry, 테마 생성·편집·검증·version·fallback 계약은 별도 Intake와 Work Unit에서 정해야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[8]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0010",
+      "kind": "open-item",
+      "content": "Work Unit execution-context의 Goal·exec runtime 식별자와 branch·worktree naming, setup·cleanup 상세 상태 모델은 스킬 계약 실행에서 schema-first로 정의해야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[9]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0011",
+      "kind": "open-item",
+      "content": "명세서 profile 규칙을 소유할 정확한 Agent Factory skill 이름과 내부 asset 경로 및 schema file layout은 스킬 계약 Work Unit Execution에서 정의해야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[10]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0012",
+      "kind": "open-item",
+      "content": "/home/deus/workspace/skills는 Git 저장소로 초기화되었지만 아직 최초 커밋과 실행 base ref가 없으므로 linked worktree 기반 첫 Execution 전에 이를 준비해야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[11]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0013",
+      "kind": "open-item",
+      "content": "work-unit-execution-af를 최초 구현하는 Work Unit은 script가 아직 없으므로 공식 Git 검증 순서를 따르는 명시적 명령으로 one-time bootstrap하고 evidence를 남겨야 한다.",
+      "attributes": {
+        "sourceKey": "unresolvedItems[12]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0014",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 12
+      },
+      "attributes": {
+        "sourceKey": "unresolvedItems",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "superseded",
+        "reason": "The pre-contract basis is replaced by Intake v2 and the common sectioned document contract.",
+        "currentStateEvidence": [
+          "skills/intake/assets/profiles/intake.profile.json",
+          "skills/lifecycle/references/common-document-contract.md"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "superseded",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

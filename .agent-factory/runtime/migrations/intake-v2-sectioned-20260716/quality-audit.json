@@ -1,0 +1,418 @@
+{
+  "auditVersion": "3.0.0",
+  "createdAt": "2026-07-16T19:08:43+00:00",
+  "qualityGate": "pass-with-active-intakes",
+  "summary": {
+    "packages": 22,
+    "fullValidationPass": 22,
+    "closedQualityPass": 11,
+    "supersededQualityPass": 6,
+    "activeDraftPending": 5,
+    "qualityFailures": 0,
+    "activeHumanDecisionTopics": 15
+  },
+  "packages": [
+    {
+      "id": "agent-factory-canonical-root-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 1,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "agent-factory-json-viewer-extension-architecture",
+      "status": "draft",
+      "fullValidation": "pass",
+      "quality": "active-pending",
+      "dispositionEvidenceCount": 0,
+      "blockingOpenItemCount": 6,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "agent-factory-plugin-vscode-extension-architecture",
+      "status": "draft",
+      "fullValidation": "pass",
+      "quality": "active-pending",
+      "dispositionEvidenceCount": 0,
+      "blockingOpenItemCount": 4,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "agent-factory-plugin-vscode-extension-split-decision",
+      "status": "draft",
+      "fullValidation": "pass",
+      "quality": "active-pending",
+      "dispositionEvidenceCount": 0,
+      "blockingOpenItemCount": 3,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "agent-factory-skill-namespace-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "common-document-required-metadata-and-sections",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "design-document-profile-system",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "execution-agent-worktree-skill-placement",
+      "status": "superseded",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "intake-json-canonical-viewer",
+      "status": "superseded",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 12,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "intake-section-depth-readability",
+      "status": "draft",
+      "fullValidation": "pass",
+      "quality": "active-pending",
+      "dispositionEvidenceCount": 0,
+      "blockingOpenItemCount": 1,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "migration-backup-location-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "project-core-storage-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 5,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "specification-profile-skill-ownership-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 6,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "specifications-root-name-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 5,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "work-unit-branch-lifecycle-naming-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 2,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "work-unit-execution-bootstrap-location-decision",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "work-unit-execution-context-sufficiency",
+      "status": "closed",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 3,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "work-unit-execution-repository-decision",
+      "status": "superseded",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "work-unit-json-storage-format",
+      "status": "superseded",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 1,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "work-unit-json-storage-format-decision",
+      "status": "superseded",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "work-unit-json-storage-format-self-migration",
+      "status": "superseded",
+      "fullValidation": "pass",
+      "quality": "pass",
+      "dispositionEvidenceCount": 1,
+      "blockingOpenItemCount": 0,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    },
+    {
+      "id": "workunit-kanban-stage-visibility-decision",
+      "status": "draft",
+      "fullValidation": "pass",
+      "quality": "active-pending",
+      "dispositionEvidenceCount": 0,
+      "blockingOpenItemCount": 1,
+      "provenanceRefCount": 1,
+      "legacyClassificationCount": 0
+    }
+  ],
+  "activeInterviewCandidates": [
+    {
+      "intakeId": "agent-factory-json-viewer-extension-architecture",
+      "itemId": "NORM-0001",
+      "topic": "Workspace 확장과 Agent 확장의 extensionKind 및 local·remote 지원 범위",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-json-viewer-extension-architecture",
+      "itemId": "NORM-0002",
+      "topic": "두 확장 사이의 command, exported API 또는 message contract 선택",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-json-viewer-extension-architecture",
+      "itemId": "NORM-0003",
+      "topic": "Context 탭에서 허용할 읽기, validation, 편집, 생성, 설치와 활성화 동작",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-json-viewer-extension-architecture",
+      "itemId": "NORM-0004",
+      "topic": "Dashboard의 최소 집계 지표",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-json-viewer-extension-architecture",
+      "itemId": "NORM-0005",
+      "topic": "지원할 block type별 renderer와 SVG·HTML·image trust policy",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-json-viewer-extension-architecture",
+      "itemId": "NORM-0006",
+      "topic": "Execution 제출 confirmation, idempotency, cancellation과 retry 정책",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-plugin-vscode-extension-architecture",
+      "itemId": "ACTIVE-OPEN-001",
+      "topic": "Agent Factory Plugin의 exact manifest, marketplace scope, installation policy와 versioning은 아직 결정되지 않았다.",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-plugin-vscode-extension-architecture",
+      "itemId": "ACTIVE-OPEN-002",
+      "topic": "VS Code extension의 local and remote workspace support 범위는 아직 Human 결정이 필요하다.",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-plugin-vscode-extension-architecture",
+      "itemId": "ACTIVE-OPEN-003",
+      "topic": "codex app-server의 experimental API를 사용할 요구는 확인되지 않았으며 stable API surface를 기본으로 해야 한다.",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-plugin-vscode-extension-architecture",
+      "itemId": "ACTIVE-OPEN-004",
+      "topic": "기존 두 VS Code 확장 Work Unit을 supersede, merge 또는 reshape할지는 Human 결정이 필요하다.",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-plugin-vscode-extension-split-decision",
+      "itemId": "NORM-0003",
+      "topic": "Agent Extension과 Workspace Extension 사이의 command and event schema",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-plugin-vscode-extension-split-decision",
+      "itemId": "NORM-0004",
+      "topic": "codex app-server process ownership, lifecycle and failure recovery",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "agent-factory-plugin-vscode-extension-split-decision",
+      "itemId": "NORM-0005",
+      "topic": "local, WSL, SSH, Dev Container and Codespaces 지원 범위",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "intake-section-depth-readability",
+      "itemId": "ACTIVE-OPEN-002",
+      "topic": "실제 적정 section 길이와 subsection 사용 빈도는 Viewer prototype에서 Human 검토가 필요하다.",
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-section-depth-readability-source-1",
+          "path": ".agent-factory/intakes/intake-section-depth-readability/blocks/legacy-source/01-intake-section-depth-readability.json"
+        }
+      ]
+    },
+    {
+      "intakeId": "workunit-kanban-stage-visibility-decision",
+      "itemId": "ACTIVE-OPEN-001",
+      "topic": "Related Specification and Work Unit require current Human review before this Intake can close or become ready.",
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ]
+}

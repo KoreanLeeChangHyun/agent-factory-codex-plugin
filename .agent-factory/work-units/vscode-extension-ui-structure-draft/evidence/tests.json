@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Canonical Work Unit JSON Schema self-validation",
+    "result": "pass",
+    "evidence": "evidence/logs/static-and-structure.log",
+    "schemas": 8
+  },
+  {
+    "name": "Draft 2020-12 Design Document schema and assembled package verification",
+    "result": "pass",
+    "evidence": "evidence/logs/static-and-structure.log",
+    "tests": 11
+  },
+  {
+    "name": "Design Document strict parse, source, report projection, scope and traceability verification",
+    "result": "pass",
+    "evidence": "evidence/logs/static-and-structure.log",
+    "tests": 27
+  },
+  {
+    "name": "Report and verification JavaScript syntax",
+    "result": "pass",
+    "evidence": "evidence/logs/static-and-structure.log",
+    "tests": 5
+  },
+  {
+    "name": "file:// Design Report browser interaction and CSSOM verification",
+    "result": "pass",
+    "evidence": "evidence/logs/browser-verification.log",
+    "tests": 16
+  },
+  {
+    "name": "Work Unit required quality gate",
+    "result": "pass",
+    "evidence": "evidence/logs/quality-gate.log",
+    "tests": 13
+  },
+  {
+    "name": "Canonical Work Unit final package validation",
+    "result": "pass",
+    "evidence": "evidence/logs/package-validation.log",
+    "tests": 8
+  }
+]

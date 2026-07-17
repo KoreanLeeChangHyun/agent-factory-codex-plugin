@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-migration-backup-location-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/migration-backup-location-decision.json",
+      "sha256": "2a865d98e4a9be0bd1885289e46ad74182b587bf05ddfc1444e79ac550473aaf",
+      "sizeBytes": 1574
+    }
+  ]
+}

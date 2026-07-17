@@ -1,0 +1,37 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "text": "Intake 구조, manager script, skill consistency 검토에서 확인된 개선 사항을 수정한다.",
+        "source": "Human request"
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "text": "Intake가 package boundary와 lifecycle readiness를 보존하고 capability output과 profile validation이 일치한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "journal recovery cannot write outside the package through symlinks",
+          "ready content mutation invalidates Intake readiness",
+          "closed and superseded packages reject mutation",
+          "capability evidence kinds satisfy readiness without duplicate summaries",
+          "anchored item ids are unambiguous within a section",
+          "specification resolution and interview decision kinds have explicit contracts",
+          "focused and complete regression tests pass"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

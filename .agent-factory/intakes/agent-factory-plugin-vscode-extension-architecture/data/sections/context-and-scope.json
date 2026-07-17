@@ -1,0 +1,88 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "comparison-research"
+      },
+      "attributes": {
+        "sourceKey": "type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/interviews/agent-factory-skill-namespace-decision.json",
+        "docs/work-units/workspace-extension-four-tab-mvp",
+        "docs/work-units/agent-extension-goal-execution-integration",
+        "docs/work-units/work-unit-execution-skill-worktree-manager"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": [
+        "Agent Factory는 브랜드 이름이다.",
+        "프로젝트의 14개 스킬 전체를 Agent Factory 브랜드로 묶는 방향을 검토한다.",
+        "Human 가시성은 VS Code에서 Dashboard, Kanban, Viewer와 Context로 제공한다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

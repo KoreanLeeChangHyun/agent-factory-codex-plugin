@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/common-document-required-metadata-and-sections.json",
+      "sha256": "a045b6b66ea0c73bdfb93f4b9f86791ce87178029fb5f4ae427c206621477dec",
+      "sizeBytes": 18888
+    }
+  ]
+}

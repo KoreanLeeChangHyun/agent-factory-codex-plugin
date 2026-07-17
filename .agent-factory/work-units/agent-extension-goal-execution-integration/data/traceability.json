@@ -1,0 +1,31 @@
+{
+  "designDocumentRefs": [
+    "docs/design-documents/vscode-extension-ui-structure"
+  ],
+  "requirementRefs": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/research/common-document-required-metadata-and-sections.json"
+  ],
+  "decisionRefs": [
+    "INTAKE-DECISION-010",
+    "INTAKE-DECISION-011",
+    "INTAKE-DECISION-012",
+    "INTAKE-DECISION-013",
+    "INTAKE-DECISION-014",
+    "INTAKE-DECISION-015",
+    "INTAKE-DECISION-017",
+    "INTAKE-DECISION-018",
+    "INTAKE-DECISION-019",
+    "INTAKE-DECISION-022"
+  ],
+  "implementationRefs": [],
+  "testRefs": [
+    "Agent extension unit integration and E2E tests"
+  ],
+  "reviewRefs": [
+    "Human review of Agent execution integration"
+  ],
+  "workUnitDependencyRefs": [
+    "workspace-extension-four-tab-mvp"
+  ]
+}

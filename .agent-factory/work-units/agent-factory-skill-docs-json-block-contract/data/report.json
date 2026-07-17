@@ -1,0 +1,18 @@
+{
+  "summary": "아직 실행되지 않았습니다.",
+  "artifactRefs": [],
+  "verification": {
+    "result": "not_run",
+    "evidenceRefs": []
+  },
+  "remainingRisk": [],
+  "unresolvedItems": [
+    "최종 JSON schema 필드와 block type별 계약은 이 문서 계약을 근거로 migration Work Unit에서 저장소 증거와 함께 확정해야 한다.",
+    "현재 루트가 Git 저장소가 아니므로 Execution을 시작할 Git 저장소 위치가 필요하다."
+  ],
+  "designDocument": {
+    "status": "not_checked",
+    "refs": [],
+    "reason": "관련 Design Document 확인 결과가 아직 기록되지 않았습니다."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "pre-execution-baseline",
+  "capturedOn": "2026-07-14",
+  "adoptionTiming": "new-project",
+  "checks": [
+    {
+      "path": "docs/design-documents/vscode-extension-ui-structure/",
+      "result": "not_found",
+      "meaning": "실행 전 관련 Design Document가 없었다."
+    },
+    {
+      "path": "docs/design-documents/agent-factory/reference/source/software-design-document-essential-elements.md",
+      "result": "not_found",
+      "meaning": "조건부 필수 essential-elements reference가 저장소에 없었다."
+    }
+  ]
+}

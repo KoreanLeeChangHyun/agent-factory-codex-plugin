@@ -1,0 +1,178 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": [
+        {
+          "question": "Work Unit 재실행과 rework에서 worktree와 branch를 어떻게 관리할 것인가?",
+          "selectedOption": "A",
+          "decision": "Work Unit당 worktree 1개와 branch 1개를 사용하고 재실행 및 rework는 동일 branch에서 이어간다.",
+          "humanRationale": "Execution마다 생성하면 branch와 worktree가 너무 많아질 수 있다.",
+          "status": "accepted"
+        },
+        {
+          "question": "Work Unit branch의 이름 형식을 어떻게 할 것인가?",
+          "selectedOption": "A",
+          "decision": "branch 이름은 work-unit/<work-unit-id> 형식을 사용한다.",
+          "status": "accepted"
+        }
+      ],
+      "attributes": {
+        "sourceKey": "decisions",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "decision-status",
+      "content": {
+        "cardinality": "one worktree and one branch per Work Unit",
+        "branchPattern": "work-unit/<work-unit-id>",
+        "reusePolicy": "재실행과 rework는 동일 worktree와 branch에서 이어간다.",
+        "parallelExecutionPolicy": "동일 Work Unit의 병렬 Execution은 현재 규칙에 포함하지 않는다."
+      },
+      "attributes": {
+        "sourceKey": "result",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "decision-status",
+      "content": "ready",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "decision-status",
+      "content": [
+        "Work Unit당 worktree 1개와 branch 1개를 사용한다.",
+        "재실행과 rework는 동일 pair를 재사용한다.",
+        "branch 이름은 work-unit/<work-unit-id> 형식이다."
+      ],
+      "attributes": {
+        "sourceKey": "synthesis.decisions",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "open-item",
+      "content": "동일 Work Unit 병렬 Execution 정책은 별도 Intake가 필요하다.",
+      "attributes": {
+        "sourceKey": "synthesis.openItems[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json",
+        "blocking": false,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "open-items-status",
+      "content": {
+        "status": "recorded",
+        "blockingCount": 0,
+        "nonBlockingCount": 1
+      },
+      "attributes": {
+        "sourceKey": "synthesis.openItems",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "The deterministic work-unit/<id> branch and pair-reuse contract is implemented and tested.",
+        "currentStateEvidence": [
+          "skills/work-unit-execution/SKILL.md",
+          "skills/work-unit-execution/tests/test_worktree.py"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

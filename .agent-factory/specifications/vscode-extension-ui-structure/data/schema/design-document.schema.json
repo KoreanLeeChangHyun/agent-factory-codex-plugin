@@ -1,0 +1,449 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-factory.local/design-documents/vscode-extension-ui-structure/schema.json",
+  "title": "VS Code Extension UI Structure Design Document Package",
+  "type": "object",
+  "required": [
+    "manifest",
+    "sections",
+    "collections",
+    "diagrams",
+    "workUnitSummary",
+    "workUnitReview"
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "statusReason": {
+      "type": "object",
+      "required": [
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "properties": {
+    "manifest": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "status",
+        "sourceOfTruth",
+        "lifecyclePhase",
+        "adoptionTiming",
+        "sourceWorkUnit",
+        "schema",
+        "projectCore",
+        "sections",
+        "collections",
+        "report",
+        "references"
+      ],
+      "properties": {
+        "sourceOfTruth": {
+          "const": "Design Document JSON"
+        },
+        "schema": {
+          "const": "data/schema/design-document.schema.json"
+        },
+        "sections": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "path",
+              "order"
+            ]
+          }
+        },
+        "collections": {
+          "type": "object",
+          "required": [
+            "decisions",
+            "diagrams",
+            "snapshots",
+            "events"
+          ],
+          "properties": {
+            "decisions": {
+              "type": "string",
+              "minLength": 1
+            },
+            "diagrams": {
+              "type": "string",
+              "minLength": 1
+            },
+            "snapshots": {
+              "type": "string",
+              "minLength": 1
+            },
+            "events": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    },
+    "sections": {
+      "type": "object",
+      "required": [
+        "project-core",
+        "requirements",
+        "ui-structure",
+        "governance-and-verification"
+      ],
+      "properties": {
+        "project-core": {
+          "type": "object",
+          "required": [
+            "purpose",
+            "corePrinciples",
+            "scope",
+            "humanApprovalBoundaries",
+            "unresolvedItems"
+          ],
+          "properties": {
+            "purpose": {
+              "$ref": "#/$defs/nonEmptyString"
+            },
+            "corePrinciples": {
+              "$ref": "#/$defs/stringList"
+            },
+            "scope": {
+              "$ref": "#/$defs/stringList"
+            },
+            "humanApprovalBoundaries": {
+              "$ref": "#/$defs/stringList"
+            },
+            "unresolvedItems": {
+              "$ref": "#/$defs/stringList"
+            }
+          },
+          "additionalProperties": true
+        },
+        "requirements": {
+          "type": "object",
+          "required": [
+            "userRequest",
+            "lifecycle",
+            "baselineRef",
+            "outcome",
+            "completionBoundary",
+            "stakeholders",
+            "functionalRequirements",
+            "nonFunctionalRequirements",
+            "qualityAttributes",
+            "assumptions",
+            "constraints",
+            "outOfScope",
+            "nonGoals",
+            "acceptanceCriteriaRef",
+            "definitionOfDoneRef",
+            "deferredItemsRef"
+          ],
+          "properties": {
+            "stakeholders": {
+              "type": "array",
+              "minItems": 1
+            },
+            "functionalRequirements": {
+              "type": "array",
+              "minItems": 1
+            },
+            "nonFunctionalRequirements": {
+              "type": "array",
+              "minItems": 1
+            },
+            "qualityAttributes": {
+              "$ref": "#/$defs/stringList"
+            },
+            "assumptions": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "constraints": {
+              "$ref": "#/$defs/stringList"
+            },
+            "outOfScope": {
+              "$ref": "#/$defs/stringList"
+            },
+            "nonGoals": {
+              "$ref": "#/$defs/stringList"
+            }
+          },
+          "additionalProperties": true
+        },
+        "ui-structure": {
+          "type": "object",
+          "required": [
+            "architectureOverview",
+            "tabs",
+            "activeTabContract",
+            "stageVisibilityContract",
+            "reviewHarness",
+            "normalStages",
+            "exceptionStates",
+            "workUnitCardContract",
+            "dragAndDropContract",
+            "scrollContract",
+            "conceptualInterfaces",
+            "apiModel",
+            "eventModel",
+            "dataAndState",
+            "fileFormats",
+            "errorBehavior"
+          ],
+          "properties": {
+            "tabs": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4
+            },
+            "normalStages": {
+              "type": "array",
+              "minItems": 5,
+              "maxItems": 5
+            },
+            "exceptionStates": {
+              "type": "array",
+              "minItems": 1
+            },
+            "apiModel": {
+              "$ref": "#/$defs/statusReason"
+            },
+            "eventModel": {
+              "$ref": "#/$defs/statusReason"
+            },
+            "fileFormats": {
+              "$ref": "#/$defs/stringList"
+            }
+          },
+          "additionalProperties": true
+        },
+        "governance-and-verification": {
+          "type": "object",
+          "required": [
+            "decisionsRef",
+            "diagramMetadataRef",
+            "securityPrivacyAndRisk",
+            "observabilityAndOperations",
+            "verificationStrategy",
+            "traceability",
+            "aiChecklistRef",
+            "humanChecklistRef",
+            "workUnitDecompositionBasis",
+            "customerDeliverableImpact",
+            "references",
+            "glossary",
+            "unspecifiedRef"
+          ],
+          "properties": {
+            "traceability": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "requirementIds",
+                  "designRefs",
+                  "decisionRefs",
+                  "workUnitRefs",
+                  "testRefs",
+                  "reviewRefs"
+                ]
+              }
+            },
+            "glossary": {
+              "type": "array",
+              "minItems": 1
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "collections": {
+      "type": "object",
+      "required": [
+        "decisions",
+        "diagrams",
+        "snapshots",
+        "events"
+      ],
+      "properties": {
+        "decisions": {
+          "type": "object",
+          "required": [
+            "id",
+            "items"
+          ],
+          "properties": {
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "decision",
+                  "basis",
+                  "rationale",
+                  "alternatives",
+                  "tradeoffs",
+                  "consequences"
+                ]
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "diagrams": {
+          "type": "object",
+          "required": [
+            "id",
+            "items",
+            "rendering"
+          ],
+          "properties": {
+            "items": {
+              "type": "array",
+              "minItems": 2
+            },
+            "rendering": {
+              "type": "object",
+              "required": [
+                "sourceModel",
+                "renderer",
+                "exportPath",
+                "status",
+                "reportRepresentation"
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        "snapshots": {
+          "type": "object",
+          "required": [
+            "id",
+            "capturedOn",
+            "adoptionTiming",
+            "checks"
+          ],
+          "properties": {
+            "checks": {
+              "type": "array",
+              "minItems": 2
+            }
+          },
+          "additionalProperties": true
+        },
+        "events": {
+          "type": "object",
+          "required": [
+            "id",
+            "events"
+          ],
+          "properties": {
+            "events": {
+              "type": "array",
+              "minItems": 1
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagrams": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "purpose",
+          "audience",
+          "sourceModel",
+          "renderer",
+          "traceability"
+        ]
+      }
+    },
+    "workUnitReview": {
+      "type": "object",
+      "required": [
+        "acceptanceCriteria",
+        "definitionOfDone",
+        "testCriteria",
+        "aiChecklist",
+        "humanChecklist",
+        "humanReviewMethod"
+      ],
+      "properties": {
+        "acceptanceCriteria": {
+          "$ref": "#/$defs/stringList"
+        },
+        "definitionOfDone": {
+          "$ref": "#/$defs/stringList"
+        },
+        "testCriteria": {
+          "$ref": "#/$defs/stringList"
+        },
+        "aiChecklist": {
+          "$ref": "#/$defs/stringList"
+        },
+        "humanChecklist": {
+          "$ref": "#/$defs/stringList"
+        },
+        "humanReviewMethod": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "workUnitSummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

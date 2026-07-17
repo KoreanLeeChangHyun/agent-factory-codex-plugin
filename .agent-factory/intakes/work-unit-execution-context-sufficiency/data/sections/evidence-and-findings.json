@@ -1,0 +1,80 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/work-unit-execution-context-sufficiency.md",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": {
+        "heading": "조사 질문 (Question)",
+        "text": "현재 Agent Factory Work Unit v3 구조는 이전 대화가 없는 신규 Execution 세션이 하나의 Work Unit id만 받아 작업할 때 필요한 문맥을 표현할 수 있는가? 또한 현재 `schema-valid` 및 `ready` 상태는 그 문맥이 실제로 충분하다는 것을 기계적으로 보장하는가?\n\n이 조사는 다음 두 판단을 분리한다.\n\n1. **표현 가능성**: 현재 필드 집합에 목표, 범위, 실행 계획, 검증, 검토 경계와 미해결 항목을 기록할 수 있는가.\n2. **강제력**: 현재 schema와 manager가 그 내용의 의미적 충분성을 검사하여 문맥이 부족한 패키지가 `ready`가 되는 것을 막는가."
+      },
+      "attributes": {
+        "sourceKey": "markdown.조사 질문 (Question)",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "evidence",
+      "content": {
+        "heading": "웹 조사 범위와 검색어",
+        "text": "- 무히스토리 실행 계획의 자기완결성: `OpenAI Codex ExecPlan self-contained no prior context`\n- JSON Schema가 보장하는 검증 범위와 문자열 제약: `JSON Schema declarative constraints string minLength`\n- 요구사항의 명확성, 완전성, 추적성, 검증 가능성: `NASA good requirement completeness traceability verifiability`\n- 실행 준비와 완료 기준의 투명성: `Scrum Guide ready Product Backlog item Definition of Done`\n\n모든 URL은 2026-07-14에 HTTP `200`으로 접근 가능함을 확인했다. 결론에는 공식 T1 또는 공식 발행자의 T2 자료만 사용했다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.웹 조사 범위와 검색어",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "evidence",
+      "content": {
+        "heading": "저장소 근거 (Repository Evidence Table)",
+        "text": "| 근거 | 재현 위치 또는 명령 | 확인 내용 |\n| --- | --- | --- |\n| v3 표현 필드 | `.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json:85` 및 `:109` | `goal`, `scope`, `outOfScope`, `assumptions`, `constraints`, `plan`, `acceptanceCriteria`, `definitionOfDone`, `testCriteria`, AI/Human checklist, review method, expected output, dependencies, unresolved items가 필수 구조에 포함된다. |\n| 별도 first-class basis 부재 | `.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json:85` 및 `:114` | `sourceDesignRefs`는 있으나 Design Document가 아닌 실행 근거의 유형·위치·제약·검증 상태를 구조화한 `basis` 객체는 없다. |\n| 자유 문자열 traceability | `.codex/skills/work-unit-planner-af/assets/schema/traceability.schema.json:7` | `requirementRefs`만 최소 한 항목을 요구하고 모든 ref 배열의 항목은 일반 문자열이다. 참조 유형, 해석 가능성, 대상 존재 여부는 schema가 강제하지 않는다. |\n| `unresolvedItems` 비구조화 | `.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json:191` | 미해결 항목은 문자열 배열이며 blocking 여부, 해소 조건, 상태를 나타내는 구조가 없다. 빈 배열도 유효하다. |\n| `ready` 생성 | `.codex/skills/work-unit-planner-af/assets/scripts/work_unit.py:322` 및 `:337` | `new_package`는 입력 내용의 의미를 평가하는 분기 없이 새 패키지 status를 항상 `ready`로 설정한다. |\n| validator 경계 | `.codex/skills/work-unit-planner-af/assets/scripts/work_unit.py:225` 및 `:254`-`:281` | validator는 JSON Schema, canonical path/reference, evidence, package state 조합을 확인하지만 goal·scope·계획·수용 기준이 실제 실행에 충분한지 의미적으로 판정하는 readiness 단계는 없다. |\n| 현재 테스트 경계 | `.codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py:398`, `:767`, `:845`, `:903` | 테스트는 필수 필드/비어 있지 않은 배열, terminal sentinel, 상태 일관성 등을 검증한다. 업무 의미의 충분성을 판정하는 테스트는 확인되지 않았다. |\n| 문맥 빈약 반례 | `evidence/logs/context-poor-counterexample.log` | goal, scope, plan, acceptance, DoD, test, checklist, review method, expected output, requirement ref를 모두 `x`로 둔 임시 패키지가 `status: ready`로 생성되고 v3 validate를 통과했다. |\n| 실제 v3 표본 | manager `validate` 명령 | `work-unit-json-storage-format-v3`와 `vscode-extension-ui-structure-draft`는 모두 `schemaVersion: 3.0.0`, `valid: true`였다. 이는 구조적 유효성을 증명하지만 각 패키지의 신규 세션 실행 충분성을 별도로 증명하지는 않는다. |\n| legacy 경계 | manager `validate docs/work-units/work-unit-json-storage-format` | `2.0.0`은 `legacy package schema version 2.0.0 is unsupported`로 거부됐다. 이 결과는 v3 검증과 구분된다. |\n| `/goal` 실행 규칙 | `.codex/skills/agent-factory-lifecycle-af/references/lifecycle.md:156`-`:182` | 새 세션은 패키지 전체를 읽고 충분한 basis가 없으면 중단하도록 문서화되어 있다. scoped `rg`에서는 이 판단을 실행 전에 자동화하는 별도 preflight 구현을 찾지 못했다. 따라서 현재 최종 방어선은 실행 Agent의 문서 기반 판단이다. |\n| `$CODEX_HOME` drift | project와 `/home/deus/.codex/skills/work-unit-planner-af/`의 `find`, `sha256sum`, `diff` | project schema SHA-256은 `90e43e...ac9e3`, HOME schema는 `f7ced3...17cb0`으로 다르다. HOME에는 `assets/scripts/work_unit.py`, `report.schema.json`, evidence schema와 tests가 없고 Work Unit schema도 이전 계약이다. |\n| Design Document 확인 | `find docs/design-documents -type f` 및 주제 검색 | `vscode-extension-ui-structure` Design Document만 존재하며 본 연구 주제에 직접 대응하는 Design Document는 없다. 연구 결과가 기존 Design Document의 제품 설계를 변경하지 않으므로 갱신하지 않는다. |"
+      },
+      "attributes": {
+        "sourceKey": "markdown.저장소 근거 (Repository Evidence Table)",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

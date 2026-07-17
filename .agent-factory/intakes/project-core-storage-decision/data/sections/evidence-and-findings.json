@@ -1,0 +1,20 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/project-core-storage-decision.json",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+    }
+  ],
+  "subsections": []
+}

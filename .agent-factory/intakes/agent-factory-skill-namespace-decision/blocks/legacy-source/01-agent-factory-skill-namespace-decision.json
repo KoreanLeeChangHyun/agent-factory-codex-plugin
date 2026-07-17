@@ -1,0 +1,54 @@
+{
+  "id": "agent-factory-skill-namespace-decision",
+  "date": "2026-07-15",
+  "status": "answered",
+  "language": "ko",
+  "basisRequest": "프로젝트의 모든 스킬 이름을 agent-factory-* namespace로 통일한다.",
+  "humanFacts": [
+    "Agent Factory는 이 프로젝트의 브랜드 이름이다.",
+    "프로젝트가 제공하는 모든 스킬은 Agent Factory 브랜드 namespace를 사용한다."
+  ],
+  "relatedArtifacts": [
+    ".codex/skills/",
+    ".codex/skills/agent-factory-lifecycle-af/SKILL.md",
+    "docs/work-units/work-unit-execution-skill-worktree-manager"
+  ],
+  "progress": {
+    "answered": 3,
+    "total": 3
+  },
+  "decisions": [
+    {
+      "question": "agent-factory-* namespace로 변경할 스킬 범위는 어디까지인가?",
+      "selectedOption": "B",
+      "decision": "sync-google-drive와 sync-google-mail을 포함해 .codex/skills 아래의 14개 스킬 전체를 agent-factory-* namespace 대상으로 한다.",
+      "status": "accepted"
+    },
+    {
+      "question": "Git에서 삭제 상태로 발견된 agentforce-mcp-ops 스킬을 어떻게 처리할 것인가?",
+      "selectedOption": "B",
+      "decision": "agentforce-mcp-ops는 필요하지 않으므로 삭제를 확정하고 Agent Factory Plugin에서 제외한다.",
+      "status": "accepted"
+    },
+    {
+      "question": "Plugin 내부 스킬 이름과 legacy 호환을 어떻게 할 것인가?",
+      "selectedOption": "A",
+      "decision": "Plugin 이름은 agent-factory로 하고 내부 스킬은 짧은 역할명으로 완전 rename하며 기존 스킬 이름과 alias는 제거한다.",
+      "status": "accepted"
+    }
+  ],
+  "result": {
+    "pluginName": "agent-factory",
+    "skillCount": 14,
+    "internalNaming": "short role-based names",
+    "legacyAliases": false,
+    "excludedSkill": "agentforce-mcp-ops"
+  },
+  "pendingDecision": null
+  ,"repositoryConflict": {
+    "path": ".codex/skills/agentforce-mcp-ops/",
+    "finding": "Git에 추적된 스킬이 현재 working tree에서 삭제되어 있어 삭제가 의도된 경우 대상은 14개, 유지할 경우 대상은 15개다.",
+    "resolutionRequired": false,
+    "resolution": "Human이 삭제와 Plugin 제외를 확정했다."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "명세서 종류별 필수 section, block, schema와 rendering 연결 규칙의 canonical 소유 위치를 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "human-request",
+      "content": "그건 스킬에 넣어두면 된다.",
+      "attributes": {
+        "sourceKey": "humanStatement",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

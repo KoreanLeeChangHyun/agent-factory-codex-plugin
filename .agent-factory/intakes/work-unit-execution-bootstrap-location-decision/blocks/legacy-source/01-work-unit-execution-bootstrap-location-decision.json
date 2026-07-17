@@ -1,0 +1,13 @@
+{
+  "id": "work-unit-execution-bootstrap-location-decision",
+  "date": "2026-07-15",
+  "relatedWorkUnit": "work-unit-execution-skill-worktree-manager",
+  "decision": "work-unit-execution-af 자체가 branch와 linked worktree를 만드는 bootstrap 코드이므로 이번 Work Unit Execution은 현재 master 작업 트리에서 수행하고, 구현 완료 후 후속 Work Unit부터 새 canonical script를 적용한다.",
+  "status": "accepted",
+  "humanStatement": "일단 메인에서 진행하세요 왜냐면 지금 개발하는 코드자체가 브런치를 만드는 코드이라서 이 작업 이후에 반영 해야 할듯",
+  "scopeBoundary": [
+    "이번 bootstrap Work Unit에만 master 작업 트리 실행 예외를 적용한다.",
+    "후속 Work Unit의 dedicated branch와 linked worktree 의무는 변경하지 않는다.",
+    "Human 승인 없는 merge, branch 삭제, worktree 강제 제거 또는 PR promotion은 수행하지 않는다."
+  ]
+}

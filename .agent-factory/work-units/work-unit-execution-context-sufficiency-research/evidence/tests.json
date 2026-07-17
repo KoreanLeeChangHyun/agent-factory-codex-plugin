@@ -1,0 +1,32 @@
+[
+  {
+    "name": "공식 출처 접근성과 freshness 기록",
+    "result": "pass",
+    "evidence": "evidence/logs/source-and-drift-check.log"
+  },
+  {
+    "name": "기존 v3 두 표본 통과와 legacy 2.0.0 거부",
+    "result": "pass",
+    "evidence": "evidence/logs/package-validation.log"
+  },
+  {
+    "name": "schema-valid ready 문맥 빈약 반례",
+    "result": "pass",
+    "evidence": "evidence/logs/context-poor-counterexample.log"
+  },
+  {
+    "name": "연구 기록 구조·근거·역할 정정 검증",
+    "result": "pass",
+    "evidence": "evidence/logs/research-contract-verification.log"
+  },
+  {
+    "name": "최종 Work Unit v3 package validation",
+    "result": "pass",
+    "evidence": "evidence/logs/final-validation.log"
+  },
+  {
+    "name": "Acceptance Criteria와 Definition of Done 완료 감사",
+    "result": "pass",
+    "evidence": "evidence/logs/completion-audit.log"
+  }
+]

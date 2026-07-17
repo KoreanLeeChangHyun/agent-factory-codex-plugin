@@ -1,0 +1,17 @@
+{
+  "designDocumentRefs": [
+    "docs/design-documents/vscode-extension-ui-structure"
+  ],
+  "requirementRefs": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json"
+  ],
+  "decisionRefs": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json#decisions/0",
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json#decisions/1",
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json#decisions/2"
+  ],
+  "implementationRefs": [],
+  "testRefs": [],
+  "reviewRefs": [],
+  "workUnitDependencyRefs": []
+}

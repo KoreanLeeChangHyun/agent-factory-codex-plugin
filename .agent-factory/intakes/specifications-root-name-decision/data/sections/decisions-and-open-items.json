@@ -1,0 +1,205 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": "A",
+      "attributes": {
+        "sourceKey": "selectedOption",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "decision-status",
+      "content": {
+        "storageRoot": "docs/specifications/",
+        "packagePattern": "docs/specifications/<document-id>/",
+        "classificationOwner": [
+          "metadata.documentClass",
+          "metadata.documentProfile.id",
+          "metadata.documentProfile.version"
+        ],
+        "categorySubdirectoriesRequired": false
+      },
+      "attributes": {
+        "sourceKey": "humanDecision",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "open-item",
+      "content": "Intake decision supersession",
+      "attributes": {
+        "sourceKey": "pendingApplication[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "open-item",
+      "content": "research conclusion path update",
+      "attributes": {
+        "sourceKey": "pendingApplication[2]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "open-item",
+      "content": "Work Unit scope and acceptance update",
+      "attributes": {
+        "sourceKey": "pendingApplication[3]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "open-item",
+      "content": "Agent Factory skill and reference path migration",
+      "attributes": {
+        "sourceKey": "pendingApplication[4]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "open-item",
+      "content": "existing docs/design-documents package migration",
+      "attributes": {
+        "sourceKey": "pendingApplication[5]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0009",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 5
+      },
+      "attributes": {
+        "sourceKey": "pendingApplication",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specifications-root-name-decision-source-1",
+          "path": ".agent-factory/intakes/specifications-root-name-decision/blocks/legacy-source/01-specifications-root-name-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "The canonical .agent-factory/specifications root is established.",
+        "currentStateEvidence": [
+          ".agent-factory/specifications",
+          "skills/lifecycle/SKILL.md"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

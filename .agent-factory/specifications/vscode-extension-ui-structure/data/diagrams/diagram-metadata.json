@@ -1,0 +1,22 @@
+{
+  "id": "diagram-metadata",
+  "items": [
+    {
+      "id": "ui-tab-structure",
+      "type": "ui-flow",
+      "source": "diagram/ui-tab-structure.json"
+    },
+    {
+      "id": "work-unit-status",
+      "type": "state",
+      "source": "diagram/work-unit-status.json"
+    }
+  ],
+  "rendering": {
+    "sourceModel": "structured JSON",
+    "renderer": null,
+    "exportPath": null,
+    "status": "unresolved",
+    "reportRepresentation": "JSON source에서 생성하는 Human 검토용 HTML 관계 뷰"
+  }
+}

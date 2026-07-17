@@ -1,0 +1,194 @@
+{
+  "auditVersion": "1.0.0",
+  "createdAt": "2026-07-16T19:07:15+00:00",
+  "policy": "Completed historical Intakes close; later contracts supersede replaced Intakes; unresolved future scope remains active draft.",
+  "summary": {
+    "closed": 11,
+    "superseded": 6,
+    "activeDraft": 5
+  },
+  "records": [
+    {
+      "id": "agent-factory-canonical-root-decision",
+      "disposition": "closed",
+      "reason": "Canonical .agent-factory artifact root is in active use.",
+      "currentStateEvidence": [
+        "skills/lifecycle/SKILL.md",
+        ".agent-factory/intakes"
+      ]
+    },
+    {
+      "id": "agent-factory-json-viewer-extension-architecture",
+      "disposition": "active-draft",
+      "reason": "Future Viewer implementation scope and trust decisions remain unresolved.",
+      "estimatedHumanDecisionTopics": 6
+    },
+    {
+      "id": "agent-factory-plugin-vscode-extension-architecture",
+      "disposition": "active-draft",
+      "reason": "Plugin and VS Code support boundaries still require current Human decisions.",
+      "estimatedHumanDecisionTopics": 4
+    },
+    {
+      "id": "agent-factory-plugin-vscode-extension-split-decision",
+      "disposition": "active-draft",
+      "reason": "Inter-extension contract and remote support decisions remain unresolved.",
+      "estimatedHumanDecisionTopics": 3
+    },
+    {
+      "id": "agent-factory-skill-namespace-decision",
+      "disposition": "closed",
+      "reason": "Current plugin skill names and directories implement the accepted namespace policy.",
+      "currentStateEvidence": [
+        ".codex-plugin/plugin.json",
+        "skills"
+      ]
+    },
+    {
+      "id": "common-document-required-metadata-and-sections",
+      "disposition": "closed",
+      "reason": "The common document contract and versioned profiles implement this research outcome.",
+      "currentStateEvidence": [
+        "skills/lifecycle/references/common-document-contract.md",
+        "skills/lifecycle/assets/schema/document-profile.schema.json"
+      ]
+    },
+    {
+      "id": "design-document-profile-system",
+      "disposition": "closed",
+      "reason": "Specification profiles and their owning skill assets implement the profile system.",
+      "currentStateEvidence": [
+        "skills/specification/assets/profiles",
+        "skills/specification/SKILL.md"
+      ]
+    },
+    {
+      "id": "execution-agent-worktree-skill-placement",
+      "disposition": "superseded",
+      "reason": "The former standalone .codex skill placement is replaced by the plugin-owned work-unit-execution skill.",
+      "currentStateEvidence": [
+        "skills/work-unit-execution/SKILL.md",
+        ".codex-plugin/plugin.json"
+      ]
+    },
+    {
+      "id": "intake-json-canonical-viewer",
+      "disposition": "superseded",
+      "reason": "The pre-contract basis is replaced by Intake v2 and the common sectioned document contract.",
+      "currentStateEvidence": [
+        "skills/intake/assets/profiles/intake.profile.json",
+        "skills/lifecycle/references/common-document-contract.md"
+      ]
+    },
+    {
+      "id": "intake-section-depth-readability",
+      "disposition": "active-draft",
+      "reason": "Viewer prototype usability validation remains outstanding.",
+      "estimatedHumanDecisionTopics": 1
+    },
+    {
+      "id": "migration-backup-location-decision",
+      "disposition": "closed",
+      "reason": "The approved backup and removal workflow completed with recorded verification.",
+      "currentStateEvidence": [
+        ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/manifest.json"
+      ]
+    },
+    {
+      "id": "project-core-storage-decision",
+      "disposition": "closed",
+      "reason": "The single canonical Project Core and governed-by policy is implemented.",
+      "currentStateEvidence": [
+        "skills/specification/SKILL.md",
+        "skills/specification/assets/profiles/project-core.profile.json"
+      ]
+    },
+    {
+      "id": "specification-profile-skill-ownership-decision",
+      "disposition": "closed",
+      "reason": "Specification profile ownership is implemented in the specification skill assets.",
+      "currentStateEvidence": [
+        "skills/specification/SKILL.md",
+        "skills/specification/assets/profiles"
+      ]
+    },
+    {
+      "id": "specifications-root-name-decision",
+      "disposition": "closed",
+      "reason": "The canonical .agent-factory/specifications root is established.",
+      "currentStateEvidence": [
+        ".agent-factory/specifications",
+        "skills/lifecycle/SKILL.md"
+      ]
+    },
+    {
+      "id": "work-unit-branch-lifecycle-naming-decision",
+      "disposition": "closed",
+      "reason": "The deterministic work-unit/<id> branch and pair-reuse contract is implemented and tested.",
+      "currentStateEvidence": [
+        "skills/work-unit-execution/SKILL.md",
+        "skills/work-unit-execution/tests/test_worktree.py"
+      ]
+    },
+    {
+      "id": "work-unit-execution-bootstrap-location-decision",
+      "disposition": "closed",
+      "reason": "The worktree execution manager has an established skill-owned script location.",
+      "currentStateEvidence": [
+        "skills/work-unit-execution/scripts/worktree.py",
+        "skills/work-unit-execution/SKILL.md"
+      ]
+    },
+    {
+      "id": "work-unit-execution-context-sufficiency",
+      "disposition": "closed",
+      "reason": "Work Unit v4 requires and validates the execution context identified by this research.",
+      "currentStateEvidence": [
+        "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+        "skills/work-unit-planner/assets/scripts/work_unit.py"
+      ]
+    },
+    {
+      "id": "work-unit-execution-repository-decision",
+      "disposition": "superseded",
+      "reason": "A fixed external repository root is replaced by per-Work-Unit repository and worktree execution context.",
+      "currentStateEvidence": [
+        "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+        "skills/work-unit-execution/SKILL.md"
+      ]
+    },
+    {
+      "id": "work-unit-json-storage-format",
+      "disposition": "superseded",
+      "reason": "The historical Work Unit storage proposal is replaced by the sectioned Work Unit v4 contract.",
+      "currentStateEvidence": [
+        "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+        "skills/work-unit-planner/references/work-unit-structure.md"
+      ]
+    },
+    {
+      "id": "work-unit-json-storage-format-decision",
+      "disposition": "superseded",
+      "reason": "The historical Work Unit storage decision is replaced by the sectioned Work Unit v4 contract.",
+      "currentStateEvidence": [
+        "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+        "skills/work-unit-planner/references/work-unit-structure.md"
+      ]
+    },
+    {
+      "id": "work-unit-json-storage-format-self-migration",
+      "disposition": "superseded",
+      "reason": "The historical v3 self-migration record is replaced by the completed Work Unit v4 implementation.",
+      "currentStateEvidence": [
+        "skills/work-unit-planner/assets/scripts/work_unit.py",
+        "skills/work-unit-planner/tests/test_work_unit_manager.py"
+      ]
+    },
+    {
+      "id": "workunit-kanban-stage-visibility-decision",
+      "disposition": "active-draft",
+      "reason": "The related Specification and Work Unit remain pending Human review.",
+      "estimatedHumanDecisionTopics": 1
+    }
+  ]
+}

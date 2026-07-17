@@ -1,0 +1,90 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": {
+        "heading": "이전 결정과 이번 질문의 구분",
+        "text": "기존 Human 결정 A는 canonical 결과 저장 위치를 `data/report.json`으로\n정하고 필수 `output/result.md`를 제거하는 저장 계약 결정이다. 현재 active\nWork Unit package 자체를 어떤 방식으로 3.0.0에 맞출지는 해당 기록에서\n결정되지 않았다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.이전 결정과 이번 질문의 구분",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "heading": "결정 질문",
+        "text": "현재 active 2.0.0 실행 package를 어떤 방식으로 최종 3.0.0 report package에\n연결할 것인가?\n\n| 선택지 | 결정 | 장점 | 단점 |\n| --- | --- | --- | --- |\n| A | 현재 active package를 같은 id/path에서 수동 3.0.0으로 승격하는 예외를 새로 승인한다. | 현재 DoD와 Goal identity를 그대로 완료하며 새 id/path를 만들지 않는다. | 기존 package 보존 결정의 명시적 예외이고 정식 `migrate` 경로가 아니다. 2.0.0 bytes가 보존되지 않으며 `output/result.md` 삭제 전 별도 최종 확인이 필요하다. |\n| B | 현재 package를 보존하고 Human이 정한 새 id/path로 manager `migrate`를 실행한다. | 기록된 source 보존 결정과 새 manager의 별도 migration 경계를 직접 지킨다. | 새 id/path와 Goal 연결을 Human이 정해야 하고 기존 실행 기록을 새 package에 반영하는 후속 작업이 필요하다. |\n| C | 현재 package를 Human이 정한 archive path로 보존한 뒤 원래 id/path를 새 3.0.0 package로 교체한다. | legacy snapshot과 기존 Goal path를 함께 유지할 수 있다. | manager에 없는 move/replace 작업, archive 규칙과 중복 id 정리가 필요하며 교체 전 별도 파괴적 작업 확인이 필요하다. |"
+      },
+      "attributes": {
+        "sourceKey": "markdown.결정 질문",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "decision-status",
+      "content": {
+        "heading": "기록된 결정",
+        "text": "2026-07-14 Human이 B를 선택했다.\n\n- 현재 `docs/work-units/work-unit-json-storage-format/` 2.0.0 package는\n  source로 보존한다.\n- manager `migrate`로 별도 3.0.0 destination package를 생성한다.\n- Human이 새 package id를 `work-unit-json-storage-format-v3`, destination\n  path를 `docs/work-units/work-unit-json-storage-format-v3/`로 확정했다.\n- 확정된 destination에 manager `migrate`를 실행하고 즉시 full validate를\n  통과시킨다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.기록된 결정",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "superseded",
+        "reason": "The historical v3 self-migration record is replaced by the completed Work Unit v4 implementation.",
+        "currentStateEvidence": [
+          "skills/work-unit-planner/assets/scripts/work_unit.py",
+          "skills/work-unit-planner/tests/test_work_unit_manager.py"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "superseded",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

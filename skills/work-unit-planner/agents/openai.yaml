@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Factory Work Unit Planner"
+  short_description: "Create executable Work Units from ready Intake basis."
+  default_prompt: "Use $work-unit-planner to create validated executable Work Units from a ready Agent Factory Intake package."
+policy:
+  allow_implicit_invocation: true

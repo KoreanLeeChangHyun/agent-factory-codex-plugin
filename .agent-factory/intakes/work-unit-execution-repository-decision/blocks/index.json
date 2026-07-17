@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-work-unit-execution-repository-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/work-unit-execution-repository-decision.json",
+      "sha256": "274cd7a45ef2f35c49bb8f08c88780f09cdb914e8b0759b52a79df63696ce631",
+      "sizeBytes": 2215
+    }
+  ]
+}

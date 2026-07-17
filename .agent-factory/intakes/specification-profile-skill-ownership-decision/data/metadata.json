@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.16",
+  "id": "specification-profile-skill-ownership-decision",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "closed"
+  },
+  "createdAt": "2026-07-16T14:30:50+00:00",
+  "updatedAt": "2026-07-16T19:07:18+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory Intake v2 normalization",
+    "sourceRefs": [
+      {
+        "artifactType": "legacy-intake-source",
+        "id": "specification-profile-skill-ownership-decision-source-1",
+        "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      }
+    ]
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
+    "reviewedAt": null,
+    "findings": []
+  }
+}

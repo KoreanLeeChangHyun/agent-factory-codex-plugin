@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture.json",
+      "sha256": "84447c6f1d2957e4a68d169b1f4d158842d6f30b63eb110e7ecc8900ddf818ca",
+      "sizeBytes": 8646
+    }
+  ]
+}

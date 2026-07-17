@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-specifications-root-name-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/specifications-root-name-decision.json",
+      "sha256": "4a2c3099f90088bcf8e044c77ea5dd18397244feafcfdd454c2eb1becc62c370",
+      "sizeBytes": 2470
+    }
+  ]
+}

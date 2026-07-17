@@ -1,0 +1,9 @@
+{
+  "requiredChecks": [
+    "migration JSON schema 및 strict parse 검증",
+    "block reference와 source preservation 검증"
+  ],
+  "evidence": [],
+  "state": "not_run",
+  "qualityScore": 0
+}

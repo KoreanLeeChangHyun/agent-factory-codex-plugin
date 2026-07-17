@@ -1,0 +1,60 @@
+{
+  "id": "vscode-extension-ui-structure",
+  "title": "VS Code 확장 UI 구조",
+  "status": "draft",
+  "sourceOfTruth": "Design Document JSON",
+  "lifecyclePhase": "Execution",
+  "adoptionTiming": "new-project",
+  "sourceWorkUnit": {
+    "id": "vscode-extension-ui-structure-draft",
+    "path": "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json"
+  },
+  "schema": "data/schema/design-document.schema.json",
+  "projectCore": "data/sections/project-core.json",
+  "sections": [
+    {
+      "id": "project-core",
+      "title": "Project Core",
+      "path": "data/sections/project-core.json",
+      "order": 1
+    },
+    {
+      "id": "requirements",
+      "title": "요구사항과 완료 경계",
+      "path": "data/sections/requirements.json",
+      "order": 2
+    },
+    {
+      "id": "ui-structure",
+      "title": "UI 구조와 상태 계약",
+      "path": "data/sections/ui-structure.json",
+      "order": 3
+    },
+    {
+      "id": "governance-and-verification",
+      "title": "결정, 검증, 추적성",
+      "path": "data/sections/governance-and-verification.json",
+      "order": 4
+    }
+  ],
+  "collections": {
+    "decisions": "data/decisions/design-decisions.json",
+    "diagrams": "data/diagrams/diagram-metadata.json",
+    "snapshots": "data/snapshots/pre-execution-baseline.json",
+    "events": "data/events/change-history.json"
+  },
+  "report": {
+    "index": "report/index.html",
+    "styles": "report/styles.css",
+    "script": "report/script.js",
+    "generatedData": "report/design-document-data.js",
+    "generator": "report/generate-report-data.mjs",
+    "role": "Human 검토용 파생 렌더링"
+  },
+  "references": [
+    "reference/sources.json",
+    "docs/interviews/workunit-kanban-stage-visibility-decision.md",
+    ".codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json"
+  ]
+}

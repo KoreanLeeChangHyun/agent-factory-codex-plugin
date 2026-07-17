@@ -1,0 +1,65 @@
+{
+  "date": "2026-07-15",
+  "tdd": {
+    "red": {
+      "result": "expected_fail",
+      "tests": 13,
+      "reason": "scripts/worktree.py did not exist"
+    },
+    "green": {
+      "result": "pass",
+      "tests": 20
+    }
+  },
+  "qualityGates": [
+    {
+      "name": "Work Unit package validation",
+      "result": "pass"
+    },
+    {
+      "name": "Skill frontmatter and quick validation",
+      "result": "pass",
+      "skills": 12
+    },
+    {
+      "name": "Python unit tests",
+      "result": "pass",
+      "tests": 20
+    },
+    {
+      "name": "Temporary Git repository integration tests",
+      "result": "pass",
+      "tests": 20
+    },
+    {
+      "name": "Unsafe Git flag and shell invocation static scan",
+      "result": "pass"
+    },
+    {
+      "name": "Work Unit planner regression",
+      "result": "pass",
+      "tests": 53
+    },
+    {
+      "name": "Context-isolated skill forward-test",
+      "result": "pass",
+      "states": [
+        "prepared",
+        "reused",
+        "clean",
+        "cleaned"
+      ],
+      "branchRetained": true
+    }
+  ],
+  "humanReview": {
+    "status": "pending",
+    "inspect": [
+      ".codex/skills/work-unit-execution-af/SKILL.md",
+      ".codex/skills/work-unit-execution-af/references/worktree-contract.md",
+      ".codex/skills/work-unit-execution-af/scripts/worktree.py",
+      "evidence/tests.json"
+    ],
+    "decision": "approve or request rework"
+  }
+}

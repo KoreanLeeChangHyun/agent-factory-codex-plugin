@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/work-unit-branch-lifecycle-naming-decision.json",
+      "sha256": "b5b8bfce064757f3f7c735d790bf941cc87aa84f5b1f14438050376af6733468",
+      "sizeBytes": 1593
+    },
+    {
+      "path": "blocks/legacy-source/02-intake.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+      "sha256": "66d0c4e21bac69bee206626cbade604d0f3a87ced08ded6c93c54007fafdd60f",
+      "sizeBytes": 5015
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Lifecycle"
+  short_description: "Follow the Agent Factory lifecycle."
+  default_prompt: "Use $lifecycle to create or update Project Core, Design Report, Work Units, AI execution records, and Human review artifacts."

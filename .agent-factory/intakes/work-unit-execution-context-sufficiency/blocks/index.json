@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md",
+      "mediaType": "text/markdown",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/work-unit-execution-context-sufficiency.md",
+      "sha256": "4d64ba1dc70a1fdff57a45693f4e01ec0f7ac7d765ae8c91e23ed6bd01788219",
+      "sizeBytes": 18957
+    }
+  ]
+}

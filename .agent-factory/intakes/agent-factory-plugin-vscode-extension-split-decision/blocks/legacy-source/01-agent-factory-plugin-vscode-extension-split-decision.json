@@ -1,0 +1,42 @@
+{
+  "id": "agent-factory-plugin-vscode-extension-split-decision",
+  "date": "2026-07-15",
+  "status": "answered",
+  "language": "ko",
+  "basisRequest": "Agent Factory Plugin과 VS Code 확장의 제품 구성을 결정한다.",
+  "relatedArtifacts": [
+    "docs/research/agent-factory-plugin-vscode-extension-architecture.json",
+    "docs/work-units/workspace-extension-four-tab-mvp",
+    "docs/work-units/agent-extension-goal-execution-integration"
+  ],
+  "humanFacts": [
+    "Agent Factory는 브랜드 이름이다.",
+    "Agent Factory 기능을 두 개의 VS Code 창으로 제공한다.",
+    "VS Code 확장은 Agent Extension과 Workspace Extension 두 개로 분리한다.",
+    "두 VS Code 확장은 독립 역할이 아니며 Agent Factory Plugin의 스킬과 연동한다."
+  ],
+  "decision": {
+    "productComposition": [
+      "Agent Factory Plugin",
+      "VS Code Workspace Extension",
+      "VS Code Agent Extension"
+    ],
+    "sharedCapabilitySource": "Agent Factory Plugin의 skills and execution contracts",
+    "workspaceExtensionWindow": "공통 Plugin capability를 사용하는 Dashboard, Kanban, Viewer와 Context Workspace Window",
+    "agentExtensionWindow": "공통 Plugin capability를 사용하는 Agent interaction, Goal Execution과 streamed status Agent Window",
+    "relationship": "두 확장은 독립 agent domain이 아니라 동일 canonical data와 execution state를 표시하고 조작하는 두 UI surface다.",
+    "status": "accepted"
+  },
+  "humanRationale": "Workspace와 Agent를 서로 다른 두 개의 창으로 제공한다.",
+  "constraints": [
+    "Agent Factory Plugin은 공통 스킬과 agent-side capability의 배포 단위다.",
+    "두 VS Code 확장이 동일 실행 상태나 Git worktree orchestration을 중복 구현하지 않는다.",
+    "두 VS Code 확장은 동일 canonical artifact와 shared execution session을 사용한다.",
+    "확장 간 통신 protocol과 local or remote extension host 배치는 후속 설계에서 명시해야 한다."
+  ],
+  "unresolvedItems": [
+    "Agent Extension과 Workspace Extension 사이의 command and event schema",
+    "codex app-server process ownership, lifecycle and failure recovery",
+    "local, WSL, SSH, Dev Container and Codespaces 지원 범위"
+  ]
+}

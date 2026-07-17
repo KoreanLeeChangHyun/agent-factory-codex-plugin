@@ -1,0 +1,203 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/execution-agent-worktree-skill-placement.json",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": [
+        {
+          "path": ".codex/skills/work-unit-planner-af/",
+          "finding": "Work Unit package의 생성, 갱신, 검증과 실행 준비 데이터 계약을 소유하며 Git 실행 mutation은 소유하지 않는다."
+        },
+        {
+          "path": ".codex/skills/agent-factory-lifecycle-af/",
+          "finding": "Intake, Work Unit, Execution과 Human Review를 연결하는 lifecycle router이며 현재 worktree 전용 script는 없다."
+        },
+        {
+          "path": "docs/work-units/agent-extension-goal-execution-integration/",
+          "finding": "Agent 확장이 Goal execution을 요청하는 UI/runtime 소비자 역할을 계획하고 있으므로 Git worktree 구현의 유일한 canonical owner로 두면 CLI Execution 경로와 중복될 수 있다."
+        },
+        {
+          "path": ".codex/skills/",
+          "finding": "프로젝트가 관리하는 Agent Factory 스킬 원본이 위치하며 별도 execution 책임을 추가할 수 있다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "repositoryEvidence",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "evidence",
+      "content": [
+        "Git official worktree add lock list porcelain remove prune repair",
+        "Git official branch name validation check-ref-format",
+        "Git official status porcelain z machine parsing",
+        "Git official rev-parse show-toplevel verify commit"
+      ],
+      "attributes": {
+        "sourceKey": "queries",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "evidence",
+      "content": [
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "Git worktree documentation",
+          "url": "https://git-scm.com/docs/git-worktree.html",
+          "evidence": "linked worktree는 add, list, lock, remove, prune와 repair로 관리한다. add -b는 새 branch와 worktree를 함께 만들며 --lock은 활성 worktree의 prune, move 또는 delete를 방지한다. remove는 dirty worktree를 기본적으로 거부한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "Git check-ref-format documentation",
+          "url": "https://git-scm.com/docs/git-check-ref-format",
+          "evidence": "check-ref-format --branch는 새 branch 이름을 Git branch 규칙에 따라 검증한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "Git status documentation",
+          "url": "https://git-scm.com/docs/git-status",
+          "evidence": "--porcelain 형식은 script가 해석할 수 있도록 안정적이며 -z는 파일 이름을 NUL로 구분한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "Git rev-parse documentation",
+          "url": "https://git-scm.com/docs/git-rev-parse",
+          "evidence": "--show-toplevel은 repository root를 확인하고 --verify와 commit peeling은 base ref가 단일 commit으로 해석되는지 검증할 수 있다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "sources",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "evidence",
+      "content": [
+        {
+          "id": "FINDING-001",
+          "statement": "worktree lifecycle은 Work Unit 정의가 아니라 Execution mutation이므로 work-unit-planner-af가 소유하면 안 된다."
+        },
+        {
+          "id": "FINDING-002",
+          "statement": "Agent extension과 CLI Execution이 같은 안전 규칙을 사용하려면 Git orchestration은 UI 확장 내부가 아니라 재사용 가능한 Agent Factory execution skill과 deterministic script가 소유해야 한다."
+        },
+        {
+          "id": "FINDING-003",
+          "statement": "사람이 읽는 절차만으로는 branch/path 충돌, dirty state와 stale administrative record 처리를 일관되게 보장하기 어려우므로 machine-readable JSON 결과를 반환하는 script가 필요하다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "findings",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "finding",
+      "content": [
+        {
+          "alternative": "work-unit-planner-af scripts에 worktree mutation 추가",
+          "reason": "Work Unit package 계획·검증과 Execution side effect의 책임이 혼합된다."
+        },
+        {
+          "alternative": "agent-factory-lifecycle-af scripts에 직접 추가",
+          "reason": "lifecycle router가 Git 세부 구현까지 소유하여 변경 영향과 테스트 범위가 커진다."
+        },
+        {
+          "alternative": "Agent 확장 내부에만 구현",
+          "reason": "CLI Execution Agent가 재사용할 canonical implementation이 없어지고 두 실행 경로가 갈라진다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "rejectedAlternatives",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "finding",
+      "content": [
+        "branch와 worktree path naming 규칙의 구체적인 형식은 아직 Human 결정 또는 Execution contract로 확정되지 않았다.",
+        "현재 repository에는 최초 commit과 사용 가능한 base ref가 없어 첫 linked worktree 생성 전 baseline 준비가 필요하다.",
+        "실제 skill과 script 구현은 새 Work Unit의 Execution 범위이며 이번 research에서는 파일을 생성하지 않는다."
+      ],
+      "attributes": {
+        "sourceKey": "limitations",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

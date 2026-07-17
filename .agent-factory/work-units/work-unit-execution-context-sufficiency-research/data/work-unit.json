@@ -1,0 +1,100 @@
+{
+  "id": "work-unit-execution-context-sufficiency-research",
+  "title": "무히스토리 Execution을 위한 Work Unit 충분성 조사 기록",
+  "version": "3.0.0",
+  "status": "review",
+  "sourceDesignRefs": [],
+  "goal": "현재 Work Unit v3 구조가 이전 대화가 없는 신규 Execution 세션에 충분한 실행 문맥을 제공하는지에 관한 저장소 진단과 공식 웹 조사 결과를 하나의 추적 가능한 한국어 연구 기록으로 작성한다.",
+  "scope": [
+    "docs/research/work-unit-execution-context-sufficiency.md를 research-guide-af 형식의 Markdown web-research 기록으로 작성한다.",
+    "현재 v3 Work Unit schema, manager, tests, 실제 Work Unit 표본, /goal 실행 규칙과 $CODEX_HOME 설치본 drift에 관한 저장소 근거를 기록한다.",
+    "OpenAI Codex ExecPlan, JSON Schema 공식 문서, NASA 요구사항 지침, 공식 Scrum Guide의 근거를 source tier와 freshness와 함께 기록한다.",
+    "구조가 충분한 내용을 표현할 수 있는지와 schema-valid ready 상태가 실질적 실행 가능성을 보장하는지를 분리하여 결론을 기록한다.",
+    "이전 권고의 담당자 표현은 현재 Agent Factory 계약에 근거하지 않은 확장이므로 철회하고, 확인된 AI Execution과 Human Review 결정 경계만 기록한다."
+  ],
+  "outOfScope": [
+    "Work Unit schema, manager, tests, skills, lifecycle 규칙 또는 $CODEX_HOME 설치본 수정.",
+    "Work Unit 충분성 개선안의 구현, migration, propagation, runtime restart 또는 Goal 생성.",
+    "현재 조사에서 확인하지 않은 새로운 조직 역할, 담당자, 승인 권한 또는 요구사항 발명."
+  ],
+  "assumptions": [],
+  "constraints": [
+    "Human-facing 연구 기록과 검토 자료는 한국어로 작성하고 명령, 파일 경로, 식별자와 URL은 정확히 유지한다.",
+    "사실, 저장소 근거, 외부 근거, 권고, 제한사항과 미해결 항목을 분리한다.",
+    "웹 결론은 T1/T2 공식 또는 1차 출처만 사용하고 source tier와 freshness를 명시한다.",
+    "프로젝트 v3 검증에는 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py를 사용하며 $CODEX_HOME 설치본과의 drift를 숨기지 않는다.",
+    "연구 기록 외의 프로젝트 파일은 변경하지 않는다."
+  ],
+  "plan": [
+    "Plan: Work Unit 전체와 agent-rule-af, fact-only-af, research-guide-af, work-unit-planner-af, human-review-language-af 및 관련 lifecycle/reference를 읽고 실행 경계를 확인한다.",
+    "Plan: docs/design-documents에서 본 연구 주제에 직접 대응하는 Design Document 존재 여부를 확인하고 결과를 review와 report에 기록한다.",
+    "Work: 지정된 저장소 schema, manager, tests, lifecycle, 실제 v3 및 legacy Work Unit과 HOME 설치본을 다시 읽고 이전 진단 명령 결과를 재현하거나 현재 상태로 검증한다.",
+    "Work: OpenAI Codex ExecPlan, JSON Schema, NASA requirements, Scrum Guide 공식 출처의 현재 접근 가능성과 핵심 근거를 확인한다.",
+    "Work: research-guide-af YAML front matter, 조사 질문, 범위와 검색어·명령, 웹 source table, repository evidence table, findings, recommendations, limitations, unresolved items, conclusion 순서로 한국어 연구 기록을 작성한다.",
+    "AI Review: 모든 결론이 URL 또는 저장소 경로·명령에 추적되는지, 표현 가능성과 강제력이 구분되는지, 담당자 주장이 제거되었는지 검토한다.",
+    "Report: 검증 증거, Design Document 확인 결과, 잔여 위험과 Human 검토 방법을 Work Unit evidence 및 data/report.json에 기록한다."
+  ],
+  "acceptanceCriteria": [
+    "연구 파일이 docs/research/work-unit-execution-context-sufficiency.md에 존재하고 YAML front matter에 id, date=2026-07-14, type=web-research, basis_request, related_artifacts, sources가 포함된다.",
+    "연구 질문, 검색·점검 범위, 사용한 검색어 또는 명령, 웹 source table, repository evidence table, findings, recommendations, limitations, unresolved items와 conclusion이 서로 구분된다.",
+    "OpenAI Codex ExecPlan, JSON Schema 공식 문서, NASA 요구사항 지침과 공식 Scrum Guide가 URL, T1/T2 tier, freshness, 핵심 근거와 함께 기록된다.",
+    "현재 v3가 goal, scope, exclusions, plan, acceptance, DoD, tests, checklists, expected output과 unresolved items를 표현할 수 있다는 저장소 근거가 기록된다.",
+    "first-class basis 부재, 자유 문자열 traceability, 무조건 ready 생성, blocking unresolved 비구조화, semantic readiness 검증 부재, /goal preflight 부재와 HOME contract drift가 근거와 함께 기록된다.",
+    "schema-valid ready가 신규 세션 실행 가능성을 보장하지 않는다는 반례와 두 v3 표본 validate 통과, legacy 2.0.0 거부 결과가 정확히 구분된다.",
+    "담당자는 현재 Agent Factory 계약의 Work Unit 또는 unresolvedItems 필드 요구가 아니며, AI 실행과 Human 검토·승인 경계만 확인되었다고 정정한다.",
+    "권고는 승인된 요구사항이 아닌 조사 기반 제안으로 표시하고 schema 변경이나 구현이 수행되지 않는다."
+  ],
+  "definitionOfDone": [
+    "실행 전에 관련 Design Document 존재 여부를 확인하고 직접 관련 문서가 없거나 갱신이 불필요한 사유를 data/review.json과 data/report.json에 기록한다.",
+    "research-guide-af 형식의 한국어 연구 기록이 지정 경로에 작성되고 모든 사용 근거가 URL 또는 저장소 경로·명령으로 추적된다.",
+    "정의된 문서 구조와 핵심 주장 검증을 실행하고 결과를 evidence/commands.json, evidence/tests.json과 필요한 로그에 기록한다.",
+    "AI Review와 AI checklist 결과, 잔여 위험, 제한사항과 비차단 미해결 항목을 기록한다.",
+    "Human checklist와 구체적인 검토 방법을 준비하여 Human이 승인 또는 rework를 결정하고 병합·PR 승격은 별도로 결정할 수 있게 한다."
+  ],
+  "testCriteria": [
+    "test -f docs/research/work-unit-execution-context-sufficiency.md가 성공한다.",
+    "연구 파일의 YAML front matter와 필수 섹션 제목을 rg로 검사하고 누락이 없음을 확인한다.",
+    "연구 파일에서 OpenAI, JSON Schema, NASA, Scrum 공식 URL과 각 source tier 및 freshness 표기가 존재함을 확인한다.",
+    "연구 파일에서 work-unit.schema.json, traceability.schema.json, work_unit.py, lifecycle.md, 실제 v3 Work Unit과 $CODEX_HOME drift 근거 경로가 존재함을 확인한다.",
+    "연구 파일이 담당자를 Agent Factory 요구사항으로 주장하지 않고 이전 표현을 철회했음을 확인한다.",
+    "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-execution-context-sufficiency-research가 최종 상태에서 통과한다."
+  ],
+  "aiChecklist": [
+    "Human 요청과 Work Unit 범위만 사용하고 새로운 요구사항이나 역할을 발명하지 않았다.",
+    "모든 repository finding이 정확한 파일 경로, 줄 또는 재현 명령에 추적된다.",
+    "모든 web finding이 공식 T1/T2 URL과 source tier 및 freshness에 추적된다.",
+    "Work Unit의 표현 가능성과 ready 실행 가능성의 기계적 보장을 분리하여 평가했다.",
+    "담당자 표현을 철회하고 확인된 AI Execution과 Human Review 결정 경계만 기록했다.",
+    "사실, 권고, 제한사항, 잔여 위험과 미해결 항목이 분리되었다.",
+    "Design Document 확인 결과와 문서·패키지 검증 증거가 review 및 report에 기록되었다."
+  ],
+  "humanChecklist": [
+    "연구 질문과 결론이 무히스토리 신규 Execution 세션의 Work Unit 충분성이라는 요청에 일치하는지 확인한다.",
+    "OpenAI, JSON Schema, NASA, Scrum 공식 출처의 URL, tier, freshness와 요약이 정확한지 확인한다.",
+    "저장소 schema, manager, tests, 실제 패키지와 HOME drift 근거가 과장 없이 기록되었는지 확인한다.",
+    "현재 구조가 내용을 담을 수 있다는 사실과 ready 상태를 보장하지 못한다는 결론이 분리되었는지 확인한다.",
+    "담당자 필드 제안이 철회되고 현재 Agent Factory의 AI/Human 경계만 기록되었는지 확인한다.",
+    "권고가 구현된 요구사항이 아닌 후속 Human 결정 대상으로 분리되었는지 확인한다.",
+    "승인 또는 rework를 결정하고 병합과 PR 승격은 별도 Human 결정으로 남겨 둔다."
+  ],
+  "humanReviewMethod": "Human은 docs/research/work-unit-execution-context-sufficiency.md를 열어 YAML front matter, 조사 범위, 웹 source table, repository evidence table, findings, recommendations, limitations, unresolved items와 conclusion을 순서대로 검토한다. 각 공식 URL과 로컬 근거 경로를 표본 확인하고, .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-execution-context-sufficiency-research 결과와 evidence JSON 및 로그를 확인한다. 승인 기준은 근거 추적성, 표현 가능성과 강제력의 구분, 담당자 표현 철회, 권고와 사실의 분리 및 범위 준수이다. 누락된 출처, 존재하지 않는 근거, 역할 발명, 결론 과장 또는 검증 누락은 rework 사유이다. 승인, rework, 병합과 PR 승격은 Human이 결정한다.",
+  "qualityGateRef": "data/quality-gate.json",
+  "packageRefs": {
+    "execution": "data/execution.json",
+    "review": "data/review.json",
+    "qualityGate": "data/quality-gate.json",
+    "traceability": "data/traceability.json",
+    "report": "data/report.json"
+  },
+  "expectedOutput": "docs/research/work-unit-execution-context-sufficiency.md 한국어 web-research 기록과 Work Unit 실행·검증·AI Review·Human Review 증거.",
+  "dependencies": {
+    "parent": null,
+    "dependsOn": [],
+    "blocks": [],
+    "executionOrder": 1
+  },
+  "unresolvedItems": [
+    "비차단: 프로젝트 v3 Agent Factory skill과 /home/deus/.codex/skills 설치본의 전파·동기화 여부는 별도 Human 결정과 Work Unit이 필요하다.",
+    "비차단: Work Unit schema, readiness gate, /goal preflight 개선 구현 여부와 정확한 데이터 모델은 본 연구 기록 후 별도 Intake와 Human 결정이 필요하다."
+  ]
+}

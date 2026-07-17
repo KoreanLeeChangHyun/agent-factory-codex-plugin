@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.16",
+  "id": "agent-factory-plugin-vscode-extension-split-decision",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "draft"
+  },
+  "createdAt": "2026-07-16T14:30:34+00:00",
+  "updatedAt": "2026-07-16T19:07:23+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory Intake v2 normalization",
+    "sourceRefs": [
+      {
+        "artifactType": "legacy-intake-source",
+        "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+        "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      }
+    ]
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
+    "reviewedAt": null,
+    "findings": []
+  }
+}

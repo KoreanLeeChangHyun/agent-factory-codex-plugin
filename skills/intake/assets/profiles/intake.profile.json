@@ -1,0 +1,19 @@
+{
+  "id": "intake",
+  "version": "2.0.0",
+  "artifactType": "intake",
+  "maximumSectionDepth": 2,
+  "requiredSections": [
+    {"id": "request-and-goal", "title": "Request and Goal", "requiredKinds": ["human-request", "desired-outcome", "success-criterion"]},
+    {"id": "context-and-scope", "title": "Context and Scope", "requiredKinds": ["context", "scope", "out-of-scope"]},
+    {"id": "stakeholders-and-approval", "title": "Stakeholders and Approval", "requiredKinds": ["stakeholder", "decision-owner", "approval-boundary"]},
+    {"id": "evidence-and-findings", "title": "Evidence and Findings", "requiredKinds": ["evidence"]},
+    {"id": "requirements-and-constraints", "title": "Requirements and Constraints", "requiredKinds": ["requirement", "acceptance-criterion"]},
+    {"id": "decisions-and-open-items", "title": "Decisions and Open Items", "requiredKinds": ["decision-status", "open-items-status"]},
+    {"id": "work-unit-basis", "title": "Work Unit Basis", "requiredKinds": ["specification-impact", "work-unit-basis"]}
+  ],
+  "optionalSections": [
+    {"id": "migration-analysis", "title": "Migration Analysis"},
+    {"id": "operations-or-incident-context", "title": "Operations or Incident Context"}
+  ]
+}

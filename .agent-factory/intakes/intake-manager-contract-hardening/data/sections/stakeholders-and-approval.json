@@ -1,0 +1,45 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "groups": [
+          "Human decision owner",
+          "Codex Intake and Work Unit authors",
+          "Work Unit planner and execution consumers"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human",
+        "decisions": [
+          "Apply reviewed improvements",
+          "Initialize current workspace as Git",
+          "Codex determines Work Unit data"
+        ]
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "human": [
+          "Final review",
+          "Merge or promotion"
+        ],
+        "codex": [
+          "Populate Intake and Work Unit",
+          "Implement scoped fixes",
+          "Run verification and AI review"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

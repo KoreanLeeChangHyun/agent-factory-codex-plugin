@@ -1,0 +1,7 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s .codex/skills/work-unit-planner-af/tests -p 'test_*.py'
+.....................................................
+----------------------------------------------------------------------
+Ran 53 tests in 68.369s
+
+OK
+exit_code=0

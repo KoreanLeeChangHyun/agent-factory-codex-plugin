@@ -1,0 +1,58 @@
+{
+  "status": "working",
+  "lifecycle": {
+    "plan": "completed",
+    "work": "completed",
+    "review": "completed_with_residual_risk",
+    "report": "pending"
+  },
+  "commands": [
+    "work_unit.py check-schemas",
+    "python3 -B -m unittest discover -s .codex/skills/work-unit-planner-af/tests -p 'test_*.py'",
+    "work_unit.py create/show/update/validate smoke",
+    "work_unit.py migrate source-preservation smoke"
+  ],
+  "filesChanged": [
+    ".codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/execution.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/review.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/quality-gate.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/traceability.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/report.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/commands.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/tests.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/scripts/work_unit.py",
+    ".codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py",
+    ".codex/skills/work-unit-planner-af/SKILL.md",
+    ".codex/skills/work-unit-planner-af/references/work-unit-structure.md",
+    ".codex/skills/agent-factory-lifecycle-af/references/lifecycle.md",
+    "docs/interviews/work-unit-json-storage-format-self-migration.md",
+    "docs/work-units/work-unit-json-storage-format/data/work-unit.json",
+    "docs/work-units/work-unit-json-storage-format/data/execution.json",
+    "docs/work-units/work-unit-json-storage-format/data/review.json",
+    "docs/work-units/work-unit-json-storage-format/data/quality-gate.json",
+    "docs/work-units/work-unit-json-storage-format/data/traceability.json",
+    "docs/work-units/work-unit-json-storage-format/evidence/commands.json",
+    "docs/work-units/work-unit-json-storage-format/evidence/tests.json",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/tdd-red.log",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/check-schemas.log",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/unittest-discover.log",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/create-validate-migrate-smoke.log"
+  ],
+  "testResults": [
+    "8개 Draft 2020-12 canonical schema self-validation 통과",
+    "53개 manager 회귀 테스트 통과 (70.906s)",
+    "create, show, update, validate smoke 통과",
+    "migrate source SHA-256 전후 일치 및 별도 3.0.0 package validate 통과"
+  ],
+  "verificationResult": "pass",
+  "notes": [
+    "관련 Design Document 디렉터리와 문서는 발견되지 않아 갱신 대상이 없었다.",
+    "Human이 source-preserving 별도 migration 방식 B를 선택했다. 새 3.0.0 destination id/path가 확정될 때까지 report 단계와 data/report.json 기록을 보류한다.",
+    "/home/deus/.codex/skills 전파는 명시된 범위 밖이며 변경하지 않았다."
+  ],
+  "deviations": [
+    "조사 기록의 duplicate-key 및 비정상 JSON depth/size 후보는 최종 Work Unit testCriteria에 포함되지 않아 이번 구현에 추가하지 않았으며 후속 Intake 대상으로 남겼다.",
+    "초기 TDD RED 실행의 전체 traceback stream은 보존되지 않아 명령, 테스트 수와 failure/error footer만 evidence/logs/tdd-red.log에 부분 근거로 기록했다. 최종 GREEN, schema 검사와 migration smoke는 raw 출력을 보존했다."
+  ]
+}

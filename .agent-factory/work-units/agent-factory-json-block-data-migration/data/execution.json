@@ -1,0 +1,15 @@
+{
+  "status": "not_started",
+  "lifecycle": {
+    "plan": "pending",
+    "work": "pending",
+    "review": "pending",
+    "report": "pending"
+  },
+  "commands": [],
+  "filesChanged": [],
+  "testResults": [],
+  "verificationResult": "not_run",
+  "notes": [],
+  "deviations": []
+}

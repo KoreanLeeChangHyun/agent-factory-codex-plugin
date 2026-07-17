@@ -1,0 +1,51 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": {
+        "status": "superseded-in-part",
+        "summary": "공통 metadata는 identity, schema and document version, project, lifecycle, time, language, theme, provenance와 relations로 제한한다. Intake는 request-to-evidence-to-requirements-to-Work-Unit basis, Design Document는 drivers-to-views-to-decisions-to-verification, Work Unit은 basis-to-plan-to-Goal·exec·branch·worktree execution-context-to-execution-to-reviews-to-report 흐름을 필수 section으로 사용한다. 이 구분이 Human 인터뷰, 공식 표준과 현재 Agent Factory lifecycle을 가장 적은 중복으로 만족한다.",
+        "supersessionNote": "Design Document의 단일 필수 section 목록은 문서 종류 다양성에 대한 후속 조사로 대체되었다. 공통 metadata, Intake section과 Work Unit section 결론은 유지된다."
+      },
+      "attributes": {
+        "sourceKey": "conclusion",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "The common document contract and versioned profiles implement this research outcome.",
+        "currentStateEvidence": [
+          "skills/lifecycle/references/common-document-contract.md",
+          "skills/lifecycle/assets/schema/document-profile.schema.json"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

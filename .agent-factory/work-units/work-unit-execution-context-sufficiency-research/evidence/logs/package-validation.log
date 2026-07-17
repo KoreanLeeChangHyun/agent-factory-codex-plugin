@@ -1,0 +1,11 @@
+Commands (executed 2026-07-14 from /home/deus/workspace/skills):
+python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-json-storage-format-v3
+python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/vscode-extension-ui-structure-draft
+python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-execution-context-sufficiency-research
+python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-json-storage-format
+
+Results:
+- work-unit-json-storage-format-v3: exit 0, {"valid": true, "schemaVersion": "3.0.0"}
+- vscode-extension-ui-structure-draft: exit 0, {"valid": true, "schemaVersion": "3.0.0"}
+- work-unit-execution-context-sufficiency-research (pre-execution state): exit 0, {"valid": true, "schemaVersion": "3.0.0"}
+- work-unit-json-storage-format: nonzero, error: legacy package schema version 2.0.0 is unsupported; supported schema version: 3.0.0; migrate to a separate 3.0.0 package

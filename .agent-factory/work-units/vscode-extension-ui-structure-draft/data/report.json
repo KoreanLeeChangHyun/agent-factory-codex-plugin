@@ -1,0 +1,87 @@
+{
+  "summary": "실행 전에 관련 Design Document가 없음을 확인하고, 확정된 Human Fact와 canonical Work Unit schema를 근거로 Draft 2020-12 Design Document schema, 4개 section, 4개 collection, UI-flow·state diagram source와 full source-driven Human 검토용 Design Report 초안을 작성했다. assembled schema 검증, 구조 검사 27개, file:// browser 검사 16개와 13개 quality gate를 통과해 Human Review 준비를 마쳤다.",
+  "artifactRefs": [
+    {
+      "path": "evidence/logs/artifact-inventory.log",
+      "mediaType": "text/plain",
+      "description": "Work Unit 밖 Design Document 산출물 18개 경로와 SHA-256 inventory"
+    },
+    {
+      "path": "evidence/verification/verify-design-schema.py",
+      "mediaType": "text/x-python",
+      "description": "Draft 2020-12 schema self-check와 assembled Design Document package 검증"
+    },
+    {
+      "path": "evidence/verification/verify-structure.mjs",
+      "mediaType": "text/javascript",
+      "description": "Design Document source, report projection, canonical status와 미정 항목 구조 검증"
+    },
+    {
+      "path": "evidence/verification/verify-browser.cjs",
+      "mediaType": "text/javascript",
+      "description": "file:// Design Report 탭, 가시성, DnD, scroll과 runtime error 검증"
+    }
+  ],
+  "verification": {
+    "result": "pass",
+    "evidenceRefs": [
+      {
+        "path": "evidence/logs/static-and-structure.log",
+        "mediaType": "text/plain",
+        "description": "Draft 2020-12 schema, JSON strict parse, generator freshness, JavaScript syntax와 27개 구조 검사 결과"
+      },
+      {
+        "path": "evidence/logs/browser-verification.log",
+        "mediaType": "text/plain",
+        "description": "system Chrome에서 수행한 16개 full source projection, file:// 상호작용과 CSSOM 검증 결과"
+      },
+      {
+        "path": "evidence/logs/quality-gate.log",
+        "mediaType": "text/plain",
+        "description": "13개 required quality check와 evidence 매핑 및 100점 계산"
+      },
+      {
+        "path": "evidence/logs/package-validation.log",
+        "mediaType": "text/plain",
+        "description": "review_ready 전환 후 canonical Work Unit package 최종 validation 결과"
+      },
+      {
+        "path": "evidence/tests.json",
+        "mediaType": "application/json",
+        "description": "구조화된 schema, structure, browser와 package 검증 결과"
+      }
+    ]
+  },
+  "remainingRisk": [
+    "Report의 checkbox, 초기 선택, computed card height와 배치는 제품 결정이 아닌 검토 도구이므로 Human Review에서 이 경계를 확인해야 한다.",
+    "제품의 단계 높이와 overflow 시작 기준이 미정이므로 실제 제품 scroll 활성 조건은 후속 결정 뒤 검증해야 한다.",
+    "전용 HTML/CSS 표준 linter와 고정 browser dependency가 없어 검증 재현은 현재 Node, local npm cache와 system Chrome 환경에 의존한다."
+  ],
+  "unresolvedItems": [
+    "Dashboard, Intake, Design 각 탭의 TabHeader와 Body 상세 내용.",
+    "WorkUnit TabHeader의 단계 선택 컨트롤 형식, 선택 cardinality, 기본 표시 단계와 선택 상태 저장 범위.",
+    "고정 Work Unit 카드 높이의 정확한 값, 긴 제목의 overflow 처리, 제목 외 추후 추가할 카드 정보와 카드 액션.",
+    "동일 단계 안의 카드 정렬, drag handle, 터치·키보드 대체 동작, 허용되지 않은 drop 피드백, 상태 저장·실패 처리와 Review에서 Done으로 이동할 때의 Human 승인 UI.",
+    "Blocked 예외 상태의 표시 위치와 시각적 표현 및 카드가 Blocked로 진입·복귀하는 조작 방식.",
+    "단계별 스크롤 영역의 높이·overflow 시작 기준과 키보드·접근성 세부 동작.",
+    "VS Code에서 UI가 배치될 호스트 영역.",
+    "확장 구현 언어, 프레임워크, VS Code API, 상태 저장과 외부 연동.",
+    "시각 디자인, 접근성 세부 기준, 반응형 동작과 아이콘."
+  ],
+  "designDocument": {
+    "status": "updated",
+    "refs": [
+      {
+        "path": "evidence/logs/artifact-inventory.log",
+        "mediaType": "text/plain",
+        "description": "신규 Design Document package의 실제 경로와 SHA-256 inventory"
+      },
+      {
+        "path": "evidence/logs/static-and-structure.log",
+        "mediaType": "text/plain",
+        "description": "Design Document JSON과 generated report data의 검증 결과"
+      }
+    ],
+    "reason": "실행 전에 docs/design-documents/vscode-extension-ui-structure/가 없음을 확인했고, 이 Work Unit Execution에서 신규 package를 생성해 JSON source와 Human 검토용 report를 준비했다. Canonical report schema에는 created 상태가 없어 updated로 기록하며 실제 외부 산출물 경로는 data/traceability.json에 둔다."
+  }
+}

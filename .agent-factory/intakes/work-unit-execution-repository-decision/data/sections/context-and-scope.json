@@ -1,0 +1,68 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/work-units/agent-factory-skill-docs-json-block-contract",
+        "docs/work-units/agent-factory-json-block-data-migration",
+        "docs/work-units/workspace-extension-four-tab-mvp",
+        "docs/work-units/agent-extension-goal-execution-integration"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

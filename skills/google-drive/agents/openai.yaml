@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sync Google Drive"
+  short_description: "Share and sync Google Drive files locally"
+  default_prompt: "Use $google-drive to choose access and sync Google Drive materials into source/google/drive."

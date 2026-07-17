@@ -1,0 +1,30 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Every change traces to the Intake basis.",
+        "No package escape remains in commit or recovery.",
+        "Intake-specific state logic does not break Work Unit execution writes.",
+        "Schema/profile/skill terminology is consistent.",
+        "Tests cover reproduced failures."
+      ]
+    },
+    {
+      "id": "AI-REVIEW-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

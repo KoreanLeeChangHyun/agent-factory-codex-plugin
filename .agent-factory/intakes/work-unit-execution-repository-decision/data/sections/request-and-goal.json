@@ -1,0 +1,41 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "Goal, exec, dedicated Git branch와 linked worktree가 필수인 Work Unit Execution의 canonical Git repository를 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "human-request",
+      "content": "Work Unit을 실행할 Git 저장소를 어떻게 준비할 것인가?",
+      "attributes": {
+        "sourceKey": "question",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

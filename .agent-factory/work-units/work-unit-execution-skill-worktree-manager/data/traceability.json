@@ -1,0 +1,32 @@
+{
+  "designDocumentRefs": [],
+  "requirementRefs": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json#INTAKE-DECISION-034",
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json#INTAKE-DECISION-035",
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json#INTAKE-DECISION-036"
+  ],
+  "decisionRefs": [
+    "docs/research/execution-agent-worktree-skill-placement.json",
+    "docs/interviews/work-unit-branch-lifecycle-naming-decision.json",
+    "docs/interviews/work-unit-execution-bootstrap-location-decision.json"
+  ],
+  "implementationRefs": [
+    ".codex/skills/work-unit-execution-af/SKILL.md",
+    ".codex/skills/work-unit-execution-af/agents/openai.yaml",
+    ".codex/skills/work-unit-execution-af/references/worktree-contract.md",
+    ".codex/skills/work-unit-execution-af/scripts/worktree.py",
+    ".codex/skills/agent-factory-lifecycle-af/SKILL.md",
+    ".codex/skills/work-unit-planner-af/SKILL.md"
+  ],
+  "testRefs": [
+    ".codex/skills/work-unit-execution-af/tests/test_worktree.py",
+    ".codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/evidence/tests.json"
+  ],
+  "reviewRefs": [
+    "docs/research/execution-agent-worktree-skill-placement.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/data/review.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/evidence/logs/verification-summary.json"
+  ],
+  "workUnitDependencyRefs": []
+}

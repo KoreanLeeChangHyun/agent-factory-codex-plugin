@@ -1,0 +1,67 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/interviews/specifications-root-name-decision.json",
+        "docs/research/design-document-profile-system.json",
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/work-units/agent-factory-skill-docs-json-block-contract"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

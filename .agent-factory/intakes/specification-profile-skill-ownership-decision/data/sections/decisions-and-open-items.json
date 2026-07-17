@@ -1,0 +1,236 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "owner": "Agent Factory skill",
+        "ownedRules": [
+          "specification profile id and version",
+          "document class",
+          "required and optional sections",
+          "allowed and required block contracts",
+          "profile JSON Schema",
+          "Viewer renderer mapping",
+          "compatibility and migration rules"
+        ],
+        "specificationPackageStores": [
+          "metadata.documentClass",
+          "metadata.documentProfile.id",
+          "metadata.documentProfile.version",
+          "canonical specification content",
+          "connected block references"
+        ]
+      },
+      "attributes": {
+        "sourceKey": "humanDecision",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "open-item",
+      "content": "profile rules를 소유할 정확한 skill 이름과 내부 파일 경로",
+      "attributes": {
+        "sourceKey": "unspecified[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "open-item",
+      "content": "profile schema와 renderer mapping의 상세 파일 형식",
+      "attributes": {
+        "sourceKey": "unspecified[2]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 2
+      },
+      "attributes": {
+        "sourceKey": "unspecified",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "open-item",
+      "content": "Intake decision update",
+      "attributes": {
+        "sourceKey": "pendingApplication[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "open-item",
+      "content": "research recommendation update",
+      "attributes": {
+        "sourceKey": "pendingApplication[2]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "open-item",
+      "content": "skill contract Work Unit update",
+      "attributes": {
+        "sourceKey": "pendingApplication[3]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0009",
+      "kind": "open-item",
+      "content": "profile-owning skill and asset structure definition during Work Unit Execution",
+      "attributes": {
+        "sourceKey": "pendingApplication[4]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0010",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 4
+      },
+      "attributes": {
+        "sourceKey": "pendingApplication",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "Specification profile ownership is implemented in the specification skill assets.",
+        "currentStateEvidence": [
+          "skills/specification/SKILL.md",
+          "skills/specification/assets/profiles"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

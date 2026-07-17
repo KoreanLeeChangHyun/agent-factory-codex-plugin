@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/agent-factory-json-viewer-extension-architecture.json",
+      "sha256": "6cda5e65efa82d07d06b3238b45f6d1abc79e4770d51a6bc661b8130c4928b2d",
+      "sizeBytes": 11354
+    }
+  ]
+}

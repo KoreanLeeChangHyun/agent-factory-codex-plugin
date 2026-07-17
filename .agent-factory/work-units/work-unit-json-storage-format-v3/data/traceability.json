@@ -1,0 +1,45 @@
+{
+  "designDocumentRefs": [],
+  "requirementRefs": [
+    "Human request 2026-07-14: Work Unit 저장 형식을 JSON으로 변경하고 자료 조사 후 실행 가능한 Work Unit을 생성한다.",
+    "docs/research/work-unit-json-storage-format.md",
+    "/home/deus/workspace/skills/docs/work-units/work-unit-json-storage-format"
+  ],
+  "decisionRefs": [
+    "docs/interviews/work-unit-json-storage-format-decision.md#현재-결정",
+    "docs/interviews/work-unit-json-storage-format-self-migration.md#기록된-결정"
+  ],
+  "implementationRefs": [
+    ".codex/skills/work-unit-planner-af/assets/schema/report.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/execution.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/review.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/quality-gate.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/traceability.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/commands.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/tests.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/scripts/work_unit.py",
+    ".codex/skills/work-unit-planner-af/SKILL.md",
+    ".codex/skills/work-unit-planner-af/references/work-unit-structure.md",
+    ".codex/skills/agent-factory-lifecycle-af/references/lifecycle.md"
+  ],
+  "testRefs": [
+    ".codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/tdd-red.log",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/check-schemas.log",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/unittest-discover.log",
+    "docs/work-units/work-unit-json-storage-format/evidence/logs/create-validate-migrate-smoke.log",
+    "docs/work-units/work-unit-json-storage-format-v3/evidence/tests.json",
+    "docs/work-units/work-unit-json-storage-format-v3/evidence/logs/source-preservation.log",
+    "docs/work-units/work-unit-json-storage-format-v3/evidence/logs/active-self-migration.log"
+  ],
+  "reviewRefs": [
+    "docs/work-units/work-unit-json-storage-format/data/work-unit.json#humanChecklist",
+    "docs/work-units/work-unit-json-storage-format/data/review.json",
+    "docs/interviews/work-unit-json-storage-format-self-migration.md",
+    "docs/work-units/work-unit-json-storage-format-v3/data/work-unit.json#humanChecklist",
+    "docs/work-units/work-unit-json-storage-format-v3/data/review.json",
+    "docs/work-units/work-unit-json-storage-format-v3/data/report.json"
+  ],
+  "workUnitDependencyRefs": []
+}

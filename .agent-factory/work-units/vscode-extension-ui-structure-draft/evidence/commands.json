@@ -1,0 +1,19 @@
+[
+  "test -d docs/design-documents/vscode-extension-ui-structure; test -e docs/design-documents/agent-factory/reference/source/software-design-document-essential-elements.md",
+  "python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/vscode-extension-ui-structure-draft",
+  "python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py transition docs/work-units/vscode-extension-ui-structure-draft working --execution-status working",
+  "node --check docs/design-documents/vscode-extension-ui-structure/report/script.js",
+  "node --check docs/design-documents/vscode-extension-ui-structure/report/generate-report-data.mjs",
+  "node --check docs/design-documents/vscode-extension-ui-structure/report/design-document-data.js",
+  "node --check docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-structure.mjs",
+  "node --check docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-browser.cjs",
+  "node docs/design-documents/vscode-extension-ui-structure/report/generate-report-data.mjs --write",
+  "node docs/design-documents/vscode-extension-ui-structure/report/generate-report-data.mjs --verify",
+  "python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py check-schemas",
+  "python3 -B docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-design-schema.py",
+  "node docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-structure.mjs",
+  "PW_NODE_PATH=\"$(npm exec --offline --yes --package=playwright@1.60.0 -- sh -c 'dirname \"$(dirname \"$(command -v playwright)\")\"')\"; timeout 60s env NODE_PATH=\"$PW_NODE_PATH\" node docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-browser.cjs",
+  "find docs/design-documents/vscode-extension-ui-structure -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum",
+  "python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py transition docs/work-units/vscode-extension-ui-structure-draft review --execution-status review_ready --review-state ready_for_human_review --quality-gate-state pass",
+  "python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/vscode-extension-ui-structure-draft"
+]

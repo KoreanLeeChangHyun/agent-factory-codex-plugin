@@ -1,0 +1,184 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/common-document-required-metadata-and-sections.json",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": [
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "DCMI Metadata Terms",
+          "url": "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/",
+          "evidence": "identifier, creator, created, modified, language, type, source, relation, version, title와 tableOfContents 등 문서 metadata의 공통 vocabulary를 제공하며 JSON에서도 사용할 수 있다고 설명한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "W3C PROV Data Model",
+          "url": "https://www.w3.org/TR/prov-dm/",
+          "evidence": "산출물 entity, 생성·사용 activity, 책임 agent, derivation과 attribution을 구분하여 provenance와 신뢰성 판단 근거를 제공한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F4",
+          "title": "ISO/IEC/IEEE 29148:2018 Requirements Engineering",
+          "url": "https://www.iso.org/standard/72089.html",
+          "evidence": "요구사항 공학 process, 필수 information item, 필수 content와 format guidance의 필요성을 규정하며 2024년에 current로 재확인되었다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "IIBA Business Analysis Standard 2025",
+          "url": "https://www.iiba.org/globalassets/business-analysis-resources/the-business-analysis-standard/files/the-business-analysis-standard.pdf",
+          "evidence": "elicitation은 stakeholder, 목적, 기존 정보와 자료를 바탕으로 research·experiment·interview 결과를 수집하고 정확성, 일관성, 누락, 충돌과 모호성을 확인해야 한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "IIBA Understanding Requirements and Designs",
+          "url": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
+          "evidence": "business, stakeholder, functional, non-functional, transition requirements를 구분하고 원래 need에서 design과 solution까지 backward·forward traceability를 요구한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F4",
+          "title": "ISO/IEC/IEEE 42010:2022 Architecture Description",
+          "url": "https://www.iso.org/standard/74393.html",
+          "evidence": "architecture description이 stakeholder concern을 지원하는 viewpoint, view와 model 관계를 구조적으로 표현해야 함을 규정한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "NASA Software Design Description",
+          "url": "https://swehb.nasa.gov/spaces/SWEHBVB/pages/32604435/SwDD%2B-%2BSoftware%2BDesign%2BDescription",
+          "evidence": "설계 결정과 trade-off, architecture와 component 관계, interfaces, data·control flow, requirements·design·code traceability, quality attributes와 검증 가능한 다중 view를 최소 내용으로 권고한다."
+        },
+        {
+          "tier": "T2 primary expert",
+          "freshness": "F5",
+          "title": "arc42 Documentation",
+          "url": "https://docs.arc42.org/home/",
+          "evidence": "goals, constraints, context, solution strategy, building blocks, runtime, deployment, crosscutting concepts, decisions, quality, risks와 glossary를 실무 architecture documentation section으로 제시한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "GitHub Spec Kit",
+          "url": "https://github.github.com/spec-kit/",
+          "evidence": "AI-assisted 개발에서 Spec -> Plan -> Tasks -> Implement 순서, structured context, quality checklist와 cross-artifact analysis를 제공한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "The Scrum Guide",
+          "url": "https://scrumguides.org/scrum-guide.html",
+          "evidence": "work item은 명확한 목표와 설명, 순서, 크기를 갖고 실행 plan과 Definition of Done을 통해 transparency와 완료 기준을 제공해야 한다."
+        },
+        {
+          "tier": "T2 primary expert",
+          "freshness": "F5",
+          "title": "Atlassian Acceptance Criteria",
+          "url": "https://www.atlassian.com/work-management/project-management/acceptance-criteria",
+          "evidence": "acceptance criteria는 specific work의 성공 조건이고 Definition of Done은 공통 quality standard이므로 두 개념을 구분해야 한다."
+        },
+        {
+          "tier": "T2 primary expert",
+          "freshness": "F5",
+          "title": "Google Engineering Practices Code Review",
+          "url": "https://google.github.io/eng-practices/review/",
+          "evidence": "review는 design, functionality, complexity, tests, naming, comments, style와 documentation을 확인하며 실행 결과와 Human review 준비를 분리할 근거를 제공한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "Git Worktree Documentation",
+          "url": "https://git-scm.com/docs/git-worktree.html",
+          "evidence": "repository에 linked worktree를 추가하고 전용 branch를 checkout할 수 있으며 worktree별 HEAD와 index 및 공유 repository state의 경계를 정의한다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "sources",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "finding",
+      "content": [
+        {
+          "alternative": "세 문서에 같은 필수 section 목록 적용",
+          "reason": "Intake의 elicitation, Design Document의 architecture views, Work Unit의 execution and review는 서로 다른 책임이므로 빈 section과 의미 혼합이 발생한다."
+        },
+        {
+          "alternative": "모든 표준 항목을 필수 metadata로 저장",
+          "reason": "DCMI와 PROV의 전체 vocabulary는 현재 요구보다 넓어 YAGNI와 authoring 부담을 초래한다."
+        },
+        {
+          "alternative": "Design Document의 arc42 12개 section을 그대로 강제",
+          "reason": "유용한 실무 참고이지만 모든 프로젝트에 deployment, glossary와 crosscutting section을 강제하면 작은 설계를 과도하게 만든다."
+        },
+        {
+          "alternative": "Work Unit의 acceptance criteria와 Definition of Done 통합",
+          "reason": "specific work 성공 조건과 공통 quality standard의 책임이 달라 검토 기준이 모호해진다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "rejectedAlternatives",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "finding",
+      "content": [
+        "ISO 표준의 공개 페이지는 abstract 수준이며 유료 전문 전체를 재현하지 않았다.",
+        "section 이름은 Agent Factory 목적에 맞춘 project-specific 결정이며 외부 표준의 section 제목을 그대로 복사한 것이 아니다.",
+        "실제 Viewer usability와 문서 크기는 prototype 및 migrated sample로 추가 검증해야 한다."
+      ],
+      "attributes": {
+        "sourceKey": "limitations",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

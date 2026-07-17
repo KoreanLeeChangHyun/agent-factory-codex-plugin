@@ -1,0 +1,120 @@
+{
+  "version": "1.0.0",
+  "id": "work-unit-branch-lifecycle-naming-decision",
+  "title": "Work Unit branch와 worktree 생명주기 결정",
+  "lifecyclePhase": "intake",
+  "status": "ready",
+  "createdAt": "2026-07-16T07:00:00+00:00",
+  "updatedAt": "2026-07-16T07:02:17+00:00",
+  "language": "ko",
+  "userInput": {
+    "requirements": [
+      "Execution Agent가 생성하는 Work Unit worktree와 branch의 cardinality 및 branch naming 규칙을 결정한다.",
+      "Work Unit당 worktree 1개와 branch 1개를 사용하고 재실행 및 rework는 동일 pair에서 이어간다.",
+      "branch 이름은 work-unit/<work-unit-id> 형식을 사용한다."
+    ],
+    "feedback": [
+      "Execution마다 생성하면 branch와 worktree가 너무 많아질 수 있다."
+    ],
+    "desiredOutcomes": [
+      "Work Unit 실행이 일관된 branch와 worktree 생명주기 규칙을 사용한다."
+    ],
+    "suppliedMaterialRefs": [
+      {
+        "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision.json",
+        "description": "변환 전 Human 결정 원본"
+      }
+    ]
+  },
+  "externalResearch": [],
+  "internalAnalysis": [
+    {
+      "kind": "document",
+      "source": "skills/work-unit-execution/SKILL.md",
+      "findings": [
+        "Work Unit id로 work-unit/<work-unit-id> branch를 파생한다.",
+        "재실행과 rework는 동일한 등록 branch와 worktree pair를 재사용한다."
+      ]
+    },
+    {
+      "kind": "document",
+      "source": "skills/lifecycle/SKILL.md",
+      "findings": [
+        "named Work Unit 실행은 동일 branch와 worktree pair를 재사용하도록 라우팅한다."
+      ]
+    },
+    {
+      "kind": "document",
+      "source": "skills/work-unit-planner/SKILL.md",
+      "findings": [
+        "Work Unit execution context에 repository, base ref, derived branch와 absolute linked worktree path를 요구한다."
+      ]
+    }
+  ],
+  "interviews": [
+    {
+      "question": "Work Unit 재실행과 rework에서 worktree와 branch를 어떻게 관리할 것인가?",
+      "answer": "Work Unit당 worktree 1개와 branch 1개를 사용하고 재실행 및 rework는 동일 branch에서 이어간다.",
+      "status": "answered"
+    },
+    {
+      "question": "Work Unit branch의 이름 형식을 어떻게 할 것인가?",
+      "answer": "branch 이름은 work-unit/<work-unit-id> 형식을 사용한다.",
+      "status": "answered"
+    }
+  ],
+  "specification": {
+    "status": "not-applicable",
+    "refs": [],
+    "changes": [],
+    "reason": "현재 specification package에는 Work Unit branch와 worktree 생명주기 계약이 없고, 이 운영 계약은 work-unit-execution 및 lifecycle 스킬이 소유한다."
+  },
+  "synthesis": {
+    "facts": [
+      "Human은 Work Unit당 worktree 1개와 branch 1개 사용을 결정했다.",
+      "Human은 재실행과 rework에서 동일 worktree와 branch pair 재사용을 결정했다.",
+      "Human은 branch 이름을 work-unit/<work-unit-id>로 결정했다.",
+      "현재 work-unit-execution, lifecycle, work-unit-planner 스킬은 이 결정을 반영한다."
+    ],
+    "requirements": [
+      "Work Unit마다 전용 worktree와 branch를 하나씩 사용한다.",
+      "재실행과 rework는 동일 pair에서 이어간다.",
+      "branch 이름은 work-unit/<work-unit-id> 형식을 사용한다."
+    ],
+    "constraints": [
+      "동일 Work Unit의 병렬 Execution 정책은 현재 결정 범위에 포함되지 않는다."
+    ],
+    "decisions": [
+      "Work Unit당 worktree 1개와 branch 1개를 사용한다.",
+      "재실행과 rework는 동일 pair를 재사용한다.",
+      "branch 이름은 work-unit/<work-unit-id> 형식이다."
+    ],
+    "acceptanceCriteria": [
+      "Work Unit id에서 work-unit/<work-unit-id> branch가 결정적으로 파생된다.",
+      "동일 Work Unit의 재실행과 rework가 기존 등록 pair를 재사용한다.",
+      "planner와 lifecycle이 같은 execution context 계약을 사용한다."
+    ],
+    "blockingOpenItems": [],
+    "nonBlockingOpenItems": [
+      "동일 Work Unit 병렬 Execution 정책은 별도 Intake가 필요하다."
+    ],
+    "workUnitBasis": [
+      "Work Unit execution manager와 관련 스킬이 전용 pair cardinality, 동일 pair 재사용, work-unit/<work-unit-id> branch 규칙을 계속 검증하도록 구현하거나 회귀 검증한다."
+    ]
+  },
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": true,
+    "requirementsComplete": true,
+    "specificationConsistent": true,
+    "executionReady": true,
+    "reviewedAt": "2026-07-16T16:01:13+09:00",
+    "findings": [
+      "Human 결정 두 건이 모두 answered 상태다.",
+      "현재 세 관련 스킬에서 branch 파생과 pair 재사용 계약을 확인했다.",
+      "work-unit-execution 회귀 테스트 20개가 통과했다.",
+      "blocking open item이 없고 검증 가능한 acceptance criteria와 Work Unit basis가 존재한다."
+    ]
+  },
+  "blocks": []
+}

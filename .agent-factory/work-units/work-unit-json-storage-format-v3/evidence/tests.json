@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Initial 3.0.0 contract TDD RED",
+    "result": "expected_fail",
+    "evidence": "evidence/logs/tdd-red.log",
+    "tests": 38,
+    "schemas": 7
+  },
+  {
+    "name": "Boundary hardening TDD RED",
+    "result": "expected_fail",
+    "evidence": "evidence/logs/tdd-red.log",
+    "tests": 4,
+    "schemas": 8
+  },
+  {
+    "name": "Canonical schema self-validation",
+    "result": "pass",
+    "evidence": "evidence/logs/check-schemas.log",
+    "schemas": 8
+  },
+  {
+    "name": "Work Unit manager full regression",
+    "result": "pass",
+    "evidence": "evidence/logs/unittest-discover.log",
+    "tests": 53
+  },
+  {
+    "name": "Create, show, update, validate, and source-preserving migrate smoke",
+    "result": "pass",
+    "evidence": "evidence/logs/create-validate-migrate-smoke.log",
+    "tests": 1
+  },
+  {
+    "name": "Active Work Unit 2.0.0 to separate 3.0.0 source-preserving migration",
+    "result": "pass",
+    "evidence": "evidence/logs/source-preservation.log",
+    "tests": 1
+  },
+  {
+    "name": "Active self-migration exact command and observed validation transcript capture",
+    "result": "pass",
+    "evidence": "evidence/logs/active-self-migration.log",
+    "tests": 1
+  }
+]

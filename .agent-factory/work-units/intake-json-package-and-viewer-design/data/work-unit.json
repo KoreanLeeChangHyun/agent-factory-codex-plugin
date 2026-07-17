@@ -1,0 +1,102 @@
+{
+  "id": "intake-json-package-and-viewer-design",
+  "title": "Intake JSON 패키지와 VS Code Viewer 계약 설계",
+  "version": "3.0.0",
+  "status": "ready",
+  "sourceDesignRefs": [
+    "docs/design-documents/vscode-extension-ui-structure"
+  ],
+  "goal": "확정된 Intake 요구와 저장소 근거를 바탕으로 canonical JSON 패키지, 별도 확장자 블록 참조, AI 직접 읽기, VS Code 확장 Viewer 렌더링의 단일 원본 계약을 기존 Design Document에 설계하고 후속 구현 Work Unit의 분해 기준을 만든다.",
+  "scope": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json의 Human 사실, 결정, 외부 근거, 저장소 근거와 미정 사항을 전체 확인한다.",
+    "docs/design-documents/vscode-extension-ui-structure의 Project Core 영향과 기존 Intake 탭 미정 범위를 확인하고 관련 Design Document JSON source와 Human 검토용 Design Report를 갱신한다.",
+    "Intake 하나당 디렉터리 패키지, canonical JSON 의미 데이터, package-local 별도 확장자 블록, 상대 경로 참조와 AI 및 Viewer 소비 경계를 설계한다.",
+    "Human 전용 Markdown 또는 HTML 원본과 Viewer 전용 복제 데이터 없이 AI와 Human이 동일 canonical 데이터를 소비하는 일관성 규칙을 설계한다.",
+    "Intake schema, manager, VS Code Viewer, 기존 자료 migration을 별도 실행 가능한 후속 Work Unit으로 분해할 수 있는 책임 경계와 의존 순서를 Design Document에 기록한다."
+  ],
+  "outOfScope": [
+    "Intake JSON Schema, 생성기, validator, migration manager 또는 관련 Agent Factory skill 코드 구현.",
+    "실행 가능한 VS Code 확장, Webview, TreeView, Custom Editor, 렌더러 또는 배포 패키지 구현.",
+    "기존 docs/interviews와 docs/research Markdown 파일의 이동, 변환, 삭제 또는 덮어쓰기.",
+    "구현 저장소, 언어, 프레임워크, VS Code API와 UI 레이아웃을 근거 없이 선택하는 작업.",
+    "기존 Work Unit 3.0.0 package contract 변경 또는 HOME skill 사본 전파."
+  ],
+  "assumptions": [],
+  "constraints": [
+    "Human 결정에 따라 canonical 의미 데이터는 구조화된 JSON이고 코드, 다이어그램, SVG, 이미지, 표 등 별도 형식 블록은 package-local 파일로 저장해 JSON에서 참조한다.",
+    "AI는 canonical JSON 원문을 직접 읽고 Human은 동일 JSON을 VS Code 확장 Viewer로 읽으며 별도 Human source of truth를 만들지 않는다.",
+    "현재 저장소에는 실행 가능한 VS Code 확장 source와 구현 기술 결정이 없으므로 구현 세부를 발명하지 않는다.",
+    "기존 Markdown 원본은 별도 migration Work Unit과 Human 검토 없이 삭제하거나 덮어쓰지 않는다."
+  ],
+  "plan": [
+    "Intake JSON basis, 기존 Design Document package, 관련 Work Unit, Agent Factory lifecycle 및 diagram 규칙을 읽고 현재 사실과 미정 사항을 분리한다.",
+    "Project Core 영향, 요구사항, 데이터 및 artifact ownership, Viewer 경계, 보안 및 path validation, traceability와 migration 경계를 설계한다.",
+    "Design Document JSON source를 schema-first로 갱신하고 필요하면 다이어그램 source를 구조화된 형식으로 추가한다.",
+    "기존 renderer로 Human 검토용 Design Report를 갱신하되 Intake canonical source와 별도 원본으로 취급하지 않는다.",
+    "후속 schema 및 manager, VS Code Viewer, source-preserving migration Work Unit의 분해 기준과 의존 순서를 기록한다.",
+    "구조와 schema 검증, report 생성 및 브라우저 확인을 수행하고 AI Review와 Human Review 자료를 준비한다."
+  ],
+  "acceptanceCriteria": [
+    "Design Document가 docs/intakes/intake-json-canonical-viewer/data/intake.json과 세 Human 결정을 추적 가능한 basis로 참조한다.",
+    "Intake package의 canonical JSON, 별도 확장자 블록, package-local 상대 경로 참조와 source-of-truth 소유권이 명시된다.",
+    "AI 직접 읽기와 VS Code Viewer 렌더링이 동일 canonical JSON을 소비하며 persisted view-model 또는 Human 전용 원본을 만들지 않는 규칙이 명시된다.",
+    "JSON과 외부 블록의 경로 경계, 형식 식별, 누락 및 malformed data, 렌더링 실패와 신뢰할 수 없는 콘텐츠 처리 요구가 설계에 포함된다.",
+    "현재 저장소에 없는 VS Code 구현 기술과 UI 세부는 미정으로 남고 근거 없이 발명되지 않는다.",
+    "schema 및 manager, Viewer, 기존 자료 source-preserving migration의 후속 Work Unit 경계와 실행 의존 순서가 정의된다.",
+    "기존 Markdown 원본과 Work Unit 3.0.0 계약은 변경되지 않는다."
+  ],
+  "definitionOfDone": [
+    "실행 전에 docs/design-documents/vscode-extension-ui-structure 전체와 관련 basis 및 repository evidence를 확인한다.",
+    "Design-impacting Human 결정을 관련 Design Document JSON source에 갱신하고 Project Core 영향 여부를 기록한다.",
+    "Design Report가 갱신된 JSON source에서 생성되고 Human이 요구사항, 경계, 미정 사항과 후속 분해를 검토할 수 있다.",
+    "Design Document 확인 및 갱신 결과를 Work Unit review와 report evidence에 기록한다.",
+    "모든 변경 파일, 검증 명령, 결과와 계획 편차를 evidence에 기록한다.",
+    "AI checklist 결과와 한국어 Human checklist 및 구체적인 Human review 방법을 분리해 준비한다.",
+    "Human이 승인, rework, merge와 후속 구현 Work Unit 생성 여부를 결정할 수 있는 검토 자료가 준비된다."
+  ],
+  "testCriteria": [
+    "갱신된 Design Document JSON 전체가 기존 schema 검증을 통과한다.",
+    "Design Report 생성 스크립트가 성공하고 렌더링 데이터가 canonical Design Document JSON과 일치한다.",
+    "브라우저 검증에서 Intake JSON 계약, AI 및 Human 소비 경계, 별도 블록 참조, 미정 사항과 후속 Work Unit 분해가 확인된다.",
+    "기존 docs/interviews, docs/research와 Work Unit 3.0.0 package의 source bytes가 변경되지 않았는지 확인한다."
+  ],
+  "aiChecklist": [
+    "Intake basis의 Human 사실, 결정, 외부 근거, 저장소 근거와 미정 사항을 구분해 사용했다.",
+    "기존 Design Document와 관련 Work Unit 범위를 확인하고 Design Document impact를 기록했다.",
+    "canonical JSON과 별도 블록 참조가 중복 source of truth를 만들지 않는지 검토했다.",
+    "AI와 VS Code Viewer의 소비 경계 및 오류와 보안 경계를 근거 없이 확장하지 않았는지 검토했다.",
+    "실행 가능한 VS Code source가 없는 상태에서 구현 언어, API, 레이아웃 또는 라이브러리를 발명하지 않았다.",
+    "후속 Work Unit 경계와 의존 순서가 각각 fresh Goal session에서 실행 가능하도록 충분한지 검토했다.",
+    "검증 결과, 잔여 위험, 미정 사항과 Design Document 갱신 결과를 숨기지 않고 기록했다."
+  ],
+  "humanChecklist": [
+    "Intake의 모든 의미 데이터가 canonical JSON에 있고 별도 형식 블록은 JSON 참조로만 연결되는지 확인한다.",
+    "AI와 VS Code 확장 Viewer가 동일 canonical JSON을 사용하며 별도의 Human 원본이나 Viewer 복제 데이터가 없는지 확인한다.",
+    "코드, 다이어그램, SVG, 이미지, 표의 원본과 파생 렌더링 소유권이 혼동되지 않는지 확인한다.",
+    "기존 Markdown 원본과 Work Unit 계약이 이번 설계 Work Unit 범위에서 변경되지 않았는지 확인한다.",
+    "후속 schema 및 manager, Viewer, migration Work Unit의 경계와 실행 순서가 명확한지 확인한다.",
+    "미정인 구현 저장소, 기술, API와 migration 정책이 확정 사실처럼 기록되지 않았는지 확인한다.",
+    "검증 evidence를 확인하고 승인 또는 rework 및 merge와 후속 Work Unit 생성 여부를 결정한다."
+  ],
+  "humanReviewMethod": "Human은 docs/intakes/intake-json-canonical-viewer/data/intake.json과 docs/design-documents/vscode-extension-ui-structure의 변경된 JSON source 및 Design Report를 비교한다. Work Unit evidence에 기록된 schema 검증, report 생성, 브라우저 확인과 source preservation 결과를 확인한다. 승인 기준은 동일 canonical JSON 소유권, 별도 블록 참조, AI 및 VS Code Viewer 소비 일관성, 구현 미정 사항의 명시, 기존 원본 보존과 실행 가능한 후속 분해이다. 데이터 중복, 근거 없는 기술 선택, 기존 원본 변경, 누락된 보안 또는 오류 경계는 rework 사유다. 최종 승인, rework, merge와 후속 구현 Work Unit 생성은 Human이 결정한다.",
+  "qualityGateRef": "data/quality-gate.json",
+  "packageRefs": {
+    "execution": "data/execution.json",
+    "review": "data/review.json",
+    "qualityGate": "data/quality-gate.json",
+    "traceability": "data/traceability.json",
+    "report": "data/report.json"
+  },
+  "expectedOutput": "갱신된 VS Code 확장 UI Design Document JSON source와 Human 검토용 Design Report, Intake canonical JSON 및 별도 블록 참조 계약, AI와 VS Code Viewer의 동일 원본 소비 규칙, 보안 및 오류 경계, 후속 schema 및 manager, Viewer, migration Work Unit 분해 기준.",
+  "dependencies": {
+    "parent": null,
+    "dependsOn": [],
+    "blocks": [],
+    "executionOrder": 1
+  },
+  "unresolvedItems": [
+    "실행 가능한 VS Code 확장 구현 저장소, 언어, 프레임워크와 VS Code API는 현재 근거로 정해지지 않았다.",
+    "기존 Markdown Intake 자료 5건의 migration 실행 여부와 원본 제거 시점은 Human 결정이 필요하다.",
+    "Intake reusable schema와 manager의 최종 skill ownership 경로는 Design Document에서 근거를 확인하고 결정하거나 미정으로 남겨야 한다."
+  ]
+}

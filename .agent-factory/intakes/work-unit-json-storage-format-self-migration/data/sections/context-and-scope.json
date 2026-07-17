@@ -1,0 +1,143 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "status": "answered"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": {
+        "selected_strategy": "B"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.selected_strategy",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": {
+        "related_artifacts": ""
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.related_artifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "context",
+      "content": {
+        "heading": "확인된 사실",
+        "text": "- 현재 package id와 경로는\n  `docs/work-units/work-unit-json-storage-format/`이다.\n- 현재 `data/work-unit.json`은 `version: 2.0.0`, `status: working`이다.\n- 현재 package에는 `data/report.json`이 없고 legacy\n  `output/result.md`가 존재한다.\n- 현재 Work Unit DoD는 Design Document 결과와 실행 결과를\n  `data/report.json`에 기록하도록 요구한다.\n- 새 manager와 lifecycle은 2.0.0을 unsupported legacy로 처리하고 별도\n  3.0.0 migration destination을 요구한다.\n- 기존 Human 결정은 기존 package를 자동 덮어쓰지 않고 별도 migration\n  경계로 보존하도록 한다.\n- 별도 destination id/path, archive path, 현재 Goal과 새 package의 연결\n  방식은 기록되어 있지 않다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.확인된 사실",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "context",
+      "content": {
+        "heading": "추천",
+        "text": "B를 추천한다. 기존 Human 결정이 2.0.0 package의 자동 덮어쓰기를 금지하고\n별도 migration 경계에서 source를 보존하도록 했으며, 현재 manager도 같은\nsource/destination을 거부하기 때문이다. 새 id/path를 정하는 비용은 있지만\n기록된 결정과 구현된 migration 안전 경계를 예외 없이 유지한다.\n\n이전 AI 추천 A는 결정 당시 이 Work Unit이 planned 상태였다는 사실을 근거로\nactive execution record 예외를 추론한 것이며, Human이 승인한 예외가 아니므로\n추천 근거로 사용하지 않는다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.추천",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "context",
+      "content": {
+        "heading": "승인 경계",
+        "text": "- A 선택 후 `output/result.md`를 삭제하기 전 정확한 대상 파일에 대한\n  별도 최종 확인이 필요하다.\n- B와 새 id 및 destination path가 확정됐으며 source 보존 검증을 포함한\n  migration 실행이 승인됐다.\n- C는 archive path와 교체 대상·절차에 대한 별도 최종 확인이 필요하다.\n- 어떤 선택도 `/home/deus/.codex/skills` 전파, merge 또는 PR promotion을\n  승인하지 않는다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.승인 경계",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-self-migration-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

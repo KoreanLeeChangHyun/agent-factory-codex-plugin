@@ -1,0 +1,72 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "Outside-package writes through journal symlinks are rejected.",
+        "Ready mutation atomically returns Intake to draft and clears semantic readiness.",
+        "Terminal mutation is rejected without byte changes.",
+        "Specialized capability evidence satisfies the evidence family.",
+        "Section-wide duplicate item ids are rejected.",
+        "Specification resolution states are explicit and ready-validatable.",
+        "Decision item kinds are documented consistently."
+      ],
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "intake-manager-contract-hardening",
+          "path": ".agent-factory/intakes/intake-manager-contract-hardening",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "Scoped code and skill contracts are updated.",
+        "New regression tests pass.",
+        "All related existing tests pass.",
+        "AI review finds no unresolved blocking defect.",
+        "Human review checklist and method are ready."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m unittest discover -s skills/intake/tests -v",
+          "python3 -m unittest discover -s skills/work-unit-planner/tests -v",
+          "python3 -m unittest discover -s skills/lifecycle/tests -v",
+          "python3 -m unittest discover -s skills/work-unit-execution/tests -v",
+          "python3 skills/intake/scripts/intake.py check-schemas",
+          "python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "checks": [
+          "Security regression",
+          "Lifecycle invariant regression",
+          "Cross-skill contract consistency",
+          "Shared Work Unit manager compatibility"
+        ]
+      },
+      "attributes": {
+        "status": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

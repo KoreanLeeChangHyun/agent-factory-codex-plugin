@@ -1,0 +1,12 @@
+{
+  "requiredChecks": [
+    "Design Document JSON schema validation이 통과하는지 확인한다.",
+    "Design Report 생성과 브라우저 검증이 통과하는지 확인한다.",
+    "Human 사실과 설계 결정 및 미정 사항의 traceability가 끊기지 않았는지 확인한다.",
+    "canonical source ownership과 외부 block path boundary가 일관되는지 확인한다.",
+    "기존 Markdown과 Work Unit 3.0.0 source preservation이 확인되는지 검증한다."
+  ],
+  "evidence": [],
+  "state": "not_run",
+  "qualityScore": 0
+}

@@ -1,0 +1,142 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "status": "answered"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": {
+        "basis_request": "워크 유닛 저장 포멧을 JSON으로 변경하는 Work Unit 생성"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.basis_request",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": {
+        "related_artifacts": ""
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.related_artifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "context",
+      "content": {
+        "- \"planned": "docs/work-units/work-unit-json-storage-format/"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.- \"planned",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "context",
+      "content": {
+        "heading": "확인된 Human Fact",
+        "text": "- Work Unit 저장 형식을 JSON으로 변경한다.\n- HTML 렌더링의 의미 데이터 원본으로 JSON을 사용한다.\n- Work Unit 생성 전에 자료 조사를 수행한다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.확인된 Human Fact",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "context",
+      "content": {
+        "heading": "선택지",
+        "text": "- A: 새 major contract에서 `data/report.json`을 canonical result로 추가하고 필수 `output/result.md`를 제거한다. HTML과 Markdown은 선택적 파생물로만 둔다.\n- B: 새 major contract에서 `output/result.json`으로 직접 교체한다.\n- C: canonical JSON result를 추가하되 `result.md`를 선택적 파생 export로 유지한다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.선택지",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

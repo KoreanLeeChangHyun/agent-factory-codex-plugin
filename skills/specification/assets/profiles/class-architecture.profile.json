@@ -1,0 +1,24 @@
+{
+  "id": "class-architecture",
+  "version": "1.0.0",
+  "artifactType": "specification",
+  "documentClass": "architecture",
+  "maximumSectionDepth": 2,
+  "commonRequiredSections": [
+    {"id": "purpose-and-scope", "contains": ["purpose", "scope"]},
+    {"id": "basis-and-relations", "contains": ["source basis", "typed artifact relations"]},
+    {"id": "decisions-and-open-items", "contains": ["accepted decisions", "unresolved items"]},
+    {"id": "verification-and-traceability", "contains": ["verification strategy", "traceability"]}
+  ],
+  "profileRequiredSections": [
+    {"id": "responsibilities-and-boundaries", "contains": ["responsibilities", "boundaries"]},
+    {"id": "classes-and-interfaces", "contains": ["classes", "interfaces"]},
+    {"id": "relationships-and-dependencies", "contains": ["relationships", "dependencies"]},
+    {"id": "interactions-and-lifecycle", "contains": ["interactions", "lifecycle"]},
+    {"id": "extension-and-constraints", "contains": ["extension points", "constraints"]}
+  ],
+  "optionalSections": [],
+  "blockGuidance": "Allow UML class or sequence models and equivalent structured diagram blocks.",
+  "storageContract": "sectioned-document-package-v2",
+  "implementationStatus": "registered"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "Intake 문서에서 하위 섹션이 읽기를 어렵게 하는지 조사하고 적절한 section depth를 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake-section-depth-readability.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-section-depth-readability-source-1",
+          "path": ".agent-factory/intakes/intake-section-depth-readability/blocks/legacy-source/01-intake-section-depth-readability.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "human-request",
+      "content": "Intake JSON 문서는 섹션을 평면으로 제한해야 하는가, 하위 섹션을 허용해야 하는가?",
+      "attributes": {
+        "sourceKey": "question",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake-section-depth-readability.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-section-depth-readability-source-1",
+          "path": ".agent-factory/intakes/intake-section-depth-readability/blocks/legacy-source/01-intake-section-depth-readability.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision.json",
+      "sha256": "4d85665228e47033384d2744832f87c133c02557af54e76e8d8a05d661114c5d",
+      "sizeBytes": 2278
+    }
+  ]
+}

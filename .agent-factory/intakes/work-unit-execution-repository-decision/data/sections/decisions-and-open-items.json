@@ -1,0 +1,93 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": "A",
+      "attributes": {
+        "sourceKey": "selectedOption",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "decision-status",
+      "content": {
+        "repositoryRoot": "/home/deus/workspace/skills",
+        "initializationRequired": true,
+        "worktreeOwner": "Execution Agent",
+        "worktreeManagerSkill": "work-unit-execution-af",
+        "worktreeManagerScript": ".codex/skills/work-unit-execution-af/scripts/worktree.py",
+        "executionRequirements": [
+          "Goal",
+          "exec",
+          "dedicated Git branch",
+          "linked worktree"
+        ]
+      },
+      "attributes": {
+        "sourceKey": "humanDecision",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-repository-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-repository-decision/blocks/legacy-source/01-work-unit-execution-repository-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "superseded",
+        "reason": "A fixed external repository root is replaced by per-Work-Unit repository and worktree execution context.",
+        "currentStateEvidence": [
+          "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+          "skills/work-unit-execution/SKILL.md"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "superseded",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

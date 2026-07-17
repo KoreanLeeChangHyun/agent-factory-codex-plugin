@@ -1,0 +1,68 @@
+{
+  "id": "specifications-root-name-decision",
+  "date": "2026-07-15",
+  "status": "answered",
+  "language": "ko",
+  "basisRequest": "요구사항 명세서, API 설계서, 데이터 모델, 클래스 아키텍처 등 서로 다른 specification and design artifact의 상위 저장소 이름을 결정한다.",
+  "relatedArtifacts": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/research/design-document-profile-system.json",
+    "docs/work-units/agent-factory-skill-docs-json-block-contract",
+    "docs/work-units/agent-factory-json-block-data-migration",
+    "docs/work-units/workspace-extension-four-tab-mvp",
+    "docs/work-units/agent-extension-goal-execution-integration"
+  ],
+  "question": "상위 저장소 명칭을 무엇으로 확정할 것인가?",
+  "options": [
+    {
+      "id": "A",
+      "decision": "docs/specifications/<document-id>/를 사용한다.",
+      "pros": [
+        "요구사항, API, data model과 architecture를 포괄한다.",
+        "실제 분류를 JSON metadata가 소유할 수 있다."
+      ],
+      "cons": [
+        "기존 docs/design-documents 경로와 skill 계약을 변경해야 한다."
+      ]
+    },
+    {
+      "id": "B",
+      "decision": "docs/specifications/<category>/<document-id>/를 사용한다.",
+      "pros": [
+        "파일 경로에서 문서 category를 즉시 식별할 수 있다."
+      ],
+      "cons": [
+        "폴더 category와 JSON documentClass 및 documentProfile이 중복된다."
+      ]
+    },
+    {
+      "id": "C",
+      "decision": "docs/design-documents/<document-id>/를 유지한다.",
+      "pros": [
+        "기존 경로 변경 비용이 없다."
+      ],
+      "cons": [
+        "요구사항 명세를 Design Document로 포괄하는 의미 충돌이 유지된다."
+      ]
+    }
+  ],
+  "selectedOption": "A",
+  "humanDecision": {
+    "storageRoot": "docs/specifications/",
+    "packagePattern": "docs/specifications/<document-id>/",
+    "classificationOwner": [
+      "metadata.documentClass",
+      "metadata.documentProfile.id",
+      "metadata.documentProfile.version"
+    ],
+    "categorySubdirectoriesRequired": false
+  },
+  "applicationStatus": "recorded-not-applied",
+  "pendingApplication": [
+    "Intake decision supersession",
+    "research conclusion path update",
+    "Work Unit scope and acceptance update",
+    "Agent Factory skill and reference path migration",
+    "existing docs/design-documents package migration"
+  ]
+}

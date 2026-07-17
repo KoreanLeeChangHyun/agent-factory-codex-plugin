@@ -1,0 +1,28 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "specification-impact",
+      "content": {
+        "specification": "docs/specifications/<document-id>/",
+        "status": "update-required-during-work-unit-execution",
+        "reason": "기존 Design Document 경로와 단일 section 계약을 Specification root, 단일 Project Core package와 Agent Factory skill-owned profile 계약으로 대체해야 한다. 기존 vscode-extension-ui-structure package의 4탭 관련 갱신 필요성도 유지된다."
+      },
+      "attributes": {
+        "sourceKey": "designImpact",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Analysis"
+  short_description: "Analyze internal project evidence for Intake."
+  default_prompt: "Use $analysis to inspect internal code, databases, data, configuration, logs, tests, and runtime evidence for the active Agent Factory Intake."

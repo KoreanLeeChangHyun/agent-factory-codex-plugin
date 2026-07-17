@@ -1,0 +1,120 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/work-unit-json-storage-format.md",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": {
+        "heading": "조사 질문",
+        "text": "Work Unit의 의미 데이터를 JSON 단일 원본으로 저장하고 HTML을 JSON에서 파생 렌더링하는 구조가 현재 프로젝트에 적합한가? 현재 필수 파일인 `output/result.md`는 어떤 JSON 계약으로 대체해야 하는가?"
+      },
+      "attributes": {
+        "sourceKey": "markdown.조사 질문",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "evidence",
+      "content": {
+        "heading": "저장소 조사",
+        "text": "- `.codex/skills/work-unit-planner-af/`의 스킬, 구조 문서, JSON Schema, manager와 회귀 테스트를 조사했다.\n- `.codex/skills/agent-factory-lifecycle-af/references/lifecycle.md`의 역사적 Markdown 패키지 규칙을 조사했다.\n- `docs/`, Design Document, 기존 Research와 Work Unit 존재 여부를 조사했다.\n- 다음 명령을 사용했다.\n  - `rg -n --hidden 'result\\.md|output/result|CANONICAL_PACKAGE_FILES' .`\n  - `python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py check-schemas`\n  - `python3 -m unittest discover -s .codex/skills/work-unit-planner-af/tests -p 'test_*.py'`"
+      },
+      "attributes": {
+        "sourceKey": "markdown.저장소 조사",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "evidence",
+      "content": {
+        "heading": "외부 조사",
+        "text": "- JSON의 구조·상호운용성·제약을 RFC 8259와 RFC 7493에서 확인했다.\n- JSON의 바이트 단위 정규화가 별도 요구인지 RFC 8785에서 확인했다.\n- JSON Schema의 현행 공개 버전, 구조 검증과 한계를 공식 명세에서 확인했다.\n- 브라우저의 JSON 파싱과 안전한 DOM 렌더링 경계를 ECMAScript, WHATWG와 OWASP 공식 자료에서 확인했다.\n- Markdown 대안은 CommonMark 공식 문서의 블록·인라인 파싱 모델과 raw HTML 허용 범위를 확인했다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.외부 조사",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "evidence",
+      "content": {
+        "heading": "저장소 근거",
+        "text": "| 근거 | 위치 | 확인 내용 |\n| --- | --- | --- |\n| Work Unit 원본 규칙 | `.codex/skills/work-unit-planner-af/SKILL.md` | Work Unit source data와 AI/Human checklist는 JSON이며 HTML·Markdown은 파생 렌더링으로 정의되어 있다. |\n| 필수 패키지 구조 | `.codex/skills/work-unit-planner-af/SKILL.md`, `references/work-unit-structure.md` | 필수 core package에 `output/result.md`가 남아 있다. |\n| manager 계약 | `.codex/skills/work-unit-planner-af/assets/scripts/work_unit.py` | `output/result.md`를 canonical file로 요구하고 생성 시 정적 placeholder를 작성하며, 파일이 없으면 검증이 실패한다. |\n| 회귀 테스트 | `.codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py` | 완전한 canonical package에 `output/result.md`가 포함되어야 한다고 검증한다. 기준 회귀 테스트는 현재 통과한다. |\n| JSON Schema | `.codex/skills/work-unit-planner-af/assets/schema/*.schema.json` | `2.0.0` 계약의 7개 스키마가 `check-schemas`를 통과한다. 결과 보고서 전용 JSON Schema는 없다. |\n| 프로젝트 아티팩트 | `/home/deus/workspace/skills` | 현재 `docs/`와 관련 Design Document가 없으며, 기존 프로젝트 Work Unit도 없다. |\n| 스킬 위치 상태 | 프로젝트 `.codex/skills/`와 `/home/deus/.codex/skills/` | 두 사본이 서로 다르고 HOME 쪽에는 현재 manager 파일이 없다. 실행 시 활성 소스 확인이 필요하다. |"
+      },
+      "attributes": {
+        "sourceKey": "markdown.저장소 근거",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "evidence",
+      "content": {
+        "heading": "Findings",
+        "text": "1. JSON은 Work Unit의 구조화된 의미 데이터를 기계적으로 검증하고 브라우저에서 직접 소비하기에 적합하다.\n2. 현재 프로젝트는 이미 대부분의 의미 데이터와 checklist를 JSON Schema `2.0.0`으로 관리하므로 JSON 단일 원본 방향은 기존 모델과 일치한다.\n3. `output/result.md`는 내용 스키마가 없고 정적 placeholder만 생성되지만 manager와 validator가 존재 자체를 강제한다. 현재 모델에서 유일한 필수 Markdown 결과 파일이다.\n4. Markdown을 canonical result로 유지하면 JSON과 별도의 parsing·표현 계약이 필요하고 JSON 기반 renderer와 의미가 중복될 수 있다.\n5. JSON Schema 검증은 HTML 렌더링의 XSS 방어가 아니다. renderer는 모든 문자열을 untrusted로 취급하고 safe DOM sink 또는 명시적 sanitization을 사용해야 한다.\n6. 객체 key 순서는 표시 순서가 아니므로 순서가 필요한 section, checklist와 step은 배열로 모델링해야 한다.\n7. 로그와 screenshot 같은 원시 증거 파일까지 JSON으로 인라인할 근거는 없다. 의미 데이터 JSON에서 경로·media type·설명을 참조하는 경계가 더 적합하다.\n8. 동일 바이트 해시나 서명 요구가 없으므로 RFC 8785 JCS를 도입할 근거는 없다.\n9. `result.md` 필수 계약을 제거하거나 교체하면 기존 `2.0.0` validator와 package contract의 호환성이 깨질 수 있으므로 명시적 버전·마이그레이션 정책이 필요하다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.Findings",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

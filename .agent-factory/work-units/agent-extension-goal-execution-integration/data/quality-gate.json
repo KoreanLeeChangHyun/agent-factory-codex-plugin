@@ -1,0 +1,9 @@
+{
+  "requiredChecks": [
+    "Goal·exec·Git branch·worktree 격리 통합 테스트",
+    "Workspace-Agent 연동 및 VS Code E2E 테스트"
+  ],
+  "evidence": [],
+  "state": "not_run",
+  "qualityScore": 0
+}

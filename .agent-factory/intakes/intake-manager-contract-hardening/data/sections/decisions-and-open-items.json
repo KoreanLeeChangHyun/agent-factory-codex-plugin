@@ -1,0 +1,46 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decisions": [
+          "Implement all reviewed improvements.",
+          "Codex owns structured Intake and Work Unit population.",
+          "The manager owns canonical writes and validation.",
+          "Initialize the current workspace as Git."
+        ]
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "blocking": 0,
+        "nonBlocking": [
+          "Human final review and promotion remain after AI execution.",
+          "No remote repository is configured."
+        ]
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risks": [
+          "The Work Unit manager imports shared Intake mechanics.",
+          "Changing metadata field types would require historical migration."
+        ],
+        "mitigations": [
+          "Keep lifecycle invalidation conditional on artifactType.",
+          "Put specification resolution on specification-impact attributes.",
+          "Run Intake and Work Unit manager suites."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,10 @@
+{
+  "requiredChecks": [
+    "Design Document JSON strict parse 및 schema validation",
+    "4탭 목록과 Kanban 카드 선택 연결 구조 검사",
+    "범위 외 DnD·Execution·Agent 연동 및 미승인 세부 기능 부재 확인"
+  ],
+  "evidence": [],
+  "state": "not_run",
+  "qualityScore": 0
+}

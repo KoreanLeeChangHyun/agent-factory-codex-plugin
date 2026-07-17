@@ -1,0 +1,50 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "facts": [
+          "The Intake manager is shared by the Work Unit manager.",
+          "Existing tests pass but omit the reproduced failures.",
+          "The workspace was initialized as Git after Human choice A."
+        ]
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/intake/scripts/intake.py",
+          "skills/intake/assets/profiles/intake.profile.json",
+          "skills/intake/assets/schema/metadata.schema.json",
+          "skills/intake/references/intake-structure.md",
+          "skills/intake/SKILL.md",
+          "skills/intake/tests/test_intake_manager.py",
+          "skills/analysis/SKILL.md",
+          "skills/web-search/SKILL.md",
+          "skills/user-research/SKILL.md",
+          "skills/interview/SKILL.md",
+          "skills/specification/SKILL.md",
+          "skills/work-unit-planner shared-manager regression coverage"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Historical Intake package migration",
+          "Remote repository creation or push",
+          "Human approval, merge, deployment, and PR promotion",
+          "Unrelated Specification manager implementation"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

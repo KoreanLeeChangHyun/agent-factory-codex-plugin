@@ -1,0 +1,24 @@
+{
+  "id": "data-model",
+  "version": "1.0.0",
+  "artifactType": "specification",
+  "documentClass": "model",
+  "maximumSectionDepth": 2,
+  "commonRequiredSections": [
+    {"id": "purpose-and-scope", "contains": ["purpose", "scope"]},
+    {"id": "basis-and-relations", "contains": ["source basis", "typed artifact relations"]},
+    {"id": "decisions-and-open-items", "contains": ["accepted decisions", "unresolved items"]},
+    {"id": "verification-and-traceability", "contains": ["verification strategy", "traceability"]}
+  ],
+  "profileRequiredSections": [
+    {"id": "domain-and-entities", "contains": ["domain", "entities"]},
+    {"id": "attributes-and-types", "contains": ["attributes", "types"]},
+    {"id": "relationships-and-constraints", "contains": ["relationships", "constraints"]},
+    {"id": "lifecycle-and-ownership", "contains": ["data lifecycle", "ownership"]},
+    {"id": "migration-and-compatibility", "contains": ["migration", "compatibility"]}
+  ],
+  "optionalSections": [],
+  "blockGuidance": "Allow ERD, schema, and data dictionary blocks.",
+  "storageContract": "sectioned-document-package-v2",
+  "implementationStatus": "registered"
+}

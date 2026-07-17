@@ -1,0 +1,72 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Harden Intake transaction boundaries, lifecycle invalidation, profile semantics, and related skill contracts.",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "intake-manager-contract-hardening",
+          "path": ".agent-factory/intakes/intake-manager-contract-hardening",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "Secure transaction commit and recovery against symlink escape.",
+          "Invalidate ready Intake and reject terminal mutation.",
+          "Add evidence-kind family readiness.",
+          "Enforce section-wide item id uniqueness.",
+          "Validate explicit specification resolution states.",
+          "Align interview and related skill documentation.",
+          "Add focused regression tests and run all related suites."
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "intake-manager-contract-hardening",
+          "path": ".agent-factory/intakes/intake-manager-contract-hardening",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "Historical package migration",
+        "Remote push or PR",
+        "Unrelated feature work",
+        "Human final approval"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "changedArtifacts": [
+          "Intake manager and tests",
+          "Intake profile and contract documentation",
+          "Related capability skill instructions",
+          "Work Unit regression tests if shared behavior changes"
+        ],
+        "verification": "All focused and related suites pass with reproduced failures covered."
+      }
+    }
+  ],
+  "subsections": []
+}

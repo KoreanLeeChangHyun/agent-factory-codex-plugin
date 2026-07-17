@@ -1,0 +1,21 @@
+First invocation (2026-07-14): fail before assertions completed.
+
+Cause:
+The zsh special variable `path` was used as a loop variable. This replaced the shell PATH array, so a later `rg` invocation failed with:
+zsh:18: command not found: rg
+
+Correction:
+The loop variable was renamed to `repo_path`; no research content was changed to mask the command error.
+
+Corrected invocation result:
+PASS research structure, sources, repository traceability, and role correction
+
+Checks covered:
+- research file existence
+- YAML front matter keys and exact date/type
+- all required section headings
+- all six official source URLs
+- T1/T2 tier and F1/F3/F5 freshness labels
+- required repository and HOME evidence paths
+- explicit withdrawal of the unsupported `담당자` statement
+- recommendations labelled as proposals rather than implemented requirements

@@ -1,0 +1,38 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "Confirm ready mutation policy matches intended lifecycle.",
+        "Confirm terminal packages are immutable.",
+        "Review evidence-family and specification-resolution terminology.",
+        "Review test evidence and remaining risks."
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "Review the scoped diff.",
+          "Run or inspect the recorded test commands and evidence.",
+          "Approve or request rework; decide merge or promotion separately."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

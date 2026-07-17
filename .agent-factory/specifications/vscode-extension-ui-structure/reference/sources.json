@@ -1,0 +1,46 @@
+{
+  "id": "vscode-extension-ui-structure-sources",
+  "sources": [
+    {
+      "kind": "Work Unit",
+      "path": "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json",
+      "usedFor": [
+        "goal",
+        "scope",
+        "acceptance criteria",
+        "unresolved items",
+        "Human review method"
+      ]
+    },
+    {
+      "kind": "Human decision record",
+      "path": "docs/interviews/workunit-kanban-stage-visibility-decision.md",
+      "usedFor": [
+        "WorkUnit TabHeader의 단계 표시 선택",
+        "Body의 선택 단계 단독 표시",
+        "Done 숨김 가능"
+      ]
+    },
+    {
+      "kind": "canonical schema",
+      "path": ".codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json",
+      "usedFor": [
+        "status meanings",
+        "x-statusTransitions",
+        "Blocked 예외 상태",
+        "package state consistency"
+      ]
+    }
+  ],
+  "repositoryChecksBeforeExecution": [
+    {
+      "path": "docs/design-documents/vscode-extension-ui-structure/",
+      "result": "not_found"
+    },
+    {
+      "path": "docs/design-documents/agent-factory/reference/source/software-design-document-essential-elements.md",
+      "result": "not_found"
+    }
+  ],
+  "checkedOn": "2026-07-14"
+}

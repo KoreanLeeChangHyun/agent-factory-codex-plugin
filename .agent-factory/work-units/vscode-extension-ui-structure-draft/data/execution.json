@@ -1,0 +1,81 @@
+{
+  "status": "review_ready",
+  "lifecycle": {
+    "plan": "completed",
+    "work": "completed",
+    "review": "completed",
+    "report": "completed"
+  },
+  "commands": [
+    "work_unit.py validate baseline package",
+    "work_unit.py transition ready to working",
+    "generate-report-data.mjs --write and --verify",
+    "work_unit.py check-schemas",
+    "verify-design-schema.py",
+    "verify-structure.mjs",
+    "verify-browser.cjs with Playwright and system Chrome over file://",
+    "visual inspection of default and full-page report screenshots",
+    "SHA-256 Design Document artifact inventory for 18 files",
+    "work_unit.py transition working to review",
+    "work_unit.py validate final package"
+  ],
+  "filesChanged": [
+    "docs/design-documents/vscode-extension-ui-structure/data/schema/design-document.schema.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/manifest.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/decisions/design-decisions.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/diagrams/diagram-metadata.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/snapshots/pre-execution-baseline.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/events/change-history.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/sections/project-core.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/sections/requirements.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/sections/ui-structure.json",
+    "docs/design-documents/vscode-extension-ui-structure/data/sections/governance-and-verification.json",
+    "docs/design-documents/vscode-extension-ui-structure/diagram/ui-tab-structure.json",
+    "docs/design-documents/vscode-extension-ui-structure/diagram/work-unit-status.json",
+    "docs/design-documents/vscode-extension-ui-structure/reference/sources.json",
+    "docs/design-documents/vscode-extension-ui-structure/report/index.html",
+    "docs/design-documents/vscode-extension-ui-structure/report/styles.css",
+    "docs/design-documents/vscode-extension-ui-structure/report/script.js",
+    "docs/design-documents/vscode-extension-ui-structure/report/generate-report-data.mjs",
+    "docs/design-documents/vscode-extension-ui-structure/report/design-document-data.js",
+    "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/data/execution.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/data/review.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/data/quality-gate.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/data/traceability.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/data/report.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/commands.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/tests.json",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-structure.mjs",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-browser.cjs",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-design-schema.py",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/logs/static-and-structure.log",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/logs/browser-verification.log",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/logs/artifact-inventory.log",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/logs/quality-gate.log",
+    "docs/work-units/vscode-extension-ui-structure-draft/evidence/logs/package-validation.log"
+  ],
+  "testResults": [
+    "8개 canonical Work Unit JSON Schema self-validation 통과",
+    "Draft 2020-12 Design Document schema self-check와 4 sections·4 collections·2 diagrams assembled package 검증 통과",
+    "Design Document strict JSON parse, full source projection과 요구사항 구조 검사 27개 통과",
+    "report와 verification JavaScript syntax 검사 통과",
+    "file:// Design Report full source projection, browser interaction과 CSSOM 검사 16개 통과",
+    "13개 required quality gate 전부 통과",
+    "최종 Work Unit package full validation 통과"
+  ],
+  "verificationResult": "pass",
+  "notes": [
+    "실행 전에 docs/design-documents/vscode-extension-ui-structure/와 필수 essential-elements reference가 없음을 확인했다.",
+    "신규 Draft 2020-12 schema, Project Core와 3개 상세 section, decisions·diagram metadata·baseline snapshot·change event collection, 두 diagram source, reference, Human 검토용 report와 JSON-driven report data generator를 작성했다.",
+    "report shell은 factual markup을 중복하지 않고 generated data와 renderer만 로드하며, manifest의 모든 section·collection·diagram과 Work Unit 검토 기준을 DOM으로 projection한다.",
+    "단계 선택 checkbox, 초기 표시 상태와 동적 card 높이는 제품 결정이 아닌 report 검토 도구로 명시했고 canonical source에는 controlType, selectionCardinality, defaultValue와 exactValue를 null로 유지했다.",
+    "외부 기술 사실이 필요한 변경은 없었고 Human Fact, Work Unit, interview record와 canonical schema만 근거로 사용했다."
+  ],
+  "deviations": [
+    "초기 브라우저 검증에서 hidden WorkUnit Body의 카드 높이가 0px로 계산되는 문제를 발견해 visible card만 측정하고 탭 활성화 뒤 재계산하도록 수정한 후 전체 검증을 다시 통과했다.",
+    "독립 Design Document 규약 감사에서 초기 section 중심 source와 부분 report projection이 collection·schema·전체 content 규약을 충족하지 못한다는 결함을 발견했다. schema와 네 collection을 추가하고 generator·renderer·검증을 full source-driven 구조로 보강했다.",
+    "독립 HTML/CSS 표준 linter가 현재 환경에 없어 HTML 구조 검사, JavaScript syntax 검사, Chrome DOM·CSSOM load와 console/page/request error 검사를 조합했다.",
+    "제품의 단계 높이와 overflow 시작 기준이 미정이므로 실제 scrollTop 검증은 브라우저 안의 일회성 overflow fixture로 수행했고 제품 높이 값은 추가하지 않았다."
+  ]
+}

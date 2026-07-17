@@ -1,0 +1,181 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "comparison-research"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": {
+        "basis_request": "워크 유닛 저장 포멧을 JSON으로 변경하는 Work Unit을 만들고, 이를 위해 자료 조사부터 수행"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.basis_request",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": {
+        "related_artifacts": ""
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.related_artifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "context",
+      "content": {
+        "sources": ""
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.sources",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "context",
+      "content": {
+        "- \"https": "//spec.commonmark.org/spec"
+      },
+      "attributes": {
+        "sourceKey": "frontmatter.- \"https",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "context",
+      "content": {
+        "heading": "Human Fact",
+        "text": "- Human은 Work Unit 저장 형식을 JSON으로 변경하는 Work Unit 생성을 요청했다.\n- Human은 Work Unit을 HTML로 렌더링하기 위한 원본으로 JSON이 적합하다는 방향을 제시했다.\n- Human은 구현 전에 자료 조사를 먼저 수행하도록 요청했다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.Human Fact",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "context",
+      "content": {
+        "heading": "외부 출처",
+        "text": "| 출처 | 등급 | 신선도 | 핵심 근거 |\n| --- | --- | --- | --- |\n| [RFC 8259](https://www.rfc-editor.org/info/rfc8259/) | T1 authoritative primary | F3: 2017 Internet Standard, 현행 STD 90 | JSON은 경량·텍스트 기반·언어 독립적인 구조화 데이터 교환 형식이다. 객체 순서, 중복 이름과 숫자 표현의 상호운용 한계를 고려해야 한다. |\n| [RFC 7493 I-JSON](https://www.rfc-editor.org/info/rfc7493/) | T1 authoritative primary | F3: 2015, 현행 Proposed Standard | UTF-8, 중복 객체 이름 금지, 안전한 숫자 범위 등 예측 가능한 처리를 위한 제약을 제공한다. |\n| [RFC 8785 JCS](https://www.rfc-editor.org/info/rfc8785/) | T1 authoritative primary | F3: 2020 | 해시·서명처럼 동일 바이트가 필요할 때는 일반 JSON과 별도의 canonicalization이 필요하다. |\n| [JSON Schema Specification](https://json-schema.org/specification) | T1 authoritative primary | F5: 2026 현재 공식 현행 목록 | 현재 공개된 현행 meta-schema는 Draft 2020-12이며 프로젝트의 기존 dialect와 일치한다. |\n| [JSON Schema Core 2020-12](https://json-schema.org/draft/2020-12/json-schema-core) | T1 authoritative primary | F3: 2022, 현행 공개 릴리스 | JSON 문서의 구조와 dialect를 선언하고 assertion 기반 검증 계약을 구성할 수 있다. |\n| [JSON Schema Validation 2020-12](https://json-schema.org/draft/2020-12/json-schema-validation) | T1 authoritative primary | F3: 2022, 현행 공개 릴리스 | `type`, `required`, `const` 등의 검증을 정의한다. `format`은 기본적으로 강제 assertion이 아니므로 별도 정책이 필요하다. |\n| [ECMAScript JSON.parse](https://tc39.es/ecma262/multipage/structured-data.html) | T1 authoritative primary | F5: living specification | 표준 JSON parser는 JSON 문자열을 객체, 배열과 primitive 값으로 변환하므로 브라우저 renderer의 직접 입력으로 사용할 수 있다. |\n| [WHATWG DOM textContent](https://dom.spec.whatwg.org/#dom-node-textcontent) | T1 authoritative primary | F5: 2026-03-15 갱신 | `textContent`는 문자열을 Text node로 다루므로 plain-text 렌더링의 안전한 기본 경계가 된다. |\n| [WHATWG HTML dynamic markup insertion](https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html) | T1 authoritative primary | F5: 2026-07-13 갱신 | 동적 HTML 삽입과 sanitization은 별도 보안 경계이며 데이터 형식 검증만으로 대체되지 않는다. |\n| [OWASP XSS Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) | T2 primary expert | F5: 공식 저장소 2026-05-14 변경 확인 | JSON 문자열을 포함한 동적 데이터는 untrusted로 취급하고 `textContent` 같은 safe sink를 사용하며 raw `innerHTML`을 피해야 한다. |\n| [CommonMark 0.31.2](https://spec.commonmark.org/spec) | T1 maintainer specification | F3: 2024-01-28 | Markdown은 블록과 인라인의 별도 파싱이 필요하며 raw HTML 구조도 표현할 수 있다. 구조화 UI 데이터의 canonical model보다 파생 문서에 적합하다는 판단 근거가 된다. |"
+      },
+      "attributes": {
+        "sourceKey": "markdown.외부 출처",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0009",
+      "kind": "context",
+      "content": {
+        "heading": "대안 비교",
+        "text": "| 대안 | 설명 | 장점 | 단점 |\n| --- | --- | --- | --- |\n| A | 새 major contract에서 `data/report.json`을 canonical result로 추가하고 필수 `output/result.md`를 제거한다. HTML·Markdown은 선택적 파생물로만 둔다. | JSON source of truth 원칙과 `data/` 소유권이 일치하고 renderer·validator가 한 계약을 공유한다. | 스키마, manager, 문서와 테스트 변경 및 기존 package의 명시적 migration 경계가 필요하다. |\n| B | 새 major contract에서 `output/result.json`으로 직접 교체한다. | 현재 `output/` 경로 의미를 가장 적게 바꾼다. | 현재의 `data/`가 JSON source of truth라는 소유권 규칙과 충돌하여 canonical 데이터가 두 디렉터리로 나뉜다. |\n| C | 기존 계약에 canonical JSON result를 추가하되 `result.md`를 선택적 파생 export로 유지한다. | 점진적 호환과 사람이 바로 읽는 export를 유지하기 쉽다. | 전환 기간에 두 표현이 생기며 JSON-only core contract를 즉시 달성하지 못하고 drift 방지 규칙이 추가된다. |"
+      },
+      "attributes": {
+        "sourceKey": "markdown.대안 비교",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format/blocks/legacy-source/01-work-unit-json-storage-format.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

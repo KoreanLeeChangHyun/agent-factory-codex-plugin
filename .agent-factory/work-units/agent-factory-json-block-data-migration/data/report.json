@@ -1,0 +1,17 @@
+{
+  "summary": "아직 실행되지 않았습니다.",
+  "artifactRefs": [],
+  "verification": {
+    "result": "not_run",
+    "evidenceRefs": []
+  },
+  "remainingRisk": [],
+  "unresolvedItems": [
+    "스킬 문서 갱신 결과가 확정하기 전에는 최종 schema와 전체 migration 대상 수가 확정되지 않는다."
+  ],
+  "designDocument": {
+    "status": "not_checked",
+    "refs": [],
+    "reason": "관련 Design Document 확인 결과가 아직 기록되지 않았습니다."
+  }
+}

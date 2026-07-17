@@ -1,0 +1,32 @@
+QUALITY GATE: vscode-extension-ui-structure-draft
+CALCULATION: 13 passed required checks / 13 required checks * 100 = 100
+
+01 PASS Design Document JSON strict parse.
+   Evidence: static-and-structure.log schema verification; structure PASS 01
+02 PASS Human Fact와 Design Document·Design Report 간 추적성.
+   Evidence: static-and-structure.log PASS 06, 19, 21, 23; browser-verification.log PASS 02
+03 PASS 네 탭과 활성 탭별 TabHeader·Body 대응.
+   Evidence: static-and-structure.log PASS 07; browser-verification.log PASS 03, 04
+04 PASS WorkUnit 단계 가시성 선택과 selected-only Body.
+   Evidence: static-and-structure.log PASS 08; browser-verification.log PASS 05
+05 PASS Done 미선택 시 숨김.
+   Evidence: browser-verification.log PASS 06
+06 PASS Backlog, Ready, Working, Review, Done 5단계 순서.
+   Evidence: static-and-structure.log PASS 09; browser-verification.log PASS 07
+07 PASS title-only fixed-height Work Unit card와 정확한 값 미정 분리.
+   Evidence: static-and-structure.log PASS 11; browser-verification.log PASS 08
+08 PASS 허용된 DnD 뒤 카드 위치와 status 동시 변경.
+   Evidence: static-and-structure.log PASS 12; browser-verification.log PASS 09, 11
+09 PASS 허용되지 않은 DnD와 Review→Done Human approval boundary.
+   Evidence: static-and-structure.log PASS 12; browser-verification.log PASS 10, 12
+10 PASS 단계별 vertical scroll과 width 0 hidden scrollbar.
+   Evidence: static-and-structure.log PASS 13, 24; browser-verification.log PASS 13
+11 PASS Blocked 예외 상태 분리.
+   Evidence: static-and-structure.log PASS 10; browser-verification.log PASS 14
+12 PASS 미승인 control·height·DnD·Blocked·scroll·기술·시각 결정 부재.
+   Evidence: static-and-structure.log PASS 08, 11, 14, 18, 26; browser-verification.log PASS 15
+13 PASS Human 검토 report와 evidence 준비.
+   Evidence: static-and-structure.log PASS 21-23; browser-verification.log PASS 01, 02, 16; artifact-inventory.log; data/report.json; data/review.json
+
+RESULT: PASS
+QUALITY SCORE: 100

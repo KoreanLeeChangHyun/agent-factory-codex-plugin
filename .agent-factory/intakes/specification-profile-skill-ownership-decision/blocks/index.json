@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/specification-profile-skill-ownership-decision.json",
+      "sha256": "0154e87eee26a8f50853df24aed0787507a0d24b504be39d1b5d025a545d36cc",
+      "sizeBytes": 1623
+    }
+  ]
+}

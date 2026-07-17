@@ -1,0 +1,18 @@
+{
+  "id": "project-core",
+  "version": "1.0.0",
+  "artifactType": "specification",
+  "documentClass": "project-governance",
+  "maximumSectionDepth": 2,
+  "commonRequiredSections": [
+    {"id": "purpose-and-scope", "contains": ["project purpose", "scope"]},
+    {"id": "basis-and-relations", "contains": ["core principles", "governed specification relations"]},
+    {"id": "decisions-and-open-items", "contains": ["Human approval boundaries", "unresolved items"]},
+    {"id": "verification-and-traceability", "contains": ["basis traceability", "review status"]}
+  ],
+  "profileRequiredSections": [],
+  "optionalSections": [],
+  "blockGuidance": "Keep Project Core short; use blocks only for directly governed reference evidence.",
+  "storageContract": "sectioned-document-package-v2",
+  "implementationStatus": "registered"
+}

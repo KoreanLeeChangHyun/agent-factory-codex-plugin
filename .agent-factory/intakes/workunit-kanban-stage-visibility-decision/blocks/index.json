@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-workunit-kanban-stage-visibility-decision.md",
+      "mediaType": "text/markdown",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/workunit-kanban-stage-visibility-decision.md",
+      "sha256": "24b491f86a9b8c3fa3f7d774c724717ae5374a1daf7af78f5018a20001d8aec3",
+      "sizeBytes": 1567
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": {
+        "heading": "4. `/goal` preflight는 규칙으로는 있으나 자동 검증으로는 확인되지 않았다",
+        "text": "lifecycle은 신규 세션이 전체 패키지를 읽고 basis가 부족하면 중단하도록 요구한다. 그러나 조사 범위의 Python/JavaScript/JSON/Markdown 검색에서는 goal 해석 직후 semantic readiness를 자동 검사하는 실행 가능한 preflight를 찾지 못했다. 즉 문서 규칙은 존재하지만, schema-valid `ready` 패키지를 실행 Agent가 다시 읽고 판단해야 한다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.4. `/goal` preflight는 규칙으로는 있으나 자동 검증으로는 확인되지 않았다",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-context-sufficiency-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-context-sufficiency/blocks/legacy-source/01-work-unit-execution-context-sufficiency.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,73 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision.json",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/02-intake.json"
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "evidence",
+      "content": [
+        {
+          "kind": "document",
+          "source": "skills/work-unit-execution/SKILL.md",
+          "findings": [
+            "Work Unit id로 work-unit/<work-unit-id> branch를 파생한다.",
+            "재실행과 rework는 동일한 등록 branch와 worktree pair를 재사용한다."
+          ]
+        },
+        {
+          "kind": "document",
+          "source": "skills/lifecycle/SKILL.md",
+          "findings": [
+            "named Work Unit 실행은 동일 branch와 worktree pair를 재사용하도록 라우팅한다."
+          ]
+        },
+        {
+          "kind": "document",
+          "source": "skills/work-unit-planner/SKILL.md",
+          "findings": [
+            "Work Unit execution context에 repository, base ref, derived branch와 absolute linked worktree path를 요구한다."
+          ]
+        }
+      ],
+      "attributes": {
+        "sourceKey": "internalAnalysis",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/02-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-branch-lifecycle-naming-decision-source-2",
+          "path": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision/blocks/legacy-source/02-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

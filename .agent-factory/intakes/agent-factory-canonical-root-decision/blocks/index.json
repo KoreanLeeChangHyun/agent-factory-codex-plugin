@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/agent-factory-canonical-root-decision.json",
+      "sha256": "fcb92d23537859ec828fd924e56a442becd3695fbde72b087084bb82326e2dca",
+      "sizeBytes": 2035
+    }
+  ]
+}

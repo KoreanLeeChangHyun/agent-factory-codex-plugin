@@ -1,0 +1,86 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "Agent Factory는 이 프로젝트의 브랜드 이름이다.",
+        "프로젝트가 제공하는 모든 스킬은 Agent Factory 브랜드 namespace를 사용한다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": [
+        ".codex/skills/",
+        ".codex/skills/agent-factory-lifecycle-af/SKILL.md",
+        "docs/work-units/work-unit-execution-skill-worktree-manager"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

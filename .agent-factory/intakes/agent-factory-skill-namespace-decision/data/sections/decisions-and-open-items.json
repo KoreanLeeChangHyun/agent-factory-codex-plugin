@@ -1,0 +1,106 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": [
+        {
+          "question": "agent-factory-* namespace로 변경할 스킬 범위는 어디까지인가?",
+          "selectedOption": "B",
+          "decision": "sync-google-drive와 sync-google-mail을 포함해 .codex/skills 아래의 14개 스킬 전체를 agent-factory-* namespace 대상으로 한다.",
+          "status": "accepted"
+        },
+        {
+          "question": "Git에서 삭제 상태로 발견된 agentforce-mcp-ops 스킬을 어떻게 처리할 것인가?",
+          "selectedOption": "B",
+          "decision": "agentforce-mcp-ops는 필요하지 않으므로 삭제를 확정하고 Agent Factory Plugin에서 제외한다.",
+          "status": "accepted"
+        },
+        {
+          "question": "Plugin 내부 스킬 이름과 legacy 호환을 어떻게 할 것인가?",
+          "selectedOption": "A",
+          "decision": "Plugin 이름은 agent-factory로 하고 내부 스킬은 짧은 역할명으로 완전 rename하며 기존 스킬 이름과 alias는 제거한다.",
+          "status": "accepted"
+        }
+      ],
+      "attributes": {
+        "sourceKey": "decisions",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "decision-status",
+      "content": {
+        "pluginName": "agent-factory",
+        "skillCount": 14,
+        "internalNaming": "short role-based names",
+        "legacyAliases": false,
+        "excludedSkill": "agentforce-mcp-ops"
+      },
+      "attributes": {
+        "sourceKey": "result",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "Current plugin skill names and directories implement the accepted namespace policy.",
+        "currentStateEvidence": [
+          ".codex-plugin/plugin.json",
+          "skills"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

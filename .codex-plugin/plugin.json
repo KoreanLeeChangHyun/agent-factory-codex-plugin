@@ -1,0 +1,23 @@
+{
+  "name": "agent-factory",
+  "version": "0.1.0+codex.20260716195047",
+  "description": "Agent Factory lifecycle, specification, Work Unit, execution, review, and workspace integration skills.",
+  "author": {
+    "name": "Agent Factory"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agent Factory",
+    "shortDescription": "Run the Agent Factory lifecycle in Codex.",
+    "longDescription": "Provides the shared Agent Factory skills for Intake, specifications, Work Units, execution, Human review, diagrams, and workspace integrations.",
+    "developerName": "Agent Factory",
+    "category": "Productivity",
+    "capabilities": [
+      "Workflow",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Agent Factory to inspect this project and route the next lifecycle action."
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.14",
+  "id": "work-unit-json-storage-format-self-migration",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "superseded"
+  },
+  "createdAt": "2026-07-16T14:31:02+00:00",
+  "updatedAt": "2026-07-16T19:07:23+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory Intake v2 normalization",
+    "sourceRefs": [
+      {
+        "artifactType": "legacy-intake-source",
+        "id": "work-unit-json-storage-format-self-migration-source-1",
+        "path": ".agent-factory/intakes/work-unit-json-storage-format-self-migration/blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md"
+      }
+    ]
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
+    "reviewedAt": null,
+    "findings": []
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SVG Icon Only"
+  short_description: "Require SVG icons for UI work"
+  default_prompt: "Use $svg-icon to ensure all UI icons are implemented as SVG."

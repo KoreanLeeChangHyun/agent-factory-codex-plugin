@@ -1,0 +1,132 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/intake-json-canonical-viewer",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-intake.json"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": [
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://www.researchobject.org/ro-crate/specification/1.2/structure",
+          "finding": "디렉터리 단위 패키지, 대표 JSON 메타데이터, package-local 또는 웹 기반 참조 리소스를 결합하는 구조를 정의한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://specs.frictionlessdata.io/data-package/",
+          "finding": "패키지 최상위 JSON descriptor가 관련 리소스 목록과 메타데이터를 소유하는 구조를 정의한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://www.w3.org/TR/prov-dm/",
+          "finding": "산출물, 생성 활동, 책임 주체와 파생 관계를 구분하는 provenance 모델을 제공한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://json-schema.org/draft/2020-12",
+          "finding": "JSON 문서 구조와 검증 계약을 정의할 수 있는 Draft 2020-12 사양을 제공한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://www.rfc-editor.org/info/rfc8493/",
+          "finding": "디렉터리 패키지와 payload 무결성 manifest를 정의하지만 현재 Intake 요구에는 checksum 기반 보존·전송 계약이 명시되지 않았다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://www.iso.org/standard/74909.html",
+          "finding": "생명주기 information item을 generic document type과 specific purpose로 구분하고 프로젝트에 맞게 결합하거나 분할할 수 있어 공통 base와 목적별 profile 분리를 뒷받침한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://www.iso.org/standard/72089.html",
+          "finding": "요구사항 명세는 요구사항 공학의 별도 information item이므로 architecture 또는 software design의 단일 section template과 구분해야 한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://spec.openapis.org/oas/v3.2.0.html",
+          "finding": "API description은 paths, components와 security 등 전용 구조를 가지므로 api-design profile과 OpenAPI connected block을 지원해야 한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://www.omg.org/spec/UML",
+          "finding": "class와 relationship 모델은 machine-readable UML/XMI 표현을 가질 수 있으므로 class-architecture profile의 별도 model 또는 diagram block 연결이 필요하다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://json-schema.org/understanding-json-schema/structuring",
+          "finding": "공통 schema와 profile schema를 $ref로 조합하는 modular contract가 중복 없이 profile 확장을 지원한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://git-scm.com/docs/git-worktree.html",
+          "finding": "linked worktree의 add, list, lock, remove, prune와 repair lifecycle 및 dirty worktree 보호 동작을 정의한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "source": "https://git-scm.com/docs/git-check-ref-format",
+          "finding": "Execution script가 branch 생성 전에 check-ref-format --branch로 이름을 검증할 수 있다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "externalEvidence",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "evidence",
+      "content": [
+        {
+          "path": "docs/interviews/",
+          "finding": "기존 Human 결정 기록 3건이 Markdown으로 저장되어 있다."
+        },
+        {
+          "path": "docs/research/",
+          "finding": "기존 조사 기록 2건이 Markdown으로 저장되어 있다."
+        },
+        {
+          "path": "docs/design-documents/vscode-extension-ui-structure/data/sections/requirements.json",
+          "finding": "기존 draft는 Dashboard, Intake, Design, WorkUnit 네 탭을 기록하여 최신 Dashboard, Kanban, Viewer, Context 결정과 충돌한다."
+        },
+        {
+          "path": ".codex/skills/work-unit-planner-af/assets/schema/",
+          "finding": "현재 Work Unit은 Draft 2020-12 JSON Schema 기반 3.0.0 package contract를 사용한다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "repositoryEvidence",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/agent-factory-skill-namespace-decision.json",
+      "sha256": "cc8b4a55fc1e1963e5d7cdb5e61bf183348023c669e491b50258366765fbd83d",
+      "sizeBytes": 2228
+    }
+  ]
+}

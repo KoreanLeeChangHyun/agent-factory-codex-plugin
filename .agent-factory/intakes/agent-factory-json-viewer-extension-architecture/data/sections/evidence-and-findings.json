@@ -1,0 +1,189 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture.json",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": [
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "Frictionless Data Package Specification",
+          "url": "https://specs.frictionlessdata.io/data-package/",
+          "evidence": "최상위 JSON descriptor가 package resource 목록과 구조화된 metadata를 소유하는 package 형식을 정의한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "Frictionless Data Resource Specification",
+          "url": "https://specs.frictionlessdata.io/data-resource/",
+          "evidence": "resource의 format·mediatype·schema와 상대 경로를 정의하며 절대 경로와 상위 경로 참조를 금지해 package boundary를 보호한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "JSON Schema Draft 2020-12",
+          "url": "https://json-schema.org/draft/2020-12",
+          "evidence": "JSON instance의 구조와 검증 계약, vocabulary와 schema bundling 기반을 제공한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "RO-Crate 1.3 Data Entities",
+          "url": "https://www.researchobject.org/ro-crate/specification/1.3/data-entities.html",
+          "evidence": "JSON-LD metadata에서 local 또는 web file과 directory를 entity로 표현하고 root entity에서 resource 관계를 추적하는 모델을 제공한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "VS Code Contribution Points",
+          "url": "https://code.visualstudio.com/api/references/contribution-points",
+          "evidence": "custom View Container 안에 Tree View 또는 Webview View를 제공할 수 있다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "VS Code Webview UX Guidelines",
+          "url": "https://code.visualstudio.com/api/ux-guidelines/webviews",
+          "evidence": "Webview는 native API를 넘어서는 custom 기능에 사용할 수 있지만 사용을 제한하고 기존 VS Code 기능을 복제하지 말 것을 요구한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "VS Code Extension Manifest",
+          "url": "https://code.visualstudio.com/api/references/extension-manifest",
+          "evidence": "기능 의존이 있는 별도 확장은 extensionDependencies로 선언할 수 있다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "VS Code Remote Extensions",
+          "url": "https://code.visualstudio.com/api/advanced-topics/remote-extensions",
+          "evidence": "exported extension API는 같은 Extension Host에서 사용할 수 있고 local·remote host가 나뉘면 extensionKind와 command 기반 비동기 경계를 고려해야 한다. Webview와 extension은 message passing으로 연결할 수 있다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "VS Code Webview Security",
+          "url": "https://code.visualstudio.com/api/extension-guides/webview",
+          "evidence": "Webview capability와 localResourceRoots를 최소화하고 CSP, HTTPS와 입력 sanitization을 적용해야 한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "Git Worktree Documentation",
+          "url": "https://git-scm.com/docs/git-worktree.html",
+          "evidence": "하나의 repository에서 별도 branch와 linked working tree를 함께 운용할 수 있어 작업 디렉터리 격리에 적합하다. 일부 refs와 repository data는 공유되며 submodule 지원 제한이 있다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "sources",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "evidence",
+      "content": [
+        {
+          "topic": "JSON + 블록 단일 원천",
+          "assessment": "supported",
+          "finding": "중앙 JSON descriptor가 별도 파일 resource를 참조하는 구조는 Data Package와 RO-Crate의 검증된 패턴과 일치한다. AI와 Human Viewer가 동일 원천을 사용하는 방향은 데이터 복제와 drift를 줄인다."
+        },
+        {
+          "topic": "Schema-first와 migration-first 순서",
+          "assessment": "strongly-supported",
+          "finding": "JSON Schema와 package specification 관점에서 계약을 먼저 정의하고 데이터를 migration한 다음 consumer를 구현하는 현재 Work Unit 순서가 합리적이다."
+        },
+        {
+          "topic": "공통 Viewer",
+          "assessment": "supported-with-conditions",
+          "finding": "Intake, Work Unit, Design Document가 같은 package contract를 사용한다면 하나의 loader·validator·reference resolver·renderer registry를 공유하는 편이 일관적이다. artifact type별 layout은 renderer adapter로 분리해야 한다."
+        },
+        {
+          "topic": "Workspace 확장 4탭",
+          "assessment": "supported-with-conditions",
+          "finding": "Dashboard·Kanban·Viewer·Context처럼 custom interaction이 많은 화면은 Webview 사용 근거가 있다. 다만 VS Code는 custom View와 Webview 수를 제한하고 native 기능을 복제하지 말 것을 권고하므로 하나의 View Container와 최소한의 Webview surface가 적합하다."
+        },
+        {
+          "topic": "Context 탭",
+          "assessment": "partial",
+          "finding": "AGENTS.md와 Skills의 관계, 적용 범위, validation과 활성 상태를 보여주는 전용 관리 화면은 타당하다. 일반 텍스트 편집기나 Settings UI를 그대로 복제하면 VS Code UX 지침과 충돌할 수 있다."
+        },
+        {
+          "topic": "Workspace 확장과 Agent 확장 분리",
+          "assessment": "supported-with-architectural-risk",
+          "finding": "UI·artifact 관리와 실행 orchestration의 책임 분리는 유지보수와 권한 경계에 유리하고 VS Code도 extension dependency와 exported API를 지원한다. 그러나 local UI host와 remote workspace host가 갈리면 direct exported API가 동작하지 않을 수 있으므로 extensionKind와 command/message contract를 먼저 설계해야 한다."
+        },
+        {
+          "topic": "Kanban DnD와 Execution 제출",
+          "assessment": "supported-with-safety-boundary",
+          "finding": "DnD는 canonical Work Unit status transition만 요청해야 하고 실제 Execution 제출은 별도 명시적 action이어야 한다. UI 위치를 source of truth로 사용하거나 DnD 자체가 실행을 시작하면 accidental execution과 state drift 위험이 커진다."
+        },
+        {
+          "topic": "Goal·exec·branch·worktree Execution",
+          "assessment": "supported-with-limitations",
+          "finding": "branch와 linked worktree는 동시 작업 디렉터리 격리에 적합하다. 다만 worktree는 보안 sandbox가 아니고 repository object와 일부 refs를 공유하므로 command 권한, path 검증, lock, cleanup, 충돌 복구와 observability가 별도로 필요하다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "findings",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "finding",
+      "content": [
+        "block renderer가 임의 HTML, SVG, script 또는 외부 URL을 그대로 실행하면 Webview content injection 위험이 있다.",
+        "두 확장이 다른 Extension Host에서 실행될 때 direct API 의존만 사용하면 Remote SSH, Dev Container와 Codespaces에서 연동이 깨질 수 있다.",
+        "schemaVersion과 migration policy 없이 JSON 구조가 빠르게 변하면 Viewer와 Agent가 동시에 깨질 수 있다.",
+        "Context가 raw AGENTS.md와 Skill 파일을 무제한 수정하면 Agent 전역 동작에 큰 영향을 줄 수 있으므로 preview, validation과 Human confirmation이 필요하다.",
+        "worktree만으로 command 실행을 sandbox했다고 간주하면 repository 밖 파일, credential과 network 접근 위험이 남는다."
+      ],
+      "attributes": {
+        "sourceKey": "risks",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

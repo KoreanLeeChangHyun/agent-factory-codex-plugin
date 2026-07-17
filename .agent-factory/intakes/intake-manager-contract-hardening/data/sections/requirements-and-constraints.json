@@ -1,0 +1,113 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "text": "Recovery and commit targets must remain inside the canonical package even through symlink path components.",
+        "priority": "critical"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        }
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "text": "A ready Intake mutation must reopen draft and invalidate semantic readiness; closed and superseded packages must reject mutation.",
+        "priority": "high"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        }
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "text": "Capability evidence kinds must satisfy profile evidence readiness without duplicate generic evidence.",
+        "priority": "high"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        }
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": {
+        "text": "Content item ids must be unique across an entire top-level section because anchors omit subsection id.",
+        "priority": "medium"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        }
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "kind": "requirement",
+      "content": {
+        "text": "Specification resolution must distinguish aligned, not-applicable, and accepted gap-for-Work-Unit outcomes without breaking metadata compatibility.",
+        "priority": "medium"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        }
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "kind": "requirement",
+      "content": {
+        "text": "Interview accepted decisions and open-item summaries must use profile-required canonical kinds.",
+        "priority": "medium"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        }
+      ]
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "checks": [
+          "Journal symlink escape is rejected and outside bytes are preserved.",
+          "Ready mutation produces draft with false semantic flags and null reviewedAt.",
+          "Terminal mutation fails and preserves canonical bytes.",
+          "Specialized evidence kinds satisfy the evidence family.",
+          "Cross-container duplicate item ids are rejected.",
+          "Ready specification-impact status is deterministic.",
+          "Interview docs name decision-status and open-items-status.",
+          "All related test suites pass."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

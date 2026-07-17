@@ -1,0 +1,180 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "open-item",
+      "content": "Workspace 확장과 Agent 확장의 extensionKind 및 local·remote 지원 범위",
+      "attributes": {
+        "sourceKey": "unresolvedItems[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "open-item",
+      "content": "두 확장 사이의 command, exported API 또는 message contract 선택",
+      "attributes": {
+        "sourceKey": "unresolvedItems[2]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "open-item",
+      "content": "Context 탭에서 허용할 읽기, validation, 편집, 생성, 설치와 활성화 동작",
+      "attributes": {
+        "sourceKey": "unresolvedItems[3]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "open-item",
+      "content": "Dashboard의 최소 집계 지표",
+      "attributes": {
+        "sourceKey": "unresolvedItems[4]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "open-item",
+      "content": "지원할 block type별 renderer와 SVG·HTML·image trust policy",
+      "attributes": {
+        "sourceKey": "unresolvedItems[5]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "open-item",
+      "content": "Execution 제출 confirmation, idempotency, cancellation과 retry 정책",
+      "attributes": {
+        "sourceKey": "unresolvedItems[6]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 6
+      },
+      "attributes": {
+        "sourceKey": "unresolvedItems",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "decision-status",
+      "content": {
+        "status": "supported-with-conditions",
+        "summary": "전체 설계 방향은 좋다. 특히 JSON + 블록 단일 원천, schema-first migration, 공통 Viewer, Workspace와 Agent 책임 분리, branch와 worktree 격리는 공식 표준과 제품 문서에 부합한다. 성공 여부는 package security, schema evolution, Remote Extension Host 경계, Context 권한과 Execution 제출 안전장치를 명시적으로 설계하는 데 달려 있다."
+      },
+      "attributes": {
+        "sourceKey": "conclusion",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-json-viewer-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture/blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-REVIEW-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "active-draft",
+        "reason": "Future Viewer implementation scope and trust decisions remain unresolved.",
+        "estimatedHumanDecisionTopics": 6
+      },
+      "attributes": {
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

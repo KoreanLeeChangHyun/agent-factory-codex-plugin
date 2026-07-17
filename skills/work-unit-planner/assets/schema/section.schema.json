@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-factory.local/schemas/work-unit/v4/section.schema.json",
+  "title": "Agent Factory Work Unit Section",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "content", "subsections"],
+  "properties": {
+    "id": {"$ref": "#/$defs/id"},
+    "title": {"type": "string", "minLength": 1},
+    "content": {"type": "array", "items": {"$ref": "#/$defs/contentItem"}},
+    "subsections": {"type": "array", "items": {"$ref": "#/$defs/subsection"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*$"},
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sectionId", "itemId"],
+      "properties": {
+        "sectionId": {"$ref": "#/$defs/id"},
+        "itemId": {"$ref": "#/$defs/id"}
+      }
+    },
+    "typedRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactType", "id", "path"],
+      "properties": {
+        "artifactType": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "anchor": {"$ref": "#/$defs/anchor"}
+      }
+    },
+    "contentItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "content"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "kind": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "content": {},
+        "attributes": {"type": "object"},
+        "sourceRefs": {"type": "array", "items": {"$ref": "#/$defs/typedRef"}},
+        "blockRef": {"type": "string", "pattern": "^blocks/[A-Za-z0-9._/-]+$"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "block"}}, "required": ["kind"]},
+          "then": {"required": ["blockRef"]}
+        }
+      ]
+    },
+    "subsection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "content"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "minLength": 1},
+        "content": {"type": "array", "items": {"$ref": "#/$defs/contentItem"}}
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "specification-profile-skill-ownership-decision",
+  "date": "2026-07-15",
+  "status": "answered",
+  "language": "ko",
+  "basisRequest": "명세서 종류별 필수 section, block, schema와 rendering 연결 규칙의 canonical 소유 위치를 결정한다.",
+  "relatedArtifacts": [
+    "docs/interviews/specifications-root-name-decision.json",
+    "docs/interviews/project-core-storage-decision.json",
+    "docs/research/design-document-profile-system.json",
+    "docs/work-units/agent-factory-skill-docs-json-block-contract"
+  ],
+  "humanStatement": "그건 스킬에 넣어두면 된다.",
+  "humanDecision": {
+    "owner": "Agent Factory skill",
+    "ownedRules": [
+      "specification profile id and version",
+      "document class",
+      "required and optional sections",
+      "allowed and required block contracts",
+      "profile JSON Schema",
+      "Viewer renderer mapping",
+      "compatibility and migration rules"
+    ],
+    "specificationPackageStores": [
+      "metadata.documentClass",
+      "metadata.documentProfile.id",
+      "metadata.documentProfile.version",
+      "canonical specification content",
+      "connected block references"
+    ]
+  },
+  "unspecified": [
+    "profile rules를 소유할 정확한 skill 이름과 내부 파일 경로",
+    "profile schema와 renderer mapping의 상세 파일 형식"
+  ],
+  "applicationStatus": "recorded-not-applied",
+  "pendingApplication": [
+    "Intake decision update",
+    "research recommendation update",
+    "skill contract Work Unit update",
+    "profile-owning skill and asset structure definition during Work Unit Execution"
+  ]
+}

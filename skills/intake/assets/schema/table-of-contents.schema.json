@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-factory.local/schemas/intake/v2/table-of-contents.schema.json",
+  "title": "Agent Factory Intake Table Of Contents",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["managerOwned", "sections", "sha256"],
+  "properties": {
+    "managerOwned": {"const": true, "readOnly": true},
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path", "subsections"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "path": {"type": "string", "pattern": "^data/sections/[a-z0-9]+(?:-[a-z0-9]+)*\\.json$"},
+          "subsections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id"],
+              "properties": {"id": {"$ref": "#/$defs/id"}}
+            }
+          }
+        }
+      }
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$", "readOnly": true}
+  },
+  "$defs": {"id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"}}
+}

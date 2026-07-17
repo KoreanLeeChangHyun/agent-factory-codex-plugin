@@ -1,0 +1,40 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/work-unit-json-storage-format-decision.md",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": {
+        "heading": "조사 기반 추천",
+        "text": "A. JSON source of truth의 소유 위치를 `data/`로 유지하고 renderer와 validator가 동일한 구조화 계약을 사용하므로 DRY, 검증 가능성, 장기 유지보수에 가장 적합하다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.조사 기반 추천",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-json-storage-format-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-json-storage-format-decision/blocks/legacy-source/01-work-unit-json-storage-format-decision.md"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

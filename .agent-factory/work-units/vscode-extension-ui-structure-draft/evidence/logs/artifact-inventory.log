@@ -1,0 +1,24 @@
+DESIGN DOCUMENT ARTIFACT INVENTORY: vscode-extension-ui-structure
+COUNT: 18 files
+ALGORITHM: SHA-256
+
+c13a646308ab84e08b3640bdfb30e341286d585a8f75e86f0592d8482d090243  docs/design-documents/vscode-extension-ui-structure/data/decisions/design-decisions.json
+17bc44de5e93018a9b595eecff3f9d0fddbf262181cf55cd925e6ea73b561c11  docs/design-documents/vscode-extension-ui-structure/data/diagrams/diagram-metadata.json
+c9578dfa7d2c8dbc1bf46c1e64565a3f7fff01f44311975fb3679ef3bf783408  docs/design-documents/vscode-extension-ui-structure/data/events/change-history.json
+7687bc446a36d92068c21d7cd0c30a30216573cb257c548e36edf04d4bf7e93b  docs/design-documents/vscode-extension-ui-structure/data/manifest.json
+2bd1a4d7f7aa52b3bfa98cc158ced09eff89991632eed9d919301633092d7a2c  docs/design-documents/vscode-extension-ui-structure/data/schema/design-document.schema.json
+066269edcaecdd9c692449d4a128f4c9b0e6a82a2f06bcfc699f05dc997d5733  docs/design-documents/vscode-extension-ui-structure/data/sections/governance-and-verification.json
+2b0514081a9dbec4c4cd6314d8cff00adefb90c93ad895935d6ed19eec515e07  docs/design-documents/vscode-extension-ui-structure/data/sections/project-core.json
+5af9d7a0070b6fd78ae61d5790e017fd18ffd5176362c089d67d1bcc488a9614  docs/design-documents/vscode-extension-ui-structure/data/sections/requirements.json
+67f64d564535ae7eacc9836327f44954cd998364f0fa98f7f6ba2d89a76d618f  docs/design-documents/vscode-extension-ui-structure/data/sections/ui-structure.json
+50deb3d4872df6921c2ad87e548695671d4373b56dc05d1bc8a2ecffce9d4763  docs/design-documents/vscode-extension-ui-structure/data/snapshots/pre-execution-baseline.json
+07d67c05e895a4488ab8b413168472c8e38963bd5537fadbb3ae5f921cfcc2fe  docs/design-documents/vscode-extension-ui-structure/diagram/ui-tab-structure.json
+a457d7e39a1f0e68daac53ceb9e8ac3b508b6bec22703a4466089f35da18e94e  docs/design-documents/vscode-extension-ui-structure/diagram/work-unit-status.json
+ccfa92f40502b002eb35ec17bbb25ab698617af7e1e0d9683c0974a0dc94c430  docs/design-documents/vscode-extension-ui-structure/reference/sources.json
+c79b5e9864e018f290812446df57a7ec1d522602e548caab5b9868ae896d8c5a  docs/design-documents/vscode-extension-ui-structure/report/design-document-data.js
+deabe494358cb022d1b24cd697468a637044a2c8b383410d12d983c5d654332c  docs/design-documents/vscode-extension-ui-structure/report/generate-report-data.mjs
+52f6f7bf29ed1ea3935e15c0bb3795c56fa45ef952980db25b57877a9e83a3ad  docs/design-documents/vscode-extension-ui-structure/report/index.html
+19542c79a6f163876788b8f77153bf11c4dfebc0d52c63f0abf08d6d92700744  docs/design-documents/vscode-extension-ui-structure/report/script.js
+391a1f682e0cb511fd9fb8b3417deb5805de24323eba79d1bbf2a0fe097625d8  docs/design-documents/vscode-extension-ui-structure/report/styles.css
+
+RESULT: PASS — manifest-connected Design Document package contains 18 files.

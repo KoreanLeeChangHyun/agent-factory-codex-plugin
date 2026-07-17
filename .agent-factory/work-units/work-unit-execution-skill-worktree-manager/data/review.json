@@ -1,0 +1,19 @@
+{
+  "aiReview": "rework_required",
+  "aiChecklistResult": "fail",
+  "humanReview": "rework",
+  "state": "rework",
+  "comments": [
+    "P1: existing pair reuse가 이동한 base ref의 최신 commit을 실제 worktree 기반처럼 반환하여 execution context 추적성이 깨진다.",
+    "P1: lifecycle의 $CODEX_HOME/skills single active location 규칙과 .codex/skills-only 구현이 충돌하며 active HOME skill은 존재하지 않는다.",
+    "P2: cleanup이 unlock 후 remove에 실패하면 worktree를 다시 lock하지 않아 보호 상태가 사라진다.",
+    "P2: baseline commit 부재 constraint와 qualityScore 100 및 pass review 기록이 현재 repository evidence와 불일치한다.",
+    "Human Review 결정은 rework이며 구현 수정과 회귀 검증 후 다시 review해야 한다."
+  ],
+  "remainingRisk": [
+    "reuse가 사실과 다른 baseCommit을 기록할 수 있다.",
+    "cleanup 부분 실패가 worktree를 unlocked 상태로 남길 수 있다.",
+    "fresh Goal session에서 work-unit-execution-af active discovery 위치가 불명확하다.",
+    "linked worktree directory root와 path naming 형식이 미결정이다."
+  ]
+}

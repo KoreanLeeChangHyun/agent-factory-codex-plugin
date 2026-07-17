@@ -1,0 +1,18 @@
+{
+  "aiReview": "pass",
+  "aiChecklistResult": "pass",
+  "humanReview": "pending",
+  "state": "ready_for_human_review",
+  "comments": [
+    "Work Unit 범위와 Human 요청만 사용했으며 새 역할이나 구현 요구를 추가하지 않았다.",
+    "repository finding은 경로·줄·명령에, web finding은 공식 URL·tier·freshness에 추적된다.",
+    "표현 가능성과 schema-valid ready의 의미적 강제력을 분리했고 context-poor 반례를 기록했다.",
+    "담당자 표현을 철회하고 AI Execution 및 Human Review 결정 경계만 기록했다.",
+    "Design Document 확인 결과, 제한사항, 잔여 위험과 비차단 미해결 항목을 분리했다."
+  ],
+  "remainingRisk": [
+    "NASA 두 공식 reference 페이지는 본문 발행·수정일이 표시되지 않아 freshness를 F1로 보수적으로 기록했다.",
+    "scoped rg로 preflight 구현을 찾지 못했다는 결과는 조사 범위 밖 runtime 전체의 부재를 증명하지 않는다.",
+    "project v3와 HOME 설치본 drift는 확인했지만 동기화 방향은 Human 결정 전까지 미해결이다."
+  ]
+}

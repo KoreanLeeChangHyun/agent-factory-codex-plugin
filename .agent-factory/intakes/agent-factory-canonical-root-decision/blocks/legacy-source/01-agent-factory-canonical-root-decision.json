@@ -1,0 +1,42 @@
+{
+  "id": "agent-factory-canonical-root-decision",
+  "date": "2026-07-15",
+  "status": "answered",
+  "language": "ko",
+  "basisRequest": "Agent Factory canonical artifact root와 VS Code Workspace Extension의 discovery source를 결정한다.",
+  "relatedArtifacts": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/work-units/agent-factory-json-block-data-migration",
+    "docs/work-units/workspace-extension-four-tab-mvp"
+  ],
+  "selectedOption": "A",
+  "humanFacts": [
+    "기존 docs 아래의 Agent Factory 산출물을 hidden Agent Factory directory로 이동한다.",
+    "오타가 없는 .agent-factory를 canonical directory name으로 사용한다.",
+    "VS Code Workspace Extension은 /home/deus/workspace/skills/.agent-factory 정보를 읽어 표시한다."
+  ],
+  "decision": {
+    "canonicalRoot": "/home/deus/workspace/skills/.agent-factory/",
+    "migrationSource": "/home/deus/workspace/skills/docs/",
+    "migrationRule": "기존 docs 하위 상대 구조를 .agent-factory 아래에 보존해 이동한다.",
+    "viewerDiscovery": "/home/deus/workspace/skills/.agent-factory를 canonical source로 읽는다.",
+    "legacyReadPolicy": "migration 완료 후 docs를 fallback source로 읽지 않는다.",
+    "status": "accepted"
+  },
+  "targetExamples": [
+    ".agent-factory/intakes/",
+    ".agent-factory/interviews/",
+    ".agent-factory/research/",
+    ".agent-factory/specifications/",
+    ".agent-factory/work-units/",
+    ".agent-factory/design-documents/"
+  ],
+  "constraints": [
+    "실제 이동은 migration Work Unit Execution에서 source mapping과 schema validation을 완료한 뒤 수행한다.",
+    "migration 완료 전 docs source를 삭제하거나 덮어쓰지 않는다.",
+    "Human과 AI는 migration 이후 동일 .agent-factory canonical data를 사용한다."
+  ],
+  "unresolvedItems": [
+    "Agent Factory Plugin source and installation files를 .agent-factory 아래에 포함할지 별도 plugin directory에 둘지에 대한 package layout"
+  ]
+}

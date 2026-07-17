@@ -1,0 +1,35 @@
+{
+  "designDocumentRefs": [],
+  "requirementRefs": [
+    "Human request 2026-07-14: 조사한 내용을 기록하고 이를 위한 Work Unit을 생성한다.",
+    "https://developers.openai.com/cookbook/articles/codex_exec_plans",
+    "https://json-schema.org/overview/what-is-jsonschema",
+    "https://json-schema.org/understanding-json-schema/reference/string",
+    "https://www.nasa.gov/reference/appendix-c-how-to-write-a-good-requirement/",
+    "https://www.nasa.gov/reference/4-2-technical-requirements-definition/",
+    "https://scrumguides.org/scrum-guide.html"
+  ],
+  "decisionRefs": [
+    "Human decision 2026-07-14: 조사 결과 기록을 위한 Work Unit을 생성한다.",
+    "Correction 2026-07-14: 담당자는 현재 Agent Factory 계약에 근거한 Work Unit 요구가 아니므로 이전 권고에서 철회한다."
+  ],
+  "implementationRefs": [
+    ".codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/traceability.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/schema/execution.schema.json",
+    ".codex/skills/work-unit-planner-af/assets/scripts/work_unit.py",
+    ".codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py",
+    ".codex/skills/agent-factory-lifecycle-af/references/lifecycle.md",
+    ".codex/skills/work-unit-planner-af/references/work-unit-structure.md",
+    "/home/deus/.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json",
+    "docs/research/work-unit-execution-context-sufficiency.md"
+  ],
+  "testRefs": [
+    ".codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py"
+  ],
+  "reviewRefs": [
+    "docs/work-units/work-unit-execution-context-sufficiency-research/data/work-unit.json#humanChecklist",
+    "docs/work-units/work-unit-execution-context-sufficiency-research/data/review.json"
+  ],
+  "workUnitDependencyRefs": []
+}

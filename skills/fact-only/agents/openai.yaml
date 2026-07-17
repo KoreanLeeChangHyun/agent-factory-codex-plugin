@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Factory Fact Only"
+  short_description: "Keep Agent Factory work grounded in explicit evidence."
+  default_prompt: "Use $fact-only to separate verified facts, interpretations, and unresolved Human decisions in Agent Factory work."
+policy:
+  allow_implicit_invocation: true

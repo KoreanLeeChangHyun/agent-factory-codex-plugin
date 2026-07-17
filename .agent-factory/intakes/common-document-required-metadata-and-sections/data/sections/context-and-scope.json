@@ -1,0 +1,95 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "comparison-research"
+      },
+      "attributes": {
+        "sourceKey": "type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/research/agent-factory-json-viewer-extension-architecture.json",
+        "docs/research/intake-section-depth-readability.json",
+        "docs/work-units/agent-factory-skill-docs-json-block-contract",
+        "docs/work-units/agent-factory-json-block-data-migration",
+        "docs/work-units/workspace-extension-four-tab-mvp",
+        "docs/work-units/agent-extension-goal-execution-integration"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": [
+        "Intake, Design Document, Work Unit은 metadata, title, table of contents, section, content와 optional block을 갖는 공통 JSON 문서 모델을 사용한다.",
+        "section은 기본 평면이고 필요한 경우 subsection 한 단계만 허용하며 H4 이상은 없다.",
+        "block은 section content의 위치와 의미 관계에 연결된다.",
+        "큰 Design Document는 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/로 분할한다.",
+        "JSON은 데이터만 담당하고 metadata에는 theme 이름만 저장한다.",
+        "Intake Agent는 인터뷰, 코드 분석, 웹 검색, 데이터 분석 등 Work Unit 생성에 필요한 작업을 수행한다.",
+        "Work Unit은 Goal 기반 Execution과 AI Review, Human Review에 충분한 실행 단위다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "common-document-required-metadata-and-sections-source-1",
+          "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

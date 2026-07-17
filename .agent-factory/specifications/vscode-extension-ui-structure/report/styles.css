@@ -1,0 +1,276 @@
+/* Human review rendering only. These presentation values are not product design decisions. */
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  background: Canvas;
+  color: CanvasText;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  line-height: 1.55;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  color: ButtonText;
+  background: ButtonFace;
+  border: 1px solid ButtonText;
+}
+
+code {
+  overflow-wrap: anywhere;
+}
+
+.document-header,
+main,
+footer {
+  inline-size: min(100% - 2rem, 80rem);
+  margin-inline: auto;
+}
+
+.document-header {
+  padding-block: 3rem 2rem;
+  border-block-end: 1px solid GrayText;
+}
+
+.document-kicker,
+.section-heading p,
+.region-label {
+  margin: 0;
+  color: GrayText;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.document-header h1 {
+  margin-block: 0.25rem 0.75rem;
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 1.05;
+}
+
+.metadata {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1.5rem;
+}
+
+.metadata div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.3fr) 1fr;
+  gap: 1rem;
+}
+
+.metadata dt {
+  color: GrayText;
+}
+
+.metadata dd {
+  margin: 0;
+}
+
+.review-notice,
+.kanban-notes,
+.state-view {
+  padding: 1rem;
+  border: 1px solid GrayText;
+}
+
+main > section {
+  padding-block: 3rem;
+  border-block-end: 1px solid GrayText;
+}
+
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-block-end: 1.5rem;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+}
+
+.core-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+}
+
+.core-grid article,
+.relation-view,
+.ui-review {
+  padding: 1rem;
+  border: 1px solid GrayText;
+}
+
+.core-grid h3,
+.kanban-stage h3 {
+  margin-block-start: 0;
+}
+
+.relation-view ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.relation-view li {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid GrayText;
+}
+
+.relation-view span {
+  color: GrayText;
+}
+
+.tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  border-block-end: 1px solid GrayText;
+}
+
+.tab-list button {
+  padding: 0.65rem 1rem;
+  border-block-end: 0;
+}
+
+.tab-list button[aria-selected="true"] {
+  color: HighlightText;
+  background: Highlight;
+}
+
+.tab-header-region,
+.tab-body-region {
+  padding: 1rem;
+}
+
+.tab-header-region {
+  border-block-end: 1px solid GrayText;
+}
+
+.review-controls {
+  margin-block-start: 1rem;
+}
+
+.stage-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.body-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(12rem, 1fr));
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-block: 1rem;
+}
+
+.kanban-stage {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  padding: 0.75rem;
+  border: 1px solid GrayText;
+}
+
+.kanban-stage > header p {
+  color: GrayText;
+}
+
+.stage-cards {
+  min-block-size: 6rem;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.stage-cards::-webkit-scrollbar {
+  width: 0;
+}
+
+.work-unit-card {
+  display: grid;
+  place-items: center start;
+  block-size: var(--report-card-block-size, auto);
+  min-block-size: 0;
+  padding-inline: 0.75rem;
+  overflow: hidden;
+  border: 1px solid CanvasText;
+  cursor: grab;
+}
+
+.work-unit-card[aria-grabbed="true"] {
+  outline: 2px solid Highlight;
+}
+
+.stage-cards[data-drop-active="true"] {
+  outline: 2px solid Highlight;
+  outline-offset: 0.2rem;
+}
+
+.kanban-notes {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.kanban-notes p {
+  margin: 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.75rem;
+  text-align: start;
+  border: 1px solid GrayText;
+}
+
+.state-view {
+  margin-block-start: 1rem;
+}
+
+.checklist,
+.unresolved-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+footer {
+  padding-block: 2rem;
+  color: GrayText;
+}
+
+[hidden] {
+  display: none !important;
+}

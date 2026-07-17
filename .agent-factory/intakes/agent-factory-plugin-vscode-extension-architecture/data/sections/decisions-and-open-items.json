@@ -1,0 +1,161 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": {
+        "status": "supported",
+        "architecture": "one-agent-factory-plugin-plus-one-vscode-workspace-extension",
+        "agentFactoryPluginOwns": [
+          "14 bundled Agent Factory skills",
+          "lifecycle and execution instructions",
+          "deterministic scripts including worktree management",
+          "optional hooks",
+          "optional MCP server and connector configuration",
+          "plugin manifest, version and distribution metadata"
+        ],
+        "vscodeWorkspaceExtensionOwns": [
+          "Dashboard, Kanban, Viewer and Context UI",
+          "canonical JSON and connected block loading and rendering",
+          "workspace file observation and allowed artifact edits",
+          "Kanban DnD and Work Unit selection",
+          "Execution submission and streamed status presentation",
+          "local codex app-server client lifecycle"
+        ],
+        "integrationBoundary": {
+          "protocol": "Codex app-server JSON-RPC",
+          "preferredTransport": "stdio JSONL",
+          "reason": "stdio is the documented default local transport; WebSocket is currently experimental and unsupported.",
+          "schema": "Generate TypeScript or JSON Schema from the installed Codex version and validate messages at the extension boundary."
+        },
+        "workUnitImpact": [
+          "workspace-extension-four-tab-mvp remains the single VS Code extension implementation unit.",
+          "agent-extension-goal-execution-integration should not create a second VS Code extension; it should be superseded or reshaped into Plugin packaging and Workspace Extension to app-server integration work.",
+          "Agent Factory skill namespace and active installation decisions move to the Plugin manifest and marketplace installation contract."
+        ]
+      },
+      "attributes": {
+        "sourceKey": "recommendation",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "status": "supported",
+        "summary": "Agent Factory는 14개 스킬과 실행 자산을 묶는 Plugin 하나, Human workspace visibility와 control을 제공하는 VS Code Workspace Extension 하나로 구성하는 것이 현재 요구와 공식 extension boundaries에 가장 단순하게 부합한다. 실행 연동은 별도 Agent extension이 아니라 Workspace Extension의 codex app-server stdio client로 둔다."
+      },
+      "attributes": {
+        "sourceKey": "conclusion",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-REVIEW-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "active-draft",
+        "reason": "Plugin and VS Code support boundaries still require current Human decisions.",
+        "estimatedHumanDecisionTopics": 4
+      },
+      "attributes": {
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    },
+    {
+      "id": "ACTIVE-OPEN-001",
+      "kind": "open-item",
+      "content": "Agent Factory Plugin의 exact manifest, marketplace scope, installation policy와 versioning은 아직 결정되지 않았다.",
+      "attributes": {
+        "blocking": true,
+        "resolved": false,
+        "classification": "explicit-source-requires-current-review"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "ACTIVE-OPEN-002",
+      "kind": "open-item",
+      "content": "VS Code extension의 local and remote workspace support 범위는 아직 Human 결정이 필요하다.",
+      "attributes": {
+        "blocking": true,
+        "resolved": false,
+        "classification": "explicit-source-requires-current-review"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "ACTIVE-OPEN-003",
+      "kind": "open-item",
+      "content": "codex app-server의 experimental API를 사용할 요구는 확인되지 않았으며 stable API surface를 기본으로 해야 한다.",
+      "attributes": {
+        "blocking": true,
+        "resolved": false,
+        "classification": "explicit-source-requires-current-review"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    },
+    {
+      "id": "ACTIVE-OPEN-004",
+      "kind": "open-item",
+      "content": "기존 두 VS Code 확장 Work Unit을 supersede, merge 또는 reshape할지는 Human 결정이 필요하다.",
+      "attributes": {
+        "blocking": true,
+        "resolved": false,
+        "classification": "explicit-source-requires-current-review"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

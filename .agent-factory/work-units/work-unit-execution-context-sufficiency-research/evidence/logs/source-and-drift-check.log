@@ -1,0 +1,30 @@
+Commands (executed 2026-07-14 from /home/deus/workspace/skills):
+curl -L -sS -o /dev/null -w '%{http_code} %{url_effective}\n' <each official source URL>
+sha256sum .codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json /home/deus/.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json
+find /home/deus/.codex/skills/work-unit-planner-af -maxdepth 4 -type f -print | sort
+
+HTTP results:
+200 https://developers.openai.com/cookbook/articles/codex_exec_plans
+200 https://json-schema.org/overview/what-is-jsonschema
+200 https://json-schema.org/understanding-json-schema/reference/string
+200 https://www.nasa.gov/reference/appendix-c-how-to-write-a-good-requirement/
+200 https://www.nasa.gov/reference/4-2-technical-requirements-definition/
+200 https://scrumguides.org/scrum-guide.html
+
+Schema hashes:
+90e43eb811927f6ec48f08456dc5c6890138076aade1cd41f28be91117aac9e3  .codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json
+f7ced34d98e1a652345b165bdf17fa9f9538e5a069b3e0cba33d9c7cdd17cb0e  /home/deus/.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json
+
+HOME files:
+/home/deus/.codex/skills/work-unit-planner-af/SKILL.md
+/home/deus/.codex/skills/work-unit-planner-af/assets/schema/execution.schema.json
+/home/deus/.codex/skills/work-unit-planner-af/assets/schema/quality-gate.schema.json
+/home/deus/.codex/skills/work-unit-planner-af/assets/schema/review.schema.json
+/home/deus/.codex/skills/work-unit-planner-af/assets/schema/traceability.schema.json
+/home/deus/.codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json
+/home/deus/.codex/skills/work-unit-planner-af/references/work-unit-structure.md
+
+Observed drift:
+- HOME has no assets/scripts/work_unit.py.
+- HOME has no report.schema.json, commands.schema.json, or tests.schema.json.
+- HOME work-unit.schema.json differs from the project v3 schema and retains the earlier humanChecklistRef contract.

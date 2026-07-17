@@ -1,0 +1,8 @@
+[
+  "rg로 Work Unit v3 schema, manager, tests, lifecycle, 실제 package와 /goal preflight 관련 근거를 점검했다.",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate로 두 기존 v3 표본, 현재 연구 Work Unit과 legacy 2.0.0 표본을 점검했다.",
+  "manager create와 validate로 모든 필수 실행 문맥을 x로 둔 임시 context-poor ready 패키지 반례를 재현했다.",
+  "curl -L로 OpenAI, JSON Schema, NASA, Scrum 공식 URL 여섯 개의 HTTP 200 접근성을 확인했다.",
+  "find, sha256sum, diff로 project v3와 /home/deus/.codex/skills 설치본의 contract drift를 확인했다.",
+  "test와 rg assertion으로 연구 파일 front matter, 필수 섹션, 출처, repository traceability, 담당자 표현 철회와 권고 경계를 검증했다."
+]

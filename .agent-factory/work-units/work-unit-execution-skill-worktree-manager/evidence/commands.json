@@ -1,0 +1,11 @@
+[
+  "python3 $HOME/.codex/skills/.system/skill-creator/scripts/init_skill.py work-unit-execution-af --path .codex/skills --resources scripts,references --interface ...",
+  "python3 -m unittest discover -s .codex/skills/work-unit-execution-af/tests -v",
+  "python3 -m py_compile .codex/skills/work-unit-execution-af/scripts/worktree.py .codex/skills/work-unit-execution-af/tests/test_worktree.py",
+  "python3 $HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py .codex/skills/work-unit-execution-af",
+  "python3 -m unittest discover -s .codex/skills/work-unit-planner-af/tests -q",
+  "for skill in .codex/skills/*-af; do python3 $HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py $skill; done",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py check-schemas",
+  "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-execution-skill-worktree-manager",
+  "git diff --check"
+]

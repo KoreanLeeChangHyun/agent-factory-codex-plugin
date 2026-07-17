@@ -1,0 +1,110 @@
+{
+  "id": "work-unit-json-storage-format-v3",
+  "title": "Work Unit 저장 계약을 JSON 단일 원본으로 전환",
+  "version": "3.0.0",
+  "status": "review",
+  "sourceDesignRefs": [],
+  "goal": "새 major Work Unit package contract에서 data/report.json을 canonical 실행 결과로 정의하고 필수 output/result.md를 제거하여 모든 의미 데이터를 JSON Schema로 검증 가능하게 만든다.",
+  "scope": [
+    "Work Unit package contract의 도메인 버전을 3.0.0으로 올리고 2.0.0과 1.0.0을 명시적 legacy migration 경계로 처리한다.",
+    "Draft 2020-12 기반 report.schema.json과 data/report.json 초기 모델을 정의하고 work-unit.json packageRefs에서 canonical report를 참조한다.",
+    "report JSON은 실행 요약, 변경 산출물 참조, 검증 근거 참조, 잔여 위험, 미해결 항목, Design Document 확인 또는 갱신 결과를 구조화하며 raw log나 screenshot을 복제하지 않는다.",
+    "work_unit.py의 check-schemas, create, show, update, transition, validate, migrate가 3.0.0 JSON package contract를 일관되게 처리하도록 변경한다.",
+    "필수 output/result.md와 canonical output 디렉터리 요구를 제거하고 HTML과 Markdown을 선택적 파생 렌더링으로만 문서화한다.",
+    "work-unit-planner-af 스킬 문서, 구조 reference, 필요한 lifecycle 설명과 manager 회귀 테스트를 새 계약에 맞춘다."
+  ],
+  "outOfScope": [
+    "HTML, CSS, JavaScript renderer 또는 Agent Factory UI 구현.",
+    "evidence/logs와 evidence/screenshots의 원시 파일을 JSON에 인라인하거나 JSON으로 변환하는 작업.",
+    "기존 외부 프로젝트 Work Unit package의 일괄 마이그레이션 또는 원본 파일 삭제.",
+    "/home/deus/.codex/skills 사본으로의 설치, 전파 또는 동기화.",
+    "해시나 서명을 위한 RFC 8785 JSON Canonicalization Scheme 도입."
+  ],
+  "assumptions": [],
+  "constraints": [
+    "Human 결정 A를 적용한다: canonical result는 data/report.json이고 필수 Markdown result는 제거하며 파생 렌더링은 선택 사항이다.",
+    "현재 프로젝트 경로 /home/deus/workspace/skills 안의 파일만 변경하고 기존 historical package 예시는 역사 기록으로 보존한다.",
+    "스키마를 먼저 정의한 뒤 manager를 변경하며 코드 작업은 TDD 순서를 따른다.",
+    "JSON Schema dialect는 현재 공개된 Draft 2020-12를 유지하고 Work Unit 도메인 계약 버전과 혼동하지 않는다.",
+    "JSON 문자열을 HTML로 렌더링하는 후속 구현은 schema validation과 XSS 방어를 별도 경계로 취급해야 한다."
+  ],
+  "plan": [
+    "Work Unit package 전체, 조사 기록, Human 결정 기록, 관련 Design Document 존재 여부와 현재 기준 테스트를 먼저 확인한다.",
+    "구현 전에 3.0.0 버전, report schema, result.md 제거, legacy migration 동작에 대한 실패 테스트를 작성하고 예상 실패를 기록한다.",
+    "report.schema.json과 work-unit.schema.json packageRefs 및 모든 schema id와 버전 계약을 먼저 갱신한다.",
+    "schema가 정의한 계약만 읽도록 work_unit.py의 생성, 검증, 조회, 갱신, 전이, 마이그레이션 동작을 구현한다.",
+    "SKILL.md와 work-unit-structure.md 및 필요한 lifecycle 문서를 JSON-only core package와 historical package 경계에 맞춘다.",
+    "스키마 검사, manager 전체 회귀 테스트, 임시 package create와 validate 및 migration smoke test를 실행하고 증거를 기록한다.",
+    "AI Review에서 범위, 계약 일관성, backward migration, DRY, 보안 렌더링 경계와 잔여 위험을 검토하고 Human Review 자료를 작성한다."
+  ],
+  "acceptanceCriteria": [
+    "work_unit.py check-schemas가 work-unit, execution, review, quality-gate, traceability, report, commands, tests의 8개 Draft 2020-12 schema를 3.0.0 계약으로 검증한다.",
+    "새 package는 data/report.json을 포함하고 output/result.md를 포함하거나 필수로 요구하지 않으며 non-rendering core package에 output 디렉터리가 필요하지 않다.",
+    "work-unit.json의 packageRefs.report는 data/report.json만 허용하고 manager는 report 문서를 show와 top-level update 대상으로 처리한다.",
+    "report JSON은 실행 요약, 산출물과 evidence 참조, 검증 결과, 잔여 위험, 미해결 항목, Design Document 확인 또는 갱신 결과를 스키마로 검증한다.",
+    "data/report.json 누락, 잘못된 JSON, 누락 또는 추가 필드, 잘못된 type과 package root 밖 참조는 full validate에서 명시적으로 거부된다.",
+    "표시 순서가 필요한 report collection은 JSON object key 순서가 아니라 array로 모델링된다.",
+    "manager create와 migrate는 완전한 3.0.0 package를 임시 경로에서 검증한 뒤 원자적으로 설치하며 migration source byte를 변경하거나 삭제하지 않는다.",
+    "1.0.0과 2.0.0 package는 현재 validator에서 지원되지 않는 legacy version으로 명확히 보고되고 3.0.0 별도 migration 안내를 제공한다.",
+    "현재 active contract 문서에서 Markdown과 HTML은 JSON에서 생성 가능한 선택적 파생물로만 정의되고 역사적 Markdown package 예시는 역사 기록으로 명확히 유지된다.",
+    "기존 manager 회귀 동작과 새 3.0.0 테스트가 모두 통과하고 raw 명령 및 테스트 결과가 evidence/logs에 기록된다."
+  ],
+  "definitionOfDone": [
+    "실행 전에 관련 Design Document 존재 여부를 확인하고 존재하면 범위와 결정을 읽는다.",
+    "design-impacting 변경 후 관련 Design Document를 갱신하거나 Design Document가 없거나 갱신이 불필요한 명시적 사유를 기록한다.",
+    "Design Document 확인 또는 갱신 결과를 data/review.json과 data/report.json에 근거로 남긴다.",
+    "TDD 순서로 실패 테스트를 먼저 정의하고 schema와 manager 구현 후 전체 검증을 통과한다.",
+    "변경 파일, 명령, 테스트, schema validation, migration smoke 결과와 계획 편차를 package evidence에 기록한다.",
+    "AI checklist 결과와 Human checklist 및 구체적인 Human review 방법을 분리하여 준비한다.",
+    "AI Review가 scope, acceptance criteria, JSON 계약 일관성, historical source 보존과 잔여 위험을 확인한다.",
+    "Human이 승인, rework, merge, PR promotion 및 /home/deus/.codex/skills 전파 여부를 결정할 수 있는 검토 자료가 준비된다."
+  ],
+  "testCriteria": [
+    "구현 전에 새 package가 data/report.json을 생성하고 output/result.md를 생성하지 않는 기대를 실패 테스트로 정의한다.",
+    "report schema의 required field, additional field 정책, type, array order와 package reference 경계를 검증한다.",
+    "report 누락, malformed JSON, schema 불일치와 package root 밖 참조가 validate 실패로 이어지는지 검증한다.",
+    "create, show, update, transition, validate, migrate와 check-schemas의 3.0.0 정상 경로를 검증한다.",
+    "1.0.0과 2.0.0 legacy 및 알 수 없는 version의 오류 메시지와 migration 안내를 검증한다.",
+    "migration이 source byte를 보존하고 별도 3.0.0 package를 생성하는 기존 회귀를 유지한다.",
+    "문서의 JSON canonical source, optional derived rendering, version과 package structure 표현이 schema와 manager에 일치하는지 검증한다.",
+    "python3 -m unittest discover -s .codex/skills/work-unit-planner-af/tests -p test_*.py 전체가 통과한다."
+  ],
+  "aiChecklist": [
+    "Human 요청, docs/research/work-unit-json-storage-format.md와 선택 A 기록을 읽고 구현 범위를 재확인했다.",
+    "Design Document 존재 여부와 현재 project 및 HOME skill 사본 차이를 확인하고 변경 경계를 기록했다.",
+    "실패 테스트를 구현보다 먼저 작성하고 예상 실패 근거를 기록했다.",
+    "report schema가 결과 의미 데이터를 소유하고 execution, review, evidence 원본을 불필요하게 복제하지 않는지 확인했다.",
+    "3.0.0 schema, manager, 문서, 테스트와 migration 동작이 단일 계약으로 일치하는지 확인했다.",
+    "active core에서 result.md 필수 요구가 제거되고 historical package 예시는 보존되었는지 확인했다.",
+    "검증 명령과 테스트 결과를 evidence에 기록하고 실패 또는 편차와 잔여 위험을 숨기지 않았다.",
+    "Human review 방법과 승인, rework, merge, PR promotion 및 skill 전파 결정 지점을 준비했다."
+  ],
+  "humanChecklist": [
+    "data/report.json과 report.schema.json이 실행 요약, 산출물, 검증 근거, 잔여 위험, 미해결 항목과 Design Document 결과를 충분히 구조화하는지 확인한다.",
+    "새 package에 필수 output/result.md가 없고 HTML과 Markdown이 JSON에서 생성하는 선택적 파생물로만 남았는지 확인한다.",
+    "check-schemas와 전체 manager 회귀 테스트 및 create, validate, migrate smoke 결과를 evidence/logs에서 확인한다.",
+    "기존 1.0.0과 2.0.0 package가 자동 변경 또는 삭제되지 않고 명시적 migration 경계를 유지하는지 확인한다.",
+    "변경이 현재 프로젝트 경계 안에 머물렀는지 확인하고 승인 또는 rework 및 merge와 PR promotion 여부를 결정한다.",
+    "/home/deus/.codex/skills 사본으로 전파할지 별도의 Human 결정을 내린다."
+  ],
+  "humanReviewMethod": "Human은 .codex/skills/work-unit-planner-af/assets/schema/report.schema.json, work-unit.schema.json, assets/scripts/work_unit.py, SKILL.md, references/work-unit-structure.md와 tests/test_work_unit_manager.py를 비교한다. evidence/logs의 check-schemas, unittest discover, create, validate, migrate 결과를 재실행하거나 확인하고 새 임시 package의 data/report.json 존재 및 output/result.md 부재를 검사한다. 승인 기준은 3.0.0 JSON 계약 일치, 모든 검증 통과, legacy source 보존, 범위 준수이다. 불일치, 데이터 중복, migration 손상 또는 검증 누락은 rework 사유이다. 최종 승인, rework, merge, PR promotion과 /home/deus/.codex/skills 전파는 Human이 결정한다.",
+  "qualityGateRef": "data/quality-gate.json",
+  "packageRefs": {
+    "execution": "data/execution.json",
+    "review": "data/review.json",
+    "qualityGate": "data/quality-gate.json",
+    "traceability": "data/traceability.json",
+    "report": "data/report.json"
+  },
+  "expectedOutput": "Work Unit package contract 3.0.0: canonical data/report.json과 report.schema.json, result.md가 없는 JSON-only 의미 데이터 core package, 갱신된 schema-driven manager, 문서, migration 동작, 회귀 테스트 및 Human review 근거.",
+  "dependencies": {
+    "parent": null,
+    "dependsOn": [],
+    "blocks": [],
+    "executionOrder": 1
+  },
+  "unresolvedItems": [
+    "현재 프로젝트와 /home/deus/.codex/skills 사본의 전파 및 설치는 이 Work Unit 실행 후 Human이 별도로 결정한다.",
+    "외부 프로젝트에 존재할 수 있는 2.0.0 package의 일괄 migration 일정과 지원 기간은 별도 Intake와 Human 결정이 필요하다."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "summary": "아직 실행되지 않았습니다.",
+  "artifactRefs": [],
+  "verification": {
+    "result": "not_run",
+    "evidenceRefs": []
+  },
+  "remainingRisk": [],
+  "unresolvedItems": [
+    "현재 agents/는 비어 있으며 package identity, 구현 언어, VS Code API, Codex Goal·exec 연동 API와 build tool은 실행 시 공식 근거와 Design Document 갱신을 통해 확정해야 한다."
+  ],
+  "designDocument": {
+    "status": "not_checked",
+    "refs": [],
+    "reason": "관련 Design Document 확인 결과가 아직 기록되지 않았습니다."
+  }
+}

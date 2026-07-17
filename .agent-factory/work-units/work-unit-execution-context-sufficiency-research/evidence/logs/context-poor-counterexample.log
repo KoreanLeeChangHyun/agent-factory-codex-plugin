@@ -1,0 +1,32 @@
+Command (executed 2026-07-14 from /home/deus/workspace/skills):
+tmp=$(mktemp -d); pkg="$tmp/context-poor"; python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py create "$pkg" --id context-poor --title x --goal x --scope x --out-of-scope x --plan x --acceptance-criterion x --definition-of-done x --test-criterion x --ai-checklist-item x --human-checklist-item x --human-review-method x --quality-check x --requirement-ref x --expected-output x --execution-order 1; python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate "$pkg"; jq '{status,sourceDesignRefs,goal,scope,outOfScope,plan,acceptanceCriteria,definitionOfDone,testCriteria,aiChecklist,humanChecklist,humanReviewMethod,expectedOutput,unresolvedItems}' "$pkg/data/work-unit.json"; jq . "$pkg/data/traceability.json"; rm -rf "$tmp"
+
+Exit code: 0
+
+Output:
+{"valid": true, "schemaVersion": "3.0.0", "files": ["/tmp/tmp.6WRJLAVlIX/context-poor/data/work-unit.json", "/tmp/tmp.6WRJLAVlIX/context-poor/data/execution.json", "/tmp/tmp.6WRJLAVlIX/context-poor/data/review.json", "/tmp/tmp.6WRJLAVlIX/context-poor/data/quality-gate.json", "/tmp/tmp.6WRJLAVlIX/context-poor/data/traceability.json", "/tmp/tmp.6WRJLAVlIX/context-poor/data/report.json", "/tmp/tmp.6WRJLAVlIX/context-poor/evidence/commands.json", "/tmp/tmp.6WRJLAVlIX/context-poor/evidence/tests.json"]}
+{
+  "status": "ready",
+  "sourceDesignRefs": [],
+  "goal": "x",
+  "scope": ["x"],
+  "outOfScope": ["x"],
+  "plan": ["x"],
+  "acceptanceCriteria": ["x"],
+  "definitionOfDone": ["x"],
+  "testCriteria": ["x"],
+  "aiChecklist": ["x"],
+  "humanChecklist": ["x"],
+  "humanReviewMethod": "x",
+  "expectedOutput": "x",
+  "unresolvedItems": []
+}
+{
+  "designDocumentRefs": [],
+  "requirementRefs": ["x"],
+  "decisionRefs": [],
+  "implementationRefs": [],
+  "testRefs": [],
+  "reviewRefs": [],
+  "workUnitDependencyRefs": []
+}

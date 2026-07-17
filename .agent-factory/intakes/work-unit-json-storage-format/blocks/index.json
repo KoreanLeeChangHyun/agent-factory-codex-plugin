@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-work-unit-json-storage-format.md",
+      "mediaType": "text/markdown",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/work-unit-json-storage-format.md",
+      "sha256": "44793eabb0b907de1bf403623c3c94d2814f3119b5ab6ffa2334a75659d7af31",
+      "sizeBytes": 12959
+    }
+  ]
+}

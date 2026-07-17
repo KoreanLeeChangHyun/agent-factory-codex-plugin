@@ -1,0 +1,47 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-bootstrap-location-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision/blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "scope",
+      "content": [
+        "이번 bootstrap Work Unit에만 master 작업 트리 실행 예외를 적용한다.",
+        "후속 Work Unit의 dedicated branch와 linked worktree 의무는 변경하지 않는다.",
+        "Human 승인 없는 merge, branch 삭제, worktree 강제 제거 또는 PR promotion은 수행하지 않는다."
+      ],
+      "attributes": {
+        "sourceKey": "scopeBoundary",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-bootstrap-location-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision/blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

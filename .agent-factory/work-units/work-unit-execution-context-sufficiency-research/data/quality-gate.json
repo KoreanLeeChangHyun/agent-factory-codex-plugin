@@ -1,0 +1,21 @@
+{
+  "requiredChecks": [
+    "연구 기록 필수 구조와 YAML front matter 완전성",
+    "공식 웹 출처 URL, tier, freshness와 핵심 근거의 정확성",
+    "저장소 근거 경로와 재현 명령의 추적성",
+    "사실, 권고, 제한사항, 미해결 항목과 결론의 분리",
+    "담당자 역할 발명 제거와 Agent Factory Human boundary 준수"
+  ],
+  "evidence": [
+    "evidence/commands.json",
+    "evidence/tests.json",
+    "evidence/logs/context-poor-counterexample.log",
+    "evidence/logs/package-validation.log",
+    "evidence/logs/source-and-drift-check.log",
+    "evidence/logs/research-contract-verification.log",
+    "evidence/logs/final-validation.log",
+    "evidence/logs/completion-audit.log"
+  ],
+  "state": "pass",
+  "qualityScore": 100
+}

@@ -1,0 +1,9 @@
+{
+  "requiredChecks": [
+    "단위·통합·VS Code E2E 테스트",
+    "JSON + 블록 단일 원천과 path security 검증"
+  ],
+  "evidence": [],
+  "state": "not_run",
+  "qualityScore": 0
+}

@@ -1,0 +1,22 @@
+BROWSER VERIFICATION: vscode-extension-ui-structure-draft
+COMMAND: Playwright 1.60.0 with system Chrome, file:// report
+
+INFO launch system Chrome in headless mode
+INFO open file:///home/deus/workspace/skills/docs/design-documents/vscode-extension-ui-structure/report/index.html
+PASS 01 file URL에서 report와 local CSS/JavaScript 로드
+PASS 02 manifest의 모든 source projection과 두 diagram을 DOM으로 생성
+PASS 03 탭 이름이 정확한 네 개
+PASS 04 각 활성 탭의 TabHeader와 Body가 한 쌍으로 함께 전환
+PASS 05 검토 도구가 명시적으로 선택한 단계만 표시
+PASS 06 Done 미선택 시 Done 단계가 숨겨짐
+PASS 07 정상 칸반은 정확한 5단계와 순서
+PASS 08 카드의 보이는 내용은 title뿐이고 report에서 fixed height를 계산
+PASS 09 허용된 Ready→Working drop 뒤 카드 위치와 status가 함께 변경
+PASS 10 허용되지 않은 Working→Done drop은 위치와 status를 변경하지 않음
+PASS 11 허용된 Working→Review drop 뒤 카드 위치와 status가 함께 변경
+PASS 12 Review→Done drop만으로 Human 승인을 우회하지 않음
+PASS 13 단계별 세로 스크롤 동작과 숨김 스크롤바를 실제 CSSOM에서 확인
+PASS 14 Blocked는 정상 칸반 열이 아닌 별도 예외 설명
+PASS 15 검토용 표현과 미정 제품 결정이 명시적으로 분리
+PASS 16 브라우저 console과 page runtime 오류 없음
+RESULT PASS 16 browser checks

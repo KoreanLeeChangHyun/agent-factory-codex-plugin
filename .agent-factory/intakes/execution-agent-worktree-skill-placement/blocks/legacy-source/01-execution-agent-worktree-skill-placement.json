@@ -1,0 +1,139 @@
+{
+  "id": "execution-agent-worktree-skill-placement",
+  "date": "2026-07-15",
+  "type": "implementation-placement-research",
+  "basisRequest": "Execution Agent가 Work Unit별 Git branch와 linked worktree를 안전하고 반복 가능하게 준비할 수 있도록 스크립트와 스킬의 책임 및 저장 위치를 결정한다.",
+  "relatedArtifacts": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/interviews/work-unit-execution-repository-decision.json",
+    ".codex/skills/agent-factory-lifecycle-af/SKILL.md",
+    ".codex/skills/work-unit-planner-af/SKILL.md",
+    "docs/work-units/agent-extension-goal-execution-integration"
+  ],
+  "subsequentHumanDecision": "docs/interviews/work-unit-branch-lifecycle-naming-decision.json",
+  "humanFacts": [
+    "Work Unit의 branch와 linked worktree를 만드는 주체는 Execution Agent다.",
+    "Work Unit Execution은 Goal, exec, dedicated branch와 linked worktree를 반드시 사용한다.",
+    "canonical Git repository root는 /home/deus/workspace/skills다.",
+    "worktree 생성에는 재사용 가능한 스크립트와 이를 지시하는 Agent Factory 스킬이 필요하다."
+  ],
+  "repositoryEvidence": [
+    {
+      "path": ".codex/skills/work-unit-planner-af/",
+      "finding": "Work Unit package의 생성, 갱신, 검증과 실행 준비 데이터 계약을 소유하며 Git 실행 mutation은 소유하지 않는다."
+    },
+    {
+      "path": ".codex/skills/agent-factory-lifecycle-af/",
+      "finding": "Intake, Work Unit, Execution과 Human Review를 연결하는 lifecycle router이며 현재 worktree 전용 script는 없다."
+    },
+    {
+      "path": "docs/work-units/agent-extension-goal-execution-integration/",
+      "finding": "Agent 확장이 Goal execution을 요청하는 UI/runtime 소비자 역할을 계획하고 있으므로 Git worktree 구현의 유일한 canonical owner로 두면 CLI Execution 경로와 중복될 수 있다."
+    },
+    {
+      "path": ".codex/skills/",
+      "finding": "프로젝트가 관리하는 Agent Factory 스킬 원본이 위치하며 별도 execution 책임을 추가할 수 있다."
+    }
+  ],
+  "queries": [
+    "Git official worktree add lock list porcelain remove prune repair",
+    "Git official branch name validation check-ref-format",
+    "Git official status porcelain z machine parsing",
+    "Git official rev-parse show-toplevel verify commit"
+  ],
+  "sources": [
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "Git worktree documentation",
+      "url": "https://git-scm.com/docs/git-worktree.html",
+      "evidence": "linked worktree는 add, list, lock, remove, prune와 repair로 관리한다. add -b는 새 branch와 worktree를 함께 만들며 --lock은 활성 worktree의 prune, move 또는 delete를 방지한다. remove는 dirty worktree를 기본적으로 거부한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "Git check-ref-format documentation",
+      "url": "https://git-scm.com/docs/git-check-ref-format",
+      "evidence": "check-ref-format --branch는 새 branch 이름을 Git branch 규칙에 따라 검증한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "Git status documentation",
+      "url": "https://git-scm.com/docs/git-status",
+      "evidence": "--porcelain 형식은 script가 해석할 수 있도록 안정적이며 -z는 파일 이름을 NUL로 구분한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "Git rev-parse documentation",
+      "url": "https://git-scm.com/docs/git-rev-parse",
+      "evidence": "--show-toplevel은 repository root를 확인하고 --verify와 commit peeling은 base ref가 단일 commit으로 해석되는지 검증할 수 있다."
+    }
+  ],
+  "findings": [
+    {
+      "id": "FINDING-001",
+      "statement": "worktree lifecycle은 Work Unit 정의가 아니라 Execution mutation이므로 work-unit-planner-af가 소유하면 안 된다."
+    },
+    {
+      "id": "FINDING-002",
+      "statement": "Agent extension과 CLI Execution이 같은 안전 규칙을 사용하려면 Git orchestration은 UI 확장 내부가 아니라 재사용 가능한 Agent Factory execution skill과 deterministic script가 소유해야 한다."
+    },
+    {
+      "id": "FINDING-003",
+      "statement": "사람이 읽는 절차만으로는 branch/path 충돌, dirty state와 stale administrative record 처리를 일관되게 보장하기 어려우므로 machine-readable JSON 결과를 반환하는 script가 필요하다."
+    }
+  ],
+  "recommendation": {
+    "status": "supported",
+    "canonicalOwner": ".codex/skills/work-unit-execution-af/",
+    "skillName": "work-unit-execution-af",
+    "scriptPath": ".codex/skills/work-unit-execution-af/scripts/worktree.py",
+    "responsibilities": [
+      "Work Unit execution-context에서 repository root, base ref, dedicated branch와 linked worktree path의 resolved 값을 입력받는다.",
+      "repository root와 base commit, branch name, branch and worktree path collision을 mutation 전에 검증한다.",
+      "새 dedicated branch와 linked worktree를 원자적인 prepare 흐름으로 생성하고 활성 기간에 lock한다.",
+      "worktree와 branch의 현재 상태를 stable porcelain and NUL-delimited Git output으로 검사한다.",
+      "Human의 merge, rework 또는 폐기 결정 이후에만 명시적인 cleanup을 수행하며 dirty worktree를 자동 삭제하지 않는다.",
+      "명령 결과, resolved values, lifecycle state와 오류를 구조화된 JSON으로 출력한다."
+    ],
+    "safetyRules": [
+      "shell interpolation을 사용하지 않고 argument array로 Git을 실행한다.",
+      "git worktree add -b를 사용하며 기존 branch를 강제로 reset하는 -B를 사용하지 않는다.",
+      "worktree remove --force와 branch 강제 삭제를 제공하지 않는다.",
+      "cleanup은 Human review decision 이전에 자동 실행하지 않는다.",
+      "path 또는 branch collision, invalid base ref, dirty state와 repository mismatch에서 mutation 전에 중단한다."
+    ],
+    "routing": {
+      "work-unit-planner-af": "execution-context 필수값과 package validity만 정의하고 Git mutation은 수행하지 않는다.",
+      "agent-factory-lifecycle-af": "named Goal Work Unit Execution을 work-unit-execution-af로 라우팅한다.",
+      "agent-extension": "독자 Git orchestration을 구현하지 않고 work-unit-execution-af의 script contract를 호출한다.",
+      "execution-agent": "script를 호출하고 반환된 resolved state와 evidence를 Work Unit Execution record에 기록한다."
+    },
+    "bootstrap": "work-unit-execution-af 자체를 최초 구현하는 Work Unit은 아직 script가 없으므로 동일한 검증 순서의 명시적 Git 명령으로 one-time bootstrap worktree를 만들고 모든 명령과 상태를 evidence로 남긴다. 이후 Work Unit은 canonical script를 사용한다."
+  },
+  "rejectedAlternatives": [
+    {
+      "alternative": "work-unit-planner-af scripts에 worktree mutation 추가",
+      "reason": "Work Unit package 계획·검증과 Execution side effect의 책임이 혼합된다."
+    },
+    {
+      "alternative": "agent-factory-lifecycle-af scripts에 직접 추가",
+      "reason": "lifecycle router가 Git 세부 구현까지 소유하여 변경 영향과 테스트 범위가 커진다."
+    },
+    {
+      "alternative": "Agent 확장 내부에만 구현",
+      "reason": "CLI Execution Agent가 재사용할 canonical implementation이 없어지고 두 실행 경로가 갈라진다."
+    }
+  ],
+  "limitations": [
+    "branch와 worktree path naming 규칙의 구체적인 형식은 아직 Human 결정 또는 Execution contract로 확정되지 않았다.",
+    "현재 repository에는 최초 commit과 사용 가능한 base ref가 없어 첫 linked worktree 생성 전 baseline 준비가 필요하다.",
+    "실제 skill과 script 구현은 새 Work Unit의 Execution 범위이며 이번 research에서는 파일을 생성하지 않는다."
+  ],
+  "conclusion": {
+    "status": "supported",
+    "summary": "Execution Agent 전용 work-unit-execution-af 스킬을 .codex/skills에 추가하고 scripts/worktree.py가 안전한 linked worktree lifecycle과 JSON 결과를 소유한다. lifecycle은 라우팅하고 planner는 데이터 계약만 검증하며 Agent 확장은 동일 script contract를 재사용한다."
+  }
+}

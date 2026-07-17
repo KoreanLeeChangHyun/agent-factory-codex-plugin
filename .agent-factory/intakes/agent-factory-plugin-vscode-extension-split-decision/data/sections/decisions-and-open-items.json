@@ -1,0 +1,148 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "productComposition": [
+          "Agent Factory Plugin",
+          "VS Code Workspace Extension",
+          "VS Code Agent Extension"
+        ],
+        "sharedCapabilitySource": "Agent Factory Plugin의 skills and execution contracts",
+        "workspaceExtensionWindow": "공통 Plugin capability를 사용하는 Dashboard, Kanban, Viewer와 Context Workspace Window",
+        "agentExtensionWindow": "공통 Plugin capability를 사용하는 Agent interaction, Goal Execution과 streamed status Agent Window",
+        "relationship": "두 확장은 독립 agent domain이 아니라 동일 canonical data와 execution state를 표시하고 조작하는 두 UI surface다.",
+        "status": "accepted"
+      },
+      "attributes": {
+        "sourceKey": "decision",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "open-item",
+      "content": "Agent Extension과 Workspace Extension 사이의 command and event schema",
+      "attributes": {
+        "sourceKey": "unresolvedItems[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "open-item",
+      "content": "codex app-server process ownership, lifecycle and failure recovery",
+      "attributes": {
+        "sourceKey": "unresolvedItems[2]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "open-item",
+      "content": "local, WSL, SSH, Dev Container and Codespaces 지원 범위",
+      "attributes": {
+        "sourceKey": "unresolvedItems[3]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 3
+      },
+      "attributes": {
+        "sourceKey": "unresolvedItems",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-REVIEW-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "active-draft",
+        "reason": "Inter-extension contract and remote support decisions remain unresolved.",
+        "estimatedHumanDecisionTopics": 3
+      },
+      "attributes": {
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

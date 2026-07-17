@@ -1,0 +1,47 @@
+STATIC, SCHEMA AND STRUCTURE VERIFICATION: vscode-extension-ui-structure-draft
+
+COMMAND: python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py check-schemas
+{"valid": true, "schemaVersion": "3.0.0", "schemas": ["work-unit", "execution", "review", "quality-gate", "traceability", "report", "commands", "tests"]}
+
+COMMAND: node --check report and verification JavaScript; parse Python schema verifier
+PASS 5 JavaScript files and 1 Python verification file parsed successfully.
+
+COMMAND: node docs/design-documents/vscode-extension-ui-structure/report/generate-report-data.mjs --verify
+PASS report data matches manifest and section JSON
+
+COMMAND: python3 -B docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-design-schema.py
+PASS Draft 2020-12 Design Document schema self-check
+PASS assembled manifest, sections, collections, diagrams and Work Unit review data
+RESULT PASS 1 schema, 4 sections, 4 collections, 2 diagrams
+
+COMMAND: node docs/work-units/vscode-extension-ui-structure-draft/evidence/verification/verify-structure.mjs
+PASS 01 Design Document의 13개 JSON source가 strict parse
+PASS 02 manifest가 schema, sections, collections, diagrams와 report 경로를 모두 연결
+PASS 03 Draft 2020-12 Design Document schema가 실제 package collection을 계약
+PASS 04 Project Core가 지정된 다섯 의미 영역만 소유
+PASS 05 신규 프로젝트 baseline과 실행 전 Design Document·reference 부재를 snapshot으로 기록
+PASS 06 요구사항 section이 scope·non-goals·stakeholder·품질·완료 경계를 모두 정의
+PASS 07 네 탭 이름과 TabHeader·Body 쌍을 정확히 정의
+PASS 08 단계 selected-only 계약과 Done 숨김 및 미정 선택 세부를 분리
+PASS 09 정상 5단계의 개수·순서·의미가 canonical schema와 일치
+PASS 10 Blocked를 정상 5단계 밖의 예외 상태로 정의
+PASS 11 카드는 title-only·fixed이며 정확한 높이와 긴 제목 처리는 미정
+PASS 12 DnD transition map이 canonical x-statusTransitions와 일치하고 Human guard를 보존
+PASS 13 세로 scroll과 width 0 hidden scrollbar 계약을 기록
+PASS 14 API와 event model을 근거 없이 발명하지 않고 unresolved로 기록
+PASS 15 Work Unit unresolvedItems를 Project Core에 손실 없이 보존
+PASS 16 Design decisions가 rationale·alternatives·tradeoffs 상태를 명시
+PASS 17 두 diagram source와 metadata가 목적·전체 edge·추적성을 보존
+PASS 18 Security·privacy 미정과 risk·operations 경계를 명시
+PASS 19 Traceability가 requirement→decision→view→Work Unit→test→review를 연결
+PASS 20 검증·decomposition·deliverable·history·references·glossary를 기록
+PASS 21 generated report data가 모든 sections·collections·diagrams·Work Unit review data와 일치
+PASS 22 report shell은 generated data와 renderer만 로드하고 factual markup을 복제하지 않음
+PASS 23 report renderer가 모든 projection과 diagram source를 생성·검증
+PASS 24 report CSS가 단계별 vertical scroll과 width 0 scrollbar를 구현
+PASS 25 report renderer가 탭 쌍·단계 가시성·DnD 결과를 함께 갱신
+PASS 26 실행 가능한 extension 또는 제품 기술·시각 결정을 생성하지 않음
+PASS 27 검증 파일은 현재 Work Unit evidence 경계 안에 위치
+RESULT PASS 27 structure checks
+
+OVERALL RESULT: PASS

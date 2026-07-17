@@ -1,0 +1,41 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "specification package 구조에서 Project Core의 canonical 저장 위치와 다른 명세서의 참조 방식을 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "human-request",
+      "content": "Project Core를 어디에서 관리할 것인가?",
+      "attributes": {
+        "sourceKey": "question",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

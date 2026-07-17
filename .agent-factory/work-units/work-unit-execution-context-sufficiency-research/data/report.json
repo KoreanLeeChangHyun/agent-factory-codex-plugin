@@ -1,0 +1,54 @@
+{
+  "summary": "현재 Work Unit v3는 무히스토리 Execution에 필요한 문맥을 표현할 수 있지만 schema-valid ready가 의미적 실행 충분성을 보장하지 않는다는 연구 기록을 작성했다. 공식 T1/T2 출처와 저장소 증거, context-poor 반례, HOME drift, 담당자 표현 철회를 기록하고 Human review 자료를 준비했다.",
+  "artifactRefs": [
+    {
+      "path": "data/traceability.json",
+      "mediaType": "application/json",
+      "description": "패키지 외부 연구 산출물 docs/research/work-unit-execution-context-sufficiency.md와 사용 근거를 추적하는 내부 기록"
+    }
+  ],
+  "verification": {
+    "result": "pass",
+    "evidenceRefs": [
+      {
+        "path": "evidence/commands.json",
+        "mediaType": "application/json",
+        "description": "실행한 조사·검증 명령 요약"
+      },
+      {
+        "path": "evidence/tests.json",
+        "mediaType": "application/json",
+        "description": "출처, 표본, 반례, 연구 계약과 완료 감사 결과"
+      },
+      {
+        "path": "evidence/logs/context-poor-counterexample.log",
+        "mediaType": "text/plain",
+        "description": "schema-valid ready가 의미적 충분성을 보장하지 않는 반례"
+      },
+      {
+        "path": "evidence/logs/research-contract-verification.log",
+        "mediaType": "text/plain",
+        "description": "연구 기록 구조와 핵심 주장 검증 결과"
+      },
+      {
+        "path": "evidence/logs/completion-audit.log",
+        "mediaType": "text/plain",
+        "description": "Acceptance Criteria와 Definition of Done 항목별 완료 감사"
+      }
+    ]
+  },
+  "remainingRisk": [
+    "NASA 두 공식 reference 페이지의 본문 발행·수정일이 표시되지 않았다.",
+    "preflight 부재 결론은 조사한 repository 범위에 한정된다.",
+    "project v3와 HOME 설치본 drift의 해결 방향은 미결정이다."
+  ],
+  "unresolvedItems": [
+    "비차단: 프로젝트 v3 Agent Factory skill과 /home/deus/.codex/skills 설치본의 전파·동기화 여부는 별도 Human 결정과 Work Unit이 필요하다.",
+    "비차단: Work Unit schema, readiness gate, /goal preflight 개선 구현 여부와 정확한 데이터 모델은 본 연구 기록 후 별도 Intake와 Human 결정이 필요하다."
+  ],
+  "designDocument": {
+    "status": "not_found",
+    "refs": [],
+    "reason": "docs/design-documents에는 vscode-extension-ui-structure만 존재하며 본 Work Unit의 실행 문맥 충분성 연구에 직접 대응하는 Design Document는 없다. 연구는 기존 제품 설계를 변경하지 않아 갱신하지 않았다."
+  }
+}

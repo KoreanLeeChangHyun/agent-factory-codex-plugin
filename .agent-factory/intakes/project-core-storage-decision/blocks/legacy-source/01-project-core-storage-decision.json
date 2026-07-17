@@ -1,0 +1,70 @@
+{
+  "id": "project-core-storage-decision",
+  "date": "2026-07-15",
+  "status": "answered",
+  "language": "ko",
+  "basisRequest": "specification package 구조에서 Project Core의 canonical 저장 위치와 다른 명세서의 참조 방식을 결정한다.",
+  "relatedArtifacts": [
+    "docs/interviews/specifications-root-name-decision.json",
+    "docs/research/design-document-profile-system.json",
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/work-units/agent-factory-skill-docs-json-block-contract"
+  ],
+  "question": "Project Core를 어디에서 관리할 것인가?",
+  "options": [
+    {
+      "id": "A",
+      "decision": "docs/specifications/project-core/에 단일 canonical package로 저장한다.",
+      "pros": [
+        "모든 명세서가 같은 원본을 참조한다.",
+        "공통 JSON package, schema와 Viewer 계약을 재사용한다."
+      ],
+      "cons": [
+        "project-core 전용 document profile이 필요하다."
+      ]
+    },
+    {
+      "id": "B",
+      "decision": "docs/project-core.json으로 별도 저장한다.",
+      "pros": [
+        "파일 구조가 단순하다."
+      ],
+      "cons": [
+        "공통 specification package와 block 및 Viewer 계약에서 벗어난다."
+      ]
+    },
+    {
+      "id": "C",
+      "decision": "각 specification package에 Project Core를 포함한다.",
+      "pros": [
+        "각 문서가 Project Core 내용을 자체 포함한다."
+      ],
+      "cons": [
+        "내용 중복과 version drift가 발생할 수 있다."
+      ]
+    }
+  ],
+  "selectedOption": "A",
+  "answerInterpretation": "Human의 '네'를 직전 추천안 A에 대한 동의로 기록했다.",
+  "humanDecision": {
+    "canonicalPackage": "docs/specifications/project-core/",
+    "documentProfile": {
+      "id": "project-core",
+      "version": "unresolved"
+    },
+    "referenceMode": "typed-relation",
+    "relationExample": {
+      "relationType": "governed-by",
+      "target": "specification:project-core"
+    },
+    "embeddedCopiesAllowed": false
+  },
+  "applicationStatus": "recorded-not-applied",
+  "pendingApplication": [
+    "project-core profile version and schema definition",
+    "Intake decision update",
+    "research conclusion update",
+    "Work Unit scope and acceptance update",
+    "Agent Factory Design Document and Project Core skill contract migration"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "Agent Factory Plugin과 VS Code 확장의 제품 구성을 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-split-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

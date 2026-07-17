@@ -1,0 +1,90 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "implementation-placement-research"
+      },
+      "attributes": {
+        "sourceKey": "type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/interviews/work-unit-execution-repository-decision.json",
+        ".codex/skills/agent-factory-lifecycle-af/SKILL.md",
+        ".codex/skills/work-unit-planner-af/SKILL.md",
+        "docs/work-units/agent-extension-goal-execution-integration"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": [
+        "Work Unit의 branch와 linked worktree를 만드는 주체는 Execution Agent다.",
+        "Work Unit Execution은 Goal, exec, dedicated branch와 linked worktree를 반드시 사용한다.",
+        "canonical Git repository root는 /home/deus/workspace/skills다.",
+        "worktree 생성에는 재사용 가능한 스크립트와 이를 지시하는 Agent Factory 스킬이 필요하다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

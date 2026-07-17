@@ -1,0 +1,47 @@
+{
+  "summary": "Human Review에서 baseCommit 추적 오류, cleanup 부분 실패의 lock 손실, skill active location 충돌과 stale Work Unit 상태가 확인되어 rework가 필요하다.",
+  "artifactRefs": [
+    {
+      "path": "evidence/logs/verification-summary.json",
+      "mediaType": "application/json",
+      "description": "구현 및 검증 결과 요약"
+    },
+    {
+      "path": "evidence/commands.json",
+      "mediaType": "application/json",
+      "description": "실행 명령 ledger"
+    }
+  ],
+  "verification": {
+    "result": "fail",
+    "evidenceRefs": [
+      {
+        "path": "evidence/tests.json",
+        "mediaType": "application/json",
+        "description": "RED/GREEN, integration, regression 및 validation 증거"
+      },
+      {
+        "path": "evidence/logs/verification-summary.json",
+        "mediaType": "application/json",
+        "description": "quality gate별 검증 요약"
+      }
+    ]
+  },
+  "remainingRisk": [
+    "기존 pair reuse가 실제 기반과 다른 baseCommit을 canonical JSON에 기록할 수 있다.",
+    "cleanup remove 실패 후 기존 worktree가 unlocked 상태로 남을 수 있다.",
+    "work-unit-execution-af의 project source와 active installation 위치가 충돌한다.",
+    "linked worktree directory root와 path naming 형식이 미결정이다."
+  ],
+  "unresolvedItems": [
+    "reuse base semantics와 mismatch 처리 규칙을 구현하고 회귀 검증해야 한다.",
+    "cleanup remove 실패 시 relock recovery와 evidence contract를 구현해야 한다.",
+    ".codex/skills와 $CODEX_HOME/skills의 canonical source, active installation 및 synchronization 규칙을 Human이 결정해야 한다.",
+    "linked worktree directory의 root와 path naming 형식을 Human이 결정해야 한다."
+  ],
+  "designDocument": {
+    "status": "not_found",
+    "refs": [],
+    "reason": "traceability와 repository 검색에서 이 Work Unit을 다루는 Design Document가 확인되지 않아 accepted Intake decisions, research, Human interview를 구현 basis로 사용했습니다."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.17",
+  "id": "common-document-required-metadata-and-sections",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "closed"
+  },
+  "createdAt": "2026-07-16T14:30:37+00:00",
+  "updatedAt": "2026-07-16T19:07:17+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory Intake v2 normalization",
+    "sourceRefs": [
+      {
+        "artifactType": "legacy-intake-source",
+        "id": "common-document-required-metadata-and-sections-source-1",
+        "path": ".agent-factory/intakes/common-document-required-metadata-and-sections/blocks/legacy-source/01-common-document-required-metadata-and-sections.json"
+      }
+    ]
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
+    "reviewedAt": null,
+    "findings": []
+  }
+}

@@ -1,0 +1,24 @@
+Source: docs/work-units/work-unit-json-storage-format
+Destination: docs/work-units/work-unit-json-storage-format-v3
+Destination id: work-unit-json-storage-format-v3
+Manager operation: migrate, followed immediately by full validate
+Destination validation: pass (schemaVersion 3.0.0; 8 canonical JSON documents)
+Source manifest file count: 12
+Before manifest SHA-256: 10da9ff109a38b83b22054a080c38515faf3a2955927dfc9900b2f23d6e3a10d
+After-migrate manifest SHA-256: 10da9ff109a38b83b22054a080c38515faf3a2955927dfc9900b2f23d6e3a10d
+Manifest comparison: identical
+Final manifest SHA-256 after destination evidence/report completion: 10da9ff109a38b83b22054a080c38515faf3a2955927dfc9900b2f23d6e3a10d
+Final manifest comparison: identical
+
+de4bce3429612bc8e8f3e33383344ee12dcf88c5c0f6b0a3dec1921c48514e55  docs/work-units/work-unit-json-storage-format/data/execution.json
+d2f8f1909e541a9bace9d9793ce215db3e1bf6440b34a264aa2ed2b690fac54c  docs/work-units/work-unit-json-storage-format/data/quality-gate.json
+99345a07805770f16d3106638dda7f4b2cf1b5fd0269cb95e0318a07b38fb6c2  docs/work-units/work-unit-json-storage-format/data/review.json
+3033020db44863d621eb31ae185d44efb096cd1615925ae0943e53e532556979  docs/work-units/work-unit-json-storage-format/data/traceability.json
+c167e182aa0b6ae30f3bdcc50f524d88a2ffae0a03f35c2c87dbcaa322b91448  docs/work-units/work-unit-json-storage-format/data/work-unit.json
+ade4edf0a8f0fe02ef008e2ded61ee5882a8f40a70da4614ce50d0439e0661d2  docs/work-units/work-unit-json-storage-format/evidence/commands.json
+dfc3dfa6c9667c74fabfe56c7010c0c3ea908f90329a216873f141b3d1b86fa8  docs/work-units/work-unit-json-storage-format/evidence/logs/check-schemas.log
+5ede4141130ace4fb2245b03ffe3bc716065be436971e8403addd1fcda562487  docs/work-units/work-unit-json-storage-format/evidence/logs/create-validate-migrate-smoke.log
+0847c95b60946d007eb096fd767b62b87824920969603c61e7df14294093c8ba  docs/work-units/work-unit-json-storage-format/evidence/logs/tdd-red.log
+18fc51ee71687efbebd4883622865eb8f71122cef2aad7096b5b9e8a6eb5dd5d  docs/work-units/work-unit-json-storage-format/evidence/logs/unittest-discover.log
+2bc0a36047bfb55eee4f9ec2a2981664726b8d26ab815724c66987020b7a2de4  docs/work-units/work-unit-json-storage-format/evidence/tests.json
+048d7a34558f76639db167c45ec41eba93e821852598c3df6d4c52887192751d  docs/work-units/work-unit-json-storage-format/output/result.md

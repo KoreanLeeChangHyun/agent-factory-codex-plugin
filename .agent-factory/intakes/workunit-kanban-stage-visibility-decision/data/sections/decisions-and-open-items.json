@@ -1,0 +1,83 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": {
+        "heading": "결정 질문",
+        "text": "WorkUnit TabHeader에서 선택하는 대상은 여러 칸반 보드, 칸반 단계 또는 두 종류 모두 중 무엇인가?"
+      },
+      "attributes": {
+        "sourceKey": "markdown.결정 질문",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-workunit-kanban-stage-visibility-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "workunit-kanban-stage-visibility-decision-source-1",
+          "path": ".agent-factory/intakes/workunit-kanban-stage-visibility-decision/blocks/legacy-source/01-workunit-kanban-stage-visibility-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "heading": "현재 결정",
+        "text": "2026-07-14 Human이 B를 구체화하여 선택했다.\n\n- WorkUnit TabHeader에서는 표시할 칸반 단계를 선택한다.\n- Body에는 선택한 단계만 표시한다.\n- `Done`처럼 선택하지 않은 단계는 항상 표시하지 않아도 된다.\n- 선택 컨트롤 형식과 기본 표시 단계는 아직 정하지 않았다."
+      },
+      "attributes": {
+        "sourceKey": "markdown.현재 결정",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-workunit-kanban-stage-visibility-decision.md"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "workunit-kanban-stage-visibility-decision-source-1",
+          "path": ".agent-factory/intakes/workunit-kanban-stage-visibility-decision/blocks/legacy-source/01-workunit-kanban-stage-visibility-decision.md"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-REVIEW-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "active-draft",
+        "reason": "The related Specification and Work Unit remain pending Human review.",
+        "estimatedHumanDecisionTopics": 1
+      },
+      "attributes": {
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    },
+    {
+      "id": "ACTIVE-OPEN-001",
+      "kind": "open-item",
+      "content": "Related Specification and Work Unit require current Human review before this Intake can close or become ready.",
+      "attributes": {
+        "blocking": true,
+        "resolved": false,
+        "classification": "current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

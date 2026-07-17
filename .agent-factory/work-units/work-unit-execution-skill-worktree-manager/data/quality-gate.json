@@ -1,0 +1,16 @@
+{
+  "requiredChecks": [
+    "Work Unit package validation",
+    "Skill frontmatter and quick validation",
+    "Python unit tests",
+    "Temporary Git repository integration tests",
+    "Unsafe Git flag and shell invocation static scan"
+  ],
+  "evidence": [
+    "evidence/tests.json",
+    "evidence/commands.json",
+    "evidence/logs/verification-summary.json"
+  ],
+  "state": "fail",
+  "qualityScore": 0
+}

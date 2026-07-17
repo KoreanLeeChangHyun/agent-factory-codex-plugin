@@ -1,0 +1,141 @@
+{
+  "id": "agent-factory-plugin-vscode-extension-architecture",
+  "date": "2026-07-15",
+  "type": "comparison-research",
+  "basisRequest": "Agent Factory를 Plugin과 VS Code 확장의 조합으로 구성하는 것이 기존 Workspace 확장과 Agent 확장 분리보다 적합한지 조사한다.",
+  "relatedArtifacts": [
+    "docs/interviews/agent-factory-skill-namespace-decision.json",
+    "docs/work-units/workspace-extension-four-tab-mvp",
+    "docs/work-units/agent-extension-goal-execution-integration",
+    "docs/work-units/work-unit-execution-skill-worktree-manager"
+  ],
+  "subsequentHumanDecision": "docs/interviews/agent-factory-plugin-vscode-extension-split-decision.json",
+  "humanFacts": [
+    "Agent Factory는 브랜드 이름이다.",
+    "프로젝트의 14개 스킬 전체를 Agent Factory 브랜드로 묶는 방향을 검토한다.",
+    "Human 가시성은 VS Code에서 Dashboard, Kanban, Viewer와 Context로 제공한다."
+  ],
+  "sources": [
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "OpenAI Build plugins",
+      "url": "https://learn.chatgpt.com/docs/build-plugins.md",
+      "evidence": "Plugin은 manifest를 entry point로 사용하고 skills, hooks, MCP server configuration, app mappings와 assets를 하나의 설치·배포 단위로 묶을 수 있다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "OpenAI Codex App Server",
+      "url": "https://learn.chatgpt.com/docs/app-server.md",
+      "evidence": "codex app-server는 VS Code 확장과 같은 rich client를 위한 interface이며 authentication, thread, approval와 streamed agent event를 JSON-RPC로 제공한다. stdio JSONL은 기본 transport이고 WebSocket은 experimental and unsupported다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "VS Code Extension Anatomy",
+      "url": "https://code.visualstudio.com/api/get-started/extension-anatomy",
+      "evidence": "VS Code 확장은 activation event, contribution point와 VS Code API를 통해 command와 UI 기능을 제공한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "VS Code Views UX Guidelines",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/views",
+      "evidence": "View는 Tree View, Welcome View와 Webview View를 포함할 수 있고 Sidebar 또는 Panel에 배치할 수 있으며 불필요한 View와 custom Webview 수를 제한하도록 권고한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "VS Code Webviews UX Guidelines",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/webviews",
+      "evidence": "Webview는 native VS Code API를 넘어서는 custom UI에만 사용하고 theme, accessibility, keyboard navigation을 지원해야 한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "VS Code Remote Extensions",
+      "url": "https://code.visualstudio.com/api/advanced-topics/remote-extensions",
+      "evidence": "Workspace Extension은 workspace와 같은 host에서 파일과 도구에 접근하면서 View를 제공할 수 있다. 서로 다른 extension host의 확장 API는 직접 공유되지 않아 commands 같은 별도 통신 경계가 필요하다."
+    }
+  ],
+  "findings": [
+    {
+      "id": "FINDING-001",
+      "statement": "Agent Factory Plugin은 14개 스킬, lifecycle hook, MCP or connector configuration과 공통 asset의 canonical 설치·배포 경계에 적합하다."
+    },
+    {
+      "id": "FINDING-002",
+      "statement": "Dashboard, Kanban, Viewer와 Context는 editor workspace를 읽고 VS Code contribution and custom view를 제공해야 하므로 하나의 Workspace Extension 책임에 적합하다."
+    },
+    {
+      "id": "FINDING-003",
+      "statement": "독립 Agent VS Code 확장을 추가하면 extension-to-extension protocol과 remote extension host 차이를 별도로 관리해야 한다. 현재 명시된 기능은 codex app-server client를 Workspace Extension 내부 boundary로 두어 처리할 수 있다."
+    },
+    {
+      "id": "FINDING-004",
+      "statement": "VS Code와 Codex의 실행 연동은 Plugin 내부 구현을 복제하지 않고 codex app-server의 versioned JSON-RPC schema와 streamed event를 사용하는 것이 공식 rich-client integration boundary에 부합한다."
+    }
+  ],
+  "recommendation": {
+    "status": "supported",
+    "architecture": "one-agent-factory-plugin-plus-one-vscode-workspace-extension",
+    "agentFactoryPluginOwns": [
+      "14 bundled Agent Factory skills",
+      "lifecycle and execution instructions",
+      "deterministic scripts including worktree management",
+      "optional hooks",
+      "optional MCP server and connector configuration",
+      "plugin manifest, version and distribution metadata"
+    ],
+    "vscodeWorkspaceExtensionOwns": [
+      "Dashboard, Kanban, Viewer and Context UI",
+      "canonical JSON and connected block loading and rendering",
+      "workspace file observation and allowed artifact edits",
+      "Kanban DnD and Work Unit selection",
+      "Execution submission and streamed status presentation",
+      "local codex app-server client lifecycle"
+    ],
+    "integrationBoundary": {
+      "protocol": "Codex app-server JSON-RPC",
+      "preferredTransport": "stdio JSONL",
+      "reason": "stdio is the documented default local transport; WebSocket is currently experimental and unsupported.",
+      "schema": "Generate TypeScript or JSON Schema from the installed Codex version and validate messages at the extension boundary."
+    },
+    "workUnitImpact": [
+      "workspace-extension-four-tab-mvp remains the single VS Code extension implementation unit.",
+      "agent-extension-goal-execution-integration should not create a second VS Code extension; it should be superseded or reshaped into Plugin packaging and Workspace Extension to app-server integration work.",
+      "Agent Factory skill namespace and active installation decisions move to the Plugin manifest and marketplace installation contract."
+    ]
+  },
+  "rejectedAlternatives": [
+    {
+      "alternative": "Plugin plus separate Workspace and Agent VS Code extensions",
+      "reason": "현재 요구 범위에서는 두 extension host, dependency and command protocol, separate packaging and release lifecycle을 추가하지만 독립 Agent UI 책임은 명시되지 않았다."
+    },
+    {
+      "alternative": "VS Code extension only",
+      "reason": "스킬과 execution contract가 VS Code에 종속되어 CLI, desktop and other Codex surfaces에서 재사용되지 못한다."
+    },
+    {
+      "alternative": "Plugin only",
+      "reason": "Dashboard, Kanban, structured Viewer와 Context 같은 VS Code-native Human visibility surface를 제공하지 못한다."
+    }
+  ],
+  "limitations": [
+    "Agent Factory Plugin의 exact manifest, marketplace scope, installation policy와 versioning은 아직 결정되지 않았다.",
+    "VS Code extension의 local and remote workspace support 범위는 아직 Human 결정이 필요하다.",
+    "codex app-server의 experimental API를 사용할 요구는 확인되지 않았으며 stable API surface를 기본으로 해야 한다.",
+    "기존 두 VS Code 확장 Work Unit을 supersede, merge 또는 reshape할지는 Human 결정이 필요하다."
+  ],
+  "conclusion": {
+    "status": "supported",
+    "summary": "Agent Factory는 14개 스킬과 실행 자산을 묶는 Plugin 하나, Human workspace visibility와 control을 제공하는 VS Code Workspace Extension 하나로 구성하는 것이 현재 요구와 공식 extension boundaries에 가장 단순하게 부합한다. 실행 연동은 별도 Agent extension이 아니라 Workspace Extension의 codex app-server stdio client로 둔다."
+  },
+  "humanDecisionImpact": {
+    "status": "recommendation-superseded",
+    "decision": "Human은 Agent Window와 Workspace Window를 분리하기 위해 Agent Factory Plugin 하나와 VS Code Agent Extension 및 VS Code Workspace Extension 두 개를 사용하기로 했다.",
+    "clarification": "두 VS Code 확장은 독립 역할이 아니라 Agent Factory Plugin의 동일 skills, canonical data and execution state와 연동하는 두 UI surface다.",
+    "requiredBoundary": "Plugin capability와 shared execution session을 단일 source로 유지하고 두 확장이 runtime and worktree orchestration을 중복 구현하지 않도록 app-server ownership and command/event protocol을 후속 계약에서 확정해야 한다."
+  }
+}

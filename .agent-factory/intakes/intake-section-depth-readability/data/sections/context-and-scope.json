@@ -1,0 +1,87 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-14"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake-section-depth-readability.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-section-depth-readability-source-1",
+          "path": ".agent-factory/intakes/intake-section-depth-readability/blocks/legacy-source/01-intake-section-depth-readability.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "web-research"
+      },
+      "attributes": {
+        "sourceKey": "type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake-section-depth-readability.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-section-depth-readability-source-1",
+          "path": ".agent-factory/intakes/intake-section-depth-readability/blocks/legacy-source/01-intake-section-depth-readability.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/work-units/agent-factory-skill-docs-json-block-contract"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake-section-depth-readability.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-section-depth-readability-source-1",
+          "path": ".agent-factory/intakes/intake-section-depth-readability/blocks/legacy-source/01-intake-section-depth-readability.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "scope",
+      "content": [
+        "heading hierarchy와 문서 탐색",
+        "온라인 문서의 scanability",
+        "하위 heading 사용 조건",
+        "접근성 및 자동 목차"
+      ],
+      "attributes": {
+        "sourceKey": "searchScope",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake-section-depth-readability.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-section-depth-readability-source-1",
+          "path": ".agent-factory/intakes/intake-section-depth-readability/blocks/legacy-source/01-intake-section-depth-readability.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

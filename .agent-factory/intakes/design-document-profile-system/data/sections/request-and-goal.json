@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "요구사항 명세서, API 설계서, 데이터 모델링 설계서, 클래스 아키텍처 설계서 등 서로 다른 문서 종류를 docs/design-documents/<문서이름>/ 아래의 규격화된 JSON + 블록 패키지로 표현할 때 공통 계약과 종류별 필수 metadata·section을 어떻게 나눌지 조사한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

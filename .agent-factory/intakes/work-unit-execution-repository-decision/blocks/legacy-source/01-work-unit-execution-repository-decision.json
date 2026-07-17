@@ -1,0 +1,57 @@
+{
+  "id": "work-unit-execution-repository-decision",
+  "date": "2026-07-15",
+  "status": "answered",
+  "language": "ko",
+  "basisRequest": "Goal, exec, dedicated Git branch와 linked worktree가 필수인 Work Unit Execution의 canonical Git repository를 결정한다.",
+  "relatedArtifacts": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/work-units/agent-factory-skill-docs-json-block-contract",
+    "docs/work-units/agent-factory-json-block-data-migration",
+    "docs/work-units/workspace-extension-four-tab-mvp",
+    "docs/work-units/agent-extension-goal-execution-integration"
+  ],
+  "repositoryEvidence": {
+    "inspectedPath": "/home/deus/workspace/skills",
+    "gitRepository": false,
+    "parentGitRepositoryFound": false
+  },
+  "question": "Work Unit을 실행할 Git 저장소를 어떻게 준비할 것인가?",
+  "options": [
+    {
+      "id": "A",
+      "decision": "/home/deus/workspace/skills를 Git 저장소로 초기화한다."
+    },
+    {
+      "id": "B",
+      "decision": "별도의 기존 Git 저장소를 사용한다."
+    },
+    {
+      "id": "C",
+      "decision": "Execution을 보류하고 설계 결정만 계속한다."
+    }
+  ],
+  "selectedOption": "A",
+  "humanDecision": {
+    "repositoryRoot": "/home/deus/workspace/skills",
+    "initializationRequired": true,
+    "worktreeOwner": "Execution Agent",
+    "worktreeManagerSkill": "work-unit-execution-af",
+    "worktreeManagerScript": ".codex/skills/work-unit-execution-af/scripts/worktree.py",
+    "executionRequirements": [
+      "Goal",
+      "exec",
+      "dedicated Git branch",
+      "linked worktree"
+    ]
+  },
+  "applicationStatus": "initialized",
+  "repositoryState": {
+    "initializedAt": "2026-07-15",
+    "repositoryRoot": "/home/deus/workspace/skills",
+    "initialBranch": "master",
+    "hasCommit": false
+  },
+  "executionBoundary": "git init은 완료했다. 브랜치 이름 변경, 최초 커밋, base ref 확정과 linked worktree 생성은 아직 수행하지 않았다. Worktree 생성 주체는 Execution Agent이며 work-unit-execution-af가 canonical 실행 계약을 소유한다.",
+  "placementResearch": "docs/research/execution-agent-worktree-skill-placement.json"
+}

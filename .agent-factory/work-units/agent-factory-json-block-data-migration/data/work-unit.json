@@ -1,0 +1,117 @@
+{
+  "id": "agent-factory-json-block-data-migration",
+  "title": "Agent Factory 산출물 JSON·블록 데이터 마이그레이션",
+  "version": "3.0.0",
+  "status": "ready",
+  "sourceDesignRefs": [
+    "docs/design-documents/vscode-extension-ui-structure"
+  ],
+  "goal": "갱신된 스킬 문서 계약에 따라 기존 Agent Factory 산출물을 source-preserving 방식으로 규격화된 JSON + 블록 패키지로 마이그레이션한다.",
+  "scope": [
+    "선행 Work Unit에서 확정된 공통 JSON 문서 계약과 Intake, Specification base/profile, Work Unit별 필수 metadata·section 계약을 확인한다.",
+    "docs/intakes, docs/work-units와 기존 docs/design-documents를 포함한 migration source inventory 및 source mapping을 작성한다.",
+    "Specification migration destination은 docs/specifications/<document-id>/로 제한하고 source와 destination을 분리한다.",
+    "Intake, Specification, Work Unit을 metadata, title, table of contents, 최대 depth 2 section, content와 connected block 구조로 변환한다.",
+    "큰 Specification은 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/ package로 분할한다.",
+    "Project Core를 docs/specifications/project-core/의 단일 canonical package와 project-core profile로 migration하고 다른 Specification에서 중복 내용을 만들지 않고 governed-by typed relation을 기록한다.",
+    "기존 설계 및 명세 산출물을 내용과 source evidence에 따라 requirements-specification, api-design, data-model, class-architecture 또는 Agent Factory 스킬에 등록된 profile에 mapping하고 documentClass와 documentProfile id/version을 기록한다.",
+    "근거 없이 profile을 추정하지 않으며 mapping 근거가 없거나 skill-owned profile이 없으면 base-valid-profile-unresolved로 기록한다.",
+    "skill-owned profile별 required section과 allowed block을 검증하고 OpenAPI, UML, ERD, schema 등 기존 machine-readable 원문은 connected block 또는 typed relation으로 보존한다.",
+    "block placement와 semantic relation, media type, package-local path 및 참조 무결성을 migration한다.",
+    "실제 스타일 데이터는 migration하지 않고 문서 metadata에는 theme 이름만 보존 또는 명시된 값으로 설정한다.",
+    "새 canonical package의 strict JSON, base/profile schema, connected block, relation과 source mapping 검증을 완료한 뒤에만 backup 이동 단계를 준비한다.",
+    "이동할 모든 source와 .backup/<migration-id>/ destination의 정확한 mapping을 제시하고 실제 이동 직전에 별도 최종 Human 확인을 받는다.",
+    "최종 확인 후 프로젝트 루트 .backup/<migration-id>/를 사용해 각 원본의 기존 프로젝트 상대 경로를 유지하여 이동하고 기존 backup path를 덮어쓰지 않는다.",
+    "이동 전후 source bytes의 보존, backup destination, canonical package와 backup source의 traceability 및 이동 결과 evidence를 검증한다."
+  ],
+  "outOfScope": [
+    "Workspace 확장과 Agent 확장 구현.",
+    "Human 승인 없는 기존 원본 삭제, 덮어쓰기 또는 비가역 변환.",
+    "명시되지 않은 artifact 의미나 누락 데이터를 추론해 채우는 작업."
+  ],
+  "assumptions": [],
+  "constraints": [
+    "agent-factory-skill-docs-json-block-contract 완료 후 실행한다.",
+    "canonical Execution repository root는 /home/deus/workspace/skills이고 Execution은 Goal, exec, dedicated Git branch와 linked worktree를 사용한다.",
+    "원본은 새 canonical package 검증과 정확한 move manifest에 대한 최종 Human 확인 전까지 이동, 삭제 또는 덮어쓰기하지 않는다.",
+    "최종 확인 후 원본은 .backup/<migration-id>/ 아래로만 이동하고 기존 backup destination을 덮어쓰지 않는다."
+  ],
+  "plan": [
+    "Plan: 갱신된 계약과 migration 대상 inventory를 확정하고 변환 순서를 정한다.",
+    "Work: schema-first로 JSON + 블록 package를 생성하고 source mapping을 기록한다.",
+    "AI Review: 데이터 손실, 참조 경로, schema, traceability와 원본 보존을 검사한다.",
+    "Report: 대상별 결과와 예외, 검증 evidence 및 Human review 방법을 기록한다."
+  ],
+  "acceptanceCriteria": [
+    "migration 대상 문서가 공통 metadata, title, table of contents, section, content와 optional connected block 계약을 따른다.",
+    "모든 section은 최대 depth 2이고 H4 이상 구조가 생성되지 않는다.",
+    "모든 새 Specification package가 docs/specifications/<document-id>/ 아래의 metadata, table of contents, section files와 blocks 구조로 생성된다.",
+    "Project Core가 docs/specifications/project-core/에 한 번만 생성되고 다른 Specification은 governed-by typed relation으로 참조한다.",
+    "각 Specification에 evidence-backed documentClass와 documentProfile id/version 또는 명시적인 profile-unresolved 상태가 기록된다.",
+    "각 등록 profile 문서가 네 공통 필수 section과 해당 skill-owned profile required section을 모두 포함한다.",
+    "미등록 또는 근거 없는 profile은 임의 값으로 채우지 않고 base-valid-profile-unresolved로 검증된다.",
+    "OpenAPI, UML, ERD와 schema 원문이 generic prose로 손실 복제되지 않고 connected block 또는 typed relation으로 보존된다.",
+    "각 block은 section content의 위치와 의미 relation에 연결되고 package 내부 경로로 해석된다.",
+    "문서 JSON에 실제 style 값이 포함되지 않고 metadata.theme에는 이름만 존재한다.",
+    "모든 새 JSON이 해당 base and profile schema와 strict parse를 통과하며 원본 traceability가 기록된다.",
+    "backup 이동 전에 source와 destination 전체 목록, migration id, 검증 결과와 실행할 이동 동작이 Human에게 제시되고 별도 최종 확인이 기록된다.",
+    "최종 확인된 원본만 프로젝트 루트 .backup/<migration-id>/ 아래로 이동되고 기존 프로젝트 상대 경로가 유지된다.",
+    "기존 backup destination 또는 path collision이 있으면 덮어쓰지 않고 이동 전에 중단한다.",
+    "backup 이동 전후 bytes 보존과 canonical package-to-backup source traceability가 evidence로 검증된다.",
+    "Intake와 Work Unit이 각각 INTAKE-DECISION-020과 INTAKE-DECISION-022의 required section을 모두 포함한다.",
+    "Work Unit migration 결과가 Goal, exec, repository, base ref, dedicated branch와 linked worktree execution-context를 포함한다."
+  ],
+  "definitionOfDone": [
+    "선행 Work Unit 계약과 전체 migration inventory를 확인한다.",
+    "대상 package 생성과 strict JSON, schema, section, block, relation, source mapping 검증을 완료한다.",
+    "backup move manifest에 모든 source, .backup/<migration-id>/ destination과 기존 상대 경로 mapping을 기록한다.",
+    "실제 이동 직전 Human의 별도 최종 확인을 기록하고 확인된 경우에만 non-overwriting move와 이동 후 bytes 및 traceability 검증을 완료한다.",
+    "AI checklist, 한국어 Human checklist, review 방법과 canonical migration 및 backup evidence를 준비한다."
+  ],
+  "testCriteria": [
+    "모든 migration JSON strict parse와 schema validation을 실행한다.",
+    "table of contents의 section 순서·경로·depth와 section file id가 일치하는지 검증한다.",
+    "모든 block placement, relation과 path가 존재하고 package root 내부에 머무는지 검증한다.",
+    "JSON에 style object, color, font, spacing 또는 renderer 전용 값이 유입되지 않았는지 검사한다.",
+    "원본 checksum 또는 동등한 byte 비교로 source preservation을 검증한다.",
+    "세 문서별 required section과 Work Unit execution-context 필드 coverage를 검증한다."
+  ],
+  "aiChecklist": [
+    "선행 계약만 사용하고 의미를 발명하지 않았는지 확인한다.",
+    "모든 대상과 제외 대상을 inventory에 기록했는지 확인한다.",
+    "schema, block path, traceability와 원본 보존 검증이 통과했는지 확인한다.",
+    "migration 예외와 미정 사항을 숨기지 않았는지 확인한다."
+  ],
+  "humanChecklist": [
+    "migration 대상과 제외 대상이 의도와 일치하는지 확인한다.",
+    "JSON + 블록 결과가 기존 원본 의미를 보존하는지 표본 검토한다.",
+    "기존 원본이 보존되고 참조 관계가 유효한지 확인한다.",
+    "검증 evidence를 확인하고 승인 또는 rework를 결정한다."
+  ],
+  "humanReviewMethod": "Human은 migration inventory와 source mapping을 확인하고 기존 원본과 새 JSON + 블록 package를 표본 대조한다. schema, block reference, traceability와 source preservation evidence를 확인한 뒤 승인 또는 rework를 결정하며 원본 제거 여부는 별도로 결정한다.",
+  "qualityGateRef": "data/quality-gate.json",
+  "packageRefs": {
+    "execution": "data/execution.json",
+    "review": "data/review.json",
+    "qualityGate": "data/quality-gate.json",
+    "traceability": "data/traceability.json",
+    "report": "data/report.json"
+  },
+  "expectedOutput": "기존 docs/design-documents를 포함한 원본에서 docs/specifications/<document-id>/로 migration된 JSON + connected block packages, 단일 Project Core package, skill-owned profile mapping inventory, unresolved profile 목록, source mapping과 base/profile 검증 evidence, Human-confirmed .backup/<migration-id>/ 원본 archive 및 이동 전후 integrity evidence.",
+  "dependencies": {
+    "parent": null,
+    "dependsOn": [
+      "agent-factory-skill-docs-json-block-contract"
+    ],
+    "blocks": [
+      "workspace-extension-four-tab-mvp"
+    ],
+    "executionOrder": 3
+  },
+  "unresolvedItems": [
+    "기존 문서에 theme 이름이 없을 때 적용할 값 또는 미지정 표현은 별도 명시가 필요하다.",
+    "동적 Theme Registry와 실제 theme asset migration은 별도 Work Unit 범위다.",
+    "기존 설계 및 명세 산출물의 profile을 판정할 evidence가 부족한 경우 Human 분류가 필요하다.",
+    "<migration-id>의 실제 값은 Execution에서 기존 .backup path와 충돌하지 않게 생성하고 move manifest에 기록해야 한다."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/work-unit-execution-bootstrap-location-decision.json",
+      "sha256": "ab783c6316c9525d3b26cc8ae656431ce6c39859c4088004358b1718b36426f3",
+      "sizeBytes": 968
+    }
+  ]
+}

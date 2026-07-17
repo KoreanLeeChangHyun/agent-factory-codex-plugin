@@ -1,0 +1,381 @@
+{
+  "recordType": "intake-requirements-basis",
+  "schemaStatus": "pre-contract-basis",
+  "id": "intake-json-canonical-viewer",
+  "recordedAt": "2026-07-14",
+  "lifecyclePhase": "intake",
+  "basisRequest": "Intake 산출물을 docs/intakes에 저장하고, 모든 의미 데이터를 구조화된 JSON으로 전환하며, Human과 AI가 동일한 canonical 데이터를 사용하도록 한다.",
+  "humanFacts": [
+    "기본 생명주기는 Intake -> Work Unit -> Execution이며 필요에 따라 feedback으로 루프를 반복한다.",
+    "Intake Agent는 인터뷰, 코드 분석, 웹 검색, 데이터 분석 등 Work Unit 생성에 필요한 작업을 수행하고 최종적으로 Work Unit을 생성한다.",
+    "Intake 산출물은 docs/intakes에 저장한다.",
+    "Intake 하나를 하나의 디렉터리 패키지로 관리한다.",
+    "Intake를 참고하여 생성된 Work Unit은 docs/work-units에 저장한다.",
+    "Work Unit은 설계 문서 작성과 코드 작성 등 다양한 활동을 포함할 수 있다.",
+    "설계 문서 작성 Work Unit의 산출물은 docs/design-documents에 저장한다.",
+    "Execution Agent는 Goal, exec, 전용 Git branch와 worktree를 사용해 실행한다.",
+    "모든 의미 데이터는 구조화된 JSON으로 저장한다.",
+    "코드, 다이어그램, SVG, 이미지, 표처럼 별도 형식이 필요한 블록은 해당 확장자의 별도 파일로 생성하고 JSON에서 참조한다.",
+    "AI는 canonical JSON 원문을 직접 읽는다.",
+    "Human은 동일한 canonical JSON을 VS Code 확장 Viewer로 읽는다.",
+    "Human 전용 Markdown 또는 HTML 원본과 Viewer 전용 복제 데이터는 만들지 않는다.",
+    "Human과 AI가 보는 데이터의 일관성이 목표다.",
+    "VS Code 확장은 Agent 확장과 Workspace 확장으로 분리한다.",
+    "Workspace 확장의 최종 MVP 탭은 Dashboard, Kanban, Viewer, Context 네 개다.",
+    "Kanban에서 Work Unit 카드를 선택하면 Viewer가 해당 Work Unit을 연다.",
+    "Kanban에서 Work Unit을 DnD로 조정하고 Execution에 바로 제출하며 그 결과를 Agent 확장과 연동하는 기능이 필요하다.",
+    "Kanban DnD, Execution 제출, Agent 확장 연동은 현재 4탭 MVP와 별도로 다룰 수 있다.",
+    "Work Unit은 스킬 문서 갱신, 데이터 마이그레이션, Workspace 확장, Agent 확장의 네 단계로 분해하고 이 순서로 실행한다.",
+    "Viewer는 Intake, Work Unit, Design Document를 포함한 규격화된 JSON과 블록 산출물을 하나의 공통 Viewer로 표시한다.",
+    "Context 탭은 AGENTS.md와 Agent Factory Skills를 관리한다.",
+    "이번 범위는 Dashboard, Kanban, Viewer, Context 네 탭과 명시된 연결 관계까지다."
+    ,"Intake, Design Document, Work Unit은 제목, metadata, table of contents, section, content와 필요 시 block으로 구성되는 공통 문서 모델을 사용한다."
+    ,"공통 문서 모델의 section은 기본적으로 평면이며 필요한 경우 subsection 한 단계만 허용한다. 문서 title은 H1, top-level section은 H2, subsection은 H3로 렌더링하고 H4 이상은 허용하지 않는다."
+    ,"block은 단순 첨부가 아니라 section content의 정확한 위치와 의미 관계를 통해 연결된다."
+    ,"큰 Design Document는 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/로 분할한다."
+    ,"문서 JSON은 데이터와 의미 구조만 담당하고 실제 시각 스타일은 포함하지 않는다."
+    ,"문서 metadata에는 프로젝트 디자인 테마를 선택하는 theme 이름만 저장하며 Viewer가 해당 테마에 따라 렌더링한다."
+    ,"프로젝트별 동적 테마 구성 시스템은 현재 JSON 규격 및 네 Work Unit과 분리한 별도 작업이다."
+    ,"세 문서의 필수 metadata와 필수 section은 지금까지의 인터뷰 내용을 기준으로 공식 자료를 조사해 결정한다."
+    ,"Work Unit에는 Goal, exec, Git repository, base ref, 전용 branch와 linked worktree를 포함하는 필수 execution context가 있어야 한다."
+    ,"Work Unit의 dedicated branch와 linked worktree를 만드는 주체는 Execution Agent다."
+    ,"Execution Agent가 일관된 worktree lifecycle을 수행하도록 전용 Agent Factory 스킬과 deterministic script가 필요하다."
+    ,"Work Unit당 worktree 1개와 branch 1개를 사용하며 재실행과 rework는 동일한 pair에서 이어간다."
+    ,"Work Unit branch 이름은 work-unit/<work-unit-id> 형식을 사용한다."
+    ,"Agent Factory canonical artifact root는 /home/deus/workspace/skills/.agent-factory 디렉터리다."
+    ,"VS Code Workspace Extension은 /home/deus/workspace/skills/.agent-factory 안에 있는 canonical JSON과 connected block을 읽어 표시한다."
+    ,"기존 docs 하위 Agent Factory 산출물은 migration Work Unit에서 상대 구조를 보존해 .agent-factory로 이동하며 migration 완료 후 docs fallback source를 유지하지 않는다."
+  ],
+  "decisions": [
+    {
+      "id": "INTAKE-DECISION-001",
+      "decision": "Intake 하나당 docs/intakes/<intake-id>/ 패키지를 사용한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-002",
+      "decision": "구조화된 JSON을 canonical source로 사용하고 별도 형식 블록은 package-local 파일 참조로 연결한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-003",
+      "decision": "AI는 canonical JSON을 직접 읽고 Human 가시성은 VS Code 확장 Viewer가 동일 JSON을 렌더링하여 제공한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-004",
+      "decision": "Agent Factory 생명주기는 Intake -> Work Unit -> Execution을 기본으로 하고 필요할 때 feedback으로 반복한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-005",
+      "decision": "Intake, Work Unit, Design Document를 각각 docs/intakes, docs/work-units, docs/design-documents 아래의 규격화된 JSON과 블록 패키지로 저장한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-006",
+      "decision": "Workspace 확장의 최종 MVP 정보 구조는 Dashboard, Kanban, Viewer, Context 네 탭이다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-007",
+      "decision": "Intake, Work Unit, Design Document의 개별 뷰어는 하나의 공통 Viewer로 통합하고 artifact type과 id로 대상 산출물을 연다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-008",
+      "decision": "Kanban에서 Work Unit 카드를 선택하면 공통 Viewer가 해당 Work Unit을 여는 연결을 제공한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-009",
+      "decision": "Context 탭은 AGENTS.md와 Agent Factory Skills를 관리한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-010",
+      "decision": "Execution Agent는 Goal, exec, 전용 Git branch와 worktree를 사용한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-011",
+      "decision": "Kanban DnD 상태 조정, Execution 즉시 제출과 Agent 확장 결과 연동은 현재 4탭 MVP Work Unit과 분리한 후속 범위로 관리한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-012",
+      "decision": "Work Unit 실행 순서는 스킬 문서 갱신 -> 데이터 마이그레이션 -> Workspace 확장 -> Agent 확장이다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-013",
+      "decision": "Intake, Design Document, Work Unit은 metadata, title, table of contents, section, content와 optional block을 갖는 공통 JSON 문서 모델을 사용한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-014",
+      "decision": "공통 section depth는 최대 2이며 title은 H1, top-level section은 H2, subsection은 H3로 렌더링하고 H4 이상은 허용하지 않는다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-015",
+      "decision": "block은 section content의 배치 위치와 의미 관계를 통해 별도 확장자 파일에 연결한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-016",
+      "decision": "큰 Design Document는 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/로 분할한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-017",
+      "decision": "문서 JSON에는 실제 스타일을 저장하지 않고 metadata에 theme 이름만 저장하며 Viewer가 프로젝트 테마에 따라 렌더링한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-018",
+      "decision": "프로젝트별 동적 테마 구성 시스템은 현재 네 Work Unit과 분리한 별도 작업으로 관리한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-019",
+      "decision": "공통 필수 metadata는 id, artifactType, schemaVersion, documentVersion, projectId, lifecycle, createdAt, updatedAt, language, theme, provenance와 relations로 제한한다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-020",
+      "decision": "Intake 필수 section은 request-and-goal, context-and-scope, stakeholders-and-approval, evidence-and-findings, requirements-and-constraints, decisions-and-open-items, work-unit-basis이다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-021",
+      "decision": "Design Document 필수 section은 project-core, design-drivers, context-and-scope, architecture-and-strategy, design-views, design-decisions, quality-security-and-risks, verification-and-traceability, work-unit-decomposition이다.",
+      "status": "superseded",
+      "supersededBy": [
+        "INTAKE-DECISION-023",
+        "INTAKE-DECISION-024",
+        "INTAKE-DECISION-025"
+      ]
+    },
+    {
+      "id": "INTAKE-DECISION-022",
+      "decision": "Work Unit 필수 section은 basis, work-definition, plan, execution-context, acceptance-and-verification, execution, ai-review, human-review, report이며 execution-context에는 Goal, exec, repository, base ref, dedicated branch와 linked worktree가 포함된다.",
+      "status": "accepted"
+    },
+    {
+      "id": "INTAKE-DECISION-023",
+      "decision": "docs/design-documents/<document-id>/는 Agent Factory에서 requirements, interface design, model과 architecture를 포함하는 광의의 specification and design artifact package root로 사용하고, 각 문서는 공통 base contract와 versioned document profile을 조합한다.",
+      "status": "superseded",
+      "basis": "docs/research/design-document-profile-system.json",
+      "supersededBy": [
+        "INTAKE-DECISION-027"
+      ]
+    },
+    {
+      "id": "INTAKE-DECISION-024",
+      "decision": "Design Document 공통 필수 metadata에는 documentClass와 documentProfile.id, documentProfile.version을 추가하고 공통 필수 section은 purpose-and-scope, basis-and-relations, decisions-and-open-items, verification-and-traceability로 제한한다.",
+      "status": "superseded",
+      "basis": "docs/research/design-document-profile-system.json",
+      "supersededBy": [
+        "INTAKE-DECISION-030"
+      ]
+    },
+    {
+      "id": "INTAKE-DECISION-025",
+      "decision": "초기 Design Document profile은 requirements-specification, api-design, data-model, class-architecture이며 각 profile registry가 required and optional sections, block 계약, JSON Schema, renderer adapter와 migration compatibility를 소유한다.",
+      "status": "superseded",
+      "basis": "docs/research/design-document-profile-system.json",
+      "supersededBy": [
+        "INTAKE-DECISION-029",
+        "INTAKE-DECISION-031"
+      ]
+    },
+    {
+      "id": "INTAKE-DECISION-026",
+      "decision": "Viewer는 registry에 없는 document profile의 공통 base 구조를 generic view로 표시할 수 있지만 완전 유효한 문서로 판정하지 않고 base-valid-profile-unresolved 상태와 누락 profile id/version을 표시한다.",
+      "status": "superseded",
+      "basis": "docs/research/design-document-profile-system.json",
+      "supersededBy": [
+        "INTAKE-DECISION-031"
+      ]
+    },
+    {
+      "id": "INTAKE-DECISION-027",
+      "decision": "requirements, interface design, model과 architecture를 포함하는 모든 명세서 package의 canonical root는 docs/specifications/<document-id>/이며 category 하위 폴더를 강제하지 않고 JSON metadata가 분류를 소유한다.",
+      "status": "accepted",
+      "basis": "docs/interviews/specifications-root-name-decision.json"
+    },
+    {
+      "id": "INTAKE-DECISION-028",
+      "decision": "Project Core는 docs/specifications/project-core/의 단일 canonical package로 저장하고 project-core profile을 사용하며 다른 명세서는 governed-by typed relation으로 참조하고 내용을 복제하지 않는다.",
+      "status": "accepted",
+      "basis": "docs/interviews/project-core-storage-decision.json"
+    },
+    {
+      "id": "INTAKE-DECISION-029",
+      "decision": "명세서 종류별 profile id와 version, documentClass, section, block, JSON Schema, Viewer renderer mapping 및 compatibility and migration 규칙은 Agent Factory 스킬이 canonical source로 소유한다.",
+      "status": "accepted",
+      "basis": "docs/interviews/specification-profile-skill-ownership-decision.json"
+    },
+    {
+      "id": "INTAKE-DECISION-030",
+      "decision": "Specification 공통 필수 metadata에는 documentClass와 documentProfile.id, documentProfile.version을 추가하고 공통 필수 section은 purpose-and-scope, basis-and-relations, decisions-and-open-items, verification-and-traceability로 제한한다.",
+      "status": "accepted",
+      "basis": "docs/research/design-document-profile-system.json"
+    },
+    {
+      "id": "INTAKE-DECISION-031",
+      "decision": "초기 Specification profile은 project-core, requirements-specification, api-design, data-model, class-architecture이며 미등록 profile은 Viewer에서 공통 base generic view까지만 허용하고 base-valid-profile-unresolved로 판정한다.",
+      "status": "accepted",
+      "basis": [
+        "docs/research/design-document-profile-system.json",
+        "docs/interviews/project-core-storage-decision.json"
+      ]
+    },
+    {
+      "id": "INTAKE-DECISION-032",
+      "decision": "migration 결과의 schema와 참조 검증이 통과한 뒤 정확한 source and destination 이동 목록에 대한 최종 Human 확인을 받고, 기존 원본을 프로젝트 루트 .backup/<migration-id>/ 아래에 기존 상대 경로를 유지해 이동하며 기존 backup을 덮어쓰지 않는다.",
+      "status": "accepted",
+      "basis": "docs/interviews/migration-backup-location-decision.json"
+    },
+    {
+      "id": "INTAKE-DECISION-033",
+      "decision": "모든 Work Unit Execution의 canonical Git repository root는 /home/deus/workspace/skills이며 첫 Execution 전에 이 경로를 Git 저장소로 초기화해야 하고 각 Execution은 Goal, exec, dedicated branch와 linked worktree를 사용한다.",
+      "status": "accepted",
+      "basis": "docs/interviews/work-unit-execution-repository-decision.json"
+    },
+    {
+      "id": "INTAKE-DECISION-034",
+      "decision": "Work Unit의 dedicated branch와 linked worktree 생성·검증·정리는 Execution Agent가 수행하며 canonical owner는 .codex/skills/work-unit-execution-af/이고 deterministic implementation은 scripts/worktree.py에 둔다.",
+      "status": "accepted",
+      "basis": "docs/research/execution-agent-worktree-skill-placement.json"
+    },
+    {
+      "id": "INTAKE-DECISION-035",
+      "decision": "work-unit-planner-af는 execution-context 계약만 검증하고 Git mutation을 수행하지 않으며 agent-factory-lifecycle-af는 실행 스킬로 라우팅하고 Agent 확장은 동일 work-unit-execution-af script contract를 재사용한다.",
+      "status": "accepted",
+      "basis": "docs/research/execution-agent-worktree-skill-placement.json"
+    },
+    {
+      "id": "INTAKE-DECISION-036",
+      "decision": "Work Unit당 linked worktree 1개와 dedicated branch 1개를 사용하고 재실행 및 rework에서 동일 pair를 재사용하며 branch 이름은 work-unit/<work-unit-id> 형식으로 생성한다.",
+      "status": "accepted",
+      "basis": "docs/interviews/work-unit-branch-lifecycle-naming-decision.json"
+    },
+    {
+      "id": "INTAKE-DECISION-037",
+      "decision": "Agent Factory canonical artifact root를 /home/deus/workspace/skills/.agent-factory/로 변경하고 기존 /home/deus/workspace/skills/docs/ 하위 상대 구조를 migration하여 이동한다. VS Code Workspace Extension은 /home/deus/workspace/skills/.agent-factory만 canonical source로 읽으며 migration 완료 후 docs fallback을 사용하지 않는다.",
+      "status": "accepted",
+      "basis": "docs/interviews/agent-factory-canonical-root-decision.json"
+    }
+  ],
+  "externalEvidence": [
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://www.researchobject.org/ro-crate/specification/1.2/structure",
+      "finding": "디렉터리 단위 패키지, 대표 JSON 메타데이터, package-local 또는 웹 기반 참조 리소스를 결합하는 구조를 정의한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://specs.frictionlessdata.io/data-package/",
+      "finding": "패키지 최상위 JSON descriptor가 관련 리소스 목록과 메타데이터를 소유하는 구조를 정의한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://www.w3.org/TR/prov-dm/",
+      "finding": "산출물, 생성 활동, 책임 주체와 파생 관계를 구분하는 provenance 모델을 제공한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://json-schema.org/draft/2020-12",
+      "finding": "JSON 문서 구조와 검증 계약을 정의할 수 있는 Draft 2020-12 사양을 제공한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://www.rfc-editor.org/info/rfc8493/",
+      "finding": "디렉터리 패키지와 payload 무결성 manifest를 정의하지만 현재 Intake 요구에는 checksum 기반 보존·전송 계약이 명시되지 않았다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://www.iso.org/standard/74909.html",
+      "finding": "생명주기 information item을 generic document type과 specific purpose로 구분하고 프로젝트에 맞게 결합하거나 분할할 수 있어 공통 base와 목적별 profile 분리를 뒷받침한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://www.iso.org/standard/72089.html",
+      "finding": "요구사항 명세는 요구사항 공학의 별도 information item이므로 architecture 또는 software design의 단일 section template과 구분해야 한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://spec.openapis.org/oas/v3.2.0.html",
+      "finding": "API description은 paths, components와 security 등 전용 구조를 가지므로 api-design profile과 OpenAPI connected block을 지원해야 한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://www.omg.org/spec/UML",
+      "finding": "class와 relationship 모델은 machine-readable UML/XMI 표현을 가질 수 있으므로 class-architecture profile의 별도 model 또는 diagram block 연결이 필요하다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://json-schema.org/understanding-json-schema/structuring",
+      "finding": "공통 schema와 profile schema를 $ref로 조합하는 modular contract가 중복 없이 profile 확장을 지원한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://git-scm.com/docs/git-worktree.html",
+      "finding": "linked worktree의 add, list, lock, remove, prune와 repair lifecycle 및 dirty worktree 보호 동작을 정의한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "source": "https://git-scm.com/docs/git-check-ref-format",
+      "finding": "Execution script가 branch 생성 전에 check-ref-format --branch로 이름을 검증할 수 있다."
+    }
+  ],
+  "repositoryEvidence": [
+    {
+      "path": "docs/interviews/",
+      "finding": "기존 Human 결정 기록 3건이 Markdown으로 저장되어 있다."
+    },
+    {
+      "path": "docs/research/",
+      "finding": "기존 조사 기록 2건이 Markdown으로 저장되어 있다."
+    },
+    {
+      "path": "docs/design-documents/vscode-extension-ui-structure/data/sections/requirements.json",
+      "finding": "기존 draft는 Dashboard, Intake, Design, WorkUnit 네 탭을 기록하여 최신 Dashboard, Kanban, Viewer, Context 결정과 충돌한다."
+    },
+    {
+      "path": ".codex/skills/work-unit-planner-af/assets/schema/",
+      "finding": "현재 Work Unit은 Draft 2020-12 JSON Schema 기반 3.0.0 package contract를 사용한다."
+    }
+  ],
+  "constraints": [
+    "Canonical 의미 데이터와 Human 표시 데이터를 별도 원본으로 중복 저장하지 않는다.",
+    "별도 확장자 블록은 package root 안의 일반 파일로 저장하고 JSON에서 상대 경로로 참조한다.",
+    "Viewer는 canonical JSON과 참조 파일을 읽는 렌더링 경계이며 별도 source of truth가 아니다.",
+    "기존 Markdown 원본은 명시적 migration 및 Human 검토 없이 삭제하거나 덮어쓰지 않는다.",
+    "실제 VS Code 확장 구현은 구현 저장소와 런타임 기술 근거가 확인된 뒤 별도 Work Unit으로 다룬다.",
+    "Dashboard, Kanban, Viewer, Context 네 탭과 명시된 연결 관계 밖의 기능은 현재 MVP 범위에 추가하지 않는다.",
+    "Kanban DnD, Execution 제출과 Agent 확장 연동은 현재 4탭 MVP Work Unit에 포함하지 않는다.",
+    "기존 Dashboard, Intake, Design, WorkUnit 탭 결정은 최신 Dashboard, Kanban, Viewer, Context 결정으로 대체한다."
+  ],
+  "designImpact": {
+    "specification": "docs/specifications/<document-id>/",
+    "status": "update-required-during-work-unit-execution",
+    "reason": "기존 Design Document 경로와 단일 section 계약을 Specification root, 단일 Project Core package와 Agent Factory skill-owned profile 계약으로 대체해야 한다. 기존 vscode-extension-ui-structure package의 4탭 관련 갱신 필요성도 유지된다."
+  },
+  "unresolvedItems": [
+    "migration별 <migration-id> 생성 규칙은 migration Work Unit Execution에서 충돌 없는 값으로 정의하고 evidence에 기록해야 한다.",
+    "실제 VS Code 확장 구현 저장소, 구현 언어, 프레임워크와 VS Code API는 현재 저장소 근거로 확인되지 않았다.",
+    "Intake package의 최종 JSON Schema 필드, 상태 모델과 manager 명령 계약은 Work Unit Execution에서 schema-first로 정의해야 한다.",
+    "표와 다이어그램에서 canonical JSON 모델과 파생 렌더링 파일의 세부 형식은 해당 블록 유형별 명시적 계약이 필요하다.",
+    "Dashboard가 표시할 구체적인 집계 항목과 조작은 정해지지 않았다.",
+    "Context 탭에서 AGENTS.md와 Skills에 제공할 구체적인 생성, 편집, 활성화 및 검증 동작은 정해지지 않았다.",
+    "Kanban DnD의 허용 상태 전환, Execution 제출 조건·실패 처리와 Agent 확장 연동 계약은 후속 Intake에서 정해야 한다."
+    ,"프로젝트별 동적 Theme Registry, 테마 생성·편집·검증·version·fallback 계약은 별도 Intake와 Work Unit에서 정해야 한다."
+    ,"Work Unit execution-context의 Goal·exec runtime 식별자와 branch·worktree naming, setup·cleanup 상세 상태 모델은 스킬 계약 실행에서 schema-first로 정의해야 한다."
+    ,"명세서 profile 규칙을 소유할 정확한 Agent Factory skill 이름과 내부 asset 경로 및 schema file layout은 스킬 계약 Work Unit Execution에서 정의해야 한다."
+    ,"/home/deus/workspace/skills는 Git 저장소로 초기화되었지만 아직 최초 커밋과 실행 base ref가 없으므로 linked worktree 기반 첫 Execution 전에 이를 준비해야 한다."
+    ,"work-unit-execution-af를 최초 구현하는 Work Unit은 script가 아직 없으므로 공식 Git 검증 순서를 따르는 명시적 명령으로 one-time bootstrap하고 evidence를 남겨야 한다."
+  ]
+}

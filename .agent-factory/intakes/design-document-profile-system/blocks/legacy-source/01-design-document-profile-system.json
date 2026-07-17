@@ -1,0 +1,257 @@
+{
+  "id": "design-document-profile-system",
+  "date": "2026-07-15",
+  "type": "comparison-research",
+  "basisRequest": "요구사항 명세서, API 설계서, 데이터 모델링 설계서, 클래스 아키텍처 설계서 등 서로 다른 문서 종류를 docs/design-documents/<문서이름>/ 아래의 규격화된 JSON + 블록 패키지로 표현할 때 공통 계약과 종류별 필수 metadata·section을 어떻게 나눌지 조사한다.",
+  "relatedArtifacts": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/research/common-document-required-metadata-and-sections.json",
+    "docs/work-units/agent-factory-skill-docs-json-block-contract",
+    "docs/work-units/agent-factory-json-block-data-migration",
+    "docs/work-units/workspace-extension-four-tab-mvp",
+    "docs/work-units/agent-extension-goal-execution-integration"
+  ],
+  "humanFacts": [
+    "모든 명세서 package는 docs/specifications/<document-id>/에 저장한다.",
+    "API 설계서, 모델링 설계서, 클래스 아키텍처 설계서, 요구사항 명세서 등 다양한 종류가 존재할 수 있다.",
+    "문서의 canonical source는 규격화된 JSON + 연결된 별도 확장자 블록이다.",
+    "큰 Specification은 단일 JSON 파일로 저장하지 않는다.",
+    "JSON은 데이터와 의미 구조를 담당하고 실제 표현은 Viewer와 theme가 담당한다.",
+    "Project Core는 docs/specifications/project-core/의 단일 canonical package이고 다른 명세서는 typed relation으로 참조한다.",
+    "명세서 종류별 profile 규칙은 Agent Factory 스킬이 소유한다."
+  ],
+  "subsequentHumanDecisions": [
+    "docs/interviews/specifications-root-name-decision.json",
+    "docs/interviews/project-core-storage-decision.json",
+    "docs/interviews/specification-profile-skill-ownership-decision.json"
+  ],
+  "queries": [
+    "ISO 15289 lifecycle information items document types",
+    "ISO 29148 requirements specification information items",
+    "ISO 42010 architecture description viewpoints views model kinds",
+    "OpenAPI Specification paths components security",
+    "OMG UML 2.5.1 machine readable metamodel",
+    "JSON Schema modular composition $ref Draft 2020-12"
+  ],
+  "sources": [
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "ISO/IEC/IEEE 15289:2019 Systems and software engineering — Content of life-cycle information items",
+      "url": "https://www.iso.org/standard/74909.html",
+      "evidence": "생명주기 information item을 generic document type과 specific purpose로 다루며 프로젝트와 생명주기에 맞게 information item을 결합하거나 분할하고 적절한 모델과 방법을 선택할 수 있게 한다. 2025년 확인되었고 현재 revision 예정 상태다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F4",
+      "title": "ISO/IEC/IEEE 29148:2018 Requirements engineering",
+      "url": "https://www.iso.org/standard/72089.html",
+      "evidence": "요구사항 공학 process와 그 과정에서 생산되는 information item의 필수 content 및 format guidance를 별도로 규정한다. 요구사항 명세는 일반 설계 view와 구분되는 목적별 information item이다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F4",
+      "title": "ISO/IEC/IEEE 42010:2022 Architecture description",
+      "url": "https://www.iso.org/standard/74393.html",
+      "evidence": "architecture description을 stakeholder concern, viewpoint, view와 model kind의 관계로 다룬다. 모든 문서 종류에 하나의 고정 section 목록을 강제하는 근거가 아니라 architecture 계열 profile의 근거다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "OpenAPI Specification 3.2.0",
+      "url": "https://spec.openapis.org/oas/v3.2.0.html",
+      "evidence": "API description에 paths, webhooks, components, security 등 API 전용 구조와 versioned schema를 정의한다. API 설계 문서는 공통 문서 section만으로 재구현하기보다 OpenAPI 원문을 연결 블록으로 보존할 수 있어야 한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F3",
+      "title": "OMG Unified Modeling Language 2.5.1",
+      "url": "https://www.omg.org/spec/UML",
+      "evidence": "UML normative specification과 machine-readable XMI metamodel을 제공한다. 클래스와 관계 모델은 일반 prose section 외에 UML 또는 동등한 구조화 모델 블록을 profile별로 허용할 필요가 있다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "JSON Schema Draft 2020-12 modular schema composition",
+      "url": "https://json-schema.org/understanding-json-schema/structuring",
+      "evidence": "$id와 $ref를 이용해 schema를 논리 단위로 분리하고 재사용할 수 있으며, 복잡한 schema에서 중복을 줄이는 modular composition을 권장한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "JSON Schema Draft 2020-12 dialect declaration",
+      "url": "https://json-schema.org/understanding-json-schema/reference/schema",
+      "evidence": "$schema로 schema dialect를 명시하여 validator가 해석할 계약 version을 분명하게 만들 수 있다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F3",
+      "title": "NASA Software Design Description",
+      "url": "https://swehb.nasa.gov/spaces/SWEHBVB/pages/32604435/SwDD%2B-%2BSoftware%2BDesign%2BDescription",
+      "evidence": "software design description에서 architecture, component, interface, data and control flow, design decisions, quality attributes와 traceability를 다룬다. 이는 software-design profile의 내용 근거이지 requirements나 API profile 전체의 공통 필수 section 근거는 아니다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "IIBA Understanding Requirements and Designs",
+      "url": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
+      "evidence": "requirements와 designs를 서로 연결되지만 구분되는 분석 대상으로 다루고 need에서 design과 solution까지 traceability를 요구한다."
+    }
+  ],
+  "findings": [
+    {
+      "id": "FINDING-001",
+      "statement": "모든 문서 종류에 하나의 Design Document 필수 section 목록을 적용하는 방식은 표준의 purpose-specific information item 구조와 맞지 않는다.",
+      "basis": [
+        "ISO/IEC/IEEE 15289:2019",
+        "ISO/IEC/IEEE 29148:2018",
+        "ISO/IEC/IEEE 42010:2022"
+      ]
+    },
+    {
+      "id": "FINDING-002",
+      "statement": "요구사항과 설계는 표준 용어상 같은 개념이 아니다. 다만 프로젝트가 docs/design-documents를 상위 저장 루트로 사용한다면 이 루트를 Agent Factory의 광의의 specification and design artifact container로 명시해 함께 저장할 수 있다.",
+      "basis": [
+        "Human storage decision",
+        "ISO/IEC/IEEE 29148:2018",
+        "IIBA Understanding Requirements and Designs"
+      ]
+    },
+    {
+      "id": "FINDING-003",
+      "statement": "공통 base schema와 versioned document profile schema를 분리하고 $ref로 조합하면 공통 계약의 중복 없이 문서 종류별 validation을 확장할 수 있다.",
+      "basis": [
+        "ISO/IEC/IEEE 15289:2019",
+        "JSON Schema Draft 2020-12"
+      ]
+    },
+    {
+      "id": "FINDING-004",
+      "statement": "OpenAPI와 UML처럼 이미 machine-readable standard가 있는 내용은 generic JSON section 안에 복제하지 않고 package-local block 또는 명시적 외부 relation으로 연결하는 편이 원문 일관성과 도구 호환성을 보존한다.",
+      "basis": [
+        "OpenAPI Specification 3.2.0",
+        "OMG UML 2.5.1"
+      ]
+    }
+  ],
+  "recommendation": {
+    "status": "supported",
+    "model": "base-document-contract-plus-versioned-profile",
+    "storageSemantics": "docs/specifications/<document-id>/는 Agent Factory 프로젝트에서 requirements, architecture, design과 model을 포함하는 canonical Specification package root다. category 하위 폴더를 강제하지 않고 JSON metadata가 분류를 소유한다.",
+    "specificationSpecificMetadata": [
+      {
+        "field": "documentClass",
+        "purpose": "requirements, interface-design, model, architecture처럼 문서의 넓은 의미 분류를 제공한다. 값은 profile registry가 소유하며 Viewer 코드의 고정 enum으로 닫지 않는다."
+      },
+      {
+        "field": "documentProfile",
+        "shape": {
+          "id": "string",
+          "version": "string"
+        },
+        "purpose": "문서 종류별 required section, allowed block, validation과 renderer adapter 계약을 선택한다."
+      }
+    ],
+    "commonRequiredSections": [
+      "purpose-and-scope",
+      "basis-and-relations",
+      "decisions-and-open-items",
+      "verification-and-traceability"
+    ],
+    "profileRegistryOwns": [
+      "profile id and version",
+      "documentClass",
+      "required and optional section ids",
+      "allowed and required block media types or adapters",
+      "profile JSON Schema reference",
+      "renderer adapter reference",
+      "compatibility and migration rules"
+    ],
+    "profileRegistryOwner": "Agent Factory skill",
+    "initialProfiles": [
+      {
+        "id": "requirements-specification",
+        "documentClass": "requirements",
+        "requiredSections": [
+          "stakeholders-and-needs",
+          "functional-requirements",
+          "quality-and-non-functional-requirements",
+          "constraints-and-assumptions",
+          "acceptance-criteria"
+        ],
+        "profileBlockGuidance": "표, traceability matrix와 관련 evidence block을 허용한다."
+      },
+      {
+        "id": "api-design",
+        "documentClass": "interface-design",
+        "requiredSections": [
+          "api-overview",
+          "operations-and-endpoints",
+          "schemas-and-payloads",
+          "authentication-and-authorization",
+          "errors-and-compatibility"
+        ],
+        "profileBlockGuidance": "OpenAPI JSON 또는 YAML을 별도 connected block으로 허용하고 원문과 prose 요약의 relation을 기록한다."
+      },
+      {
+        "id": "data-model",
+        "documentClass": "model",
+        "requiredSections": [
+          "domain-and-entities",
+          "attributes-and-types",
+          "relationships-and-constraints",
+          "lifecycle-and-ownership",
+          "migration-and-compatibility"
+        ],
+        "profileBlockGuidance": "ERD, schema와 data dictionary block을 허용한다."
+      },
+      {
+        "id": "class-architecture",
+        "documentClass": "architecture",
+        "requiredSections": [
+          "responsibilities-and-boundaries",
+          "classes-and-interfaces",
+          "relationships-and-dependencies",
+          "interactions-and-lifecycle",
+          "extension-and-constraints"
+        ],
+        "profileBlockGuidance": "UML class, sequence 또는 동등한 구조화 diagram/model block을 허용한다."
+      }
+    ],
+    "validationStates": [
+      "base-valid-and-profile-valid",
+      "base-valid-profile-unresolved",
+      "base-invalid"
+    ],
+    "unknownProfileBehavior": "Viewer는 공통 구조를 generic view로 표시할 수 있지만 registry에 없는 profile을 완전 유효한 문서로 판정하지 않는다. profile-unresolved 상태와 누락된 id/version을 명시한다.",
+    "projectCoreBoundary": "Project Core는 docs/specifications/project-core/의 단일 canonical package와 project-core profile로 관리한다. 다른 Specification package는 governed-by typed relation으로 참조하고 Project Core 내용을 복제하지 않는다."
+  },
+  "rejectedAlternatives": [
+    {
+      "alternative": "모든 종류에 기존 9개 Design Document section을 필수 적용",
+      "reason": "요구사항, API, 모델과 architecture의 목적별 정보 구조를 혼합해 빈 section과 중복을 만든다."
+    },
+    {
+      "alternative": "문서 종류를 Viewer 코드의 폐쇄형 enum으로 고정",
+      "reason": "새 설계서 종류를 추가할 때 data contract가 아니라 Viewer 코드 배포가 반드시 필요해 프로젝트별 동적 확장 요구와 맞지 않는다."
+    },
+    {
+      "alternative": "모든 profile 데이터를 하나의 거대한 schema 파일에 포함",
+      "reason": "문서 종류가 늘수록 결합도와 변경 영향이 커지며 JSON Schema의 modular composition 이점을 잃는다."
+    },
+    {
+      "alternative": "요구사항 명세서를 별도 최상위 루트로 즉시 이동",
+      "reason": "사용자가 docs/design-documents/<문서이름>/ 저장을 명시했으며 이번 조사 범위에서 새 최상위 저장 루트를 요구하지 않았다."
+    }
+  ],
+  "limitations": [
+    "ISO 표준 공개 페이지는 abstract 수준이며 유료 전문의 전체 section template을 재현하지 않았다.",
+    "초기 profile section 이름은 조사 결과를 Agent Factory 목적에 적용한 project-specific 계약이며 외부 표준의 제목을 그대로 복사한 것이 아니다.",
+    "각 profile의 상세 field schema, block extension 목록과 renderer adapter API는 schema-first Work Unit Execution에서 정의하고 sample package로 검증해야 한다.",
+    "profile 규칙을 소유할 정확한 Agent Factory skill 이름과 내부 asset 경로는 스킬 계약 Work Unit Execution에서 정의해야 한다."
+  ],
+  "conclusion": {
+    "status": "supported",
+    "summary": "모든 명세서는 docs/specifications/<document-id>/의 공통 base package와 네 개의 최소 공통 section을 따르고, documentClass 및 versioned documentProfile이 문서 종류별 section, block, schema와 renderer 계약을 선택한다. Project Core는 docs/specifications/project-core/의 단일 package이고 다른 명세서는 typed relation으로 참조한다. 초기 profile은 project-core, requirements-specification, api-design, data-model, class-architecture이며 profile 규칙의 canonical owner는 Agent Factory 스킬이다."
+  }
+}

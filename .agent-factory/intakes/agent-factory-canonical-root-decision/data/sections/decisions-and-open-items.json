@@ -1,0 +1,127 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": "A",
+      "attributes": {
+        "sourceKey": "selectedOption",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "decision-status",
+      "content": {
+        "canonicalRoot": "/home/deus/workspace/skills/.agent-factory/",
+        "migrationSource": "/home/deus/workspace/skills/docs/",
+        "migrationRule": "기존 docs 하위 상대 구조를 .agent-factory 아래에 보존해 이동한다.",
+        "viewerDiscovery": "/home/deus/workspace/skills/.agent-factory를 canonical source로 읽는다.",
+        "legacyReadPolicy": "migration 완료 후 docs를 fallback source로 읽지 않는다.",
+        "status": "accepted"
+      },
+      "attributes": {
+        "sourceKey": "decision",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "open-item",
+      "content": "Agent Factory Plugin source and installation files를 .agent-factory 아래에 포함할지 별도 plugin directory에 둘지에 대한 package layout",
+      "attributes": {
+        "sourceKey": "unresolvedItems[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 1
+      },
+      "attributes": {
+        "sourceKey": "unresolvedItems",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "Canonical .agent-factory artifact root is in active use.",
+        "currentStateEvidence": [
+          "skills/lifecycle/SKILL.md",
+          ".agent-factory/intakes"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

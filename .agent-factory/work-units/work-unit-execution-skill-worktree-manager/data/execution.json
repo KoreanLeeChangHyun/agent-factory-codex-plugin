@@ -1,0 +1,68 @@
+{
+  "status": "working",
+  "lifecycle": {
+    "plan": "completed",
+    "work": "rework_required",
+    "review": "human_rework_requested",
+    "report": "superseded_by_human_review"
+  },
+  "commands": [
+    "python3 $HOME/.codex/skills/.system/skill-creator/scripts/init_skill.py work-unit-execution-af --path .codex/skills --resources scripts,references --interface ...",
+    "python3 -m unittest discover -s .codex/skills/work-unit-execution-af/tests -v",
+    "python3 -m py_compile .codex/skills/work-unit-execution-af/scripts/worktree.py .codex/skills/work-unit-execution-af/tests/test_worktree.py",
+    "python3 $HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py .codex/skills/work-unit-execution-af",
+    "python3 -m unittest discover -s .codex/skills/work-unit-planner-af/tests -q",
+    "for skill in .codex/skills/*-af; do python3 $HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py $skill; done",
+    "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py check-schemas",
+    "python3 .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/work-unit-execution-skill-worktree-manager",
+    "git diff --check"
+  ],
+  "filesChanged": [
+    ".codex/skills/work-unit-execution-af/SKILL.md",
+    ".codex/skills/work-unit-execution-af/agents/openai.yaml",
+    ".codex/skills/work-unit-execution-af/references/worktree-contract.md",
+    ".codex/skills/work-unit-execution-af/scripts/worktree.py",
+    ".codex/skills/work-unit-execution-af/tests/test_worktree.py",
+    ".codex/skills/agent-factory-lifecycle-af/SKILL.md",
+    ".codex/skills/agent-factory-lifecycle-af/references/lifecycle.md",
+    ".codex/skills/work-unit-planner-af/SKILL.md",
+    ".codex/skills/work-unit-planner-af/references/work-unit-structure.md",
+    ".codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py",
+    "docs/interviews/work-unit-execution-bootstrap-location-decision.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/data/execution.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/data/quality-gate.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/data/report.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/data/review.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/data/traceability.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/data/work-unit.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/evidence/commands.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/evidence/tests.json",
+    "docs/work-units/work-unit-execution-skill-worktree-manager/evidence/logs/verification-summary.json"
+  ],
+  "testResults": [
+    "TDD RED: 13 tests failed before scripts/worktree.py existed (expected_fail).",
+    "Worktree unit and temporary repository integration: 20 tests passed.",
+    "Independent forward-test: prepare, reuse, inspect, and approved cleanup passed in a separate temporary repository.",
+    "Work Unit planner regression: 53 tests passed.",
+    "Agent Factory skill validation: 12 skills passed.",
+    "Work Unit schemas and package validation passed.",
+    "Human Review boundary reproduction: moving base ref on reuse returned baseCommit different from worktree head/history; fail.",
+    "Human Review cleanup partial-failure reproduction: injected remove failure left existing worktree unlocked; fail."
+  ],
+  "verificationResult": "fail",
+  "notes": [
+    "prepare derives work-unit/<work-unit-id> and reuses the same registered branch/worktree pair for re-execution or rework.",
+    "cleanup requires --human-decision approved, refuses dirty state, uses non-force removal, and retains the branch.",
+    "Stable porcelain and NUL-delimited Git output are parsed without shell interpolation.",
+    "INTAKE-DECISION-036 was incorporated after it appeared as accepted repository evidence during Execution.",
+    "A context-isolated agent forward-tested the skill without reading its tests and found no normal-path usability or safety issue.",
+    "Human Review P1: pair reuse에서 이동한 base ref의 최신 commit을 기존 worktree의 baseCommit으로 반환해 execution context가 사실과 달라지는 재현이 확인됐다.",
+    "Human Review P1: lifecycle은 $CODEX_HOME/skills를 single active location으로 규정하지만 구현은 .codex/skills에만 존재해 fresh session discovery contract가 충돌한다.",
+    "Human Review P2: unlock 이후 worktree remove 실패를 주입하면 worktree가 존재하지만 lock이 복구되지 않는 부분 실패가 확인됐다.",
+    "Human Review P2: baseline commit 부재 constraint와 qualityScore 100 및 pass review 기록이 현재 repository and review evidence와 불일치했다."
+  ],
+  "deviations": [
+    "Human decision docs/interviews/work-unit-execution-bootstrap-location-decision.json authorized this bootstrap Work Unit to execute on master because the canonical worktree script did not yet exist.",
+    "The first scaffold command used unavailable executable python and was rerun successfully with python3."
+  ]
+}

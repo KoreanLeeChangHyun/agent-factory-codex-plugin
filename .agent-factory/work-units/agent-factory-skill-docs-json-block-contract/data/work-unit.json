@@ -1,0 +1,124 @@
+{
+  "id": "agent-factory-skill-docs-json-block-contract",
+  "title": "Agent Factory 스킬 문서 JSON·블록 계약 갱신",
+  "version": "3.0.0",
+  "status": "ready",
+  "sourceDesignRefs": [
+    "docs/design-documents/vscode-extension-ui-structure"
+  ],
+  "goal": "Agent Factory 스킬 문서를 최신 Human 결정에 맞춰 Intake -> Work Unit -> Execution -> feedback 생명주기, JSON + 블록 산출물, Agent 역할과 실행 규칙을 단일 계약으로 갱신한다.",
+  "scope": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json의 Human Fact와 accepted 상태인 INTAKE-DECISION-004부터 INTAKE-DECISION-035를 basis로 사용하고 superseded decision은 현재 계약 근거로 사용하지 않는다.",
+    "Agent Factory lifecycle, Intake, Work Unit, 기존 Design Document와 Project Core, Execution 관련 활성 SKILL.md와 직접 참조 문서에서 새 Specification 계약과 충돌하는 규칙을 식별한다.",
+    "Intake, Specification, Work Unit에 metadata, title, table of contents, section, content와 optional block을 갖는 공통 JSON 문서 모델을 정의한다.",
+    "공통 section은 기본 평면이고 optional subsection 한 단계만 허용하며 title H1, top-level section H2, subsection H3, H4 이상 금지 렌더링 의미를 기록한다.",
+    "block이 section content의 정확한 위치와 의미 관계를 통해 package-local 별도 확장자 파일에 연결되는 계약을 정의한다.",
+    "큰 Specification을 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/로 분할하는 계약을 정의한다.",
+    "docs/specifications/<document-id>/를 requirements, interface design, model과 architecture를 포함하는 canonical Specification package root로 정의하고 category 하위 폴더를 강제하지 않는다.",
+    "Specification 공통 base schema와 versioned profile schema를 분리하고 metadata.documentClass와 metadata.documentProfile의 id 및 version 계약을 정의한다.",
+    "Specification 공통 필수 section은 purpose-and-scope, basis-and-relations, decisions-and-open-items, verification-and-traceability로 제한한다.",
+    "Project Core를 docs/specifications/project-core/의 단일 canonical package와 project-core profile로 정의하고 다른 명세서가 governed-by typed relation으로 참조하며 내용을 복제하지 않게 한다.",
+    "project-core, requirements-specification, api-design, data-model, class-architecture 초기 profile과 profile별 required and optional sections, block, schema, renderer mapping 및 migration compatibility 규칙을 Agent Factory 스킬이 canonical source로 소유하게 한다.",
+    "Specification package에는 documentClass, documentProfile id/version, canonical content와 connected block reference만 저장하고 profile 규칙을 복제하지 않는다.",
+    "미등록 document profile은 base-valid-profile-unresolved로 처리하고 Viewer의 generic base rendering과 완전 유효 판정 금지를 구분한다.",
+    "OpenAPI와 UML 같은 machine-readable 표준 원문은 generic section에 복제하지 않고 connected block 또는 typed relation으로 연결할 수 있게 한다.",
+    "문서 JSON은 데이터와 의미 구조만 소유하고 metadata에는 theme 이름만 저장하며 실제 스타일과 동적 테마 구성은 분리한다.",
+    "Execution Agent의 Goal, exec, 전용 Git branch와 linked worktree 필수 규칙을 유지하고 work-unit-execution-af를 canonical worktree 실행 owner로 연결한다.",
+    "agent-factory-lifecycle-af는 named Goal Work Unit Execution을 work-unit-execution-af로 라우팅하고 work-unit-planner-af는 execution-context validation만 소유하도록 책임을 기록한다."
+  ],
+  "outOfScope": [
+    "기존 docs 데이터 migration.",
+    "Workspace 확장 또는 Agent 확장 코드 구현.",
+    "명시되지 않은 schema 필드, UI 세부 기능, 구현 기술과 실행 연동 프로토콜 확정."
+  ],
+  "assumptions": [],
+  "constraints": [
+    "Human이 확정한 JSON + 블록과 네 Work Unit 실행 순서를 변경하지 않는다.",
+    "canonical Execution repository root는 /home/deus/workspace/skills이며 Git 저장소 초기화가 완료되었다.",
+    "Execution은 Goal, exec, dedicated Git branch와 linked worktree를 사용한다.",
+    "현재 저장소에는 최초 커밋이 없으므로 linked worktree 생성 전에 base ref를 준비해야 한다.",
+    "최초 bootstrap 이후 모든 Work Unit Execution은 .codex/skills/work-unit-execution-af/scripts/worktree.py의 canonical contract를 사용한다."
+  ],
+  "plan": [
+    "Plan: Intake basis, 현재 활성 Agent Factory 스킬과 기존 세 문서 package를 읽고 공통 결정과 문서별 미정 사항을 분리한다.",
+    "Research: 지금까지의 Human 인터뷰를 기준으로 Intake, Design Document, Work Unit 각각의 목적에 맞는 최신 T1·T2 공식 표준과 maintainer 문서를 조사한다.",
+    "Research: 후보 metadata와 section을 source-backed requirement, project-specific decision과 optional field로 구분하고 중복·과설계·migration 영향을 비교한다.",
+    "Work: 승인 가능한 조사 결론을 바탕으로 공통 문서 구조와 세 문서별 필수 metadata·필수 section 계약을 스킬 문서와 schema 기준에 반영한다.",
+    "Work: section depth 2, connected block, Design Document 분할, metadata.theme 이름과 dynamic theme 별도 경계를 반영한다.",
+    "AI Review: 스킬 간 계약 충돌, 근거 없는 필드, 실제 style 유입, 과도한 section과 legacy source-of-truth 규칙을 검사한다.",
+    "Report: 연구 출처, 결정 근거, 변경 파일, 검증 결과, migration handoff와 Human review 자료를 기록한다."
+  ],
+  "acceptanceCriteria": [
+    "활성 스킬 문서가 Intake -> Work Unit -> Execution과 필요 시 feedback 루프를 일관되게 설명한다.",
+    "Intake, Specification, Work Unit 공통 JSON 문서 구조와 문서별 확장 경계가 명시된다.",
+    "section depth 2 제한과 H1·H2·H3 렌더링 의미가 일관되며 H4 이상을 허용하지 않는다.",
+    "block placement와 semantic relation, package-local path 및 별도 확장자 파일 연결이 명시된다.",
+    "큰 Specification의 metadata, table of contents, section file 및 blocks 분할 계약이 명시된다.",
+    "JSON에는 실제 스타일이 없고 metadata.theme 이름만 존재하며 동적 테마 시스템이 별도 범위로 분리된다.",
+    "canonical root가 docs/specifications/<document-id>/로 정의되고 category 폴더가 분류 원천으로 사용되지 않는다.",
+    "Specification base schema와 versioned profile schema가 분리되고 documentClass 및 documentProfile id/version이 정의된다.",
+    "Project Core가 docs/specifications/project-core/의 단일 package이며 다른 명세서가 typed relation으로 참조하고 복제하지 않는다.",
+    "네 공통 필수 section과 초기 project-core, requirements-specification, api-design, data-model, class-architecture profile별 필수 section 계약이 구분된다.",
+    "Agent Factory 스킬이 profile section, block, schema, renderer mapping과 migration compatibility의 canonical source임이 명시되고 Specification package와 Viewer가 이를 중복 소유하지 않는다.",
+    "미등록 profile은 generic base rendering은 가능하지만 완전 유효로 판정되지 않는다.",
+    "Execution Agent가 Goal, exec, Git branch와 worktree를 사용하고 work-unit-execution-af가 worktree lifecycle의 canonical owner임이 명시된다.",
+    "공통 필수 metadata와 Intake, Specification base/profile, Work Unit별 필수 section 목록 및 validation rule이 공식 research와 Human decision record에 추적된다.",
+    "Work Unit execution-context가 Goal, exec, repository, base ref, dedicated branch와 linked worktree를 필수로 정의한다.",
+    "Agent 확장은 독자 Git orchestration을 구현하지 않고 work-unit-execution-af script contract를 재사용하도록 후속 경계가 명시된다."
+  ],
+  "definitionOfDone": [
+    "관련 활성 스킬과 직접 참조 문서를 모두 확인하고 변경 근거를 기록한다.",
+    "충돌하는 규칙을 최신 Human 결정으로 갱신하되 범위 밖 기능은 추가하지 않는다.",
+    "스킬 frontmatter와 참조 경로 및 문서 검증을 통과한다.",
+    "AI checklist, 한국어 Human checklist와 review 방법 및 evidence를 준비한다."
+  ],
+  "testCriteria": [
+    "변경한 모든 SKILL.md frontmatter와 직접 참조 링크를 검사한다.",
+    "관련 문서에서 lifecycle, 공통 문서 구조, depth, block 연결, Design Document 분할과 theme 경계의 일관성을 검색 검증한다.",
+    "JSON Schema 예제에서 H4 이상 section, actual style 값, package 외부 block path와 누락 relation을 거부하는 계약을 검증한다.",
+    "세 문서별 필수 metadata와 필수 section이 Human 결정 전 임의로 확정되지 않았는지 검사한다.",
+    "세 문서별 required section 누락과 Work Unit execution-context의 Goal·exec·branch·worktree 누락을 schema validation에서 거부하는지 검증한다."
+  ],
+  "aiChecklist": [
+    "모든 변경이 Intake Human Fact에 추적되는지 확인한다.",
+    "스킬 간 lifecycle과 artifact source-of-truth 규칙이 중복 충돌하지 않는지 확인한다.",
+    "Execution 규칙과 Human approval boundary를 정확히 유지했는지 확인한다.",
+    "schema, migration과 확장 구현을 이번 문서 Work Unit에 섞지 않았는지 확인한다.",
+    "필수 metadata와 section이 research record 및 INTAKE-DECISION-019부터 INTAKE-DECISION-022에 추적되는지 확인한다."
+  ],
+  "humanChecklist": [
+    "생명주기와 feedback 루프가 의도와 일치하는지 확인한다.",
+    "JSON + 블록 단일 원천과 저장 경로가 의도와 일치하는지 확인한다.",
+    "Intake Agent와 Execution Agent 역할 및 Goal·exec·branch·worktree 규칙을 확인한다.",
+    "후속 세 Work Unit의 경계가 분리되어 있는지 확인한다.",
+    "공통 metadata와 세 문서별 필수 section 및 Work Unit execution-context가 의도에 맞는지 확인한다.",
+    "Execution Agent, work-unit-execution-af, lifecycle router, planner와 Agent 확장의 worktree 책임 분리를 확인한다."
+  ],
+  "humanReviewMethod": "Human은 변경된 Agent Factory SKILL.md와 직접 참조 문서를 Intake 결정과 대조한다. lifecycle, canonical JSON + 블록, Agent 역할, docs 저장 경로, Goal·exec·branch·worktree 규칙이 일관적인지 확인하고 evidence의 문서·링크·충돌 검색 결과를 검토한 뒤 승인 또는 rework를 결정한다.",
+  "qualityGateRef": "data/quality-gate.json",
+  "packageRefs": {
+    "execution": "data/execution.json",
+    "review": "data/review.json",
+    "qualityGate": "data/quality-gate.json",
+    "traceability": "data/traceability.json",
+    "report": "data/report.json"
+  },
+  "expectedOutput": "공식 research와 Human decision에 근거한 JSON + connected block Specification 계약, 공통 metadata and section 규칙, work-unit-execution-af routing과 Execution Agent 소유 worktree lifecycle을 반영한 활성 Agent Factory 스킬 문서 및 검증 evidence.",
+  "dependencies": {
+    "parent": null,
+    "dependsOn": [
+      "work-unit-execution-skill-worktree-manager"
+    ],
+    "blocks": [
+      "agent-factory-json-block-data-migration"
+    ],
+    "executionOrder": 2
+  },
+  "unresolvedItems": [
+    "프로젝트별 동적 Theme Registry, 테마 생성·편집·검증·version과 fallback은 별도 Intake 및 Work Unit에서 정의해야 한다.",
+    "/home/deus/workspace/skills는 초기화되었지만 최초 커밋과 실행 base ref가 없어 첫 linked worktree 생성 전에 준비해야 한다.",
+    "Goal·exec runtime 식별자와 branch·worktree naming의 정확한 형식은 work-unit-execution-af 계약 또는 Human 결정에서 확정해야 한다.",
+    "Specification profile 규칙을 소유할 정확한 Agent Factory skill 이름과 내부 asset 경로 및 schema file layout은 Execution에서 기존 skill 책임을 조사해 정의해야 한다.",
+    "각 초기 profile의 상세 field schema, block extension allowlist와 renderer mapping API는 schema-first Execution에서 sample package로 검증해야 한다."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "Agent Factory를 Plugin과 VS Code 확장의 조합으로 구성하는 것이 기존 Workspace 확장과 Agent 확장 분리보다 적합한지 조사한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-plugin-vscode-extension-architecture-source-1",
+          "path": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture/blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

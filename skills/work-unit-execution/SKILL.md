@@ -1,0 +1,102 @@
+---
+name: work-unit-execution
+description: Prepare, inspect, and explicitly clean up dedicated Git branches and linked worktrees for Agent Factory named Work Unit Goal execution. Use when an Execution Agent must resolve a Work Unit execution context, create a collision-safe locked worktree, inspect clean or dirty state, record canonical JSON evidence, or perform Human-approved non-force cleanup.
+---
+
+# Work Unit Execution
+
+Use this skill as the canonical Git worktree boundary for Agent Factory Work
+Unit Execution. Keep Work Unit planning and Git mutation separate.
+
+## Required Inputs
+
+Resolve all values from the Work Unit execution contract or an explicit Human
+decision before running a command:
+
+- canonical repository root
+- base ref for `prepare`
+- Work Unit id; derive the dedicated branch as `work-unit/<work-unit-id>`
+- absolute linked worktree path
+
+An execution context may also provide `--branch`; accept it only when it exactly
+matches the derived branch. Do not invent fallback paths, repository roots, or
+base refs. Ask the Human when a required value is absent or ambiguous.
+
+Read `references/worktree-contract.md` before invoking the script or consuming
+its JSON result.
+
+## Execution Workflow
+
+1. Resolve and read the complete named Work Unit package.
+2. Confirm that a Goal session and `exec` execution are active.
+3. Resolve the repository, base ref, Work Unit id, and worktree path. Derive the
+   branch as `work-unit/<work-unit-id>`.
+4. Run `scripts/worktree.py prepare` before editing when the linked worktree
+   does not exist.
+5. Perform all scoped edits and verification inside the returned
+   `context.worktreePath`.
+6. Run `scripts/worktree.py inspect` before reporting or asking for Human
+   review.
+7. Record the exact command and canonical JSON result in the Work Unit
+   execution evidence. Treat a nonzero exit code or `ok: false` as refusal, not
+   as permission to bypass validation.
+8. Run `cleanup` only after an explicit Human cleanup decision. Preserve the
+   dedicated branch for Human merge, rework, or later disposal decisions.
+
+## Commands
+
+Use argument arrays when invoking the script. Never interpolate untrusted
+values through a shell.
+
+```text
+python3 scripts/worktree.py prepare \
+  --repository <absolute-repository-root> \
+  --work-unit-id <work-unit-id> \
+  --base <commit-ish> \
+  --path <absolute-linked-worktree-path>
+
+python3 scripts/worktree.py inspect \
+  --repository <absolute-repository-root> \
+  --work-unit-id <work-unit-id> \
+  --path <absolute-linked-worktree-path>
+
+python3 scripts/worktree.py cleanup \
+  --repository <absolute-repository-root> \
+  --work-unit-id <work-unit-id> \
+  --path <absolute-linked-worktree-path> \
+  --human-decision approved
+```
+
+## Safety Boundary
+
+- Validate the repository root, base commit, branch name, registered
+  worktrees, filesystem path, branch ownership, repository ownership, and dirty
+  state before the relevant mutation.
+- Create with `git worktree add --lock ... -b`; do not reset an existing branch.
+- Reuse the same registered branch and worktree pair when the same Work Unit is
+  executed again or sent to rework. Do not create another pair.
+- Inspect with stable porcelain and NUL-delimited Git output.
+- Refuse collisions, repository mismatch, missing Human cleanup approval, and
+  dirty cleanup.
+- Never use forced worktree removal, forced branch deletion, `-B`, or shell
+  interpolation.
+- Cleanup unlocks and removes only a clean approved linked worktree without
+  force. It retains the branch.
+- Leave merge, rework, branch deletion, Work Unit approval, and PR promotion to
+  the Human.
+
+## Responsibility Boundary
+
+- `work-unit-planner` defines and validates required execution-context data;
+  it does not run Git mutation.
+- `lifecycle` routes named Work Unit Goal Execution through
+  this skill.
+- Execution Agents and Agent extensions call the same script contract and
+  record its result instead of implementing separate Git orchestration.
+
+## Reporting
+
+Record the Work Unit id, resolved repository, base commit, derived branch,
+worktree path, lock state,
+dirty state, Git mutation operations, refusal error, and lifecycle state from
+the JSON result. Do not translate or rewrite machine-facing values.

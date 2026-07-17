@@ -1,0 +1,11 @@
+WORK UNIT PACKAGE VALIDATION: vscode-extension-ui-structure-draft
+
+COMMAND: python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py transition docs/work-units/vscode-extension-ui-structure-draft review --execution-status review_ready --review-state ready_for_human_review --quality-gate-state pass
+EXIT: 0
+STATE: Work Unit=review; Execution=review_ready; AI Review=pass; Human Review=pending; Review state=ready_for_human_review; Quality gate=pass
+
+COMMAND: python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py validate docs/work-units/vscode-extension-ui-structure-draft
+{"valid": true, "schemaVersion": "3.0.0", "files": ["docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json", "docs/work-units/vscode-extension-ui-structure-draft/data/execution.json", "docs/work-units/vscode-extension-ui-structure-draft/data/review.json", "docs/work-units/vscode-extension-ui-structure-draft/data/quality-gate.json", "docs/work-units/vscode-extension-ui-structure-draft/data/traceability.json", "docs/work-units/vscode-extension-ui-structure-draft/data/report.json", "docs/work-units/vscode-extension-ui-structure-draft/evidence/commands.json", "docs/work-units/vscode-extension-ui-structure-draft/evidence/tests.json"]}
+
+POST-TRANSITION VERIFICATION: generator freshness PASS; Design schema PASS; structure 27/27 PASS; browser 16/16 PASS; 18 artifact SHA-256 checks PASS.
+RESULT: PASS — canonical package is ready for Human Review.

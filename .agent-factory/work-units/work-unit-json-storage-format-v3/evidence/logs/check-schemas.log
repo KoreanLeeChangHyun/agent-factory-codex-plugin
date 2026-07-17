@@ -1,0 +1,3 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -B .codex/skills/work-unit-planner-af/assets/scripts/work_unit.py check-schemas
+{"valid": true, "schemaVersion": "3.0.0", "schemas": ["work-unit", "execution", "review", "quality-gate", "traceability", "report", "commands", "tests"]}
+exit_code=0

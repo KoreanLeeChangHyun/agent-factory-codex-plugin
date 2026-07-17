@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "일단 메인에서 진행하세요 왜냐면 지금 개발하는 코드자체가 브런치를 만드는 코드이라서 이 작업 이후에 반영 해야 할듯",
+      "attributes": {
+        "sourceKey": "humanStatement",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "work-unit-execution-bootstrap-location-decision-source-1",
+          "path": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision/blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

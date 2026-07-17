@@ -1,0 +1,208 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": "answered",
+      "attributes": {
+        "sourceKey": "status",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": "A",
+      "attributes": {
+        "sourceKey": "selectedOption",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "decision-status",
+      "content": {
+        "canonicalPackage": "docs/specifications/project-core/",
+        "documentProfile": {
+          "id": "project-core",
+          "version": "unresolved"
+        },
+        "referenceMode": "typed-relation",
+        "relationExample": {
+          "relationType": "governed-by",
+          "target": "specification:project-core"
+        },
+        "embeddedCopiesAllowed": false
+      },
+      "attributes": {
+        "sourceKey": "humanDecision",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "open-item",
+      "content": "project-core profile version and schema definition",
+      "attributes": {
+        "sourceKey": "pendingApplication[1]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "open-item",
+      "content": "Intake decision update",
+      "attributes": {
+        "sourceKey": "pendingApplication[2]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "open-item",
+      "content": "research conclusion update",
+      "attributes": {
+        "sourceKey": "pendingApplication[3]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0007",
+      "kind": "open-item",
+      "content": "Work Unit scope and acceptance update",
+      "attributes": {
+        "sourceKey": "pendingApplication[4]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0008",
+      "kind": "open-item",
+      "content": "Agent Factory Design Document and Project Core skill contract migration",
+      "attributes": {
+        "sourceKey": "pendingApplication[5]",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json",
+        "blocking": true,
+        "resolved": false
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0009",
+      "kind": "open-items-status",
+      "content": {
+        "status": "requires-human-or-current-state-review",
+        "count": 5
+      },
+      "attributes": {
+        "sourceKey": "pendingApplication",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "project-core-storage-decision-source-1",
+          "path": ".agent-factory/intakes/project-core-storage-decision/blocks/legacy-source/01-project-core-storage-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "The single canonical Project Core and governed-by policy is implemented.",
+        "currentStateEvidence": [
+          "skills/specification/SKILL.md",
+          "skills/specification/assets/profiles/project-core.profile.json"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

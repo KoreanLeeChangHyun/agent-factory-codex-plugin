@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.17",
+  "id": "migration-backup-location-decision",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "closed"
+  },
+  "createdAt": "2026-07-16T14:30:46+00:00",
+  "updatedAt": "2026-07-16T19:07:18+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory Intake v2 normalization",
+    "sourceRefs": [
+      {
+        "artifactType": "legacy-intake-source",
+        "id": "migration-backup-location-decision-source-1",
+        "path": ".agent-factory/intakes/migration-backup-location-decision/blocks/legacy-source/01-migration-backup-location-decision.json"
+      }
+    ]
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
+    "reviewedAt": null,
+    "findings": []
+  }
+}

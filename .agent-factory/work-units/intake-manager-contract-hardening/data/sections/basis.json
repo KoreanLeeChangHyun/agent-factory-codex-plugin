@@ -1,0 +1,35 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "INTAKE-BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "intakeId": "intake-manager-contract-hardening",
+        "basisItemId": "BASIS-001",
+        "specificationImpact": "not-applicable",
+        "requirements": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "REQ-004",
+          "REQ-005",
+          "REQ-006"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "intake-manager-contract-hardening",
+          "path": ".agent-factory/intakes/intake-manager-contract-hardening",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

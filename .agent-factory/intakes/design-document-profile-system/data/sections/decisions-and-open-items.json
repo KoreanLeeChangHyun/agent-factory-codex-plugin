@@ -1,0 +1,158 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": {
+        "status": "supported",
+        "model": "base-document-contract-plus-versioned-profile",
+        "storageSemantics": "docs/specifications/<document-id>/는 Agent Factory 프로젝트에서 requirements, architecture, design과 model을 포함하는 canonical Specification package root다. category 하위 폴더를 강제하지 않고 JSON metadata가 분류를 소유한다.",
+        "specificationSpecificMetadata": [
+          {
+            "field": "documentClass",
+            "purpose": "requirements, interface-design, model, architecture처럼 문서의 넓은 의미 분류를 제공한다. 값은 profile registry가 소유하며 Viewer 코드의 고정 enum으로 닫지 않는다."
+          },
+          {
+            "field": "documentProfile",
+            "shape": {
+              "id": "string",
+              "version": "string"
+            },
+            "purpose": "문서 종류별 required section, allowed block, validation과 renderer adapter 계약을 선택한다."
+          }
+        ],
+        "commonRequiredSections": [
+          "purpose-and-scope",
+          "basis-and-relations",
+          "decisions-and-open-items",
+          "verification-and-traceability"
+        ],
+        "profileRegistryOwns": [
+          "profile id and version",
+          "documentClass",
+          "required and optional section ids",
+          "allowed and required block media types or adapters",
+          "profile JSON Schema reference",
+          "renderer adapter reference",
+          "compatibility and migration rules"
+        ],
+        "profileRegistryOwner": "Agent Factory skill",
+        "initialProfiles": [
+          {
+            "id": "requirements-specification",
+            "documentClass": "requirements",
+            "requiredSections": [
+              "stakeholders-and-needs",
+              "functional-requirements",
+              "quality-and-non-functional-requirements",
+              "constraints-and-assumptions",
+              "acceptance-criteria"
+            ],
+            "profileBlockGuidance": "표, traceability matrix와 관련 evidence block을 허용한다."
+          },
+          {
+            "id": "api-design",
+            "documentClass": "interface-design",
+            "requiredSections": [
+              "api-overview",
+              "operations-and-endpoints",
+              "schemas-and-payloads",
+              "authentication-and-authorization",
+              "errors-and-compatibility"
+            ],
+            "profileBlockGuidance": "OpenAPI JSON 또는 YAML을 별도 connected block으로 허용하고 원문과 prose 요약의 relation을 기록한다."
+          },
+          {
+            "id": "data-model",
+            "documentClass": "model",
+            "requiredSections": [
+              "domain-and-entities",
+              "attributes-and-types",
+              "relationships-and-constraints",
+              "lifecycle-and-ownership",
+              "migration-and-compatibility"
+            ],
+            "profileBlockGuidance": "ERD, schema와 data dictionary block을 허용한다."
+          },
+          {
+            "id": "class-architecture",
+            "documentClass": "architecture",
+            "requiredSections": [
+              "responsibilities-and-boundaries",
+              "classes-and-interfaces",
+              "relationships-and-dependencies",
+              "interactions-and-lifecycle",
+              "extension-and-constraints"
+            ],
+            "profileBlockGuidance": "UML class, sequence 또는 동등한 구조화 diagram/model block을 허용한다."
+          }
+        ],
+        "validationStates": [
+          "base-valid-and-profile-valid",
+          "base-valid-profile-unresolved",
+          "base-invalid"
+        ],
+        "unknownProfileBehavior": "Viewer는 공통 구조를 generic view로 표시할 수 있지만 registry에 없는 profile을 완전 유효한 문서로 판정하지 않는다. profile-unresolved 상태와 누락된 id/version을 명시한다.",
+        "projectCoreBoundary": "Project Core는 docs/specifications/project-core/의 단일 canonical package와 project-core profile로 관리한다. 다른 Specification package는 governed-by typed relation으로 참조하고 Project Core 내용을 복제하지 않는다."
+      },
+      "attributes": {
+        "sourceKey": "recommendation",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "status": "supported",
+        "summary": "모든 명세서는 docs/specifications/<document-id>/의 공통 base package와 네 개의 최소 공통 section을 따르고, documentClass 및 versioned documentProfile이 문서 종류별 section, block, schema와 renderer 계약을 선택한다. Project Core는 docs/specifications/project-core/의 단일 package이고 다른 명세서는 typed relation으로 참조한다. 초기 profile은 project-core, requirements-specification, api-design, data-model, class-architecture이며 profile 규칙의 canonical owner는 Agent Factory 스킬이다."
+      },
+      "attributes": {
+        "sourceKey": "conclusion",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "Specification profiles and their owning skill assets implement the profile system.",
+        "currentStateEvidence": [
+          "skills/specification/assets/profiles",
+          "skills/specification/SKILL.md"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

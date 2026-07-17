@@ -1,0 +1,21 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s .codex/skills/work-unit-planner-af/tests -p 'test_*.py'
+
+Initial 3.0.0 contract RED run:
+Ran 38 tests
+FAILED (failures=8, errors=3)
+
+$ PYTHONDONTWRITEBYTECODE=1 python3 -B .codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py SchemaContractTests.test_required_contract_fields_and_status_text_are_schema_owned ManagerCliTests.test_validate_rejects_missing_malformed_or_schema_invalid_report ManagerCliTests.test_review_ready_and_done_reject_unfinished_semantic_sentinels ManagerCliTests.test_done_transition_requires_atomic_human_approval ManagerCliTests.test_create_and_migrate_reject_dangling_symlink_destination
+
+Ran 5 tests in 2.546s
+FAILED (failures=4, errors=1)
+
+$ PYTHONDONTWRITEBYTECODE=1 python3 -B .codex/skills/work-unit-planner-af/tests/test_work_unit_manager.py SchemaContractTests.test_report_schema_owns_structured_ordered_result_data ManagerCliTests.test_validate_rejects_parent_traversal_even_when_it_normalizes_inside_package ManagerCliTests.test_validate_and_update_reject_symlinked_canonical_paths ManagerCliTests.test_pass_states_reject_empty_or_misplaced_verification_evidence
+
+Ran 4 tests in 1.117s
+FAILED (failures=3, errors=1)
+
+The failures were captured before their corresponding schema and manager changes.
+The full initial traceback stream was not retained. This file preserves the exact
+commands, test counts, timing available for the focused run, and failure/error
+counts; it is partial RED evidence rather than a complete raw transcript.
+exit_code=1

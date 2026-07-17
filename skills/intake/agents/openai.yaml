@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Intake"
+  short_description: "Build validated sectioned Intake packages."
+  default_prompt: "Use $intake to build and validate a sectioned Intake package for Work Unit planning."

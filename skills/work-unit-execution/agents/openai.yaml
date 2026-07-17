@@ -1,0 +1,4 @@
+interface:
+  display_name: "Work Unit Execution"
+  short_description: "Prepare and inspect safe Git worktrees."
+  default_prompt: "Use $work-unit-execution to prepare, inspect, or clean up a Work Unit linked worktree safely."

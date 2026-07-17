@@ -1,0 +1,481 @@
+{
+  "id": "common-document-required-metadata-and-sections",
+  "supersededInPartBy": "docs/research/design-document-profile-system.json",
+  "date": "2026-07-14",
+  "type": "comparison-research",
+  "basisRequest": "지금까지의 Human 인터뷰를 바탕으로 Intake, Design Document, Work Unit의 필수 metadata와 필수 section을 공식 자료 조사 후 결정한다.",
+  "relatedArtifacts": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/research/agent-factory-json-viewer-extension-architecture.json",
+    "docs/research/intake-section-depth-readability.json",
+    "docs/work-units/agent-factory-skill-docs-json-block-contract",
+    "docs/work-units/agent-factory-json-block-data-migration",
+    "docs/work-units/workspace-extension-four-tab-mvp",
+    "docs/work-units/agent-extension-goal-execution-integration"
+  ],
+  "humanFacts": [
+    "Intake, Design Document, Work Unit은 metadata, title, table of contents, section, content와 optional block을 갖는 공통 JSON 문서 모델을 사용한다.",
+    "section은 기본 평면이고 필요한 경우 subsection 한 단계만 허용하며 H4 이상은 없다.",
+    "block은 section content의 위치와 의미 관계에 연결된다.",
+    "큰 Design Document는 metadata.json, table-of-contents.json, sections/<section-name>.json과 blocks/로 분할한다.",
+    "JSON은 데이터만 담당하고 metadata에는 theme 이름만 저장한다.",
+    "Intake Agent는 인터뷰, 코드 분석, 웹 검색, 데이터 분석 등 Work Unit 생성에 필요한 작업을 수행한다.",
+    "Work Unit은 Goal 기반 Execution과 AI Review, Human Review에 충분한 실행 단위다."
+  ],
+  "sources": [
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F3",
+      "title": "DCMI Metadata Terms",
+      "url": "https://www.dublincore.org/specifications/dublin-core/dcmi-terms/",
+      "evidence": "identifier, creator, created, modified, language, type, source, relation, version, title와 tableOfContents 등 문서 metadata의 공통 vocabulary를 제공하며 JSON에서도 사용할 수 있다고 설명한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F3",
+      "title": "W3C PROV Data Model",
+      "url": "https://www.w3.org/TR/prov-dm/",
+      "evidence": "산출물 entity, 생성·사용 activity, 책임 agent, derivation과 attribution을 구분하여 provenance와 신뢰성 판단 근거를 제공한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F4",
+      "title": "ISO/IEC/IEEE 29148:2018 Requirements Engineering",
+      "url": "https://www.iso.org/standard/72089.html",
+      "evidence": "요구사항 공학 process, 필수 information item, 필수 content와 format guidance의 필요성을 규정하며 2024년에 current로 재확인되었다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "IIBA Business Analysis Standard 2025",
+      "url": "https://www.iiba.org/globalassets/business-analysis-resources/the-business-analysis-standard/files/the-business-analysis-standard.pdf",
+      "evidence": "elicitation은 stakeholder, 목적, 기존 정보와 자료를 바탕으로 research·experiment·interview 결과를 수집하고 정확성, 일관성, 누락, 충돌과 모호성을 확인해야 한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "IIBA Understanding Requirements and Designs",
+      "url": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
+      "evidence": "business, stakeholder, functional, non-functional, transition requirements를 구분하고 원래 need에서 design과 solution까지 backward·forward traceability를 요구한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F4",
+      "title": "ISO/IEC/IEEE 42010:2022 Architecture Description",
+      "url": "https://www.iso.org/standard/74393.html",
+      "evidence": "architecture description이 stakeholder concern을 지원하는 viewpoint, view와 model 관계를 구조적으로 표현해야 함을 규정한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F3",
+      "title": "NASA Software Design Description",
+      "url": "https://swehb.nasa.gov/spaces/SWEHBVB/pages/32604435/SwDD%2B-%2BSoftware%2BDesign%2BDescription",
+      "evidence": "설계 결정과 trade-off, architecture와 component 관계, interfaces, data·control flow, requirements·design·code traceability, quality attributes와 검증 가능한 다중 view를 최소 내용으로 권고한다."
+    },
+    {
+      "tier": "T2 primary expert",
+      "freshness": "F5",
+      "title": "arc42 Documentation",
+      "url": "https://docs.arc42.org/home/",
+      "evidence": "goals, constraints, context, solution strategy, building blocks, runtime, deployment, crosscutting concepts, decisions, quality, risks와 glossary를 실무 architecture documentation section으로 제시한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "GitHub Spec Kit",
+      "url": "https://github.github.com/spec-kit/",
+      "evidence": "AI-assisted 개발에서 Spec -> Plan -> Tasks -> Implement 순서, structured context, quality checklist와 cross-artifact analysis를 제공한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F3",
+      "title": "The Scrum Guide",
+      "url": "https://scrumguides.org/scrum-guide.html",
+      "evidence": "work item은 명확한 목표와 설명, 순서, 크기를 갖고 실행 plan과 Definition of Done을 통해 transparency와 완료 기준을 제공해야 한다."
+    },
+    {
+      "tier": "T2 primary expert",
+      "freshness": "F5",
+      "title": "Atlassian Acceptance Criteria",
+      "url": "https://www.atlassian.com/work-management/project-management/acceptance-criteria",
+      "evidence": "acceptance criteria는 specific work의 성공 조건이고 Definition of Done은 공통 quality standard이므로 두 개념을 구분해야 한다."
+    },
+    {
+      "tier": "T2 primary expert",
+      "freshness": "F5",
+      "title": "Google Engineering Practices Code Review",
+      "url": "https://google.github.io/eng-practices/review/",
+      "evidence": "review는 design, functionality, complexity, tests, naming, comments, style와 documentation을 확인하며 실행 결과와 Human review 준비를 분리할 근거를 제공한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "Git Worktree Documentation",
+      "url": "https://git-scm.com/docs/git-worktree.html",
+      "evidence": "repository에 linked worktree를 추가하고 전용 branch를 checkout할 수 있으며 worktree별 HEAD와 index 및 공유 repository state의 경계를 정의한다."
+    }
+  ],
+  "designPrinciples": [
+    "metadata는 Viewer routing, indexing, lifecycle, provenance와 migration에 필요한 최소 공통 정보만 소유한다.",
+    "title은 metadata에 중복하지 않고 문서의 별도 canonical field로 유지한다.",
+    "문서별 업무 의미는 metadata가 아니라 required section이 소유한다.",
+    "table of contents array order와 nesting이 section 순서와 depth를 소유하며 별도 order 또는 depth 값을 중복하지 않는다.",
+    "section id와 block id는 문서 package 안에서 안정적이고 유일해야 한다.",
+    "실제 style 값은 metadata와 section content에 저장하지 않는다."
+  ],
+  "commonRequiredMetadata": [
+    {
+      "field": "id",
+      "purpose": "package와 문서를 안정적으로 식별한다."
+    },
+    {
+      "field": "artifactType",
+      "purpose": "Intake, Design Document, Work Unit을 구분하여 schema와 Viewer adapter를 선택한다."
+    },
+    {
+      "field": "schemaVersion",
+      "purpose": "JSON 계약 검증과 migration 경계를 식별한다."
+    },
+    {
+      "field": "documentVersion",
+      "purpose": "같은 artifact의 내용 revision을 식별한다."
+    },
+    {
+      "field": "projectId",
+      "purpose": "프로젝트 범위, Context와 theme resolution 경계를 식별한다."
+    },
+    {
+      "field": "lifecycle",
+      "purpose": "문서 유형별 phase와 status를 명시한다."
+    },
+    {
+      "field": "createdAt",
+      "purpose": "문서 생성 시점을 기록한다."
+    },
+    {
+      "field": "updatedAt",
+      "purpose": "현재 revision의 수정 시점을 기록한다."
+    },
+    {
+      "field": "language",
+      "purpose": "Human-facing 콘텐츠 언어와 Viewer 접근성 처리를 결정한다."
+    },
+    {
+      "field": "theme",
+      "purpose": "실제 style이 아닌 프로젝트 theme 이름만 참조한다."
+    },
+    {
+      "field": "provenance",
+      "purpose": "createdBy, generatedBy와 sourceRefs를 통해 Human, Agent, activity와 원천 artifact를 추적한다."
+    },
+    {
+      "field": "relations",
+      "purpose": "Intake, Design Document, Work Unit, Execution과 feedback 사이의 typed artifact 연결을 제공한다."
+    }
+  ],
+  "commonOptionalMetadata": [
+    "tags",
+    "aliases",
+    "publishedAt",
+    "retention",
+    "integrity"
+  ],
+  "intakeRequiredSections": [
+    {
+      "id": "request-and-goal",
+      "contains": [
+        "Human request",
+        "problem or opportunity",
+        "desired outcome",
+        "success meaning"
+      ]
+    },
+    {
+      "id": "context-and-scope",
+      "contains": [
+        "background",
+        "current state",
+        "scope",
+        "out of scope"
+      ]
+    },
+    {
+      "id": "stakeholders-and-approval",
+      "contains": [
+        "stakeholders",
+        "Human decision owner",
+        "approval boundaries"
+      ]
+    },
+    {
+      "id": "evidence-and-findings",
+      "contains": [
+        "interview evidence",
+        "web research",
+        "repository or code analysis",
+        "runtime or data analysis",
+        "facts separated from recommendations"
+      ]
+    },
+    {
+      "id": "requirements-and-constraints",
+      "contains": [
+        "business and stakeholder needs",
+        "functional requirements",
+        "non-functional requirements",
+        "transition requirements when applicable",
+        "constraints and assumptions"
+      ]
+    },
+    {
+      "id": "decisions-and-open-items",
+      "contains": [
+        "accepted decisions",
+        "alternatives and rationale when applicable",
+        "conflicts",
+        "risks",
+        "unresolved items"
+      ]
+    },
+    {
+      "id": "work-unit-basis",
+      "contains": [
+        "Design Document impact",
+        "Work Unit candidates or created Work Unit ids",
+        "basis traceability",
+        "dependency and execution order"
+      ]
+    }
+  ],
+  "designDocumentRequiredSections": [
+    {
+      "id": "project-core",
+      "contains": [
+        "purpose",
+        "core principles",
+        "scope",
+        "Human approval boundaries",
+        "unresolved items"
+      ]
+    },
+    {
+      "id": "design-drivers",
+      "contains": [
+        "requirements",
+        "stakeholders and concerns",
+        "quality goals",
+        "constraints and assumptions"
+      ]
+    },
+    {
+      "id": "context-and-scope",
+      "contains": [
+        "system or artifact boundary",
+        "external actors and systems",
+        "business and technical context"
+      ]
+    },
+    {
+      "id": "architecture-and-strategy",
+      "contains": [
+        "architecture overview",
+        "solution strategy",
+        "major components and responsibilities"
+      ]
+    },
+    {
+      "id": "design-views",
+      "contains": [
+        "static or building-block view",
+        "runtime or interaction view",
+        "data model",
+        "interfaces and contracts",
+        "deployment view when applicable",
+        "crosscutting concepts when applicable"
+      ]
+    },
+    {
+      "id": "design-decisions",
+      "contains": [
+        "decision",
+        "alternatives",
+        "rationale",
+        "trade-offs and consequences"
+      ]
+    },
+    {
+      "id": "quality-security-and-risks",
+      "contains": [
+        "quality scenarios",
+        "security and privacy",
+        "operability and observability",
+        "risks and technical debt"
+      ]
+    },
+    {
+      "id": "verification-and-traceability",
+      "contains": [
+        "acceptance and verification strategy",
+        "quality gates",
+        "requirements-to-design-to-test traceability",
+        "required evidence"
+      ]
+    },
+    {
+      "id": "work-unit-decomposition",
+      "contains": [
+        "implementation boundaries",
+        "executable Work Unit candidates",
+        "dependencies and order",
+        "deferred work"
+      ]
+    }
+  ],
+  "workUnitRequiredSections": [
+    {
+      "id": "basis",
+      "contains": [
+        "Intake and Design Document refs",
+        "requirement and decision refs",
+        "relevant repository or runtime evidence",
+        "Design Document check requirement"
+      ]
+    },
+    {
+      "id": "work-definition",
+      "contains": [
+        "single goal",
+        "scope",
+        "out of scope",
+        "constraints and assumptions",
+        "dependencies and execution order",
+        "expected output"
+      ]
+    },
+    {
+      "id": "plan",
+      "contains": [
+        "Plan -> Work -> AI Review -> Report steps",
+        "TDD order for code work",
+        "runtime actions when applicable"
+      ]
+    },
+    {
+      "id": "execution-context",
+      "contains": [
+        "Goal id and objective",
+        "exec invocation or session reference",
+        "execution agent",
+        "Git repository",
+        "base ref",
+        "dedicated execution branch",
+        "linked worktree path or id",
+        "setup, active and cleanup state"
+      ]
+    },
+    {
+      "id": "acceptance-and-verification",
+      "contains": [
+        "acceptance criteria",
+        "Definition of Done",
+        "test or verification criteria",
+        "quality gate",
+        "required evidence"
+      ]
+    },
+    {
+      "id": "execution",
+      "contains": [
+        "phase progress",
+        "commands and runtime actions",
+        "files or artifacts changed",
+        "test results",
+        "deviations"
+      ]
+    },
+    {
+      "id": "ai-review",
+      "contains": [
+        "AI checklist",
+        "scope and instruction compliance",
+        "verification result",
+        "remaining risks"
+      ]
+    },
+    {
+      "id": "human-review",
+      "contains": [
+        "Human checklist",
+        "what and how to inspect",
+        "approval and rework criteria",
+        "merge and PR promotion boundaries"
+      ]
+    },
+    {
+      "id": "report",
+      "contains": [
+        "execution summary",
+        "artifact and evidence refs",
+        "verification result",
+        "Design Document result",
+        "remaining risks and unresolved items"
+      ]
+    }
+  ],
+  "conditionalSections": {
+    "intake": [
+      "migration-analysis",
+      "operations-or-incident-context"
+    ],
+    "designDocument": [
+      "migration-and-compatibility",
+      "operations-and-deployment",
+      "glossary"
+    ],
+    "workUnit": [
+      "rework-history",
+      "release-or-deployment"
+    ]
+  },
+  "validationRules": [
+    "모든 required section id는 table of contents에 정확히 한 번 존재해야 한다.",
+    "table of contents array order가 렌더링 순서이며 별도 order 숫자를 저장하지 않는다.",
+    "section nesting이 depth를 소유하며 별도 depth 숫자를 중복 저장하지 않는다.",
+    "모든 section file의 id는 table of contents id와 일치해야 한다.",
+    "H4 이상에 해당하는 추가 subsection은 거부한다.",
+    "metadata.title 또는 section file의 중복 title처럼 canonical title을 둘 이상 만들지 않는다.",
+    "provenance sourceRefs와 relations target은 typed id로 해석되어야 하며 누락 대상을 오류로 보고한다.",
+    "metadata.theme는 이름 또는 stable id이고 style object를 포함할 수 없다.",
+    "Work Unit execution-context는 Goal, exec, repository, base ref, dedicated branch와 linked worktree를 모두 포함하고 실제 Execution에서 resolved value와 lifecycle state를 기록해야 한다.",
+    "Work Unit은 dedicated branch와 linked worktree가 준비되지 않으면 Work phase를 시작할 수 없다.",
+    "문서 유형에 적용되지 않는 conditional section은 빈 required section으로 강제하지 않는다."
+  ],
+  "rejectedAlternatives": [
+    {
+      "alternative": "세 문서에 같은 필수 section 목록 적용",
+      "reason": "Intake의 elicitation, Design Document의 architecture views, Work Unit의 execution and review는 서로 다른 책임이므로 빈 section과 의미 혼합이 발생한다."
+    },
+    {
+      "alternative": "모든 표준 항목을 필수 metadata로 저장",
+      "reason": "DCMI와 PROV의 전체 vocabulary는 현재 요구보다 넓어 YAGNI와 authoring 부담을 초래한다."
+    },
+    {
+      "alternative": "Design Document의 arc42 12개 section을 그대로 강제",
+      "reason": "유용한 실무 참고이지만 모든 프로젝트에 deployment, glossary와 crosscutting section을 강제하면 작은 설계를 과도하게 만든다."
+    },
+    {
+      "alternative": "Work Unit의 acceptance criteria와 Definition of Done 통합",
+      "reason": "specific work 성공 조건과 공통 quality standard의 책임이 달라 검토 기준이 모호해진다."
+    }
+  ],
+  "limitations": [
+    "ISO 표준의 공개 페이지는 abstract 수준이며 유료 전문 전체를 재현하지 않았다.",
+    "section 이름은 Agent Factory 목적에 맞춘 project-specific 결정이며 외부 표준의 section 제목을 그대로 복사한 것이 아니다.",
+    "실제 Viewer usability와 문서 크기는 prototype 및 migrated sample로 추가 검증해야 한다."
+  ],
+  "conclusion": {
+    "status": "superseded-in-part",
+    "summary": "공통 metadata는 identity, schema and document version, project, lifecycle, time, language, theme, provenance와 relations로 제한한다. Intake는 request-to-evidence-to-requirements-to-Work-Unit basis, Design Document는 drivers-to-views-to-decisions-to-verification, Work Unit은 basis-to-plan-to-Goal·exec·branch·worktree execution-context-to-execution-to-reviews-to-report 흐름을 필수 section으로 사용한다. 이 구분이 Human 인터뷰, 공식 표준과 현재 Agent Factory lifecycle을 가장 적은 중복으로 만족한다."
+    ,"supersessionNote": "Design Document의 단일 필수 section 목록은 문서 종류 다양성에 대한 후속 조사로 대체되었다. 공통 metadata, Intake section과 Work Unit section 결론은 유지된다."
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "requirements-specification",
+  "version": "1.0.0",
+  "artifactType": "specification",
+  "documentClass": "requirements",
+  "maximumSectionDepth": 2,
+  "commonRequiredSections": [
+    {"id": "purpose-and-scope", "contains": ["purpose", "scope"]},
+    {"id": "basis-and-relations", "contains": ["source basis", "typed artifact relations"]},
+    {"id": "decisions-and-open-items", "contains": ["accepted decisions", "unresolved items"]},
+    {"id": "verification-and-traceability", "contains": ["verification strategy", "traceability"]}
+  ],
+  "profileRequiredSections": [
+    {"id": "stakeholders-and-needs", "contains": ["stakeholders", "needs"]},
+    {"id": "functional-requirements", "contains": ["functional requirements"]},
+    {"id": "quality-and-non-functional-requirements", "contains": ["quality attributes", "non-functional requirements"]},
+    {"id": "constraints-and-assumptions", "contains": ["constraints", "assumptions"]},
+    {"id": "acceptance-criteria", "contains": ["acceptance criteria"]}
+  ],
+  "optionalSections": [],
+  "blockGuidance": "Allow tables, traceability matrices, and related evidence blocks.",
+  "storageContract": "sectioned-document-package-v2",
+  "implementationStatus": "registered"
+}

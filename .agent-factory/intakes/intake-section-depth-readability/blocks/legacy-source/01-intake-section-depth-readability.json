@@ -1,0 +1,100 @@
+{
+  "id": "intake-section-depth-readability",
+  "date": "2026-07-14",
+  "type": "web-research",
+  "basisRequest": "Intake 문서에서 하위 섹션이 읽기를 어렵게 하는지 조사하고 적절한 section depth를 결정한다.",
+  "relatedArtifacts": [
+    "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+    "docs/work-units/agent-factory-skill-docs-json-block-contract"
+  ],
+  "question": "Intake JSON 문서는 섹션을 평면으로 제한해야 하는가, 하위 섹션을 허용해야 하는가?",
+  "searchScope": [
+    "heading hierarchy와 문서 탐색",
+    "온라인 문서의 scanability",
+    "하위 heading 사용 조건",
+    "접근성 및 자동 목차"
+  ],
+  "sources": [
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F5",
+      "title": "W3C WAI Headings Easy Checks",
+      "url": "https://www.w3.org/WAI/test-evaluate/easy-checks/headings/",
+      "evidence": "heading은 문서 구조의 요약과 navigation을 제공하며 간결하고 실제 구조를 반영해야 한다. heading rank를 건너뛰지 않는 계층을 권고한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F3",
+      "title": "W3C WAI Page Structure Headings",
+      "url": "https://www.w3.org/WAI/tutorials/page-structure/headings/",
+      "evidence": "heading level은 section과 subsection 관계를 전달하고 browser와 assistive technology의 page navigation에 사용된다."
+    },
+    {
+      "tier": "T2 primary expert",
+      "freshness": "F3",
+      "title": "Microsoft Style Guide: Headings",
+      "url": "https://learn.microsoft.com/en-us/style-guide/scannable-content/headings",
+      "evidence": "짧은 문서는 heading 한 단계로 충분한 경우가 많고, 긴 section에 둘 이상의 독립 topic이 있을 때만 second-level heading을 사용하라고 권고한다."
+    },
+    {
+      "tier": "T2 primary expert",
+      "freshness": "F3",
+      "title": "Microsoft Style Guide: Scannable Content",
+      "url": "https://learn.microsoft.com/en-us/style-guide/scannable-content/",
+      "evidence": "긴 온라인 문서는 section으로 나누고 table of contents와 내부 navigation을 제공하며 짧은 heading, 문장과 paragraph를 사용해야 한다."
+    },
+    {
+      "tier": "T1 authoritative primary",
+      "freshness": "F4",
+      "title": "GOV.UK Accessible Documents Guidance",
+      "url": "https://www.gov.uk/government/publications/how-to-produce-accessible-documents-for-the-department-for-transport/use-ms-word-to-create-an-accessible-document",
+      "evidence": "명확하고 설명적인 heading과 subheading은 시각적 탐색과 assistive technology 탐색을 돕는다."
+    }
+  ],
+  "findings": [
+    "하위 섹션 자체가 읽기를 어렵게 만드는 것은 아니다. 적절한 subheading은 긴 문서를 더 쉽게 scan하고 탐색하게 한다.",
+    "읽기를 어렵게 만드는 주된 원인은 필요 없는 계층, 너무 깊은 depth, heading만 연속되는 구조, rank 건너뛰기와 실제 내용 구조에 맞지 않는 heading이다.",
+    "짧은 문서나 짧은 section은 top-level section만 사용하는 편이 단순하다.",
+    "하나의 section에 둘 이상의 명확히 구분되는 topic이 있고 문서를 별도 section으로 나누기 어려울 때 한 단계의 subsection은 유용하다.",
+    "Viewer가 자동 목차와 heading navigation을 제공하려면 depth와 순서를 canonical JSON에서 명시적으로 검증해야 한다."
+  ],
+  "alternatives": [
+    {
+      "option": "평면 section만 허용",
+      "benefit": "JSON, Viewer, 목차와 AI traversal이 가장 단순하다.",
+      "risk": "긴 Intake에서 section 수가 과도해지거나 서로 관련된 하위 topic이 분산될 수 있다."
+    },
+    {
+      "option": "무제한 재귀 subsection",
+      "benefit": "어떤 문서 구조도 표현할 수 있다.",
+      "risk": "가독성, 목차, 접근성, 검증과 renderer 복잡도가 빠르게 증가한다."
+    },
+    {
+      "option": "기본 평면 + subsection 한 단계 허용",
+      "benefit": "일반 Intake는 단순하게 유지하면서 긴 section만 제한적으로 구조화할 수 있다.",
+      "risk": "subsection을 사용할 명확한 기준과 depth validation이 필요하다."
+    }
+  ],
+  "recommendation": {
+    "decision": "기본은 평면 section이고 필요한 경우 subsection 한 단계만 허용한다.",
+    "maximumContentDepth": 2,
+    "rules": [
+      "문서 title은 heading level 1로 렌더링한다.",
+      "top-level section은 heading level 2로 렌더링한다.",
+      "optional subsection은 heading level 3으로 렌더링한다.",
+      "subsection 아래의 추가 subsection은 금지한다.",
+      "section에 둘 이상의 독립 topic이 없으면 subsection을 만들지 않는다.",
+      "subsection이 많아지면 top-level section 또는 별도 Intake로 분리한다.",
+      "목차는 canonical section 순서에서 자동 생성하고 별도 수기 원본으로 저장하지 않는다."
+    ],
+    "rationale": "공식 지침은 heading 계층을 금지하지 않고 올바른 계층이 탐색을 돕는다고 본다. 동시에 짧은 문서에는 한 단계가 충분하고 추가 level은 실제로 구분되는 topic이 있을 때만 사용하라고 권고한다. 따라서 flat-only보다 한 단계 제한 허용이 대규모 Intake까지 대응하면서도 가독성과 Viewer 단순성을 유지한다."
+  },
+  "limitations": [
+    "조사 자료는 일반 웹·기술 문서 heading 지침이며 Agent Factory Intake 사용자를 대상으로 한 직접 사용성 시험은 아니다.",
+    "실제 적정 section 길이와 subsection 사용 빈도는 Viewer prototype에서 Human 검토가 필요하다."
+  ],
+  "conclusion": {
+    "status": "supported",
+    "summary": "깊은 하위 섹션은 피해야 하지만 subsection을 완전히 금지하는 것이 최선이라는 근거는 없다. Intake는 평면 section을 기본으로 하고 최대 한 단계의 subsection만 조건부 허용하는 것이 가장 균형적이다."
+  }
+}

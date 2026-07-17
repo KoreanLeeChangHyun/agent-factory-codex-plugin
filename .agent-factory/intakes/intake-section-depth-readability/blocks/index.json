@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-intake-section-depth-readability.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/intake-section-depth-readability.json",
+      "sha256": "87a29d2363cbb5e01674d17b3437b64e380fe6d5b4241aa27e00d01e11529731",
+      "sizeBytes": 6136
+    }
+  ]
+}

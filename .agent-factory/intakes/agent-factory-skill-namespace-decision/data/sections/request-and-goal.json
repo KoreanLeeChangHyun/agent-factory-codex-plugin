@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "프로젝트의 모든 스킬 이름을 agent-factory-* namespace로 통일한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-skill-namespace-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-skill-namespace-decision/blocks/legacy-source/01-agent-factory-skill-namespace-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

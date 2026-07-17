@@ -1,0 +1,43 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "order": 1,
+        "phase": "Plan",
+        "action": "Create failing regression tests for each reproduced invariant."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "order": 2,
+        "phase": "Work",
+        "action": "Implement minimal manager, profile, schema-contract, and skill changes."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "order": 3,
+        "phase": "AI Review",
+        "action": "Review shared-manager effects, security boundary, state transitions, and contract drift."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "order": 4,
+        "phase": "Report",
+        "action": "Record changed files, tests, evidence, residual risks, and Human review method."
+      }
+    }
+  ],
+  "subsections": []
+}

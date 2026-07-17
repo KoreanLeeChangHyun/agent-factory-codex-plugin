@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-factory.local/schemas/work-unit/v4/metadata.schema.json",
+  "title": "Agent Factory Work Unit Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "documentVersion", "id", "artifactType", "projectId",
+    "lifecycle", "createdAt", "updatedAt", "language", "theme",
+    "provenance", "relations", "readiness"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "4.0.0"},
+    "documentVersion": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "artifactType": {"const": "work-unit"},
+    "projectId": {"type": "string", "minLength": 1},
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "status"],
+      "properties": {
+        "phase": {"const": "work-unit"},
+        "status": {"enum": ["backlog", "ready", "working", "review", "done", "blocked"]}
+      }
+    },
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"},
+    "language": {"type": "string", "minLength": 2},
+    "theme": {"type": "string", "minLength": 1},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["createdBy", "generatedBy", "sourceRefs"],
+      "properties": {
+        "createdBy": {"type": "string", "minLength": 1},
+        "generatedBy": {"type": "string", "minLength": 1},
+        "sourceRefs": {"$ref": "#/$defs/typedRefs"}
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "target"],
+        "properties": {
+          "type": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "target": {"$ref": "#/$defs/typedRef"}
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractValid", "intakeTraceabilityValid", "definitionComplete",
+        "executionContextComplete", "verificationPlanComplete", "reviewedAt", "findings"
+      ],
+      "properties": {
+        "contractValid": {"const": true, "readOnly": true},
+        "intakeTraceabilityValid": {"type": "boolean"},
+        "definitionComplete": {"type": "boolean"},
+        "executionContextComplete": {"type": "boolean"},
+        "verificationPlanComplete": {"type": "boolean"},
+        "reviewedAt": {"type": ["string", "null"], "format": "date-time"},
+        "findings": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      }
+    }
+  },
+  "$defs": {
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sectionId", "itemId"],
+      "properties": {
+        "sectionId": {"type": "string", "pattern": "^[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*$"},
+        "itemId": {"type": "string", "pattern": "^[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*$"}
+      }
+    },
+    "typedRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactType", "id", "path"],
+      "properties": {
+        "artifactType": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "anchor": {"$ref": "#/$defs/anchor"}
+      }
+    },
+    "typedRefs": {"type": "array", "items": {"$ref": "#/$defs/typedRef"}}
+  },
+  "x-statusTransitions": {
+    "backlog": ["ready", "blocked"],
+    "ready": ["backlog", "working", "blocked"],
+    "working": ["ready", "review", "blocked"],
+    "review": ["working", "done", "blocked"],
+    "done": [],
+    "blocked": ["backlog", "ready", "working", "review"]
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "block",
+      "content": {
+        "sourcePath": ".agent-factory/intakes/design-document-profile-system.json",
+        "migrationId": "intake-v2-sectioned-20260716"
+      },
+      "attributes": {
+        "migrationSource": true,
+        "normalization": "preserved-source"
+      },
+      "blockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "evidence",
+      "content": [
+        "ISO 15289 lifecycle information items document types",
+        "ISO 29148 requirements specification information items",
+        "ISO 42010 architecture description viewpoints views model kinds",
+        "OpenAPI Specification paths components security",
+        "OMG UML 2.5.1 machine readable metamodel",
+        "JSON Schema modular composition $ref Draft 2020-12"
+      ],
+      "attributes": {
+        "sourceKey": "queries",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "evidence",
+      "content": [
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "ISO/IEC/IEEE 15289:2019 Systems and software engineering — Content of life-cycle information items",
+          "url": "https://www.iso.org/standard/74909.html",
+          "evidence": "생명주기 information item을 generic document type과 specific purpose로 다루며 프로젝트와 생명주기에 맞게 information item을 결합하거나 분할하고 적절한 모델과 방법을 선택할 수 있게 한다. 2025년 확인되었고 현재 revision 예정 상태다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F4",
+          "title": "ISO/IEC/IEEE 29148:2018 Requirements engineering",
+          "url": "https://www.iso.org/standard/72089.html",
+          "evidence": "요구사항 공학 process와 그 과정에서 생산되는 information item의 필수 content 및 format guidance를 별도로 규정한다. 요구사항 명세는 일반 설계 view와 구분되는 목적별 information item이다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F4",
+          "title": "ISO/IEC/IEEE 42010:2022 Architecture description",
+          "url": "https://www.iso.org/standard/74393.html",
+          "evidence": "architecture description을 stakeholder concern, viewpoint, view와 model kind의 관계로 다룬다. 모든 문서 종류에 하나의 고정 section 목록을 강제하는 근거가 아니라 architecture 계열 profile의 근거다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "OpenAPI Specification 3.2.0",
+          "url": "https://spec.openapis.org/oas/v3.2.0.html",
+          "evidence": "API description에 paths, webhooks, components, security 등 API 전용 구조와 versioned schema를 정의한다. API 설계 문서는 공통 문서 section만으로 재구현하기보다 OpenAPI 원문을 연결 블록으로 보존할 수 있어야 한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "OMG Unified Modeling Language 2.5.1",
+          "url": "https://www.omg.org/spec/UML",
+          "evidence": "UML normative specification과 machine-readable XMI metamodel을 제공한다. 클래스와 관계 모델은 일반 prose section 외에 UML 또는 동등한 구조화 모델 블록을 profile별로 허용할 필요가 있다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "JSON Schema Draft 2020-12 modular schema composition",
+          "url": "https://json-schema.org/understanding-json-schema/structuring",
+          "evidence": "$id와 $ref를 이용해 schema를 논리 단위로 분리하고 재사용할 수 있으며, 복잡한 schema에서 중복을 줄이는 modular composition을 권장한다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "JSON Schema Draft 2020-12 dialect declaration",
+          "url": "https://json-schema.org/understanding-json-schema/reference/schema",
+          "evidence": "$schema로 schema dialect를 명시하여 validator가 해석할 계약 version을 분명하게 만들 수 있다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F3",
+          "title": "NASA Software Design Description",
+          "url": "https://swehb.nasa.gov/spaces/SWEHBVB/pages/32604435/SwDD%2B-%2BSoftware%2BDesign%2BDescription",
+          "evidence": "software design description에서 architecture, component, interface, data and control flow, design decisions, quality attributes와 traceability를 다룬다. 이는 software-design profile의 내용 근거이지 requirements나 API profile 전체의 공통 필수 section 근거는 아니다."
+        },
+        {
+          "tier": "T1 authoritative primary",
+          "freshness": "F5",
+          "title": "IIBA Understanding Requirements and Designs",
+          "url": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
+          "evidence": "requirements와 designs를 서로 연결되지만 구분되는 분석 대상으로 다루고 need에서 design과 solution까지 traceability를 요구한다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "sources",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "evidence",
+      "content": [
+        {
+          "id": "FINDING-001",
+          "statement": "모든 문서 종류에 하나의 Design Document 필수 section 목록을 적용하는 방식은 표준의 purpose-specific information item 구조와 맞지 않는다.",
+          "basis": [
+            "ISO/IEC/IEEE 15289:2019",
+            "ISO/IEC/IEEE 29148:2018",
+            "ISO/IEC/IEEE 42010:2022"
+          ]
+        },
+        {
+          "id": "FINDING-002",
+          "statement": "요구사항과 설계는 표준 용어상 같은 개념이 아니다. 다만 프로젝트가 docs/design-documents를 상위 저장 루트로 사용한다면 이 루트를 Agent Factory의 광의의 specification and design artifact container로 명시해 함께 저장할 수 있다.",
+          "basis": [
+            "Human storage decision",
+            "ISO/IEC/IEEE 29148:2018",
+            "IIBA Understanding Requirements and Designs"
+          ]
+        },
+        {
+          "id": "FINDING-003",
+          "statement": "공통 base schema와 versioned document profile schema를 분리하고 $ref로 조합하면 공통 계약의 중복 없이 문서 종류별 validation을 확장할 수 있다.",
+          "basis": [
+            "ISO/IEC/IEEE 15289:2019",
+            "JSON Schema Draft 2020-12"
+          ]
+        },
+        {
+          "id": "FINDING-004",
+          "statement": "OpenAPI와 UML처럼 이미 machine-readable standard가 있는 내용은 generic JSON section 안에 복제하지 않고 package-local block 또는 명시적 외부 relation으로 연결하는 편이 원문 일관성과 도구 호환성을 보존한다.",
+          "basis": [
+            "OpenAPI Specification 3.2.0",
+            "OMG UML 2.5.1"
+          ]
+        }
+      ],
+      "attributes": {
+        "sourceKey": "findings",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0005",
+      "kind": "finding",
+      "content": [
+        {
+          "alternative": "모든 종류에 기존 9개 Design Document section을 필수 적용",
+          "reason": "요구사항, API, 모델과 architecture의 목적별 정보 구조를 혼합해 빈 section과 중복을 만든다."
+        },
+        {
+          "alternative": "문서 종류를 Viewer 코드의 폐쇄형 enum으로 고정",
+          "reason": "새 설계서 종류를 추가할 때 data contract가 아니라 Viewer 코드 배포가 반드시 필요해 프로젝트별 동적 확장 요구와 맞지 않는다."
+        },
+        {
+          "alternative": "모든 profile 데이터를 하나의 거대한 schema 파일에 포함",
+          "reason": "문서 종류가 늘수록 결합도와 변경 영향이 커지며 JSON Schema의 modular composition 이점을 잃는다."
+        },
+        {
+          "alternative": "요구사항 명세서를 별도 최상위 루트로 즉시 이동",
+          "reason": "사용자가 docs/design-documents/<문서이름>/ 저장을 명시했으며 이번 조사 범위에서 새 최상위 저장 루트를 요구하지 않았다."
+        }
+      ],
+      "attributes": {
+        "sourceKey": "rejectedAlternatives",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0006",
+      "kind": "finding",
+      "content": [
+        "ISO 표준 공개 페이지는 abstract 수준이며 유료 전문의 전체 section template을 재현하지 않았다.",
+        "초기 profile section 이름은 조사 결과를 Agent Factory 목적에 적용한 project-specific 계약이며 외부 표준의 제목을 그대로 복사한 것이 아니다.",
+        "각 profile의 상세 field schema, block extension 목록과 renderer adapter API는 schema-first Work Unit Execution에서 정의하고 sample package로 검증해야 한다.",
+        "profile 규칙을 소유할 정확한 Agent Factory skill 이름과 내부 asset 경로는 스킬 계약 Work Unit Execution에서 정의해야 한다."
+      ],
+      "attributes": {
+        "sourceKey": "limitations",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-factory.local/schemas/work-unit/v4/blocks.schema.json",
+  "title": "Agent Factory Work Unit Block Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["blocks"],
+  "properties": {
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "mediaType", "description", "sha256", "sizeBytes"],
+        "properties": {
+          "path": {"type": "string", "pattern": "^blocks/[A-Za-z0-9._/-]+$"},
+          "mediaType": {"type": "string", "minLength": 1},
+          "description": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "sizeBytes": {"type": "integer", "minimum": 0}
+        }
+      }
+    }
+  }
+}

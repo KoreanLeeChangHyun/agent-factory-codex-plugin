@@ -1,0 +1,595 @@
+{
+  "migrationId": "intake-v2-sectioned-20260716",
+  "createdAt": "2026-07-16T14:31:04+00:00",
+  "phase": "completed-legacy-removed",
+  "sourcePreservation": "Every source is copied into its package as a registered legacy-source block.",
+  "packages": [
+    {
+      "id": "agent-factory-canonical-root-decision",
+      "sources": [
+        ".agent-factory/intakes/agent-factory-canonical-root-decision.json"
+      ],
+      "package": ".agent-factory/intakes/agent-factory-canonical-root-decision",
+      "liveTarget": ".agent-factory/intakes/agent-factory-canonical-root-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "agent-factory-json-viewer-extension-architecture",
+      "sources": [
+        ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture.json"
+      ],
+      "package": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture",
+      "liveTarget": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "agent-factory-plugin-vscode-extension-architecture",
+      "sources": [
+        ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture.json"
+      ],
+      "package": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture",
+      "liveTarget": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "agent-factory-plugin-vscode-extension-split-decision",
+      "sources": [
+        ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision.json"
+      ],
+      "package": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision",
+      "liveTarget": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "agent-factory-skill-namespace-decision",
+      "sources": [
+        ".agent-factory/intakes/agent-factory-skill-namespace-decision.json"
+      ],
+      "package": ".agent-factory/intakes/agent-factory-skill-namespace-decision",
+      "liveTarget": ".agent-factory/intakes/agent-factory-skill-namespace-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "common-document-required-metadata-and-sections",
+      "sources": [
+        ".agent-factory/intakes/common-document-required-metadata-and-sections.json"
+      ],
+      "package": ".agent-factory/intakes/common-document-required-metadata-and-sections",
+      "liveTarget": ".agent-factory/intakes/common-document-required-metadata-and-sections",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "design-document-profile-system",
+      "sources": [
+        ".agent-factory/intakes/design-document-profile-system.json"
+      ],
+      "package": ".agent-factory/intakes/design-document-profile-system",
+      "liveTarget": ".agent-factory/intakes/design-document-profile-system",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "execution-agent-worktree-skill-placement",
+      "sources": [
+        ".agent-factory/intakes/execution-agent-worktree-skill-placement.json"
+      ],
+      "package": ".agent-factory/intakes/execution-agent-worktree-skill-placement",
+      "liveTarget": ".agent-factory/intakes/execution-agent-worktree-skill-placement",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "intake-json-canonical-viewer",
+      "sources": [
+        ".agent-factory/intakes/intake-json-canonical-viewer"
+      ],
+      "package": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/staging-project/.agent-factory/intakes/intake-json-canonical-viewer",
+      "liveTarget": ".agent-factory/intakes/intake-json-canonical-viewer",
+      "staged": true,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "intake-section-depth-readability",
+      "sources": [
+        ".agent-factory/intakes/intake-section-depth-readability.json"
+      ],
+      "package": ".agent-factory/intakes/intake-section-depth-readability",
+      "liveTarget": ".agent-factory/intakes/intake-section-depth-readability",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "migration-backup-location-decision",
+      "sources": [
+        ".agent-factory/intakes/migration-backup-location-decision.json"
+      ],
+      "package": ".agent-factory/intakes/migration-backup-location-decision",
+      "liveTarget": ".agent-factory/intakes/migration-backup-location-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "project-core-storage-decision",
+      "sources": [
+        ".agent-factory/intakes/project-core-storage-decision.json"
+      ],
+      "package": ".agent-factory/intakes/project-core-storage-decision",
+      "liveTarget": ".agent-factory/intakes/project-core-storage-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "specification-profile-skill-ownership-decision",
+      "sources": [
+        ".agent-factory/intakes/specification-profile-skill-ownership-decision.json"
+      ],
+      "package": ".agent-factory/intakes/specification-profile-skill-ownership-decision",
+      "liveTarget": ".agent-factory/intakes/specification-profile-skill-ownership-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "specifications-root-name-decision",
+      "sources": [
+        ".agent-factory/intakes/specifications-root-name-decision.json"
+      ],
+      "package": ".agent-factory/intakes/specifications-root-name-decision",
+      "liveTarget": ".agent-factory/intakes/specifications-root-name-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "work-unit-branch-lifecycle-naming-decision",
+      "sources": [
+        ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision.json",
+        ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision"
+      ],
+      "package": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/staging-project/.agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+      "liveTarget": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+      "staged": true,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "work-unit-execution-bootstrap-location-decision",
+      "sources": [
+        ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision.json"
+      ],
+      "package": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision",
+      "liveTarget": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "work-unit-execution-context-sufficiency",
+      "sources": [
+        ".agent-factory/intakes/work-unit-execution-context-sufficiency.md"
+      ],
+      "package": ".agent-factory/intakes/work-unit-execution-context-sufficiency",
+      "liveTarget": ".agent-factory/intakes/work-unit-execution-context-sufficiency",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "work-unit-execution-repository-decision",
+      "sources": [
+        ".agent-factory/intakes/work-unit-execution-repository-decision.json"
+      ],
+      "package": ".agent-factory/intakes/work-unit-execution-repository-decision",
+      "liveTarget": ".agent-factory/intakes/work-unit-execution-repository-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "work-unit-json-storage-format",
+      "sources": [
+        ".agent-factory/intakes/work-unit-json-storage-format.md"
+      ],
+      "package": ".agent-factory/intakes/work-unit-json-storage-format",
+      "liveTarget": ".agent-factory/intakes/work-unit-json-storage-format",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "work-unit-json-storage-format-decision",
+      "sources": [
+        ".agent-factory/intakes/work-unit-json-storage-format-decision.md"
+      ],
+      "package": ".agent-factory/intakes/work-unit-json-storage-format-decision",
+      "liveTarget": ".agent-factory/intakes/work-unit-json-storage-format-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "work-unit-json-storage-format-self-migration",
+      "sources": [
+        ".agent-factory/intakes/work-unit-json-storage-format-self-migration.md"
+      ],
+      "package": ".agent-factory/intakes/work-unit-json-storage-format-self-migration",
+      "liveTarget": ".agent-factory/intakes/work-unit-json-storage-format-self-migration",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    },
+    {
+      "id": "workunit-kanban-stage-visibility-decision",
+      "sources": [
+        ".agent-factory/intakes/workunit-kanban-stage-visibility-decision.md"
+      ],
+      "package": ".agent-factory/intakes/workunit-kanban-stage-visibility-decision",
+      "liveTarget": ".agent-factory/intakes/workunit-kanban-stage-visibility-decision",
+      "staged": false,
+      "status": "draft",
+      "fullValidation": true,
+      "sectionCount": 7
+    }
+  ],
+  "pendingMoves": [],
+  "overwriteAllowed": false,
+  "completedAt": "2026-07-16T17:15:28+00:00",
+  "executedMoves": [
+    {
+      "source": ".agent-factory/intakes/agent-factory-canonical-root-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/agent-factory-canonical-root-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/agent-factory-json-viewer-extension-architecture.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/agent-factory-skill-namespace-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/agent-factory-skill-namespace-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/common-document-required-metadata-and-sections.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/common-document-required-metadata-and-sections.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/design-document-profile-system.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/design-document-profile-system.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/execution-agent-worktree-skill-placement.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/execution-agent-worktree-skill-placement.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/intake-json-canonical-viewer",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/intake-json-canonical-viewer",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/staging-project/.agent-factory/intakes/intake-json-canonical-viewer",
+      "destination": ".agent-factory/intakes/intake-json-canonical-viewer",
+      "operation": "install-after-source-backup-and-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/intake-section-depth-readability.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/intake-section-depth-readability.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/migration-backup-location-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/migration-backup-location-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/project-core-storage-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/project-core-storage-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/specification-profile-skill-ownership-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/specification-profile-skill-ownership-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/specifications-root-name-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/specifications-root-name-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-branch-lifecycle-naming-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/staging-project/.agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+      "destination": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+      "operation": "install-after-source-backup-and-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-execution-bootstrap-location-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-execution-context-sufficiency.md",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-execution-context-sufficiency.md",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-execution-repository-decision.json",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-execution-repository-decision.json",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-json-storage-format.md",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-json-storage-format.md",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-json-storage-format-decision.md",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-json-storage-format-decision.md",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/work-unit-json-storage-format-self-migration.md",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/work-unit-json-storage-format-self-migration.md",
+      "operation": "move-after-human-confirmation"
+    },
+    {
+      "source": ".agent-factory/intakes/workunit-kanban-stage-visibility-decision.md",
+      "destination": ".backup/intake-v2-sectioned-20260716/.agent-factory/intakes/workunit-kanban-stage-visibility-decision.md",
+      "operation": "move-after-human-confirmation"
+    }
+  ],
+  "legacyRemoval": {
+    "removedAt": "2026-07-16T17:17:54+00:00",
+    "backupRoot": ".backup/intake-v2-sectioned-20260716",
+    "verifiedAndRemovedCount": 23,
+    "verification": "canonical full validation, raw-byte equality, SHA-256 equality, and JSON field representation",
+    "records": [
+      {
+        "legacySource": ".agent-factory/intakes/agent-factory-canonical-root-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/agent-factory-canonical-root-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json",
+        "sha256": "fcb92d23537859ec828fd924e56a442becd3695fbde72b087084bb82326e2dca",
+        "sizeBytes": 2035,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture.json",
+        "canonicalPackage": ".agent-factory/intakes/agent-factory-json-viewer-extension-architecture",
+        "canonicalBlockRef": "blocks/legacy-source/01-agent-factory-json-viewer-extension-architecture.json",
+        "sha256": "6cda5e65efa82d07d06b3238b45f6d1abc79e4770d51a6bc661b8130c4928b2d",
+        "sizeBytes": 11354,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture.json",
+        "canonicalPackage": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-architecture",
+        "canonicalBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-architecture.json",
+        "sha256": "84447c6f1d2957e4a68d169b1f4d158842d6f30b63eb110e7ecc8900ddf818ca",
+        "sizeBytes": 8646,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/agent-factory-plugin-vscode-extension-split-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-agent-factory-plugin-vscode-extension-split-decision.json",
+        "sha256": "4d85665228e47033384d2744832f87c133c02557af54e76e8d8a05d661114c5d",
+        "sizeBytes": 2278,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/agent-factory-skill-namespace-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/agent-factory-skill-namespace-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-agent-factory-skill-namespace-decision.json",
+        "sha256": "cc8b4a55fc1e1963e5d7cdb5e61bf183348023c669e491b50258366765fbd83d",
+        "sizeBytes": 2228,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/common-document-required-metadata-and-sections.json",
+        "canonicalPackage": ".agent-factory/intakes/common-document-required-metadata-and-sections",
+        "canonicalBlockRef": "blocks/legacy-source/01-common-document-required-metadata-and-sections.json",
+        "sha256": "a045b6b66ea0c73bdfb93f4b9f86791ce87178029fb5f4ae427c206621477dec",
+        "sizeBytes": 18888,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/design-document-profile-system.json",
+        "canonicalPackage": ".agent-factory/intakes/design-document-profile-system",
+        "canonicalBlockRef": "blocks/legacy-source/01-design-document-profile-system.json",
+        "sha256": "e7de1229e4b4259e5bbbcbe4cfa76bd4d713a3c78f9408797800cee43e450555",
+        "sizeBytes": 14421,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/execution-agent-worktree-skill-placement.json",
+        "canonicalPackage": ".agent-factory/intakes/execution-agent-worktree-skill-placement",
+        "canonicalBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json",
+        "sha256": "93a23291e605dcade949451b407a801ea31961c763966669a8618b4e9830c661",
+        "sizeBytes": 8550,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/intake-json-canonical-viewer",
+        "canonicalPackage": ".agent-factory/intakes/intake-json-canonical-viewer",
+        "canonicalBlockRef": "blocks/legacy-source/01-intake.json",
+        "sha256": "b0b3a0143e00038ced58298897828c4d03982f44cba07296a0897a2ff62366e8",
+        "sizeBytes": 24751,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/intake-section-depth-readability.json",
+        "canonicalPackage": ".agent-factory/intakes/intake-section-depth-readability",
+        "canonicalBlockRef": "blocks/legacy-source/01-intake-section-depth-readability.json",
+        "sha256": "87a29d2363cbb5e01674d17b3437b64e380fe6d5b4241aa27e00d01e11529731",
+        "sizeBytes": 6136,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/migration-backup-location-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/migration-backup-location-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-migration-backup-location-decision.json",
+        "sha256": "2a865d98e4a9be0bd1885289e46ad74182b587bf05ddfc1444e79ac550473aaf",
+        "sizeBytes": 1574,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/project-core-storage-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/project-core-storage-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-project-core-storage-decision.json",
+        "sha256": "8e2068857383a91f0cab62c0bfdd1f326bc9a0d5ff5211dc77b678d9c4f31518",
+        "sizeBytes": 2392,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/specification-profile-skill-ownership-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/specification-profile-skill-ownership-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json",
+        "sha256": "0154e87eee26a8f50853df24aed0787507a0d24b504be39d1b5d025a545d36cc",
+        "sizeBytes": 1623,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/specifications-root-name-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/specifications-root-name-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-specifications-root-name-decision.json",
+        "sha256": "4a2c3099f90088bcf8e044c77ea5dd18397244feafcfdd454c2eb1becc62c370",
+        "sizeBytes": 2470,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-work-unit-branch-lifecycle-naming-decision.json",
+        "sha256": "b5b8bfce064757f3f7c735d790bf941cc87aa84f5b1f14438050376af6733468",
+        "sizeBytes": 1593,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-branch-lifecycle-naming-decision",
+        "canonicalBlockRef": "blocks/legacy-source/02-intake.json",
+        "sha256": "66d0c4e21bac69bee206626cbade604d0f3a87ced08ded6c93c54007fafdd60f",
+        "sizeBytes": 5015,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-execution-bootstrap-location-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-work-unit-execution-bootstrap-location-decision.json",
+        "sha256": "ab783c6316c9525d3b26cc8ae656431ce6c39859c4088004358b1718b36426f3",
+        "sizeBytes": 968,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-execution-context-sufficiency.md",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-execution-context-sufficiency",
+        "canonicalBlockRef": "blocks/legacy-source/01-work-unit-execution-context-sufficiency.md",
+        "sha256": "4d64ba1dc70a1fdff57a45693f4e01ec0f7ac7d765ae8c91e23ed6bd01788219",
+        "sizeBytes": 18957,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-execution-repository-decision.json",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-execution-repository-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-work-unit-execution-repository-decision.json",
+        "sha256": "274cd7a45ef2f35c49bb8f08c88780f09cdb914e8b0759b52a79df63696ce631",
+        "sizeBytes": 2215,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-json-storage-format.md",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-json-storage-format",
+        "canonicalBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format.md",
+        "sha256": "44793eabb0b907de1bf403623c3c94d2814f3119b5ab6ffa2334a75659d7af31",
+        "sizeBytes": 12959,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-json-storage-format-decision.md",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-json-storage-format-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-decision.md",
+        "sha256": "96f32f6b49f1f14082331a55cc5b9ceafb59ba28ab79551200f0acb275a870b2",
+        "sizeBytes": 1594,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/work-unit-json-storage-format-self-migration.md",
+        "canonicalPackage": ".agent-factory/intakes/work-unit-json-storage-format-self-migration",
+        "canonicalBlockRef": "blocks/legacy-source/01-work-unit-json-storage-format-self-migration.md",
+        "sha256": "37f8f7391f6ea9254e30b18b53b0cc13f6a22f36486371d4372dbaf89ae30436",
+        "sizeBytes": 4362,
+        "removedFromBackup": true
+      },
+      {
+        "legacySource": ".agent-factory/intakes/workunit-kanban-stage-visibility-decision.md",
+        "canonicalPackage": ".agent-factory/intakes/workunit-kanban-stage-visibility-decision",
+        "canonicalBlockRef": "blocks/legacy-source/01-workunit-kanban-stage-visibility-decision.md",
+        "sha256": "24b491f86a9b8c3fa3f7d774c724717ae5374a1daf7af78f5018a20001d8aec3",
+        "sizeBytes": 1567,
+        "removedFromBackup": true
+      }
+    ]
+  }
+}

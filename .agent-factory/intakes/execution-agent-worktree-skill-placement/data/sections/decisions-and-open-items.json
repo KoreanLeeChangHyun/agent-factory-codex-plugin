@@ -1,0 +1,94 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "decision-status",
+      "content": {
+        "status": "supported",
+        "canonicalOwner": ".codex/skills/work-unit-execution-af/",
+        "skillName": "work-unit-execution-af",
+        "scriptPath": ".codex/skills/work-unit-execution-af/scripts/worktree.py",
+        "responsibilities": [
+          "Work Unit execution-context에서 repository root, base ref, dedicated branch와 linked worktree path의 resolved 값을 입력받는다.",
+          "repository root와 base commit, branch name, branch and worktree path collision을 mutation 전에 검증한다.",
+          "새 dedicated branch와 linked worktree를 원자적인 prepare 흐름으로 생성하고 활성 기간에 lock한다.",
+          "worktree와 branch의 현재 상태를 stable porcelain and NUL-delimited Git output으로 검사한다.",
+          "Human의 merge, rework 또는 폐기 결정 이후에만 명시적인 cleanup을 수행하며 dirty worktree를 자동 삭제하지 않는다.",
+          "명령 결과, resolved values, lifecycle state와 오류를 구조화된 JSON으로 출력한다."
+        ],
+        "safetyRules": [
+          "shell interpolation을 사용하지 않고 argument array로 Git을 실행한다.",
+          "git worktree add -b를 사용하며 기존 branch를 강제로 reset하는 -B를 사용하지 않는다.",
+          "worktree remove --force와 branch 강제 삭제를 제공하지 않는다.",
+          "cleanup은 Human review decision 이전에 자동 실행하지 않는다.",
+          "path 또는 branch collision, invalid base ref, dirty state와 repository mismatch에서 mutation 전에 중단한다."
+        ],
+        "routing": {
+          "work-unit-planner-af": "execution-context 필수값과 package validity만 정의하고 Git mutation은 수행하지 않는다.",
+          "agent-factory-lifecycle-af": "named Goal Work Unit Execution을 work-unit-execution-af로 라우팅한다.",
+          "agent-extension": "독자 Git orchestration을 구현하지 않고 work-unit-execution-af의 script contract를 호출한다.",
+          "execution-agent": "script를 호출하고 반환된 resolved state와 evidence를 Work Unit Execution record에 기록한다."
+        },
+        "bootstrap": "work-unit-execution-af 자체를 최초 구현하는 Work Unit은 아직 script가 없으므로 동일한 검증 순서의 명시적 Git 명령으로 one-time bootstrap worktree를 만들고 모든 명령과 상태를 evidence로 남긴다. 이후 Work Unit은 canonical script를 사용한다."
+      },
+      "attributes": {
+        "sourceKey": "recommendation",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "decision-status",
+      "content": {
+        "status": "supported",
+        "summary": "Execution Agent 전용 work-unit-execution-af 스킬을 .codex/skills에 추가하고 scripts/worktree.py가 안전한 linked worktree lifecycle과 JSON 결과를 소유한다. lifecycle은 라우팅하고 planner는 데이터 계약만 검증하며 Agent 확장은 동일 script contract를 재사용한다."
+      },
+      "attributes": {
+        "sourceKey": "conclusion",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "superseded",
+        "reason": "The former standalone .codex skill placement is replaced by the plugin-owned work-unit-execution skill.",
+        "currentStateEvidence": [
+          "skills/work-unit-execution/SKILL.md",
+          ".codex-plugin/plugin.json"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "superseded",
+        "classification": "human-approved-policy-current-state-analysis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "analysis-report",
+          "id": "intake-disposition-audit-20260717",
+          "path": ".agent-factory/runtime/migrations/intake-v2-sectioned-20260716/disposition-audit.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

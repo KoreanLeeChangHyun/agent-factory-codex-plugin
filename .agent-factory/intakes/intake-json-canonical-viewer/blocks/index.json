@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-intake.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/intake-json-canonical-viewer",
+      "sha256": "b0b3a0143e00038ced58298897828c4d03982f44cba07296a0897a2ff62366e8",
+      "sizeBytes": 24751
+    }
+  ]
+}

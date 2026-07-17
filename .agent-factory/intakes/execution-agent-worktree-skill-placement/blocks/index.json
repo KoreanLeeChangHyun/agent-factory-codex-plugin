@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json",
+      "mediaType": "application/json",
+      "description": "Preserved pre-v2 Intake source: .agent-factory/intakes/execution-agent-worktree-skill-placement.json",
+      "sha256": "93a23291e605dcade949451b407a801ea31961c763966669a8618b4e9830c661",
+      "sizeBytes": 8550
+    }
+  ]
+}

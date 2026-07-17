@@ -1,0 +1,20 @@
+{
+  "summary": "아직 실행되지 않았습니다.",
+  "artifactRefs": [],
+  "verification": {
+    "result": "not_run",
+    "evidenceRefs": []
+  },
+  "remainingRisk": [],
+  "unresolvedItems": [
+    "Dashboard가 표시할 구체적인 집계 항목과 조작은 정해지지 않았다.",
+    "Context 탭에서 AGENTS.md와 Skills에 제공할 구체적인 생성, 편집, 활성화 및 검증 동작은 정해지지 않았다.",
+    "실행 가능한 VS Code 확장의 구현 저장소, 언어, 프레임워크, API와 호스트 영역은 정해지지 않았다.",
+    "Kanban DnD의 허용 전환, Execution 제출 조건·실패 처리와 Agent 확장 연동 계약은 후속 Intake에서 정해야 한다."
+  ],
+  "designDocument": {
+    "status": "not_checked",
+    "refs": [],
+    "reason": "관련 Design Document 확인 결과가 아직 기록되지 않았습니다."
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "TDD RED before worktree implementation",
+    "result": "expected_fail",
+    "evidence": "scripts/worktree.py가 없는 상태에서 13개 테스트가 실패해 구현 전 RED를 확인했다.",
+    "tests": 13
+  },
+  {
+    "name": "Worktree unit and temporary Git repository integration",
+    "result": "pass",
+    "evidence": "prepare, deterministic branch derivation, pair reuse, inspect, cleanup, collision, repository mismatch, dirty refusal, worktree add 실패 JSON, JSON determinism과 unsafe invocation 검사를 포함한 20개 테스트가 통과했다.",
+    "tests": 20
+  },
+  {
+    "name": "Work Unit planner regression",
+    "result": "pass",
+    "evidence": "기존 work-unit-planner-af 전체 회귀 테스트가 통과했다.",
+    "tests": 53
+  },
+  {
+    "name": "Context-isolated skill forward-test",
+    "result": "pass",
+    "evidence": "스킬 테스트를 읽지 않은 별도 agent가 임시 Git 저장소에서 prepared, reused, clean, cleaned 상태와 worktree 제거 및 branch 보존을 확인했다.",
+    "tests": 1
+  },
+  {
+    "name": "Agent Factory skill quick validation",
+    "result": "pass",
+    "evidence": "새 execution skill을 포함한 12개 *-af 스킬이 quick validation을 통과했다.",
+    "tests": 12
+  },
+  {
+    "name": "Work Unit schemas and package validation",
+    "result": "pass",
+    "evidence": "8개 canonical schema self-check와 현재 Work Unit package full validation이 통과했다.",
+    "schemas": 8
+  }
+]

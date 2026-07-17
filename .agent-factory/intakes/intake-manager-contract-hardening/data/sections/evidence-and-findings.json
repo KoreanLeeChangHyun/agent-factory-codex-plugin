@@ -1,0 +1,67 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "evidence",
+      "content": {
+        "classification": "internal review evidence",
+        "summary": "Repository inspection, tests, and isolated runtime reproductions establish the failures."
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        },
+        {
+          "artifactType": "document-profile",
+          "id": "intake-profile",
+          "path": "skills/intake/assets/profiles/intake.profile.json"
+        },
+        {
+          "artifactType": "skill",
+          "id": "intake",
+          "path": "skills/intake/SKILL.md"
+        }
+      ]
+    },
+    {
+      "id": "INTERNAL-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": "isolated temporary packages and repository files",
+        "method": "code inspection, CLI reproduction, and test execution",
+        "findings": [
+          "A crafted journal can overwrite a file outside the package through an in-package symlink.",
+          "A ready Intake accepts content mutation without clearing status or readiness.",
+          "A closed Intake accepts title mutation.",
+          "The profile requires evidence while capability skills emit specialized kinds.",
+          "Duplicate item ids across a section body and subsection validate.",
+          "All 63 existing tests pass, showing missing regression coverage."
+        ],
+        "interpretations": [
+          "Canonical boundary, lifecycle invariants, and content-kind contracts require changes."
+        ],
+        "limitations": [
+          "No external research is required because all claims are local behavior."
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "source-code",
+          "id": "intake-manager",
+          "path": "skills/intake/scripts/intake.py"
+        },
+        {
+          "artifactType": "document-profile",
+          "id": "intake-profile",
+          "path": "skills/intake/assets/profiles/intake.profile.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,67 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "language": "ko"
+      },
+      "attributes": {
+        "sourceKey": "language",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/interviews/specifications-root-name-decision.json",
+        "docs/interviews/project-core-storage-decision.json",
+        "docs/research/design-document-profile-system.json",
+        "docs/work-units/agent-factory-skill-docs-json-block-contract"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "specification-profile-skill-ownership-decision-source-1",
+          "path": ".agent-factory/intakes/specification-profile-skill-ownership-decision/blocks/legacy-source/01-specification-profile-skill-ownership-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

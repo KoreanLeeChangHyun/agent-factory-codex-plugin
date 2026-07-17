@@ -1,0 +1,128 @@
+{
+  "id": "work-unit-execution-skill-worktree-manager",
+  "title": "Execution Agent Worktree 스킬·스크립트 구현",
+  "version": "3.0.0",
+  "status": "working",
+  "sourceDesignRefs": [],
+  "goal": "Execution Agent가 모든 Work Unit을 검증된 dedicated branch와 linked worktree에서 일관되게 시작·검사·정리할 수 있도록 재사용 가능한 work-unit-execution-af 스킬과 deterministic JSON-output script를 구현한다.",
+  "scope": [
+    "docs/research/execution-agent-worktree-skill-placement.json과 INTAKE-DECISION-034, INTAKE-DECISION-035를 구현 basis로 사용한다.",
+    ".codex/skills/work-unit-execution-af/에 SKILL.md, agents/openai.yaml, scripts/worktree.py와 필요한 reference 및 test를 생성한다.",
+    "Execution Agent가 resolved repository root, base ref, branch와 worktree path를 입력해 prepare, inspect와 Human decision 이후 cleanup을 수행하는 명령 계약을 정의한다.",
+    "repository root, base commit, branch name, branch collision, worktree path collision, dirty state와 repository mismatch를 mutation 전에 검증한다.",
+    "git worktree add -b와 lock을 사용하고 stable porcelain and NUL-delimited output을 안전하게 해석한다.",
+    "명령 결과, resolved execution context, lifecycle state와 오류를 canonical JSON으로 출력하고 Execution record에 기록할 evidence contract를 제공한다.",
+    "agent-factory-lifecycle-af가 named Goal execution을 새 스킬로 라우팅하고 work-unit-planner-af가 Git mutation을 소유하지 않는 책임 경계를 기록한다.",
+    "최초 bootstrap은 공식 Git 검증 순서의 명시적 명령을 사용하고 이후 Work Unit은 구현된 canonical script를 사용하게 한다.",
+    "Work Unit당 linked worktree 1개와 dedicated branch 1개를 생성하고 재실행 및 rework에서는 동일 pair를 재사용하며 branch 이름을 work-unit/<work-unit-id>로 결정적으로 파생한다.",
+    "Human Review rework: 기존 worktree를 재사용할 때 반환하는 baseRef와 baseCommit이 실제 최초 기반 및 current HEAD와 모순되지 않도록 검증하고 사실과 다른 execution context를 반환하지 않는다.",
+    "Human Review rework: cleanup remove 실패 시 기존 lock 보호를 복구하고 부분 실패 상태와 복구 결과를 canonical JSON evidence로 반환한다.",
+    "Human Review rework: .codex/skills project source와 $CODEX_HOME/skills active location의 충돌을 Human 결정으로 해소하고 fresh Goal session discovery 경계를 검증한다."
+  ],
+  "outOfScope": [
+    "Work Unit package schema와 planner manager의 전면 재설계.",
+    "VS Code Agent 또는 Workspace 확장 구현.",
+    "Human 승인 없는 merge, branch 삭제, worktree 강제 제거 또는 PR promotion."
+  ],
+  "assumptions": [],
+  "constraints": [
+    "canonical repository root는 /home/deus/workspace/skills다.",
+    "Execution은 Goal, exec, dedicated branch와 linked worktree를 사용한다.",
+    "git worktree remove --force, git branch -D, git worktree add -B와 shell interpolation을 사용하지 않는다.",
+    "Human review decision 이전에는 cleanup을 자동 실행하지 않고 dirty worktree를 삭제하지 않는다.",
+    "동일 Work Unit의 재실행 또는 rework에서 새 branch나 worktree를 추가 생성하지 않는다.",
+    "repository에는 baseline commit과 Git identity가 준비되어 있으며 이후 prepare는 명시적으로 resolved base ref 또는 commit을 사용해야 한다.",
+    "active skill location은 현재 기록이 충돌하므로 Human 결정 없이 .codex/skills와 $CODEX_HOME/skills 중 하나를 canonical active location으로 추정하지 않는다."
+  ],
+  "plan": [
+    "Plan: research, Intake decision, 현재 lifecycle and planner 책임과 Git repository 상태를 확인하고 script command and state contract를 먼저 정의한다.",
+    "Test RED: 임시 Git repository를 사용하는 test에서 invalid ref, invalid branch, collision, dirty cleanup, successful prepare and inspect, JSON output 실패를 먼저 재현한다.",
+    "Work: skill scaffold와 deterministic worktree script를 최소 구현하고 lifecycle routing and responsibility references를 갱신한다.",
+    "Test GREEN: 단위 및 통합 test, skill validation과 실제 임시 linked worktree lifecycle 검증을 통과시킨다.",
+    "AI Review: 강제 삭제, shell injection, path escape, collision mutation, premature cleanup과 planner ownership 혼입을 검사한다.",
+    "Report: bootstrap commands, tests, resolved contract와 Human review 자료를 JSON evidence로 기록한다.",
+    "Rework Test RED: base ref 이동 후 reuse에서 거짓 baseCommit이 반환되는 경계와 cleanup remove 실패 후 lock이 사라지는 부분 실패를 재현하는 회귀 test를 먼저 추가한다.",
+    "Rework: reuse base semantics를 사실 보존 또는 명시적 mismatch refusal로 수정하고 cleanup 실패 시 lock 복구와 recovery evidence를 구현한다.",
+    "Rework: Agent Factory skill source and active installation 위치 충돌에 대한 Human 결정을 반영하고 fresh Goal discovery 검증을 추가한다.",
+    "Rework AI Review and Report: stale repository constraint, quality gate, review, report와 evidence를 실제 재검증 결과로 갱신한다."
+  ],
+  "acceptanceCriteria": [
+    ".codex/skills/work-unit-execution-af/가 유효한 Agent Factory skill로 생성되고 SKILL.md가 Execution Agent의 worktree 책임을 명시한다.",
+    "scripts/worktree.py가 resolved repository, base ref, branch와 path를 입력받아 prepare, inspect와 explicit cleanup command를 제공한다.",
+    "prepare 전에 repository root, commit-ish, branch name, existing branch/worktree와 path collision을 검증하고 실패 시 mutation하지 않는다.",
+    "성공한 prepare가 새 branch와 linked worktree를 만들고 활성 worktree를 lock하며 구조화된 JSON 결과를 반환한다.",
+    "dirty worktree, Human decision 부재, collision과 repository mismatch에서는 cleanup을 거부한다.",
+    "script가 --force, -B, branch 강제 삭제와 shell interpolation을 사용하지 않는다.",
+    "agent-factory-lifecycle-af는 새 execution skill로 라우팅하고 work-unit-planner-af는 execution-context validation에만 머문다.",
+    "임시 Git repository 기반 test가 성공 경로와 안전 실패 경로를 검증한다.",
+    "branch 이름이 work-unit/<work-unit-id>로 생성되고 동일 Work Unit의 재실행 및 rework가 기존 worktree and branch pair를 재사용한다.",
+    "기존 pair 재사용 시 reported baseRef and baseCommit이 실제 worktree 기반과 일치하거나 요청 base가 달라졌음을 mutation 없이 명시적으로 거부하며 사실과 다른 context를 반환하지 않는다.",
+    "cleanup에서 unlock 후 remove가 실패하면 worktree를 다시 lock하고 removal failure 및 relock 결과를 JSON operations and error details에 기록한다.",
+    "Agent Factory skill의 project source와 active installation 위치가 Human 결정에 따라 일관되게 정의되고 fresh named Goal session에서 work-unit-execution-af discovery가 검증된다.",
+    "Work Unit repository constraint, quality gate, AI review와 report가 현재 repository 및 rework verification 사실과 일치한다."
+  ],
+  "definitionOfDone": [
+    "테스트를 구현 전에 작성하고 RED and GREEN evidence를 기록한다.",
+    "skill scaffold, worktree script, reference와 tests가 구현되고 validation을 통과한다.",
+    "실제 프로젝트 source tree가 아닌 임시 repository에서 linked worktree integration test를 통과한다.",
+    "AI checklist, 한국어 Human checklist, 명령·test evidence와 review method를 준비한다."
+  ],
+  "testCriteria": [
+    "invalid repository, unresolved base ref와 invalid branch가 mutation 전에 실패하는지 검증한다.",
+    "existing branch, registered worktree와 existing path collision이 mutation 없이 실패하는지 검증한다.",
+    "prepare가 branch and linked worktree 생성, lock, JSON result를 정확히 수행하는지 검증한다.",
+    "inspect가 stable porcelain output을 구조화하고 dirty state를 정확히 보고하는지 검증한다.",
+    "cleanup이 Human decision 부재와 dirty state를 거부하고 clean approved case만 non-force remove하는지 검증한다.",
+    "malicious-looking ref, branch와 path가 shell로 해석되지 않는지 검증한다.",
+    "Work Unit id에서 work-unit/<work-unit-id> branch를 결정적으로 생성하고 재실행 시 새 branch 또는 worktree가 늘어나지 않는지 검증한다.",
+    "첫 prepare 이후 base ref가 이동한 상태에서 reuse를 요청해 reported baseCommit과 worktree history가 모순되지 않는지 검증한다.",
+    "unlock 성공 후 worktree remove 실패를 주입해 worktree가 다시 locked 상태로 보호되고 recovery operation이 JSON에 기록되는지 검증한다.",
+    "fresh Goal-equivalent skill discovery 검사에서 결정된 active location의 work-unit-execution-af가 로드되는지 검증한다.",
+    "repository baseline 존재 여부와 Work Unit constraint, review state, quality gate 및 report verification state의 일관성을 검증한다."
+  ],
+  "aiChecklist": [
+    "모든 구현이 research와 accepted Intake decision에 추적되는지 확인한다.",
+    "planner, lifecycle, execution skill과 Agent extension 소비자 책임이 중복되지 않는지 확인한다.",
+    "강제 삭제와 암묵적 fallback naming이 없는지 확인한다.",
+    "모든 mutation 전에 validation이 완료되고 실패 결과가 JSON으로 남는지 확인한다.",
+    "Human merge, rework, cleanup과 PR promotion 경계를 침범하지 않는지 확인한다.",
+    "reuse 응답의 baseRef, baseCommit과 headCommit이 사실과 모순되지 않는지 확인한다.",
+    "cleanup 부분 실패에서 worktree lock 보호가 복구되는지 확인한다.",
+    "project source와 active skill installation 규칙이 충돌하지 않고 fresh session에서 발견되는지 확인한다.",
+    "quality gate와 report가 실패한 review finding을 pass로 표시하지 않는지 확인한다."
+  ],
+  "humanChecklist": [
+    "Execution Agent가 worktree를 만드는 주체로 명확히 기록되었는지 확인한다.",
+    "새 스킬 위치와 script 책임이 planner 및 Agent 확장과 분리되어 있는지 확인한다.",
+    "dirty worktree와 승인 전 cleanup이 거부되는지 test evidence를 확인한다.",
+    "prepare 결과의 branch, worktree path, base commit과 lock 상태가 JSON으로 보이는지 확인한다.",
+    "최초 bootstrap 이후 모든 Work Unit이 canonical script를 사용하도록 routing이 연결됐는지 확인한다.",
+    "Work Unit당 worktree 1개와 work-unit/<work-unit-id> branch 1개가 생성되고 rework에서 재사용되는지 확인한다.",
+    "base ref가 이동한 reuse 회귀 test에서 거짓 baseCommit이 반환되지 않는지 확인한다.",
+    "cleanup remove 실패 회귀 test에서 worktree lock이 복구되는지 확인한다.",
+    "work-unit-execution-af의 canonical source와 active installation 위치 결정을 확인한다.",
+    "rework 완료 후 package의 quality gate, AI review와 report가 새 검증 결과와 일치하는지 확인한다."
+  ],
+  "humanReviewMethod": "Human은 재사용 base ref 이동과 cleanup remove 실패 회귀 test evidence를 확인하고, work-unit-execution-af의 project source 및 active installation 위치 결정과 fresh Goal discovery 결과를 검토한다. 네 review finding이 모두 해소되고 package 상태·quality gate·report가 실제 검증과 일치할 때만 승인하며, 하나라도 남으면 rework를 유지한다.",
+  "qualityGateRef": "data/quality-gate.json",
+  "packageRefs": {
+    "execution": "data/execution.json",
+    "review": "data/review.json",
+    "qualityGate": "data/quality-gate.json",
+    "traceability": "data/traceability.json",
+    "report": "data/report.json"
+  },
+  "expectedOutput": "Execution Agent 전용 work-unit-execution-af skill, 안전한 prepare/inspect/cleanup을 수행하고 JSON 결과를 반환하는 scripts/worktree.py, lifecycle routing 갱신, TDD and integration evidence.",
+  "dependencies": {
+    "parent": null,
+    "dependsOn": [],
+    "blocks": [
+      "agent-factory-skill-docs-json-block-contract"
+    ],
+    "executionOrder": 1
+  },
+  "unresolvedItems": [
+    "linked worktree directory의 root와 path naming 형식은 아직 Human 결정이 필요하다.",
+    ".codex/skills project source와 $CODEX_HOME/skills active installation 중 canonical ownership and synchronization 규칙은 Human 결정이 필요하다."
+  ]
+}

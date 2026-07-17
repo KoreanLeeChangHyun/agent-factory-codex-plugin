@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory User Research"
+  short_description: "Observe user behavior and context for Intake."
+  default_prompt: "Use $user-research to collect and record observed user evidence for the active Agent Factory Intake."

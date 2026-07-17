@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "Execution Agent가 Work Unit별 Git branch와 linked worktree를 안전하고 반복 가능하게 준비할 수 있도록 스크립트와 스킬의 책임 및 저장 위치를 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "execution-agent-worktree-skill-placement-source-1",
+          "path": ".agent-factory/intakes/execution-agent-worktree-skill-placement/blocks/legacy-source/01-execution-agent-worktree-skill-placement.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

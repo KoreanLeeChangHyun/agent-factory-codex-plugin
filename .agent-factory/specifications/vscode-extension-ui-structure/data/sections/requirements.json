@@ -1,0 +1,123 @@
+{
+  "id": "requirements",
+  "title": "요구사항과 완료 경계",
+  "userRequest": {
+    "source": "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json",
+    "goal": "확정된 Human Fact만을 근거로 VS Code 확장의 초기 UI 구조를 Design Document JSON과 Human 검토용 Design Report 초안으로 작성한다."
+  },
+  "lifecycle": {
+    "phase": "Execution",
+    "workUnit": "vscode-extension-ui-structure-draft",
+    "nextPhase": "Human Review"
+  },
+  "baselineRef": "data/snapshots/pre-execution-baseline.json",
+  "outcome": "네 탭, 탭별 TabHeader·Body 전환, WorkUnit 칸반 단계 표시 선택, 카드와 DnD 상태 변경, 스크롤, Blocked 예외 상태를 검토할 수 있는 UI 구조 초안.",
+  "completionBoundary": "실행 가능한 VS Code 확장을 구현하지 않고 JSON source와 브라우저에서 열 수 있는 Human 검토용 Design Report 초안을 준비한다.",
+  "stakeholders": [
+    {
+      "role": "Human",
+      "concerns": [
+        "UI 구조가 확정된 요구와 일치하는지 검토한다.",
+        "미정 항목이 임의로 확정되지 않았는지 검토한다."
+      ],
+      "decisionOwnership": [
+        "Design Report 승인 또는 재작업",
+        "Work Unit의 Done 승인",
+        "병합과 PR 승격"
+      ]
+    },
+    {
+      "role": "AI executor",
+      "concerns": [
+        "Work Unit 범위 안에서 source와 report를 작성한다.",
+        "검증과 AI Review 증거를 기록한다."
+      ],
+      "decisionOwnership": []
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "requirement": "Dashboard, Intake, Design, WorkUnit 네 탭을 제공한다."
+    },
+    {
+      "id": "FR-002",
+      "requirement": "활성 탭이 바뀌면 해당 탭의 TabHeader와 Body가 한 쌍으로 함께 바뀐다."
+    },
+    {
+      "id": "FR-003",
+      "requirement": "WorkUnit TabHeader에서 표시할 칸반 단계를 선택하고 Body에는 선택한 단계만 표시한다."
+    },
+    {
+      "id": "FR-004",
+      "requirement": "선택하지 않은 단계는 숨길 수 있으며 Done도 숨길 수 있다."
+    },
+    {
+      "id": "FR-005",
+      "requirement": "WorkUnit Body의 정상 칸반은 Backlog, Ready, Working, Review, Done 순서다."
+    },
+    {
+      "id": "FR-006",
+      "requirement": "각 Work Unit은 카드로 표현하고 카드에 처음 보이는 정보는 title뿐이다."
+    },
+    {
+      "id": "FR-007",
+      "requirement": "모든 Work Unit 카드는 고정 높이를 사용한다."
+    },
+    {
+      "id": "FR-008",
+      "requirement": "허용된 목적 단계로의 drop 뒤 카드 위치와 Work Unit status가 목적 단계에 맞게 함께 변경된다."
+    },
+    {
+      "id": "FR-009",
+      "requirement": "허용되지 않은 drop은 status를 변경하지 않고 Review에서 Done으로의 drop은 Human 승인을 대신하지 않는다."
+    },
+    {
+      "id": "FR-010",
+      "requirement": "각 정상 단계는 세로 스크롤을 가지며 스크롤바 너비는 0이어서 보이지 않지만 스크롤 동작은 유지된다."
+    },
+    {
+      "id": "FR-011",
+      "requirement": "Blocked는 정상 5단계가 아닌 명시적 blocker의 예외 상태다."
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "requirement": "Human-facing 설명과 검토 자료는 한국어로 작성한다."
+    },
+    {
+      "id": "NFR-002",
+      "requirement": "미정 요구사항과 미승인 기술·시각 디자인을 설계 결정으로 확정하지 않는다."
+    },
+    {
+      "id": "NFR-003",
+      "requirement": "Design Document JSON과 파생 Design Report 사이의 추적성을 유지한다."
+    }
+  ],
+  "qualityAttributes": [
+    "사실성",
+    "추적성",
+    "검토 가능성",
+    "Human 승인 경계 보존"
+  ],
+  "assumptions": [],
+  "constraints": [
+    "canonical 상태 전이는 .codex/skills/work-unit-planner-af/assets/schema/work-unit.schema.json을 따른다.",
+    "Design Report는 JSON source의 Human 검토용 파생물이며 제품 시각 디자인의 승인본이 아니다."
+  ],
+  "outOfScope": [
+    "실행 가능한 VS Code 확장과 배포 패키지.",
+    "호스트 영역, 구현 언어, 프레임워크, VS Code API 선택.",
+    "탭별 상세 업무 기능, 카드 추가 정보와 액션, DnD 세부 동작 발명.",
+    "아이콘, 색상, 타이포그래피, 간격, 애니메이션의 제품 디자인 확정."
+  ],
+  "nonGoals": [
+    "이 초안에서 Dashboard, Intake, Design 탭의 상세 업무 기능을 정하지 않는다.",
+    "이 초안에서 단계 선택 control, DnD 세부 조작과 Blocked 시각 표현을 정하지 않는다.",
+    "이 초안을 실행 가능한 VS Code 확장 또는 승인된 제품 시각 디자인으로 만들지 않는다."
+  ],
+  "acceptanceCriteriaRef": "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json#/acceptanceCriteria",
+  "definitionOfDoneRef": "docs/work-units/vscode-extension-ui-structure-draft/data/work-unit.json#/definitionOfDone",
+  "deferredItemsRef": "data/sections/project-core.json#/unresolvedItems"
+}

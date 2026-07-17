@@ -1,0 +1,19 @@
+{
+  "summary": "아직 실행되지 않았습니다.",
+  "artifactRefs": [],
+  "verification": {
+    "result": "not_run",
+    "evidenceRefs": []
+  },
+  "remainingRisk": [],
+  "unresolvedItems": [
+    "실행 가능한 VS Code 확장 구현 저장소, 언어, 프레임워크와 VS Code API는 현재 근거로 정해지지 않았다.",
+    "기존 Markdown Intake 자료 5건의 migration 실행 여부와 원본 제거 시점은 Human 결정이 필요하다.",
+    "Intake reusable schema와 manager의 최종 skill ownership 경로는 Design Document에서 근거를 확인하고 결정하거나 미정으로 남겨야 한다."
+  ],
+  "designDocument": {
+    "status": "not_checked",
+    "refs": [],
+    "reason": "관련 Design Document 확인 결과가 아직 기록되지 않았습니다."
+  }
+}

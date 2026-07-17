@@ -1,0 +1,33 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "requirement",
+      "content": [
+        "Canonical 의미 데이터와 Human 표시 데이터를 별도 원본으로 중복 저장하지 않는다.",
+        "별도 확장자 블록은 package root 안의 일반 파일로 저장하고 JSON에서 상대 경로로 참조한다.",
+        "Viewer는 canonical JSON과 참조 파일을 읽는 렌더링 경계이며 별도 source of truth가 아니다.",
+        "기존 Markdown 원본은 명시적 migration 및 Human 검토 없이 삭제하거나 덮어쓰지 않는다.",
+        "실제 VS Code 확장 구현은 구현 저장소와 런타임 기술 근거가 확인된 뒤 별도 Work Unit으로 다룬다.",
+        "Dashboard, Kanban, Viewer, Context 네 탭과 명시된 연결 관계 밖의 기능은 현재 MVP 범위에 추가하지 않는다.",
+        "Kanban DnD, Execution 제출과 Agent 확장 연동은 현재 4탭 MVP Work Unit에 포함하지 않는다.",
+        "기존 Dashboard, Intake, Design, WorkUnit 탭 결정은 최신 Dashboard, Kanban, Viewer, Context 결정으로 대체한다."
+      ],
+      "attributes": {
+        "sourceKey": "constraints",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-intake.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "intake-json-canonical-viewer-source-1",
+          "path": ".agent-factory/intakes/intake-json-canonical-viewer/blocks/legacy-source/01-intake.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

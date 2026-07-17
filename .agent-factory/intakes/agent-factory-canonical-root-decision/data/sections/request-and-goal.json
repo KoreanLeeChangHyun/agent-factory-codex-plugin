@@ -1,0 +1,24 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "human-request",
+      "content": "Agent Factory canonical artifact root와 VS Code Workspace Extension의 discovery source를 결정한다.",
+      "attributes": {
+        "sourceKey": "basisRequest",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "agent-factory-canonical-root-decision-source-1",
+          "path": ".agent-factory/intakes/agent-factory-canonical-root-decision/blocks/legacy-source/01-agent-factory-canonical-root-decision.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

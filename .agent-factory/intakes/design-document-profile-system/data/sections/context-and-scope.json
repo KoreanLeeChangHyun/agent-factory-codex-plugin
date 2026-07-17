@@ -1,0 +1,94 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "NORM-0001",
+      "kind": "context",
+      "content": {
+        "date": "2026-07-15"
+      },
+      "attributes": {
+        "sourceKey": "date",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0002",
+      "kind": "context",
+      "content": {
+        "type": "comparison-research"
+      },
+      "attributes": {
+        "sourceKey": "type",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0003",
+      "kind": "context",
+      "content": [
+        "docs/intakes/intake-json-canonical-viewer/data/intake.json",
+        "docs/research/common-document-required-metadata-and-sections.json",
+        "docs/work-units/agent-factory-skill-docs-json-block-contract",
+        "docs/work-units/agent-factory-json-block-data-migration",
+        "docs/work-units/workspace-extension-four-tab-mvp",
+        "docs/work-units/agent-extension-goal-execution-integration"
+      ],
+      "attributes": {
+        "sourceKey": "relatedArtifacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    },
+    {
+      "id": "NORM-0004",
+      "kind": "context",
+      "content": [
+        "모든 명세서 package는 docs/specifications/<document-id>/에 저장한다.",
+        "API 설계서, 모델링 설계서, 클래스 아키텍처 설계서, 요구사항 명세서 등 다양한 종류가 존재할 수 있다.",
+        "문서의 canonical source는 규격화된 JSON + 연결된 별도 확장자 블록이다.",
+        "큰 Specification은 단일 JSON 파일로 저장하지 않는다.",
+        "JSON은 데이터와 의미 구조를 담당하고 실제 표현은 Viewer와 theme가 담당한다.",
+        "Project Core는 docs/specifications/project-core/의 단일 canonical package이고 다른 명세서는 typed relation으로 참조한다.",
+        "명세서 종류별 profile 규칙은 Agent Factory 스킬이 소유한다."
+      ],
+      "attributes": {
+        "sourceKey": "humanFacts",
+        "normalization": "explicit-source",
+        "sourceBlockRef": "blocks/legacy-source/01-design-document-profile-system.json"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "legacy-intake-source",
+          "id": "design-document-profile-system-source-1",
+          "path": ".agent-factory/intakes/design-document-profile-system/blocks/legacy-source/01-design-document-profile-system.json"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}
