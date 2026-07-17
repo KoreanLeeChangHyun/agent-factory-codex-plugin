@@ -40,6 +40,15 @@
           "Run Intake and Work Unit manager suites."
         ]
       }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "Execute this Work Unit through codex exec in a fresh non-interactive session; a persistent Goal is not required for this execution route.",
+        "source": "Human decision"
+      }
     }
   ],
   "subsections": []

@@ -107,6 +107,21 @@
           "All related test suites pass."
         ]
       }
+    },
+    {
+      "id": "REQ-007",
+      "kind": "requirement",
+      "content": {
+        "text": "Agent Factory Work Unit execution guidance must support codex exec as a fresh execution session without requiring persistent Goal mode, while retaining explicit Work Unit identity and execution context.",
+        "priority": "high"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "skill",
+          "id": "work-unit-execution",
+          "path": "skills/work-unit-execution/SKILL.md"
+        }
+      ]
     }
   ],
   "subsections": []

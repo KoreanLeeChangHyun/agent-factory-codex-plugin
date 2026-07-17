@@ -36,7 +36,8 @@
           "REQ-003",
           "REQ-004",
           "REQ-005",
-          "REQ-006"
+          "REQ-006",
+          "REQ-007"
         ],
         "acceptanceRef": "AC-001",
         "executionOrder": 1,

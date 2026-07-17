@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.10",
+  "documentVersion": "1.0.17",
   "id": "intake-manager-contract-hardening",
   "artifactType": "intake",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "ready"
   },
   "createdAt": "2026-07-17T11:26:43+00:00",
-  "updatedAt": "2026-07-17T11:26:46+00:00",
+  "updatedAt": "2026-07-17T11:42:00+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -24,7 +24,7 @@
     "requirementsComplete": true,
     "specificationConsistent": true,
     "executionReady": true,
-    "reviewedAt": "2026-07-17T11:26:45+00:00",
+    "reviewedAt": "2026-07-17T11:42:00+00:00",
     "findings": []
   }
 }

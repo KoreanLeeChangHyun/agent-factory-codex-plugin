@@ -29,7 +29,8 @@
           "Enforce section-wide item id uniqueness.",
           "Validate explicit specification resolution states.",
           "Align interview and related skill documentation.",
-          "Add focused regression tests and run all related suites."
+          "Add focused regression tests and run all related suites.",
+          "Align lifecycle and execution skills so codex exec is a supported fresh-session route independent of persistent Goal mode."
         ]
       },
       "sourceRefs": [

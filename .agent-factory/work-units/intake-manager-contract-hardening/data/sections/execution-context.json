@@ -7,8 +7,8 @@
       "kind": "execution-context",
       "content": {
         "goalId": "intake-manager-contract-hardening",
-        "objective": "Execute the ready Work Unit without hidden chat context.",
-        "execInvocation": "/goal intake-manager-contract-hardening",
+        "objective": "Execute the ready Work Unit in a fresh codex exec session without hidden chat context.",
+        "execInvocation": "codex exec --sandbox danger-full-access --ask-for-approval never -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/intake-manager-contract-hardening \"Execute the ready Agent Factory Work Unit intake-manager-contract-hardening. Read and validate the complete package, use the recorded branch and worktree, implement the scoped changes, run verification, perform AI review, and update the Work Unit report evidence.\"",
         "executionAgent": "Codex",
         "repository": "/home/deus/workspace/agent-factory/codex-plugins",
         "baseRef": "main",
