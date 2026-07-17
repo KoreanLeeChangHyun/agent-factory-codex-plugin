@@ -30,7 +30,8 @@
         "status": "pending"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-17T18:25:32+00:00"
       }
     }
   ],
