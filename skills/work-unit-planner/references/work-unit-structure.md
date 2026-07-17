@@ -26,8 +26,9 @@
 
 `metadata.json`, `title.json`, the manager-owned TOC, one file per section,
 and `blocks/index.json` are required. Schema version `4.0.0` is the current
-physical contract. Reusable schemas stay under this skill's `assets/schema/`;
-target packages do not copy them.
+physical contract. The Work Unit metadata schema stays under this skill;
+shared structural schemas and package mechanics stay under `lifecycle/assets/`.
+Target packages do not copy them.
 
 The canonical hierarchy is title -> section -> optional subsection. The TOC
 owns order and its SHA-256 digest prevents unmanaged structural edits. Section

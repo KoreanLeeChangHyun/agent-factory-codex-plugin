@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-factory.local/schemas/work-unit/v4/section.schema.json",
-  "title": "Agent Factory Work Unit Section",
+  "$id": "https://agent-factory.local/schemas/common/sectioned-document/section.schema.json",
+  "title": "Agent Factory Document Section",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "title", "content", "subsections"],

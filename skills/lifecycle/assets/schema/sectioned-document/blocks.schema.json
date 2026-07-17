@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-factory.local/schemas/work-unit/v4/blocks.schema.json",
-  "title": "Agent Factory Work Unit Block Index",
+  "$id": "https://agent-factory.local/schemas/common/sectioned-document/blocks.schema.json",
+  "title": "Agent Factory Document Block Index",
   "type": "object",
   "additionalProperties": false,
   "required": ["blocks"],
