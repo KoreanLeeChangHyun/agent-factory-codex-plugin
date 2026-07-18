@@ -1,0 +1,56 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "OPEN-001",
+      "kind": "open-item",
+      "content": {
+        "item": "포맷 수정의 실행 경로는 A로 결정되었다."
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "blocking": false,
+        "items": []
+      }
+    },
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "이번 Python 포맷 수정에 한해 Work Unit/worktree 절차를 생략하고 현재 작업 트리에서 직접 수행한다."
+      }
+    },
+    {
+      "id": "DISPOSITION-001",
+      "kind": "disposition",
+      "content": {
+        "status": "closed",
+        "reason": "Human이 승인한 직접 실행 경로로 Python 포맷 수정과 검증을 완료하여 새 Work Unit이 필요하지 않다.",
+        "currentStateEvidence": [
+          "skills/**/*.py"
+        ]
+      },
+      "attributes": {
+        "targetStatus": "closed",
+        "classification": "human-approved-direct-format-fix"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "repository-file",
+          "id": "sectioned-document-python-source",
+          "path": "skills/lifecycle/assets/scripts/sectioned_document.py"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,35 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "baseline": "기본 Ruff 포맷 검사에서 skills 아래 추적 중인 Python 파일 10개가 모두 재포맷 대상으로 보고되었다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/**/*.py"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Python 동작 변경",
+          "스킬 문서 변경",
+          "기존 untracked Intake 및 Work Unit 변경",
+          "커밋, merge, PR promotion"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

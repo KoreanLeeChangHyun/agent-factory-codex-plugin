@@ -33,8 +33,15 @@ class WorktreeCliTest(unittest.TestCase):
         self.repo = self.root / "repo"
         self.repo.mkdir()
         self.assertEqual(run("git", "init", "-b", "main", str(self.repo)).returncode, 0)
-        self.assertEqual(git(self.repo, "config", "user.name", "Agent Factory Test").returncode, 0)
-        self.assertEqual(git(self.repo, "config", "user.email", "agent-factory@example.invalid").returncode, 0)
+        self.assertEqual(
+            git(self.repo, "config", "user.name", "Agent Factory Test").returncode, 0
+        )
+        self.assertEqual(
+            git(
+                self.repo, "config", "user.email", "agent-factory@example.invalid"
+            ).returncode,
+            0,
+        )
         (self.repo / "tracked.txt").write_text("baseline\n", encoding="utf-8")
         self.assertEqual(git(self.repo, "add", "tracked.txt").returncode, 0)
         self.assertEqual(git(self.repo, "commit", "-m", "baseline").returncode, 0)
@@ -44,7 +51,9 @@ class WorktreeCliTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
-    def cli(self, command: str, *extra: str) -> tuple[subprocess.CompletedProcess[str], dict]:
+    def cli(
+        self, command: str, *extra: str
+    ) -> tuple[subprocess.CompletedProcess[str], dict]:
         result = run(
             sys.executable,
             str(SCRIPT),
@@ -62,7 +71,9 @@ class WorktreeCliTest(unittest.TestCase):
         try:
             payload = json.loads(result.stdout)
         except json.JSONDecodeError as exc:
-            self.fail(f"stdout must contain one JSON document: {exc}; stdout={result.stdout!r}; stderr={result.stderr!r}")
+            self.fail(
+                f"stdout must contain one JSON document: {exc}; stdout={result.stdout!r}; stderr={result.stderr!r}"
+            )
         self.assertEqual(payload["schemaVersion"], "1.0.0")
         self.assertEqual(payload["command"], command)
         return result, payload
@@ -70,7 +81,9 @@ class WorktreeCliTest(unittest.TestCase):
     def prepare(self, *extra: str) -> tuple[subprocess.CompletedProcess[str], dict]:
         return self.cli("prepare", "--base", "main", *extra)
 
-    def assert_error(self, result: subprocess.CompletedProcess[str], payload: dict, code: str) -> None:
+    def assert_error(
+        self, result: subprocess.CompletedProcess[str], payload: dict, code: str
+    ) -> None:
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["state"], "refused")
@@ -101,7 +114,16 @@ class WorktreeCliTest(unittest.TestCase):
         result, payload = self.cli("prepare", "--base", "missing-ref")
         self.assert_error(result, payload, "invalid_base_ref")
         self.assertFalse(self.worktree.exists())
-        self.assertNotEqual(git(self.repo, "show-ref", "--verify", "--quiet", "refs/heads/work-unit/wu-001").returncode, 0)
+        self.assertNotEqual(
+            git(
+                self.repo,
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/work-unit/wu-001",
+            ).returncode,
+            0,
+        )
 
     def test_invalid_branch_fails_before_mutation(self) -> None:
         result = run(
@@ -133,9 +155,20 @@ class WorktreeCliTest(unittest.TestCase):
         self.worktree.mkdir(parents=True)
         result, payload = self.prepare()
         self.assert_error(result, payload, "path_collision")
-        self.assertNotEqual(git(self.repo, "show-ref", "--verify", "--quiet", "refs/heads/work-unit/wu-001").returncode, 0)
+        self.assertNotEqual(
+            git(
+                self.repo,
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/work-unit/wu-001",
+            ).returncode,
+            0,
+        )
 
-    def test_registered_worktree_collision_fails_without_target_branch_creation(self) -> None:
+    def test_registered_worktree_collision_fails_without_target_branch_creation(
+        self,
+    ) -> None:
         self.assertEqual(
             git(
                 self.repo,
@@ -150,7 +183,16 @@ class WorktreeCliTest(unittest.TestCase):
         )
         result, payload = self.prepare()
         self.assert_error(result, payload, "worktree_collision")
-        self.assertNotEqual(git(self.repo, "show-ref", "--verify", "--quiet", "refs/heads/work-unit/wu-001").returncode, 0)
+        self.assertNotEqual(
+            git(
+                self.repo,
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/work-unit/wu-001",
+            ).returncode,
+            0,
+        )
 
     def test_prepare_creates_and_locks_linked_worktree(self) -> None:
         result, payload = self.prepare()
@@ -160,7 +202,9 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertEqual(payload["context"]["repository"], str(self.repo.resolve()))
         self.assertEqual(payload["context"]["baseCommit"], self.base_commit)
         self.assertEqual(payload["context"]["branch"], "work-unit/wu-001")
-        self.assertEqual(payload["context"]["worktreePath"], str(self.worktree.resolve()))
+        self.assertEqual(
+            payload["context"]["worktreePath"], str(self.worktree.resolve())
+        )
         self.assertTrue(payload["context"]["locked"])
         listing = git(self.repo, "worktree", "list", "--porcelain").stdout
         self.assertIn(f"worktree {self.worktree.resolve()}", listing)
@@ -174,21 +218,29 @@ class WorktreeCliTest(unittest.TestCase):
         result, payload = self.prepare()
 
         self.assert_error(result, payload, "prepare_failed")
-        self.assertEqual(payload["operations"][0]["args"][1:4], ["-C", str(self.repo), "worktree"])
+        self.assertEqual(
+            payload["operations"][0]["args"][1:4], ["-C", str(self.repo), "worktree"]
+        )
         self.assertNotEqual(payload["operations"][0]["returnCode"], 0)
 
     def test_prepare_reuses_the_same_work_unit_branch_and_worktree_pair(self) -> None:
         first, first_payload = self.prepare()
         self.assertEqual(first.returncode, 0)
         self.assertEqual(first_payload["state"], "prepared")
-        before = git(self.repo, "worktree", "list", "--porcelain").stdout.count("worktree ")
+        before = git(self.repo, "worktree", "list", "--porcelain").stdout.count(
+            "worktree "
+        )
         second, second_payload = self.prepare()
         self.assertEqual(second.returncode, 0)
         self.assertEqual(second_payload["state"], "reused")
-        after = git(self.repo, "worktree", "list", "--porcelain").stdout.count("worktree ")
+        after = git(self.repo, "worktree", "list", "--porcelain").stdout.count(
+            "worktree "
+        )
         self.assertEqual(before, after)
         self.assertEqual(second_payload["context"]["branch"], "work-unit/wu-001")
-        self.assertEqual(second_payload["context"]["worktreePath"], str(self.worktree.resolve()))
+        self.assertEqual(
+            second_payload["context"]["worktreePath"], str(self.worktree.resolve())
+        )
 
     def test_branch_must_match_deterministic_work_unit_pattern(self) -> None:
         result = run(
@@ -283,7 +335,16 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["state"], "cleaned")
         self.assertFalse(self.worktree.exists())
-        self.assertEqual(git(self.repo, "show-ref", "--verify", "--quiet", "refs/heads/work-unit/wu-001").returncode, 0)
+        self.assertEqual(
+            git(
+                self.repo,
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/work-unit/wu-001",
+            ).returncode,
+            0,
+        )
         self.assertTrue(payload["context"]["branchRetained"])
 
     def test_shell_metacharacters_are_not_executed(self) -> None:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Shared sectioned-document package engine for Agent Factory artifacts."""
+
 from __future__ import annotations
 
 import argparse
@@ -85,7 +86,9 @@ def reject_constant(value: str) -> None:
 
 def load_json(path: Path) -> Any:
     try:
-        return json.loads(path.read_text(encoding="utf-8"), parse_constant=reject_constant)
+        return json.loads(
+            path.read_text(encoding="utf-8"), parse_constant=reject_constant
+        )
     except (OSError, ValueError, json.JSONDecodeError) as error:
         raise ManagerError(f"cannot read strict JSON from {path}: {error}") from error
 
@@ -94,7 +97,9 @@ def parse_json(value: str, source: str) -> Any:
     try:
         return json.loads(value, parse_constant=reject_constant)
     except (ValueError, json.JSONDecodeError) as error:
-        raise ManagerError(f"cannot parse strict JSON from {source}: {error}") from error
+        raise ManagerError(
+            f"cannot parse strict JSON from {source}: {error}"
+        ) from error
 
 
 def load_object(path: Path, label: str) -> dict[str, Any]:
@@ -111,7 +116,9 @@ def profile() -> dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def schemas() -> dict[str, dict[str, Any]]:
-    return {name: load_object(path, f"{name} schema") for name, path in SCHEMA_PATHS.items()}
+    return {
+        name: load_object(path, f"{name} schema") for name, path in SCHEMA_PATHS.items()
+    }
 
 
 @lru_cache(maxsize=1)
@@ -120,19 +127,36 @@ def validate_schemas() -> dict[str, dict[str, Any]]:
     for contract in contracts.values():
         Draft202012Validator.check_schema(contract)
     current_profile = profile()
-    metadata_artifact_type = contracts["metadata"]["properties"]["artifactType"].get("const")
+    metadata_artifact_type = contracts["metadata"]["properties"]["artifactType"].get(
+        "const"
+    )
     if current_profile.get("artifactType") != metadata_artifact_type:
         raise ManagerError(f"{ARTIFACT_LABEL} profile artifactType must match metadata")
     if current_profile.get("maximumSectionDepth") != 2:
         raise ManagerError(f"{ARTIFACT_LABEL} profile maximumSectionDepth must be 2")
-    if current_profile.get("version") != contracts["metadata"]["properties"]["schemaVersion"]["const"]:
-        raise ManagerError(f"{ARTIFACT_LABEL} profile version must match metadata schemaVersion")
-    required_ids = [entry["id"] for entry in current_profile.get("requiredSections", [])]
+    if (
+        current_profile.get("version")
+        != contracts["metadata"]["properties"]["schemaVersion"]["const"]
+    ):
+        raise ManagerError(
+            f"{ARTIFACT_LABEL} profile version must match metadata schemaVersion"
+        )
+    required_ids = [
+        entry["id"] for entry in current_profile.get("requiredSections", [])
+    ]
     if not required_ids or len(required_ids) != len(set(required_ids)):
-        raise ManagerError(f"{ARTIFACT_LABEL} profile required section ids must be non-empty and unique")
-    optional_ids = [entry["id"] for entry in current_profile.get("optionalSections", [])]
-    if set(required_ids) & set(optional_ids) or len(optional_ids) != len(set(optional_ids)):
-        raise ManagerError(f"{ARTIFACT_LABEL} profile optional section ids must be unique and disjoint")
+        raise ManagerError(
+            f"{ARTIFACT_LABEL} profile required section ids must be non-empty and unique"
+        )
+    optional_ids = [
+        entry["id"] for entry in current_profile.get("optionalSections", [])
+    ]
+    if set(required_ids) & set(optional_ids) or len(optional_ids) != len(
+        set(optional_ids)
+    ):
+        raise ManagerError(
+            f"{ARTIFACT_LABEL} profile optional section ids must be unique and disjoint"
+        )
     families = current_profile.get("kindFamilies", {})
     if not isinstance(families, dict) or any(
         not isinstance(name, str)
@@ -143,7 +167,9 @@ def validate_schemas() -> dict[str, dict[str, Any]]:
         or not all(isinstance(member, str) and member for member in members)
         for name, members in families.items()
     ):
-        raise ManagerError(f"{ARTIFACT_LABEL} profile kind families must contain unique non-empty kind names")
+        raise ManagerError(
+            f"{ARTIFACT_LABEL} profile kind families must contain unique non-empty kind names"
+        )
     attribute_contracts = current_profile.get("kindAttributeContracts", {})
     if not isinstance(attribute_contracts, dict) or any(
         not isinstance(kind, str)
@@ -154,10 +180,14 @@ def validate_schemas() -> dict[str, dict[str, Any]]:
         or not isinstance(contract["allowedValues"], list)
         or not contract["allowedValues"]
         or len(contract["allowedValues"]) != len(set(contract["allowedValues"]))
-        or not all(isinstance(value, str) and value for value in contract["allowedValues"])
+        or not all(
+            isinstance(value, str) and value for value in contract["allowedValues"]
+        )
         for kind, contract in attribute_contracts.items()
     ):
-        raise ManagerError(f"{ARTIFACT_LABEL} profile kind attribute contracts are invalid")
+        raise ManagerError(
+            f"{ARTIFACT_LABEL} profile kind attribute contracts are invalid"
+        )
     return contracts
 
 
@@ -180,7 +210,12 @@ def configure_contract(
     """Configure one artifact adapter without duplicating package mechanics."""
     global SKILL_ROOT, SCHEMA_ROOT, PROFILE_PATH, SCHEMA_PATHS
     global ARTIFACT_TYPE, ARTIFACT_LABEL, PACKAGE_COLLECTION, LOCK_COLLECTION
-    global LIFECYCLE_PHASE, INITIAL_STATUS, INITIAL_READINESS, GENERATED_BY, MUTATION_POLICY
+    global \
+        LIFECYCLE_PHASE, \
+        INITIAL_STATUS, \
+        INITIAL_READINESS, \
+        GENERATED_BY, \
+        MUTATION_POLICY
 
     SKILL_ROOT = skill_root.resolve()
     SCHEMA_ROOT = metadata_schema_path.resolve().parent
@@ -210,7 +245,9 @@ def configure_contract(
 def validate_instance(kind: str, value: Any) -> None:
     contract = validate_schemas()[kind]
     validator = Draft202012Validator(contract, format_checker=FormatChecker())
-    errors = sorted(validator.iter_errors(value), key=lambda error: list(error.absolute_path))
+    errors = sorted(
+        validator.iter_errors(value), key=lambda error: list(error.absolute_path)
+    )
     if errors:
         details = "; ".join(
             f"/{'/'.join(str(part) for part in error.absolute_path)}: {error.message}"
@@ -229,7 +266,10 @@ def assert_plain_path(path: Path, kind: str) -> None:
 
 
 def package_project_root(package: Path) -> Path:
-    if package.parent.name != PACKAGE_COLLECTION or package.parent.parent.name != ".agent-factory":
+    if (
+        package.parent.name != PACKAGE_COLLECTION
+        or package.parent.parent.name != ".agent-factory"
+    ):
         raise ManagerError(
             f"package must be <project-root>/.agent-factory/{PACKAGE_COLLECTION}/<{ARTIFACT_TYPE}-id>"
         )
@@ -262,7 +302,9 @@ def checked_package_target(package: Path, target: Path, label: str) -> Path:
     try:
         target.resolve(strict=False).relative_to(package.resolve())
     except ValueError as error:
-        raise ManagerError(f"{label} escapes canonical package through a symlink: {relative}") from error
+        raise ManagerError(
+            f"{label} escapes canonical package through a symlink: {relative}"
+        ) from error
     for component in target.parents:
         if component == package:
             break
@@ -278,7 +320,9 @@ def package_descriptor(package: Path) -> Iterable[int]:
     try:
         descriptor = os.open(package, DIRECTORY_OPEN_FLAGS)
     except OSError as error:
-        raise ManagerError(f"cannot securely open canonical package: {package}: {error}") from error
+        raise ManagerError(
+            f"cannot securely open canonical package: {package}: {error}"
+        ) from error
     try:
         yield descriptor
     finally:
@@ -322,7 +366,9 @@ def relative_file_exists(package_fd: int, relative: Path) -> bool:
             except FileNotFoundError:
                 return False
             if not stat.S_ISREG(details.st_mode):
-                raise ManagerError(f"package-relative target must be a regular file: {relative}")
+                raise ManagerError(
+                    f"package-relative target must be a regular file: {relative}"
+                )
             return True
     except ManagerError as error:
         if isinstance(error.__cause__, FileNotFoundError):
@@ -331,7 +377,10 @@ def relative_file_exists(package_fd: int, relative: Path) -> bool:
 
 
 def write_bytes_relative(package_fd: int, relative: Path, content: bytes) -> None:
-    with relative_parent_descriptor(package_fd, relative, create=True) as (parent_fd, name):
+    with relative_parent_descriptor(package_fd, relative, create=True) as (
+        parent_fd,
+        name,
+    ):
         temporary_name = f".{name}.{uuid.uuid4().hex}.tmp"
         descriptor = -1
         try:
@@ -357,19 +406,29 @@ def write_bytes_relative(package_fd: int, relative: Path, content: bytes) -> Non
 
 
 def write_json_relative(package_fd: int, relative: Path, value: Any) -> None:
-    content = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False).encode("utf-8") + b"\n"
+    content = (
+        json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False).encode("utf-8")
+        + b"\n"
+    )
     write_bytes_relative(package_fd, relative, content)
 
 
 def copy_relative_file(package_fd: int, source: Path, target: Path) -> None:
-    with relative_parent_descriptor(package_fd, source) as (source_parent_fd, source_name):
+    with relative_parent_descriptor(package_fd, source) as (
+        source_parent_fd,
+        source_name,
+    ):
         try:
             source_fd = os.open(source_name, FILE_OPEN_FLAGS, dir_fd=source_parent_fd)
         except OSError as error:
-            raise ManagerError(f"cannot securely open package-relative file {source}: {error}") from error
+            raise ManagerError(
+                f"cannot securely open package-relative file {source}: {error}"
+            ) from error
         try:
             if not stat.S_ISREG(os.fstat(source_fd).st_mode):
-                raise ManagerError(f"package-relative source must be a regular file: {source}")
+                raise ManagerError(
+                    f"package-relative source must be a regular file: {source}"
+                )
             chunks: list[bytes] = []
             while chunk := os.read(source_fd, 1024 * 1024):
                 chunks.append(chunk)
@@ -382,19 +441,31 @@ def copy_external_file_relative(package_fd: int, source: Path, target: Path) -> 
     try:
         content = source.read_bytes()
     except OSError as error:
-        raise ManagerError(f"cannot read transaction input file {source}: {error}") from error
+        raise ManagerError(
+            f"cannot read transaction input file {source}: {error}"
+        ) from error
     write_bytes_relative(package_fd, target, content)
 
 
 def replace_relative_file(package_fd: int, source: Path, target: Path) -> None:
-    with relative_parent_descriptor(package_fd, source) as (source_parent_fd, source_name):
+    with relative_parent_descriptor(package_fd, source) as (
+        source_parent_fd,
+        source_name,
+    ):
         try:
-            details = os.stat(source_name, dir_fd=source_parent_fd, follow_symlinks=False)
+            details = os.stat(
+                source_name, dir_fd=source_parent_fd, follow_symlinks=False
+            )
         except OSError as error:
-            raise ManagerError(f"cannot inspect staged file {source}: {error}") from error
+            raise ManagerError(
+                f"cannot inspect staged file {source}: {error}"
+            ) from error
         if not stat.S_ISREG(details.st_mode):
             raise ManagerError(f"staged source must be a regular file: {source}")
-        with relative_parent_descriptor(package_fd, target, create=True) as (target_parent_fd, target_name):
+        with relative_parent_descriptor(package_fd, target, create=True) as (
+            target_parent_fd,
+            target_name,
+        ):
             os.replace(
                 source_name,
                 target_name,
@@ -416,12 +487,16 @@ def load_object_relative(package_fd: int, relative: Path, label: str) -> dict[st
         try:
             descriptor = os.open(name, FILE_OPEN_FLAGS, dir_fd=parent_fd)
         except OSError as error:
-            raise ManagerError(f"cannot securely open {label}: {relative}: {error}") from error
+            raise ManagerError(
+                f"cannot securely open {label}: {relative}: {error}"
+            ) from error
         try:
             with os.fdopen(descriptor, "r", encoding="utf-8") as handle:
                 value = json.load(handle, parse_constant=reject_constant)
         except (OSError, ValueError, json.JSONDecodeError) as error:
-            raise ManagerError(f"cannot read strict JSON from {relative}: {error}") from error
+            raise ManagerError(
+                f"cannot read strict JSON from {relative}: {error}"
+            ) from error
     if not isinstance(value, dict):
         raise ManagerError(f"{label} must be a JSON object: {relative}")
     return value
@@ -457,13 +532,22 @@ def remove_tree_relative(package_fd: int, relative: Path) -> None:
 
 
 def section_path(package: Path, section_id: str) -> Path:
-    if not section_id or any(character not in "abcdefghijklmnopqrstuvwxyz0123456789-" for character in section_id):
+    if not section_id or any(
+        character not in "abcdefghijklmnopqrstuvwxyz0123456789-"
+        for character in section_id
+    ):
         raise ManagerError(f"section id must use lowercase kebab-case: {section_id}")
     return package / SECTIONS_PATH / f"{section_id}.json"
 
 
 def canonical_json_bytes(value: Any) -> bytes:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
 
 
 def toc_digest(sections: list[dict[str, Any]]) -> str:
@@ -485,7 +569,9 @@ def new_toc(sections: list[dict[str, Any]]) -> dict[str, Any]:
 
 def write_json_atomically(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
     temporary_path = Path(temporary_name)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
@@ -500,10 +586,15 @@ def write_json_atomically(path: Path, value: Any) -> None:
 
 def copy_file_atomically(source: Path, target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{target.name}.", suffix=".tmp", dir=target.parent
+    )
     temporary_path = Path(temporary_name)
     try:
-        with source.open("rb") as input_handle, os.fdopen(descriptor, "wb") as output_handle:
+        with (
+            source.open("rb") as input_handle,
+            os.fdopen(descriptor, "wb") as output_handle,
+        ):
             shutil.copyfileobj(input_handle, output_handle, length=1024 * 1024)
             output_handle.flush()
             os.fsync(output_handle.fileno())
@@ -526,7 +617,9 @@ def package_lock(package: Path, timeout: float = 10.0) -> Iterable[None]:
                 break
             except BlockingIOError:
                 if time.monotonic() >= deadline:
-                    raise ManagerError(f"timed out waiting for {ARTIFACT_LABEL} package lock: {package.name}")
+                    raise ManagerError(
+                        f"timed out waiting for {ARTIFACT_LABEL} package lock: {package.name}"
+                    )
                 time.sleep(0.05)
         try:
             yield
@@ -547,7 +640,12 @@ def recover_transaction_with_descriptor(package_fd: int) -> None:
         raise ManagerError("transaction journal entries must be an array")
     transaction_relative = MANAGER_PATH / "transactions" / journal["id"]
     for entry in journal["entries"]:
-        if not isinstance(entry, dict) or set(entry) != {"path", "existed", "backup", "stage"}:
+        if not isinstance(entry, dict) or set(entry) != {
+            "path",
+            "existed",
+            "backup",
+            "stage",
+        }:
             raise ManagerError("transaction journal entry has an unsupported shape")
         if not isinstance(entry["existed"], bool):
             raise ManagerError("transaction journal existed flag must be boolean")
@@ -555,14 +653,20 @@ def recover_transaction_with_descriptor(package_fd: int) -> None:
         try:
             if entry["existed"]:
                 relative_file_exists(package_fd, relative)
-                backup_relative = safe_relative_path(entry["backup"], "transaction backup")
+                backup_relative = safe_relative_path(
+                    entry["backup"], "transaction backup"
+                )
                 if backup_relative.parts[0] != "backup":
                     raise ManagerError("transaction backup must remain under backup/")
-                copy_relative_file(package_fd, transaction_relative / backup_relative, relative)
+                copy_relative_file(
+                    package_fd, transaction_relative / backup_relative, relative
+                )
             else:
                 unlink_relative(package_fd, relative)
         except ManagerError as error:
-            raise ManagerError(f"cannot securely recover transaction target {relative}: {error}") from error
+            raise ManagerError(
+                f"cannot securely recover transaction target {relative}: {error}"
+            ) from error
     unlink_relative(package_fd, JOURNAL_PATH)
     remove_tree_relative(package_fd, transaction_relative)
 
@@ -602,9 +706,13 @@ def commit_transaction(
                 if existed:
                     copy_relative_file(package_fd, relative, backup_root / backup_name)
                 if target in json_writes:
-                    write_json_relative(package_fd, stage_root / stage_name, json_writes[target])
+                    write_json_relative(
+                        package_fd, stage_root / stage_name, json_writes[target]
+                    )
                 elif target in file_writes:
-                    copy_external_file_relative(package_fd, file_writes[target], stage_root / stage_name)
+                    copy_external_file_relative(
+                        package_fd, file_writes[target], stage_root / stage_name
+                    )
                 entries.append(
                     {
                         "path": relative.as_posix(),
@@ -664,7 +772,9 @@ def apply_mutation_lifecycle(metadata: dict[str, Any]) -> None:
         return
     status = metadata["lifecycle"]["status"]
     if status in set(MUTATION_POLICY["terminalStatuses"]):
-        raise ManagerError(f"terminal {ARTIFACT_LABEL} does not allow mutation: {status}")
+        raise ManagerError(
+            f"terminal {ARTIFACT_LABEL} does not allow mutation: {status}"
+        )
     if status != MUTATION_POLICY["readyStatus"]:
         return
     metadata["lifecycle"]["status"] = MUTATION_POLICY["draftStatus"]
@@ -684,7 +794,9 @@ def reject_actual_style(value: Any, location: str = "content") -> None:
     if isinstance(value, dict):
         for key, child in value.items():
             if key.lower().replace("-", "").replace("_", "") in STYLE_KEYS:
-                raise ManagerError(f"actual style data is not allowed in canonical {ARTIFACT_LABEL} {location}: {key}")
+                raise ManagerError(
+                    f"actual style data is not allowed in canonical {ARTIFACT_LABEL} {location}: {key}"
+                )
             reject_actual_style(child, location)
     elif isinstance(value, list):
         for child in value:
@@ -711,24 +823,34 @@ def load_toc(package: Path) -> dict[str, Any]:
     return load_object(package / TOC_PATH, "table of contents")
 
 
-def load_sections(package: Path, toc: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+def load_sections(
+    package: Path, toc: dict[str, Any] | None = None
+) -> list[dict[str, Any]]:
     return list(iter_sections(package, toc))
 
 
-def iter_sections(package: Path, toc: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
+def iter_sections(
+    package: Path, toc: dict[str, Any] | None = None
+) -> Iterable[dict[str, Any]]:
     current_toc = toc if toc is not None else load_toc(package)
     for entry in current_toc["sections"]:
         expected = section_path(package, entry["id"])
         if entry["path"] != expected.relative_to(package).as_posix():
             raise ManagerError(f"section path does not match section id: {entry['id']}")
         if expected.is_symlink() or not expected.is_file():
-            raise ManagerError(f"canonical section file does not exist or is a symlink: {expected}")
+            raise ManagerError(
+                f"canonical section file does not exist or is a symlink: {expected}"
+            )
         section = load_object(expected, "section")
         validate_instance("section", section)
         if section["id"] != entry["id"]:
-            raise ManagerError(f"section file id does not match table of contents: {entry['id']}")
+            raise ManagerError(
+                f"section file id does not match table of contents: {entry['id']}"
+            )
         if toc_entry(section) != entry:
-            raise ManagerError(f"section hierarchy does not match table of contents: {entry['id']}")
+            raise ManagerError(
+                f"section hierarchy does not match table of contents: {entry['id']}"
+            )
         yield section
 
 
@@ -758,11 +880,15 @@ def summarize_section(section: dict[str, Any]) -> dict[str, Any]:
         for entry in container["content"]
     ]
     if len(section_item_ids) != len(set(section_item_ids)):
-        raise ManagerError(f"content item ids must be unique across top-level section {section['id']}")
+        raise ManagerError(
+            f"content item ids must be unique across top-level section {section['id']}"
+        )
     for container in [section, *section["subsections"]]:
         item_ids = [entry["id"] for entry in container["content"]]
         if len(item_ids) != len(set(item_ids)):
-            raise ManagerError(f"content item ids must be unique within {container['id']}")
+            raise ManagerError(
+                f"content item ids must be unique within {container['id']}"
+            )
         for content_item in container["content"]:
             reject_actual_style(content_item["content"])
             reject_actual_style(content_item.get("attributes", {}), "attributes")
@@ -780,9 +906,16 @@ def summarize_section(section: dict[str, Any]) -> dict[str, Any]:
                         "evidenceCount": len(content_item.get("sourceRefs", [])),
                     }
                 )
-            if content_item["kind"] == "open-item" and attributes.get("blocking") is True and attributes.get("resolved") is not True:
+            if (
+                content_item["kind"] == "open-item"
+                and attributes.get("blocking") is True
+                and attributes.get("resolved") is not True
+            ):
                 blockers.append(content_item["id"])
-            if content_item["kind"] == "interview" and attributes.get("status") == "pending":
+            if (
+                content_item["kind"] == "interview"
+                and attributes.get("status") == "pending"
+            ):
                 pending_interviews.append(content_item["id"])
     return {
         "id": section["id"],
@@ -797,7 +930,9 @@ def summarize_section(section: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def validate_typed_paths(package: Path, metadata: dict[str, Any], summaries: list[dict[str, Any]]) -> None:
+def validate_typed_paths(
+    package: Path, metadata: dict[str, Any], summaries: list[dict[str, Any]]
+) -> None:
     project_root = package_project_root(package)
     references: list[dict[str, Any]] = list(metadata["provenance"]["sourceRefs"])
     references.extend(relation["target"] for relation in metadata["relations"])
@@ -809,21 +944,39 @@ def validate_typed_paths(package: Path, metadata: dict[str, Any], summaries: lis
         try:
             target.resolve(strict=False).relative_to(project_root)
         except ValueError as error:
-            raise ManagerError(f"typed reference escapes project root: {relative}") from error
+            raise ManagerError(
+                f"typed reference escapes project root: {relative}"
+            ) from error
         if not target.exists():
             raise ManagerError(f"typed reference does not exist: {relative}")
         if "anchor" not in reference:
             continue
         if not target.is_dir() or not (target / METADATA_PATH).is_file():
-            raise ManagerError("typed reference anchor path must target a sectioned package root")
+            raise ManagerError(
+                "typed reference anchor path must target a sectioned package root"
+            )
         target_metadata = load_object(target / METADATA_PATH, "referenced metadata")
-        if target_metadata.get("artifactType") != reference["artifactType"] or target_metadata.get("id") != reference["id"]:
-            raise ManagerError("typed reference identity does not match referenced package metadata")
+        if (
+            target_metadata.get("artifactType") != reference["artifactType"]
+            or target_metadata.get("id") != reference["id"]
+        ):
+            raise ManagerError(
+                "typed reference identity does not match referenced package metadata"
+            )
         target_toc = load_object(target / TOC_PATH, "referenced table of contents")
         if target_toc.get("sha256") != toc_digest(target_toc.get("sections", [])):
-            raise ManagerError("typed reference target table of contents integrity check failed")
+            raise ManagerError(
+                "typed reference target table of contents integrity check failed"
+            )
         anchor = reference["anchor"]
-        entry = next((item for item in target_toc["sections"] if item.get("id") == anchor["sectionId"]), None)
+        entry = next(
+            (
+                item
+                for item in target_toc["sections"]
+                if item.get("id") == anchor["sectionId"]
+            ),
+            None,
+        )
         if entry is None:
             raise ManagerError("typed reference anchor section does not exist")
         expected = f"data/sections/{anchor['sectionId']}.json"
@@ -832,13 +985,23 @@ def validate_typed_paths(package: Path, metadata: dict[str, Any], summaries: lis
         target_section_path = target / expected
         assert_plain_path(target_section_path, "file")
         target_section = load_object(target_section_path, "referenced section")
-        if target_section.get("id") != anchor["sectionId"] or toc_entry(target_section) != entry:
-            raise ManagerError("typed reference anchor section does not match table of contents")
-        if not any(item.get("id") == anchor["itemId"] for item in all_content_items([target_section])):
+        if (
+            target_section.get("id") != anchor["sectionId"]
+            or toc_entry(target_section) != entry
+        ):
+            raise ManagerError(
+                "typed reference anchor section does not match table of contents"
+            )
+        if not any(
+            item.get("id") == anchor["itemId"]
+            for item in all_content_items([target_section])
+        ):
             raise ManagerError("typed reference anchor item does not exist")
 
 
-def validate_blocks(package: Path, block_refs: Iterable[str], *, full: bool) -> tuple[dict[str, Any], list[str]]:
+def validate_blocks(
+    package: Path, block_refs: Iterable[str], *, full: bool
+) -> tuple[dict[str, Any], list[str]]:
     index = load_object(package / BLOCK_INDEX_PATH, "block index")
     validate_instance("blocks", index)
     indexed = {entry["path"]: entry for entry in index["blocks"]}
@@ -847,13 +1010,17 @@ def validate_blocks(package: Path, block_refs: Iterable[str], *, full: bool) -> 
     for relative_value, entry in indexed.items():
         relative = safe_relative_path(relative_value, "block path")
         if relative.parts[0] != "blocks" or relative == BLOCK_INDEX_PATH:
-            raise ManagerError(f"block path must remain under blocks/ and not replace index: {relative}")
+            raise ManagerError(
+                f"block path must remain under blocks/ and not replace index: {relative}"
+            )
         target = package / relative
         assert_plain_path(target, "file")
         try:
             target.resolve().relative_to(package / "blocks")
         except ValueError as error:
-            raise ManagerError(f"block path escapes blocks directory: {relative}") from error
+            raise ManagerError(
+                f"block path escapes blocks directory: {relative}"
+            ) from error
         if target.stat().st_size != entry["sizeBytes"]:
             raise ManagerError(f"block integrity mismatch: {relative}")
         if full and file_sha256(target) != entry["sha256"]:
@@ -866,7 +1033,9 @@ def validate_blocks(package: Path, block_refs: Iterable[str], *, full: bool) -> 
     if actual != set(indexed):
         extra = sorted(actual - set(indexed))
         missing = sorted(set(indexed) - actual)
-        raise ManagerError(f"block file set does not match block index; extra={extra}, missing={missing}")
+        raise ManagerError(
+            f"block file set does not match block index; extra={extra}, missing={missing}"
+        )
     for block_ref in block_refs:
         if block_ref not in indexed:
             raise ManagerError(f"content references an unregistered block: {block_ref}")
@@ -896,17 +1065,27 @@ def validate_profile(metadata: dict[str, Any], summaries: list[dict[str, Any]]) 
     allowed = set(required) | optional_section_ids()
     unknown = [section_id for section_id in ids if section_id not in allowed]
     if unknown:
-        raise ManagerError(f"sections are not declared by the {ARTIFACT_LABEL} profile: {', '.join(unknown)}")
-    hierarchy_ids = [item_id for summary in summaries for item_id in summary["hierarchyIds"]]
+        raise ManagerError(
+            f"sections are not declared by the {ARTIFACT_LABEL} profile: {', '.join(unknown)}"
+        )
+    hierarchy_ids = [
+        item_id for summary in summaries for item_id in summary["hierarchyIds"]
+    ]
     if len(hierarchy_ids) != len(set(hierarchy_ids)):
-        raise ManagerError(f"section and subsection ids must be unique across the {ARTIFACT_LABEL}")
+        raise ManagerError(
+            f"section and subsection ids must be unique across the {ARTIFACT_LABEL}"
+        )
 
     status = metadata["lifecycle"]["status"]
     blockers = unresolved_blockers(summaries)
     if status == "blocked" and not blockers:
-        raise ManagerError(f"blocked {ARTIFACT_LABEL} requires an unresolved blocking open item")
+        raise ManagerError(
+            f"blocked {ARTIFACT_LABEL} requires an unresolved blocking open item"
+        )
     if status in {"closed", "superseded"}:
-        dispositions = [entry for summary in summaries for entry in summary["dispositions"]]
+        dispositions = [
+            entry for summary in summaries for entry in summary["dispositions"]
+        ]
         matching = [
             entry
             for entry in dispositions
@@ -920,13 +1099,19 @@ def validate_profile(metadata: dict[str, Any], summaries: list[dict[str, Any]]) 
         return
 
     readiness = metadata["readiness"]
-    failed = [key for key, value in readiness.items() if isinstance(value, bool) and not value]
+    failed = [
+        key for key, value in readiness.items() if isinstance(value, bool) and not value
+    ]
     if failed:
-        raise ManagerError(f"ready {ARTIFACT_LABEL} has failed readiness flags: {', '.join(failed)}")
+        raise ManagerError(
+            f"ready {ARTIFACT_LABEL} has failed readiness flags: {', '.join(failed)}"
+        )
     if readiness["reviewedAt"] is None:
         raise ManagerError(f"ready {ARTIFACT_LABEL} requires readiness.reviewedAt")
     if blockers:
-        raise ManagerError(f"ready {ARTIFACT_LABEL} has unresolved blocking open items: {', '.join(blockers)}")
+        raise ManagerError(
+            f"ready {ARTIFACT_LABEL} has unresolved blocking open items: {', '.join(blockers)}"
+        )
     by_id = {summary["id"]: summary for summary in summaries}
     for section_rule in profile()["requiredSections"]:
         kinds = by_id[section_rule["id"]]["kinds"]
@@ -948,18 +1133,33 @@ def validate_profile(metadata: dict[str, Any], summaries: list[dict[str, Any]]) 
         ]
         invalid = [value for value in values if value not in contract["allowedValues"]]
         if not values or invalid:
-            rendered = ", ".join(repr(value) for value in invalid) if invalid else "missing"
-            raise ManagerError(f"ready {ARTIFACT_LABEL} {kind} status is invalid: {rendered}")
-    pending_interviews = [item_id for summary in summaries for item_id in summary["pendingInterviews"]]
+            rendered = (
+                ", ".join(repr(value) for value in invalid) if invalid else "missing"
+            )
+            raise ManagerError(
+                f"ready {ARTIFACT_LABEL} {kind} status is invalid: {rendered}"
+            )
+    pending_interviews = [
+        item_id for summary in summaries for item_id in summary["pendingInterviews"]
+    ]
     if pending_interviews:
-        raise ManagerError(f"ready {ARTIFACT_LABEL} contains pending interviews: {', '.join(pending_interviews)}")
+        raise ManagerError(
+            f"ready {ARTIFACT_LABEL} contains pending interviews: {', '.join(pending_interviews)}"
+        )
 
 
-def validate_package(package_value: str | Path, *, full: bool = False) -> dict[str, Any]:
+def validate_package(
+    package_value: str | Path, *, full: bool = False
+) -> dict[str, Any]:
     package = resolve_package(package_value)
     for directory in (package / "data", package / SECTIONS_PATH, package / "blocks"):
         assert_plain_path(directory, "directory")
-    for path in (package / METADATA_PATH, package / TITLE_PATH, package / TOC_PATH, package / BLOCK_INDEX_PATH):
+    for path in (
+        package / METADATA_PATH,
+        package / TITLE_PATH,
+        package / TOC_PATH,
+        package / BLOCK_INDEX_PATH,
+    ):
         assert_plain_path(path, "file")
 
     metadata = load_metadata(package)
@@ -969,7 +1169,9 @@ def validate_package(package_value: str | Path, *, full: bool = False) -> dict[s
     validate_instance("title", title)
     validate_instance("toc", toc)
     if metadata["id"] != package.name:
-        raise ManagerError(f"{ARTIFACT_LABEL} id {metadata['id']!r} must match package directory {package.name!r}")
+        raise ManagerError(
+            f"{ARTIFACT_LABEL} id {metadata['id']!r} must match package directory {package.name!r}"
+        )
     if toc["sha256"] != toc_digest(toc["sections"]):
         raise ManagerError("manager-owned table of contents integrity check failed")
     indexed_section_files = {entry["path"] for entry in toc["sections"]}
@@ -987,10 +1189,17 @@ def validate_package(package_value: str | Path, *, full: bool = False) -> dict[s
     summaries = summarize_sections(package, toc)
     validate_profile(metadata, summaries)
     validate_typed_paths(package, metadata, summaries)
-    block_refs = [block_ref for summary in summaries for block_ref in summary["blockRefs"]]
+    block_refs = [
+        block_ref for summary in summaries for block_ref in summary["blockRefs"]
+    ]
     _, block_files = validate_blocks(package, block_refs, full=full)
 
-    files = [METADATA_PATH.as_posix(), TITLE_PATH.as_posix(), TOC_PATH.as_posix(), BLOCK_INDEX_PATH.as_posix()]
+    files = [
+        METADATA_PATH.as_posix(),
+        TITLE_PATH.as_posix(),
+        TOC_PATH.as_posix(),
+        BLOCK_INDEX_PATH.as_posix(),
+    ]
     files.extend(entry["path"] for entry in toc["sections"])
     files.extend(block_files)
     return {
@@ -1006,7 +1215,12 @@ def validate_package(package_value: str | Path, *, full: bool = False) -> dict[s
 
 
 def load_focused_section(package: Path, section_id: str) -> dict[str, Any]:
-    for path in (package / METADATA_PATH, package / TITLE_PATH, package / TOC_PATH, package / BLOCK_INDEX_PATH):
+    for path in (
+        package / METADATA_PATH,
+        package / TITLE_PATH,
+        package / TOC_PATH,
+        package / BLOCK_INDEX_PATH,
+    ):
         assert_plain_path(path, "file")
     metadata = load_metadata(package)
     title = load_object(package / TITLE_PATH, "title")
@@ -1015,17 +1229,25 @@ def load_focused_section(package: Path, section_id: str) -> dict[str, Any]:
     validate_instance("title", title)
     validate_instance("toc", toc)
     if metadata["id"] != package.name:
-        raise ManagerError(f"{ARTIFACT_LABEL} id {metadata['id']!r} must match package directory {package.name!r}")
+        raise ManagerError(
+            f"{ARTIFACT_LABEL} id {metadata['id']!r} must match package directory {package.name!r}"
+        )
     if toc["sha256"] != toc_digest(toc["sections"]):
         raise ManagerError("manager-owned table of contents integrity check failed")
     toc_ids = [entry["id"] for entry in toc["sections"]]
     required = required_section_ids()
-    positions = [toc_ids.index(required_id) for required_id in required if required_id in toc_ids]
+    positions = [
+        toc_ids.index(required_id) for required_id in required if required_id in toc_ids
+    ]
     if len(positions) != len(required) or positions != sorted(positions):
         raise ManagerError("required sections must exist exactly once in profile order")
     allowed = set(required) | optional_section_ids()
-    if len(toc_ids) != len(set(toc_ids)) or any(item_id not in allowed for item_id in toc_ids):
-        raise ManagerError(f"table of contents does not match the {ARTIFACT_LABEL} profile")
+    if len(toc_ids) != len(set(toc_ids)) or any(
+        item_id not in allowed for item_id in toc_ids
+    ):
+        raise ManagerError(
+            f"table of contents does not match the {ARTIFACT_LABEL} profile"
+        )
     indexed = {entry["path"] for entry in toc["sections"]}
     actual = {
         path.relative_to(package).as_posix()
@@ -1034,7 +1256,10 @@ def load_focused_section(package: Path, section_id: str) -> dict[str, Any]:
     }
     if actual != indexed:
         raise ManagerError("section file set does not match table of contents")
-    entry = next((candidate for candidate in toc["sections"] if candidate["id"] == section_id), None)
+    entry = next(
+        (candidate for candidate in toc["sections"] if candidate["id"] == section_id),
+        None,
+    )
     if entry is None:
         raise ManagerError(f"section does not exist: {section_id}")
     path = section_path(package, section_id)
@@ -1044,14 +1269,18 @@ def load_focused_section(package: Path, section_id: str) -> dict[str, Any]:
     section = load_object(path, "section")
     validate_instance("section", section)
     if toc_entry(section) != entry:
-        raise ManagerError(f"section hierarchy does not match table of contents: {section_id}")
+        raise ManagerError(
+            f"section hierarchy does not match table of contents: {section_id}"
+        )
     summary = summarize_section(section)
     validate_typed_paths(package, metadata, [summary])
     validate_blocks(package, summary["blockRefs"], full=False)
     return section
 
 
-def install_section_and_toc(package: Path, section: dict[str, Any], toc: dict[str, Any]) -> None:
+def install_section_and_toc(
+    package: Path, section: dict[str, Any], toc: dict[str, Any]
+) -> None:
     validate_instance("section", section)
     validate_instance("toc", toc)
     target = section_path(package, section["id"])
@@ -1072,7 +1301,9 @@ def command_check_schemas(_: argparse.Namespace) -> None:
         json.dumps(
             {
                 "valid": True,
-                "schemaVersion": contracts["metadata"]["properties"]["schemaVersion"]["const"],
+                "schemaVersion": contracts["metadata"]["properties"]["schemaVersion"][
+                    "const"
+                ],
                 "profile": f"{current_profile['id']}@{current_profile['version']}",
                 "schemas": sorted(path.name for path in SCHEMA_PATHS.values()),
             }
@@ -1106,7 +1337,11 @@ def command_create(args: argparse.Namespace) -> None:
         "updatedAt": timestamp,
         "language": args.language,
         "theme": args.theme,
-        "provenance": {"createdBy": "Human", "generatedBy": GENERATED_BY, "sourceRefs": []},
+        "provenance": {
+            "createdBy": "Human",
+            "generatedBy": GENERATED_BY,
+            "sourceRefs": [],
+        },
         "relations": [],
         "readiness": copy.deepcopy(INITIAL_READINESS),
     }
@@ -1129,7 +1364,13 @@ def command_create(args: argparse.Namespace) -> None:
 def command_show(args: argparse.Namespace) -> None:
     package = resolve_package(args.package)
     if args.section is not None:
-        print(json.dumps(load_focused_section(package, args.section), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                load_focused_section(package, args.section),
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
         return
     validate_package(package)
     toc = load_toc(package)
@@ -1150,7 +1391,10 @@ def command_title_set(args: argparse.Namespace) -> None:
     validate_instance("title", candidate)
     commit_transaction(
         package,
-        json_writes={package / TITLE_PATH: candidate, package / METADATA_PATH: updated_metadata(package)},
+        json_writes={
+            package / TITLE_PATH: candidate,
+            package / METADATA_PATH: updated_metadata(package),
+        },
     )
     print(json.dumps(validate_package(package), ensure_ascii=False))
 
@@ -1185,9 +1429,18 @@ def command_section_put(args: argparse.Namespace) -> None:
         raise ManagerError("section candidate must be a JSON object")
     validate_instance("section", candidate)
     toc = load_toc(package)
-    entry_index = next((index for index, entry in enumerate(toc["sections"]) if entry["id"] == candidate["id"]), None)
+    entry_index = next(
+        (
+            index
+            for index, entry in enumerate(toc["sections"])
+            if entry["id"] == candidate["id"]
+        ),
+        None,
+    )
     if entry_index is None:
-        raise ManagerError("section-put only replaces an existing section; use section-add")
+        raise ManagerError(
+            "section-put only replaces an existing section; use section-add"
+        )
     toc["sections"][entry_index] = toc_entry(candidate)
     toc["sha256"] = toc_digest(toc["sections"])
     install_section_and_toc(package, candidate, toc)
@@ -1206,11 +1459,25 @@ def command_section_item_put(args: argparse.Namespace) -> None:
     if args.subsection is None:
         items = section["content"]
     else:
-        subsection = next((entry for entry in section["subsections"] if entry["id"] == args.subsection), None)
+        subsection = next(
+            (
+                entry
+                for entry in section["subsections"]
+                if entry["id"] == args.subsection
+            ),
+            None,
+        )
         if subsection is None:
             raise ManagerError(f"subsection does not exist: {args.subsection}")
         items = subsection["content"]
-    existing = next((index for index, entry in enumerate(items) if entry["id"] == candidate.get("id")), None)
+    existing = next(
+        (
+            index
+            for index, entry in enumerate(items)
+            if entry["id"] == candidate.get("id")
+        ),
+        None,
+    )
     if existing is None:
         items.append(candidate)
     else:
@@ -1228,12 +1495,21 @@ def command_section_items_put(args: argparse.Namespace) -> None:
     assert_plain_path(path, "file")
     section = load_object(path, "section")
     candidates = replacement_value(args)
-    if not isinstance(candidates, list) or not all(isinstance(item, dict) for item in candidates):
+    if not isinstance(candidates, list) or not all(
+        isinstance(item, dict) for item in candidates
+    ):
         raise ManagerError("content item batch must be a JSON array of objects")
     if args.subsection is None:
         items = section["content"]
     else:
-        subsection = next((entry for entry in section["subsections"] if entry["id"] == args.subsection), None)
+        subsection = next(
+            (
+                entry
+                for entry in section["subsections"]
+                if entry["id"] == args.subsection
+            ),
+            None,
+        )
         if subsection is None:
             raise ManagerError(f"subsection does not exist: {args.subsection}")
         items = subsection["content"]
@@ -1261,15 +1537,27 @@ def command_section_add(args: argparse.Namespace) -> None:
         raise ManagerError("section candidate must be a JSON object")
     validate_instance("section", candidate)
     if candidate["id"] not in optional_section_ids():
-        raise ManagerError(f"optional section is not declared by the {ARTIFACT_LABEL} profile: {candidate['id']}")
+        raise ManagerError(
+            f"optional section is not declared by the {ARTIFACT_LABEL} profile: {candidate['id']}"
+        )
     toc = load_toc(package)
     if any(entry["id"] == candidate["id"] for entry in toc["sections"]):
         raise ManagerError(f"section already exists: {candidate['id']}")
     index = len(toc["sections"])
     if args.before is not None:
-        index = next((i for i, entry in enumerate(toc["sections"]) if entry["id"] == args.before), -1)
+        index = next(
+            (
+                i
+                for i, entry in enumerate(toc["sections"])
+                if entry["id"] == args.before
+            ),
+            -1,
+        )
     elif args.after is not None:
-        found = next((i for i, entry in enumerate(toc["sections"]) if entry["id"] == args.after), -1)
+        found = next(
+            (i for i, entry in enumerate(toc["sections"]) if entry["id"] == args.after),
+            -1,
+        )
         index = found + 1 if found >= 0 else -1
     if index < 0:
         raise ManagerError("section positioning reference does not exist")
@@ -1283,25 +1571,45 @@ def command_section_move(args: argparse.Namespace) -> None:
     package = resolve_package(args.package)
     validate_package(package)
     toc = load_toc(package)
-    source_index = next((i for i, entry in enumerate(toc["sections"]) if entry["id"] == args.section_id), -1)
+    source_index = next(
+        (
+            i
+            for i, entry in enumerate(toc["sections"])
+            if entry["id"] == args.section_id
+        ),
+        -1,
+    )
     if source_index < 0:
         raise ManagerError(f"section does not exist: {args.section_id}")
     entry = toc["sections"].pop(source_index)
     target_id = args.before if args.before is not None else args.after
-    target_index = next((i for i, candidate in enumerate(toc["sections"]) if candidate["id"] == target_id), -1)
+    target_index = next(
+        (
+            i
+            for i, candidate in enumerate(toc["sections"])
+            if candidate["id"] == target_id
+        ),
+        -1,
+    )
     if target_index < 0:
         raise ManagerError("section positioning reference does not exist")
     if args.after is not None:
         target_index += 1
     toc["sections"].insert(target_index, entry)
-    required_positions = [next(i for i, item in enumerate(toc["sections"]) if item["id"] == section_id) for section_id in required_section_ids()]
+    required_positions = [
+        next(i for i, item in enumerate(toc["sections"]) if item["id"] == section_id)
+        for section_id in required_section_ids()
+    ]
     if required_positions != sorted(required_positions):
         raise ManagerError("section move must preserve required section profile order")
     toc["sha256"] = toc_digest(toc["sections"])
     validate_instance("toc", toc)
     commit_transaction(
         package,
-        json_writes={package / TOC_PATH: toc, package / METADATA_PATH: updated_metadata(package)},
+        json_writes={
+            package / TOC_PATH: toc,
+            package / METADATA_PATH: updated_metadata(package),
+        },
     )
     print(json.dumps(validate_package(package), ensure_ascii=False))
 
@@ -1320,7 +1628,10 @@ def command_section_remove(args: argparse.Namespace) -> None:
     toc["sha256"] = toc_digest(retained)
     commit_transaction(
         package,
-        json_writes={package / TOC_PATH: toc, package / METADATA_PATH: updated_metadata(package)},
+        json_writes={
+            package / TOC_PATH: toc,
+            package / METADATA_PATH: updated_metadata(package),
+        },
         deletes=[target],
     )
     print(json.dumps(validate_package(package), ensure_ascii=False))
@@ -1333,7 +1644,9 @@ def command_transition(args: argparse.Namespace) -> None:
     current = metadata["lifecycle"]["status"]
     allowed = validate_schemas()["metadata"]["x-statusTransitions"][current]
     if args.status not in allowed:
-        raise ManagerError(f"invalid {ARTIFACT_LABEL} transition: {current} -> {args.status}")
+        raise ManagerError(
+            f"invalid {ARTIFACT_LABEL} transition: {current} -> {args.status}"
+        )
     metadata["lifecycle"]["status"] = args.status
     if (
         MUTATION_POLICY is not None
@@ -1352,19 +1665,27 @@ def command_transition(args: argparse.Namespace) -> None:
         json_writes={package / METADATA_PATH: metadata},
         full_validation=args.status == "ready",
     )
-    print(json.dumps(validate_package(package, full=args.status == "ready"), ensure_ascii=False))
+    print(
+        json.dumps(
+            validate_package(package, full=args.status == "ready"), ensure_ascii=False
+        )
+    )
 
 
 def checked_block_target(package: Path, value: str) -> tuple[Path, str]:
     relative = safe_relative_path(value, "block path")
     if relative.parts[0] != "blocks" or relative == BLOCK_INDEX_PATH:
-        raise ManagerError(f"block path must remain under blocks/ and not replace index: {relative}")
+        raise ManagerError(
+            f"block path must remain under blocks/ and not replace index: {relative}"
+        )
     target = package / relative
     block_root = (package / "blocks").resolve()
     try:
         target.resolve(strict=False).relative_to(block_root)
     except ValueError as error:
-        raise ManagerError(f"block path escapes blocks directory: {relative}") from error
+        raise ManagerError(
+            f"block path escapes blocks directory: {relative}"
+        ) from error
     for parent in target.parents:
         if parent == package:
             break
@@ -1430,17 +1751,25 @@ def command_block_remove(args: argparse.Namespace) -> None:
 
 
 def command_validate(args: argparse.Namespace) -> None:
-    print(json.dumps(validate_package(args.package, full=args.full), ensure_ascii=False))
+    print(
+        json.dumps(validate_package(args.package, full=args.full), ensure_ascii=False)
+    )
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(description=f"Manage sectioned Agent Factory {ARTIFACT_LABEL} packages")
+    root = argparse.ArgumentParser(
+        description=f"Manage sectioned Agent Factory {ARTIFACT_LABEL} packages"
+    )
     commands = root.add_subparsers(dest="command", required=True)
 
-    check = commands.add_parser("check-schemas", help=f"validate {ARTIFACT_LABEL} schemas and profile")
+    check = commands.add_parser(
+        "check-schemas", help=f"validate {ARTIFACT_LABEL} schemas and profile"
+    )
     check.set_defaults(handler=command_check_schemas)
 
-    create = commands.add_parser("create", help=f"create a split draft {ARTIFACT_LABEL} package")
+    create = commands.add_parser(
+        "create", help=f"create a split draft {ARTIFACT_LABEL} package"
+    )
     create.add_argument("package")
     create.add_argument("--id", required=True)
     create.add_argument("--title", required=True)
@@ -1449,7 +1778,9 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("--theme", required=True)
     create.set_defaults(handler=command_create)
 
-    show = commands.add_parser("show", help="validate and display a package or one section")
+    show = commands.add_parser(
+        "show", help="validate and display a package or one section"
+    )
     show.add_argument("package")
     show.add_argument("--section")
     show.set_defaults(handler=command_show)
@@ -1459,20 +1790,26 @@ def parser() -> argparse.ArgumentParser:
     title_set.add_argument("title")
     title_set.set_defaults(handler=command_title_set)
 
-    metadata_set = commands.add_parser("metadata-set", help="replace one mutable metadata field")
+    metadata_set = commands.add_parser(
+        "metadata-set", help="replace one mutable metadata field"
+    )
     metadata_set.add_argument("package")
     metadata_set.add_argument("field")
     metadata_set.add_argument("value", nargs="?")
     metadata_set.add_argument("--value-file")
     metadata_set.set_defaults(handler=command_metadata_set)
 
-    section_put = commands.add_parser("section-put", help="replace an existing canonical section")
+    section_put = commands.add_parser(
+        "section-put", help="replace an existing canonical section"
+    )
     section_put.add_argument("package")
     section_put.add_argument("value", nargs="?")
     section_put.add_argument("--value-file")
     section_put.set_defaults(handler=command_section_put)
 
-    item_put = commands.add_parser("section-item-put", help="add or replace one section content item")
+    item_put = commands.add_parser(
+        "section-item-put", help="add or replace one section content item"
+    )
     item_put.add_argument("package")
     item_put.add_argument("section_id")
     item_put.add_argument("value", nargs="?")
@@ -1480,7 +1817,10 @@ def parser() -> argparse.ArgumentParser:
     item_put.add_argument("--subsection")
     item_put.set_defaults(handler=command_section_item_put)
 
-    items_put = commands.add_parser("section-items-put", help="add or replace multiple content items in one revision")
+    items_put = commands.add_parser(
+        "section-items-put",
+        help="add or replace multiple content items in one revision",
+    )
     items_put.add_argument("package")
     items_put.add_argument("section_id")
     items_put.add_argument("value", nargs="?")
@@ -1488,7 +1828,9 @@ def parser() -> argparse.ArgumentParser:
     items_put.add_argument("--subsection")
     items_put.set_defaults(handler=command_section_items_put)
 
-    section_add = commands.add_parser("section-add", help="add a profile-declared optional section")
+    section_add = commands.add_parser(
+        "section-add", help="add a profile-declared optional section"
+    )
     section_add.add_argument("package")
     section_add.add_argument("value", nargs="?")
     section_add.add_argument("--value-file")
@@ -1497,7 +1839,9 @@ def parser() -> argparse.ArgumentParser:
     position.add_argument("--after")
     section_add.set_defaults(handler=command_section_add)
 
-    section_move = commands.add_parser("section-move", help="move a section while preserving required order")
+    section_move = commands.add_parser(
+        "section-move", help="move a section while preserving required order"
+    )
     section_move.add_argument("package")
     section_move.add_argument("section_id")
     move_position = section_move.add_mutually_exclusive_group(required=True)
@@ -1505,17 +1849,25 @@ def parser() -> argparse.ArgumentParser:
     move_position.add_argument("--after")
     section_move.set_defaults(handler=command_section_move)
 
-    section_remove = commands.add_parser("section-remove", help="remove an optional section")
+    section_remove = commands.add_parser(
+        "section-remove", help="remove an optional section"
+    )
     section_remove.add_argument("package")
     section_remove.add_argument("section_id")
     section_remove.set_defaults(handler=command_section_remove)
 
-    validate = commands.add_parser("validate", help=f"validate a complete {ARTIFACT_LABEL} package")
+    validate = commands.add_parser(
+        "validate", help=f"validate a complete {ARTIFACT_LABEL} package"
+    )
     validate.add_argument("package")
-    validate.add_argument("--full", action="store_true", help="rehash every registered block")
+    validate.add_argument(
+        "--full", action="store_true", help="rehash every registered block"
+    )
     validate.set_defaults(handler=command_validate)
 
-    transition = commands.add_parser("transition", help=f"apply a schema-owned {ARTIFACT_LABEL} transition")
+    transition = commands.add_parser(
+        "transition", help=f"apply a schema-owned {ARTIFACT_LABEL} transition"
+    )
     transition.add_argument("package")
     transition.add_argument(
         "status",
@@ -1523,7 +1875,9 @@ def parser() -> argparse.ArgumentParser:
     )
     transition.set_defaults(handler=command_transition)
 
-    block_put = commands.add_parser("block-put", help="stream an external block into the canonical package")
+    block_put = commands.add_parser(
+        "block-put", help="stream an external block into the canonical package"
+    )
     block_put.add_argument("package")
     block_put.add_argument("source")
     block_put.add_argument("--path", required=True)
@@ -1531,7 +1885,9 @@ def parser() -> argparse.ArgumentParser:
     block_put.add_argument("--description", required=True)
     block_put.set_defaults(handler=command_block_put)
 
-    block_remove = commands.add_parser("block-remove", help="remove an unreferenced canonical block")
+    block_remove = commands.add_parser(
+        "block-remove", help="remove an unreferenced canonical block"
+    )
     block_remove.add_argument("package")
     block_remove.add_argument("path")
     block_remove.set_defaults(handler=command_block_remove)

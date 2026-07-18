@@ -1,0 +1,32 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "품질 테스트에서 확인된 Python 포맷 문제를 수정한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "skills 아래 추적 중인 Python 파일이 기본 Ruff 포맷 검사를 통과한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "ruff format --check skills가 통과한다.",
+          "ruff check skills가 통과한다.",
+          "전체 skills 회귀 테스트가 통과한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

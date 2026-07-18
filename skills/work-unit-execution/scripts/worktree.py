@@ -17,7 +17,9 @@ SCHEMA_VERSION = "1.0.0"
 
 
 class ContractError(Exception):
-    def __init__(self, code: str, message: str, details: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self, code: str, message: str, details: dict[str, Any] | None = None
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
@@ -69,7 +71,9 @@ class Execution:
             check=False,
             shell=False,
         )
-        result = GitResult(command, completed.returncode, completed.stdout, completed.stderr)
+        result = GitResult(
+            command, completed.returncode, completed.stdout, completed.stderr
+        )
         if record:
             self.operations.append(result.evidence())
         return result
@@ -89,11 +93,15 @@ def absolute_path(value: str, field_name: str) -> Path:
 def validate_repository(execution: Execution, value: str) -> Path:
     repository = absolute_path(value, "repository")
     if not repository.is_dir():
-        raise ContractError("invalid_repository", "repository does not exist or is not a directory")
+        raise ContractError(
+            "invalid_repository", "repository does not exist or is not a directory"
+        )
     result = execution.git(repository, ["rev-parse", "--show-toplevel"])
     if result.returncode != 0:
         raise ContractError("invalid_repository", "repository is not a Git worktree")
-    reported = Path(result.stdout.decode("utf-8", errors="strict").strip()).resolve(strict=False)
+    reported = Path(result.stdout.decode("utf-8", errors="strict").strip()).resolve(
+        strict=False
+    )
     if reported != repository:
         raise ContractError(
             "repository_root_mismatch",
@@ -109,7 +117,9 @@ def resolve_base(execution: Execution, repository: Path, base_ref: str) -> str:
         ["rev-parse", "--verify", "--end-of-options", f"{base_ref}^{{commit}}"],
     )
     if result.returncode != 0:
-        raise ContractError("invalid_base_ref", "base ref does not resolve to exactly one commit")
+        raise ContractError(
+            "invalid_base_ref", "base ref does not resolve to exactly one commit"
+        )
     return result.stdout.decode("ascii", errors="strict").strip()
 
 
@@ -127,7 +137,9 @@ def branch_exists(execution: Execution, repository: Path, branch: str) -> bool:
     if result.returncode == 0:
         return True
     if result.returncode not in (0, 1):
-        raise ContractError("git_validation_failed", "unable to validate branch collision")
+        raise ContractError(
+            "git_validation_failed", "unable to validate branch collision"
+        )
     return False
 
 
@@ -160,16 +172,22 @@ def parse_worktree_list(raw: bytes) -> list[dict[str, str | bool]]:
             key_raw, separator, value_raw = raw_field.partition(b" ")
             key = key_raw.decode("ascii", errors="strict")
             record[key] = (
-                value_raw.decode("utf-8", errors="surrogateescape") if separator else True
+                value_raw.decode("utf-8", errors="surrogateescape")
+                if separator
+                else True
             )
         records.append(record)
     return records
 
 
-def list_worktrees(execution: Execution, repository: Path) -> list[dict[str, str | bool]]:
+def list_worktrees(
+    execution: Execution, repository: Path
+) -> list[dict[str, str | bool]]:
     result = execution.git(repository, ["worktree", "list", "--porcelain", "-z"])
     if result.returncode != 0:
-        raise ContractError("git_validation_failed", "unable to list registered worktrees")
+        raise ContractError(
+            "git_validation_failed", "unable to list registered worktrees"
+        )
     return parse_worktree_list(result.stdout)
 
 
@@ -178,7 +196,10 @@ def find_worktree(
 ) -> dict[str, str | bool] | None:
     for record in records:
         value = record.get("worktree")
-        if isinstance(value, str) and Path(value).resolve(strict=False) == worktree_path:
+        if (
+            isinstance(value, str)
+            and Path(value).resolve(strict=False) == worktree_path
+        ):
             return record
     return None
 
@@ -198,7 +219,9 @@ def common_git_dir(execution: Execution, worktree: Path) -> Path | None:
 def expected_common_git_dir(execution: Execution, repository: Path) -> Path:
     result = execution.git(repository, ["rev-parse", "--git-common-dir"])
     if result.returncode != 0:
-        raise ContractError("invalid_repository", "repository has no common Git directory")
+        raise ContractError(
+            "invalid_repository", "repository has no common Git directory"
+        )
     raw = Path(result.stdout.decode("utf-8", errors="strict").strip())
     if not raw.is_absolute():
         raw = repository / raw
@@ -220,9 +243,14 @@ def require_registered_worktree(
             raise ContractError(
                 "repository_mismatch",
                 "worktree belongs to a different repository",
-                {"expectedCommonDir": str(expected_common), "actualCommonDir": str(actual_common)},
+                {
+                    "expectedCommonDir": str(expected_common),
+                    "actualCommonDir": str(actual_common),
+                },
             )
-        raise ContractError("worktree_not_registered", "worktree path is not registered")
+        raise ContractError(
+            "worktree_not_registered", "worktree path is not registered"
+        )
     expected_branch = f"refs/heads/{branch}"
     if record.get("branch") != expected_branch:
         raise ContractError(
@@ -243,13 +271,17 @@ def parse_status(raw: bytes) -> list[dict[str, str]]:
         if not field:
             continue
         if len(field) < 3 or field[2:3] != b" ":
-            raise ContractError("status_parse_failed", "unexpected porcelain status record")
+            raise ContractError(
+                "status_parse_failed", "unexpected porcelain status record"
+            )
         status = field[:2].decode("ascii", errors="strict")
         path = field[3:].decode("utf-8", errors="surrogateescape")
         change = {"path": path, "status": status}
         if "R" in status or "C" in status:
             if index >= len(fields) or not fields[index]:
-                raise ContractError("status_parse_failed", "rename record is incomplete")
+                raise ContractError(
+                    "status_parse_failed", "rename record is incomplete"
+                )
             change["originalPath"] = fields[index].decode(
                 "utf-8", errors="surrogateescape"
             )
@@ -270,7 +302,9 @@ def inspect_context(
         ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
     )
     if status.returncode != 0:
-        raise ContractError("git_inspection_failed", "unable to inspect worktree status")
+        raise ContractError(
+            "git_inspection_failed", "unable to inspect worktree status"
+        )
     changes = parse_status(status.stdout)
     head = execution.git(worktree_path, ["rev-parse", "--verify", "HEAD^{commit}"])
     if head.returncode != 0:
@@ -281,7 +315,9 @@ def inspect_context(
         "dirty": bool(changes),
         "headCommit": head.stdout.decode("ascii", errors="strict").strip(),
         "locked": "locked" in record,
-        "lockReason": record.get("locked") if isinstance(record.get("locked"), str) else None,
+        "lockReason": record.get("locked")
+        if isinstance(record.get("locked"), str)
+        else None,
         "repository": str(repository),
         "worktreePath": str(worktree_path),
     }
@@ -301,10 +337,15 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             raise ContractError(
                 "worktree_collision",
                 "worktree path is registered to a different branch",
-                {"worktreePath": str(worktree_path), "actualBranch": registered.get("branch")},
+                {
+                    "worktreePath": str(worktree_path),
+                    "actualBranch": registered.get("branch"),
+                },
             )
         if not exists:
-            raise ContractError("branch_collision", "registered worktree branch is missing")
+            raise ContractError(
+                "branch_collision", "registered worktree branch is missing"
+            )
         if "locked" not in registered:
             lock_reason = f"Agent Factory Work Unit execution: {branch}"
             lock = execution.git(
@@ -330,7 +371,9 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         return success_payload(execution, "reused", context)
 
     if exists:
-        raise ContractError("branch_collision", "branch already exists", {"branch": branch})
+        raise ContractError(
+            "branch_collision", "branch already exists", {"branch": branch}
+        )
     if os.path.lexists(worktree_path):
         raise ContractError(
             "path_collision",
@@ -434,7 +477,9 @@ def cleanup(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     return success_payload(execution, "cleaned", context)
 
 
-def success_payload(execution: Execution, state: str, context: dict[str, Any]) -> dict[str, Any]:
+def success_payload(
+    execution: Execution, state: str, context: dict[str, Any]
+) -> dict[str, Any]:
     return {
         "command": execution.command,
         "context": context,
@@ -464,7 +509,9 @@ def error_payload(execution: Execution, error: ContractError) -> dict[str, Any]:
 
 def build_parser() -> JsonArgumentParser:
     parser = JsonArgumentParser(prog="worktree.py")
-    subparsers = parser.add_subparsers(dest="command", required=True, parser_class=JsonArgumentParser)
+    subparsers = parser.add_subparsers(
+        dest="command", required=True, parser_class=JsonArgumentParser
+    )
 
     def common(command: str) -> argparse.ArgumentParser:
         subparser = subparsers.add_parser(command)
@@ -483,7 +530,9 @@ def build_parser() -> JsonArgumentParser:
 
 
 def command_hint(argv: Sequence[str]) -> str:
-    return argv[0] if argv and argv[0] in {"prepare", "inspect", "cleanup"} else "unknown"
+    return (
+        argv[0] if argv and argv[0] in {"prepare", "inspect", "cleanup"} else "unknown"
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -501,10 +550,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (OSError, UnicodeError) as error:
         payload = error_payload(
             execution,
-            ContractError("unexpected_io_error", "unable to complete worktree operation", {"type": type(error).__name__}),
+            ContractError(
+                "unexpected_io_error",
+                "unable to complete worktree operation",
+                {"type": type(error).__name__},
+            ),
         )
         return_code = 3
-    print(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+    print(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    )
     return return_code
 
 

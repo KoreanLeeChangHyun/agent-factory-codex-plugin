@@ -20,12 +20,18 @@ from typing import Any, Iterable
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_ROOT.parent.parent
-COMMON_MANAGER = SKILL_ROOT.parent / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
-COMMON_SCHEMA_ROOT = SKILL_ROOT.parent / "lifecycle" / "assets" / "schema" / "sectioned-document"
+COMMON_MANAGER = (
+    SKILL_ROOT.parent / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
+)
+COMMON_SCHEMA_ROOT = (
+    SKILL_ROOT.parent / "lifecycle" / "assets" / "schema" / "sectioned-document"
+)
 
 
 def load_base_manager() -> Any:
-    spec = importlib.util.spec_from_file_location("agent_factory_sectioned_document", COMMON_MANAGER)
+    spec = importlib.util.spec_from_file_location(
+        "agent_factory_sectioned_document", COMMON_MANAGER
+    )
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load sectioned document manager: {COMMON_MANAGER}")
     module = importlib.util.module_from_spec(spec)
@@ -83,19 +89,28 @@ def validate_schemas() -> dict[str, dict[str, Any]]:
         raise ManagerError("Work Unit profile maximumSectionDepth must be 2")
     version = contracts["metadata"]["properties"]["schemaVersion"]["const"]
     if current.get("version") != version:
-        raise ManagerError("Work Unit profile version must match metadata schemaVersion")
+        raise ManagerError(
+            "Work Unit profile version must match metadata schemaVersion"
+        )
     required = [entry["id"] for entry in current["requiredSections"]]
     optional = [entry["id"] for entry in current.get("optionalSections", [])]
     if not required or len(required) != len(set(required)):
-        raise ManagerError("Work Unit required section ids must be non-empty and unique")
+        raise ManagerError(
+            "Work Unit required section ids must be non-empty and unique"
+        )
     if set(required) & set(optional) or len(optional) != len(set(optional)):
         raise ManagerError("Work Unit optional section ids must be unique and disjoint")
     return contracts
 
 
 def package_project_root(package: Path) -> Path:
-    if package.parent.name != "work-units" or package.parent.parent.name != ".agent-factory":
-        raise ManagerError("package must be <project-root>/.agent-factory/work-units/<work-unit-id>")
+    if (
+        package.parent.name != "work-units"
+        or package.parent.parent.name != ".agent-factory"
+    ):
+        raise ManagerError(
+            "package must be <project-root>/.agent-factory/work-units/<work-unit-id>"
+        )
     return package.parent.parent.parent.resolve()
 
 
@@ -112,7 +127,13 @@ def resolve_package(value: str | Path, *, must_exist: bool = True) -> Path:
 
 @contextmanager
 def package_lock(package: Path, timeout: float = 10.0) -> Iterable[None]:
-    lock_root = package_project_root(package) / ".agent-factory" / "runtime" / "locks" / "work-units"
+    lock_root = (
+        package_project_root(package)
+        / ".agent-factory"
+        / "runtime"
+        / "locks"
+        / "work-units"
+    )
     lock_root.mkdir(parents=True, exist_ok=True)
     lock_path = lock_root / f"{package.name}.lock"
     with lock_path.open("a+b") as handle:
@@ -123,7 +144,9 @@ def package_lock(package: Path, timeout: float = 10.0) -> Iterable[None]:
                 break
             except BlockingIOError:
                 if time.monotonic() >= deadline:
-                    raise ManagerError(f"timed out waiting for Work Unit package lock: {package.name}")
+                    raise ManagerError(
+                        f"timed out waiting for Work Unit package lock: {package.name}"
+                    )
                 time.sleep(0.05)
         try:
             yield
@@ -137,17 +160,35 @@ def iter_items(section: dict[str, Any]) -> Iterable[dict[str, Any]]:
         yield from subsection["content"]
 
 
-def validate_anchor(project_root: Path, reference: dict[str, Any], target: Path) -> None:
+def validate_anchor(
+    project_root: Path, reference: dict[str, Any], target: Path
+) -> None:
     if not target.is_dir() or not (target / "data" / "metadata.json").is_file():
-        raise ManagerError("typed reference anchor path must target a sectioned package root")
-    metadata = base.load_object(target / "data" / "metadata.json", "referenced metadata")
-    if metadata.get("artifactType") != reference["artifactType"] or metadata.get("id") != reference["id"]:
-        raise ManagerError("typed reference identity does not match referenced package metadata")
-    toc = base.load_object(target / "data" / "table-of-contents.json", "referenced table of contents")
+        raise ManagerError(
+            "typed reference anchor path must target a sectioned package root"
+        )
+    metadata = base.load_object(
+        target / "data" / "metadata.json", "referenced metadata"
+    )
+    if (
+        metadata.get("artifactType") != reference["artifactType"]
+        or metadata.get("id") != reference["id"]
+    ):
+        raise ManagerError(
+            "typed reference identity does not match referenced package metadata"
+        )
+    toc = base.load_object(
+        target / "data" / "table-of-contents.json", "referenced table of contents"
+    )
     if toc.get("sha256") != base.toc_digest(toc.get("sections", [])):
-        raise ManagerError("typed reference target table of contents integrity check failed")
+        raise ManagerError(
+            "typed reference target table of contents integrity check failed"
+        )
     anchor = reference["anchor"]
-    entry = next((item for item in toc["sections"] if item.get("id") == anchor["sectionId"]), None)
+    entry = next(
+        (item for item in toc["sections"] if item.get("id") == anchor["sectionId"]),
+        None,
+    )
     if entry is None:
         raise ManagerError("typed reference anchor section does not exist")
     expected = f"data/sections/{anchor['sectionId']}.json"
@@ -157,12 +198,16 @@ def validate_anchor(project_root: Path, reference: dict[str, Any], target: Path)
     base.assert_plain_path(section_path, "file")
     section = base.load_object(section_path, "referenced section")
     if section.get("id") != anchor["sectionId"] or base.toc_entry(section) != entry:
-        raise ManagerError("typed reference anchor section does not match table of contents")
+        raise ManagerError(
+            "typed reference anchor section does not match table of contents"
+        )
     if not any(item.get("id") == anchor["itemId"] for item in iter_items(section)):
         raise ManagerError("typed reference anchor item does not exist")
 
 
-def validate_typed_paths(package: Path, metadata: dict[str, Any], summaries: list[dict[str, Any]]) -> None:
+def validate_typed_paths(
+    package: Path, metadata: dict[str, Any], summaries: list[dict[str, Any]]
+) -> None:
     project_root = package_project_root(package)
     references: list[dict[str, Any]] = list(metadata["provenance"]["sourceRefs"])
     references.extend(relation["target"] for relation in metadata["relations"])
@@ -174,7 +219,9 @@ def validate_typed_paths(package: Path, metadata: dict[str, Any], summaries: lis
         try:
             target.resolve(strict=False).relative_to(project_root)
         except ValueError as error:
-            raise ManagerError(f"typed reference escapes project root: {relative}") from error
+            raise ManagerError(
+                f"typed reference escapes project root: {relative}"
+            ) from error
         if not target.exists():
             raise ManagerError(f"typed reference does not exist: {relative}")
         if "anchor" in reference:
@@ -189,17 +236,27 @@ def validate_profile(metadata: dict[str, Any], summaries: list[dict[str, Any]]) 
     positions = [ids.index(section_id) for section_id in required if section_id in ids]
     if len(positions) != len(required) or positions != sorted(positions):
         raise ManagerError("required sections must exist exactly once in profile order")
-    allowed = set(required) | {entry["id"] for entry in profile().get("optionalSections", [])}
+    allowed = set(required) | {
+        entry["id"] for entry in profile().get("optionalSections", [])
+    }
     unknown = [section_id for section_id in ids if section_id not in allowed]
     if unknown:
-        raise ManagerError(f"sections are not declared by the Work Unit profile: {', '.join(unknown)}")
-    hierarchy_ids = [item_id for summary in summaries for item_id in summary["hierarchyIds"]]
+        raise ManagerError(
+            f"sections are not declared by the Work Unit profile: {', '.join(unknown)}"
+        )
+    hierarchy_ids = [
+        item_id for summary in summaries for item_id in summary["hierarchyIds"]
+    ]
     if len(hierarchy_ids) != len(set(hierarchy_ids)):
-        raise ManagerError("section and subsection ids must be unique across the Work Unit")
+        raise ManagerError(
+            "section and subsection ids must be unique across the Work Unit"
+        )
     blockers = base.unresolved_blockers(summaries)
     status = metadata["lifecycle"]["status"]
     if status == "blocked" and not blockers:
-        raise ManagerError("blocked Work Unit requires an unresolved blocking open item")
+        raise ManagerError(
+            "blocked Work Unit requires an unresolved blocking open item"
+        )
     if status != "ready":
         return
     readiness = metadata["readiness"]
@@ -212,14 +269,22 @@ def validate_profile(metadata: dict[str, Any], summaries: list[dict[str, Any]]) 
     )
     failed = [key for key in keys if not readiness[key]]
     if failed:
-        raise ManagerError(f"ready Work Unit has failed readiness flags: {', '.join(failed)}")
+        raise ManagerError(
+            f"ready Work Unit has failed readiness flags: {', '.join(failed)}"
+        )
     if readiness["reviewedAt"] is None:
         raise ManagerError("ready Work Unit requires readiness.reviewedAt")
     if blockers:
-        raise ManagerError(f"ready Work Unit has unresolved blocking open items: {', '.join(blockers)}")
+        raise ManagerError(
+            f"ready Work Unit has unresolved blocking open items: {', '.join(blockers)}"
+        )
     by_id = {summary["id"]: summary for summary in summaries}
     for rule in profile()["requiredSections"]:
-        missing = [kind for kind in rule.get("requiredKinds", []) if kind not in by_id[rule["id"]]["kinds"]]
+        missing = [
+            kind
+            for kind in rule.get("requiredKinds", [])
+            if kind not in by_id[rule["id"]]["kinds"]
+        ]
         if missing:
             raise ManagerError(
                 f"ready Work Unit section {rule['id']} is missing required content kinds: {', '.join(missing)}"
@@ -243,9 +308,15 @@ def require_evidence(package: Path, item: dict[str, Any], label: str) -> None:
     evidence = item.get("attributes", {}).get("evidence", [])
     if not evidence:
         raise ManagerError(f"review transition requires {label} evidence")
-    missing = [reference for reference in evidence if reference not in registered_blocks(package)]
+    missing = [
+        reference
+        for reference in evidence
+        if reference not in registered_blocks(package)
+    ]
     if missing:
-        raise ManagerError(f"review transition references unregistered evidence: {', '.join(missing)}")
+        raise ManagerError(
+            f"review transition references unregistered evidence: {', '.join(missing)}"
+        )
 
 
 def validate_ready_semantics(package: Path) -> None:
@@ -253,8 +324,14 @@ def validate_ready_semantics(package: Path) -> None:
     if context is None or not isinstance(context.get("content"), dict):
         raise ManagerError("ready Work Unit requires an execution context object")
     required = {
-        "goalId", "objective", "execInvocation", "executionAgent", "repository",
-        "baseRef", "branch", "worktreePath",
+        "goalId",
+        "objective",
+        "execInvocation",
+        "executionAgent",
+        "repository",
+        "baseRef",
+        "branch",
+        "worktreePath",
     }
     missing = sorted(required - set(context["content"]))
     if missing:
@@ -264,11 +341,15 @@ def validate_ready_semantics(package: Path) -> None:
         raise ManagerError(f"execution context branch must equal {expected_branch}")
     invocation = context["content"]["execInvocation"]
     if not isinstance(invocation, str) or not invocation.strip():
-        raise ManagerError("execution context execInvocation must be a non-empty string")
+        raise ManagerError(
+            "execution context execInvocation must be a non-empty string"
+        )
     try:
         invocation_parts = shlex.split(invocation)
     except ValueError as error:
-        raise ManagerError(f"execution context execInvocation is not valid shell syntax: {error}") from error
+        raise ManagerError(
+            f"execution context execInvocation is not valid shell syntax: {error}"
+        ) from error
     if invocation_parts[:1] == ["codex"] and "exec" in invocation_parts:
         exec_index = invocation_parts.index("exec")
         approval_options = {
@@ -283,16 +364,23 @@ def validate_ready_semantics(package: Path) -> None:
     basis = find_kind(package, "intake-basis-ref")
     references = [] if basis is None else basis.get("sourceRefs", [])
     valid = [
-        reference for reference in references
+        reference
+        for reference in references
         if reference.get("artifactType") == "intake"
         and reference.get("anchor", {}).get("sectionId") == "work-unit-basis"
     ]
     if not valid:
-        raise ManagerError("ready Work Unit requires an anchored Intake work-unit-basis reference")
+        raise ManagerError(
+            "ready Work Unit requires an anchored Intake work-unit-basis reference"
+        )
     project_root = package_project_root(package)
     for reference in valid:
-        target = project_root / base.safe_relative_path(reference["path"], "Intake basis path")
-        source_metadata = base.load_object(target / "data" / "metadata.json", "Intake metadata")
+        target = project_root / base.safe_relative_path(
+            reference["path"], "Intake basis path"
+        )
+        source_metadata = base.load_object(
+            target / "data" / "metadata.json", "Intake metadata"
+        )
         if source_metadata.get("lifecycle", {}).get("status") != "ready":
             raise ManagerError("ready Work Unit basis must reference a ready Intake")
 
@@ -300,8 +388,13 @@ def validate_ready_semantics(package: Path) -> None:
 def validate_review_semantics(package: Path) -> None:
     execution = find_kind(package, "execution-result")
     attributes = {} if execution is None else execution.get("attributes", {})
-    if attributes.get("status") != "complete" or attributes.get("verificationResult") != "pass":
-        raise ManagerError("review transition requires passing execution and verification results")
+    if (
+        attributes.get("status") != "complete"
+        or attributes.get("verificationResult") != "pass"
+    ):
+        raise ManagerError(
+            "review transition requires passing execution and verification results"
+        )
     quality = find_kind(package, "quality-check")
     if quality is None or quality.get("attributes", {}).get("status") != "pass":
         raise ManagerError("review transition requires passing quality checks")
@@ -309,17 +402,26 @@ def validate_review_semantics(package: Path) -> None:
     ai_review = find_kind(package, "ai-review-result")
     ai = {} if ai_review is None else ai_review.get("attributes", {})
     if ai.get("result") != "pass" or ai.get("checklistResult") != "pass":
-        raise ManagerError("review transition requires a passing AI review and checklist")
+        raise ManagerError(
+            "review transition requires a passing AI review and checklist"
+        )
     report = find_kind(package, "report-result")
-    if report is None or report.get("attributes", {}).get("verificationResult") != "pass":
-        raise ManagerError("review transition requires a passing report verification result")
+    if (
+        report is None
+        or report.get("attributes", {}).get("verificationResult") != "pass"
+    ):
+        raise ManagerError(
+            "review transition requires a passing report verification result"
+        )
     require_evidence(package, report, "report")
 
 
 base_validate_package = base.validate_package
 
 
-def validate_package(package_value: str | Path, *, full: bool = False) -> dict[str, Any]:
+def validate_package(
+    package_value: str | Path, *, full: bool = False
+) -> dict[str, Any]:
     result = base_validate_package(package_value, full=full)
     package = resolve_package(package_value)
     metadata = base.load_metadata(package)
@@ -376,11 +478,19 @@ def command_create(args: argparse.Namespace) -> None:
         (staging_package / base.SECTIONS_PATH).mkdir(parents=True)
         (staging_package / "blocks").mkdir()
         base.write_json_atomically(staging_package / base.METADATA_PATH, metadata)
-        base.write_json_atomically(staging_package / base.TITLE_PATH, {"title": args.title})
+        base.write_json_atomically(
+            staging_package / base.TITLE_PATH, {"title": args.title}
+        )
         for section in sections:
-            base.write_json_atomically(base.section_path(staging_package, section["id"]), section)
-        base.write_json_atomically(staging_package / base.TOC_PATH, base.new_toc(sections))
-        base.write_json_atomically(staging_package / base.BLOCK_INDEX_PATH, {"blocks": []})
+            base.write_json_atomically(
+                base.section_path(staging_package, section["id"]), section
+            )
+        base.write_json_atomically(
+            staging_package / base.TOC_PATH, base.new_toc(sections)
+        )
+        base.write_json_atomically(
+            staging_package / base.BLOCK_INDEX_PATH, {"blocks": []}
+        )
         validate_package(staging_package)
         os.rename(staging_package, package)
     finally:
@@ -401,27 +511,47 @@ def command_transition(args: argparse.Namespace) -> None:
     if args.status != "done" and args.human_review is not None:
         raise ManagerError("--human-review is only allowed for a transition to done")
     metadata["lifecycle"]["status"] = args.status
-    metadata["documentVersion"] = base.next_document_version(metadata["documentVersion"])
+    metadata["documentVersion"] = base.next_document_version(
+        metadata["documentVersion"]
+    )
     metadata["updatedAt"] = base.now()
     metadata["readiness"]["contractValid"] = True
     writes: dict[Path, Any] = {package / base.METADATA_PATH: metadata}
     if args.status == "done":
         section_path = base.section_path(package, "human-review")
         section = base.load_object(section_path, "human-review section")
-        result = next((item for item in iter_items(section) if item["kind"] == "human-review-result"), None)
+        result = next(
+            (
+                item
+                for item in iter_items(section)
+                if item["kind"] == "human-review-result"
+            ),
+            None,
+        )
         if result is None:
             raise ManagerError("done Work Unit requires a human-review-result")
         result.setdefault("attributes", {})["status"] = "approved"
         result["attributes"]["approvedAt"] = base.now()
         writes[section_path] = section
     base.validate_instance("metadata", metadata)
-    base.validate_profile(metadata, base.summarize_sections(package, base.load_toc(package)))
+    base.validate_profile(
+        metadata, base.summarize_sections(package, base.load_toc(package))
+    )
     if args.status == "ready":
         validate_ready_semantics(package)
     if args.status == "review":
         validate_review_semantics(package)
-    base.commit_transaction(package, json_writes=writes, full_validation=args.status in {"ready", "review", "done"})
-    print(json.dumps(validate_package(package, full=args.status in {"ready", "review", "done"}), ensure_ascii=False))
+    base.commit_transaction(
+        package,
+        json_writes=writes,
+        full_validation=args.status in {"ready", "review", "done"},
+    )
+    print(
+        json.dumps(
+            validate_package(package, full=args.status in {"ready", "review", "done"}),
+            ensure_ascii=False,
+        )
+    )
 
 
 # Install Work Unit-specific globals into the shared implementation.
@@ -436,7 +566,9 @@ base.validate_package = validate_package
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(description="Manage sectioned Agent Factory Work Unit packages")
+    root = argparse.ArgumentParser(
+        description="Manage sectioned Agent Factory Work Unit packages"
+    )
     commands = root.add_subparsers(dest="command", required=True)
     check = commands.add_parser("check-schemas")
     check.set_defaults(handler=base.command_check_schemas)
@@ -506,7 +638,9 @@ def parser() -> argparse.ArgumentParser:
     validate.set_defaults(handler=base.command_validate)
     transition = commands.add_parser("transition")
     transition.add_argument("package")
-    transition.add_argument("status", choices=["backlog", "ready", "working", "review", "done", "blocked"])
+    transition.add_argument(
+        "status", choices=["backlog", "ready", "working", "review", "done", "blocked"]
+    )
     transition.add_argument("--human-review", choices=["approved"])
     transition.set_defaults(handler=command_transition)
     block_put = commands.add_parser("block-put")

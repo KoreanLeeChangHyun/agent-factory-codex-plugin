@@ -10,12 +10,18 @@ from typing import Any
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_ROOT.parent
-COMMON_MANAGER = SKILL_ROOT.parent / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
-COMMON_SCHEMA_ROOT = SKILL_ROOT.parent / "lifecycle" / "assets" / "schema" / "sectioned-document"
+COMMON_MANAGER = (
+    SKILL_ROOT.parent / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
+)
+COMMON_SCHEMA_ROOT = (
+    SKILL_ROOT.parent / "lifecycle" / "assets" / "schema" / "sectioned-document"
+)
 
 
 def load_base_manager() -> Any:
-    spec = importlib.util.spec_from_file_location("agent_factory_sectioned_document", COMMON_MANAGER)
+    spec = importlib.util.spec_from_file_location(
+        "agent_factory_sectioned_document", COMMON_MANAGER
+    )
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load sectioned document manager: {COMMON_MANAGER}")
     module = importlib.util.module_from_spec(spec)

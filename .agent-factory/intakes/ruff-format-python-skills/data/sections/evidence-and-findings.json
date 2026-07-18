@@ -1,0 +1,75 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "ruff format --check skills; ruff check skills; python3 -m pytest -q skills",
+        "method": "read-only command execution",
+        "findings": [
+          "ruff format --check skills는 추적 중인 Python 파일 10개를 재포맷 대상으로 보고했다.",
+          "ruff check skills는 통과했다.",
+          "전체 회귀 테스트는 76 passed, 37 subtests passed로 통과했다."
+        ],
+        "interpretations": [
+          "확인된 변경 범위는 기본 Ruff 포맷 적용으로 한정할 수 있다."
+        ],
+        "limitations": [
+          "저장소에 pyproject.toml 또는 ruff.toml로 선언된 포맷 정책은 없다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "이번 소규모 포맷 수정을 어떤 실행 경로로 진행할까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "현재 작업 트리에서 직접 수정하고 이번 작업에 한해 전체 Work Unit/worktree 절차를 생략한다."
+          },
+          {
+            "id": "B",
+            "decision": "Human이 지정한 절대 worktree 경로로 정식 Work Unit 실행을 진행한다."
+          },
+          {
+            "id": "C",
+            "decision": "수정을 중단하고 테스트 결과만 유지한다."
+          }
+        ],
+        "recommendation": "A",
+        "rationale": "변경이 결정론적 포맷 전용이고 회귀 검증이 가능해 현재 작업 트리에서 수행하는 경로가 비용과 복잡도가 가장 낮다.",
+        "answer": "A",
+        "state": "answered"
+      }
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "ruff format --check skills; ruff check skills; Python AST equivalence check; Intake and Work Unit schema checks; python3 -m pytest -q skills",
+        "method": "post-change verification",
+        "findings": [
+          "기본 Ruff formatter가 Python 파일 10개를 정규화했다.",
+          "ruff format --check skills는 10 files already formatted로 통과했다.",
+          "ruff check skills는 통과했다.",
+          "변경 전후 Python AST는 10개 파일 모두 동일했다.",
+          "Intake 2.0.0 및 Work Unit 4.0.0 schema 검사가 통과했다.",
+          "전체 회귀 테스트는 76 passed, 37 subtests passed로 통과했다."
+        ],
+        "interpretations": [
+          "요청된 포맷 수정은 실행 의미를 바꾸지 않고 완료되었다."
+        ],
+        "limitations": [
+          "Human 최종 검토와 커밋 여부 결정은 남아 있다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

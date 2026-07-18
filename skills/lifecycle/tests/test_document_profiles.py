@@ -8,10 +8,12 @@ from jsonschema import Draft202012Validator
 
 
 SKILLS = Path(__file__).resolve().parents[2]
-SCHEMA_PATH = SKILLS / "lifecycle" / "assets" / "schema" / "document-profile.schema.json"
-PROFILE_PATHS = sorted((SKILLS / "specification" / "assets" / "profiles").glob("*.profile.json")) + [
-    SKILLS / "work-unit-planner" / "assets" / "profiles" / "work-unit.profile.json"
-]
+SCHEMA_PATH = (
+    SKILLS / "lifecycle" / "assets" / "schema" / "document-profile.schema.json"
+)
+PROFILE_PATHS = sorted(
+    (SKILLS / "specification" / "assets" / "profiles").glob("*.profile.json")
+) + [SKILLS / "work-unit-planner" / "assets" / "profiles" / "work-unit.profile.json"]
 
 
 class DocumentProfileTests(unittest.TestCase):
@@ -28,7 +30,11 @@ class DocumentProfileTests(unittest.TestCase):
                 self.assertEqual(profile["id"], path.name.removesuffix(".profile.json"))
                 ids = [
                     section["id"]
-                    for field in ("commonRequiredSections", "profileRequiredSections", "optionalSections")
+                    for field in (
+                        "commonRequiredSections",
+                        "profileRequiredSections",
+                        "optionalSections",
+                    )
                     for section in profile[field]
                 ]
                 self.assertEqual(len(ids), len(set(ids)))
@@ -40,22 +46,38 @@ class DocumentProfileTests(unittest.TestCase):
         self.assertEqual(
             [section["id"] for section in profile["profileRequiredSections"]],
             [
-                "basis", "work-definition", "plan", "execution-context",
-                "acceptance-and-verification", "execution", "ai-review",
-                "human-review", "report",
+                "basis",
+                "work-definition",
+                "plan",
+                "execution-context",
+                "acceptance-and-verification",
+                "execution",
+                "ai-review",
+                "human-review",
+                "report",
             ],
         )
-        planner = (SKILLS / "work-unit-planner" / "SKILL.md").read_text(encoding="utf-8")
-        common = (SKILLS / "lifecycle" / "references" / "common-document-contract.md").read_text(encoding="utf-8")
+        planner = (SKILLS / "work-unit-planner" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        common = (
+            SKILLS / "lifecycle" / "references" / "common-document-contract.md"
+        ).read_text(encoding="utf-8")
         for document in (planner, common):
             self.assertIn("anchor", document)
             self.assertIn("package root", document)
 
     def test_sectioned_document_manager_is_owned_by_lifecycle(self) -> None:
-        common_manager = SKILLS / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
-        common_schemas = SKILLS / "lifecycle" / "assets" / "schema" / "sectioned-document"
+        common_manager = (
+            SKILLS / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
+        )
+        common_schemas = (
+            SKILLS / "lifecycle" / "assets" / "schema" / "sectioned-document"
+        )
         intake_manager = SKILLS / "intake" / "scripts" / "intake.py"
-        work_unit_manager = SKILLS / "work-unit-planner" / "assets" / "scripts" / "work_unit.py"
+        work_unit_manager = (
+            SKILLS / "work-unit-planner" / "assets" / "scripts" / "work_unit.py"
+        )
 
         self.assertTrue(common_manager.is_file())
         self.assertEqual(
@@ -72,15 +94,23 @@ class DocumentProfileTests(unittest.TestCase):
             self.assertIn("sectioned_document.py", source)
             self.assertIn("configure_contract", source)
             self.assertNotIn("INTAKE_MANAGER", source)
-            artifact_schema_root = manager.parents[1] / "assets" / "schema" if manager == intake_manager else manager.parents[1] / "schema"
+            artifact_schema_root = (
+                manager.parents[1] / "assets" / "schema"
+                if manager == intake_manager
+                else manager.parents[1] / "schema"
+            )
             self.assertEqual(
                 {path.name for path in artifact_schema_root.glob("*.schema.json")},
                 {"metadata.schema.json"},
             )
 
     def test_project_core_policy_is_single_source_and_profile_driven(self) -> None:
-        specification = (SKILLS / "specification" / "SKILL.md").read_text(encoding="utf-8")
-        lifecycle = (SKILLS / "lifecycle" / "references" / "lifecycle.md").read_text(encoding="utf-8")
+        specification = (SKILLS / "specification" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        lifecycle = (SKILLS / "lifecycle" / "references" / "lifecycle.md").read_text(
+            encoding="utf-8"
+        )
         combined = specification + lifecycle
         for obsolete in (
             "Project Core is represented as the fixed top section",
@@ -94,7 +124,9 @@ class DocumentProfileTests(unittest.TestCase):
         self.assertIn("without copying", combined)
         self.assertIn("owns the exact common and", specification)
 
-    def test_specification_profiles_share_only_the_accepted_common_sections(self) -> None:
+    def test_specification_profiles_share_only_the_accepted_common_sections(
+        self,
+    ) -> None:
         expected = [
             "purpose-and-scope",
             "basis-and-relations",
@@ -106,14 +138,20 @@ class DocumentProfileTests(unittest.TestCase):
                 profile = json.loads(path.read_text(encoding="utf-8"))
                 self.assertEqual(profile["artifactType"], "specification")
                 self.assertEqual(profile["implementationStatus"], "registered")
-                self.assertEqual(profile["storageContract"], "sectioned-document-package-v2")
+                self.assertEqual(
+                    profile["storageContract"], "sectioned-document-package-v2"
+                )
                 self.assertEqual(
                     [section["id"] for section in profile["commonRequiredSections"]],
                     expected,
                 )
 
-    def test_traceability_starts_at_ready_intake_and_specification_is_conditional(self) -> None:
-        lifecycle = (SKILLS / "lifecycle" / "references" / "lifecycle.md").read_text(encoding="utf-8")
+    def test_traceability_starts_at_ready_intake_and_specification_is_conditional(
+        self,
+    ) -> None:
+        lifecycle = (SKILLS / "lifecycle" / "references" / "lifecycle.md").read_text(
+            encoding="utf-8"
+        )
         fact_only = (SKILLS / "fact-only" / "SKILL.md").read_text(encoding="utf-8")
         self.assertNotIn(
             "traceable from Project Core to Design Report to Work Unit",
@@ -121,11 +159,18 @@ class DocumentProfileTests(unittest.TestCase):
         )
         self.assertIn("traceable from the ready Intake", lifecycle)
         self.assertIn("not applicable", lifecycle)
-        for artifact in ("canonical Intake", "Project Core", "Specification", "Work Unit"):
+        for artifact in (
+            "canonical Intake",
+            "Project Core",
+            "Specification",
+            "Work Unit",
+        ):
             self.assertIn(artifact, fact_only)
 
     def test_specification_supporting_sources_use_registered_blocks(self) -> None:
-        specification = (SKILLS / "specification" / "SKILL.md").read_text(encoding="utf-8")
+        specification = (SKILLS / "specification" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
         diagram = (SKILLS / "diagram" / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("`blocks/reference/**`", specification)
         self.assertIn("`blocks/diagram/**`", specification)

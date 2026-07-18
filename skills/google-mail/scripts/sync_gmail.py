@@ -57,10 +57,14 @@ def load_credentials(client_path, token_path):
 
 def list_message_ids(service, query, max_results):
     ids = []
-    request = service.users().messages().list(
-        userId="me",
-        q=query,
-        maxResults=min(max_results, 500),
+    request = (
+        service.users()
+        .messages()
+        .list(
+            userId="me",
+            q=query,
+            maxResults=min(max_results, 500),
+        )
     )
     while request is not None and len(ids) < max_results:
         response = request.execute()
@@ -130,18 +134,31 @@ def load_index(path):
 
 def write_index(path, entries):
     path.parent.mkdir(parents=True, exist_ok=True)
-    rows = [json.dumps(entries[key], ensure_ascii=False, sort_keys=True) for key in sorted(entries)]
+    rows = [
+        json.dumps(entries[key], ensure_ascii=False, sort_keys=True)
+        for key in sorted(entries)
+    ]
     path.write_text("\n".join(rows) + ("\n" if rows else ""))
 
 
 def sync_message(service, message_id, destination):
-    metadata = service.users().messages().get(
-        userId="me",
-        id=message_id,
-        format="metadata",
-        metadataHeaders=["From", "To", "Cc", "Subject", "Date", "Message-ID"],
-    ).execute()
-    raw = service.users().messages().get(userId="me", id=message_id, format="raw").execute()
+    metadata = (
+        service.users()
+        .messages()
+        .get(
+            userId="me",
+            id=message_id,
+            format="metadata",
+            metadataHeaders=["From", "To", "Cc", "Subject", "Date", "Message-ID"],
+        )
+        .execute()
+    )
+    raw = (
+        service.users()
+        .messages()
+        .get(userId="me", id=message_id, format="raw")
+        .execute()
+    )
     raw_bytes = b64url_decode(raw["raw"])
 
     message_dir = destination / "messages"
@@ -172,18 +189,28 @@ def sync_message(service, message_id, destination):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Sync Gmail messages and attachments to local files.")
-    parser.add_argument("--query", default="", help="Gmail search query, for example: project-name newer:2026/04/01")
+    parser = argparse.ArgumentParser(
+        description="Sync Gmail messages and attachments to local files."
+    )
+    parser.add_argument(
+        "--query",
+        default="",
+        help="Gmail search query, for example: project-name newer:2026/04/01",
+    )
     parser.add_argument("--max-results", type=int, default=100)
     parser.add_argument("--destination", type=Path, default=DEFAULT_DESTINATION)
     parser.add_argument("--client", type=Path, default=DEFAULT_CLIENT)
     parser.add_argument("--token", type=Path, default=DEFAULT_TOKEN)
-    parser.add_argument("--allow-all", action="store_true", help="Allow an empty query.")
+    parser.add_argument(
+        "--allow-all", action="store_true", help="Allow an empty query."
+    )
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
     if not args.query and not args.allow_all:
-        raise SystemExit("Refusing broad mailbox import without --query or --allow-all.")
+        raise SystemExit(
+            "Refusing broad mailbox import without --query or --allow-all."
+        )
     if args.max_results < 1:
         raise SystemExit("--max-results must be positive.")
     if not args.client.exists():
@@ -212,17 +239,23 @@ def main():
         attachment_bytes += sum(item["size"] for item in entry["attachments"])
 
     write_index(index_path, entries)
-    print(json.dumps({
-        "destination": str(args.destination),
-        "query": args.query,
-        "matched": len(message_ids),
-        "imported": imported,
-        "skipped_existing": skipped,
-        "attachments_imported": attachment_count,
-        "attachment_bytes": attachment_bytes,
-        "index": str(index_path),
-        "token": str(args.token),
-    }, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                "destination": str(args.destination),
+                "query": args.query,
+                "matched": len(message_ids),
+                "imported": imported,
+                "skipped_existing": skipped,
+                "attachments_imported": attachment_count,
+                "attachment_bytes": attachment_bytes,
+                "index": str(index_path),
+                "token": str(args.token),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
