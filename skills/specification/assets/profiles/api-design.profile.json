@@ -20,5 +20,5 @@
   "optionalSections": [],
   "blockGuidance": "Allow connected OpenAPI JSON or YAML blocks and record their relation to prose summaries.",
   "storageContract": "sectioned-document-package-v2",
-  "implementationStatus": "registered"
+  "implementationStatus": "implemented"
 }

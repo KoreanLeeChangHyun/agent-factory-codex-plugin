@@ -41,7 +41,7 @@ PACKAGE_COLLECTION = "documents"
 LOCK_COLLECTION = "documents"
 LIFECYCLE_PHASE = "document"
 INITIAL_STATUS = "draft"
-INITIAL_READINESS: dict[str, Any] = {}
+INITIAL_READINESS: dict[str, Any] | None = {}
 GENERATED_BY = "Agent Factory sectioned-document manager"
 MUTATION_POLICY: dict[str, Any] | None = None
 SCHEMA_PATHS = {
@@ -203,7 +203,7 @@ def configure_contract(
     lock_collection: str,
     lifecycle_phase: str,
     initial_status: str,
-    initial_readiness: dict[str, Any],
+    initial_readiness: dict[str, Any] | None,
     generated_by: str,
     mutation_policy: dict[str, Any] | None = None,
 ) -> None:
@@ -762,9 +762,15 @@ def updated_metadata(package: Path) -> dict[str, Any]:
     metadata["documentVersion"] = next_document_version(metadata["documentVersion"])
     metadata["updatedAt"] = now()
     apply_mutation_lifecycle(metadata)
-    metadata["readiness"]["contractValid"] = True
+    mark_contract_valid(metadata)
     validate_instance("metadata", metadata)
     return metadata
+
+
+def mark_contract_valid(metadata: dict[str, Any]) -> None:
+    readiness = metadata.get("readiness")
+    if isinstance(readiness, dict) and "contractValid" in readiness:
+        readiness["contractValid"] = True
 
 
 def apply_mutation_lifecycle(metadata: dict[str, Any]) -> None:
@@ -1326,7 +1332,7 @@ def command_create(args: argparse.Namespace) -> None:
         {"id": entry["id"], "title": entry["title"], "content": [], "subsections": []}
         for entry in current_profile["requiredSections"]
     ]
-    metadata = {
+    metadata: dict[str, Any] = {
         "schemaVersion": current_profile["version"],
         "documentVersion": "1.0.0",
         "id": args.id,
@@ -1343,8 +1349,9 @@ def command_create(args: argparse.Namespace) -> None:
             "sourceRefs": [],
         },
         "relations": [],
-        "readiness": copy.deepcopy(INITIAL_READINESS),
     }
+    if INITIAL_READINESS is not None:
+        metadata["readiness"] = copy.deepcopy(INITIAL_READINESS)
     try:
         (staging_package / SECTIONS_PATH).mkdir(parents=True)
         (staging_package / "blocks").mkdir()
@@ -1412,7 +1419,7 @@ def command_metadata_set(args: argparse.Namespace) -> None:
     candidate["documentVersion"] = next_document_version(candidate["documentVersion"])
     candidate["updatedAt"] = now()
     apply_mutation_lifecycle(candidate)
-    candidate["readiness"]["contractValid"] = True
+    mark_contract_valid(candidate)
     validate_instance("metadata", candidate)
     summaries = summarize_sections(package, load_toc(package))
     validate_profile(candidate, summaries)
@@ -1656,7 +1663,7 @@ def command_transition(args: argparse.Namespace) -> None:
         invalidate_semantic_readiness(metadata)
     metadata["documentVersion"] = next_document_version(metadata["documentVersion"])
     metadata["updatedAt"] = now()
-    metadata["readiness"]["contractValid"] = True
+    mark_contract_valid(metadata)
     summaries = summarize_sections(package, load_toc(package))
     validate_profile(metadata, summaries)
     validate_instance("metadata", metadata)

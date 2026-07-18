@@ -20,5 +20,5 @@
   "optionalSections": [],
   "blockGuidance": "Allow tables, traceability matrices, and related evidence blocks.",
   "storageContract": "sectioned-document-package-v2",
-  "implementationStatus": "registered"
+  "implementationStatus": "implemented"
 }

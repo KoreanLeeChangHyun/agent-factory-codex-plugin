@@ -14,5 +14,5 @@
   "optionalSections": [],
   "blockGuidance": "Keep Project Core short; use blocks only for directly governed reference evidence.",
   "storageContract": "sectioned-document-package-v2",
-  "implementationStatus": "registered"
+  "implementationStatus": "implemented"
 }
