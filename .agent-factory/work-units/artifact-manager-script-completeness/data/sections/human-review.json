@@ -1,0 +1,37 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "세 manager CLI와 schema ownership 확인",
+          "Specification five-profile creation 확인",
+          "draft-only lifecycle boundary 확인",
+          "unknown/legacy rejection tests 확인",
+          "verification evidence 확인"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "변경 diff와 등록된 manager test evidence를 검토하고 승인 또는 rework를 결정한다. merge와 PR promotion은 별도 Human 결정이다."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "summary": "Pending Human Review"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

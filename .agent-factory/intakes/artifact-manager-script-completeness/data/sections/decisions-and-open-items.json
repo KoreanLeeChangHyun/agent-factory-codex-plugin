@@ -1,0 +1,41 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted-from-human-request-and-repository-contract",
+        "decision": "세 artifact manager를 검토하고 Specification 구현 공백과 shared engine readiness 가정을 보완한다."
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "status": "evidence-bounded",
+        "decision": "Specification lifecycle은 draft-only로 구현하고 새로운 승인 상태는 도입하지 않는다."
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risk": "dynamic profile selection이 cache 또는 package 간 profile leakage를 일으킬 수 있다.",
+        "mitigation": "각 command에서 metadata/profile을 명시적으로 선택하고 multi-profile regression tests를 수행한다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "blocking": false,
+        "items": [
+          "Specification 승인 lifecycle과 legacy migration은 후속 Human 결정 및 별도 Work Unit 대상이다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,52 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Intake·Work Unit manager를 회귀 검토하고 Specification manager/schema/tests와 common engine optional-readiness 지원을 구현한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/lifecycle/assets/scripts/sectioned_document.py",
+          "skills/intake/",
+          "skills/specification/",
+          "skills/work-unit-planner/",
+          "관련 tests and references"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "legacy Specification migration",
+          "Design Report renderer",
+          "새 Specification 승인 lifecycle",
+          "merge, PR promotion, deployment"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "outputs": [
+          "Specification metadata schema and manager",
+          "all-profile manager tests",
+          "shared engine optional-readiness hardening",
+          "Intake and Work Unit regression evidence",
+          "updated implementation contracts"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,63 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Specification manager는 lifecycle-owned engine과 shared structural schemas를 사용한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "create 시 registered profile id를 명시하고 metadata documentClass/documentProfile을 profile과 일치시킨다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "validate는 package metadata에서 profile을 선택하고 unknown id/version mismatch를 profile-unresolved 오류로 거부한다."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Specification lifecycle은 repository evidence가 있는 draft만 지원하며 새 승인 상태를 추가하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-005",
+      "kind": "requirement",
+      "content": {
+        "requirement": "shared engine은 readiness가 없는 metadata mutation을 지원한다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "모든 Specification profile의 create/show/mutation/validate가 테스트된다."
+      }
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "unknown profile, version mismatch, documentClass mismatch, incompatible legacy package가 거부된다."
+      }
+    },
+    {
+      "id": "AC-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Intake, Specification, Work Unit manager 및 lifecycle test suites가 모두 통과한다."
+      }
+    }
+  ],
+  "subsections": []
+}

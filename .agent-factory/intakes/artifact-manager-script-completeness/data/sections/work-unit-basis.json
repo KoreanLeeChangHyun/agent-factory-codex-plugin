@@ -1,0 +1,33 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "reason": "Specification manager와 metadata schema가 없어 registered profile이 physical conformance를 강제하지 못한다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Intake·Work Unit manager를 회귀 검토하고 Specification manager/schema/tests 및 shared engine optional-readiness 지원을 구현한다.",
+        "expectedOutputs": [
+          "Specification metadata schema and manager adapter",
+          "Specification manager tests",
+          "shared engine hardening",
+          "updated profiles and skill contracts",
+          "all manager regression verification"
+        ],
+        "executionOrder": 1
+      }
+    }
+  ],
+  "subsections": []
+}

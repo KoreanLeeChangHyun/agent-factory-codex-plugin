@@ -1,0 +1,33 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Work Unit, Intake, Specification 스크립트가 제대로 작성되었는지 검토하고 보완한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "세 artifact가 lifecycle-owned common sectioned-document engine을 통해 canonical package를 생성·수정·검증할 수 있다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "Intake와 Work Unit 회귀 테스트가 유지된다.",
+          "Specification manager가 모든 등록 profile을 결정적으로 생성·검증한다.",
+          "Specification metadata가 common contract의 documentClass와 documentProfile을 강제한다.",
+          "unknown profile은 완전 유효로 판정되지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

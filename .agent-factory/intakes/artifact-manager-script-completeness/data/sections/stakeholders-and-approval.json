@@ -1,0 +1,31 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholders": [
+          "Agent Factory 사용자",
+          "artifact manager 유지보수자"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "AI는 구현·검증·review 자료 준비까지 수행하고 승인·merge·promotion은 Human이 결정한다."
+      }
+    }
+  ],
+  "subsections": []
+}

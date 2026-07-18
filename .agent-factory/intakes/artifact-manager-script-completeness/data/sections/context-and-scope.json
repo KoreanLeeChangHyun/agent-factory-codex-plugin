@@ -1,0 +1,39 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "baseline": "Intake와 Work Unit manager는 구현·테스트되어 있고 Specification은 profile registry만 존재한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/lifecycle/assets/scripts/sectioned_document.py",
+          "skills/intake/",
+          "skills/work-unit-planner/",
+          "skills/specification/",
+          "관련 lifecycle tests and references"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "legacy Specification 자동 migration",
+          "Design Report HTML renderer",
+          "새 Specification lifecycle 승인 상태 도입",
+          "merge, PR promotion, deployment"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

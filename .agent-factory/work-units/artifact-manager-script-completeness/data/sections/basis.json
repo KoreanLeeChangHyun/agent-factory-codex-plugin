@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "Artifact manager script completeness basis"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "artifact-manager-script-completeness",
+          "path": ".agent-factory/intakes/artifact-manager-script-completeness",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

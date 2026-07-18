@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/reference/verification.md",
+      "mediaType": "text/markdown",
+      "description": "Manager implementation and regression verification evidence",
+      "sha256": "2e0f2abbddfff851c0d86f1b50eabb15418192852cf0f8682976e1bddf98766f",
+      "sizeBytes": 3187
+    }
+  ]
+}

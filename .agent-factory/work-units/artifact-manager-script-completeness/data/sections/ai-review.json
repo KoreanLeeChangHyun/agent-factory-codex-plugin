@@ -1,0 +1,32 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "scope preserved",
+          "no invented Specification approval lifecycle",
+          "dynamic profile cache isolation",
+          "metadata/profile consistency",
+          "legacy incompatibility explicit",
+          "all regression tests pass"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "Scope, lifecycle boundary, profile selection, metadata consistency, legacy rejection, and regression evidence reviewed; no blocking findings remain."
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass"
+      }
+    }
+  ],
+  "subsections": []
+}

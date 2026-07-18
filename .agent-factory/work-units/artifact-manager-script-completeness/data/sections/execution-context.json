@@ -1,0 +1,21 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "artifact-manager-script-completeness",
+        "objective": "Intake, Work Unit, Specification manager scripts를 검토하고 구현 공백을 보완한다.",
+        "execInvocation": "/goal artifact-manager-script-completeness",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/artifact-manager-script-completeness",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/artifact-manager-script-completeness"
+      }
+    }
+  ],
+  "subsections": []
+}

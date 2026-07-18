@@ -1,0 +1,74 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Specification manager가 모든 registered profile을 create, show, mutate, validate한다."
+      }
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "metadata documentClass/documentProfile과 profile registry가 결정적으로 일치한다."
+      }
+    },
+    {
+      "id": "AC-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "unknown profile, version/class mismatch, incompatible legacy package가 거부된다."
+      }
+    },
+    {
+      "id": "AC-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Intake와 Work Unit manager regression tests가 유지된다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "scoped implementation complete",
+          "all manager tests pass",
+          "full package validation evidence registered",
+          "AI checklist complete",
+          "Human checklist and review method ready"
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Specification manager test suite",
+          "Intake manager suite",
+          "Work Unit manager suite",
+          "lifecycle profile and metadata suites",
+          "Python compilation and schema checks"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "summary": "Python compilation, all manager and lifecycle regression suites, schema checks, and diff whitespace validation passed."
+      },
+      "attributes": {
+        "status": "pass",
+        "evidence": [
+          "blocks/reference/verification.md"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

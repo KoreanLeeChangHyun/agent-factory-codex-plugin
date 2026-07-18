@@ -1,0 +1,34 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/lifecycle/assets/scripts/sectioned_document.py; skills/intake; skills/work-unit-planner; skills/specification; related tests and profiles",
+        "method": "repository inspection and baseline test execution",
+        "findings": [
+          "Intake adapter, metadata schema, profile, manager tests가 존재하고 baseline tests가 통과한다.",
+          "Work Unit adapter, metadata schema, profile, manager tests가 존재하고 baseline tests가 통과한다.",
+          "Specification에는 5개 registered profile만 있고 manager script, metadata schema, manager tests가 없다.",
+          "Specification skill은 manager/schema가 구현되기 전에는 physical conformance를 주장하지 말라고 명시한다.",
+          "common-document-contract는 Specification metadata에 documentClass와 documentProfile id/version을 요구한다.",
+          "shared engine의 mutation 경로는 metadata.readiness.contractValid를 직접 참조한다.",
+          "기존 Specification package는 legacy custom manifest이며 common sectioned package와 호환되지 않는다.",
+          "기존 Specification manifest에서 확인 가능한 lifecycle 상태는 draft뿐이다."
+        ],
+        "interpretations": [
+          "Intake와 Work Unit은 회귀 보호가 필요하지만 주요 구현 공백은 Specification manager다.",
+          "Specification은 근거가 있는 draft 상태만 지원하고 새 승인 lifecycle 상태를 발명하지 않아야 한다.",
+          "shared engine은 readiness 없는 Specification metadata도 지원하도록 일반화되어야 한다."
+        ],
+        "limitations": [
+          "legacy package migration과 Human 승인 lifecycle 상태는 이번 범위에서 결정되지 않았다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
