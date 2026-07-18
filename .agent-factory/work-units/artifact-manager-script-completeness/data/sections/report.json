@@ -6,7 +6,8 @@
       "id": "REPORT-STATUS",
       "kind": "report-result",
       "content": {
-        "summary": "Implementation and AI review completed. The isolated worktree is ready for Human review; commit, merge, and promotion were not performed."
+        "summary": "Specification manager 구현이 검증되었고 Human 승인에 따라 work-unit/artifact-manager-script-completeness가 main에 병합되었다.",
+        "mergeCommit": "8e7bceb"
       },
       "attributes": {
         "verificationResult": "pass",

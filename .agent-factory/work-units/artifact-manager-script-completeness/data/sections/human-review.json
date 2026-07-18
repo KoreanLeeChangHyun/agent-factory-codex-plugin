@@ -26,10 +26,11 @@
       "id": "HUMAN-REVIEW-STATUS",
       "kind": "human-review-result",
       "content": {
-        "summary": "Pending Human Review"
+        "summary": "Human이 Specification manager 변경의 main 병합을 승인했다."
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-18T16:31:58+00:00"
       }
     }
   ],
