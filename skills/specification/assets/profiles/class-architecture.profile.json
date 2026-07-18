@@ -20,5 +20,5 @@
   "optionalSections": [],
   "blockGuidance": "Allow UML class or sequence models and equivalent structured diagram blocks.",
   "storageContract": "sectioned-document-package-v2",
-  "implementationStatus": "registered"
+  "implementationStatus": "implemented"
 }

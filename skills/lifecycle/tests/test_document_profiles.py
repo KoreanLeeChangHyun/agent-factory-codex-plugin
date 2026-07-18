@@ -55,6 +55,7 @@ class DocumentProfileTests(unittest.TestCase):
         common_manager = SKILLS / "lifecycle" / "assets" / "scripts" / "sectioned_document.py"
         common_schemas = SKILLS / "lifecycle" / "assets" / "schema" / "sectioned-document"
         intake_manager = SKILLS / "intake" / "scripts" / "intake.py"
+        specification_manager = SKILLS / "specification" / "scripts" / "specification.py"
         work_unit_manager = SKILLS / "work-unit-planner" / "assets" / "scripts" / "work_unit.py"
 
         self.assertTrue(common_manager.is_file())
@@ -67,12 +68,17 @@ class DocumentProfileTests(unittest.TestCase):
                 "blocks.schema.json",
             },
         )
-        for manager in (intake_manager, work_unit_manager):
+        for manager in (intake_manager, specification_manager, work_unit_manager):
             source = manager.read_text(encoding="utf-8")
             self.assertIn("sectioned_document.py", source)
             self.assertIn("configure_contract", source)
             self.assertNotIn("INTAKE_MANAGER", source)
-            artifact_schema_root = manager.parents[1] / "assets" / "schema" if manager == intake_manager else manager.parents[1] / "schema"
+            if manager == intake_manager:
+                artifact_schema_root = manager.parents[1] / "assets" / "schema"
+            elif manager == specification_manager:
+                artifact_schema_root = manager.parents[1] / "assets" / "schema"
+            else:
+                artifact_schema_root = manager.parents[1] / "schema"
             self.assertEqual(
                 {path.name for path in artifact_schema_root.glob("*.schema.json")},
                 {"metadata.schema.json"},
@@ -105,7 +111,7 @@ class DocumentProfileTests(unittest.TestCase):
             with self.subTest(profile=path.name):
                 profile = json.loads(path.read_text(encoding="utf-8"))
                 self.assertEqual(profile["artifactType"], "specification")
-                self.assertEqual(profile["implementationStatus"], "registered")
+                self.assertEqual(profile["implementationStatus"], "implemented")
                 self.assertEqual(profile["storageContract"], "sectioned-document-package-v2")
                 self.assertEqual(
                     [section["id"] for section in profile["commonRequiredSections"]],

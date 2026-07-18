@@ -17,10 +17,12 @@ Design Document and Design Report work.
 
 Read `lifecycle/references/common-document-contract.md` and resolve one
 versioned profile from `assets/profiles/*.profile.json` before claiming a
-Specification package is structurally valid. These profiles are registered
-contracts; until a Specification manager and profile schemas enforce the
-sectioned physical package, report the implementation gap instead of treating
-the former custom manifest layout as conforming.
+Specification package is structurally valid. Use
+`scripts/specification.py` to create, mutate, and validate the common sectioned
+physical package. The manager resolves the profile declared in package
+metadata and rejects unknown or mismatched profiles as `profile-unresolved`.
+The former custom manifest layout remains nonconforming and has no implicit
+migration path.
 
 ## Rules
 
@@ -65,6 +67,14 @@ the former custom manifest layout as conforming.
   `data/table-of-contents.json`, `data/sections/`, `blocks/index.json`, and
   optional `blocks/**`. Do not create a new custom manifest package and call it
   common-contract compliant.
+- Run `python3 scripts/specification.py check-schemas` after changing the
+  Specification metadata schema or any registered profile. Create a package
+  with `create --profile <profile-id>`, then use the manager's title, metadata,
+  section, and block commands for mutations and run `validate` afterward.
+- Specification packages currently have the deterministic lifecycle state
+  `draft`. The manager intentionally exposes no transition command until an
+  approved Specification lifecycle and transition policy is added; do not
+  infer approval states from Intake or Work Unit lifecycles.
 - Store Design Document packages under
   `<project-root>/.agent-factory/specifications/<specification-id>/`.
 - Record Design Document source material under the target project's current

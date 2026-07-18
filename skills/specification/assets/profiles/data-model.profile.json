@@ -20,5 +20,5 @@
   "optionalSections": [],
   "blockGuidance": "Allow ERD, schema, and data dictionary blocks.",
   "storageContract": "sectioned-document-package-v2",
-  "implementationStatus": "registered"
+  "implementationStatus": "implemented"
 }

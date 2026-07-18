@@ -67,8 +67,8 @@ does not make them fully valid.
 
 The sectioned document package stores `data/metadata.json`, `data/title.json`,
 `data/table-of-contents.json`, `data/sections/<id>.json`, `blocks/index.json`,
-and optional `blocks/**`. Intake v2 and Work Unit v4 implement this physical
-contract.
+and optional `blocks/**`. Intake v2, the implemented Specification profiles,
+and Work Unit v4 implement this physical contract.
 
 The lifecycle-owned `assets/scripts/sectioned_document.py` implements the
 shared package I/O, table-of-contents, section, block, transaction, and
@@ -76,10 +76,11 @@ validation mechanics. Artifact managers configure that engine with their own
 metadata schema, profile, package root, lifecycle, readiness, and semantic
 validation rules.
 
-Specification profiles are registered contracts; a Specification manager and
-artifact-specific schemas must configure the same engine before a package is
-claimed as conforming. Work Unit v4 uses the common package directly and
-validates typed Intake basis references deterministically.
+The Specification manager configures the same engine with its metadata schema
+and the profile declared by each package. It rejects unknown profile ids,
+versions, and document-class mismatches as `profile-unresolved`; the former
+custom manifest layout remains nonconforming. Work Unit v4 uses the common
+package directly and validates typed Intake basis references deterministically.
 
 A typed reference contains `artifactType`, `id`, and a project-relative `path`.
 It may add `anchor: {sectionId, itemId}`. When an anchor is present, `path` must
