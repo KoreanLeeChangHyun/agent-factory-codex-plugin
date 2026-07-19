@@ -88,11 +88,13 @@ class SkillMetadataTests(unittest.TestCase):
                 "google-auth-oauthlib",
             },
             "intake": {"jsonschema>=4.18,<5"},
+            "specification": {"jsonschema>=4.18,<5"},
             "work-unit-planner": {"jsonschema>=4.18,<5"},
         }
         paths = {
             "google-mail": SKILLS / "google-mail" / "scripts" / "requirements.txt",
             "intake": SKILLS / "intake" / "scripts" / "requirements.txt",
+            "specification": SKILLS / "specification" / "scripts" / "requirements.txt",
             "work-unit-planner": SKILLS
             / "work-unit-planner"
             / "assets"
