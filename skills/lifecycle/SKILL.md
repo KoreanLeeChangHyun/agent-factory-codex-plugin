@@ -61,6 +61,12 @@ Use these lifecycle phases:
   approval, rework, merge, or PR promotion decision material.
 - Review is Human review after Execution.
 
+For Intake, Work Unit, and Specification packages, the lifecycle-owned common
+engine alone creates the physical skeleton and serializes canonical JSON. The
+three artifact scripts remain separate controllers for their distinct profile,
+semantic validation, readiness, and state-transition rules. LLM callers supply
+typed semantic data only and must not construct JSON input.
+
 Intake checks and updates relevant specification source when accepted
 requirements, feedback, or evidence changes it. Implementation and other scoped
 delivery artifact writing belongs to Work Unit Execution.
@@ -154,8 +160,6 @@ Use these routes:
     material, and Work Unit outputs.
   - `<project-root>/.agent-factory/deliverables/` for customer-facing software engineering deliverable
     documents.
-- Keep Agent Factory HOME runtime paths under `runtime/` separate from current
-  lifecycle records under `<project-root>/.agent-factory/`.
 - Do not create `INDEX.md` files as artifact source of truth.
 - When the Human submits `/goal <work-unit-id>` or otherwise provides only a
   Work Unit id as the Goal objective, resolve the id to

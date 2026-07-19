@@ -4,16 +4,11 @@
 from __future__ import annotations
 
 import argparse
-import fcntl
 import importlib.util
 import json
 import os
 import shlex
-import shutil
 import sys
-import tempfile
-import time
-from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -52,7 +47,6 @@ base.configure_contract(
     artifact_type="work-unit",
     artifact_label="Work Unit",
     package_collection="work-units",
-    lock_collection="work-units",
     lifecycle_phase="work-unit",
     initial_status="backlog",
     initial_readiness={
@@ -123,35 +117,6 @@ def resolve_package(value: str | Path, *, must_exist: bool = True) -> Path:
     if must_exist:
         base.assert_plain_path(package, "directory")
     return package
-
-
-@contextmanager
-def package_lock(package: Path, timeout: float = 10.0) -> Iterable[None]:
-    lock_root = (
-        package_project_root(package)
-        / ".agent-factory"
-        / "runtime"
-        / "locks"
-        / "work-units"
-    )
-    lock_root.mkdir(parents=True, exist_ok=True)
-    lock_path = lock_root / f"{package.name}.lock"
-    with lock_path.open("a+b") as handle:
-        deadline = time.monotonic() + timeout
-        while True:
-            try:
-                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except BlockingIOError:
-                if time.monotonic() >= deadline:
-                    raise ManagerError(
-                        f"timed out waiting for Work Unit package lock: {package.name}"
-                    )
-                time.sleep(0.05)
-        try:
-            yield
-        finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def iter_items(section: dict[str, Any]) -> Iterable[dict[str, Any]]:
@@ -433,71 +398,6 @@ def validate_package(
     return result
 
 
-def command_create(args: argparse.Namespace) -> None:
-    package = resolve_package(args.package, must_exist=False)
-    if package.name != args.id:
-        raise ManagerError("--id must match the package directory name")
-    if package.exists():
-        raise ManagerError(f"package already exists: {package}")
-    package.parent.mkdir(parents=True, exist_ok=True)
-    staging_root = Path(tempfile.mkdtemp(prefix=f".{args.id}.", dir=package.parent))
-    staging_package = staging_root / ".agent-factory" / "work-units" / args.id
-    timestamp = base.now()
-    sections = [
-        {"id": entry["id"], "title": entry["title"], "content": [], "subsections": []}
-        for entry in profile()["requiredSections"]
-    ]
-    metadata = {
-        "schemaVersion": profile()["version"],
-        "documentVersion": "1.0.0",
-        "id": args.id,
-        "artifactType": "work-unit",
-        "projectId": args.project_id,
-        "lifecycle": {"phase": "work-unit", "status": "backlog"},
-        "createdAt": timestamp,
-        "updatedAt": timestamp,
-        "language": args.language,
-        "theme": args.theme,
-        "provenance": {
-            "createdBy": "Human",
-            "generatedBy": "Agent Factory work-unit manager",
-            "sourceRefs": [],
-        },
-        "relations": [],
-        "readiness": {
-            "contractValid": True,
-            "intakeTraceabilityValid": False,
-            "definitionComplete": False,
-            "executionContextComplete": False,
-            "verificationPlanComplete": False,
-            "reviewedAt": None,
-            "findings": [],
-        },
-    }
-    try:
-        (staging_package / base.SECTIONS_PATH).mkdir(parents=True)
-        (staging_package / "blocks").mkdir()
-        base.write_json_atomically(staging_package / base.METADATA_PATH, metadata)
-        base.write_json_atomically(
-            staging_package / base.TITLE_PATH, {"title": args.title}
-        )
-        for section in sections:
-            base.write_json_atomically(
-                base.section_path(staging_package, section["id"]), section
-            )
-        base.write_json_atomically(
-            staging_package / base.TOC_PATH, base.new_toc(sections)
-        )
-        base.write_json_atomically(
-            staging_package / base.BLOCK_INDEX_PATH, {"blocks": []}
-        )
-        validate_package(staging_package)
-        os.rename(staging_package, package)
-    finally:
-        shutil.rmtree(staging_root, ignore_errors=True)
-    print(json.dumps(validate_package(package), ensure_ascii=False))
-
-
 def command_transition(args: argparse.Namespace) -> None:
     package = resolve_package(args.package)
     validate_package(package)
@@ -559,7 +459,6 @@ base.profile = profile
 base.validate_schemas = validate_schemas
 base.package_project_root = package_project_root
 base.resolve_package = resolve_package
-base.package_lock = package_lock
 base.validate_typed_paths = validate_typed_paths
 base.validate_profile = validate_profile
 base.validate_package = validate_package
@@ -579,7 +478,7 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("--project-id", required=True)
     create.add_argument("--language", default="ko")
     create.add_argument("--theme", required=True)
-    create.set_defaults(handler=command_create)
+    create.set_defaults(handler=base.command_create)
     show = commands.add_parser("show")
     show.add_argument("package")
     show.add_argument("--section")
@@ -591,32 +490,27 @@ def parser() -> argparse.ArgumentParser:
     metadata = commands.add_parser("metadata-set")
     metadata.add_argument("package")
     metadata.add_argument("field")
-    metadata.add_argument("value", nargs="?")
-    metadata.add_argument("--value-file")
+    base.add_data_arguments(metadata)
     metadata.set_defaults(handler=base.command_metadata_set)
     section_put = commands.add_parser("section-put")
     section_put.add_argument("package")
-    section_put.add_argument("value", nargs="?")
-    section_put.add_argument("--value-file")
+    base.add_data_arguments(section_put)
     section_put.set_defaults(handler=base.command_section_put)
     item_put = commands.add_parser("section-item-put")
     item_put.add_argument("package")
     item_put.add_argument("section_id")
-    item_put.add_argument("value", nargs="?")
-    item_put.add_argument("--value-file")
+    base.add_data_arguments(item_put)
     item_put.add_argument("--subsection")
     item_put.set_defaults(handler=base.command_section_item_put)
     items_put = commands.add_parser("section-items-put")
     items_put.add_argument("package")
     items_put.add_argument("section_id")
-    items_put.add_argument("value", nargs="?")
-    items_put.add_argument("--value-file")
+    base.add_data_arguments(items_put)
     items_put.add_argument("--subsection")
     items_put.set_defaults(handler=base.command_section_items_put)
     section_add = commands.add_parser("section-add")
     section_add.add_argument("package")
-    section_add.add_argument("value", nargs="?")
-    section_add.add_argument("--value-file")
+    base.add_data_arguments(section_add)
     add_position = section_add.add_mutually_exclusive_group()
     add_position.add_argument("--before")
     add_position.add_argument("--after")
@@ -664,10 +558,9 @@ def main() -> int:
             args.handler(args)
             return 0
         package = resolve_package(args.package, must_exist=args.command != "create")
-        with package_lock(package):
-            if package.exists():
-                base.recover_transaction(package)
-            args.handler(args)
+        if package.exists():
+            base.recover_transaction(package)
+        args.handler(args)
         return 0
     except ManagerError as error:
         sys.stderr.write(f"error: {error}\n")

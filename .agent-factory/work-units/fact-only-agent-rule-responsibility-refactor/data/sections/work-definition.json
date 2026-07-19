@@ -1,0 +1,40 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Clarify Fact Only as the sole fact-boundary hard gate and Agent Rule as the fact-grounded engineering, safety, and verification gate without renaming either skill."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "refactor skills/fact-only/SKILL.md responsibility wording",
+        "remove duplicated fact-boundary ownership from skills/agent-rule/SKILL.md and make its dependency on fact-only explicit",
+        "align both agents/openai.yaml interfaces",
+        "align only active skill routing or references that conflict with the clarified ownership",
+        "add or update focused regression tests"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "renaming or deleting either skill or directory",
+        "moving the Interview Decision Gate",
+        "changing lifecycle phases or Human approval boundaries",
+        "rewriting historical Intake, Work Unit, or evidence records",
+        "unrelated product or runtime changes",
+        "commit, merge, branch deletion, cleanup, or PR promotion"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "A validated Agent Factory skill set where fact-only owns fact classification and ambiguity hard stops, while agent-rule consumes that gate and owns critical engineering action, safety, and verification rules."
+    }
+  ],
+  "subsections": []
+}

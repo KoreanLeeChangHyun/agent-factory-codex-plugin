@@ -1,0 +1,23 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": "Approved Fact Only and Agent Rule responsibility refactor basis",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "fact-only-agent-rule-responsibility-refactor",
+          "path": ".agent-factory/intakes/fact-only-agent-rule-responsibility-refactor",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

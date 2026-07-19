@@ -1,0 +1,35 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "현재 fact-only와 agent-rule은 명시적 Human 지시, 저장소 증거, 외부 권위 자료를 변경 근거로 삼고 요구사항을 발명하지 않으며 불명확하면 질문한다는 규칙을 중복 서술한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "skills/fact-only/SKILL.md의 사실 판단 하드 게이트 정리",
+        "skills/agent-rule/SKILL.md의 중복 제거와 fact-only 적용 관계 명시",
+        "두 스킬의 agents/openai.yaml 설명 정합화",
+        "활성 skills 아래의 의미적 라우팅 및 참조 정합화",
+        "관련 메타데이터 및 문서 검증"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "fact-only 또는 agent-rule 스킬 이름과 디렉터리 삭제 또는 변경",
+        "skills/fact-only/references/interview-decision-gate.md의 경로 변경",
+        "Agent Factory lifecycle 단계 변경",
+        "역사적 Intake, Work Unit, evidence 내용 재작성",
+        "무관한 제품 코드와 런타임 변경",
+        "커밋, 병합, PR 승격"
+      ]
+    }
+  ],
+  "subsections": []
+}

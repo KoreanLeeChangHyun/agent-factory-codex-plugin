@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "fact-only still owns the complete fact and ambiguity boundary",
+        "agent-rule depends on fact-only instead of duplicating its ownership",
+        "agent-rule domain-specific engineering and safety rules remain present",
+        "skill names, paths, routing, and implicit invocation remain compatible",
+        "the diff contains no historical artifact or unrelated product changes"
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

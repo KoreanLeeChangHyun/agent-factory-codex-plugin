@@ -1,0 +1,148 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/fact-only/SKILL.md; skills/agent-rule/SKILL.md",
+        "method": "document review",
+        "findings": [
+          "fact-only는 사실의 허용 근거, 추론·가정 금지, 불명확성 하드 스톱, Evidence Labels, Reporting Rule을 정의한다.",
+          "agent-rule은 Core Rule과 Evidence-First Workflow에서 같은 근거 유형과 요구사항 발명 금지를 다시 정의한다.",
+          "agent-rule은 별도로 Critical Thinking, engineering principles, change safety, runtime restart safety, frontend verification, security boundary, state-model rules를 정의한다."
+        ],
+        "interpretations": [
+          "사실 판단 규칙은 fact-only가 소유하고 agent-rule이 이를 적용하도록 하면 중복 소유를 줄이면서 각 스킬의 목적을 보존할 수 있다."
+        ],
+        "limitations": [
+          "문서 정적 검토이며 실제 모델의 토큰 사용량이나 행동 변화는 측정하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "rg -n 'fact-only|agent-rule' AGENTS.md skills .agent-factory -g '*.md' -g '*.yaml' -g '*.json'",
+        "method": "command",
+        "findings": [
+          "lifecycle은 모든 Agent Factory lifecycle 작업에 fact-only를 사용하도록 라우팅한다.",
+          "lifecycle은 수정, 설계, 코드, 리뷰, refactoring, architecture 및 workflow claim 전에 agent-rule을 사용하도록 라우팅한다.",
+          "intake, analysis, user-research는 두 스킬을 함께 적용한다.",
+          "interview, specification, work-unit-planner는 fact-only 아래 Interview Decision Gate 경로를 참조한다."
+        ],
+        "interpretations": [
+          "fact-only 이름과 Interview Decision Gate 경로를 보존하면 기존 직접 참조의 호환성을 유지할 수 있다."
+        ],
+        "limitations": [
+          "동적 문자열로 생성되는 외부 Plugin 소비자 참조는 저장소 검색으로 확인할 수 없다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "skills/fact-only/agents/openai.yaml; skills/agent-rule/agents/openai.yaml; git status --short",
+        "method": "document review and command",
+        "findings": [
+          "두 스킬 모두 implicit invocation이 허용되어 있다.",
+          "fact-only prompt는 사실·해석·Human 미결정을 구분하도록 지시한다.",
+          "agent-rule prompt는 편집·설계 전에 명시적이고 증거 기반이며 범위가 정해진 변경을 요구한다.",
+          "작업 시작 전 git status --short 출력은 비어 있었다."
+        ],
+        "interpretations": [
+          "메타데이터 설명도 정리된 책임 경계와 맞추는 것이 필요하다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "WEB-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "OpenAI Codex: Build skills and customization guidance",
+        "url": "https://learn.chatgpt.com/docs/build-skills",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-19T00:00:00+09:00",
+        "findings": [
+          "Codex skills package instructions, resources, and optional scripts for task-specific capabilities and reusable workflows.",
+          "Codex uses progressive disclosure: skill metadata is initially visible and the full SKILL.md is loaded only after selection.",
+          "OpenAI recommends keeping each skill focused on one job and using concise descriptions with clear scope and boundaries.",
+          "OpenAI customization guidance distinguishes durable repository-wide instructions in AGENTS.md from reusable workflows and domain expertise in skills."
+        ],
+        "limitations": [
+          "The documentation defines product authoring guidance but does not evaluate Agent Factory fact-only or compare a standalone fact gate against embedding the same rules in lifecycle or AGENTS.md."
+        ]
+      }
+    },
+    {
+      "id": "WEB-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "OpenAI: Improving instruction hierarchy in frontier LLMs",
+        "url": "https://openai.com/index/instruction-hierarchy-challenge/",
+        "authorityTier": "T2 primary expert",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-19T00:00:00+09:00",
+        "findings": [
+          "OpenAI reports that reliably prioritizing trusted instructions is a core safety and reliability property for agentic systems that consume user, developer, system, and tool content.",
+          "The reported failure analysis identifies overly complicated instructions as a cause of instruction-following and hierarchy failures.",
+          "The research design favors instruction-following-simple and objectively gradable tasks, supporting a small explicit gate and focused regression tests."
+        ],
+        "limitations": [
+          "The study concerns model training and instruction hierarchy rather than Codex skill-directory architecture.",
+          "Its results support a clear trusted-evidence gate but do not determine whether that gate should be a standalone skill, AGENTS.md rule, or lifecycle section."
+        ]
+      }
+    },
+    {
+      "id": "WEB-003",
+      "kind": "web-evidence",
+      "content": {
+        "title": "NIST AI 600-1: Generative AI Profile",
+        "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F4",
+        "retrievedAt": "2026-07-19T00:00:00+09:00",
+        "findings": [
+          "NIST identifies confidently stated erroneous or false output as a generative-AI confabulation risk.",
+          "NIST recommends reviewing and verifying sources and citations in generative-AI outputs.",
+          "NIST recommends documenting assumptions, limitations, intended context of use, data origin, and content lineage.",
+          "These controls support retaining an explicit evidence and uncertainty boundary in Agent Factory."
+        ],
+        "limitations": [
+          "NIST provides risk-management outcomes rather than Codex prompt or skill packaging guidance.",
+          "The profile supports the fact-boundary behavior but does not support a specific standalone fact-only skill directory."
+        ]
+      }
+    },
+    {
+      "id": "WEB-004",
+      "kind": "web-evidence",
+      "content": {
+        "title": "When Instructions Multiply: Measuring and Estimating LLM Capabilities of Multiple Instructions Following",
+        "url": "https://aclanthology.org/2025.findings-emnlp.896/",
+        "authorityTier": "T2 primary expert",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-19T00:00:00+09:00",
+        "findings": [
+          "The peer-reviewed study evaluates ten language models on multiple simultaneous instructions.",
+          "Instruction-following performance consistently degrades as the number of instructions increases.",
+          "This supports removing duplicated fact-boundary instructions from fact-only, agent-rule, and adjacent skills rather than repeating them for emphasis."
+        ],
+        "limitations": [
+          "The benchmark covers instruction count, not semantically identical duplication or the Agent Factory skill loader specifically.",
+          "It supports reducing prompt burden but does not by itself choose between one standalone skill and one embedded lifecycle rule."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

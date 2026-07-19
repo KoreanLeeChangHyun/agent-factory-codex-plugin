@@ -1,0 +1,39 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": "fact-only는 Agent Factory 전체에 적용되는 사실 판단 하드 게이트로 유지한다."
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": "agent-rule은 fact-only를 적용하고 사실 판단 규칙을 재정의하지 않으며, 비판적 검토·엔지니어링 원칙·변경 안전성·도메인별 검증 규칙에 집중한다."
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": "fact-only와 agent-rule의 스킬 이름, 디렉터리, implicit invocation, Interview Decision Gate 경로를 유지한다."
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": "활성 스킬의 라우팅과 메타데이터 설명은 변경된 책임 경계와 일치해야 한다."
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "fact-only가 허용되는 사실 근거, 불명확성 처리, Evidence Labels, Interview Decision Gate, 보고 규칙을 명시한다.",
+        "agent-rule이 fact-only를 선행 하드 게이트로 명시하고, 중복된 사실 근거 목록과 독립적인 가정 금지 규칙을 소유하지 않는다.",
+        "agent-rule의 Critical Thinking, engineering principles, lifecycle, intent confirmation, safety, verification, security 및 state-model 규칙은 보존된다.",
+        "관련 활성 skill과 agent metadata의 참조가 정합적이다.",
+        "skill metadata 및 관련 테스트가 통과한다.",
+        "git diff가 승인된 경계 밖의 파일을 변경하지 않는다."
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,44 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/lifecycle/assets/scripts/sectioned_document.py; skills/intake/scripts/intake.py; skills/work-unit-planner/assets/scripts/work_unit.py; skills/specification/scripts/specification.py; related tests and skill documents",
+        "method": "repository inspection, CLI smoke execution, and regression tests",
+        "findings": [
+          "기존 shared engine replacement_value는 JSON 문자열을 parse하거나 JSON value-file을 load했다.",
+          "Work Unit과 Specification은 공통 engine이 있음에도 command_create 골격 생성 코드를 중복 보유했다.",
+          "Work Unit metadata schema는 backlog, ready, working, review, done, blocked 상태와 전이 규칙을 별도로 정의한다.",
+          "수정 후 command_create 구현은 lifecycle-owned common engine에만 존재하고 세 controller는 이를 호출한다.",
+          "수정 후 mutation CLI는 typed JSON Pointer data arguments를 받고 JSON 문자열과 value-file 옵션을 거부한다."
+        ],
+        "interpretations": [
+          "골격과 JSON 직렬화는 공통 engine 소유가 적절하고 artifact별 lifecycle과 의미 검증은 별도 controller 소유가 적절하다."
+        ],
+        "limitations": [
+          "긴급 부트스트랩 수정은 결함 때문에 ready Intake와 Work Unit보다 먼저 수행되었다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "python3 -m unittest skills.intake.tests.test_intake_manager skills.work-unit-planner.tests.test_work_unit_manager skills.specification.tests.test_specification_manager skills.lifecycle.tests.test_document_profiles skills.lifecycle.tests.test_skill_metadata",
+        "method": "full focused regression execution",
+        "findings": [
+          "65 tests passed in 274.617 seconds.",
+          "typed semantic data mutation, raw JSON input rejection, common create ownership, artifact profile creation, Work Unit transitions, and lifecycle metadata contracts passed."
+        ],
+        "interpretations": [],
+        "limitations": []
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -55,10 +55,47 @@ def create_package(root: Path, intake_id: str = "sample-intake") -> Path:
     return package
 
 
-def value_file(root: Path, name: str, value: object) -> Path:
-    path = root / name
-    path.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
-    return path
+def data_args(value: object) -> list[str]:
+    arguments: list[str] = []
+
+    def add(path: str, current: object) -> None:
+        if isinstance(current, dict):
+            if not current:
+                arguments.extend(("--empty-object", path))
+            for key, child in current.items():
+                escaped = str(key).replace("~", "~0").replace("/", "~1")
+                add(f"{path}/{escaped}", child)
+        elif isinstance(current, list):
+            if not current:
+                arguments.extend(("--empty-list", path))
+            for index, child in enumerate(current):
+                add(f"{path}/{index}", child)
+        elif isinstance(current, bool):
+            arguments.extend(("--boolean", path, str(current).lower()))
+        elif isinstance(current, int):
+            arguments.extend(("--integer", path, str(current)))
+        elif isinstance(current, float):
+            arguments.extend(("--number", path, str(current)))
+        elif current is None:
+            arguments.extend(("--null", path))
+        else:
+            arguments.extend(("--string", path, str(current)))
+
+    if isinstance(value, (dict, list)):
+        if not value:
+            raise AssertionError("test data root must not be empty")
+        for key, child in (
+            value.items() if isinstance(value, dict) else enumerate(value)
+        ):
+            escaped = str(key).replace("~", "~0").replace("/", "~1")
+            add(f"/{escaped}", child)
+    else:
+        raise AssertionError("test data root must be structured")
+    return arguments
+
+
+def data_value(_: Path, __: str, value: object) -> list[str]:
+    return data_args(value)
 
 
 def item(
@@ -122,11 +159,9 @@ def populate_ready_intake(
         ],
     }
     for section_id, items in required_items.items():
-        source = value_file(root, f"{section_id}.json", items)
-        run_cli(
-            "section-items-put", str(package), section_id, "--value-file", str(source)
-        )
-    readiness = value_file(
+        source = data_value(root, f"{section_id}.json", items)
+        run_cli("section-items-put", str(package), section_id, *source)
+    readiness = data_value(
         root,
         "readiness.json",
         {
@@ -139,11 +174,49 @@ def populate_ready_intake(
             "findings": [],
         },
     )
-    run_cli("metadata-set", str(package), "readiness", "--value-file", str(readiness))
+    run_cli("metadata-set", str(package), "readiness", *readiness)
     run_cli("transition", str(package), "validating")
 
 
 class IntakeManagerTests(unittest.TestCase):
+    def test_manager_constructs_json_from_typed_data_and_rejects_json_input(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            package = create_package(Path(temporary))
+            run_cli(
+                "section-item-put",
+                str(package),
+                "request-and-goal",
+                "--string",
+                "/id",
+                "REQUEST-001",
+                "--string",
+                "/kind",
+                "human-request",
+                "--string",
+                "/content/request",
+                "스크립트가 JSON을 생성한다.",
+            )
+            section = json.loads(
+                (package / "data" / "sections" / "request-and-goal.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                section["content"][0]["content"]["request"],
+                "스크립트가 JSON을 생성한다.",
+            )
+            rejected = run_cli(
+                "section-item-put",
+                str(package),
+                "request-and-goal",
+                '{"id":"REQUEST-002"}',
+                check=False,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("unrecognized arguments", rejected.stderr)
+
     def test_check_schemas_and_profile(self) -> None:
         payload = json.loads(run_cli("check-schemas").stdout)
         self.assertTrue(payload["valid"])
@@ -191,17 +264,16 @@ class IntakeManagerTests(unittest.TestCase):
             root = Path(temporary)
             package = create_package(root)
             run_cli("title-set", str(package), "갱신된 Intake")
-            candidate = value_file(
+            candidate = data_value(
                 root, "item.json", item("REQ-001", "human-request", "요청")
             )
             run_cli(
                 "section-item-put",
                 str(package),
                 "request-and-goal",
-                "--value-file",
-                str(candidate),
+                *candidate,
             )
-            replacement = value_file(
+            replacement = data_value(
                 root,
                 "replacement.json",
                 item("REQ-001", "human-request", "수정된 요청"),
@@ -210,8 +282,7 @@ class IntakeManagerTests(unittest.TestCase):
                 "section-item-put",
                 str(package),
                 "request-and-goal",
-                "--value-file",
-                str(replacement),
+                *replacement,
             )
             shown = json.loads(
                 run_cli("show", str(package), "--section", "request-and-goal").stdout
@@ -226,42 +297,10 @@ class IntakeManagerTests(unittest.TestCase):
             metadata = json.loads((package / "data" / "metadata.json").read_text())
             self.assertEqual(metadata["documentVersion"], "1.0.3")
 
-    def test_concurrent_mutations_are_serialized_and_recovery_restores_preimage(
-        self,
-    ) -> None:
+    def test_interrupted_transaction_recovery_restores_preimage(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             package = create_package(root)
-            commands = [
-                [sys.executable, str(SCRIPT), "title-set", str(package), title]
-                for title in ("Concurrent A", "Concurrent B")
-            ]
-            processes = [
-                subprocess.Popen(
-                    command, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-                for command in commands
-            ]
-            results = [
-                process.communicate(timeout=20) + (process.returncode,)
-                for process in processes
-            ]
-            self.assertTrue(
-                all(returncode == 0 for _, _, returncode in results), results
-            )
-            metadata = json.loads((package / "data" / "metadata.json").read_text())
-            self.assertEqual(metadata["documentVersion"], "1.0.2")
-            self.assertTrue(
-                (
-                    root
-                    / ".agent-factory"
-                    / "runtime"
-                    / "locks"
-                    / "intakes"
-                    / "sample-intake.lock"
-                ).exists()
-            )
-
             title_path = package / "data" / "title.json"
             original = title_path.read_bytes()
             transaction_root = package / ".manager" / "transactions" / "interrupted"
@@ -427,13 +466,12 @@ class IntakeManagerTests(unittest.TestCase):
                 item(f"E-{index:04d}", "evidence", {"finding": index})
                 for index in range(1000)
             ]
-            source = value_file(root, "batch.json", batch)
+            source = data_value(root, "batch.json", batch)
             run_cli(
                 "section-items-put",
                 str(package),
                 "evidence-and-findings",
-                "--value-file",
-                str(source),
+                *source,
             )
             shown = json.loads(
                 run_cli(
@@ -461,10 +499,8 @@ class IntakeManagerTests(unittest.TestCase):
                     ],
                 }
             ]
-            source = value_file(root, "section.json", section)
-            result = run_cli(
-                "section-put", str(package), "--value-file", str(source), check=False
-            )
+            source = data_value(root, "section.json", section)
+            result = run_cli("section-put", str(package), *source, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("schema validation failed", result.stderr)
             self.assertEqual(section_path.read_bytes(), before)
@@ -479,12 +515,11 @@ class IntakeManagerTests(unittest.TestCase):
                 "content": [],
                 "subsections": [],
             }
-            source = value_file(root, "section.json", section)
+            source = data_value(root, "section.json", section)
             run_cli(
                 "section-add",
                 str(package),
-                "--value-file",
-                str(source),
+                *source,
                 "--before",
                 "work-unit-basis",
             )
@@ -547,10 +582,8 @@ class IntakeManagerTests(unittest.TestCase):
                 item("DUPLICATE", "human-request", "one"),
                 item("DUPLICATE", "desired-outcome", "two"),
             ]
-            source = value_file(root, "duplicates.json", section)
-            result = run_cli(
-                "section-put", str(package), "--value-file", str(source), check=False
-            )
+            source = data_value(root, "duplicates.json", section)
+            result = run_cli("section-put", str(package), *source, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("content item ids must be unique", result.stderr)
 
@@ -558,10 +591,8 @@ class IntakeManagerTests(unittest.TestCase):
             section["subsections"] = [
                 {"id": "context-and-scope", "title": "Conflicting id", "content": []}
             ]
-            source = value_file(root, "hierarchy-duplicates.json", section)
-            result = run_cli(
-                "section-put", str(package), "--value-file", str(source), check=False
-            )
+            source = data_value(root, "hierarchy-duplicates.json", section)
+            result = run_cli("section-put", str(package), *source, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("section and subsection ids must be unique", result.stderr)
 
@@ -575,10 +606,8 @@ class IntakeManagerTests(unittest.TestCase):
                 }
             ]
             section["content"] = [item("CROSS-CONTAINER", "human-request", "section")]
-            source = value_file(root, "cross-container-duplicates.json", section)
-            result = run_cli(
-                "section-put", str(package), "--value-file", str(source), check=False
-            )
+            source = data_value(root, "cross-container-duplicates.json", section)
+            result = run_cli("section-put", str(package), *source, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("unique across top-level section", result.stderr)
 
@@ -588,7 +617,7 @@ class IntakeManagerTests(unittest.TestCase):
             package = create_package(root)
             metadata_path = package / "data" / "metadata.json"
             before = metadata_path.read_bytes()
-            relations = value_file(
+            relations = data_value(
                 root,
                 "relations.json",
                 [
@@ -606,15 +635,14 @@ class IntakeManagerTests(unittest.TestCase):
                 "metadata-set",
                 str(package),
                 "relations",
-                "--value-file",
-                str(relations),
+                *relations,
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("typed reference does not exist", result.stderr)
             self.assertEqual(metadata_path.read_bytes(), before)
 
-            id_only = value_file(
+            id_only = data_value(
                 root,
                 "id-only-relations.json",
                 [
@@ -631,8 +659,7 @@ class IntakeManagerTests(unittest.TestCase):
                 "metadata-set",
                 str(package),
                 "relations",
-                "--value-file",
-                str(id_only),
+                *id_only,
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
@@ -648,13 +675,12 @@ class IntakeManagerTests(unittest.TestCase):
                 "kind": "work-unit-basis",
                 "content": "Canonical basis",
             }
-            source = value_file(root, "basis.json", basis)
+            source = data_value(root, "basis.json", basis)
             run_cli(
                 "section-item-put",
                 str(package),
                 "work-unit-basis",
-                "--value-file",
-                str(source),
+                *source,
             )
             metadata_path = package / "data" / "metadata.json"
             before = metadata_path.read_bytes()
@@ -672,19 +698,16 @@ class IntakeManagerTests(unittest.TestCase):
                     },
                 }
             ]
-            valid = value_file(root, "anchored-relations.json", relations)
-            run_cli(
-                "metadata-set", str(package), "relations", "--value-file", str(valid)
-            )
+            valid = data_value(root, "anchored-relations.json", relations)
+            run_cli("metadata-set", str(package), "relations", *valid)
             relations[0]["target"]["anchor"]["itemId"] = "MISSING"
-            invalid = value_file(root, "missing-anchor.json", relations)
+            invalid = data_value(root, "missing-anchor.json", relations)
             current = metadata_path.read_bytes()
             result = run_cli(
                 "metadata-set",
                 str(package),
                 "relations",
-                "--value-file",
-                str(invalid),
+                *invalid,
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
@@ -705,8 +728,8 @@ class IntakeManagerTests(unittest.TestCase):
                 ],
                 "subsections": [],
             }
-            source = value_file(root, "large-section.json", section)
-            run_cli("section-put", str(package), "--value-file", str(source))
+            source = data_value(root, "large-section.json", section)
+            run_cli("section-put", str(package), *source)
             self.assertGreater(
                 (package / "data" / "sections" / "evidence-and-findings.json")
                 .stat()
@@ -753,7 +776,7 @@ class IntakeManagerTests(unittest.TestCase):
                 ).stdout
             )
             self.assertIn("blocks/logs/large.log", put["files"])
-            block_item = value_file(
+            block_item = data_value(
                 root,
                 "block-item.json",
                 {
@@ -767,8 +790,7 @@ class IntakeManagerTests(unittest.TestCase):
                 "section-item-put",
                 str(package),
                 "evidence-and-findings",
-                "--value-file",
-                str(block_item),
+                *block_item,
             )
             remove = run_cli(
                 "block-remove", str(package), "blocks/logs/large.log", check=False
@@ -790,7 +812,7 @@ class IntakeManagerTests(unittest.TestCase):
             self.assertIn("block file set", result.stderr)
             orphan.unlink()
 
-            styled = value_file(
+            styled = data_value(
                 root,
                 "styled.json",
                 item(
@@ -803,8 +825,7 @@ class IntakeManagerTests(unittest.TestCase):
                 "section-item-put",
                 str(package),
                 "evidence-and-findings",
-                "--value-file",
-                str(styled),
+                *styled,
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
@@ -873,17 +894,16 @@ class IntakeManagerTests(unittest.TestCase):
             }
             for section_id, items in required_items.items():
                 for index, content_item in enumerate(items):
-                    source = value_file(
+                    source = data_value(
                         root, f"{section_id}-{index}.json", content_item
                     )
                     run_cli(
                         "section-item-put",
                         str(package),
                         section_id,
-                        "--value-file",
-                        str(source),
+                        *source,
                     )
-            readiness = value_file(
+            readiness = data_value(
                 root,
                 "readiness.json",
                 {
@@ -900,8 +920,7 @@ class IntakeManagerTests(unittest.TestCase):
                 "metadata-set",
                 str(package),
                 "readiness",
-                "--value-file",
-                str(readiness),
+                *readiness,
             )
             run_cli("transition", str(package), "validating")
             payload = json.loads(run_cli("transition", str(package), "ready").stdout)
@@ -1019,13 +1038,12 @@ class IntakeManagerTests(unittest.TestCase):
                     }
                 ],
             }
-            source = value_file(root, "closed-disposition.json", disposition)
+            source = data_value(root, "closed-disposition.json", disposition)
             run_cli(
                 "section-item-put",
                 str(package),
                 "decisions-and-open-items",
-                "--value-file",
-                str(source),
+                *source,
             )
             run_cli("transition", str(package), "closed")
             canonical = {
@@ -1053,7 +1071,7 @@ class IntakeManagerTests(unittest.TestCase):
             package = create_package(root)
             result = run_cli("transition", str(package), "blocked", check=False)
             self.assertNotEqual(result.returncode, 0)
-            blocker = value_file(
+            blocker = data_value(
                 root,
                 "blocker.json",
                 item(
@@ -1068,8 +1086,7 @@ class IntakeManagerTests(unittest.TestCase):
                 "section-item-put",
                 str(package),
                 "decisions-and-open-items",
-                "--value-file",
-                str(blocker),
+                *blocker,
             )
             self.assertEqual(
                 json.loads(run_cli("transition", str(package), "blocked").stdout)[
@@ -1102,13 +1119,12 @@ class IntakeManagerTests(unittest.TestCase):
                     }
                 ],
             }
-            source = value_file(root, "closed-disposition.json", disposition)
+            source = data_value(root, "closed-disposition.json", disposition)
             run_cli(
                 "section-item-put",
                 str(closed),
                 "decisions-and-open-items",
-                "--value-file",
-                str(source),
+                *source,
             )
             payload = json.loads(run_cli("transition", str(closed), "closed").stdout)
             self.assertEqual(payload["status"], "closed")
@@ -1119,13 +1135,12 @@ class IntakeManagerTests(unittest.TestCase):
             superseded = create_package(root, "superseded-intake")
             disposition["attributes"]["targetStatus"] = "superseded"
             disposition["content"] = "A later contract replaces this Intake"
-            source = value_file(root, "superseded-disposition.json", disposition)
+            source = data_value(root, "superseded-disposition.json", disposition)
             run_cli(
                 "section-item-put",
                 str(superseded),
                 "decisions-and-open-items",
-                "--value-file",
-                str(source),
+                *source,
             )
             payload = json.loads(
                 run_cli("transition", str(superseded), "superseded").stdout

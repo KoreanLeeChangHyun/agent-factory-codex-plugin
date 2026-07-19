@@ -1,0 +1,28 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "Fact Only와 Agent Rule을 검토한 뒤, 두 스킬을 유지하면서 중복 책임을 정리하는 수정안을 적용한다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": "fact-only는 사실·증거·가정 금지·불명확성 중단 규칙을 소유하고, agent-rule은 fact-only를 적용한 상태에서 엔지니어링 판단·변경 안전성·검증 규칙에 집중한다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "두 스킬의 이름과 디렉터리가 유지된다.",
+        "fact-only의 Interview Decision Gate 경로가 유지된다.",
+        "agent-rule의 중복된 사실 판단 규칙이 제거되고 fact-only 의존성이 명시된다.",
+        "관련 라우팅, 설명, 참조, 테스트가 변경된 책임 경계와 일치한다.",
+        "관련 검증이 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

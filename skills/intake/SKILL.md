@@ -93,8 +93,10 @@ Repeat until readiness passes:
 5. Revise the failed section or return to the owning capability skill.
 
 Use `user-research` instead of treating stated preference as observed behavior.
-Use `interview` instead of inventing a Human-only answer. Use a JSON value file
-or argument array so shell interpolation cannot reinterpret generated content.
+Use `interview` instead of inventing a Human-only answer. The LLM supplies only
+typed semantic data arguments; the manager constructs and serializes JSON.
+Pass commands as an argument array so shell interpolation cannot reinterpret
+generated content. Never compose JSON strings or temporary JSON value files.
 
 ## Manager Commands
 
@@ -103,17 +105,26 @@ python3 scripts/intake.py check-schemas
 python3 scripts/intake.py create <package> --id <id> --title <title> --project-id <project> --language <language> --theme <theme>
 python3 scripts/intake.py show <package> [--section <section-id>]
 python3 scripts/intake.py title-set <package> <title>
-python3 scripts/intake.py metadata-set <package> <field> --value-file <json-file>
-python3 scripts/intake.py section-put <package> --value-file <section.json>
-python3 scripts/intake.py section-item-put <package> <section-id> --value-file <item.json> [--subsection <id>]
-python3 scripts/intake.py section-items-put <package> <section-id> --value-file <items.json> [--subsection <id>]
-python3 scripts/intake.py section-add <package> --value-file <section.json> [--before <id>|--after <id>]
+python3 scripts/intake.py metadata-set <package> <field> <typed-data-arguments>
+python3 scripts/intake.py section-put <package> <typed-data-arguments>
+python3 scripts/intake.py section-item-put <package> <section-id> <typed-data-arguments> [--subsection <id>]
+python3 scripts/intake.py section-items-put <package> <section-id> <typed-data-arguments> [--subsection <id>]
+python3 scripts/intake.py section-add <package> <typed-data-arguments> [--before <id>|--after <id>]
 python3 scripts/intake.py section-move <package> <section-id> (--before <id>|--after <id>)
 python3 scripts/intake.py section-remove <package> <optional-section-id>
 python3 scripts/intake.py validate <package> [--full]
 python3 scripts/intake.py transition <package> <draft|validating|ready|blocked|closed|superseded>
 python3 scripts/intake.py block-put <package> <source> --path blocks/<path> --media-type <type> --description <text>
 python3 scripts/intake.py block-remove <package> blocks/<path>
+```
+
+Example:
+
+```text
+python3 scripts/intake.py section-item-put <package> request-and-goal \
+  --string /id REQUEST-001 \
+  --string /kind human-request \
+  --string /content/request <request-text>
 ```
 
 ## Readiness Boundary
@@ -147,9 +158,8 @@ packages reject mutation. This Intake lifecycle rule is conditional on
 `artifactType: intake` because the Work Unit manager reuses the common
 sectioned-package mechanics.
 
-The manager
-serializes package access with a project-runtime lock and commits multi-file
-changes through a recovery journal. On the next manager invocation, an
+The manager commits multi-file changes through a recovery journal. On the next
+manager invocation, an
 interrupted transaction is restored to its recorded preimage before the
 requested command runs. Do not place actual style, CSS, or style-variable data
 in section content or attributes; JSON stores only semantic data and the theme

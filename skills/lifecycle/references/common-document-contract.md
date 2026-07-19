@@ -76,6 +76,14 @@ validation mechanics. Artifact managers configure that engine with their own
 metadata schema, profile, package root, lifecycle, readiness, and semantic
 validation rules.
 
+The shared engine is the only JSON construction and serialization owner.
+Artifact managers accept semantic data through typed command arguments and
+delegate canonical writes to the engine. LLM callers must not compose JSON
+strings or temporary JSON value files. Structured arguments use JSON Pointer
+paths with typed options such as `--string`, `--integer`, `--number`,
+`--boolean`, `--null`, `--string-list`, `--empty-object`, and `--empty-list`.
+Scalar metadata replacements use the corresponding `--value-*` option.
+
 The Specification manager configures the same engine with its metadata schema
 and the profile declared by each package. It rejects unknown profile ids,
 versions, and document-class mismatches as `profile-unresolved`; the former

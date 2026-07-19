@@ -1,0 +1,26 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": [
+        "Agent Factory 스킬을 사용하는 Human",
+        "Agent Factory lifecycle을 수행하는 Codex 에이전트",
+        "두 스킬을 참조하는 인접 capability skill 유지보수자"
+      ]
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Human은 두 스킬 유지와 부분 통합 방향을 승인했다. 최종 결과 승인, rework, merge, PR promotion은 Human 결정으로 남긴다."
+    }
+  ],
+  "subsections": []
+}

@@ -123,14 +123,22 @@ python3 assets/scripts/work_unit.py create \
   <project-root>/.agent-factory/work-units/<id> \
   --id <id> --title <title> --project-id <project-id> --theme default
 python3 assets/scripts/work_unit.py section-items-put <package> <section-id> \
-  --value-file <items.json>
+  <typed-data-arguments>
 python3 assets/scripts/work_unit.py metadata-set <package> readiness \
-  --value-file <readiness.json>
+  --boolean /contractValid true \
+  --boolean /intakeTraceabilityValid true \
+  --boolean /definitionComplete true \
+  --boolean /executionContextComplete true \
+  --boolean /verificationPlanComplete true \
+  --string /reviewedAt <date-time> \
+  --empty-list /findings
 python3 assets/scripts/work_unit.py validate <package> --full
 python3 assets/scripts/work_unit.py transition <package> ready
 ```
 
 Use `section-item-put` for one item and `section-items-put` for a batch.
+Use typed JSON Pointer data arguments; the manager owns JSON construction and
+serialization. Do not create JSON input files or pass JSON strings.
 Use `show <package> --section <id>` for focused reads of large documents.
 Mutations are serialized per package, increment one patch revision, and use a
 recovery journal. Manual canonical edits are recovery-only exceptions and must

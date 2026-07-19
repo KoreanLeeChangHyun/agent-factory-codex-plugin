@@ -1,0 +1,38 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "baseline": "기존 manager는 canonical 파일을 Python으로 쓰지만 mutation 입력으로 LLM 작성 JSON 문자열 또는 value-file을 요구했다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/lifecycle/assets/scripts/sectioned_document.py",
+          "skills/intake",
+          "skills/work-unit-planner",
+          "skills/specification",
+          "관련 capability skill 문서와 회귀 테스트"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "artifact별 lifecycle 상태 통합",
+          "기존 canonical package migration",
+          "merge, PR promotion, deployment"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

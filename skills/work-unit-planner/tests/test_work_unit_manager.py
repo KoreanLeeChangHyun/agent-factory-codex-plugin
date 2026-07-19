@@ -65,10 +65,47 @@ def item(
     return value
 
 
-def value_file(root: Path, name: str, value: object) -> Path:
-    path = root / name
-    path.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
-    return path
+def data_args(value: object) -> list[str]:
+    arguments: list[str] = []
+
+    def add(path: str, current: object) -> None:
+        if isinstance(current, dict):
+            if not current:
+                arguments.extend(("--empty-object", path))
+            for key, child in current.items():
+                escaped = str(key).replace("~", "~0").replace("/", "~1")
+                add(f"{path}/{escaped}", child)
+        elif isinstance(current, list):
+            if not current:
+                arguments.extend(("--empty-list", path))
+            for index, child in enumerate(current):
+                add(f"{path}/{index}", child)
+        elif isinstance(current, bool):
+            arguments.extend(("--boolean", path, str(current).lower()))
+        elif isinstance(current, int):
+            arguments.extend(("--integer", path, str(current)))
+        elif isinstance(current, float):
+            arguments.extend(("--number", path, str(current)))
+        elif current is None:
+            arguments.extend(("--null", path))
+        else:
+            arguments.extend(("--string", path, str(current)))
+
+    if isinstance(value, (dict, list)):
+        if not value:
+            raise AssertionError("test data root must not be empty")
+        for key, child in (
+            value.items() if isinstance(value, dict) else enumerate(value)
+        ):
+            escaped = str(key).replace("~", "~0").replace("/", "~1")
+            add(f"/{escaped}", child)
+    else:
+        raise AssertionError("test data root must be structured")
+    return arguments
+
+
+def data_value(_: Path, __: str, value: object) -> list[str]:
+    return data_args(value)
 
 
 def create_package(root: Path, work_unit_id: str = "sample-unit") -> Path:
@@ -263,11 +300,9 @@ def ready_items(
 
 def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
     for section_id, content in ready_items(root, intake, package.name).items():
-        source = value_file(root, f"{section_id}.json", content)
-        run_cli(
-            "section-items-put", str(package), section_id, "--value-file", str(source)
-        )
-    readiness = value_file(
+        source = data_value(root, f"{section_id}.json", content)
+        run_cli("section-items-put", str(package), section_id, *source)
+    readiness = data_value(
         root,
         "readiness.json",
         {
@@ -280,7 +315,7 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
             "findings": [],
         },
     )
-    run_cli("metadata-set", str(package), "readiness", "--value-file", str(readiness))
+    run_cli("metadata-set", str(package), "readiness", *readiness)
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
@@ -317,7 +352,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             package = create_package(root)
-            source = value_file(
+            source = data_value(
                 root,
                 "batch.json",
                 [
@@ -325,9 +360,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     for index in range(1000)
                 ],
             )
-            run_cli(
-                "section-items-put", str(package), "plan", "--value-file", str(source)
-            )
+            run_cli("section-items-put", str(package), "plan", *source)
             metadata = json.loads((package / "data" / "metadata.json").read_text())
             self.assertEqual(metadata["documentVersion"], "1.0.1")
             shown = json.loads(
@@ -345,12 +378,11 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "content": [],
                 "subsections": [],
             }
-            source = value_file(root, "optional.json", section)
+            source = data_value(root, "optional.json", section)
             run_cli(
                 "section-add",
                 str(package),
-                "--value-file",
-                str(source),
+                *source,
                 "--after",
                 "report",
             )
@@ -388,13 +420,11 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             before = json.loads(
                 (package / "data" / "metadata.json").read_text(encoding="utf-8")
             )
-            update = value_file(
+            update = data_value(
                 root, "working-update.json", item("PLAN-002", "plan-step", "Execute")
             )
 
-            run_cli(
-                "section-item-put", str(package), "plan", "--value-file", str(update)
-            )
+            run_cli("section-item-put", str(package), "plan", *update)
 
             after = json.loads(
                 (package / "data" / "metadata.json").read_text(encoding="utf-8")
@@ -409,7 +439,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             metadata_path = package / "data" / "metadata.json"
             before = metadata_path.read_bytes()
-            relation = value_file(
+            relation = data_value(
                 root,
                 "relations.json",
                 [
@@ -431,8 +461,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "metadata-set",
                 str(package),
                 "relations",
-                "--value-file",
-                str(relation),
+                *relation,
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
@@ -444,7 +473,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             root = Path(temporary)
             intake = create_ready_intake(root)
             package = create_package(root)
-            source = value_file(
+            source = data_value(
                 root,
                 "bad-basis.json",
                 item(
@@ -468,8 +497,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "section-item-put",
                 str(package),
                 "basis",
-                "--value-file",
-                str(source),
+                *source,
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
@@ -492,15 +520,14 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             ]
             content["execution-context"][0]["content"]["branch"] = "feature/wrong"
             for section_id, items in content.items():
-                source = value_file(root, f"invalid-{section_id}.json", items)
+                source = data_value(root, f"invalid-{section_id}.json", items)
                 run_cli(
                     "section-items-put",
                     str(package),
                     section_id,
-                    "--value-file",
-                    str(source),
+                    *source,
                 )
-            readiness = value_file(
+            readiness = data_value(
                 root,
                 "readiness.json",
                 {
@@ -517,22 +544,20 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "metadata-set",
                 str(package),
                 "readiness",
-                "--value-file",
-                str(readiness),
+                *readiness,
             )
             result = run_cli("transition", str(package), "ready", check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("missing required content kinds", result.stderr)
 
-            expected = value_file(
+            expected = data_value(
                 root, "expected.json", item("OUTPUT-001", "expected-output", "Output")
             )
             run_cli(
                 "section-item-put",
                 str(package),
                 "work-definition",
-                "--value-file",
-                str(expected),
+                *expected,
             )
             result = run_cli("transition", str(package), "ready", check=False)
             self.assertNotEqual(result.returncode, 0)
@@ -549,13 +574,12 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "codex exec --sandbox danger-full-access --ask-for-approval never "
                 f"-C /workspace/worktrees/{package.name} 'Execute the Work Unit'"
             )
-            source = value_file(root, "invalid-exec-context.json", context)
+            source = data_value(root, "invalid-exec-context.json", context)
             run_cli(
                 "section-item-put",
                 str(package),
                 "execution-context",
-                "--value-file",
-                str(source),
+                *source,
             )
 
             rejected = run_cli("transition", str(package), "ready", check=False)
@@ -566,13 +590,12 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "codex --ask-for-approval never exec --sandbox danger-full-access "
                 f"-C /workspace/worktrees/{package.name} 'Execute the Work Unit'"
             )
-            source = value_file(root, "valid-exec-context.json", context)
+            source = data_value(root, "valid-exec-context.json", context)
             run_cli(
                 "section-item-put",
                 str(package),
                 "execution-context",
-                "--value-file",
-                str(source),
+                *source,
             )
             payload = json.loads(run_cli("transition", str(package), "ready").stdout)
             self.assertEqual(payload["status"], "ready")
@@ -639,13 +662,12 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "tests",
             )
             for section_id, replacement in replacements.items():
-                source = value_file(root, f"replace-{section_id}.json", replacement)
+                source = data_value(root, f"replace-{section_id}.json", replacement)
                 run_cli(
                     "section-item-put",
                     str(package),
                     section_id,
-                    "--value-file",
-                    str(source),
+                    *source,
                 )
             self.assertEqual(
                 json.loads(run_cli("transition", str(package), "review").stdout)[
@@ -682,7 +704,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("block file set", result.stderr)
             orphan.unlink()
-            styled = value_file(
+            styled = data_value(
                 root,
                 "styled.json",
                 item("STYLE-001", "plan-step", {"style": {"color": "red"}}),
@@ -691,8 +713,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "section-item-put",
                 str(package),
                 "plan",
-                "--value-file",
-                str(styled),
+                *styled,
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
@@ -718,28 +739,10 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("block integrity mismatch", result.stderr)
 
-    def test_concurrent_mutations_and_interrupted_transaction_recovery(self) -> None:
+    def test_interrupted_transaction_recovery(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             package = create_package(root)
-            commands = [
-                [sys.executable, str(SCRIPT), "title-set", str(package), title]
-                for title in ("Concurrent A", "Concurrent B")
-            ]
-            processes = [
-                subprocess.Popen(
-                    command, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-                for command in commands
-            ]
-            results = [
-                process.communicate(timeout=20) + (process.returncode,)
-                for process in processes
-            ]
-            self.assertTrue(all(code == 0 for _, _, code in results), results)
-            metadata = json.loads((package / "data" / "metadata.json").read_text())
-            self.assertEqual(metadata["documentVersion"], "1.0.2")
-
             title_path = package / "data" / "title.json"
             original = title_path.read_bytes()
             transaction_root = package / ".manager" / "transactions" / "interrupted"

@@ -1,0 +1,56 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "LLM은 semantic data만 제공하고 공통 engine이 JSON object 구성, 직렬화, canonical file 생성을 담당한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Intake, Work Unit, Specification controller는 각 profile, semantic validation, readiness와 lifecycle 상태 규칙을 유지한다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "JSON 문자열과 temporary JSON value-file mutation 입력을 제거한다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "세 artifact create가 공통 command_create를 통해 정확한 package를 생성한다."
+      }
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "typed nested data가 script에 의해 canonical JSON으로 직렬화된다."
+      }
+    },
+    {
+      "id": "AC-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "기존 JSON 직접 입력은 CLI에서 거부된다."
+      }
+    },
+    {
+      "id": "AC-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "manager와 lifecycle 회귀 테스트가 통과한다."
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import fcntl
 import hashlib
 import json
 import os
@@ -13,7 +12,6 @@ import shutil
 import stat
 import sys
 import tempfile
-import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -38,12 +36,12 @@ PROFILE_PATH = SKILL_ROOT / "profiles" / "unconfigured.profile.json"
 ARTIFACT_TYPE = "document"
 ARTIFACT_LABEL = "Document"
 PACKAGE_COLLECTION = "documents"
-LOCK_COLLECTION = "documents"
 LIFECYCLE_PHASE = "document"
 INITIAL_STATUS = "draft"
 INITIAL_READINESS: dict[str, Any] | None = {}
 GENERATED_BY = "Agent Factory sectioned-document manager"
 MUTATION_POLICY: dict[str, Any] | None = None
+CREATE_METADATA_HOOK: Any = None
 SCHEMA_PATHS = {
     "metadata": SCHEMA_ROOT / "metadata.schema.json",
     "title": SCHEMA_ROOT / "title.schema.json",
@@ -91,15 +89,6 @@ def load_json(path: Path) -> Any:
         )
     except (OSError, ValueError, json.JSONDecodeError) as error:
         raise ManagerError(f"cannot read strict JSON from {path}: {error}") from error
-
-
-def parse_json(value: str, source: str) -> Any:
-    try:
-        return json.loads(value, parse_constant=reject_constant)
-    except (ValueError, json.JSONDecodeError) as error:
-        raise ManagerError(
-            f"cannot parse strict JSON from {source}: {error}"
-        ) from error
 
 
 def load_object(path: Path, label: str) -> dict[str, Any]:
@@ -200,22 +189,23 @@ def configure_contract(
     artifact_type: str,
     artifact_label: str,
     package_collection: str,
-    lock_collection: str,
     lifecycle_phase: str,
     initial_status: str,
     initial_readiness: dict[str, Any] | None,
     generated_by: str,
     mutation_policy: dict[str, Any] | None = None,
+    create_metadata_hook: Any = None,
 ) -> None:
     """Configure one artifact adapter without duplicating package mechanics."""
     global SKILL_ROOT, SCHEMA_ROOT, PROFILE_PATH, SCHEMA_PATHS
-    global ARTIFACT_TYPE, ARTIFACT_LABEL, PACKAGE_COLLECTION, LOCK_COLLECTION
+    global ARTIFACT_TYPE, ARTIFACT_LABEL, PACKAGE_COLLECTION
     global \
         LIFECYCLE_PHASE, \
         INITIAL_STATUS, \
         INITIAL_READINESS, \
         GENERATED_BY, \
-        MUTATION_POLICY
+        MUTATION_POLICY, \
+        CREATE_METADATA_HOOK
 
     SKILL_ROOT = skill_root.resolve()
     SCHEMA_ROOT = metadata_schema_path.resolve().parent
@@ -223,12 +213,12 @@ def configure_contract(
     ARTIFACT_TYPE = artifact_type
     ARTIFACT_LABEL = artifact_label
     PACKAGE_COLLECTION = package_collection
-    LOCK_COLLECTION = lock_collection
     LIFECYCLE_PHASE = lifecycle_phase
     INITIAL_STATUS = initial_status
     INITIAL_READINESS = copy.deepcopy(initial_readiness)
     GENERATED_BY = generated_by
     MUTATION_POLICY = copy.deepcopy(mutation_policy)
+    CREATE_METADATA_HOOK = create_metadata_hook
     shared = structural_schema_root.resolve()
     SCHEMA_PATHS = {
         "metadata": metadata_schema_path.resolve(),
@@ -603,30 +593,6 @@ def copy_file_atomically(source: Path, target: Path) -> None:
         temporary_path.unlink(missing_ok=True)
 
 
-@contextmanager
-def package_lock(package: Path, timeout: float = 10.0) -> Iterable[None]:
-    project_root = package_project_root(package)
-    lock_root = project_root / ".agent-factory" / "runtime" / "locks" / LOCK_COLLECTION
-    lock_root.mkdir(parents=True, exist_ok=True)
-    lock_path = lock_root / f"{package.name}.lock"
-    with lock_path.open("a+b") as handle:
-        deadline = time.monotonic() + timeout
-        while True:
-            try:
-                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except BlockingIOError:
-                if time.monotonic() >= deadline:
-                    raise ManagerError(
-                        f"timed out waiting for {ARTIFACT_LABEL} package lock: {package.name}"
-                    )
-                time.sleep(0.05)
-        try:
-            yield
-        finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
-
-
 def recover_transaction_with_descriptor(package_fd: int) -> None:
     if not relative_file_exists(package_fd, JOURNAL_PATH):
         remove_tree_relative(package_fd, MANAGER_PATH / "transactions")
@@ -809,16 +775,162 @@ def reject_actual_style(value: Any, location: str = "content") -> None:
             reject_actual_style(child, location)
 
 
+def parse_data_path(value: str) -> list[str]:
+    if not value.startswith("/") or value == "/":
+        raise ManagerError(f"data path must be a non-root JSON Pointer: {value}")
+    return [part.replace("~1", "/").replace("~0", "~") for part in value[1:].split("/")]
+
+
+def assign_data_path(root: Any, path: str, value: Any) -> None:
+    parts = parse_data_path(path)
+    current = root
+    for index, part in enumerate(parts):
+        last = index == len(parts) - 1
+        next_is_index = not last and parts[index + 1].isdigit()
+        if isinstance(current, list):
+            if not part.isdigit():
+                raise ManagerError(f"list data path segment must be an index: {path}")
+            position = int(part)
+            while len(current) <= position:
+                current.append(None)
+            if last:
+                if current[position] is not None:
+                    raise ManagerError(f"data path is assigned more than once: {path}")
+                current[position] = value
+                return
+            if current[position] is None:
+                current[position] = [] if next_is_index else {}
+            current = current[position]
+            continue
+        if not isinstance(current, dict):
+            raise ManagerError(f"data path crosses a scalar value: {path}")
+        if last:
+            if part in current:
+                raise ManagerError(f"data path is assigned more than once: {path}")
+            current[part] = value
+            return
+        if part not in current:
+            current[part] = [] if next_is_index else {}
+        current = current[part]
+
+
+def add_data_arguments(command: argparse.ArgumentParser) -> None:
+    """Accept typed semantic data while keeping JSON construction manager-owned."""
+    command.add_argument("--value-string")
+    command.add_argument("--value-integer", type=int)
+    command.add_argument("--value-number", type=float)
+    command.add_argument("--value-boolean", choices=["true", "false"])
+    command.add_argument("--value-null", action="store_true")
+    command.add_argument(
+        "--string",
+        dest="data_strings",
+        action="append",
+        nargs=2,
+        metavar=("PATH", "VALUE"),
+    )
+    command.add_argument(
+        "--integer",
+        dest="data_integers",
+        action="append",
+        nargs=2,
+        metavar=("PATH", "VALUE"),
+    )
+    command.add_argument(
+        "--number",
+        dest="data_numbers",
+        action="append",
+        nargs=2,
+        metavar=("PATH", "VALUE"),
+    )
+    command.add_argument(
+        "--boolean",
+        dest="data_booleans",
+        action="append",
+        nargs=2,
+        metavar=("PATH", "true|false"),
+    )
+    command.add_argument("--null", dest="data_nulls", action="append", metavar="PATH")
+    command.add_argument(
+        "--string-list",
+        dest="data_string_lists",
+        action="append",
+        nargs="+",
+        metavar=("PATH", "VALUE"),
+    )
+    command.add_argument(
+        "--empty-object", dest="data_empty_objects", action="append", metavar="PATH"
+    )
+    command.add_argument(
+        "--empty-list", dest="data_empty_lists", action="append", metavar="PATH"
+    )
+
+
 def replacement_value(args: argparse.Namespace) -> Any:
-    value_file = getattr(args, "value_file", None)
-    value = getattr(args, "value", None)
-    if value_file is not None:
-        if value is not None:
-            raise ManagerError("provide either a JSON value or --value-file, not both")
-        return load_json(Path(value_file))
-    if value is None:
-        raise ManagerError("command requires a JSON value or --value-file")
-    return parse_json(value, "command argument")
+    scalar_values: list[Any] = []
+    if getattr(args, "value_string", None) is not None:
+        scalar_values.append(args.value_string)
+    if getattr(args, "value_integer", None) is not None:
+        scalar_values.append(args.value_integer)
+    if getattr(args, "value_number", None) is not None:
+        if not (float("-inf") < args.value_number < float("inf")):
+            raise ManagerError("scalar number data value must be finite")
+        scalar_values.append(args.value_number)
+    if getattr(args, "value_boolean", None) is not None:
+        scalar_values.append(args.value_boolean == "true")
+    if getattr(args, "value_null", False):
+        scalar_values.append(None)
+
+    operations: list[tuple[str, Any]] = []
+    operations.extend(
+        (path, value) for path, value in getattr(args, "data_strings", None) or []
+    )
+    for path, value in getattr(args, "data_integers", None) or []:
+        try:
+            operations.append((path, int(value)))
+        except ValueError as error:
+            raise ManagerError(
+                f"integer data value is invalid at {path}: {value}"
+            ) from error
+    for path, value in getattr(args, "data_numbers", None) or []:
+        try:
+            number = float(value)
+        except ValueError as error:
+            raise ManagerError(
+                f"number data value is invalid at {path}: {value}"
+            ) from error
+        if not (float("-inf") < number < float("inf")):
+            raise ManagerError(f"number data value must be finite at {path}: {value}")
+        operations.append((path, number))
+    for path, value in getattr(args, "data_booleans", None) or []:
+        if value not in {"true", "false"}:
+            raise ManagerError(
+                f"boolean data value must be true or false at {path}: {value}"
+            )
+        operations.append((path, value == "true"))
+    operations.extend((path, None) for path in getattr(args, "data_nulls", None) or [])
+    for values in getattr(args, "data_string_lists", None) or []:
+        if len(values) < 2:
+            raise ManagerError("--string-list requires a path and at least one value")
+        operations.append((values[0], values[1:]))
+    operations.extend(
+        (path, {}) for path in getattr(args, "data_empty_objects", None) or []
+    )
+    operations.extend(
+        (path, []) for path in getattr(args, "data_empty_lists", None) or []
+    )
+
+    if len(scalar_values) > 1 or scalar_values and operations:
+        raise ManagerError(
+            "provide exactly one scalar value or one structured data value"
+        )
+    if scalar_values:
+        return scalar_values[0]
+    if not operations:
+        raise ManagerError("command requires typed data arguments")
+    root: Any = [] if parse_data_path(operations[0][0])[0].isdigit() else {}
+    for path, value in operations:
+        assign_data_path(root, path, value)
+    return root
 
 
 def load_metadata(package: Path) -> dict[str, Any]:
@@ -1352,6 +1464,8 @@ def command_create(args: argparse.Namespace) -> None:
     }
     if INITIAL_READINESS is not None:
         metadata["readiness"] = copy.deepcopy(INITIAL_READINESS)
+    if CREATE_METADATA_HOOK is not None:
+        CREATE_METADATA_HOOK(args, metadata, current_profile)
     try:
         (staging_package / SECTIONS_PATH).mkdir(parents=True)
         (staging_package / "blocks").mkdir()
@@ -1802,16 +1916,14 @@ def parser() -> argparse.ArgumentParser:
     )
     metadata_set.add_argument("package")
     metadata_set.add_argument("field")
-    metadata_set.add_argument("value", nargs="?")
-    metadata_set.add_argument("--value-file")
+    add_data_arguments(metadata_set)
     metadata_set.set_defaults(handler=command_metadata_set)
 
     section_put = commands.add_parser(
         "section-put", help="replace an existing canonical section"
     )
     section_put.add_argument("package")
-    section_put.add_argument("value", nargs="?")
-    section_put.add_argument("--value-file")
+    add_data_arguments(section_put)
     section_put.set_defaults(handler=command_section_put)
 
     item_put = commands.add_parser(
@@ -1819,8 +1931,7 @@ def parser() -> argparse.ArgumentParser:
     )
     item_put.add_argument("package")
     item_put.add_argument("section_id")
-    item_put.add_argument("value", nargs="?")
-    item_put.add_argument("--value-file")
+    add_data_arguments(item_put)
     item_put.add_argument("--subsection")
     item_put.set_defaults(handler=command_section_item_put)
 
@@ -1830,8 +1941,7 @@ def parser() -> argparse.ArgumentParser:
     )
     items_put.add_argument("package")
     items_put.add_argument("section_id")
-    items_put.add_argument("value", nargs="?")
-    items_put.add_argument("--value-file")
+    add_data_arguments(items_put)
     items_put.add_argument("--subsection")
     items_put.set_defaults(handler=command_section_items_put)
 
@@ -1839,8 +1949,7 @@ def parser() -> argparse.ArgumentParser:
         "section-add", help="add a profile-declared optional section"
     )
     section_add.add_argument("package")
-    section_add.add_argument("value", nargs="?")
-    section_add.add_argument("--value-file")
+    add_data_arguments(section_add)
     position = section_add.add_mutually_exclusive_group()
     position.add_argument("--before")
     position.add_argument("--after")
@@ -1908,10 +2017,9 @@ def main() -> int:
             args.handler(args)
             return 0
         package = resolve_package(args.package, must_exist=args.command != "create")
-        with package_lock(package):
-            if package.exists():
-                recover_transaction(package)
-            args.handler(args)
+        if package.exists():
+            recover_transaction(package)
+        args.handler(args)
         return 0
     except ManagerError as error:
         sys.stderr.write(f"error: {error}\n")

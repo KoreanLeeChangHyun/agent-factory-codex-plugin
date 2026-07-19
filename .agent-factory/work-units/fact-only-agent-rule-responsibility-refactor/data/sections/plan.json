@@ -1,0 +1,27 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "Plan: validate the full Work Unit, inspect the two skills, metadata, active references, tests, and dedicated Git execution context."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Work: add a focused failing ownership contract test, then make the minimum skill and metadata edits required to pass it."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "AI Review: inspect the diff for duplicated fact ownership, broken routing, changed names or paths, and scope expansion."
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": "Report: register verification and review evidence, prepare the Human checklist and review method, and leave approval and merge decisions to the Human."
+    }
+  ],
+  "subsections": []
+}

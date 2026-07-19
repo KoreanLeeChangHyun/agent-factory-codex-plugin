@@ -43,8 +43,7 @@ Read `lifecycle/references/lifecycle.md`,
 - Do not manually edit the manager-owned table of contents or block index.
 - Use registered `blocks/**` for large logs, screenshots, and other non-JSON
   evidence. Passing review evidence must be non-empty and registered.
-- The manager serializes mutations with a project-runtime package lock,
-  increments `documentVersion` once per mutation, and recovers interrupted
+- The manager increments `documentVersion` once per mutation and recovers interrupted
   transactions from `.manager/transaction.json`.
 - Existing incompatible data need not be rewritten or accepted by v4. Never
   relabel incompatible storage as a conforming package.
@@ -96,7 +95,8 @@ is invalid. TOC array order owns document order.
 The manager supports schema checks, creation, focused/full display, title and
 metadata replacement, single/batch section item updates, optional section
 management, block registration/removal, validation, and lifecycle transitions.
-Prefer `--value-file` for large JSON values. See
+Supply only typed semantic data arguments; the shared manager constructs and
+serializes JSON. Never compose JSON strings or temporary JSON value files. See
 `references/work-unit-structure.md` for exact examples and validation gates.
 
 ## Output

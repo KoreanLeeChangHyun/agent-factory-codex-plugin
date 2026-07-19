@@ -24,6 +24,12 @@ metadata and rejects unknown or mismatched profiles as `profile-unresolved`.
 The former custom manifest layout remains nonconforming and has no implicit
 migration path.
 
+The lifecycle-owned sectioned-document engine is the only document skeleton
+and JSON serialization owner. `scripts/specification.py` remains the
+Specification controller for profile selection and semantic validation. Supply
+only typed semantic data arguments to mutation commands; never compose JSON
+strings or temporary JSON value files.
+
 ## Rules
 
 - Treat only explicit user statements, Project Core contents, Design Document

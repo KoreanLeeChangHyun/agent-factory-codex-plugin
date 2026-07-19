@@ -1,0 +1,32 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "intake, work-unit, specification에서 JSON 생성 주체는 스크립트이고 LLM은 데이터만 제공하도록 즉시 수정한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "공통 골격 생성기가 canonical JSON을 생성하고 별도 artifact controller가 각 lifecycle과 의미 규칙을 유지한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "공통 엔진에만 문서 골격 생성 구현이 존재한다.",
+          "JSON 문자열 및 JSON value-file 입력을 받지 않는다.",
+          "Intake, Work Unit, Specification 회귀 테스트가 통과한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

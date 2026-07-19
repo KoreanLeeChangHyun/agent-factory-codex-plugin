@@ -1,0 +1,31 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted-by-human",
+        "decision": "공통 골격 생성기 하나와 artifact별 controller를 유지한다."
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "status": "emergency-bootstrap-approved",
+        "decision": "치명적 JSON ownership 결함은 즉시 수정하고 새 typed data 경계로 lifecycle 기록을 작성한다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "blocking": false,
+        "items": []
+      }
+    }
+  ],
+  "subsections": []
+}

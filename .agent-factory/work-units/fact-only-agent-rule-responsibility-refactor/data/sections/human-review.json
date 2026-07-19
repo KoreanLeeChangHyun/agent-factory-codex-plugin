@@ -1,0 +1,39 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": [
+        "fact-only가 사실 판단과 불명확성 하드 게이트를 완전하게 유지하는지 확인합니다.",
+        "agent-rule에서 같은 사실 근거와 가정 금지 규칙이 중복 소유되지 않는지 확인합니다.",
+        "agent-rule의 비판적 검토, 엔지니어링, 안전, 검증 규칙이 보존됐는지 확인합니다.",
+        "두 스킬 이름·경로·implicit invocation 및 Interview Decision Gate 경로가 유지되는지 확인합니다.",
+        "검증 증거와 변경 파일 범위를 확인합니다."
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "두 SKILL.md와 agents/openai.yaml의 diff를 비교합니다.",
+          "focused ownership test와 skill validation 증거를 확인합니다.",
+          "승인 또는 rework를 결정합니다. merge와 PR promotion은 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

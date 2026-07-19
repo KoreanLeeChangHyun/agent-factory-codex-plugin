@@ -83,6 +83,10 @@ class DocumentProfileTests(unittest.TestCase):
         )
 
         self.assertTrue(common_manager.is_file())
+        common_source = common_manager.read_text(encoding="utf-8")
+        self.assertEqual(common_source.count("def command_create("), 1)
+        self.assertIn("def add_data_arguments(", common_source)
+        self.assertNotIn("--value-file", common_source)
         self.assertEqual(
             {path.name for path in common_schemas.glob("*.schema.json")},
             {
@@ -96,6 +100,8 @@ class DocumentProfileTests(unittest.TestCase):
             source = manager.read_text(encoding="utf-8")
             self.assertIn("sectioned_document.py", source)
             self.assertIn("configure_contract", source)
+            self.assertNotIn("def command_create(", source)
+            self.assertNotIn("--value-file", source)
             self.assertNotIn("INTAKE_MANAGER", source)
             if manager in (intake_manager, specification_manager):
                 artifact_schema_root = manager.parents[1] / "assets" / "schema"

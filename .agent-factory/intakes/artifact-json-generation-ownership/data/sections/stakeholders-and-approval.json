@@ -1,0 +1,31 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholders": [
+          "Agent Factory 사용자",
+          "artifact manager 유지보수자"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "긴급 부트스트랩 수정 진행은 Human이 승인했으며 최종 review와 merge는 Human이 결정한다."
+      }
+    }
+  ],
+  "subsections": []
+}

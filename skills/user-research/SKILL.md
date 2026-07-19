@@ -65,9 +65,12 @@ Apply an item and validate with:
 
 ```text
 python3 <agent-factory-skills-root>/intake/scripts/intake.py section-item-put \
-  <package> evidence-and-findings --value-file <item.json>
+  <package> evidence-and-findings <typed-data-arguments>
 python3 <agent-factory-skills-root>/intake/scripts/intake.py validate <package>
 ```
+
+The manager constructs JSON from the typed data arguments. Do not create a
+JSON value file.
 
 Resolve the sibling manager from the installed Plugin skills root as
 `<agent-factory-skills-root>/intake/scripts/intake.py`. Do not resolve it

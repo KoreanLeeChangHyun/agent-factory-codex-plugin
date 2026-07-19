@@ -93,8 +93,9 @@ Each `web-evidence` item records `title`, `url`, `authorityTier`, `freshness`,
 cross-source recommendations, assumptions, conflicts, and open items in their
 owning Intake sections.
 
-Apply it with `section-item-put <package> evidence-and-findings --value-file
-<item.json>`, then run `validate`.
+Apply it with `section-item-put <package> evidence-and-findings` and typed data
+arguments, then run `validate`. The manager constructs JSON; do not create a
+JSON value file.
 
 ## Output
 

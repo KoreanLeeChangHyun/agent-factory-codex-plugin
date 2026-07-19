@@ -1,0 +1,32 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "aligned",
+        "reason": "common document contract와 artifact skill 문서를 JSON ownership 결정에 맞게 갱신했다."
+      },
+      "attributes": {
+        "status": "aligned"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "공통 JSON 생성 engine과 artifact별 controller 경계를 구현하고 회귀 검증한다.",
+        "expectedOutputs": [
+          "single common skeleton creation implementation",
+          "typed semantic data CLI",
+          "artifact-specific lifecycle controllers",
+          "updated tests and skill contracts"
+        ],
+        "executionOrder": 1
+      }
+    }
+  ],
+  "subsections": []
+}

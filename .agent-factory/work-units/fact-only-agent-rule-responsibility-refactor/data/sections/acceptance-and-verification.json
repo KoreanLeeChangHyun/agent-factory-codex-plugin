@@ -1,0 +1,59 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "fact-only remains the always-applied hard gate and owns allowed fact sources, ambiguity handling, Evidence Labels, Interview Decision Gate use, and reporting boundaries.",
+        "agent-rule explicitly applies fact-only and does not independently redefine the allowed fact-source list or generic no-assumption hard stop.",
+        "agent-rule retains critical thinking, engineering principles, lifecycle, intent confirmation, change safety, runtime restart safety, frontend verification, security boundary, and Agent Factory state-model rules.",
+        "both skill names, directories, implicit invocation policies, and the Interview Decision Gate path remain unchanged.",
+        "active routing and metadata descriptions match the clarified ownership.",
+        "no historical artifact or unrelated product file is rewritten."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "a focused regression test encodes the responsibility boundary",
+        "the focused test fails before implementation and passes afterward",
+        "skill metadata tests and quick skill validation pass",
+        "active-reference search and git diff checks pass",
+        "AI review evidence and Human review material are recorded"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m unittest skills.lifecycle.tests.test_skill_metadata",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/fact-only",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/agent-rule",
+          "rg -n 'fact-only|agent-rule' skills -g '*.md' -g '*.yaml'",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "focused ownership regression result",
+          "skill validation result",
+          "active reference review",
+          "diff scope review"
+        ]
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

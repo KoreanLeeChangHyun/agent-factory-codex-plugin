@@ -1,0 +1,39 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "이번 변경은 기존 Agent Factory 스킬의 책임 중복을 정리하며 Project Core 또는 별도 Specification의 목적, 범위, 승인 경계를 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "fact-only와 agent-rule의 중복 책임을 제거하고 사실 판단과 사실 기반 행동의 소유 경계를 명확히 한다.",
+        "scope": [
+          "두 SKILL.md의 책임 재정리",
+          "두 agents/openai.yaml 설명 정합화",
+          "필요한 활성 skill 라우팅 및 참조 정합화",
+          "관련 테스트와 정적 검증"
+        ],
+        "outOfScope": [
+          "스킬 이름 또는 경로 변경",
+          "Interview Decision Gate 경로 변경",
+          "lifecycle 단계 변경",
+          "역사적 artifact 재작성",
+          "commit, merge, PR promotion"
+        ],
+        "executionOrder": 1
+      }
+    }
+  ],
+  "subsections": []
+}

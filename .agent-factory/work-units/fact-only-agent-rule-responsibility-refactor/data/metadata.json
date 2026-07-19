@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "4.0.0",
+  "documentVersion": "1.0.11",
+  "id": "fact-only-agent-rule-responsibility-refactor",
+  "artifactType": "work-unit",
+  "projectId": "agent-factory-codex-plugins",
+  "lifecycle": {
+    "phase": "work-unit",
+    "status": "ready"
+  },
+  "createdAt": "2026-07-18T16:19:15+00:00",
+  "updatedAt": "2026-07-18T16:22:19+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory work-unit manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "intakeTraceabilityValid": true,
+    "definitionComplete": true,
+    "executionContextComplete": true,
+    "verificationPlanComplete": true,
+    "reviewedAt": "2026-07-19T01:21:58+09:00",
+    "findings": []
+  }
+}

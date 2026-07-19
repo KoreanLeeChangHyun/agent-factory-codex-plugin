@@ -1,0 +1,24 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "fact-only-agent-rule-responsibility-refactor",
+        "objective": "Execute the approved Fact Only and Agent Rule responsibility refactor Work Unit.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins-worktrees/fact-only-agent-rule-responsibility-refactor \"Execute Work Unit fact-only-agent-rule-responsibility-refactor.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "bf4ca264ae60d76eb5646a346a56a802bd9e7ce0",
+        "branch": "work-unit/fact-only-agent-rule-responsibility-refactor",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins-worktrees/fact-only-agent-rule-responsibility-refactor",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

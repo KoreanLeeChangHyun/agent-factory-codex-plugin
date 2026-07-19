@@ -1,0 +1,31 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "Human은 완전 병합 대신 두 스킬을 유지하고 중복 책임만 제거하는 방향을 승인했다."
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "fact-only는 사실 판단 규칙의 소유자이고 agent-rule은 사실 기반 행동 규칙의 소유자로 정리한다."
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-items-status",
+      "content": "차단 미결정 1건: OPEN-002"
+    },
+    {
+      "id": "OPEN-002",
+      "kind": "open-item",
+      "content": "External evidence supports retaining an explicit fact, evidence, uncertainty, and ambiguity boundary and supports removing duplicated instructions, but it does not establish that this boundary must remain a standalone fact-only skill. Human must decide whether to preserve the existing two-skill packaging decision or evaluate lifecycle or AGENTS.md placement as an alternative.",
+      "attributes": {
+        "blocking": true,
+        "resolved": false
+      }
+    }
+  ],
+  "subsections": []
+}

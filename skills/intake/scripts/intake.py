@@ -38,7 +38,6 @@ base.configure_contract(
     artifact_type="intake",
     artifact_label="Intake",
     package_collection="intakes",
-    lock_collection="intakes",
     lifecycle_phase="intake",
     initial_status="draft",
     initial_readiness={

@@ -136,8 +136,7 @@ validation and reading; it deliberately does not parse unrelated section
 content, so it never replaces package-level `validate`.
 The manager streams block copies and hashes instead of loading complete block
 files into memory. Batch large same-section updates with `section-items-put`.
-Project-runtime file locking prevents lost concurrent revisions, and a package
-recovery journal protects multi-file commits. Keep the title, metadata, and
+The package recovery journal protects multi-file commits. Keep the title, metadata, and
 table of contents small.
 
 If one section becomes difficult to scan, first divide it into one level of
