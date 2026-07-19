@@ -132,6 +132,32 @@ class DocumentProfileTests(unittest.TestCase):
         self.assertIn("without copying", combined)
         self.assertIn("owns the exact common and", specification)
 
+    def test_design_report_is_an_external_view_not_stored_files(self) -> None:
+        specification = (SKILLS / "specification" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        lifecycle = (SKILLS / "lifecycle" / "references" / "lifecycle.md").read_text(
+            encoding="utf-8"
+        )
+        combined = specification + lifecycle
+        for obsolete in (
+            "Use optional derived `report/`",
+            "Design Report is the Human-facing HTML/CSS/JavaScript design artifact",
+            "Produce or update the Human-facing Design Report rendering",
+        ):
+            self.assertNotIn(obsolete, combined)
+        self.assertIn("separate Chrome extension", specification)
+        self.assertIn(
+            "Design Report is not a stored HTML, CSS, or JavaScript artifact", lifecycle
+        )
+        for forbidden_path in (
+            "`report/`",
+            "`report/index.html`",
+            "`report/styles.css`",
+            "`report/script.js`",
+        ):
+            self.assertIn(forbidden_path, combined)
+
     def test_specification_profiles_share_only_the_accepted_common_sections(
         self,
     ) -> None:

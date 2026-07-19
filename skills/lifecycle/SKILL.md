@@ -72,12 +72,14 @@ requirements, feedback, or evidence changes it. Implementation and other scoped
 delivery artifact writing belongs to Work Unit Execution.
 
 Every Agent Factory task must pass through Intake -> Work Unit -> Execution ->
-Review, including analysis, research, Design Document work, Design Report work,
-document work, code work, verification, operation, and maintenance.
+Review, including analysis, research, Design Document work, Design Report review
+through the external viewer, document work, code work, verification, operation,
+and maintenance.
 
 Detailed lifecycle rules are in `references/lifecycle.md`. Read that reference
-when creating or updating Project Core, Design Report, Work Units, execution
-records, review output files, or handoff material.
+when creating or updating Project Core, Specification data shown in the Design
+Report viewer, Work Units, execution records, review output files, or handoff
+material.
 
 ## Lifecycle Entry
 
@@ -94,8 +96,9 @@ Use these routes:
 
 - New project start: complete a canonical Intake, transition it to `ready`, and
   create Work Units from its accepted basis. Create or update Specification,
-  Project Core, Design Document, or Design Report only when the Intake impact
-  decision and Work Unit scope require those outputs.
+  Project Core, or Design Document only when the Intake impact decision and Work
+  Unit scope require those outputs. The separate Chrome extension derives the
+  Design Report view from canonical Specification JSON.
 - In-progress project adoption: collect the current project baseline through
   Intake, validate specification alignment, transition Intake to `ready`, and
   create Work Units only from its Work Unit basis entries.
@@ -193,9 +196,9 @@ Use these routes:
   the Human before editing.
 - Do not create executable Work Units from vague ideas or unvalidated notes.
   Create them from a canonical Intake package whose status is `ready`; that
-  package may incorporate Design Report content, Human requests, Goal records,
-  rework, operation, maintenance, repository evidence, runtime evidence, or
-  review evidence.
+  package may incorporate canonical Specification references, Human requests,
+  Goal records, rework, operation, maintenance, repository evidence, runtime
+  evidence, or review evidence.
 - Before implementation, migration, cleanup, or artifact-writing work, create or
   update the relevant Work Unit unless the user explicitly asks to bypass the
   lifecycle.

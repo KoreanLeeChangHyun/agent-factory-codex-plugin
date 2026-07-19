@@ -67,9 +67,10 @@ Promotion and operations:
 ```
 
 All Agent Factory work follows Intake -> Work Unit -> Execution -> Review.
-This includes analysis, research, Design Document work, Design Report work,
-document work, code changes, verification, operation, maintenance, and other
-artifacts. Execution includes AI review. Review means Human review.
+This includes analysis, research, Design Document work, Design Report review
+through the external viewer, document work, code changes, verification,
+operation, maintenance, and other artifacts. Execution includes AI review.
+Review means Human review.
 
 Intake checks and updates relevant specification source so accepted
 requirements, feedback, and evidence remain aligned before Work Unit planning.
@@ -96,12 +97,14 @@ baseline.
 - Check or update the relevant specification during Intake.
 - Create Work Units from the accepted Intake basis.
 - Use those Work Units during Execution to create a canonical Project Core
-  package when absent and the scoped Specification or Design Report output.
-  Governed Specifications reference Project Core without copying its content;
-  a Design Report may render the resolved relation as a read-only top view.
+  package when absent and the scoped Specification output. Governed
+  Specifications reference Project Core without copying its content; the
+  separate Chrome extension Design Report viewer may render the resolved
+  relation as a read-only top view.
 - Treat the baseline as minimal unless the Human provides more facts.
-- Expand Design Report detail only from explicit facts and approved decisions.
-- When the Design Report covers later implementation, record it as a
+- Expand the canonical Specification detail shown by the Design Report viewer
+  only from explicit facts and approved decisions.
+- When the canonical Specification covers later implementation, record it as a
   specification input to a new Intake, transition that Intake to `ready`, and
   create the implementation Work Units from its accepted basis.
 
@@ -117,12 +120,13 @@ exist.
 - Check or update the relevant specification and use only a `ready` Intake as
   explicit basis for Work Units.
 - Use those Work Units during Execution to update Project Core, Design Document,
-  Design Report, implementation, review, or maintenance output within their scope.
+  implementation, review, or maintenance output within their scope.
 - During Execution, update Project Core only when purpose, principles, scope,
   approval boundaries, or unresolved items change.
-- Record an updated Design Report as a specification reference in Intake when
-  it covers the work. Work Unit basis always comes from the validated `ready`
-  Intake, which preserves that specification reference and result.
+- Record the updated canonical Specification package as a specification
+  reference in Intake when it covers the work. Work Unit basis always comes
+  from the validated `ready` Intake, which preserves that specification
+  reference and result.
 
 ### Ending Or Release-Handoff Adoption
 
@@ -135,9 +139,9 @@ handed off.
 - Transition the final-state Intake to `ready`, then create Work Units only
   from its approved finalization, verification, rework, deliverable, release,
   or handoff basis entries.
-- Use those Work Units during Execution to update Project Core, Design Document,
-  or Design Report when the approved finalization, rework, release, or handoff
-  scope requires artifact changes.
+- Use those Work Units during Execution to update Project Core or Design
+  Document when the approved finalization, rework, release, or handoff scope
+  requires artifact changes.
 - Keep Work Unit Outputs separate from customer-facing Customer Deliverables.
 - Leave release, deployment, operation, and promotion decisions to the Human.
 
@@ -153,7 +157,7 @@ documentation, or maintenance work.
   verification, operation, or documentation tasks when the canonical Intake is
   ready.
 - Use those Work Units during Execution to update Project Core, Design Document,
-  Design Report, implementation, or operational documentation within their scope.
+  implementation, or operational documentation within their scope.
 - Return new operation or maintenance requests to Intake.
 
 ## Named Work Unit Goal Execution
@@ -198,7 +202,8 @@ For in-progress, ending, release-handoff, maintenance, or operations adoption,
 collect only explicit baseline facts that are relevant to the request:
 
 - Project purpose and current status.
-- Existing Design Report, Project Core, Work Units, outputs, and deliverables.
+- Existing Specification packages, Project Core, Work Units, outputs, and
+  deliverables.
 - Current repository structure and important source paths.
 - Documents, diagrams, decisions, and known constraints.
 - Commands, tests, runtime, deployment, and verification status.
@@ -234,11 +239,14 @@ Deliverables.
   `<project-root>/.agent-factory/specifications/project-core/` package.
 - Project Core contains purpose, core principles, scope, Human approval
   boundaries, and unresolved items.
-- Design Report is the Human-facing HTML/CSS/JavaScript design artifact.
-- Design Report renders detailed Specification data and may render its resolved
-  `governed-by` Project Core relation without copying canonical content.
-- Design Report may be an expected Work Unit output or a specification input to
-  a later Intake. It is not a direct Work Unit basis.
+- Design Report is a Human-facing view rendered by a separate Chrome extension
+  from validated canonical Specification JSON.
+- Design Report is not a stored HTML, CSS, or JavaScript artifact. Specification
+  packages must not contain `report/`, `report/index.html`, `report/styles.css`,
+  or `report/script.js` derived viewer files.
+- The Chrome extension may render a resolved `governed-by` Project Core relation
+  without copying canonical content. Intake and Work Unit traceability reference
+  the canonical Specification package, not the derived Design Report view.
 - Work Units are stored under `<project-root>/.agent-factory/work-units/<id>/`.
 - Work Unit Outputs are internal and separate from customer-facing Customer
   Deliverables.
@@ -270,9 +278,9 @@ JavaScript are optional derived rendering and never replace canonical JSON.
 - The Human decides approval, rework, rejection, merge, PR promotion,
   deployment, operation, and maintenance approval boundaries.
 - AI work must remain traceable from the ready Intake and selected Work Unit
-  basis through every applicable Project Core, Specification, or Design Report
-  reference to the Work Unit and review output. Do not invent a Specification
-  or Design Report link when Intake records it as not applicable.
+  basis through every applicable Project Core or Specification reference to the
+  Work Unit and review output. Do not invent a Specification link when Intake
+  records it as not applicable.
 - Work Unit traceability must point to its ready Intake package, the selected
   Work Unit basis entry, and the source evidence or specification references
   recorded there.

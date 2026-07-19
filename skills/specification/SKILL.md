@@ -1,19 +1,20 @@
 ---
 name: specification
-description: Use when checking, creating, or updating Project Core, specification or Design Document source, or Human-facing Design Reports during Agent Factory Intake or scoped Execution. Keeps accepted requirements and evidence aligned with canonical specification JSON.
+description: Use when checking, creating, or updating Project Core, specification or Design Document source consumed by the external Human-facing Design Report viewer during Agent Factory Intake or scoped Execution. Keeps accepted requirements and evidence aligned with canonical specification JSON.
 ---
 
 # Design Documents Convention
 
 Use this skill to create or update Agent Factory design documents, including
-Project Core and the Human-facing Design Report rendering.
+Project Core and the canonical Specification JSON consumed by the separate
+Chrome extension Design Report viewer.
 
 This is an Agent Factory skill for Codex CLI use in target projects and in
 this repository.
 
 Treat `lifecycle/references/lifecycle.md` as the canonical
 lifecycle sequence. The adoption summaries here apply that sequence only to
-Design Document and Design Report work.
+Design Document work and Design Report review through the external viewer.
 
 Read `lifecycle/references/common-document-contract.md` and resolve one
 versioned profile from `assets/profiles/*.profile.json` before claiming a
@@ -43,8 +44,8 @@ strings or temporary JSON value files.
 - Do not infer missing project requirements.
 - Do not add requirements that are not in the user statements, Project Core, or
   accepted Design Document basis.
-- If required information is missing, ask before writing Project Core, Design
-  Document content, or Design Report content.
+- If required information is missing, ask before writing Project Core or Design
+  Document content.
 - Create Design Document content through Human interview decisions or explicit
   accepted basis. Do not infer missing requirements into the Design Document.
 - Project Core is the single canonical
@@ -86,28 +87,29 @@ strings or temporary JSON value files.
 - Record Design Document source material under the target project's current
   Design Document package. For this repository, the current package is
   `<project-root>/.agent-factory/specifications/agent-factory/`.
-- Register source material that explains the Specification or rendered Design
-  Report under `blocks/reference/**`.
+- Register source material that explains the Specification under
+  `blocks/reference/**`.
 - Register canonical diagram source and diagram artifacts under
   `blocks/diagram/**` when diagrams are authored.
-- Use `diagram` for diagram type choice, source model, JavaScript
-  renderer choice, diagram review, rendering boundaries, and diagram-specific
-  storage or metadata rules.
-- Use optional derived `report/` for Human-facing rendered Design Report files:
-  `index.html`, `styles.css`, and `script.js`.
+- Use `diagram` for diagram type choice, canonical source model, diagram review,
+  and diagram-specific storage or metadata rules. The separate Chrome extension
+  owns viewer rendering behavior.
 - Diagram metadata belongs in Design Document source data or in the diagram
   artifact's own metadata. Do not create `INDEX.md` files for diagrams.
-- Represent the Human-facing Design Report rendering with HTML/CSS/JavaScript
-  generated from the Specification data. The renderer reads metadata, title,
-  table of contents, and section JSON files; rendered HTML/CSS/JavaScript is
-  not the source of truth.
-- Make the Design Report suitable for Human review.
+- Treat the Design Report as a Human-facing view that the separate Chrome
+  extension derives from validated canonical Specification JSON. Do not create
+  `report/`, `report/index.html`, `report/styles.css`, `report/script.js`, or any
+  other derived HTML, CSS, or JavaScript viewer files in a Specification
+  package.
+- Keep the canonical Specification data suitable for Human review through the
+  external viewer. The viewer's loading protocol and implementation remain
+  outside this skill unless the Human explicitly scopes that separate project.
 - Keep the Design Document detailed enough to transform into executable Work
   Units.
 - Keep customer-facing deliverables separate from internal Work Unit outputs.
 - Prefer AI-readable text sources for diagrams and keep diagram source
   traceable.
-- Check every Design Document or Design Report against
+- Check every Design Document against
   `<project-root>/.agent-factory/specifications/agent-factory/blocks/reference/source/software-design-document-essential-elements.md`
   when that file exists in the target project.
 - Record unspecified items explicitly.
@@ -131,9 +133,9 @@ During Work Unit Execution, when a new requirement changes design artifacts:
 1. Check whether it changes Project Core.
 2. If it changes project purpose, core principles, scope, approval boundaries,
    or unresolved items, update Project Core first.
-3. Then update the detailed Design Document and Design Report rendering.
+3. Then update the detailed Design Document JSON.
 4. If it does not change Project Core, update only the relevant Design Document
-   and Design Report detail.
+   JSON. The external viewer derives the Design Report view from that source.
 
 ## Project Timing
 
@@ -146,9 +148,10 @@ be replaced with an empty Specification package.
 
 For a new project, collect explicit Human facts in Intake and resolve
 Specification status. Transition Intake to `ready` and create a Work Unit from
-its basis. Create a Design Document, Design Report, or minimal Project Core only
-when the recorded impact requires it and the Work Unit names it as expected
-output.
+its basis. Create a Design Document or minimal Project Core only when the
+recorded impact requires it and the Work Unit names it as expected output. The
+external viewer derives the Design Report view from the resulting canonical
+Specification JSON.
 
 ### In-Progress Project Adoption
 
@@ -156,8 +159,8 @@ For in-progress project adoption, collect baseline reference material first:
 structure, documents, commands, tests, runtime, deployment, known constraints,
 open work, and unresolved decisions when explicitly available. Record them in
 Intake, transition it to `ready`, then create a Work Unit from its basis. During
-that Work Unit's Execution, perform the scoped Project Core, Design Document,
-or Design Report update.
+that Work Unit's Execution, perform the scoped Project Core or Design Document
+update.
 
 ### Ending Or Release-Handoff Adoption
 
@@ -179,11 +182,12 @@ request changes purpose, principles, scope, approval boundaries, or unresolved
 items and update the Design Document within the scoped operational impact.
 
 Do not treat any baseline as a replacement for Project Core, Design Document,
-Design Report, Work Units, Work Unit Outputs, or customer-facing deliverables.
+Work Units, Work Unit Outputs, or customer-facing deliverables.
 
-When a Design Document or Design Report exists, Intake records it as a
-specification reference. When it does not exist, Intake records the gap and its
-ready Work Unit basis may define a Work Unit whose output is that specification.
+When a Design Document exists, Intake records its canonical Specification
+package as a specification reference. When it does not exist, Intake records
+the gap and its ready Work Unit basis may define a Work Unit whose output is
+that specification.
 
 ## Required Profile Content
 
@@ -200,29 +204,32 @@ quality, diagrams, glossary, and Work Unit decomposition only when the resolved
 profile or accepted scope requires them. Record unresolved applicable content
 explicitly rather than inventing it.
 
-A Design Report renders the canonical Specification sections and resolved
-typed relations. Rendering a Project Core relation does not make Project Core
-a required copied section of every Specification.
+The separate Chrome extension renders the Design Report view from canonical
+Specification sections and resolved typed relations. Rendering a Project Core
+relation does not make Project Core a required copied section of every
+Specification.
 
 ## Handoff
 
-The Design Report is not the execution plan. It is Human-facing detailed design
-output generated from Design Document data. It can be produced or updated by a
-Work Unit and become a specification input to a later Intake. It is not a
-direct Work Unit basis.
+The Design Report is not a stored artifact or the execution plan. It is a
+Human-facing view derived at viewing time by the separate Chrome extension from
+canonical Design Document data. A Work Unit produces or updates the canonical
+Specification JSON, not Design Report HTML, CSS, or JavaScript. Intake and Work
+Unit traceability reference the canonical Specification package rather than the
+derived view.
 
-When a Design Document or Design Report does not yet exist or does not cover
-the request, Intake records and validates that gap. Its ready Work Unit basis
-can define a Work Unit whose expected output is the missing specification or
-Design Report work.
+When a Design Document does not yet exist or does not cover the request, Intake
+records and validates that gap. Its ready Work Unit basis can define a Work Unit
+whose expected output is the missing or incomplete Specification JSON.
 
 ## Output
 
 - Produce or update the single canonical Project Core package when it is in
   scope.
 - Produce or update the Design Document JSON source.
-- Produce or update the Human-facing Design Report rendering when needed.
-- Record and render the `governed-by` Project Core relation without copying
-  Project Core content into the governed Specification.
+- Do not produce Design Report HTML, CSS, or JavaScript; the separate Chrome
+  extension owns the Human-facing derived view.
+- Record the `governed-by` Project Core relation without copying Project Core
+  content into the governed Specification.
 - Summarize only the facts recorded.
 - List unresolved decisions separately.
