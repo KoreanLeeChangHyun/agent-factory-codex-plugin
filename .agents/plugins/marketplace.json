@@ -1,0 +1,21 @@
+{
+  "name": "agent-factory",
+  "interface": {
+    "displayName": "Agent Factory"
+  },
+  "plugins": [
+    {
+      "name": "agent-factory",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

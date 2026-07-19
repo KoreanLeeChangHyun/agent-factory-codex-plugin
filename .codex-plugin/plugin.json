@@ -1,10 +1,20 @@
 {
   "name": "agent-factory",
-  "version": "0.1.0+codex.20260716195047",
+  "version": "0.1.0+codex.20260719024355",
   "description": "Agent Factory lifecycle, specification, Work Unit, execution, review, and workspace integration skills.",
   "author": {
-    "name": "Agent Factory"
+    "name": "Agent Factory",
+    "url": "https://github.com/KoreanLeeChangHyun"
   },
+  "homepage": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",
+  "repository": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",
+  "license": "MIT",
+  "keywords": [
+    "agent-factory",
+    "codex",
+    "workflow",
+    "software-delivery"
+  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Factory",
@@ -12,6 +22,7 @@
     "longDescription": "Provides the shared Agent Factory skills for Intake, specifications, Work Units, execution, Human review, diagrams, and workspace integrations.",
     "developerName": "Agent Factory",
     "category": "Productivity",
+    "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",
     "capabilities": [
       "Workflow",
       "Write"

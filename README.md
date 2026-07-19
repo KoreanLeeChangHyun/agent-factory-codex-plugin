@@ -19,10 +19,19 @@ Intake, Work Unit, Execution, and Human Review lifecycle.
 
 ## Local installation
 
-Remote marketplace installation is not available yet. For local development,
-clone this repository and add a personal or repository marketplace entry that
-points to the clone as the `agent-factory` plugin source. Marketplace packaging
-for one-command remote installation is planned after the plugin stabilizes.
+Install the GitHub-backed marketplace and the plugin with Codex CLI:
+
+```bash
+codex plugin marketplace add KoreanLeeChangHyun/agent-factory-codex-plugin --ref main
+codex plugin add agent-factory@agent-factory
+```
+
+To pick up a published update:
+
+```bash
+codex plugin marketplace upgrade agent-factory
+codex plugin add agent-factory@agent-factory
+```
 
 The plugin manifest is located at `.codex-plugin/plugin.json`, and reusable
 workflows are under `skills/`.
