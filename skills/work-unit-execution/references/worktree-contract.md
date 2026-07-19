@@ -16,8 +16,13 @@ All commands require explicitly resolved values:
 | `--work-unit-id` | all | Work Unit id used to derive `work-unit/<work-unit-id>`. |
 | `--base` | `prepare` | Commit-ish that resolves to one commit. |
 | `--branch` | all | Optional resolved branch assertion; when present it must equal the derived branch. |
-| `--path` | all | Absolute linked worktree path. No fallback is generated. |
+| `--path` | all | Optional absolute path assertion. Omit it for the canonical `<repository>/.agent-factory/worktree/<work-unit-id>` path. A noncanonical value is accepted only for an already registered legacy worktree. |
 | `--human-decision approved` | `cleanup` | Explicit Human authorization to clean up the worktree. |
+
+New worktrees always use the repository-local canonical path. The repository
+must ignore `/.agent-factory/worktree/`. Existing registered external
+worktrees remain addressable through their explicitly recorded `--path` for
+reuse, inspection, and Human-approved cleanup.
 
 ## Output Contract
 
@@ -55,6 +60,7 @@ Every response uses schema version `1.0.0` and these top-level fields:
 The script performs no requested mutation when preflight validation returns:
 
 - `path_not_absolute`
+- `noncanonical_worktree_path`
 - `invalid_repository`
 - `repository_root_mismatch`
 - `invalid_base_ref`

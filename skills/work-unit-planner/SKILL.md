@@ -76,7 +76,8 @@ is invalid. TOC array order owns document order.
   items in canonical section items.
 - Record execution context with goal id, objective, exec invocation, execution
   agent, repository, base ref, dedicated `work-unit/<work-unit-id>` branch, and
-  absolute linked worktree path.
+  canonical absolute linked worktree path
+  `<repository>/.agent-factory/worktree/<work-unit-id>`.
 - `work-unit-execution` owns Git worktree and branch side effects. Planning must
   not create, remove, unlock, merge, or promote them.
 - Execute Plan -> Work -> AI Review -> Report. Code Work Units use TDD.

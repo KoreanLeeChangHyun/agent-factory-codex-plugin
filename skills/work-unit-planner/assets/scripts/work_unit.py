@@ -304,6 +304,19 @@ def validate_ready_semantics(package: Path) -> None:
     expected_branch = f"work-unit/{package.name}"
     if context["content"]["branch"] != expected_branch:
         raise ManagerError(f"execution context branch must equal {expected_branch}")
+    repository = context["content"]["repository"]
+    worktree_path = context["content"]["worktreePath"]
+    if not isinstance(repository, str) or not Path(repository).is_absolute():
+        raise ManagerError("execution context repository must be an absolute path")
+    if not isinstance(worktree_path, str) or not Path(worktree_path).is_absolute():
+        raise ManagerError("execution context worktreePath must be an absolute path")
+    expected_worktree_path = (
+        Path(os.path.abspath(repository)) / ".agent-factory" / "worktree" / package.name
+    )
+    if Path(os.path.abspath(worktree_path)) != expected_worktree_path:
+        raise ManagerError(
+            f"execution context worktreePath must equal {expected_worktree_path}"
+        )
     invocation = context["content"]["execInvocation"]
     if not isinstance(invocation, str) or not invocation.strip():
         raise ManagerError(

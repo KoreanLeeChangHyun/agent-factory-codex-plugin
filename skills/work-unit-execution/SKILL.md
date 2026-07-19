@@ -16,11 +16,15 @@ decision before running a command:
 - canonical repository root
 - base ref for `prepare`
 - Work Unit id; derive the dedicated branch as `work-unit/<work-unit-id>`
-- absolute linked worktree path
+- canonical linked worktree path, derived as
+  `<repository>/.agent-factory/worktree/<work-unit-id>`
 
 An execution context may also provide `--branch`; accept it only when it exactly
-matches the derived branch. Do not invent fallback paths, repository roots, or
-base refs. Ask the Human when a required value is absent or ambiguous.
+matches the derived branch. `--path` is an optional assertion for the canonical
+path and an explicit compatibility input for an already registered legacy
+worktree. Never create a new worktree outside the canonical root. Do not invent
+repository roots or base refs. Ask the Human when a required value is absent or
+ambiguous.
 
 Read `references/worktree-contract.md` before invoking the script or consuming
 its JSON result.
@@ -32,8 +36,9 @@ its JSON result.
    `codex exec` session, with the Work Unit identity and execution context
    explicitly resolved. Persistent Goal mode is not required for the
    `codex exec` route.
-3. Resolve the repository, base ref, Work Unit id, and worktree path. Derive the
-   branch as `work-unit/<work-unit-id>`.
+3. Resolve the repository, base ref, and Work Unit id. Derive the branch as
+   `work-unit/<work-unit-id>` and the worktree path as
+   `<repository>/.agent-factory/worktree/<work-unit-id>`.
 4. Run `scripts/worktree.py prepare` before editing when the linked worktree
    does not exist.
 5. Perform all scoped edits and verification inside the returned
@@ -66,20 +71,20 @@ values through a shell.
 python3 scripts/worktree.py prepare \
   --repository <absolute-repository-root> \
   --work-unit-id <work-unit-id> \
-  --base <commit-ish> \
-  --path <absolute-linked-worktree-path>
+  --base <commit-ish>
 
 python3 scripts/worktree.py inspect \
   --repository <absolute-repository-root> \
-  --work-unit-id <work-unit-id> \
-  --path <absolute-linked-worktree-path>
+  --work-unit-id <work-unit-id>
 
 python3 scripts/worktree.py cleanup \
   --repository <absolute-repository-root> \
   --work-unit-id <work-unit-id> \
-  --path <absolute-linked-worktree-path> \
   --human-decision approved
 ```
+
+Pass `--path <recorded-legacy-worktree-path>` only to reuse, inspect, or clean
+up a worktree that Git already registers outside the canonical root.
 
 ## Safety Boundary
 
@@ -87,8 +92,13 @@ python3 scripts/worktree.py cleanup \
   worktrees, filesystem path, branch ownership, repository ownership, and dirty
   state before the relevant mutation.
 - Create with `git worktree add --lock ... -b`; do not reset an existing branch.
+- Create new linked worktrees only under the canonical repository-local root.
+  The target repository must ignore `/.agent-factory/worktree/` so nested
+  worktrees do not dirty the primary worktree.
 - Reuse the same registered branch and worktree pair when the same Work Unit is
   executed again or sent to rework. Do not create another pair.
+- Preserve explicitly recorded registered legacy worktrees for rework and
+  Human-approved cleanup; do not migrate or relocate them implicitly.
 - Inspect with stable porcelain and NUL-delimited Git output.
 - Refuse collisions, repository mismatch, missing Human cleanup approval, and
   dirty cleanup.

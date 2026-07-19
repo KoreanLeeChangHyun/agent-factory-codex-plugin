@@ -43,18 +43,24 @@ class WorktreeCliTest(unittest.TestCase):
             0,
         )
         (self.repo / "tracked.txt").write_text("baseline\n", encoding="utf-8")
-        self.assertEqual(git(self.repo, "add", "tracked.txt").returncode, 0)
+        (self.repo / ".gitignore").write_text(
+            "/.agent-factory/worktree/\n", encoding="utf-8"
+        )
+        self.assertEqual(
+            git(self.repo, "add", "tracked.txt", ".gitignore").returncode, 0
+        )
         self.assertEqual(git(self.repo, "commit", "-m", "baseline").returncode, 0)
         self.base_commit = git(self.repo, "rev-parse", "HEAD").stdout.strip()
-        self.worktree = self.root / "worktrees" / "wu-001"
+        self.worktree = self.repo / ".agent-factory" / "worktree" / "wu-001"
+        self.legacy_worktree = self.root / "worktrees" / "wu-001"
 
     def tearDown(self) -> None:
         self.temp.cleanup()
 
     def cli(
-        self, command: str, *extra: str
+        self, command: str, *extra: str, path: Path | str | None = None
     ) -> tuple[subprocess.CompletedProcess[str], dict]:
-        result = run(
+        arguments = [
             sys.executable,
             str(SCRIPT),
             command,
@@ -64,9 +70,12 @@ class WorktreeCliTest(unittest.TestCase):
             "wu-001",
             "--branch",
             "work-unit/wu-001",
-            "--path",
-            str(self.worktree),
-            *extra,
+        ]
+        if path is not None:
+            arguments.extend(["--path", str(path)])
+        arguments.extend(extra)
+        result = run(
+            *arguments,
         )
         try:
             payload = json.loads(result.stdout)
@@ -209,11 +218,49 @@ class WorktreeCliTest(unittest.TestCase):
         listing = git(self.repo, "worktree", "list", "--porcelain").stdout
         self.assertIn(f"worktree {self.worktree.resolve()}", listing)
         self.assertIn("locked", listing)
+        self.assertEqual(git(self.repo, "status", "--short").stdout, "")
+
+    def test_prepare_accepts_explicit_canonical_path_assertion(self) -> None:
+        result, payload = self.cli("prepare", "--base", "main", path=self.worktree)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            payload["context"]["worktreePath"], str(self.worktree.resolve())
+        )
+
+    def test_prepare_rejects_new_noncanonical_path(self) -> None:
+        result, payload = self.cli(
+            "prepare", "--base", "main", path=self.legacy_worktree
+        )
+        self.assert_error(result, payload, "noncanonical_worktree_path")
+        self.assertFalse(self.legacy_worktree.exists())
+
+    def test_prepare_reuses_registered_legacy_path(self) -> None:
+        self.assertEqual(
+            git(
+                self.repo,
+                "worktree",
+                "add",
+                "-b",
+                "work-unit/wu-001",
+                str(self.legacy_worktree),
+                "main",
+            ).returncode,
+            0,
+        )
+
+        result, payload = self.cli(
+            "prepare", "--base", "main", path=self.legacy_worktree
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["state"], "reused")
+        self.assertEqual(
+            payload["context"]["worktreePath"], str(self.legacy_worktree.resolve())
+        )
+        self.assertTrue(payload["context"]["locked"])
 
     def test_worktree_add_failure_returns_canonical_json(self) -> None:
-        blocked_parent = self.root / "blocked-parent"
-        blocked_parent.write_text("not a directory\n", encoding="utf-8")
-        self.worktree = blocked_parent / "wu-001"
+        (self.repo / ".agent-factory").write_text("not a directory\n", encoding="utf-8")
 
         result, payload = self.prepare()
 
@@ -273,13 +320,14 @@ class WorktreeCliTest(unittest.TestCase):
             "wu-001",
             "--base",
             "main",
-            "--path",
-            str(self.worktree),
         )
         payload = json.loads(result.stdout)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(payload["context"]["branch"], "work-unit/wu-001")
         self.assertEqual(payload["context"]["workUnitId"], "wu-001")
+        self.assertEqual(
+            payload["context"]["worktreePath"], str(self.worktree.resolve())
+        )
 
     def test_inspect_reports_clean_and_dirty_states(self) -> None:
         self.prepare()

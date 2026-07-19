@@ -14,6 +14,7 @@ from typing import Any, Sequence
 
 
 SCHEMA_VERSION = "1.0.0"
+WORKTREE_ROOT = Path(".agent-factory/worktree")
 
 
 class ContractError(Exception):
@@ -158,6 +159,15 @@ def validate_execution_identity(
             {"expected": expected_branch, "actual": branch},
         )
     return expected_branch
+
+
+def resolve_worktree_path(
+    repository: Path, work_unit_id: str, value: str | None
+) -> tuple[Path, Path]:
+    canonical = repository / WORKTREE_ROOT / work_unit_id
+    if value is None:
+        return canonical, canonical
+    return absolute_path(value, "path"), canonical
 
 
 def parse_worktree_list(raw: bytes) -> list[dict[str, str | bool]]:
@@ -325,12 +335,21 @@ def inspect_context(
 
 def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     repository = validate_repository(execution, args.repository)
-    worktree_path = absolute_path(args.path, "path")
     base_commit = resolve_base(execution, repository, args.base)
     branch = validate_execution_identity(execution, args.work_unit_id, args.branch)
+    worktree_path, canonical_path = resolve_worktree_path(
+        repository, args.work_unit_id, args.path
+    )
     exists = branch_exists(execution, repository, branch)
     records = list_worktrees(execution, repository)
     registered = find_worktree(records, worktree_path)
+
+    if worktree_path != canonical_path and registered is None:
+        raise ContractError(
+            "noncanonical_worktree_path",
+            "new worktrees must use <repository>/.agent-factory/worktree/<work-unit-id>",
+            {"expected": str(canonical_path), "actual": str(worktree_path)},
+        )
 
     if registered is not None:
         if registered.get("branch") != f"refs/heads/{branch}":
@@ -417,8 +436,8 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
 
 def inspect(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     repository = validate_repository(execution, args.repository)
-    worktree_path = absolute_path(args.path, "path")
     branch = validate_execution_identity(execution, args.work_unit_id, args.branch)
+    worktree_path, _ = resolve_worktree_path(repository, args.work_unit_id, args.path)
     context = inspect_context(execution, repository, branch, worktree_path)
     context["workUnitId"] = args.work_unit_id
     return success_payload(execution, "dirty" if context["dirty"] else "clean", context)
@@ -426,8 +445,8 @@ def inspect(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
 
 def cleanup(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     repository = validate_repository(execution, args.repository)
-    worktree_path = absolute_path(args.path, "path")
     branch = validate_execution_identity(execution, args.work_unit_id, args.branch)
+    worktree_path, _ = resolve_worktree_path(repository, args.work_unit_id, args.path)
     context = inspect_context(execution, repository, branch, worktree_path)
     context["workUnitId"] = args.work_unit_id
     if args.human_decision != "approved":
@@ -518,7 +537,7 @@ def build_parser() -> JsonArgumentParser:
         subparser.add_argument("--repository", required=True)
         subparser.add_argument("--work-unit-id", required=True)
         subparser.add_argument("--branch")
-        subparser.add_argument("--path", required=True)
+        subparser.add_argument("--path")
         return subparser
 
     prepare_parser = common("prepare")

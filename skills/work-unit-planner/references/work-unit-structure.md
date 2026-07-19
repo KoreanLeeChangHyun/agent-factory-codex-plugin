@@ -81,7 +81,11 @@ within their container. Section and subsection ids are unique document-wide.
 
 The execution-context item content must include `goalId`, `objective`,
 `execInvocation`, `executionAgent`, `repository`, `baseRef`, `branch`, and
-`worktreePath`. The branch must equal `work-unit/<work-unit-id>`.
+`worktreePath`. The branch must equal `work-unit/<work-unit-id>`, and
+`worktreePath` must equal the absolute
+`<repository>/.agent-factory/worktree/<work-unit-id>` path. Existing registered
+legacy worktrees keep their recorded path only for rework, inspection, and
+Human-approved cleanup; new Work Units use the canonical path.
 
 ## Blocks And Evidence
 

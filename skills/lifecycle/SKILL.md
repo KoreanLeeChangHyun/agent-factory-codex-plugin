@@ -136,8 +136,9 @@ Use these routes:
 - Use `work-unit-planner` when transforming a validated `ready` Intake package
   into executable Work Units.
 - Use `work-unit-execution` for named Work Unit Goal Execution to validate
-  the explicit repository, base ref, dedicated branch, and linked worktree path;
-  prepare or inspect the execution worktree; and record canonical JSON evidence.
+  the explicit repository and base ref, derive the dedicated branch and
+  repository-local linked worktree path, prepare or inspect the execution
+  worktree, and record canonical JSON evidence.
 - Use `human-review` for Human-facing review artifacts and final
   review material.
 - Use `svg-icon` when creating, replacing, reviewing, or refactoring
@@ -176,11 +177,13 @@ Use these routes:
   canonical sections, the block index, and referenced blocks.
 - Before scoped edits in named Work Unit Goal execution, use
   `work-unit-execution` with the package's explicitly resolved execution
-  context to prepare or inspect the dedicated branch and linked worktree. Do not
-  invent fallback path names. Derive the branch as
-  `work-unit/<work-unit-id>` and reuse the same registered branch and worktree
-  pair for re-execution or rework. Record the returned canonical JSON in the
-  Work Unit evidence.
+  context to prepare or inspect the dedicated branch and linked worktree.
+  Derive the branch as `work-unit/<work-unit-id>` and the worktree path as
+  `<project-root>/.agent-factory/worktree/<work-unit-id>`. Reuse the same
+  registered branch and worktree pair for re-execution or rework. Preserve an
+  explicitly recorded registered legacy path only for reuse, inspection, or
+  Human-approved cleanup. Record the returned canonical JSON in the Work Unit
+  evidence.
 - Run worktree cleanup only after an explicit Human cleanup decision. Do not
   remove a dirty worktree, force removal, delete a branch, merge, or promote a
   PR on the Human's behalf.

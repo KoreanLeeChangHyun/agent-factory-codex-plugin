@@ -240,10 +240,12 @@ def ready_items(
                     "objective": "Implement the scoped Work Unit",
                     "execInvocation": f"/goal {work_unit_id}",
                     "executionAgent": "Codex",
-                    "repository": "/workspace/project",
+                    "repository": str(root),
                     "baseRef": "main",
                     "branch": f"work-unit/{work_unit_id}",
-                    "worktreePath": f"/workspace/worktrees/{work_unit_id}",
+                    "worktreePath": str(
+                        root / ".agent-factory" / "worktree" / work_unit_id
+                    ),
                 },
             )
         ],
@@ -570,9 +572,10 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             context = ready_items(root, intake, package.name)["execution-context"][0]
+            worktree_path = context["content"]["worktreePath"]
             context["content"]["execInvocation"] = (
                 "codex exec --sandbox danger-full-access --ask-for-approval never "
-                f"-C /workspace/worktrees/{package.name} 'Execute the Work Unit'"
+                f"-C {worktree_path} 'Execute the Work Unit'"
             )
             source = data_value(root, "invalid-exec-context.json", context)
             run_cli(
@@ -588,7 +591,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
 
             context["content"]["execInvocation"] = (
                 "codex --ask-for-approval never exec --sandbox danger-full-access "
-                f"-C /workspace/worktrees/{package.name} 'Execute the Work Unit'"
+                f"-C {worktree_path} 'Execute the Work Unit'"
             )
             source = data_value(root, "valid-exec-context.json", context)
             run_cli(
@@ -599,6 +602,29 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             )
             payload = json.loads(run_cli("transition", str(package), "ready").stdout)
             self.assertEqual(payload["status"], "ready")
+
+    def test_ready_rejects_noncanonical_worktree_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"]["worktreePath"] = str(
+                root.parent / "worktrees" / package.name
+            )
+            source = data_value(root, "noncanonical-worktree.json", [context])
+            run_cli(
+                "section-items-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("execution context worktreePath must equal", rejected.stderr)
 
     def test_review_and_done_transitions_enforce_results_and_atomic_human_approval(
         self,
