@@ -1,0 +1,36 @@
+{
+  "command": "integrate",
+  "context": {
+    "humanDecision": "approved",
+    "operationResult": "fast-forwarded",
+    "relationship": "fast-forwardable",
+    "repository": "/tmp/example-repository",
+    "sourceBranch": "work-unit/example-unit",
+    "sourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "strategy": "ff-only",
+    "targetAfterCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "targetBeforeCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "targetBranch": "main",
+    "worktreePath": "/tmp/example-repository/.agent-factory/worktree/example-unit",
+    "workUnitId": "example-unit"
+  },
+  "error": null,
+  "ok": true,
+  "operations": [
+    {
+      "args": [
+        "git",
+        "-C",
+        "/tmp/example-repository",
+        "merge",
+        "--ff-only",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "returnCode": 0,
+      "stderr": "",
+      "stdout": "Updating bbbbbbb..aaaaaaa\nFast-forward"
+    }
+  ],
+  "schemaVersion": "1.0.0",
+  "state": "integrated"
+}

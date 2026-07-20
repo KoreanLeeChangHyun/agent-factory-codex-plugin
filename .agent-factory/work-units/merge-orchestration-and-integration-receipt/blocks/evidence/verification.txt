@@ -1,0 +1,40 @@
+Work Unit: merge-orchestration-and-integration-receipt
+
+TDD red baseline
+python3 -m unittest skills.work-unit-execution.tests.test_worktree skills.work-unit-planner.tests.test_work_unit_manager
+Result before implementation: FAILED (failures=8); missing integrate and integration-put contracts.
+
+Focused verification
+pytest -q skills/work-unit-execution/tests
+Result: 32 passed in 6.12s
+
+pytest -q skills/work-unit-planner/tests
+Result: 18 passed in 320.78s (0:05:20)
+
+pytest -q skills/lifecycle/tests
+Result: 12 passed, 31 subtests passed in 0.19s
+
+Full repository regression
+pytest -q
+Result: 102 passed, 45 subtests passed in 394.26s (0:06:34)
+
+Schema verification
+python3 skills/intake/scripts/intake.py check-schemas
+Result: valid=true, schemaVersion=2.0.0, profile=intake@2.0.0
+
+python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas
+Result: valid=true, schemaVersion=4.0.0, profile=work-unit@4.0.0
+
+Static verification
+ruff check skills/lifecycle/assets/scripts/sectioned_document.py skills/work-unit-execution/scripts/worktree.py skills/work-unit-execution/tests/test_worktree.py skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: All checks passed!
+
+ruff format --check skills/lifecycle/assets/scripts/sectioned_document.py skills/work-unit-execution/scripts/worktree.py skills/work-unit-execution/tests/test_worktree.py skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: 5 files already formatted
+
+python3 -m py_compile skills/lifecycle/assets/scripts/sectioned_document.py skills/work-unit-execution/scripts/worktree.py skills/work-unit-planner/assets/scripts/work_unit.py
+Result: exit 0
+
+Recorded invocation parser verification
+codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/merge-orchestration-and-integration-receipt --help
+Result: exit 0

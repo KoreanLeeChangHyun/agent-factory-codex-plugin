@@ -20,7 +20,7 @@
       "id": "HUMAN-METHOD-001",
       "kind": "human-review-method",
       "content": {
-        "method": "변경 diff, worktree.py와 Work Unit manager의 테스트, 임시 Git repository의 FF·분기·already-merged 결과, registered integration receipt와 full validation을 확인한다. 승인 기준은 선택 B, JSON 추적성, idempotent recovery, Human 승인과 cleanup 경계 준수이다. 불일치, 누락된 receipt, 중복 병합, 자동 cleanup 또는 검증 실패는 rework 사유이다. 최종 구현 승인, 실제 병합, cleanup, branch 삭제와 PR promotion은 Human이 결정한다."
+        "method": "git diff main...work-unit/merge-orchestration-and-integration-receipt, blocks/evidence/verification.txt, worktree.py의 integrate 테스트와 Work Unit manager의 integration-put 테스트를 확인한다. FF, 명시적 no-ff, already-merged 동일 명령 복구, 충돌 abort, 승인·dirty·mismatch refusal, raw receipt와 normalized result 원자성을 검토한다. 구현 승인 또는 rework를 먼저 결정하고, 실제 main 병합 전에 main의 untracked .agent-factory/intakes/work-unit-merge-state-tracking 및 .agent-factory/work-units/merge-orchestration-and-integration-receipt 보존 방식을 Human이 결정한다. 실제 병합, cleanup, branch 삭제와 PR promotion은 별도 Human 결정이다."
       }
     },
     {

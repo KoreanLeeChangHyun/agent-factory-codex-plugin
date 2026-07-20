@@ -16,7 +16,7 @@
         "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/merge-orchestration-and-integration-receipt",
         "targetBranch": "main",
         "mergeStrategy": "fast-forward-or-explicit-no-ff",
-        "setupState": "planned",
+        "setupState": "prepared-and-locked",
         "cleanupState": "pending-human-decision"
       }
     }

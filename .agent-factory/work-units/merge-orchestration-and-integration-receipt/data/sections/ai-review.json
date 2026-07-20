@@ -21,12 +21,16 @@
       "id": "AI-REVIEW-STATUS",
       "kind": "ai-review-result",
       "content": {
-        "result": "Pending"
+        "result": "Pass",
+        "summary": "선택 B, Git/JSON 책임 분리, 세 상태 축, 승인 전 refusal, FF/no-ff/already-merged, 충돌 복구, immutable receipt와 cleanup 경계를 확인했다."
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending",
-        "remainingRisks": []
+        "result": "pass",
+        "checklistResult": "pass",
+        "remainingRisks": [
+          "main의 untracked Intake/Work Unit 원본 때문에 실제 integrate preflight는 Human이 해당 파일 보존 방식을 결정할 때까지 dirty target으로 거부된다.",
+          "외부 프로세스가 integrate 실행 중 target을 동시에 변경하면 Git operation이 실패할 수 있으며 canonical refusal 또는 재실행 reconcile이 필요하다."
+        ]
       }
     }
   ],

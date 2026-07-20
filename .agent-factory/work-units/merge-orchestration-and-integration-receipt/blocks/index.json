@@ -1,3 +1,25 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/integration-receipt-example.json",
+      "mediaType": "application/json",
+      "description": "Stable integration receipt contract example",
+      "sha256": "a1e29b6d096a295a00b36d4a6b75ec2105937275144beffb714c2609164890ea",
+      "sizeBytes": 1027
+    },
+    {
+      "path": "blocks/evidence/verification.txt",
+      "mediaType": "text/plain",
+      "description": "TDD and full regression verification results",
+      "sha256": "b7ce196c72e2812c37a01f9b39c5ff494b3c14a912a1b6d466a3c5ff0f703b47",
+      "sizeBytes": 2000
+    },
+    {
+      "path": "blocks/evidence/worktree-prepare.json",
+      "mediaType": "application/json",
+      "description": "Canonical worktree prepare result",
+      "sha256": "746c1271a3781cf2fa515582952edc60ed20c2669688b6d98dbd320866ca5757",
+      "sizeBytes": 1349
+    }
+  ]
 }

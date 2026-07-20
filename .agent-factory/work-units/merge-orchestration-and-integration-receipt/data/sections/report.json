@@ -6,15 +6,21 @@
       "id": "REPORT-STATUS",
       "kind": "report-result",
       "content": {
-        "result": "Pending",
-        "specificationResult": "gap-accepted-for-work-unit",
+        "result": "Complete",
+        "summary": "Human-approved integrate command와 atomic Work Unit integration receipt 등록 계약을 구현하고 전체 regression을 통과했다.",
+        "specificationResult": "gap-resolved-by-skill-contract-update",
         "remainingItems": [
-          "remove-stale-specification-paths Work Unit의 소급 integration receipt 등록 여부"
+          "remove-stale-specification-paths Work Unit의 소급 integration receipt 등록 여부",
+          "main의 untracked Intake/Work Unit 원본 보존 방식과 실제 병합 결정"
         ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/worktree-prepare.json",
+          "blocks/evidence/integration-receipt-example.json"
+        ]
       }
     }
   ],

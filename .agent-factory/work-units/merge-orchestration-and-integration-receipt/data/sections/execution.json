@@ -6,14 +6,32 @@
       "id": "EXECUTION-STATUS",
       "kind": "execution-result",
       "content": {
-        "result": "Pending",
-        "changedPaths": [],
-        "deviations": []
+        "result": "Complete",
+        "changedPaths": [
+          "skills/lifecycle/assets/scripts/sectioned_document.py",
+          "skills/work-unit-execution/SKILL.md",
+          "skills/work-unit-execution/references/worktree-contract.md",
+          "skills/work-unit-execution/scripts/worktree.py",
+          "skills/work-unit-execution/tests/test_worktree.py",
+          "skills/work-unit-planner/SKILL.md",
+          "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+          "skills/work-unit-planner/assets/scripts/work_unit.py",
+          "skills/work-unit-planner/references/work-unit-structure.md",
+          "skills/work-unit-planner/tests/test_work_unit_manager.py"
+        ],
+        "deviations": [
+          "Receipt source의 check/use 교체 위험을 없애기 위해 공통 transaction 엔진에 immutable byte_writes 경계를 추가했다."
+        ],
+        "summary": "integrate Git command, atomic integration-put registration, recovery, refusal, conflict abort와 contract documentation을 구현했다."
       },
       "attributes": {
-        "status": "pending",
-        "verificationResult": "pending",
-        "evidence": []
+        "status": "complete",
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/worktree-prepare.json",
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/integration-receipt-example.json"
+        ]
       }
     }
   ],

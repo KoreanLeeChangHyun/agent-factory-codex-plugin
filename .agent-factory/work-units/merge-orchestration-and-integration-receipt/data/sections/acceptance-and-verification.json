@@ -111,11 +111,14 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "statement": "TDD, scope, deterministic JSON, Human approval, idempotent recovery, evidence integrity와 cleanup 분리 경계를 확인한다."
+        "statement": "TDD, scope, deterministic JSON, Human approval, idempotent recovery, evidence integrity와 cleanup 분리 경계를 확인했다."
       },
       "attributes": {
-        "status": "pending",
-        "evidence": []
+        "status": "pass",
+        "evidence": [
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/integration-receipt-example.json"
+        ]
       }
     }
   ],
