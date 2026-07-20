@@ -1,0 +1,36 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "실제 구현 전에 Work Unit 실행, 검토, 재작업 및 재실행 방식에 관한 자료 조사를 먼저 수행한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "현재 프로젝트 구조와 권위 있는 외부 사례를 비교하여 재실행 추적 설계의 근거, 대안, 위험과 미결정 사항을 식별한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criterion": "공식 출처의 사실과 저장소 사실을 분리해 기록하고 구현 전에 필요한 Human 결정 항목을 식별한다."
+      }
+    },
+    {
+      "id": "REQUEST-002",
+      "kind": "human-followup",
+      "content": {
+        "request": "수집된 근거와 추천안을 바탕으로 구현용 Work Unit을 생성한다.",
+        "authorizationBoundary": "이번 요청은 Work Unit 생성까지이며 Work Unit 실행은 별도 단계다."
+      }
+    }
+  ],
+  "subsections": []
+}

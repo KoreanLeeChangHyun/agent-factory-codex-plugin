@@ -1,0 +1,44 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "checks": [
+          "execution-state/v1 JSON fields clearly distinguish revision attempt invocation and Git subject",
+          "retry resume and Human rework produce the expected current state and preserved history",
+          "new commit after approval cannot reuse prior passing evidence or approval",
+          "existing done v4 Work Units remain readable without rewrite",
+          "Viewer contract is JSON-only and no legacy Human-facing report is generated",
+          "merge and cleanup remain separate Human decisions"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "Inspect the Work Unit diff and manager tests, run the recorded verification commands, compare execution-state history across retry, resume and rework fixtures, and confirm stale evidence refusal before choosing approve or rework.",
+        "approvalBoundary": "Human approval completes the Work Unit only; merge, PR promotion and cleanup require separate explicit decisions.",
+        "decisionOptions": [
+          "approve",
+          "request-rework",
+          "reject"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "summary": "Pending Human review after execution."
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,113 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPTANCE-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Work Unit metadata schemaVersion과 profile physical contract는 4.0.0으로 유지되고 execution-state item은 contractVersion 1.0.0으로 검증된다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "첫 실행은 revision 1과 attempt 1을 시작하고 새로운 invocation identity와 current Git head subject를 기록한다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "동일 revision retry는 attempt만 증가시키고 codex exec resume는 같은 attempt와 invocation chain을 유지한다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Human rework는 revision을 증가시키고 attempt를 초기화하며 이전 execution, quality, AI review, report 및 Human approval을 current gate에서 무효화한다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-005",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "review와 done은 모든 passing evidence가 current revision, attempt, invocationId와 headCommit에 일치할 때만 허용된다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-006",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "이전 revision과 attempt record 및 evidence reference는 덮어쓰지 않고 history에서 조회 가능하다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-007",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "기존 done sectioned v4 Work Unit은 migration 없이 full validation되고 active v4는 실행 전 명시적 state initialization을 요구한다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-008",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "integration-put의 idempotent receipt 등록과 done lifecycle 직교성은 유지된다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-009",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Viewer 소비 계약은 JSON field와 version fallback 또는 unsupported 표시를 정의하며 VS 확장 UI 자체는 변경하지 않는다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "conditions": [
+          "manager implementation and documentation are updated",
+          "tests are written before behavior implementation and all related suites pass",
+          "stale evidence and stale approval regression tests pass",
+          "six existing done v4 packages remain fully valid",
+          "exact codex exec invocation remains parser-valid",
+          "AI checklist and Human checklist are completed",
+          "Human review method identifies approval, rework and merge boundaries"
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m unittest skills/work-unit-planner/tests/test_work_unit_manager.py",
+          "python3 -m unittest skills/work-unit-execution/tests/test_worktree.py",
+          "python3 -m unittest skills/lifecycle/tests/test_document_profiles.py skills/lifecycle/tests/test_skill_metadata.py",
+          "python3 plugin-creator/scripts/validate_plugin.py ."
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "check": "TDD, compatibility, stale evidence refusal, immutable history, manager-only JSON writes and documentation consistency",
+        "evidenceRequirements": [
+          "focused failing-then-passing regression tests",
+          "full related unittest output",
+          "existing done v4 validation results",
+          "plugin validation output"
+        ]
+      },
+      "attributes": {
+        "status": "planned"
+      }
+    }
+  ],
+  "subsections": []
+}

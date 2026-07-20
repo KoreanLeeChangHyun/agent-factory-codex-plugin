@@ -1,0 +1,411 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "WEB-GITHUB-IDENTITY-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "GitHub Actions workflow run 및 attempt 식별자",
+        "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/variables",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T00:36:21+09:00",
+        "findings": [
+          "GITHUB_RUN_ID는 workflow run 재실행 시 변경되지 않는다.",
+          "GITHUB_RUN_ATTEMPT는 첫 실행에서 1이며 재실행마다 증가한다.",
+          "GITHUB_TRIGGERING_ACTOR와 원래 github.actor를 분리하여 재실행 요청자와 권한 주체를 구분한다."
+        ],
+        "limitations": [
+          "CI workflow run 모델이며 Human 재작업으로 코드가 변경되는 review iteration을 직접 정의하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-GITHUB-RERUN-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "GitHub Actions workflow 및 job 재실행",
+        "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T00:36:21+09:00",
+        "findings": [
+          "전체 workflow, 실패한 job, 특정 job을 동일 run에서 재실행할 수 있다.",
+          "재실행은 원래 GITHUB_SHA와 GITHUB_REF를 사용한다.",
+          "이전 run attempt를 조회할 수 있고 재실행 횟수에는 상한이 있다."
+        ],
+        "limitations": [
+          "동일 commit과 ref를 사용하는 retry 사례이므로 변경된 산출물에 대한 rework와 동일하지 않다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-AWS-REDRIVE-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "AWS Step Functions execution redrive",
+        "url": "https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T00:36:21+09:00",
+        "findings": [
+          "redrive는 기존 execution ARN, state machine definition과 input을 유지한다.",
+          "성공한 단계의 결과와 이력을 보존하고 실패 지점부터 계속한다.",
+          "redrive count와 ExecutionRedriven 이벤트를 기존 execution history에 추가한다.",
+          "redrive 단위와 그 내부 task retry attempt를 별도로 추적한다."
+        ],
+        "limitations": [
+          "정의나 입력을 변경하는 Human rework가 아니라 동일 정의와 입력의 실패 복구 모델이다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-AZURE-ATTEMPT-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Azure Pipelines 실행 및 attempt 변수",
+        "url": "https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T00:36:21+09:00",
+        "findings": [
+          "System.JobAttempt와 System.StageAttempt는 최초 1이며 retry마다 증가한다.",
+          "System.JobId는 단일 job attempt의 고유 식별자이다.",
+          "System.PlanId는 단일 pipeline run 식별자이며 attempt 식별자와 구분된다.",
+          "Checks.StageAttempt는 approval 또는 check에서 현재 stage retry 차수를 참조할 수 있게 한다."
+        ],
+        "limitations": [
+          "Pipeline 실행 변수 모델이며 Work Unit의 canonical JSON 변경 규칙은 제공하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-GITHUB-REVIEW-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "GitHub protected branch의 최신 변경 승인 규칙",
+        "url": "https://docs.github.com/en/enterprise-cloud@latest/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T00:36:21+09:00",
+        "findings": [
+          "GitHub은 승인 당시의 diff 상태를 기록한다.",
+          "새 commit 또는 merge base 변경으로 diff가 바뀌면 stale approval을 무효화하도록 설정할 수 있다.",
+          "최신 reviewable push를 변경자 이외의 사람이 승인하도록 요구할 수 있다."
+        ],
+        "limitations": [
+          "저장소 설정에 따라 선택 가능한 정책이며 모든 GitHub 저장소에 강제되는 고정 동작은 아니다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-GERRIT-PATCHSET-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Gerrit Change와 patch set 모델",
+        "url": "https://gerrit-review.googlesource.com/Documentation/concept-patch-sets.html",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T00:36:21+09:00",
+        "findings": [
+          "Change-Id는 review 대상을 유지하고 수정된 commit iteration은 patch set으로 누적된다.",
+          "승인 시 최신 patch set만 저장소에 제출된다.",
+          "이전 patch set을 조회하고 patch set 사이 diff를 비교할 수 있다.",
+          "접근 방식을 크게 바꿔도 동일 Change-Id 아래 discussion을 유지할 수 있다."
+        ],
+        "limitations": [
+          "코드 review 시스템의 patch set 모델이며 실행 로그와 retry 정책은 별도로 다뤄야 한다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-CODEX-EXEC-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Codex non-interactive exec 출력과 resume",
+        "url": "https://learn.chatgpt.com/docs/non-interactive-mode",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T00:36:21+09:00",
+        "findings": [
+          "codex exec는 비대화형 실행에 사용된다.",
+          "--json은 thread, turn, item과 error 이벤트를 JSONL로 출력한다.",
+          "--output-schema는 최종 응답 JSON shape을 강제할 수 있다.",
+          "codex exec resume는 이전 비대화형 session을 session id 또는 --last로 이어갈 수 있다."
+        ],
+        "limitations": [
+          "Codex session resume는 Agent Factory Work Unit의 Human rework 상태나 승인 무효화 규칙을 정의하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-WORK-UNIT-REWORK-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/schema/metadata.schema.json; skills/work-unit-planner/assets/scripts/work_unit.py; skills/work-unit-planner/assets/profiles/work-unit.profile.json; skills/work-unit-execution/SKILL.md; focused test commands",
+        "method": "source inspection and focused test execution",
+        "findings": [
+          "metadata schema는 review에서 working으로 전환을 허용한다.",
+          "command_transition은 review에서 working 전환 시 lifecycle metadata만 변경하고 기존 execution, quality, AI review와 report 결과를 무효화하지 않는다.",
+          "validate_review_semantics는 find_kind로 찾은 결과의 pass 속성과 등록 evidence만 검사하며 execution attempt, session id, head commit 또는 review 대상 fingerprint를 대조하지 않는다.",
+          "rework-history는 optional section이지만 required kind나 rework semantic validation이 없다.",
+          "work-unit-execution은 재실행과 rework에 동일 branch와 linked worktree pair를 재사용하도록 규정한다.",
+          "Work Unit manager와 worktree focused test files는 set -e 환경에서 종료 코드 0으로 완료됐다."
+        ],
+        "interpretations": [
+          "현재 모델은 동일 Work Unit과 worktree 재사용 기반은 갖췄지만 이전 통과 증거가 새 재작업 실행에도 유효한 것으로 남을 수 있다.",
+          "재시도와 Human rework를 구분하는 current attempt 또는 review target binding이 필요할 가능성이 있다."
+        ],
+        "limitations": [
+          "현재 테스트에는 review에서 working으로 돌아간 뒤 이전 pass 결과만으로 review에 재진입하는 것을 거부하는 명시적 회귀 테스트가 없다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-IDENTITY-MODEL-001",
+      "kind": "interview",
+      "content": {
+        "question": "Work Unit 재실행과 Human 재작업의 identity를 어떤 모델로 관리할까요?",
+        "choiceA": {
+          "decision": "모든 codex exec를 하나의 증가하는 attempt로만 관리",
+          "pros": "구현과 Viewer 표현이 가장 단순하다.",
+          "cons": "동일 입력 retry와 변경된 산출물 rework를 구분하기 어렵고 기존 승인 무효화 기준이 약하다."
+        },
+        "choiceB": {
+          "decision": "Work Unit 아래 revision과 execution attempt를 분리",
+          "pros": "Work Unit과 discussion은 유지하면서 변경 iteration, 실행 retry, 승인 대상을 정확히 추적할 수 있다.",
+          "cons": "두 식별자와 current pointer, 검증 규칙이 필요해 구현량이 늘어난다."
+        },
+        "choiceC": {
+          "decision": "Human rework마다 새 Work Unit을 생성",
+          "pros": "각 Work Unit이 불변이고 lifecycle이 단순하다.",
+          "cons": "작은 재작업에도 Intake와 Work Unit이 분산되고 동일 worktree 및 review 문맥 유지 목표와 충돌한다."
+        },
+        "recommendation": "B",
+        "rationale": "GitHub와 Azure의 run-attempt 분리, Gerrit의 Change-patch set 분리, GitHub의 변경 후 stale approval 무효화가 함께 뒷받침한다. 장기 추적성과 검토 안전성이 가장 높으며 기존 Work Unit과 worktree 재사용 규칙도 유지한다.",
+        "answer": "B",
+        "decisionState": "accepted",
+        "answeredAt": "2026-07-21T00:52:12+09:00"
+      }
+    },
+    {
+      "id": "INTERVIEW-SCHEMA-MIGRATION-001",
+      "kind": "interview",
+      "content": {
+        "question": "revision 및 execution attempt 계약을 어느 version 경계에 둘까요?",
+        "choiceA": {
+          "decision": "package schemaVersion 4.0.0을 유지하고 새 execution-state semantic contract를 v1로 시작",
+          "pros": "기존 v4 physical package와 done 이력을 유지하면서 manager와 Viewer가 새 semantic payload version을 명시적으로 판별할 수 있다.",
+          "cons": "package schema와 item sub-contract 두 version 계층의 책임을 문서화하고 각각 검증해야 한다."
+        },
+        "choiceB": {
+          "decision": "physical schema major v4와 profile release 4.1.0을 별도 필드로 분리",
+          "pros": "backward-compatible profile 기능 추가를 SemVer minor로 명확히 표시하고 장기적으로 semantic release를 관리할 수 있다.",
+          "cons": "현재 schemaVersion과 profile version의 exact coupling을 해제하고 별도 release field 및 호환 규칙을 설계해야 한다."
+        },
+        "choiceC": {
+          "decision": "package schemaVersion v5와 multi-version validator 및 active migration을 도입",
+          "pros": "새 계약 전체를 package metadata에서 하나의 엄격한 version으로 식별한다.",
+          "cons": "물리 layout이 동일한데도 기존 v4 decoder 유지, dispatcher와 migration이 필요하며 현재 결함보다 변경 범위가 크다."
+        },
+        "recommendation": "A",
+        "rationale": "in-toto는 stable Statement/v1 type을 유지하면서 compatible semantic spec release를 별도로 관리하고, SLSA는 definition과 per-invocation identity를 분리한다. Agent Factory도 physical package v4를 유지하되 새 execution-state 하위 계약을 v1로 시작하면 호환성과 명시적 소비자 판별을 함께 확보한다.",
+        "decisionState": "accepted",
+        "answer": "A",
+        "answeredAt": "2026-07-21T01:26:26+09:00"
+      }
+    },
+    {
+      "id": "INTERNAL-VERSION-CONTRACT-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/schema/metadata.schema.json; skills/work-unit-planner/assets/profiles/work-unit.profile.json; skills/lifecycle/assets/schema/sectioned-document/section.schema.json; skills/lifecycle/assets/scripts/sectioned_document.py; skills/work-unit-planner/assets/scripts/work_unit.py",
+        "method": "source inspection",
+        "findings": [
+          "Work Unit schemaVersion 4.0.0은 metadata schema const와 profile version에 정확히 결합되어 있고 manager는 한 버전의 schema/profile만 구성한다.",
+          "documentVersion은 생성 시 1.0.0이며 manager mutation마다 patch가 증가하므로 package 내용 변경 revision을 나타낸다.",
+          "metadata는 additionalProperties false라 새 top-level revision/attempt 필드는 schema 변경 없이는 추가할 수 없다.",
+          "section content item의 content와 attributes는 개방형이며 새 semantic kind와 revision/attempt payload는 공통 물리 schema 변경 없이 저장할 수 있다.",
+          "Work Unit v4 reference는 schemaVersion 4.0.0을 현재 physical contract로 명시한다."
+        ],
+        "interpretations": [
+          "revision과 execution attempt를 section content의 manager-owned semantic state로 두면 물리 package schemaVersion을 올릴 직접 근거는 없다.",
+          "metadata top-level에 넣거나 profile requiredKinds를 호환성 없이 바꾸는 경우에는 별도 contract evolution과 다중 버전 읽기 전략이 필요하다."
+        ],
+        "limitations": [
+          "현재 manager에는 semantic item별 JSON Schema나 manager version 필드가 없어 schemaVersion을 유지하면 새 의미 규칙의 지원 여부를 metadata만으로 판별할 수 없다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-LIFECYCLE-COMPAT-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code-and-package-inventory",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py; skills/lifecycle/assets/scripts/sectioned_document.py; skills/work-unit-planner/tests/test_work_unit_manager.py; .agent-factory/work-units",
+        "method": "source inspection and repository package inventory",
+        "findings": [
+          "Work Unit manager에는 Intake의 mutation policy가 설정되어 있지 않아 일반 section mutation이 ready를 되돌리거나 done을 거부하지 않는다.",
+          "review에서 working 전환은 lifecycle만 바꾸며 이전 execution, quality, AI review, report pass 결과를 무효화하지 않는다.",
+          "integration-put은 lifecycle과 직교하도록 의도되어 working, review, done에서도 receipt를 추가할 수 있다.",
+          "현행 sectioned Work Unit은 7개이며 모두 schemaVersion 4.0.0이다. 6개는 done이고 1개는 ready이다.",
+          "별도로 manager 이전 형식의 legacy Work Unit 10개가 공존하며 현행 v4 manager의 입력 형식이 아니다.",
+          "현 manager는 v4 schemaVersion만 받으므로 단순 v5 const 교체는 기존 sectioned v4 package 7개를 즉시 읽지 못하게 한다."
+        ],
+        "interpretations": [
+          "우선 해결 대상은 package schema migration보다 retry/rework 시작 시 이전 pass와 approval을 원자적으로 무효화하는 lifecycle command이다.",
+          "done package를 완전 불변으로 일반화하면 integration-put의 의도된 사후 receipt 등록과 충돌하므로 semantic result mutation과 integration evidence append를 구분해야 한다.",
+          "기존 ready package 1개에는 첫 실행 전에 execution state 초기화가 필요하지만 done v4 이력을 일괄 재작성할 근거는 없다."
+        ],
+        "limitations": [
+          "legacy package 10개의 내부 schema는 이번 현행 v4 revision/attempt 계약 범위에서 상세 분석하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-CONSUMER-BOUNDARY-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "repository-analysis",
+        "source": "repository file inventory and code search; skills/work-unit-execution/references/worktree-contract.md",
+        "method": "consumer search and contract inspection",
+        "findings": [
+          "이 저장소에는 VS Code extension 또는 Work Unit Viewer 구현 파일이 없다.",
+          "현재 sectioned Work Unit JSON의 실행 소비자는 Work Unit manager, lifecycle routing, worktree command 및 테스트이다.",
+          "worktree prepare와 inspect 결과에는 headCommit이 있고 prepare 결과에는 baseCommit이 있어 revision 또는 attempt의 Git target binding 근거로 사용할 수 있다.",
+          "worktree skill은 같은 Work Unit의 재실행과 rework에서 동일 branch와 registered worktree pair 재사용을 요구한다.",
+          "integration receipt는 sourceCommit과 target commit 정보를 별도 schemaVersion 1.0.0 JSON으로 기록한다."
+        ],
+        "interpretations": [
+          "Viewer 호환성을 이유로 지금 package v5를 선행할 필요는 없으며 먼저 stable semantic JSON item contract를 정한 뒤 Viewer가 kind별로 렌더링하도록 할 수 있다.",
+          "revision은 Human rework로 review target이 바뀔 때 증가시키고 attempt는 동일 revision의 새 exec 시 증가시키며 resume는 같은 attempt의 session continuation으로 기록하는 모델이 현재 Git/worktree 계약과 맞는다."
+        ],
+        "limitations": [
+          "별도 저장소나 아직 생성되지 않은 VS extension 소비자는 현재 workspace 검색으로 확인할 수 없다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-ACTIVE-VALIDATION-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime-validation",
+        "source": ".agent-factory/work-units; Work Unit manager full validation; worktree inspect",
+        "method": "full validation of all current sectioned Work Units and read-only Git worktree inspection",
+        "findings": [
+          "done 상태의 sectioned v4 Work Unit 6개는 모두 current manager full validation을 통과했다.",
+          "ready 상태의 fact-only-agent-rule-responsibility-refactor는 기록된 외부 worktreePath 때문에 current canonical path validation을 통과하지 못했다.",
+          "해당 외부 worktreePath는 현재 Git에 등록되어 있지 않으며 worktree inspect는 worktree_not_registered로 거부했다.",
+          "현재 등록된 linked worktree는 main 외에 remove-stale-specification-paths의 canonical repository-local worktree 1개이다."
+        ],
+        "interpretations": [
+          "유일한 active v4 package는 revision/attempt 도입 전에도 실행 context repair와 worktree prepare가 필요하다.",
+          "active initialization 명령은 기존 context 검증 및 current execution state 생성의 명시적 preflight로 설계할 수 있다."
+        ],
+        "limitations": [
+          "read-only inspect만 수행했으며 active Work Unit context나 Git worktree 상태를 수정하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-SEMVER-CONTRACT-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Semantic Versioning 2.0.0의 공개 API 변경 규칙",
+        "url": "https://semver.org/",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T01:19:57+09:00",
+        "findings": [
+          "Semantic Versioning은 먼저 precise public API를 선언한 뒤 그 API 변경을 version으로 전달하도록 요구한다.",
+          "backward-compatible public API 기능 추가는 minor version, incompatible public API 변경은 major version 증가 대상이다.",
+          "이미 공개된 version의 내용은 수정하지 않고 변경은 새 version으로 공개해야 한다."
+        ],
+        "limitations": [
+          "Agent Factory의 schemaVersion, profile version, semantic item contract 중 무엇이 public API인지 이 표준이 대신 결정하지는 않는다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-INTOTO-VERSION-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "in-toto Attestation Framework의 spec release와 Statement type version 분리",
+        "url": "https://github.com/in-toto/attestation/blob/main/spec/README.md",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T01:19:57+09:00",
+        "findings": [
+          "in-toto Attestation Framework latest spec는 v1.2이며 tagged release는 SemVer MAJOR.MINOR를 사용한다.",
+          "backward-compatible semantic update는 tagged MINOR release로 표시하지만 Statement의 machine type은 https://in-toto.io/Statement/v1로 유지할 수 있다.",
+          "predicateType 의미를 바꾸는 incompatible v2 변경에서는 새 spec directory와 Statement/v2 machine type을 함께 도입한다."
+        ],
+        "limitations": [
+          "in-toto의 type URI와 tagged release 구조를 Agent Factory 필드에 그대로 복제해야 한다는 규정은 아니다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-INTOTO-SUBJECT-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "in-toto Statement의 attestation subject digest binding",
+        "url": "https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T01:19:57+09:00",
+        "findings": [
+          "in-toto Statement는 attestation을 특정 subject에 결합하고 predicate type을 식별한다.",
+          "각 subject는 digest를 반드시 가지며 subject artifact는 immutable한 것으로 취급한다.",
+          "subject artifact matching은 digest를 기준으로 수행된다."
+        ],
+        "limitations": [
+          "Work Unit review는 서명된 supply-chain attestation이 아니므로 cryptographic envelope와 signature까지 요구한다는 근거는 아니다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-SLSA-RUN-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "SLSA Build Provenance의 definition과 per-run details 분리",
+        "url": "https://slsa.dev/spec/v1.2/build-provenance",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T01:19:57+09:00",
+        "findings": [
+          "SLSA provenance는 build input인 buildDefinition과 특정 실행의 runDetails를 분리한다.",
+          "runDetails.metadata.invocationId는 특정 build invocation을 식별하며 globally unique가 권고된다.",
+          "runDetails는 builder와 logs 등 debugging 또는 incident response에 필요한 byproducts를 연결할 수 있다.",
+          "extension field는 기존 field 의미를 바꾸지 않아야 하며 unknown extension을 무시해도 DENY가 ALLOW로 바뀌지 않는 monotonic 원칙을 권고한다."
+        ],
+        "limitations": [
+          "빌드 provenance 계약이므로 Human rework revision 증가 조건과 Codex session resume 의미는 Agent Factory가 별도로 정의해야 한다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-KUBERNETES-COMPAT-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Kubernetes persisted API version 전환과 decoder 호환 정책",
+        "url": "https://kubernetes.io/docs/reference/using-api/deprecation-policy/",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-21T01:19:57+09:00",
+        "findings": [
+          "Kubernetes는 API element 제거 또는 significant behavior change에 API group version 증가를 요구한다.",
+          "persisted API version은 이전에 저장된 data를 decode하고 convert할 수 있는 동안 유지해야 한다.",
+          "preferred 또는 storage version은 이전 version과 새 version을 함께 지원하는 release 이후에만 전환할 수 있다."
+        ],
+        "limitations": [
+          "분산 API server의 장기 호환 정책이며 로컬 Work Unit JSON manager에 동일한 지원 기간이나 conversion 체계를 강제하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

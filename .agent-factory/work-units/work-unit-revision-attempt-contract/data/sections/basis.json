@@ -1,0 +1,49 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-INTAKE-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake의 WORK-UNIT-BASIS-001을 구현 근거로 사용한다."
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-reexecution-rework-research",
+          "path": ".agent-factory/intakes/work-unit-reexecution-rework-research",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WORK-UNIT-BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BASIS-SPECIFICATION-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "result": "Intake의 SPEC-IMPACT-001에 따라 별도 Specification package 변경은 요구되지 않는다."
+      }
+    },
+    {
+      "id": "BASIS-TRACEABILITY-001",
+      "kind": "traceability",
+      "content": {
+        "sourceItems": [
+          "DECISION-IDENTITY-MODEL-001",
+          "DECISION-SCHEMA-MIGRATION-001",
+          "REQUIREMENT-IDENTITY-001",
+          "REQUIREMENT-REVIEW-BINDING-001",
+          "REQUIREMENT-HISTORY-001",
+          "REQUIREMENT-PROVENANCE-BINDING-002",
+          "CONSTRAINT-VERSION-BOUNDARY-001",
+          "RISK-REVIEW-TARGET-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

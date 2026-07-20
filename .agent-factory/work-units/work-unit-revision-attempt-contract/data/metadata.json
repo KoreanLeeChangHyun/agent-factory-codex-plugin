@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "4.0.0",
+  "documentVersion": "1.0.11",
+  "id": "work-unit-revision-attempt-contract",
+  "artifactType": "work-unit",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "work-unit",
+    "status": "ready"
+  },
+  "createdAt": "2026-07-20T16:28:06+00:00",
+  "updatedAt": "2026-07-20T16:30:17+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory work-unit manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-07-21T01:30:14+09:00",
+    "contractValid": true,
+    "intakeTraceabilityValid": true,
+    "definitionComplete": true,
+    "executionContextComplete": true,
+    "verificationPlanComplete": true,
+    "findings": []
+  }
+}

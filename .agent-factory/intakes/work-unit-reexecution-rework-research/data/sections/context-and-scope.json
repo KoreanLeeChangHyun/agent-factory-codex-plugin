@@ -1,0 +1,39 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 Work Unit은 ready, working, review, done 상태를 사용하고 review에서 working으로 돌아갈 수 있으며 동일 branch와 worktree를 재사용한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "included": [
+          "실행 identity와 attempt identity 분리 사례",
+          "검토 후 재작업 및 재실행 상태 모델",
+          "실행 증거와 이력 보존 방식",
+          "Human 승인 경계와 재실행 안전성",
+          "현재 프로젝트 모델과 외부 사례의 차이"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "excluded": [
+          "코드 구현",
+          "기존 Work Unit 스키마 변경",
+          "현재 완료된 Work Unit 재개",
+          "병합 또는 배포 실행"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

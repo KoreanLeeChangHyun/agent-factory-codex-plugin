@@ -1,0 +1,24 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "summary": "Pending execution report. Canonical report output will remain JSON.",
+        "requiredContent": [
+          "changed artifacts",
+          "revision attempt and Git subject contract",
+          "test and compatibility evidence",
+          "AI review result",
+          "remaining risks and Human decisions"
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

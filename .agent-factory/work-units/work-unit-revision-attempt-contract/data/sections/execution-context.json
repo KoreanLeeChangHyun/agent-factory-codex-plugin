@@ -1,0 +1,40 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXECUTION-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "work-unit-revision-attempt-contract",
+        "objective": "Implement the approved Work Unit revision and execution attempt contract.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-revision-attempt-contract \"Execute Work Unit work-unit-revision-attempt-contract.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "ef9436dca92e205429e76a1f256e66836df3a664",
+        "branch": "work-unit/work-unit-revision-attempt-contract",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-revision-attempt-contract",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "planned",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "ef9436dca92e205429e76a1f256e66836df3a664"
+        },
+        "currentRevision": 1,
+        "currentAttempt": null,
+        "invocationId": null,
+        "history": []
+      }
+    }
+  ],
+  "subsections": []
+}

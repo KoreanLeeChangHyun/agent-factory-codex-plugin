@@ -1,0 +1,83 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQUIREMENT-IDENTITY-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "재실행 설계는 Work Unit identity와 동일 branch 및 worktree를 유지하면서 각 실행을 구별할 수 있어야 한다.",
+        "sourceBasis": [
+          "INTERNAL-WORK-UNIT-REWORK-001",
+          "WEB-GITHUB-IDENTITY-001",
+          "WEB-AZURE-ATTEMPT-001"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-REVIEW-BINDING-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "검토 및 승인은 검토된 산출물 revision과 실행 증거에 결합되어야 하며 이후 변경에 자동 승계되어서는 안 된다.",
+        "sourceBasis": [
+          "WEB-GITHUB-REVIEW-001",
+          "WEB-GERRIT-PATCHSET-001",
+          "INTERNAL-WORK-UNIT-REWORK-001"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-HISTORY-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "이전 실행, 검토, 재작업 요청과 결과는 덮어쓰지 않고 조회 가능한 이력으로 보존되어야 한다.",
+        "sourceBasis": [
+          "WEB-AWS-REDRIVE-001",
+          "WEB-GERRIT-PATCHSET-001"
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-RESEARCH-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "선택된 모델은 동일 입력 retry, Human rework, Codex session resume, review invalidation을 서로 구분하고 현재 Work Unit JSON과 worktree 계약에 매핑할 수 있어야 한다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-VERSION-BOUNDARY-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "package schemaVersion은 current physical package contract로 유지하고, revision/attempt semantic payload는 독립된 versioned execution-state contract로 식별한다. package schema version을 전환하려면 이전 persisted package decoder와 migration 경계를 먼저 제공해야 한다.",
+        "sourceBasis": [
+          "INTERNAL-VERSION-CONTRACT-002",
+          "INTERNAL-LIFECYCLE-COMPAT-002",
+          "WEB-SEMVER-CONTRACT-002",
+          "WEB-INTOTO-VERSION-002",
+          "WEB-KUBERNETES-COMPAT-002"
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-COMPATIBILITY-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "기존 done v4 이력을 재작성하지 않고 읽을 수 있어야 하며, active Work Unit은 실행 전에 supported execution-state contract version과 current revision/attempt를 가져야 하고 이전 pass와 approval 재사용을 거부해야 한다."
+      }
+    },
+    {
+      "id": "REQUIREMENT-PROVENANCE-BINDING-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "각 execution attempt의 결과, 검증 evidence, AI review와 Human approval은 current revision, invocation identity 및 immutable Git subject digest에 결합되어야 한다.",
+        "sourceBasis": [
+          "WEB-INTOTO-SUBJECT-002",
+          "WEB-SLSA-RUN-002",
+          "WEB-GITHUB-REVIEW-001",
+          "INTERNAL-WORK-UNIT-REWORK-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

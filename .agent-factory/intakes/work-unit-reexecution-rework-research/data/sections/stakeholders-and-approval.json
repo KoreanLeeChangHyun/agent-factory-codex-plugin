@@ -1,0 +1,28 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholder": "Agent Factory Work Unit을 실행하고 검토하는 Human 및 Execution Agent"
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "조사는 진행할 수 있으나 상태 모델 확정, 구현, 재작업 승인, 완료 승인과 병합은 Human 결정으로 남긴다."
+      }
+    }
+  ],
+  "subsections": []
+}

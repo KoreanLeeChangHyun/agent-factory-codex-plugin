@@ -1,0 +1,80 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-IDENTITY-MODEL-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Work Unit 재실행 및 rework identity 모델",
+        "status": "accepted",
+        "selectedOption": "B",
+        "selectedModel": "Work Unit 아래 revision과 execution attempt를 분리",
+        "rationale": "Work Unit identity와 review 문맥을 유지하면서 동일 revision의 실행 retry와 Human 피드백으로 변경된 revision을 구분하고, 승인과 증거를 정확한 검토 대상에 결합한다.",
+        "alternatives": [
+          "단일 attempt",
+          "revision과 execution attempt 분리",
+          "rework마다 새 Work Unit"
+        ]
+      }
+    },
+    {
+      "id": "OPEN-IDENTITY-MODEL-001",
+      "kind": "open-item",
+      "content": {
+        "item": "재실행 및 Human rework identity 모델 선택",
+        "resolution": "B: Work Unit 아래 revision과 execution attempt를 분리"
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "blocking 또는 non-blocking open item이 없다.",
+        "blockingCount": 0,
+        "nonBlockingCount": 0
+      }
+    },
+    {
+      "id": "RISK-REVIEW-TARGET-001",
+      "kind": "risk",
+      "content": {
+        "risk": "revision 또는 Git 검토 대상과 결합되지 않은 이전 pass 및 Human approval이 이후 변경에 잘못 재사용될 수 있다.",
+        "mitigation": "현재 revision, execution attempt, session id, base/head commit과 evidence reference를 함께 검증하고 새 revision 시작 시 이전 검토 결과를 current gate에서 제외한다."
+      }
+    },
+    {
+      "id": "DECISION-SCHEMA-MIGRATION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Work Unit revision 및 execution attempt version 경계",
+        "status": "accepted",
+        "selectedOption": "A",
+        "selectedModel": "package schemaVersion 4.0.0 유지와 versioned execution-state/v1 semantic contract",
+        "rationale": "기존 v4 physical package와 done 이력을 유지하면서 manager와 Viewer가 새 semantic payload version을 판별하도록 한다.",
+        "alternatives": [
+          "package v4 plus execution-state semantic contract v1",
+          "physical schema v4 plus separate profile release 4.1.0",
+          "package schema v5 plus multi-version validation and active migration"
+        ]
+      }
+    },
+    {
+      "id": "OPEN-SCHEMA-MIGRATION-001",
+      "kind": "open-item",
+      "content": {
+        "item": "revision 및 execution attempt 계약의 version 경계 선택",
+        "resolution": "A: package schemaVersion 4.0.0 유지와 versioned execution-state/v1 semantic contract"
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    }
+  ],
+  "subsections": []
+}

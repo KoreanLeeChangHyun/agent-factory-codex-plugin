@@ -1,0 +1,61 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "action": "기존 manager lifecycle과 review semantics를 재현하는 실패 회귀 테스트를 먼저 추가한다.",
+        "verifies": "stale pass와 approval 재사용 결함을 테스트로 고정한다.",
+        "order": 1
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "action": "execution-state/v1 current state와 immutable revision/attempt history contract를 구현한다.",
+        "verifies": "package schemaVersion 4.0.0을 유지하면서 semantic version 판별이 가능하다.",
+        "order": 2
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "action": "retry, resume와 Human rework를 구분하는 atomic manager operations와 lifecycle invalidation을 구현한다.",
+        "verifies": "retry는 attempt 증가, resume는 동일 attempt 유지, rework는 revision 증가를 보장한다.",
+        "order": 3
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "action": "execution, quality, AI review, report와 Human approval을 current revision, attempt, invocationId와 headCommit에 결합한다.",
+        "verifies": "stale 또는 다른 Git subject의 evidence가 review/done을 통과하지 못한다.",
+        "order": 4
+      }
+    },
+    {
+      "id": "PLAN-005",
+      "kind": "plan-step",
+      "content": {
+        "action": "worktree 재사용, codex exec resume 및 Viewer JSON 소비 계약 문서를 갱신한다.",
+        "verifies": "UI 구현 없이 machine-facing JSON contract와 orchestration 경계가 명시된다.",
+        "order": 5
+      }
+    },
+    {
+      "id": "PLAN-006",
+      "kind": "plan-step",
+      "content": {
+        "action": "focused tests, 전체 관련 test suites, plugin validation을 수행하고 AI Review와 Report evidence를 기록한다.",
+        "verifies": "새 동작과 v4 history 호환성 및 project packaging을 검증한다.",
+        "order": 6
+      }
+    }
+  ],
+  "subsections": []
+}

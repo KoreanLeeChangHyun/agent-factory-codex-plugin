@@ -1,0 +1,81 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "objective": "Work Unit package schemaVersion 4.0.0을 유지하면서 versioned execution-state/v1, revision과 execution attempt lifecycle, stale review evidence invalidation 및 Git subject binding을 Work Unit manager와 실행 계약에 구현한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "included": [
+          "execution-state/v1 semantic JSON item contract",
+          "revision, attempt, invocation identity와 Git subject binding",
+          "retry, resume, Human rework의 atomic manager lifecycle semantics",
+          "current execution target과 일치하지 않는 pass, AI review, report와 Human approval 거부",
+          "동일 Work Unit branch와 linked worktree 재사용 계약",
+          "기존 done v4 history validation과 active v4 initialization boundary",
+          "VS 확장 Viewer가 소비할 version-aware JSON field documentation",
+          "focused unit and integration tests"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "excluded": [
+          "package schemaVersion v5 도입",
+          "기존 done v4 Work Unit 일괄 migration 또는 history rewrite",
+          "legacy pre-sectioned Work Unit 10개의 migration",
+          "VS Code extension 또는 Viewer UI 구현",
+          "Human-facing Markdown 또는 HTML report 생성",
+          "Work Unit 실행 결과의 Human 승인, merge, PR promotion 또는 deployment",
+          "기존 unrelated ready Work Unit의 execution-context repair"
+        ]
+      }
+    },
+    {
+      "id": "EXPECTED-OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "artifacts": [
+          "manager-validated execution-state/v1 and immutable history contract",
+          "atomic retry, resume and rework lifecycle operations with invalidation",
+          "revision, attempt, invocationId and headCommit-bound evidence validation",
+          "worktree and codex exec orchestration guidance",
+          "version-aware Viewer JSON contract documentation",
+          "focused regression and compatibility tests"
+        ]
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "value": "Canonical outputs remain JSON. Human-facing report artifacts are legacy and must not be introduced."
+      }
+    },
+    {
+      "id": "CONSTRAINT-002",
+      "kind": "constraint",
+      "content": {
+        "value": "Integration receipt registration remains orthogonal to lifecycle and may append to done without reviving semantic execution results."
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risk": "이전 attempt의 passing result 또는 approval이 새 revision에 재사용될 수 있다.",
+        "mitigation": "current execution-state tuple과 Git subject가 정확히 일치할 때만 review 및 done gate를 통과시킨다."
+      }
+    }
+  ],
+  "subsections": []
+}

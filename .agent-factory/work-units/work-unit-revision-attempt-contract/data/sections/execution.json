@@ -1,0 +1,19 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "phase": "not-started",
+        "summary": "Work Unit execution has not started."
+      },
+      "attributes": {
+        "status": "pending",
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

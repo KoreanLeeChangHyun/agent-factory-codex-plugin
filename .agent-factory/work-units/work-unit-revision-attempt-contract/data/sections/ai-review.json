@@ -1,0 +1,33 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "checks": [
+          "Intake decisions A and B identity model are implemented without scope expansion",
+          "package schemaVersion remains 4.0.0 and execution-state contract is independently versioned",
+          "retry resume and rework semantics are deterministic and atomic",
+          "all review evidence and approval gates bind to the current execution target",
+          "history is append-only and integration receipt behavior remains orthogonal",
+          "tests and documentation cover compatibility and refusal paths",
+          "no Human-facing legacy report or Viewer UI implementation is introduced"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "Pending execution and AI review."
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

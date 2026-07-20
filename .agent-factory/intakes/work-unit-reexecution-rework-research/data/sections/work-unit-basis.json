@@ -1,0 +1,43 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "이번 단계는 조사와 선택지 도출만 수행하므로 Specification은 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "Work Unit revision과 execution attempt 분리 모델을 canonical JSON, manager lifecycle, codex exec orchestration 및 Viewer contract에 적용한다.",
+        "status": "ready-for-planning",
+        "expectedOutputs": [
+          "versioned execution-state semantic JSON contract와 current revision/attempt 및 immutable history",
+          "retry, resume, Human rework와 review invalidation manager command 및 transition validation",
+          "동일 Work Unit branch와 worktree를 재사용하는 codex exec orchestration",
+          "revision, invocation identity, Git subject digest와 evidence 및 Human approval 결합 검증",
+          "VS 확장 Viewer가 사용할 version-aware JSON contract",
+          "focused unit 및 integration tests"
+        ],
+        "traceability": [
+          "DECISION-IDENTITY-MODEL-001",
+          "DECISION-SCHEMA-MIGRATION-001",
+          "REQUIREMENT-IDENTITY-001",
+          "REQUIREMENT-REVIEW-BINDING-001",
+          "REQUIREMENT-HISTORY-001",
+          "REQUIREMENT-PROVENANCE-BINDING-002",
+          "CONSTRAINT-VERSION-BOUNDARY-001",
+          "RISK-REVIEW-TARGET-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
