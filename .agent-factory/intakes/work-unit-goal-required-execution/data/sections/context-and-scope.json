@@ -1,0 +1,37 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-GOAL-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 lifecycle과 work-unit-execution 스킬은 codex exec를 persistent Goal 없이 허용하며 Human의 최신 결정과 충돌한다."
+      }
+    },
+    {
+      "id": "SCOPE-GOAL-001",
+      "kind": "scope",
+      "content": {
+        "included": [
+          "lifecycle의 named Work Unit 실행 규칙",
+          "work-unit-execution preflight",
+          "관련 스킬 회귀 테스트",
+          "Work Unit 실행 명령 예시"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-GOAL-001",
+      "kind": "out-of-scope",
+      "content": {
+        "excluded": [
+          "실행 진입 경로 또는 실행자 추적 필드 추가",
+          "일반적인 비 Work Unit codex exec 동작 변경",
+          "기존 완료 Work Unit 이력 재작성"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

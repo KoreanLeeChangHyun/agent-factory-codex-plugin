@@ -1,0 +1,29 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-GOAL-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholder": "Work Unit을 실행하고 검토하는 Human과 Codex 실행 에이전트"
+      }
+    },
+    {
+      "id": "OWNER-GOAL-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human",
+        "decision": "Work Unit 실행에 Goal을 강제하는 lifecycle 정책"
+      }
+    },
+    {
+      "id": "APPROVAL-GOAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "Human은 구현 결과의 승인, 재작업 및 병합을 결정하며 Goal 생성은 명명된 Work Unit 실행 요청에 포함된 필수 preflight다."
+      }
+    }
+  ],
+  "subsections": []
+}

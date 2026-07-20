@@ -1,0 +1,31 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake의 WORK-UNIT-BASIS-GOAL-001을 실행 기준으로 사용한다.",
+        "requirementRefs": [
+          "REQUIREMENT-GOAL-001",
+          "REQUIREMENT-GOAL-PREFLIGHT-002",
+          "ACCEPTANCE-GOAL-001",
+          "DECISION-GOAL-001"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-goal-required-execution",
+          "path": ".agent-factory/intakes/work-unit-goal-required-execution",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WORK-UNIT-BASIS-GOAL-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

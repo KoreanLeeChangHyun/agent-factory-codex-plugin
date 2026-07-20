@@ -1,0 +1,26 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-GOAL-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "모든 Work Unit 실행의 Goal 필수화",
+        "status": "accepted",
+        "selectedModel": "진입 경로와 무관하게 실행 전 활성 Goal을 확인하거나 생성하고 실패 시 거부한다.",
+        "rationale": "Human이 Goal 강제를 명시적으로 결정했으며 현재 codex exec 예외를 제거해야 한다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-GOAL-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "blocking 또는 non-blocking open item이 없다.",
+        "blockingCount": 0,
+        "nonBlockingCount": 0
+      }
+    }
+  ],
+  "subsections": []
+}

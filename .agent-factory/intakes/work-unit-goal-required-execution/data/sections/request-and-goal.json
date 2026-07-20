@@ -1,0 +1,28 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-GOAL-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Work Unit은 codex exec를 포함한 모든 진입 경로에서 Goal을 강제로 생성한 뒤 실행하도록 수정한다."
+      }
+    },
+    {
+      "id": "OUTCOME-GOAL-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "명명된 Work Unit 실행은 활성 Goal 없이 Plan, Work, AI Review 또는 Report에 진입할 수 없다."
+      }
+    },
+    {
+      "id": "SUCCESS-GOAL-001",
+      "kind": "success-criterion",
+      "content": {
+        "criterion": "대화형 CLI, IDE 및 codex exec에서 동일하게 Goal 필수 preflight가 적용되고 Goal 생성 불가 시 실행을 거부한다."
+      }
+    }
+  ],
+  "subsections": []
+}

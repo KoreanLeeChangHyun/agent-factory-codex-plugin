@@ -1,0 +1,32 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "모든 명명된 Work Unit 실행에 Goal이 필수인지 확인한다.",
+          "codex exec가 Goal 없는 우회 경로로 남지 않는지 확인한다.",
+          "Goal 생성 실패와 다른 활성 Goal 충돌이 fail-closed인지 확인한다.",
+          "일반 비 Work Unit exec와 실행자 또는 진입 경로 추적 모델을 변경하지 않았는지 확인한다."
+        ]
+      }
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

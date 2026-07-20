@@ -1,0 +1,49 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "statement": "모든 명명된 Work Unit 실행에 활성 Goal preflight를 강제하고 codex exec의 Goal 없는 실행 예외를 제거한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/lifecycle/SKILL.md의 실행 진입 및 Goal 생성 승인 규칙",
+          "skills/lifecycle/references/lifecycle.md의 named Work Unit 실행 절차",
+          "skills/work-unit-execution/SKILL.md의 Goal preflight와 fail-closed 규칙",
+          "관련 스킬 메타데이터 회귀 테스트"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "실행자 또는 진입 경로 추적 필드 추가",
+          "일반적인 비 Work Unit codex exec 변경",
+          "기존 완료 Work Unit 이력 재작성",
+          "Goal 제품 기능 자체 구현"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "artifacts": [
+          "Goal 필수 lifecycle 및 execution skill contract",
+          "Goal 부재 또는 충돌 시 실행 거부 규칙",
+          "회귀 테스트"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

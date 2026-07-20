@@ -1,0 +1,62 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "명명된 Work Unit은 실행 진입 경로와 무관하게 해당 Work Unit id의 활성 Goal이 있어야 실행된다."
+      }
+    },
+    {
+      "id": "ACCEPT-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Goal이 없으면 실행 에이전트가 Goal을 생성하고, 다른 미완료 Goal 충돌 또는 Goal 기능 부재 시 실행을 거부한다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "Goal 없는 codex exec 허용 문구가 활성 스킬에서 제거된다.",
+          "Goal preflight가 worktree 준비, 계획 및 편집보다 먼저 수행되도록 명시된다.",
+          "관련 회귀 테스트와 스킬 검증이 통과한다.",
+          "AI 및 Human 검토 자료가 준비된다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m unittest skills.lifecycle.tests.test_skill_metadata",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/lifecycle",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-execution",
+          "rg -n \"persistent Goal|codex exec|Goal preflight|create_goal\" skills/lifecycle skills/work-unit-execution",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "focused regression result",
+          "skill validation result",
+          "active Goal-rule reference review",
+          "diff scope review"
+        ]
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

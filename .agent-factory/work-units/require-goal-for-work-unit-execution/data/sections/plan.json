@@ -1,0 +1,62 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Plan",
+        "statement": "현재 Goal 관련 스킬 문구, 공식 Codex 매뉴얼과 회귀 테스트 경계를 확인한다."
+      },
+      "attributes": {
+        "sequence": 1
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "Goal 없는 codex exec 예외가 남으면 실패하는 테스트를 먼저 추가한다."
+      },
+      "attributes": {
+        "sequence": 2
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "lifecycle과 work-unit-execution 규칙을 활성 Goal preflight 및 fail-closed 계약으로 수정한다."
+      },
+      "attributes": {
+        "sequence": 3
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "phase": "AI Review",
+        "statement": "모든 진입 경로의 Goal 강제, 비 Work Unit exec 비영향, 추적 필드 비추가와 문서 정합성을 검토한다."
+      },
+      "attributes": {
+        "sequence": 4
+      }
+    },
+    {
+      "id": "PLAN-005",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Report",
+        "statement": "검증 증거와 Human 검토 방법을 JSON Work Unit에 기록한다."
+      },
+      "attributes": {
+        "sequence": 5
+      }
+    }
+  ],
+  "subsections": []
+}

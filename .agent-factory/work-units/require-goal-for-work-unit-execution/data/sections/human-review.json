@@ -1,0 +1,40 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "codex exec를 포함한 모든 Work Unit 실행에서 Goal이 필수인지 확인합니다.",
+          "Goal이 없거나 충돌하면 worktree 준비와 편집 전에 거부하는지 확인합니다.",
+          "실행자나 진입 경로 추적 필드가 새로 추가되지 않았는지 확인합니다.",
+          "테스트 증거와 변경 범위를 확인합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "lifecycle과 work-unit-execution SKILL.md 및 lifecycle reference의 diff를 확인합니다.",
+          "focused regression과 quick_validate 결과를 확인합니다.",
+          "승인 또는 rework를 결정하며 merge와 cleanup은 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

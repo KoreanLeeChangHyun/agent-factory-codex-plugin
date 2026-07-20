@@ -1,0 +1,32 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-HUMAN-GOAL-001",
+      "kind": "evidence",
+      "content": {
+        "source": "Human decision",
+        "finding": "codex exec를 포함한 Work Unit 실행은 무조건 Goal로 실행해야 하며 이 규칙을 수정해야 한다."
+      }
+    },
+    {
+      "id": "EVIDENCE-REPOSITORY-GOAL-001",
+      "kind": "internal-evidence",
+      "content": {
+        "source": "skills/lifecycle/SKILL.md; skills/lifecycle/references/lifecycle.md; skills/work-unit-execution/SKILL.md",
+        "finding": "세 파일은 codex exec 경로에 persistent Goal mode가 필요하지 않다고 현재 명시한다."
+      }
+    },
+    {
+      "id": "EVIDENCE-CODEX-GOAL-001",
+      "kind": "web-evidence",
+      "content": {
+        "source": "OpenAI Codex Manual: Long-running work and /goal",
+        "url": "https://learn.chatgpt.com/docs/long-running-work.md",
+        "finding": "공식 매뉴얼은 대화형 Codex CLI와 IDE에서 /goal로 Goal mode를 시작하고 Goal이 활성 chat에 결합된다고 설명한다. codex exec CLI 옵션으로 Goal을 선언하는 방식은 문서화하지 않는다."
+      }
+    }
+  ],
+  "subsections": []
+}

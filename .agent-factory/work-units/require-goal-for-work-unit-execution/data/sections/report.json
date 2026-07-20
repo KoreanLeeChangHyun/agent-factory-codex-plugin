@@ -1,0 +1,21 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "remainingRisks": [
+          "Implementation, verification, AI review, Human approval, and merge decisions remain pending."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

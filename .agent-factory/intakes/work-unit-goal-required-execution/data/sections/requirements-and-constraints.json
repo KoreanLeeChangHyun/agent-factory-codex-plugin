@@ -1,0 +1,36 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQUIREMENT-GOAL-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "모든 명명된 Work Unit 실행은 동일 Work Unit id를 목표로 하는 활성 Goal을 실행 전 필수조건으로 가져야 한다.",
+        "sourceBasis": [
+          "EVIDENCE-HUMAN-GOAL-001",
+          "EVIDENCE-REPOSITORY-GOAL-001",
+          "EVIDENCE-CODEX-GOAL-001"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-GOAL-PREFLIGHT-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "실행 요청 시 활성 Goal이 없으면 Goal 생성 기능으로 생성하고, 다른 미완료 Goal과 충돌하거나 Goal 생성 기능을 사용할 수 없으면 Work Unit 실행을 시작하지 않는다.",
+        "sourceBasis": [
+          "EVIDENCE-HUMAN-GOAL-001"
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-GOAL-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "codex exec는 Work Unit id를 전달하는 bootstrap일 뿐이며 실행 에이전트가 Goal preflight를 통과하기 전에는 worktree 준비, 계획, 편집 또는 검증을 수행하지 않는다."
+      }
+    }
+  ],
+  "subsections": []
+}

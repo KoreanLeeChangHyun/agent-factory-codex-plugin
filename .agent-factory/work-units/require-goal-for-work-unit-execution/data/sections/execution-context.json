@@ -1,0 +1,24 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "require-goal-for-work-unit-execution",
+        "objective": "모든 명명된 Work Unit 실행에 Goal을 강제한다.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/require-goal-for-work-unit-execution \"Create a persistent Goal for Work Unit require-goal-for-work-unit-execution before any execution work, then execute that Work Unit.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "c585671fa149d22987cc51abc36c25709fbf99ee",
+        "branch": "work-unit/require-goal-for-work-unit-execution",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/require-goal-for-work-unit-execution",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,36 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-GOAL-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "프로젝트 제품 Specification 변경 없이 Agent Factory lifecycle과 실행 스킬 계약을 수정한다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-GOAL-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "모든 명명된 Work Unit 실행에 Goal preflight를 강제하고 codex exec 예외를 제거한다.",
+        "status": "ready-for-planning",
+        "expectedOutputs": [
+          "lifecycle 및 work-unit-execution Goal 필수 규칙",
+          "Goal 생성 실패 시 fail-closed 규칙",
+          "관련 회귀 테스트"
+        ],
+        "traceability": [
+          "REQUIREMENT-GOAL-001",
+          "REQUIREMENT-GOAL-PREFLIGHT-002",
+          "ACCEPTANCE-GOAL-001",
+          "DECISION-GOAL-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
