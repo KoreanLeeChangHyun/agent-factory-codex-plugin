@@ -647,11 +647,13 @@ def commit_transaction(
     *,
     json_writes: dict[Path, Any] | None = None,
     file_writes: dict[Path, Path] | None = None,
+    byte_writes: dict[Path, bytes] | None = None,
     deletes: Iterable[Path] = (),
     full_validation: bool = False,
 ) -> None:
     json_writes = json_writes or {}
     file_writes = file_writes or {}
+    byte_writes = byte_writes or {}
     deletes = list(deletes)
     transaction_id = uuid.uuid4().hex
     transaction_relative = MANAGER_PATH / "transactions" / transaction_id
@@ -659,7 +661,7 @@ def commit_transaction(
     stage_root = transaction_relative / "stage"
     backup_root = transaction_relative / "backup"
     entries: list[dict[str, Any]] = []
-    targets = list(json_writes) + list(file_writes) + list(deletes)
+    targets = list(json_writes) + list(file_writes) + list(byte_writes) + list(deletes)
     if len(targets) != len(set(targets)):
         raise ManagerError("transaction target paths must be unique")
     with package_descriptor(package) as package_fd:
@@ -678,6 +680,10 @@ def commit_transaction(
                 elif target in file_writes:
                     copy_external_file_relative(
                         package_fd, file_writes[target], stage_root / stage_name
+                    )
+                elif target in byte_writes:
+                    write_bytes_relative(
+                        package_fd, stage_root / stage_name, byte_writes[target]
                     )
                 entries.append(
                     {

@@ -88,6 +88,15 @@ is invalid. TOC array order owns document order.
 - Human approval, rework, merge, deployment, and PR promotion remain Human
   decisions. AI completion means review material is ready, not that Human
   approval already occurred.
+- Register a successful `work-unit-execution integrate` JSON document with
+  `integration-put <package> <receipt> --path blocks/<path>`. The manager
+  validates execution-context identity and result consistency, then atomically
+  stores the immutable raw receipt block and a normalized `integration-result`
+  in `report`. Repeating the same receipt and path is an idempotent no-op;
+  reusing the path for different evidence is rejected.
+- Integration is orthogonal to the Work Unit lifecycle. `integration-put` may
+  append a valid receipt without reopening or changing `working`, `review`, or
+  terminal `done`; it never supplies Human approval or performs Git mutation.
 - Work Unit outputs are internal. Do not automatically promote them to Customer
   Deliverables.
 
@@ -95,7 +104,8 @@ is invalid. TOC array order owns document order.
 
 The manager supports schema checks, creation, focused/full display, title and
 metadata replacement, single/batch section item updates, optional section
-management, block registration/removal, validation, and lifecycle transitions.
+management, block registration/removal, integration receipt registration,
+validation, and lifecycle transitions.
 Supply only typed semantic data arguments; the shared manager constructs and
 serializes JSON. Never compose JSON strings or temporary JSON value files. See
 `references/work-unit-structure.md` for exact examples and validation gates.

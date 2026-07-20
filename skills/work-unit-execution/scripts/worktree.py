@@ -130,6 +130,12 @@ def validate_branch(execution: Execution, branch: str) -> None:
         raise ContractError("invalid_branch", "branch name is not valid")
 
 
+def validate_target_branch(execution: Execution, branch: str) -> None:
+    result = execution.git(None, ["check-ref-format", "--branch", branch])
+    if result.returncode != 0:
+        raise ContractError("invalid_target_branch", "target branch name is not valid")
+
+
 def branch_exists(execution: Execution, repository: Path, branch: str) -> bool:
     result = execution.git(
         repository,
@@ -443,6 +449,194 @@ def inspect(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     return success_payload(execution, "dirty" if context["dirty"] else "clean", context)
 
 
+def resolve_target_worktree(
+    execution: Execution, repository: Path, target_branch: str
+) -> Path:
+    validate_target_branch(execution, target_branch)
+    target_ref = f"refs/heads/{target_branch}"
+    branch = execution.git(repository, ["show-ref", "--verify", "--quiet", target_ref])
+    if branch.returncode == 1:
+        raise ContractError(
+            "unresolved_target", "target branch does not resolve to a local branch"
+        )
+    if branch.returncode != 0:
+        raise ContractError("git_validation_failed", "unable to resolve target branch")
+    matches = [
+        record
+        for record in list_worktrees(execution, repository)
+        if record.get("branch") == target_ref
+    ]
+    if len(matches) != 1 or not isinstance(matches[0].get("worktree"), str):
+        raise ContractError(
+            "target_worktree_unresolved",
+            "target branch must be checked out in exactly one registered worktree",
+            {"targetBranch": target_branch},
+        )
+    target_path = Path(str(matches[0]["worktree"])).resolve(strict=False)
+    if common_git_dir(execution, target_path) != expected_common_git_dir(
+        execution, repository
+    ):
+        raise ContractError(
+            "repository_mismatch", "target worktree belongs to a different repository"
+        )
+    return target_path
+
+
+def resolve_commit(
+    execution: Execution, repository: Path, value: str, error_code: str
+) -> str:
+    result = execution.git(
+        repository,
+        ["rev-parse", "--verify", "--end-of-options", f"{value}^{{commit}}"],
+    )
+    if result.returncode != 0:
+        raise ContractError(error_code, f"unable to resolve commit for {value}")
+    return result.stdout.decode("ascii", errors="strict").strip()
+
+
+def is_ancestor(
+    execution: Execution, repository: Path, ancestor: str, descendant: str
+) -> bool:
+    result = execution.git(
+        repository, ["merge-base", "--is-ancestor", ancestor, descendant]
+    )
+    if result.returncode not in (0, 1):
+        raise ContractError(
+            "git_validation_failed", "unable to classify integration ancestry"
+        )
+    return result.returncode == 0
+
+
+def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
+    repository = validate_repository(execution, args.repository)
+    source_branch = validate_execution_identity(
+        execution, args.work_unit_id, args.branch
+    )
+    if args.target_branch == source_branch:
+        raise ContractError(
+            "branch_mismatch", "source and target branches must be different"
+        )
+    worktree_path, _ = resolve_worktree_path(repository, args.work_unit_id, args.path)
+    source = inspect_context(execution, repository, source_branch, worktree_path)
+    if source["dirty"]:
+        raise ContractError(
+            "dirty_worktree",
+            "integration refuses a dirty source worktree",
+            {"changes": source["changes"]},
+        )
+    target_path = resolve_target_worktree(execution, repository, args.target_branch)
+    target_status = execution.git(
+        target_path,
+        ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
+    )
+    if target_status.returncode != 0:
+        raise ContractError(
+            "git_inspection_failed", "unable to inspect target worktree status"
+        )
+    target_changes = parse_status(target_status.stdout)
+    if target_changes:
+        raise ContractError(
+            "dirty_target_worktree",
+            "integration refuses a dirty target worktree",
+            {"changes": target_changes},
+        )
+
+    source_commit = source["headCommit"]
+    target_before = resolve_commit(
+        execution,
+        repository,
+        f"refs/heads/{args.target_branch}",
+        "unresolved_target",
+    )
+    if is_ancestor(execution, repository, source_commit, target_before):
+        relationship = "already-merged"
+    elif is_ancestor(execution, repository, target_before, source_commit):
+        relationship = "fast-forwardable"
+    else:
+        relationship = "diverged"
+
+    if args.human_decision != "approved":
+        raise ContractError(
+            "missing_human_decision",
+            "integration requires --human-decision approved",
+        )
+    if relationship == "diverged" and args.strategy != "no-ff":
+        raise ContractError(
+            "diverged_strategy_required",
+            "diverged integration requires --strategy no-ff",
+            {"relationship": relationship},
+        )
+    if relationship == "fast-forwardable" and args.strategy == "no-ff":
+        raise ContractError(
+            "strategy_mismatch",
+            "--strategy no-ff is only valid for diverged branches",
+            {"relationship": relationship},
+        )
+
+    strategy = args.strategy or (
+        "none" if relationship == "already-merged" else "ff-only"
+    )
+    operation_result = "already-merged"
+    if relationship == "fast-forwardable":
+        merge = execution.git(
+            target_path, ["merge", "--ff-only", source_commit], record=True
+        )
+        if merge.returncode != 0:
+            raise ContractError(
+                "integration_failed",
+                "fast-forward integration failed",
+                {"returnCode": merge.returncode},
+            )
+        operation_result = "fast-forwarded"
+    elif relationship == "diverged":
+        strategy = "no-ff"
+        merge = execution.git(
+            target_path,
+            ["merge", "--no-ff", "--no-edit", source_commit],
+            record=True,
+        )
+        if merge.returncode != 0:
+            abort = execution.git(target_path, ["merge", "--abort"], record=True)
+            raise ContractError(
+                "integration_failed",
+                "no-ff integration failed",
+                {
+                    "abortReturnCode": abort.returncode,
+                    "returnCode": merge.returncode,
+                    "targetRestored": abort.returncode == 0,
+                },
+            )
+        operation_result = "merge-commit-created"
+
+    target_after = resolve_commit(
+        execution,
+        repository,
+        f"refs/heads/{args.target_branch}",
+        "integration_failed",
+    )
+    if not is_ancestor(execution, repository, source_commit, target_after):
+        raise ContractError(
+            "integration_failed",
+            "target does not contain source commit after integration",
+        )
+    context = {
+        "humanDecision": args.human_decision,
+        "operationResult": operation_result,
+        "relationship": relationship,
+        "repository": str(repository),
+        "sourceBranch": source_branch,
+        "sourceCommit": source_commit,
+        "strategy": strategy,
+        "targetAfterCommit": target_after,
+        "targetBeforeCommit": target_before,
+        "targetBranch": args.target_branch,
+        "worktreePath": str(worktree_path),
+        "workUnitId": args.work_unit_id,
+    }
+    state = "already-merged" if relationship == "already-merged" else "integrated"
+    return success_payload(execution, state, context)
+
+
 def cleanup(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     repository = validate_repository(execution, args.repository)
     branch = validate_execution_identity(execution, args.work_unit_id, args.branch)
@@ -543,6 +737,10 @@ def build_parser() -> JsonArgumentParser:
     prepare_parser = common("prepare")
     prepare_parser.add_argument("--base", required=True)
     common("inspect")
+    integrate_parser = common("integrate")
+    integrate_parser.add_argument("--target-branch", required=True)
+    integrate_parser.add_argument("--human-decision")
+    integrate_parser.add_argument("--strategy", choices=["no-ff"])
     cleanup_parser = common("cleanup")
     cleanup_parser.add_argument("--human-decision")
     return parser
@@ -550,7 +748,9 @@ def build_parser() -> JsonArgumentParser:
 
 def command_hint(argv: Sequence[str]) -> str:
     return (
-        argv[0] if argv and argv[0] in {"prepare", "inspect", "cleanup"} else "unknown"
+        argv[0]
+        if argv and argv[0] in {"prepare", "inspect", "integrate", "cleanup"}
+        else "unknown"
     )
 
 
@@ -560,7 +760,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = build_parser().parse_args(actual_argv)
         execution.command = args.command
-        handlers = {"prepare": prepare, "inspect": inspect, "cleanup": cleanup}
+        handlers = {
+            "prepare": prepare,
+            "inspect": inspect,
+            "integrate": integrate,
+            "cleanup": cleanup,
+        }
         payload = handlers[args.command](execution, args)
         return_code = 0
     except ContractError as error:

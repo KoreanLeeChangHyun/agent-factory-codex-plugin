@@ -14,7 +14,7 @@
     {"id": "execution", "title": "Execution", "requiredKinds": ["execution-result"], "contains": ["phase progress", "commands and runtime actions", "changed artifacts", "test results", "deviations"]},
     {"id": "ai-review", "title": "AI Review", "requiredKinds": ["ai-checklist", "ai-review-result"], "contains": ["AI checklist", "scope and instruction compliance", "verification result", "remaining risks"]},
     {"id": "human-review", "title": "Human Review", "requiredKinds": ["human-checklist", "human-review-method", "human-review-result"], "contains": ["Human checklist", "inspection method", "approval and rework criteria", "merge and PR promotion boundaries"]},
-    {"id": "report", "title": "Report", "requiredKinds": ["report-result"], "contains": ["execution summary", "artifact and evidence references", "verification result", "Specification result", "remaining risks and unresolved items"]}
+    {"id": "report", "title": "Report", "requiredKinds": ["report-result"], "contains": ["execution summary", "normalized integration result and registered raw receipt when integration occurs", "artifact and evidence references", "verification result", "Specification result", "remaining risks and unresolved items"]}
   ],
   "optionalSections": [
     {"id": "rework-history", "title": "Rework History", "contains": ["rework requests and results"]},

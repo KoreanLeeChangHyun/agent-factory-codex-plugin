@@ -98,6 +98,14 @@ invalid.
 Review evidence arrays name registered block paths. A passing quality check or
 report without evidence is invalid for transition to `review`.
 
+After a Human-approved integration, use `integration-put` to register the raw
+`worktree.py integrate` JSON under `blocks/**`. The manager validates Work Unit,
+repository, source branch, target branch, worktree, Human decision, commit,
+relationship, strategy, and operation-result fields against the package and
+stores a normalized `integration-result` in `report` in the same transaction.
+The same receipt and path is idempotent. A different receipt must use a new
+path, so prior integration snapshots are never overwritten.
+
 ## Lifecycle Gates
 
 ```text
@@ -118,6 +126,8 @@ backlog -> ready -> working -> review -> done
 
 The metadata schema owns allowed status transitions. Semantic gates add the
 artifact-specific conditions above.
+Integration receipt registration is a separate state axis and therefore does
+not transition or reopen `working`, `review`, or `done`.
 
 ## Manager Workflow
 

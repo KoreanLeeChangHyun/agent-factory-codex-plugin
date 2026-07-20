@@ -17,7 +17,9 @@ All commands require explicitly resolved values:
 | `--base` | `prepare` | Commit-ish that resolves to one commit. |
 | `--branch` | all | Optional resolved branch assertion; when present it must equal the derived branch. |
 | `--path` | all | Optional absolute path assertion. Omit it for the canonical `<repository>/.agent-factory/worktree/<work-unit-id>` path. A noncanonical value is accepted only for an already registered legacy worktree. |
-| `--human-decision approved` | `cleanup` | Explicit Human authorization to clean up the worktree. |
+| `--target-branch` | `integrate` | Local target branch checked out in exactly one clean registered worktree. |
+| `--strategy no-ff` | `integrate` | Required only when source and target are diverged. |
+| `--human-decision approved` | `integrate`, `cleanup` | Explicit Human authorization for the requested mutation. |
 
 New worktrees always use the repository-local canonical path. The repository
 must ignore `/.agent-factory/worktree/`. Existing registered external
@@ -47,13 +49,23 @@ Every response uses schema version `1.0.0` and these top-level fields:
 - `operations` records mutation commands as argument arrays with return code,
   stdout, and stderr. Validation-only commands are not duplicated into the
   mutation ledger.
-- `state` is `prepared`, `reused`, `clean`, `dirty`, `cleaned`, or `refused`.
+- `state` is `prepared`, `reused`, `clean`, `dirty`, `integrated`,
+  `already-merged`, `cleaned`, or `refused`.
 
 `prepare` context includes `workUnitId`, `repository`, `baseRef`, `baseCommit`, `branch`,
 `worktreePath`, `headCommit`, `locked`, `lockReason`, `dirty`, and `changes`.
 `inspect` reports the same current-state fields except `baseRef` and
-`baseCommit`. `cleanup` also reports `humanDecision`, `worktreeRemoved`, and
-`branchRetained`.
+`baseCommit`. `integrate` reports `workUnitId`, `repository`, `sourceBranch`,
+`targetBranch`, `worktreePath`, `humanDecision`, `sourceCommit`,
+`targetBeforeCommit`, `targetAfterCommit`, `relationship`, `strategy`, and
+`operationResult`. `cleanup` also reports `humanDecision`, `worktreeRemoved`,
+and `branchRetained`.
+
+`integrate` classifies ancestry before mutation. `fast-forwardable` uses
+`ff-only`; `diverged` requires explicit `--strategy no-ff`; `already-merged`
+returns success without a mutation operation and preserves an explicitly
+supplied `no-ff` strategy. This makes rerunning the same approved command after
+a merge but before receipt registration recoverable without duplicate merging.
 
 ## Refusal Codes
 
@@ -65,6 +77,7 @@ The script performs no requested mutation when preflight validation returns:
 - `repository_root_mismatch`
 - `invalid_base_ref`
 - `invalid_branch`
+- `invalid_target_branch`
 - `branch_derivation_mismatch`
 - `branch_collision`
 - `worktree_collision`
@@ -74,9 +87,17 @@ The script performs no requested mutation when preflight validation returns:
 - `branch_mismatch`
 - `missing_human_decision`
 - `dirty_worktree`
+- `dirty_target_worktree`
+- `unresolved_target`
+- `target_worktree_unresolved`
+- `diverged_strategy_required`
+- `strategy_mismatch`
 
 Git or I/O failures use a specific `*_failed` or `unexpected_io_error` code
 and preserve the nonzero process exit status.
+If a `no-ff` merge reports a conflict, `integrate` records the failed merge and
+`git merge --abort` operations, returns `integration_failed`, and reports
+whether the clean target state was restored.
 
 ## Lifecycle States
 
@@ -86,8 +107,10 @@ unresolved
   -> repeated prepare for the same Work Unit -> reused and locked
   -> inspect -> clean or dirty
   -> Human Review decision
+  -> integrate approved -> integrated or already-merged, branch and worktree retained
   -> cleanup approved and clean -> cleaned, branch retained
 ```
 
-Do not call `cleanup` automatically. Human approval of Work Unit results,
-merge, branch deletion, and PR promotion remain separate decisions.
+Do not call `integrate` or `cleanup` automatically. Human approval of Work Unit
+results, integration strategy, cleanup, branch deletion, and PR promotion
+remain separate decisions.

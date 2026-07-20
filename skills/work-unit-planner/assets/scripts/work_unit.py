@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
 import shlex
+import stat
 import sys
 from pathlib import Path
 from typing import Any, Iterable
@@ -394,6 +396,248 @@ def validate_review_semantics(package: Path) -> None:
     require_evidence(package, report, "report")
 
 
+def validate_integration_receipt(
+    package: Path, receipt: dict[str, Any]
+) -> dict[str, str]:
+    required_top_level = {
+        "command",
+        "context",
+        "error",
+        "ok",
+        "operations",
+        "schemaVersion",
+        "state",
+    }
+    if set(receipt) != required_top_level:
+        raise ManagerError("integration receipt fields do not match the contract")
+    if (
+        receipt["command"] != "integrate"
+        or receipt["schemaVersion"] != "1.0.0"
+        or receipt["ok"] is not True
+        or receipt["error"] is not None
+        or receipt["state"] not in {"integrated", "already-merged"}
+        or not isinstance(receipt["operations"], list)
+        or not isinstance(receipt["context"], dict)
+    ):
+        raise ManagerError("integration receipt is not a successful integrate result")
+    operations = receipt["operations"]
+    if any(
+        not isinstance(operation, dict)
+        or set(operation) != {"args", "returnCode", "stderr", "stdout"}
+        or not isinstance(operation["args"], list)
+        or not all(isinstance(argument, str) for argument in operation["args"])
+        or not isinstance(operation["returnCode"], int)
+        or not isinstance(operation["stderr"], str)
+        or not isinstance(operation["stdout"], str)
+        for operation in operations
+    ):
+        raise ManagerError("integration receipt operations do not match the contract")
+    context = receipt["context"]
+    fields = {
+        "humanDecision",
+        "operationResult",
+        "relationship",
+        "repository",
+        "sourceBranch",
+        "sourceCommit",
+        "strategy",
+        "targetAfterCommit",
+        "targetBeforeCommit",
+        "targetBranch",
+        "worktreePath",
+        "workUnitId",
+    }
+    if set(context) != fields or any(
+        not isinstance(context[field], str) or not context[field] for field in fields
+    ):
+        raise ManagerError(
+            "integration receipt context fields do not match the contract"
+        )
+    if context["workUnitId"] != package.name:
+        raise ManagerError("receipt workUnitId must match package id")
+    if context["humanDecision"] != "approved":
+        raise ManagerError("integration receipt requires an approved Human decision")
+    commit_fields = ("sourceCommit", "targetBeforeCommit", "targetAfterCommit")
+    if any(
+        len(context[field]) not in {40, 64}
+        or any(character not in "0123456789abcdef" for character in context[field])
+        for field in commit_fields
+    ):
+        raise ManagerError(
+            "integration receipt commits must be lowercase Git object IDs"
+        )
+    valid_results = {
+        "fast-forwardable": ({"ff-only"}, "fast-forwarded", "integrated"),
+        "diverged": ({"no-ff"}, "merge-commit-created", "integrated"),
+        "already-merged": ({"none", "no-ff"}, "already-merged", "already-merged"),
+    }
+    expected = valid_results.get(context["relationship"])
+    if (
+        expected is None
+        or context["strategy"] not in expected[0]
+        or context["operationResult"] != expected[1]
+        or receipt["state"] != expected[2]
+    ):
+        raise ManagerError(
+            "integration receipt relationship and result are inconsistent"
+        )
+    if context["relationship"] == "already-merged":
+        if operations or context["targetAfterCommit"] != context["targetBeforeCommit"]:
+            raise ManagerError("already-merged receipt must not contain a mutation")
+    elif len(operations) != 1 or operations[0]["returnCode"] != 0:
+        raise ManagerError("integrated receipt requires one successful Git operation")
+    if context["relationship"] == "fast-forwardable":
+        expected_tail = ["merge", "--ff-only", context["sourceCommit"]]
+    elif context["relationship"] == "diverged":
+        expected_tail = ["merge", "--no-ff", "--no-edit", context["sourceCommit"]]
+    else:
+        expected_tail = []
+    if operations:
+        arguments = operations[0]["args"]
+        if (
+            len(arguments) != len(expected_tail) + 3
+            or arguments[:2] != ["git", "-C"]
+            or not Path(arguments[2]).is_absolute()
+            or arguments[3:] != expected_tail
+        ):
+            raise ManagerError(
+                "integration receipt Git operation does not match the result"
+            )
+    if (
+        context["relationship"] == "fast-forwardable"
+        and context["targetAfterCommit"] != context["sourceCommit"]
+    ):
+        raise ManagerError("fast-forward receipt target must equal the source commit")
+    if context["relationship"] == "diverged" and context["targetAfterCommit"] in {
+        context["sourceCommit"],
+        context["targetBeforeCommit"],
+    }:
+        raise ManagerError("no-ff receipt target must identify a new merge commit")
+    execution_context = find_kind(package, "execution-context")
+    recorded = {} if execution_context is None else execution_context.get("content", {})
+    pairs = {
+        "repository": "repository",
+        "sourceBranch": "branch",
+        "worktreePath": "worktreePath",
+    }
+    for receipt_field, recorded_field in pairs.items():
+        if context[receipt_field] != recorded.get(recorded_field):
+            raise ManagerError(
+                f"receipt {receipt_field} must match the execution context"
+            )
+    if (
+        "targetBranch" in recorded
+        and context["targetBranch"] != recorded["targetBranch"]
+    ):
+        raise ManagerError("receipt targetBranch must match the execution context")
+    return context
+
+
+def command_integration_put(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    validate_package(package, full=True)
+    source = Path(args.receipt)
+    try:
+        descriptor = os.open(
+            source,
+            os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0),
+        )
+    except OSError as error:
+        raise ManagerError(
+            f"integration receipt must be a readable non-symlink file: {source}"
+        ) from error
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ManagerError(f"integration receipt must be a regular file: {source}")
+        chunks: list[bytes] = []
+        while chunk := os.read(descriptor, 1024 * 1024):
+            chunks.append(chunk)
+        receipt_bytes = b"".join(chunks)
+    finally:
+        os.close(descriptor)
+    try:
+        receipt = json.loads(
+            receipt_bytes.decode("utf-8"), parse_constant=base.reject_constant
+        )
+    except (UnicodeError, ValueError, json.JSONDecodeError) as error:
+        raise ManagerError(
+            f"cannot read strict JSON from integration receipt: {error}"
+        ) from error
+    if not isinstance(receipt, dict):
+        raise ManagerError("integration receipt must be a JSON object")
+    context = validate_integration_receipt(package, receipt)
+    target, relative = base.checked_block_target(package, args.path)
+    digest = hashlib.sha256(receipt_bytes).hexdigest()
+    index = base.load_object(package / base.BLOCK_INDEX_PATH, "block index")
+    existing_block = next(
+        (entry for entry in index["blocks"] if entry["path"] == relative), None
+    )
+    report_path = base.section_path(package, "report")
+    report = base.load_object(report_path, "report section")
+    normalized = {
+        "id": f"INTEGRATION-{digest[:16].upper()}",
+        "kind": "integration-result",
+        "content": {**context, "receiptSha256": digest},
+        "attributes": {"status": receipt["state"]},
+        "blockRef": relative,
+    }
+    existing_item = next(
+        (
+            item
+            for item in report["content"]
+            if item.get("kind") == "integration-result"
+            and item.get("blockRef") == relative
+        ),
+        None,
+    )
+    if existing_block is not None:
+        if (
+            existing_block.get("sha256") != digest
+            or existing_item != normalized
+            or not target.is_file()
+            or base.file_sha256(target) != digest
+        ):
+            raise ManagerError(
+                "integration receipt path already contains different evidence"
+            )
+        print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+        return
+
+    report["content"].append(normalized)
+    candidate = [*index["blocks"]]
+    candidate.append(
+        {
+            "path": relative,
+            "mediaType": "application/json",
+            "description": "Raw Work Unit integration receipt",
+            "sha256": digest,
+            "sizeBytes": len(receipt_bytes),
+        }
+    )
+    candidate.sort(key=lambda entry: entry["path"])
+    new_index = {"blocks": candidate}
+    base.validate_instance("blocks", new_index)
+    base.validate_instance("section", report)
+    metadata = base.load_metadata(package)
+    metadata["documentVersion"] = base.next_document_version(
+        metadata["documentVersion"]
+    )
+    metadata["updatedAt"] = base.now()
+    base.mark_contract_valid(metadata)
+    base.validate_instance("metadata", metadata)
+    base.commit_transaction(
+        package,
+        json_writes={
+            package / base.BLOCK_INDEX_PATH: new_index,
+            package / base.METADATA_PATH: metadata,
+            report_path: report,
+        },
+        byte_writes={target: receipt_bytes},
+        full_validation=True,
+    )
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
 base_validate_package = base.validate_package
 
 
@@ -561,6 +805,11 @@ def parser() -> argparse.ArgumentParser:
     block_remove.add_argument("package")
     block_remove.add_argument("path")
     block_remove.set_defaults(handler=base.command_block_remove)
+    integration_put = commands.add_parser("integration-put")
+    integration_put.add_argument("package")
+    integration_put.add_argument("receipt")
+    integration_put.add_argument("--path", required=True)
+    integration_put.set_defaults(handler=command_integration_put)
     return root
 
 

@@ -321,6 +321,49 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
+    def integration_receipt(self, package: Path) -> dict[str, object]:
+        context = ready_items(
+            package_project_root := package.parent.parent.parent,
+            package_project_root / ".agent-factory" / "intakes" / "source-intake",
+            package.name,
+        )["execution-context"][0]["content"]
+        return {
+            "command": "integrate",
+            "context": {
+                "workUnitId": package.name,
+                "repository": context["repository"],
+                "sourceBranch": context["branch"],
+                "targetBranch": "main",
+                "worktreePath": context["worktreePath"],
+                "humanDecision": "approved",
+                "sourceCommit": "a" * 40,
+                "targetBeforeCommit": "b" * 40,
+                "targetAfterCommit": "a" * 40,
+                "relationship": "fast-forwardable",
+                "strategy": "ff-only",
+                "operationResult": "fast-forwarded",
+            },
+            "error": None,
+            "ok": True,
+            "operations": [
+                {
+                    "args": [
+                        "git",
+                        "-C",
+                        context["repository"],
+                        "merge",
+                        "--ff-only",
+                        "a" * 40,
+                    ],
+                    "returnCode": 0,
+                    "stderr": "",
+                    "stdout": "",
+                }
+            ],
+            "schemaVersion": "1.0.0",
+            "state": "integrated",
+        }
+
     def test_schemas_and_profile_define_v4_sectioned_contract(self) -> None:
         payload = json.loads(run_cli("check-schemas").stdout)
         self.assertEqual(payload["schemaVersion"], "4.0.0")
@@ -719,6 +762,20 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 if entry["kind"] == "human-review-result"
             )
             self.assertEqual(status["attributes"]["status"], "approved")
+            receipt = root / "done-integration-receipt.json"
+            receipt.write_text(
+                json.dumps(self.integration_receipt(package)), encoding="utf-8"
+            )
+            integrated = json.loads(
+                run_cli(
+                    "integration-put",
+                    str(package),
+                    str(receipt),
+                    "--path",
+                    "blocks/integration/done-receipt.json",
+                ).stdout
+            )
+            self.assertEqual(integrated["status"], "done")
 
     def test_orphan_block_style_data_and_tampering_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -764,6 +821,186 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             result = run_cli("validate", str(package), "--full", check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("block integrity mismatch", result.stderr)
+
+    def test_integration_put_atomically_registers_normalized_result_and_raw_receipt(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            run_cli("transition", str(package), "working")
+            receipt = root / "receipt.json"
+            receipt.write_text(
+                json.dumps(self.integration_receipt(package)), encoding="utf-8"
+            )
+
+            result = run_cli(
+                "integration-put",
+                str(package),
+                str(receipt),
+                "--path",
+                "blocks/integration/receipt.json",
+            )
+
+            self.assertTrue(json.loads(result.stdout)["valid"])
+            report = json.loads(
+                run_cli("show", str(package), "--section", "report").stdout
+            )
+            integration = next(
+                entry
+                for entry in report["content"]
+                if entry["kind"] == "integration-result"
+            )
+            self.assertEqual(integration["content"]["workUnitId"], package.name)
+            self.assertEqual(
+                integration["content"]["operationResult"], "fast-forwarded"
+            )
+            self.assertEqual(integration["blockRef"], "blocks/integration/receipt.json")
+            self.assertTrue(
+                json.loads(run_cli("validate", str(package), "--full").stdout)["valid"]
+            )
+
+            version = json.loads(
+                (package / "data" / "metadata.json").read_text(encoding="utf-8")
+            )["documentVersion"]
+            run_cli(
+                "integration-put",
+                str(package),
+                str(receipt),
+                "--path",
+                "blocks/integration/receipt.json",
+            )
+            repeated = json.loads(
+                run_cli("show", str(package), "--section", "report").stdout
+            )
+            self.assertEqual(
+                len(
+                    [
+                        entry
+                        for entry in repeated["content"]
+                        if entry["kind"] == "integration-result"
+                    ]
+                ),
+                1,
+            )
+            self.assertEqual(
+                json.loads((package / "data" / "metadata.json").read_text())[
+                    "documentVersion"
+                ],
+                version,
+            )
+
+            recovered_value = self.integration_receipt(package)
+            recovered_value["context"].update(
+                {
+                    "operationResult": "already-merged",
+                    "relationship": "already-merged",
+                    "strategy": "no-ff",
+                    "targetBeforeCommit": "a" * 40,
+                }
+            )
+            recovered_value["operations"] = []
+            recovered_value["state"] = "already-merged"
+            recovered = root / "recovered-receipt.json"
+            recovered.write_text(json.dumps(recovered_value), encoding="utf-8")
+            run_cli(
+                "integration-put",
+                str(package),
+                str(recovered),
+                "--path",
+                "blocks/integration/recovered-receipt.json",
+            )
+            recovered_report = json.loads(
+                run_cli("show", str(package), "--section", "report").stdout
+            )
+            self.assertEqual(
+                len(
+                    [
+                        entry
+                        for entry in recovered_report["content"]
+                        if entry["kind"] == "integration-result"
+                    ]
+                ),
+                2,
+            )
+
+            (package / "blocks" / "integration" / "receipt.json").write_text(
+                "tampered", encoding="utf-8"
+            )
+            rejected = run_cli("validate", str(package), "--full", check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("block integrity mismatch", rejected.stderr)
+
+    def test_integration_put_rejects_receipt_for_another_work_unit_without_mutation(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            run_cli("transition", str(package), "working")
+            receipt_value = self.integration_receipt(package)
+            receipt_value["context"]["workUnitId"] = "another-unit"
+            receipt = root / "receipt.json"
+            receipt.write_text(json.dumps(receipt_value), encoding="utf-8")
+            before = {
+                path.relative_to(package): path.read_bytes()
+                for path in package.rglob("*")
+                if path.is_file()
+            }
+
+            rejected = run_cli(
+                "integration-put",
+                str(package),
+                str(receipt),
+                "--path",
+                "blocks/integration/receipt.json",
+                check=False,
+            )
+
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("receipt workUnitId must match package id", rejected.stderr)
+            after = {
+                path.relative_to(package): path.read_bytes()
+                for path in package.rglob("*")
+                if path.is_file()
+            }
+            self.assertEqual(after, before)
+
+    def test_integration_put_rejects_symlink_receipt_without_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            run_cli("transition", str(package), "working")
+            receipt = root / "receipt.json"
+            receipt.write_text(
+                json.dumps(self.integration_receipt(package)), encoding="utf-8"
+            )
+            receipt_link = root / "receipt-link.json"
+            receipt_link.symlink_to(receipt)
+            before = (package / "data" / "metadata.json").read_bytes()
+
+            rejected = run_cli(
+                "integration-put",
+                str(package),
+                str(receipt_link),
+                "--path",
+                "blocks/integration/receipt.json",
+                check=False,
+            )
+
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("readable non-symlink file", rejected.stderr)
+            self.assertEqual((package / "data" / "metadata.json").read_bytes(), before)
+            self.assertFalse((package / "blocks" / "integration").exists())
 
     def test_interrupted_transaction_recovery(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

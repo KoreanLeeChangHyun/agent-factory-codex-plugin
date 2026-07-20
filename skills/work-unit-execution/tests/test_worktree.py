@@ -90,6 +90,17 @@ class WorktreeCliTest(unittest.TestCase):
     def prepare(self, *extra: str) -> tuple[subprocess.CompletedProcess[str], dict]:
         return self.cli("prepare", "--base", "main", *extra)
 
+    def commit_source(self, content: str = "source\n") -> str:
+        (self.worktree / "source.txt").write_text(content, encoding="utf-8")
+        self.assertEqual(git(self.worktree, "add", "source.txt").returncode, 0)
+        self.assertEqual(
+            git(self.worktree, "commit", "-m", "source change").returncode, 0
+        )
+        return git(self.worktree, "rev-parse", "HEAD").stdout.strip()
+
+    def integrate(self, *extra: str) -> tuple[subprocess.CompletedProcess[str], dict]:
+        return self.cli("integrate", "--target-branch", "main", *extra)
+
     def assert_error(
         self, result: subprocess.CompletedProcess[str], payload: dict, code: str
     ) -> None:
@@ -394,6 +405,189 @@ class WorktreeCliTest(unittest.TestCase):
             0,
         )
         self.assertTrue(payload["context"]["branchRetained"])
+
+    def test_integrate_requires_human_approval_before_mutation(self) -> None:
+        self.prepare()
+        self.commit_source()
+        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+
+        result, payload = self.integrate()
+
+        self.assert_error(result, payload, "missing_human_decision")
+        self.assertEqual(
+            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
+        )
+        self.assertEqual(payload["operations"], [])
+
+    def test_integrate_fast_forwards_and_returns_complete_receipt(self) -> None:
+        self.prepare()
+        source_commit = self.commit_source()
+        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+
+        result, payload = self.integrate("--human-decision", "approved")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["state"], "integrated")
+        context = payload["context"]
+        self.assertEqual(context["workUnitId"], "wu-001")
+        self.assertEqual(context["repository"], str(self.repo.resolve()))
+        self.assertEqual(context["sourceBranch"], "work-unit/wu-001")
+        self.assertEqual(context["targetBranch"], "main")
+        self.assertEqual(context["worktreePath"], str(self.worktree.resolve()))
+        self.assertEqual(context["humanDecision"], "approved")
+        self.assertEqual(context["sourceCommit"], source_commit)
+        self.assertEqual(context["targetBeforeCommit"], target_before)
+        self.assertEqual(context["targetAfterCommit"], source_commit)
+        self.assertEqual(context["relationship"], "fast-forwardable")
+        self.assertEqual(context["strategy"], "ff-only")
+        self.assertEqual(context["operationResult"], "fast-forwarded")
+        self.assertEqual(
+            git(self.repo, "rev-parse", "main").stdout.strip(), source_commit
+        )
+        self.assertTrue(self.worktree.exists())
+        self.assertIn(
+            "locked", git(self.repo, "worktree", "list", "--porcelain").stdout
+        )
+
+    def test_integrate_diverged_requires_explicit_no_ff_strategy(self) -> None:
+        self.prepare()
+        source_commit = self.commit_source()
+        (self.repo / "target.txt").write_text("target\n", encoding="utf-8")
+        self.assertEqual(git(self.repo, "add", "target.txt").returncode, 0)
+        self.assertEqual(git(self.repo, "commit", "-m", "target change").returncode, 0)
+        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+
+        refused, refused_payload = self.integrate("--human-decision", "approved")
+        self.assert_error(refused, refused_payload, "diverged_strategy_required")
+        self.assertEqual(
+            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
+        )
+
+        result, payload = self.integrate(
+            "--human-decision", "approved", "--strategy", "no-ff"
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["context"]["relationship"], "diverged")
+        self.assertEqual(payload["context"]["strategy"], "no-ff")
+        self.assertEqual(payload["context"]["operationResult"], "merge-commit-created")
+        target_after = payload["context"]["targetAfterCommit"]
+        parents = git(
+            self.repo, "show", "-s", "--format=%P", target_after
+        ).stdout.split()
+        self.assertEqual(parents, [target_before, source_commit])
+
+    def test_integrate_conflict_returns_json_and_restores_clean_target(self) -> None:
+        self.prepare()
+        (self.worktree / "tracked.txt").write_text("source\n", encoding="utf-8")
+        self.assertEqual(git(self.worktree, "add", "tracked.txt").returncode, 0)
+        self.assertEqual(
+            git(self.worktree, "commit", "-m", "source conflict").returncode, 0
+        )
+        (self.repo / "tracked.txt").write_text("target\n", encoding="utf-8")
+        self.assertEqual(git(self.repo, "add", "tracked.txt").returncode, 0)
+        self.assertEqual(
+            git(self.repo, "commit", "-m", "target conflict").returncode, 0
+        )
+        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+
+        result, payload = self.integrate(
+            "--human-decision", "approved", "--strategy", "no-ff"
+        )
+
+        self.assert_error(result, payload, "integration_failed")
+        self.assertEqual(
+            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
+        )
+        self.assertEqual(git(self.repo, "status", "--short").stdout, "")
+        self.assertEqual(len(payload["operations"]), 2)
+        self.assertEqual(payload["operations"][1]["args"][-2:], ["merge", "--abort"])
+        self.assertEqual(payload["operations"][1]["returnCode"], 0)
+
+    def test_integrate_recovers_already_merged_without_duplicate_mutation(self) -> None:
+        self.prepare()
+        source_commit = self.commit_source()
+        first, _ = self.integrate("--human-decision", "approved")
+        self.assertEqual(first.returncode, 0)
+
+        second, payload = self.integrate("--human-decision", "approved")
+
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertEqual(payload["state"], "already-merged")
+        self.assertEqual(payload["context"]["relationship"], "already-merged")
+        self.assertEqual(payload["context"]["operationResult"], "already-merged")
+        self.assertEqual(payload["context"]["sourceCommit"], source_commit)
+        self.assertEqual(payload["context"]["targetBeforeCommit"], source_commit)
+        self.assertEqual(payload["context"]["targetAfterCommit"], source_commit)
+        self.assertEqual(payload["operations"], [])
+
+    def test_integrate_recovers_diverged_no_ff_with_the_same_command(self) -> None:
+        self.prepare()
+        source_commit = self.commit_source()
+        (self.repo / "target.txt").write_text("target\n", encoding="utf-8")
+        self.assertEqual(git(self.repo, "add", "target.txt").returncode, 0)
+        self.assertEqual(git(self.repo, "commit", "-m", "target change").returncode, 0)
+        first, first_payload = self.integrate(
+            "--human-decision", "approved", "--strategy", "no-ff"
+        )
+        self.assertEqual(first.returncode, 0, first.stderr)
+        target_after = first_payload["context"]["targetAfterCommit"]
+
+        second, payload = self.integrate(
+            "--human-decision", "approved", "--strategy", "no-ff"
+        )
+
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertEqual(payload["state"], "already-merged")
+        self.assertEqual(payload["context"]["relationship"], "already-merged")
+        self.assertEqual(payload["context"]["strategy"], "no-ff")
+        self.assertEqual(payload["context"]["sourceCommit"], source_commit)
+        self.assertEqual(payload["context"]["targetBeforeCommit"], target_after)
+        self.assertEqual(payload["context"]["targetAfterCommit"], target_after)
+        self.assertEqual(payload["operations"], [])
+
+    def test_integrate_refuses_dirty_source_and_unresolved_target(self) -> None:
+        self.prepare()
+        (self.worktree / "dirty.txt").write_text("dirty\n", encoding="utf-8")
+        dirty, dirty_payload = self.integrate("--human-decision", "approved")
+        self.assert_error(dirty, dirty_payload, "dirty_worktree")
+        (self.worktree / "dirty.txt").unlink()
+        self.assertEqual(git(self.repo, "branch", "release").returncode, 0)
+
+        unresolved, unresolved_payload = self.cli(
+            "integrate",
+            "--target-branch",
+            "release",
+            "--human-decision",
+            "approved",
+        )
+        self.assert_error(unresolved, unresolved_payload, "target_worktree_unresolved")
+
+    def test_integrate_refuses_dirty_target_before_mutation(self) -> None:
+        self.prepare()
+        self.commit_source()
+        (self.repo / "dirty-target.txt").write_text("dirty\n", encoding="utf-8")
+        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+
+        result, payload = self.integrate("--human-decision", "approved")
+
+        self.assert_error(result, payload, "dirty_target_worktree")
+        self.assertEqual(
+            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
+        )
+        self.assertEqual(payload["operations"], [])
+
+    def test_integrate_does_not_execute_target_branch_metacharacters(self) -> None:
+        self.prepare()
+        marker = self.root / "should-not-exist"
+        result, payload = self.cli(
+            "integrate",
+            "--target-branch",
+            f"main;touch {marker}",
+            "--human-decision",
+            "approved",
+        )
+        self.assert_error(result, payload, "invalid_target_branch")
+        self.assertFalse(marker.exists())
 
     def test_shell_metacharacters_are_not_executed(self) -> None:
         marker = self.root / "should-not-exist"
