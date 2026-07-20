@@ -84,9 +84,6 @@ strings or temporary JSON value files.
   infer approval states from Intake or Work Unit lifecycles.
 - Store Design Document packages under
   `<project-root>/.agent-factory/specifications/<specification-id>/`.
-- Record Design Document source material under the target project's current
-  Design Document package. For this repository, the current package is
-  `<project-root>/.agent-factory/specifications/agent-factory/`.
 - Register source material that explains the Specification under
   `blocks/reference/**`.
 - Register canonical diagram source and diagram artifacts under

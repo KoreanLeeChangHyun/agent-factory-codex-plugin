@@ -41,9 +41,14 @@ loaded skills and tools are available.
 
 ## Development
 
-Validate the plugin structure with Codex's plugin validation tooling, then run
-the focused Python test suites under each changed skill before publishing an
-update.
+Validate the plugin structure with the bundled Plugin Creator validator:
+
+```bash
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/plugin-creator/scripts/validate_plugin.py" .
+```
+
+Then run the focused Python test suites under each changed skill before
+publishing an update.
 
 ## Status
 

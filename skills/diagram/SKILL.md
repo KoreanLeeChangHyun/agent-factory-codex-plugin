@@ -124,8 +124,6 @@ For Design Documents:
 - Store diagram source and diagram artifacts under
   `<project-root>/.agent-factory/specifications/<specification-id>/blocks/diagram/`
   and register each canonical block in the Specification block index.
-- For this repository, the current Design Document package is
-  `<project-root>/.agent-factory/specifications/agent-factory/`.
 - Do not create `INDEX.md` files for diagrams.
 - Store diagram metadata in Design Document source data or in the diagram
   artifact's own metadata.
