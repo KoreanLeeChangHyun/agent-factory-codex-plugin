@@ -27,10 +27,11 @@
       "id": "HUMAN-REVIEW-STATUS",
       "kind": "human-review-result",
       "content": {
-        "result": "Pending Human Review"
+        "result": "Approved for merge by Human"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-20T15:29:15+00:00"
       }
     }
   ],
