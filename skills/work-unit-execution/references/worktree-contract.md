@@ -61,6 +61,13 @@ Every response uses schema version `1.0.0` and these top-level fields:
 `operationResult`. `cleanup` also reports `humanDecision`, `worktreeRemoved`,
 and `branchRetained`.
 
+`headCommit` is the Git subject input to the Work Unit manager's versioned
+execution state. Inspect immediately before `execution-init` and each new
+`attempt-start`. A Codex session resume stays in the current attempt and does
+not consume a new worktree prepare result; append its session id through
+`attempt-resume`. Human-approved rework reuses the registered worktree but
+starts a new revision through `rework-start` before its first new attempt.
+
 `integrate` classifies ancestry before mutation. `fast-forwardable` uses
 `ff-only`; `diverged` requires explicit `--strategy no-ff`; `already-merged`
 returns success without a mutation operation and preserves an explicitly

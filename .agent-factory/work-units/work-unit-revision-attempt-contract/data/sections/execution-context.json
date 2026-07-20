@@ -24,14 +24,17 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "planned",
+        "state": "running",
         "subject": {
           "algorithm": "gitCommit",
-          "digest": "ef9436dca92e205429e76a1f256e66836df3a664"
+          "digest": "0ac6cf231ebcce39c1f30b095ed9f4718819163e"
         },
         "currentRevision": 1,
-        "currentAttempt": null,
-        "invocationId": null,
+        "currentAttempt": 1,
+        "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554",
+        "invocationChain": [
+          "019f805d-cc07-70e0-bb73-1a9f0b178554"
+        ],
         "history": []
       }
     }

@@ -87,6 +87,30 @@ The execution-context item content must include `goalId`, `objective`,
 legacy worktrees keep their recorded path only for rework, inspection, and
 Human-approved cleanup; new Work Units use the canonical path.
 
+Active execution also stores one manager-owned `execution-state` item:
+
+```json
+{
+  "contractVersion": "1.0.0",
+  "state": "running",
+  "subject": {"algorithm": "gitCommit", "digest": "<head-commit>"},
+  "currentRevision": 1,
+  "currentAttempt": 1,
+  "invocationId": "<primary-execution-invocation-id>",
+  "invocationChain": ["<primary-execution-invocation-id>"],
+  "history": []
+}
+```
+
+This item contract version is independent of package `schemaVersion: 4.0.0`.
+Consumers that do not find the item may render an existing terminal v4 package
+as legacy history. Consumers that find an unknown `contractVersion` must show
+it as unsupported and must not treat its evidence or approval as current.
+Consumers use named JSON fields rather than array position. A current passing
+result carries `attributes.executionTarget` with `contractVersion`, `revision`,
+`attempt`, `invocationId`, and `headCommit`; all five fields must equal the
+current state.
+
 ## Blocks And Evidence
 
 Large logs, screenshots, and binary or non-JSON material belong under
@@ -122,6 +146,17 @@ backlog -> ready -> working -> review -> done
   checklist, and report verification pass; required evidence is registered.
 - `done`: only from review with `--human-review approved`. The manager records
   Human approval and timestamp in the same transaction.
+- `execution-init`: ready only; creates or resets a pristine planned
+  `execution-state/v1` at revision 1 and binds the inspected Git head.
+- `attempt-start`: ready or working; starts attempt 1 or archives the current
+  attempt and increments it for a same-revision retry. It transitions ready to
+  working and invalidates current outcome gates atomically.
+- `attempt-resume`: working only; appends a new Codex session id to the current
+  attempt's invocation chain without changing attempt or primary invocation.
+- `rework-start --human-decision approved`: review only; archives the reviewed
+  attempt, increments revision, clears attempt identity, invalidates current
+  results and approval, and returns the package to working atomically. A later
+  `attempt-start` begins attempt 1 of that revision.
 - `blocked`: requires an unresolved blocking `open-item`.
 
 The metadata schema owns allowed status transitions. Semantic gates add the
@@ -148,6 +183,14 @@ python3 assets/scripts/work_unit.py metadata-set <package> readiness \
   --empty-list /findings
 python3 assets/scripts/work_unit.py validate <package> --full
 python3 assets/scripts/work_unit.py transition <package> ready
+python3 assets/scripts/work_unit.py execution-init <package> \
+  --head-commit <inspected-head-commit>
+python3 assets/scripts/work_unit.py attempt-start <package> \
+  --invocation-id <execution-invocation-id> --head-commit <inspected-head-commit>
+python3 assets/scripts/work_unit.py attempt-resume <package> \
+  --invocation-id <resumed-codex-session-id>
+python3 assets/scripts/work_unit.py rework-start <package> \
+  --human-decision approved
 ```
 
 Use `section-item-put` for one item and `section-items-put` for a batch.

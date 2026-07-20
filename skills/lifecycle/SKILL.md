@@ -187,6 +187,11 @@ Use these routes:
   explicitly recorded registered legacy path only for reuse, inspection, or
   Human-approved cleanup. Record the returned canonical JSON in the Work Unit
   evidence.
+- Initialize active `execution-state/v1` with the inspected Git head before the
+  first attempt. A new non-resume invocation starts or retries an attempt;
+  `codex exec resume` extends the current invocation chain. Human rework uses
+  the manager's Human-approved rework operation so revision history and stale
+  result invalidation are atomic while the same branch/worktree pair is reused.
 - Run worktree cleanup only after an explicit Human cleanup decision. Do not
   remove a dirty worktree, force removal, delete a branch, merge, or promote a
   PR on the Human's behalf.

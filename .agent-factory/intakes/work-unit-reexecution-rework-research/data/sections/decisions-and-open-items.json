@@ -74,6 +74,22 @@
         "blocking": false,
         "resolved": true
       }
+    },
+    {
+      "id": "DECISION-EXECUTION-COMMIT-003",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Work Unit 구현 결과 commit 승인",
+        "status": "accepted",
+        "selectedOption": "A",
+        "selectedModel": "전용 Work Unit branch에 구현과 검증 결과를 commit",
+        "rationale": "headCommit-bound execution evidence를 완성하고 merge, PR promotion, cleanup은 별도 Human 결정으로 유지한다.",
+        "traceability": [
+          "DECISION-IDENTITY-MODEL-001",
+          "DECISION-SCHEMA-MIGRATION-001",
+          "WORK-UNIT-BASIS-001"
+        ]
+      }
     }
   ],
   "subsections": []

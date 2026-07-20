@@ -405,6 +405,33 @@
           "분산 API server의 장기 호환 정책이며 로컬 Work Unit JSON manager에 동일한 지원 기간이나 conversion 체계를 강제하지 않는다."
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-EXECUTION-COMMIT-003",
+      "kind": "interview",
+      "content": {
+        "question": "구현과 검증 후 전용 branch에 결과를 commit하여 headCommit 결합 계약을 완성할까요?",
+        "choiceA": {
+          "decision": "구현·검증 결과를 전용 branch에 commit",
+          "pros": "immutable Git subject와 증거 결합을 완성하고 Human merge 검토가 가능하다.",
+          "cons": "로컬 Git 이력이 변경된다."
+        },
+        "choiceB": {
+          "decision": "구현하되 commit하지 않음",
+          "pros": "변경을 쉽게 수정할 수 있다.",
+          "cons": "headCommit 계약과 완료 조건을 충족하지 못한다."
+        },
+        "choiceC": {
+          "decision": "편집하지 않고 중단",
+          "pros": "저장소 변경이 없다.",
+          "cons": "Work Unit 목표가 진행되지 않는다."
+        },
+        "recommendation": "A",
+        "rationale": "Work Unit이 검증 결과를 current headCommit에 결합하도록 명시하며 전용 branch와 locked worktree가 준비되어 있다.",
+        "answer": "A",
+        "decisionState": "accepted",
+        "answeredAt": "2026-07-21T01:36:32+09:00"
+      }
     }
   ],
   "subsections": []

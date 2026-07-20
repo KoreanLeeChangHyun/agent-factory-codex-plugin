@@ -78,6 +78,21 @@ is invalid. TOC array order owns document order.
   agent, repository, base ref, dedicated `work-unit/<work-unit-id>` branch, and
   canonical absolute linked worktree path
   `<repository>/.agent-factory/worktree/<work-unit-id>`.
+- Keep the physical package at schema version `4.0.0`. Active execution uses a
+  manager-owned `execution-state` item whose independent semantic contract is
+  `contractVersion: 1.0.0`. Existing terminal v4 packages without this item
+  remain readable; a new active execution must run `execution-init` first.
+- `execution-init` binds revision 1 to the inspected Git head. `attempt-start`
+  starts attempt 1 or archives the previous attempt before a same-revision
+  retry. `attempt-resume` appends a Codex session id to the current invocation
+  chain without creating an attempt. Human-approved `rework-start` archives the
+  current attempt, increments revision, clears attempt identity, and
+  invalidates current execution, quality, AI review, report, and Human review
+  results in one transaction.
+- Passing execution, quality, AI review, report, and Human approval records for
+  an active execution must carry an `executionTarget` matching the current
+  contract version, revision, attempt, primary invocation id, and Git head.
+  Stale targets cannot enter `review` or validate as `done`.
 - `work-unit-execution` owns Git worktree and branch side effects. Planning must
   not create, remove, unlock, merge, or promote them.
 - Execute Plan -> Work -> AI Review -> Report. Code Work Units use TDD.
@@ -104,8 +119,10 @@ is invalid. TOC array order owns document order.
 
 The manager supports schema checks, creation, focused/full display, title and
 metadata replacement, single/batch section item updates, optional section
-management, block registration/removal, integration receipt registration,
-validation, and lifecycle transitions.
+management, block registration/removal, execution initialization, attempt
+start/resume, Human-approved rework, integration receipt registration,
+validation, and lifecycle transitions. `execution-state` is manager-owned and
+cannot be replaced through generic section commands.
 Supply only typed semantic data arguments; the shared manager constructs and
 serializes JSON. Never compose JSON strings or temporary JSON value files. See
 `references/work-unit-structure.md` for exact examples and validation gates.

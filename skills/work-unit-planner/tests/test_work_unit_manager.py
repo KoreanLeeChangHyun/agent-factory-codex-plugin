@@ -321,6 +321,45 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
+    def initialize_and_start_execution(
+        self,
+        package: Path,
+        *,
+        invocation_id: str = "session-1",
+        head_commit: str = "a" * 40,
+    ) -> dict[str, object]:
+        run_cli(
+            "execution-init",
+            str(package),
+            "--head-commit",
+            head_commit,
+        )
+        return json.loads(
+            run_cli(
+                "attempt-start",
+                str(package),
+                "--invocation-id",
+                invocation_id,
+                "--head-commit",
+                head_commit,
+            ).stdout
+        )
+
+    def current_execution_target(self, package: Path) -> dict[str, object]:
+        shown = json.loads(
+            run_cli("show", str(package), "--section", "execution-context").stdout
+        )
+        state = next(
+            entry for entry in shown["content"] if entry["kind"] == "execution-state"
+        )["content"]
+        return {
+            "contractVersion": state["contractVersion"],
+            "revision": state["currentRevision"],
+            "attempt": state["currentAttempt"],
+            "invocationId": state["invocationId"],
+            "headCommit": state["subject"]["digest"],
+        }
+
     def integration_receipt(self, package: Path) -> dict[str, object]:
         context = ready_items(
             package_project_root := package.parent.parent.parent,
@@ -461,7 +500,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
-            run_cli("transition", str(package), "working")
+            self.initialize_and_start_execution(package)
             before = json.loads(
                 (package / "data" / "metadata.json").read_text(encoding="utf-8")
             )
@@ -669,6 +708,402 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("execution context worktreePath must equal", rejected.stderr)
 
+    def test_execution_attempt_retry_and_resume_preserve_identity_history(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+
+            started = self.initialize_and_start_execution(package)
+            self.assertEqual(started["status"], "working")
+            shown = json.loads(
+                run_cli("show", str(package), "--section", "execution-context").stdout
+            )
+            state = next(
+                entry
+                for entry in shown["content"]
+                if entry["kind"] == "execution-state"
+            )["content"]
+            self.assertEqual(state["contractVersion"], "1.0.0")
+            self.assertEqual(state["currentRevision"], 1)
+            self.assertEqual(state["currentAttempt"], 1)
+            self.assertEqual(state["invocationId"], "session-1")
+            self.assertEqual(state["invocationChain"], ["session-1"])
+            self.assertEqual(state["subject"]["digest"], "a" * 40)
+            self.assertEqual(state["history"], [])
+
+            run_cli(
+                "attempt-resume",
+                str(package),
+                "--invocation-id",
+                "session-1-resume",
+            )
+            resumed = json.loads(
+                run_cli("show", str(package), "--section", "execution-context").stdout
+            )
+            state = next(
+                entry
+                for entry in resumed["content"]
+                if entry["kind"] == "execution-state"
+            )["content"]
+            self.assertEqual(state["currentAttempt"], 1)
+            self.assertEqual(state["invocationId"], "session-1")
+            self.assertEqual(
+                state["invocationChain"], ["session-1", "session-1-resume"]
+            )
+
+            run_cli(
+                "attempt-start",
+                str(package),
+                "--invocation-id",
+                "session-2",
+                "--head-commit",
+                "b" * 40,
+            )
+            retried = json.loads(
+                run_cli("show", str(package), "--section", "execution-context").stdout
+            )
+            state = next(
+                entry
+                for entry in retried["content"]
+                if entry["kind"] == "execution-state"
+            )["content"]
+            self.assertEqual(state["currentRevision"], 1)
+            self.assertEqual(state["currentAttempt"], 2)
+            self.assertEqual(state["invocationId"], "session-2")
+            self.assertEqual(state["invocationChain"], ["session-2"])
+            self.assertEqual(state["subject"]["digest"], "b" * 40)
+            self.assertEqual(len(state["history"]), 1)
+            self.assertEqual(state["history"][0]["revision"], 1)
+            self.assertEqual(state["history"][0]["attempt"], 1)
+            self.assertEqual(
+                state["history"][0]["invocationChain"],
+                ["session-1", "session-1-resume"],
+            )
+            before = (
+                package / "data" / "sections" / "execution-context.json"
+            ).read_bytes()
+            duplicate = run_cli(
+                "attempt-resume",
+                str(package),
+                "--invocation-id",
+                "session-1-resume",
+                check=False,
+            )
+            self.assertNotEqual(duplicate.returncode, 0)
+            self.assertIn("must be unique in execution history", duplicate.stderr)
+            self.assertEqual(
+                (package / "data" / "sections" / "execution-context.json").read_bytes(),
+                before,
+            )
+
+    def test_active_execution_requires_init_and_state_is_manager_owned(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            metadata_path = package / "data" / "metadata.json"
+            before = metadata_path.read_bytes()
+
+            rejected = run_cli(
+                "attempt-start",
+                str(package),
+                "--invocation-id",
+                "session-1",
+                "--head-commit",
+                "a" * 40,
+                check=False,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("requires execution-init", rejected.stderr)
+            self.assertEqual(metadata_path.read_bytes(), before)
+
+            direct_state = item(
+                "EXECUTION-STATE-001",
+                "execution-state",
+                {
+                    "contractVersion": "1.0.0",
+                    "state": "planned",
+                    "subject": {"algorithm": "gitCommit", "digest": "a" * 40},
+                    "currentRevision": 1,
+                    "currentAttempt": None,
+                    "invocationId": None,
+                    "invocationChain": [],
+                    "history": [],
+                },
+            )
+            rejected = run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *data_value(root, "direct-state.json", direct_state),
+                check=False,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("execution-state is manager-owned", rejected.stderr)
+            self.assertEqual(metadata_path.read_bytes(), before)
+
+    def test_rework_invalidates_results_and_review_rejects_stale_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            self.initialize_and_start_execution(package)
+            target = self.current_execution_target(package)
+            block = root / "tests.log"
+            block.write_text("tests passed\n", encoding="utf-8")
+            run_cli(
+                "block-put",
+                str(package),
+                str(block),
+                "--path",
+                "blocks/logs/tests.log",
+                "--media-type",
+                "text/plain",
+                "--description",
+                "tests",
+            )
+            replacements = {
+                "execution": item(
+                    "EXECUTION-STATUS",
+                    "execution-result",
+                    "Complete",
+                    attributes={
+                        "status": "complete",
+                        "verificationResult": "pass",
+                        "executionTarget": target,
+                    },
+                ),
+                "acceptance-and-verification": item(
+                    "QUALITY-001",
+                    "quality-check",
+                    "Pass",
+                    attributes={
+                        "status": "pass",
+                        "evidence": ["blocks/logs/tests.log"],
+                        "executionTarget": target,
+                    },
+                ),
+                "ai-review": item(
+                    "AI-REVIEW-STATUS",
+                    "ai-review-result",
+                    "Pass",
+                    attributes={
+                        "result": "pass",
+                        "checklistResult": "pass",
+                        "executionTarget": target,
+                    },
+                ),
+                "report": item(
+                    "REPORT-STATUS",
+                    "report-result",
+                    "Pass",
+                    attributes={
+                        "verificationResult": "pass",
+                        "evidence": ["blocks/logs/tests.log"],
+                        "executionTarget": target,
+                    },
+                ),
+            }
+            for section_id, replacement in replacements.items():
+                run_cli(
+                    "section-item-put",
+                    str(package),
+                    section_id,
+                    *data_value(root, f"replace-{section_id}.json", replacement),
+                )
+            run_cli("transition", str(package), "review")
+            run_cli(
+                "rework-start",
+                str(package),
+                "--human-decision",
+                "approved",
+            )
+            run_cli(
+                "attempt-start",
+                str(package),
+                "--invocation-id",
+                "session-2",
+                "--head-commit",
+                "b" * 40,
+            )
+
+            shown = json.loads(
+                run_cli("show", str(package), "--section", "execution-context").stdout
+            )
+            state = next(
+                entry
+                for entry in shown["content"]
+                if entry["kind"] == "execution-state"
+            )["content"]
+            self.assertEqual(state["currentRevision"], 2)
+            self.assertEqual(state["currentAttempt"], 1)
+            self.assertEqual(len(state["history"]), 1)
+            self.assertEqual(
+                state["history"][0]["outcomes"]["report-result"]["attributes"][
+                    "verificationResult"
+                ],
+                "pass",
+            )
+            execution = json.loads(
+                run_cli("show", str(package), "--section", "execution").stdout
+            )["content"][0]
+            self.assertEqual(execution["attributes"]["status"], "pending")
+
+            for section_id, replacement in replacements.items():
+                run_cli(
+                    "section-item-put",
+                    str(package),
+                    section_id,
+                    *data_value(root, f"stale-{section_id}.json", replacement),
+                )
+            rejected = run_cli("transition", str(package), "review", check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("current execution target", rejected.stderr)
+
+    def test_existing_done_v4_without_execution_state_remains_valid(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            self.initialize_and_start_execution(package)
+            target = self.current_execution_target(package)
+            block = root / "tests.log"
+            block.write_text("tests passed\n", encoding="utf-8")
+            run_cli(
+                "block-put",
+                str(package),
+                str(block),
+                "--path",
+                "blocks/logs/tests.log",
+                "--media-type",
+                "text/plain",
+                "--description",
+                "tests",
+            )
+            replacements = {
+                "execution": item(
+                    "EXECUTION-STATUS",
+                    "execution-result",
+                    "Complete",
+                    attributes={
+                        "status": "complete",
+                        "verificationResult": "pass",
+                        "executionTarget": target,
+                    },
+                ),
+                "acceptance-and-verification": item(
+                    "QUALITY-001",
+                    "quality-check",
+                    "Pass",
+                    attributes={
+                        "status": "pass",
+                        "evidence": ["blocks/logs/tests.log"],
+                        "executionTarget": target,
+                    },
+                ),
+                "ai-review": item(
+                    "AI-REVIEW-STATUS",
+                    "ai-review-result",
+                    "Pass",
+                    attributes={
+                        "result": "pass",
+                        "checklistResult": "pass",
+                        "executionTarget": target,
+                    },
+                ),
+                "report": item(
+                    "REPORT-STATUS",
+                    "report-result",
+                    "Pass",
+                    attributes={
+                        "verificationResult": "pass",
+                        "evidence": ["blocks/logs/tests.log"],
+                        "executionTarget": target,
+                    },
+                ),
+            }
+            for section_id, replacement in replacements.items():
+                run_cli(
+                    "section-item-put",
+                    str(package),
+                    section_id,
+                    *data_value(root, section_id, replacement),
+                )
+            run_cli("transition", str(package), "review")
+            run_cli("transition", str(package), "done", "--human-review", "approved")
+
+            report_path = package / "data" / "sections" / "report.json"
+            report_before = report_path.read_bytes()
+            immutable = run_cli(
+                "section-item-put",
+                str(package),
+                "report",
+                *data_value(
+                    root,
+                    "mutated-done-report.json",
+                    item(
+                        "REPORT-STATUS",
+                        "report-result",
+                        "Changed after approval",
+                        attributes={
+                            "verificationResult": "pass",
+                            "evidence": ["blocks/logs/tests.log"],
+                            "executionTarget": target,
+                        },
+                    ),
+                ),
+                check=False,
+            )
+            self.assertNotEqual(immutable.returncode, 0)
+            self.assertIn(
+                "done Work Unit outcome records are immutable", immutable.stderr
+            )
+            self.assertEqual(report_path.read_bytes(), report_before)
+
+            human_review_path = package / "data" / "sections" / "human-review.json"
+            human_review = json.loads(human_review_path.read_text(encoding="utf-8"))
+            approval = next(
+                entry
+                for entry in human_review["content"]
+                if entry["kind"] == "human-review-result"
+            )
+            approval["attributes"]["executionTarget"]["headCommit"] = "b" * 40
+            human_review_path.write_text(
+                json.dumps(human_review, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            stale = run_cli("validate", str(package), "--full", check=False)
+            self.assertNotEqual(stale.returncode, 0)
+            self.assertIn("human-review-result approval", stale.stderr)
+
+            execution_context_path = (
+                package / "data" / "sections" / "execution-context.json"
+            )
+            execution_context = json.loads(
+                execution_context_path.read_text(encoding="utf-8")
+            )
+            execution_context["content"] = [
+                entry
+                for entry in execution_context["content"]
+                if entry["kind"] != "execution-state"
+            ]
+            execution_context_path.write_text(
+                json.dumps(execution_context, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(
+                json.loads(run_cli("validate", str(package), "--full").stdout)["valid"]
+            )
+
     def test_review_and_done_transitions_enforce_results_and_atomic_human_approval(
         self,
     ) -> None:
@@ -678,7 +1113,8 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
-            run_cli("transition", str(package), "working")
+            self.initialize_and_start_execution(package)
+            target = self.current_execution_target(package)
             premature = run_cli("transition", str(package), "review", check=False)
             self.assertNotEqual(premature.returncode, 0)
             self.assertIn(
@@ -690,7 +1126,11 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     "EXECUTION-STATUS",
                     "execution-result",
                     "Complete",
-                    attributes={"status": "complete", "verificationResult": "pass"},
+                    attributes={
+                        "status": "complete",
+                        "verificationResult": "pass",
+                        "executionTarget": target,
+                    },
                 ),
                 "acceptance-and-verification": item(
                     "QUALITY-001",
@@ -699,13 +1139,18 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     attributes={
                         "status": "pass",
                         "evidence": ["blocks/logs/tests.log"],
+                        "executionTarget": target,
                     },
                 ),
                 "ai-review": item(
                     "AI-REVIEW-STATUS",
                     "ai-review-result",
                     "Pass",
-                    attributes={"result": "pass", "checklistResult": "pass"},
+                    attributes={
+                        "result": "pass",
+                        "checklistResult": "pass",
+                        "executionTarget": target,
+                    },
                 ),
                 "report": item(
                     "REPORT-STATUS",
@@ -714,6 +1159,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     attributes={
                         "verificationResult": "pass",
                         "evidence": ["blocks/logs/tests.log"],
+                        "executionTarget": target,
                     },
                 ),
             }
@@ -831,7 +1277,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
-            run_cli("transition", str(package), "working")
+            self.initialize_and_start_execution(package)
             receipt = root / "receipt.json"
             receipt.write_text(
                 json.dumps(self.integration_receipt(package)), encoding="utf-8"
@@ -943,7 +1389,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
-            run_cli("transition", str(package), "working")
+            self.initialize_and_start_execution(package)
             receipt_value = self.integration_receipt(package)
             receipt_value["context"]["workUnitId"] = "another-unit"
             receipt = root / "receipt.json"
@@ -979,7 +1425,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
-            run_cli("transition", str(package), "working")
+            self.initialize_and_start_execution(package)
             receipt = root / "receipt.json"
             receipt.write_text(
                 json.dumps(self.integration_receipt(package)), encoding="utf-8"

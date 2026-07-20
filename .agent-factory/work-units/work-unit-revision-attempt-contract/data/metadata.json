@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.11",
+  "documentVersion": "1.0.14",
   "id": "work-unit-revision-attempt-contract",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "ready"
+    "status": "working"
   },
   "createdAt": "2026-07-20T16:28:06+00:00",
-  "updatedAt": "2026-07-20T16:30:17+00:00",
+  "updatedAt": "2026-07-20T17:03:28+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

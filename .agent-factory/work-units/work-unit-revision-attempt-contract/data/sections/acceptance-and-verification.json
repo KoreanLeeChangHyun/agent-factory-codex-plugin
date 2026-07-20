@@ -88,7 +88,7 @@
           "python3 -m unittest skills/work-unit-planner/tests/test_work_unit_manager.py",
           "python3 -m unittest skills/work-unit-execution/tests/test_worktree.py",
           "python3 -m unittest skills/lifecycle/tests/test_document_profiles.py skills/lifecycle/tests/test_skill_metadata.py",
-          "python3 plugin-creator/scripts/validate_plugin.py ."
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py ."
         ]
       }
     },
@@ -105,7 +105,8 @@
         ]
       },
       "attributes": {
-        "status": "planned"
+        "status": "planned",
+        "evidence": []
       }
     }
   ],

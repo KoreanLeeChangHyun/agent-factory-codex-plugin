@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import importlib.util
 import json
@@ -266,6 +267,467 @@ def find_kind(package: Path, kind: str) -> dict[str, Any] | None:
     return None
 
 
+EXECUTION_STATE_CONTRACT_VERSION = "1.0.0"
+EXECUTION_OUTCOME_KINDS = {
+    "execution-result": "execution",
+    "quality-check": "acceptance-and-verification",
+    "ai-review-result": "ai-review",
+    "report-result": "report",
+    "human-review-result": "human-review",
+}
+
+
+def validate_git_commit(value: Any, label: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) not in {40, 64}
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise ManagerError(f"{label} must be a lowercase Git object ID")
+    return value
+
+
+def execution_state_item(
+    package: Path, *, required: bool = False
+) -> dict[str, Any] | None:
+    items = [
+        (section["id"], item)
+        for section in base.load_sections(package)
+        for item in iter_items(section)
+        if item["kind"] == "execution-state"
+    ]
+    if len(items) > 1:
+        raise ManagerError("Work Unit must contain at most one execution-state item")
+    if items and items[0][0] != "execution-context":
+        raise ManagerError("execution-state must belong to execution-context")
+    if not items and required:
+        raise ManagerError(
+            "active Work Unit execution requires execution-init before an attempt starts"
+        )
+    return None if not items else items[0][1]
+
+
+def validate_execution_state(
+    package: Path, *, required: bool = False
+) -> dict[str, Any] | None:
+    item = execution_state_item(package, required=required)
+    if item is None:
+        return None
+    content = item.get("content")
+    fields = {
+        "contractVersion",
+        "state",
+        "subject",
+        "currentRevision",
+        "currentAttempt",
+        "invocationId",
+        "invocationChain",
+        "history",
+    }
+    if not isinstance(content, dict) or set(content) != fields:
+        raise ManagerError("execution-state/v1 fields do not match the contract")
+    if content["contractVersion"] != EXECUTION_STATE_CONTRACT_VERSION:
+        raise ManagerError("unsupported execution-state contractVersion")
+    if content["state"] not in {"planned", "running", "review", "done"}:
+        raise ManagerError("execution-state state is not supported")
+    revision = content["currentRevision"]
+    attempt = content["currentAttempt"]
+    invocation_id = content["invocationId"]
+    chain = content["invocationChain"]
+    if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+        raise ManagerError("execution-state currentRevision must be a positive integer")
+    if not isinstance(content["subject"], dict) or set(content["subject"]) != {
+        "algorithm",
+        "digest",
+    }:
+        raise ManagerError("execution-state subject does not match the contract")
+    if content["subject"]["algorithm"] != "gitCommit":
+        raise ManagerError("execution-state subject algorithm must be gitCommit")
+    validate_git_commit(content["subject"]["digest"], "execution-state subject digest")
+    if content["state"] == "planned":
+        if attempt is not None or invocation_id is not None or chain != []:
+            raise ManagerError("planned execution-state must not identify an attempt")
+    else:
+        if not isinstance(attempt, int) or isinstance(attempt, bool) or attempt < 1:
+            raise ManagerError("active execution-state currentAttempt must be positive")
+        if not isinstance(invocation_id, str) or not invocation_id:
+            raise ManagerError("active execution-state requires invocationId")
+        if (
+            not isinstance(chain, list)
+            or not chain
+            or not all(isinstance(entry, str) and entry for entry in chain)
+            or chain[0] != invocation_id
+            or len(chain) != len(set(chain))
+        ):
+            raise ManagerError("execution-state invocationChain is invalid")
+    history = content["history"]
+    if not isinstance(history, list):
+        raise ManagerError("execution-state history must be an array")
+    identities: list[tuple[int, int]] = []
+    for record in history:
+        if not isinstance(record, dict) or set(record) != {
+            "revision",
+            "attempt",
+            "invocationId",
+            "invocationChain",
+            "subject",
+            "outcomes",
+        }:
+            raise ManagerError("execution-state history record fields are invalid")
+        record_revision = record["revision"]
+        record_attempt = record["attempt"]
+        if (
+            not isinstance(record_revision, int)
+            or isinstance(record_revision, bool)
+            or record_revision < 1
+            or not isinstance(record_attempt, int)
+            or isinstance(record_attempt, bool)
+            or record_attempt < 1
+        ):
+            raise ManagerError("execution-state history identity is invalid")
+        if not isinstance(record["invocationId"], str) or not record["invocationId"]:
+            raise ManagerError("execution-state history invocationId is invalid")
+        record_chain = record["invocationChain"]
+        if (
+            not isinstance(record_chain, list)
+            or not record_chain
+            or not all(isinstance(entry, str) and entry for entry in record_chain)
+            or record_chain[0] != record["invocationId"]
+            or len(record_chain) != len(set(record_chain))
+        ):
+            raise ManagerError("execution-state history invocationChain is invalid")
+        subject = record["subject"]
+        if (
+            not isinstance(subject, dict)
+            or subject.get("algorithm") != "gitCommit"
+            or set(subject) != {"algorithm", "digest"}
+        ):
+            raise ManagerError("execution-state history subject is invalid")
+        validate_git_commit(subject["digest"], "execution-state history subject digest")
+        if not isinstance(record["outcomes"], dict):
+            raise ManagerError("execution-state history outcomes must be an object")
+        identities.append((record_revision, record_attempt))
+    if identities != sorted(set(identities)):
+        raise ManagerError(
+            "execution-state history identities must be unique and ordered"
+        )
+    if attempt is not None and any(
+        identity >= (revision, attempt) for identity in identities
+    ):
+        raise ManagerError("execution-state history must precede the current attempt")
+    if attempt is None and any(identity[0] >= revision for identity in identities):
+        raise ManagerError("execution-state history must precede the planned revision")
+    return item
+
+
+def current_execution_target(package: Path) -> dict[str, Any]:
+    item = validate_execution_state(package, required=True)
+    assert item is not None
+    content = item["content"]
+    if content["currentAttempt"] is None:
+        raise ManagerError("current execution target requires an active attempt")
+    return {
+        "contractVersion": content["contractVersion"],
+        "revision": content["currentRevision"],
+        "attempt": content["currentAttempt"],
+        "invocationId": content["invocationId"],
+        "headCommit": content["subject"]["digest"],
+    }
+
+
+def require_current_execution_target(
+    package: Path, item: dict[str, Any], label: str
+) -> None:
+    if item.get("attributes", {}).get("executionTarget") != current_execution_target(
+        package
+    ):
+        raise ManagerError(f"{label} must match the current execution target")
+
+
+def outcome_snapshot(package: Path) -> dict[str, Any]:
+    snapshot: dict[str, Any] = {}
+    for kind in EXECUTION_OUTCOME_KINDS:
+        item = find_kind(package, kind)
+        if item is not None:
+            snapshot[kind] = copy.deepcopy(item)
+    return snapshot
+
+
+def archive_current_attempt(package: Path, state: dict[str, Any]) -> None:
+    content = state["content"]
+    if content["currentAttempt"] is None:
+        return
+    content["history"].append(
+        {
+            "revision": content["currentRevision"],
+            "attempt": content["currentAttempt"],
+            "invocationId": content["invocationId"],
+            "invocationChain": copy.deepcopy(content["invocationChain"]),
+            "subject": copy.deepcopy(content["subject"]),
+            "outcomes": outcome_snapshot(package),
+        }
+    )
+
+
+def invalidated_outcome_writes(package: Path) -> dict[Path, Any]:
+    writes: dict[Path, Any] = {}
+    pending_attributes = {
+        "execution-result": {"status": "pending", "verificationResult": "pending"},
+        "quality-check": {"status": "planned", "evidence": []},
+        "ai-review-result": {"result": "pending", "checklistResult": "pending"},
+        "report-result": {"verificationResult": "pending", "evidence": []},
+        "human-review-result": {"status": "pending"},
+    }
+    for kind, section_id in EXECUTION_OUTCOME_KINDS.items():
+        path = base.section_path(package, section_id)
+        section = base.load_object(path, f"{section_id} section")
+        item = next(
+            (entry for entry in iter_items(section) if entry["kind"] == kind), None
+        )
+        if item is None:
+            continue
+        item["attributes"] = pending_attributes[kind]
+        writes[path] = section
+    return writes
+
+
+def execution_metadata(package: Path, status: str | None = None) -> dict[str, Any]:
+    metadata = base.load_metadata(package)
+    if status is not None:
+        metadata["lifecycle"]["status"] = status
+    metadata["documentVersion"] = base.next_document_version(
+        metadata["documentVersion"]
+    )
+    metadata["updatedAt"] = base.now()
+    base.mark_contract_valid(metadata)
+    base.validate_instance("metadata", metadata)
+    return metadata
+
+
+def commit_execution_state(
+    package: Path,
+    section: dict[str, Any],
+    *,
+    status: str | None = None,
+    invalidate_outcomes: bool = False,
+) -> None:
+    writes = invalidated_outcome_writes(package) if invalidate_outcomes else {}
+    writes[base.section_path(package, "execution-context")] = section
+    writes[package / base.METADATA_PATH] = execution_metadata(package, status)
+    base.commit_transaction(package, json_writes=writes, full_validation=True)
+
+
+def command_execution_init(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    # Initialization is the upgrade boundary for a pristine pre-contract
+    # planned item, so structural v4 validation must precede v1 semantics.
+    base_validate_package(package, full=True)
+    validate_ready_semantics(package)
+    metadata = base.load_metadata(package)
+    if metadata["lifecycle"]["status"] != "ready":
+        raise ManagerError("execution-init requires a ready Work Unit")
+    head_commit = validate_git_commit(args.head_commit, "--head-commit")
+    path = base.section_path(package, "execution-context")
+    section = base.load_object(path, "execution-context section")
+    existing = next(
+        (entry for entry in iter_items(section) if entry["kind"] == "execution-state"),
+        None,
+    )
+    if existing is not None:
+        current = existing.get("content", {})
+        if (
+            current.get("state") != "planned"
+            or current.get("currentAttempt") is not None
+            or current.get("history") not in ([], None)
+        ):
+            raise ManagerError("execution-init refuses an execution-state with history")
+        state = existing
+    else:
+        state = {"id": "EXECUTION-STATE-001", "kind": "execution-state"}
+        section["content"].append(state)
+    state["content"] = {
+        "contractVersion": EXECUTION_STATE_CONTRACT_VERSION,
+        "state": "planned",
+        "subject": {"algorithm": "gitCommit", "digest": head_commit},
+        "currentRevision": 1,
+        "currentAttempt": None,
+        "invocationId": None,
+        "invocationChain": [],
+        "history": [],
+    }
+    base.validate_instance("section", section)
+    commit_execution_state(package, section)
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def command_attempt_start(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    validate_package(package, full=True)
+    metadata = base.load_metadata(package)
+    status = metadata["lifecycle"]["status"]
+    if status not in {"ready", "working"}:
+        raise ManagerError("attempt-start requires a ready or working Work Unit")
+    if not args.invocation_id:
+        raise ManagerError("--invocation-id must be non-empty")
+    head_commit = validate_git_commit(args.head_commit, "--head-commit")
+    path = base.section_path(package, "execution-context")
+    section = base.load_object(path, "execution-context section")
+    state = next(
+        (entry for entry in iter_items(section) if entry["kind"] == "execution-state"),
+        None,
+    )
+    if state is None:
+        raise ManagerError(
+            "active Work Unit execution requires execution-init before an attempt starts"
+        )
+    validate_execution_state(package, required=True)
+    content = state["content"]
+    used_invocation_ids = set(content["invocationChain"])
+    for record in content["history"]:
+        used_invocation_ids.update(record["invocationChain"])
+    if args.invocation_id in used_invocation_ids:
+        raise ManagerError(
+            "attempt-start invocationId must be unique in execution history"
+        )
+    if status == "ready" and content["currentAttempt"] is not None:
+        raise ManagerError("ready Work Unit execution-state must not have an attempt")
+    if status == "working" and content["state"] not in {"planned", "running"}:
+        raise ManagerError(
+            "attempt-start requires planned rework or running retry state"
+        )
+    archive_current_attempt(package, state)
+    content["state"] = "running"
+    content["currentAttempt"] = (
+        1 if content["currentAttempt"] is None else content["currentAttempt"] + 1
+    )
+    content["invocationId"] = args.invocation_id
+    content["invocationChain"] = [args.invocation_id]
+    content["subject"] = {"algorithm": "gitCommit", "digest": head_commit}
+    commit_execution_state(package, section, status="working", invalidate_outcomes=True)
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def command_attempt_resume(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    validate_package(package, full=True)
+    metadata = base.load_metadata(package)
+    if metadata["lifecycle"]["status"] != "working":
+        raise ManagerError("attempt-resume requires a working Work Unit")
+    if not args.invocation_id:
+        raise ManagerError("--invocation-id must be non-empty")
+    path = base.section_path(package, "execution-context")
+    section = base.load_object(path, "execution-context section")
+    state = next(
+        (entry for entry in iter_items(section) if entry["kind"] == "execution-state"),
+        None,
+    )
+    if state is None or state.get("content", {}).get("state") != "running":
+        raise ManagerError("attempt-resume requires a running execution attempt")
+    validate_execution_state(package, required=True)
+    chain = state["content"]["invocationChain"]
+    used_invocation_ids = set(chain)
+    for record in state["content"]["history"]:
+        used_invocation_ids.update(record["invocationChain"])
+    if args.invocation_id in used_invocation_ids:
+        raise ManagerError(
+            "attempt-resume invocationId must be unique in execution history"
+        )
+    chain.append(args.invocation_id)
+    commit_execution_state(package, section)
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def command_rework_start(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    validate_package(package, full=True)
+    metadata = base.load_metadata(package)
+    if metadata["lifecycle"]["status"] != "review":
+        raise ManagerError("rework-start requires a Work Unit in review")
+    if args.human_decision != "approved":
+        raise ManagerError("rework-start requires --human-decision approved")
+    path = base.section_path(package, "execution-context")
+    section = base.load_object(path, "execution-context section")
+    state = next(
+        (entry for entry in iter_items(section) if entry["kind"] == "execution-state"),
+        None,
+    )
+    if state is None:
+        raise ManagerError("rework-start requires execution-state/v1")
+    validate_execution_state(package, required=True)
+    archive_current_attempt(package, state)
+    content = state["content"]
+    content["state"] = "planned"
+    content["currentRevision"] += 1
+    content["currentAttempt"] = None
+    content["invocationId"] = None
+    content["invocationChain"] = []
+    commit_execution_state(package, section, status="working", invalidate_outcomes=True)
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def item_kinds(value: Any) -> set[str]:
+    kinds: set[str] = set()
+
+    def collect(candidate: Any) -> None:
+        if isinstance(candidate, list):
+            for entry in candidate:
+                collect(entry)
+            return
+        if not isinstance(candidate, dict):
+            return
+        if (
+            isinstance(candidate.get("kind"), str)
+            and isinstance(candidate.get("id"), str)
+            and "content" in candidate
+        ):
+            kinds.add(candidate["kind"])
+        collect(candidate.get("content"))
+        collect(candidate.get("subsections"))
+
+    collect(value)
+    return kinds
+
+
+def reject_protected_result_mutation(package: Path, value: Any) -> None:
+    kinds = item_kinds(value)
+    if "execution-state" in kinds:
+        raise ManagerError(
+            "execution-state is manager-owned; use execution-init, attempt-start, "
+            "attempt-resume, or rework-start"
+        )
+    if base.load_metadata(package)["lifecycle"]["status"] == "done" and kinds & set(
+        EXECUTION_OUTCOME_KINDS
+    ):
+        raise ManagerError(
+            "done Work Unit outcome records are immutable; use integration-put "
+            "only for orthogonal integration evidence"
+        )
+
+
+def command_section_put(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    reject_protected_result_mutation(package, base.replacement_value(args))
+    base.command_section_put(args)
+
+
+def command_section_item_put(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    reject_protected_result_mutation(package, base.replacement_value(args))
+    base.command_section_item_put(args)
+
+
+def command_section_items_put(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    reject_protected_result_mutation(package, base.replacement_value(args))
+    base.command_section_items_put(args)
+
+
+def command_section_add(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    reject_protected_result_mutation(package, base.replacement_value(args))
+    base.command_section_add(args)
+
+
 def registered_blocks(package: Path) -> set[str]:
     index = base.load_object(package / base.BLOCK_INDEX_PATH, "block index")
     return {entry["path"] for entry in index["blocks"]}
@@ -394,6 +856,26 @@ def validate_review_semantics(package: Path) -> None:
             "review transition requires a passing report verification result"
         )
     require_evidence(package, report, "report")
+    state = validate_execution_state(package)
+    if state is not None:
+        require_current_execution_target(package, execution, "execution-result")
+        require_current_execution_target(package, quality, "quality-check")
+        require_current_execution_target(package, ai_review, "ai-review-result")
+        require_current_execution_target(package, report, "report-result")
+
+
+def validate_human_approval_target(package: Path) -> None:
+    state = validate_execution_state(package)
+    if state is None:
+        return
+    human_review = find_kind(package, "human-review-result")
+    if human_review is None:
+        raise ManagerError("done Work Unit requires a human-review-result")
+    if human_review.get("attributes", {}).get("status") != "approved":
+        raise ManagerError("done Work Unit requires approved Human review")
+    require_current_execution_target(
+        package, human_review, "human-review-result approval"
+    )
 
 
 def validate_integration_receipt(
@@ -650,8 +1132,13 @@ def validate_package(
     status = metadata["lifecycle"]["status"]
     if status == "ready":
         validate_ready_semantics(package)
+        validate_execution_state(package)
+    if status in {"working", "review"}:
+        validate_execution_state(package, required=True)
     if status in {"review", "done"}:
         validate_review_semantics(package)
+    if status == "done":
+        validate_human_approval_target(package)
     return result
 
 
@@ -663,6 +1150,10 @@ def command_transition(args: argparse.Namespace) -> None:
     allowed = validate_schemas()["metadata"]["x-statusTransitions"][current]
     if args.status not in allowed:
         raise ManagerError(f"invalid Work Unit transition: {current} -> {args.status}")
+    if args.status == "working":
+        raise ManagerError(
+            "transition to working requires attempt-start or Human-approved rework-start"
+        )
     if args.status == "done" and args.human_review != "approved":
         raise ManagerError("transition to done requires --human-review approved")
     if args.status != "done" and args.human_review is not None:
@@ -674,6 +1165,17 @@ def command_transition(args: argparse.Namespace) -> None:
     metadata["updatedAt"] = base.now()
     metadata["readiness"]["contractValid"] = True
     writes: dict[Path, Any] = {package / base.METADATA_PATH: metadata}
+    state = execution_state_item(package)
+    if args.status == "review" and state is not None:
+        if state["content"].get("state") != "running":
+            raise ManagerError("review transition requires a running execution attempt")
+        section_path = base.section_path(package, "execution-context")
+        section = base.load_object(section_path, "execution-context section")
+        section_state = next(
+            entry for entry in iter_items(section) if entry["kind"] == "execution-state"
+        )
+        section_state["content"]["state"] = "review"
+        writes[section_path] = section
     if args.status == "done":
         section_path = base.section_path(package, "human-review")
         section = base.load_object(section_path, "human-review section")
@@ -689,6 +1191,19 @@ def command_transition(args: argparse.Namespace) -> None:
             raise ManagerError("done Work Unit requires a human-review-result")
         result.setdefault("attributes", {})["status"] = "approved"
         result["attributes"]["approvedAt"] = base.now()
+        if state is not None:
+            result["attributes"]["executionTarget"] = current_execution_target(package)
+            execution_context_path = base.section_path(package, "execution-context")
+            execution_context = base.load_object(
+                execution_context_path, "execution-context section"
+            )
+            section_state = next(
+                entry
+                for entry in iter_items(execution_context)
+                if entry["kind"] == "execution-state"
+            )
+            section_state["content"]["state"] = "done"
+            writes[execution_context_path] = execution_context
         writes[section_path] = section
     base.validate_instance("metadata", metadata)
     base.validate_profile(
@@ -752,26 +1267,26 @@ def parser() -> argparse.ArgumentParser:
     section_put = commands.add_parser("section-put")
     section_put.add_argument("package")
     base.add_data_arguments(section_put)
-    section_put.set_defaults(handler=base.command_section_put)
+    section_put.set_defaults(handler=command_section_put)
     item_put = commands.add_parser("section-item-put")
     item_put.add_argument("package")
     item_put.add_argument("section_id")
     base.add_data_arguments(item_put)
     item_put.add_argument("--subsection")
-    item_put.set_defaults(handler=base.command_section_item_put)
+    item_put.set_defaults(handler=command_section_item_put)
     items_put = commands.add_parser("section-items-put")
     items_put.add_argument("package")
     items_put.add_argument("section_id")
     base.add_data_arguments(items_put)
     items_put.add_argument("--subsection")
-    items_put.set_defaults(handler=base.command_section_items_put)
+    items_put.set_defaults(handler=command_section_items_put)
     section_add = commands.add_parser("section-add")
     section_add.add_argument("package")
     base.add_data_arguments(section_add)
     add_position = section_add.add_mutually_exclusive_group()
     add_position.add_argument("--before")
     add_position.add_argument("--after")
-    section_add.set_defaults(handler=base.command_section_add)
+    section_add.set_defaults(handler=command_section_add)
     section_move = commands.add_parser("section-move")
     section_move.add_argument("package")
     section_move.add_argument("section_id")
@@ -810,6 +1325,23 @@ def parser() -> argparse.ArgumentParser:
     integration_put.add_argument("receipt")
     integration_put.add_argument("--path", required=True)
     integration_put.set_defaults(handler=command_integration_put)
+    execution_init = commands.add_parser("execution-init")
+    execution_init.add_argument("package")
+    execution_init.add_argument("--head-commit", required=True)
+    execution_init.set_defaults(handler=command_execution_init)
+    attempt_start = commands.add_parser("attempt-start")
+    attempt_start.add_argument("package")
+    attempt_start.add_argument("--invocation-id", required=True)
+    attempt_start.add_argument("--head-commit", required=True)
+    attempt_start.set_defaults(handler=command_attempt_start)
+    attempt_resume = commands.add_parser("attempt-resume")
+    attempt_resume.add_argument("package")
+    attempt_resume.add_argument("--invocation-id", required=True)
+    attempt_resume.set_defaults(handler=command_attempt_resume)
+    rework_start = commands.add_parser("rework-start")
+    rework_start.add_argument("package")
+    rework_start.add_argument("--human-decision", choices=["approved"])
+    rework_start.set_defaults(handler=command_rework_start)
     return root
 
 

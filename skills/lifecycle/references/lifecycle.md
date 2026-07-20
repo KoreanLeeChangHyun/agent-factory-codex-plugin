@@ -189,6 +189,11 @@ Use this resolution flow:
   `work-unit/<work-unit-id>`, then prepare or inspect the worktree and record its
   canonical JSON result as execution evidence. Re-execution and rework reuse the
   same registered pair.
+- Bind active execution to the inspected Git head through versioned
+  `execution-state/v1`. Start a new attempt for a first invocation or retry,
+  append a resumed Codex session to the same attempt, and require a
+  Human-approved revision increment for rework. Current passing evidence and
+  approval must match the revision, attempt, primary invocation, and Git head.
 - Never generate fallback worktree path names. Cleanup requires an explicit
   Human cleanup decision and must refuse dirty worktrees and forced removal.
 - If the package is missing, ambiguous, already complete, blocked, or lacks

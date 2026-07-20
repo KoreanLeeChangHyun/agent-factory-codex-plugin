@@ -16,7 +16,8 @@
         ]
       },
       "attributes": {
-        "verificationResult": "pending"
+        "verificationResult": "pending",
+        "evidence": []
       }
     }
   ],
