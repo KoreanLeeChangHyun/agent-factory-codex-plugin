@@ -11,6 +11,7 @@ import json
 import os
 import shlex
 import stat
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Iterable
@@ -287,6 +288,28 @@ def validate_git_commit(value: Any, label: str) -> str:
     return value
 
 
+def validate_current_worktree_head(package: Path, claimed: str) -> None:
+    context = find_kind(package, "execution-context")
+    recorded = {} if context is None else context.get("content", {})
+    worktree_path = recorded.get("worktreePath")
+    if not isinstance(worktree_path, str) or not Path(worktree_path).is_absolute():
+        raise ManagerError("execution context worktreePath must be absolute")
+    result = subprocess.run(
+        ["git", "-C", worktree_path, "rev-parse", "HEAD"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise ManagerError(
+            "execution state requires a prepared Git worktree before head binding"
+        )
+    actual = result.stdout.strip()
+    validate_git_commit(actual, "prepared worktree HEAD")
+    if claimed != actual:
+        raise ManagerError(f"--head-commit must equal prepared worktree HEAD: {actual}")
+
+
 def execution_state_item(
     package: Path, *, required: bool = False
 ) -> dict[str, Any] | None:
@@ -527,6 +550,7 @@ def command_execution_init(args: argparse.Namespace) -> None:
     if metadata["lifecycle"]["status"] != "ready":
         raise ManagerError("execution-init requires a ready Work Unit")
     head_commit = validate_git_commit(args.head_commit, "--head-commit")
+    validate_current_worktree_head(package, head_commit)
     path = base.section_path(package, "execution-context")
     section = base.load_object(path, "execution-context section")
     existing = next(
@@ -565,11 +589,14 @@ def command_attempt_start(args: argparse.Namespace) -> None:
     validate_package(package, full=True)
     metadata = base.load_metadata(package)
     status = metadata["lifecycle"]["status"]
-    if status not in {"ready", "working"}:
-        raise ManagerError("attempt-start requires a ready or working Work Unit")
+    if status not in {"ready", "working", "review"}:
+        raise ManagerError(
+            "attempt-start requires a ready, working, or review Work Unit"
+        )
     if not args.invocation_id:
         raise ManagerError("--invocation-id must be non-empty")
     head_commit = validate_git_commit(args.head_commit, "--head-commit")
+    validate_current_worktree_head(package, head_commit)
     path = base.section_path(package, "execution-context")
     section = base.load_object(path, "execution-context section")
     state = next(
@@ -595,6 +622,8 @@ def command_attempt_start(args: argparse.Namespace) -> None:
         raise ManagerError(
             "attempt-start requires planned rework or running retry state"
         )
+    if status == "review" and content["state"] != "review":
+        raise ManagerError("review retry requires reviewed execution-state")
     archive_current_attempt(package, state)
     content["state"] = "running"
     content["currentAttempt"] = (

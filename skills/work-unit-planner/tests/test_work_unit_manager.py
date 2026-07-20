@@ -318,6 +318,25 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
         },
     )
     run_cli("metadata-set", str(package), "readiness", *readiness)
+    worktree = root / ".agent-factory" / "worktree" / package.name
+    worktree.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "init", "-q"], cwd=worktree, check=True)
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=Agent Factory Test",
+            "-c",
+            "user.email=agent-factory@example.invalid",
+            "commit",
+            "--allow-empty",
+            "-q",
+            "-m",
+            "initial test head",
+        ],
+        cwd=worktree,
+        check=True,
+    )
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
@@ -326,8 +345,9 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
         package: Path,
         *,
         invocation_id: str = "session-1",
-        head_commit: str = "a" * 40,
+        head_commit: str | None = None,
     ) -> dict[str, object]:
+        head_commit = head_commit or self.prepared_worktree_head(package)
         run_cli(
             "execution-init",
             str(package),
@@ -344,6 +364,38 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 head_commit,
             ).stdout
         )
+
+    def prepared_worktree_path(self, package: Path) -> Path:
+        root = package.parent.parent.parent
+        return root / ".agent-factory" / "worktree" / package.name
+
+    def prepared_worktree_head(self, package: Path) -> str:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=self.prepared_worktree_path(package),
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
+
+    def advance_prepared_worktree(self, package: Path, message: str) -> str:
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.name=Agent Factory Test",
+                "-c",
+                "user.email=agent-factory@example.invalid",
+                "commit",
+                "--allow-empty",
+                "-q",
+                "-m",
+                message,
+            ],
+            cwd=self.prepared_worktree_path(package),
+            check=True,
+        )
+        return self.prepared_worktree_head(package)
 
     def current_execution_target(self, package: Path) -> dict[str, object]:
         shown = json.loads(
@@ -716,6 +768,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
 
+            initial_head = self.prepared_worktree_head(package)
             started = self.initialize_and_start_execution(package)
             self.assertEqual(started["status"], "working")
             shown = json.loads(
@@ -731,7 +784,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(state["currentAttempt"], 1)
             self.assertEqual(state["invocationId"], "session-1")
             self.assertEqual(state["invocationChain"], ["session-1"])
-            self.assertEqual(state["subject"]["digest"], "a" * 40)
+            self.assertEqual(state["subject"]["digest"], initial_head)
             self.assertEqual(state["history"], [])
 
             run_cli(
@@ -754,13 +807,14 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 state["invocationChain"], ["session-1", "session-1-resume"]
             )
 
+            retry_head = self.advance_prepared_worktree(package, "retry head")
             run_cli(
                 "attempt-start",
                 str(package),
                 "--invocation-id",
                 "session-2",
                 "--head-commit",
-                "b" * 40,
+                retry_head,
             )
             retried = json.loads(
                 run_cli("show", str(package), "--section", "execution-context").stdout
@@ -774,7 +828,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(state["currentAttempt"], 2)
             self.assertEqual(state["invocationId"], "session-2")
             self.assertEqual(state["invocationChain"], ["session-2"])
-            self.assertEqual(state["subject"]["digest"], "b" * 40)
+            self.assertEqual(state["subject"]["digest"], retry_head)
             self.assertEqual(len(state["history"]), 1)
             self.assertEqual(state["history"][0]["revision"], 1)
             self.assertEqual(state["history"][0]["attempt"], 1)
@@ -808,6 +862,18 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             run_cli("transition", str(package), "ready")
             metadata_path = package / "data" / "metadata.json"
             before = metadata_path.read_bytes()
+            actual_head = self.prepared_worktree_head(package)
+
+            mismatched = run_cli(
+                "execution-init",
+                str(package),
+                "--head-commit",
+                "a" * 40,
+                check=False,
+            )
+            self.assertNotEqual(mismatched.returncode, 0)
+            self.assertIn("must equal prepared worktree HEAD", mismatched.stderr)
+            self.assertEqual(metadata_path.read_bytes(), before)
 
             rejected = run_cli(
                 "attempt-start",
@@ -815,7 +881,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "--invocation-id",
                 "session-1",
                 "--head-commit",
-                "a" * 40,
+                actual_head,
                 check=False,
             )
             self.assertNotEqual(rejected.returncode, 0)
@@ -828,7 +894,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 {
                     "contractVersion": "1.0.0",
                     "state": "planned",
-                    "subject": {"algorithm": "gitCommit", "digest": "a" * 40},
+                    "subject": {"algorithm": "gitCommit", "digest": actual_head},
                     "currentRevision": 1,
                     "currentAttempt": None,
                     "invocationId": None,
@@ -925,13 +991,14 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "--human-decision",
                 "approved",
             )
+            rework_head = self.advance_prepared_worktree(package, "rework head")
             run_cli(
                 "attempt-start",
                 str(package),
                 "--invocation-id",
                 "session-2",
                 "--head-commit",
-                "b" * 40,
+                rework_head,
             )
 
             shown = json.loads(

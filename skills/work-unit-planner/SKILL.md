@@ -89,6 +89,11 @@ is invalid. TOC array order owns document order.
   current attempt, increments revision, clears attempt identity, and
   invalidates current execution, quality, AI review, report, and Human review
   results in one transaction.
+- `execution-init` and `attempt-start` resolve `git rev-parse HEAD` in the
+  recorded prepared worktree and reject a supplied `--head-commit` that does
+  not exactly match it. Before Human approval, a failed `review` audit may use
+  `attempt-start` for a same-revision retry; Human rework remains the separate
+  revision-increment operation.
 - Passing execution, quality, AI review, report, and Human approval records for
   an active execution must carry an `executionTarget` matching the current
   contract version, revision, attempt, primary invocation id, and Git head.

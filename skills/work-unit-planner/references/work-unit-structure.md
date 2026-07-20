@@ -151,6 +151,9 @@ backlog -> ready -> working -> review -> done
 - `attempt-start`: ready or working; starts attempt 1 or archives the current
   attempt and increments it for a same-revision retry. It transitions ready to
   working and invalidates current outcome gates atomically.
+- `attempt-start` may also retry a `review` result before Human approval without
+  changing revision. Both it and `execution-init` resolve the recorded prepared
+  worktree's actual `HEAD` and reject a mismatched `--head-commit`.
 - `attempt-resume`: working only; appends a new Codex session id to the current
   attempt's invocation chain without changing attempt or primary invocation.
 - `rework-start --human-decision approved`: review only; archives the reviewed

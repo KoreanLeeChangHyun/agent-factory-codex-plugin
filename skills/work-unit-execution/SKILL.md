@@ -46,9 +46,11 @@ its JSON result.
    `context.worktreePath`.
 6. Before the first active attempt, pass the inspected `headCommit` to the Work
    Unit manager's `execution-init`, then start the attempt with a unique Codex
-   execution invocation id and the same inspected head. A same-revision retry uses a new
-   `attempt-start`; `codex exec resume` uses `attempt-resume` and does not
-   prepare another worktree or increment the attempt.
+   execution invocation id and the same inspected head. A same-revision retry
+   uses a new `attempt-start`; `codex exec resume` uses `attempt-resume` and
+   does not prepare another worktree or increment the attempt.
+   The Work Unit manager independently resolves the prepared worktree `HEAD`
+   and refuses a mismatched recorded digest.
 7. Run `scripts/worktree.py inspect` before reporting or asking for Human
    review.
 8. Validate every recorded execution command against the installed CLI parser
