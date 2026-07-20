@@ -1,0 +1,36 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "두 current package 문장이 제거됐는지 확인",
+          "README 검증 명령이 이해 가능한지 확인",
+          "일반 Specification 경로 규칙이 유지됐는지 확인"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "변경 diff와 검증 결과를 확인한 뒤 승인 또는 재작업을 결정한다."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "result": "Pending"
+      },
+      "attributes": {
+        "status": "approved",
+        "approvedAt": "2026-07-20T13:58:48+00:00"
+      }
+    }
+  ],
+  "subsections": []
+}

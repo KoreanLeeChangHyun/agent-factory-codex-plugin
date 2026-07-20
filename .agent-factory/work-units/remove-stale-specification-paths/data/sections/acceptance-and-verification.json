@@ -1,0 +1,53 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "존재하지 않는 .agent-factory/specifications/agent-factory/ current package 문장 두 곳이 제거된다."
+      }
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "README Development 절에 실행 가능한 plugin-creator validate_plugin.py 명령이 제시된다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "definition": "범위 내 파일만 변경되고 모든 지정 검증이 통과하며 Human Review 자료가 준비된다."
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "pytest -q",
+          "ruff check skills",
+          "plugin validation",
+          "quick_validate changed skills"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "result": "지정된 전체 검증이 통과했다."
+      },
+      "attributes": {
+        "status": "pass",
+        "evidence": [
+          "blocks/evidence/verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

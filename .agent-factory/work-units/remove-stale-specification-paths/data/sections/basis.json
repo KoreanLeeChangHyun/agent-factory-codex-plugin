@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "basis": "Accepted skill audit remediation basis."
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "codex-plugin-skill-audit",
+          "path": ".agent-factory/intakes/codex-plugin-skill-audit",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WORK-UNIT-BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

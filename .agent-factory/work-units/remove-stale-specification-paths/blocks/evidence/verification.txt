@@ -1,0 +1,17 @@
+Work Unit: remove-stale-specification-paths
+Branch: work-unit/remove-stale-specification-paths
+Base: b0f53e6ca9b2e332acba89b67de352904563b371
+
+Verification results:
+- pytest -q: 90 passed, 45 subtests passed in 291.01s
+- ruff check skills: All checks passed
+- plugin-creator validate_plugin.py: Plugin validation passed
+- skill-creator quick_validate.py skills/specification: Skill is valid
+- skill-creator quick_validate.py skills/diagram: Skill is valid
+- git diff --check: passed
+- stale current-package phrase search: no matches
+
+Changed paths:
+- README.md
+- skills/diagram/SKILL.md
+- skills/specification/SKILL.md

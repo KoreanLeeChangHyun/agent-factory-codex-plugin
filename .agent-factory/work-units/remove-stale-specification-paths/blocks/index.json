@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification.txt",
+      "mediaType": "text/plain",
+      "description": "Verification commands and results",
+      "sha256": "69bda3c6a945f9f7bc58b2dbccc6206d62d52403a48a77c10c110fb4e375c277",
+      "sizeBytes": 619
+    },
+    {
+      "path": "blocks/evidence/worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final canonical Work Unit worktree inspection result",
+      "sha256": "a13eebeae28ee61d1409ec090c85b76896353099177efb30d6570d0a73cb7592",
+      "sizeBytes": 729
+    }
+  ]
+}

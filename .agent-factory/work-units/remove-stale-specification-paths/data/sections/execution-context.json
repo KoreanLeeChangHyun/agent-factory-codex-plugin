@@ -1,0 +1,21 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "remove-stale-specification-paths",
+        "objective": "Remove unsupported current-package claims and clarify plugin validation.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-stale-specification-paths Execute-/goal-remove-stale-specification-paths",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "b0f53e6ca9b2e332acba89b67de352904563b371",
+        "branch": "work-unit/remove-stale-specification-paths",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-stale-specification-paths"
+      }
+    }
+  ],
+  "subsections": []
+}

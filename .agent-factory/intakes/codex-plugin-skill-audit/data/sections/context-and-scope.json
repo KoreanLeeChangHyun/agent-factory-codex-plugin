@@ -1,0 +1,44 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "프로젝트 매니페스트는 agent-factory Codex 플러그인으로 등록되어 있고 reusable workflows는 skills/ 아래에 있다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills",
+          ".codex-plugin/plugin.json",
+          ".agents/plugins/marketplace.json",
+          "README.md"
+        ],
+        "checks": [
+          "metadata",
+          "references",
+          "scripts",
+          "tests",
+          "plugin-registration"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "product-code-changes",
+          "runtime-restarts",
+          "external-messages"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

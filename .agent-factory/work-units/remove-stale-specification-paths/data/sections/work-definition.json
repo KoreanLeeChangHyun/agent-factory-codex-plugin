@@ -1,0 +1,42 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "존재하지 않는 현재 Specification 패키지 문구를 제거하고 README 검증 안내를 실행 가능한 명령으로 교체한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "paths": [
+          "skills/diagram/SKILL.md",
+          "skills/specification/SKILL.md",
+          "README.md"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "일반 <specification-id> 경로 규칙",
+          "Human-facing report 레거시 용어 전면 정리"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "output": "두 스킬의 잘못된 current package 문장이 제거되고 README에 검증 명령이 명시된 변경."
+      }
+    }
+  ],
+  "subsections": []
+}

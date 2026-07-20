@@ -1,0 +1,40 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "감사 자체에는 Specification 변경이 필요하지 않다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "존재하지 않는 현재 Specification 패키지 문구를 제거하고 README 검증 안내를 실행 가능한 명령으로 교체한다.",
+        "status": "accepted",
+        "scope": [
+          "skills/diagram/SKILL.md",
+          "skills/specification/SKILL.md",
+          "README.md"
+        ],
+        "exclusions": [
+          "일반 <specification-id> 경로 규칙",
+          "Human-facing report 레거시 용어 전면 정리"
+        ],
+        "verification": [
+          "pytest -q",
+          "ruff check skills",
+          "plugin-creator validate_plugin.py",
+          "skill-creator quick_validate.py for changed skills"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

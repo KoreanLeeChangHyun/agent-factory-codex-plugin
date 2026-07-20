@@ -1,0 +1,170 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "스킬을 어떤 수준으로 확인할까요?",
+        "recommendation": "A",
+        "answer": "A",
+        "state": "answered",
+        "choices": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-STRUCTURE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": ".codex-plugin/plugin.json, .agents/plugins/marketplace.json, skills/*/SKILL.md, skills/*/agents/openai.yaml",
+        "method": "inspection",
+        "findings": [
+          "16 skill directories each contain SKILL.md and agents/openai.yaml.",
+          "Plugin manifest routes skills to ./skills/.",
+          "Marketplace contains one agent-factory remote URL entry whose URL matches the Git origin."
+        ],
+        "interpretations": [
+          "Required plugin and skill entry-point structure is present."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERNAL-VALIDATION-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "pytest -q; ruff check skills; python3 -m compileall -q skills; plugin-creator validate_plugin.py; skill-creator quick_validate.py",
+        "method": "command",
+        "findings": [
+          "pytest: 90 passed, 45 subtests passed.",
+          "ruff: all checks passed.",
+          "compileall: passed.",
+          "Plugin validation passed.",
+          "All 16 quick_validate checks passed."
+        ],
+        "interpretations": [
+          "No deterministic test, syntax, lint, frontmatter, or plugin manifest failure was found."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERNAL-SCHEMA-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "intake.py check-schemas; specification.py check-schemas; work_unit.py check-schemas",
+        "method": "command",
+        "findings": [
+          "Intake profile 2.0.0 valid.",
+          "Five Specification profiles valid.",
+          "Work Unit profile 4.0.0 valid."
+        ],
+        "interpretations": [
+          "Canonical document managers load their schemas and registered profiles successfully."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERNAL-METADATA-DRIFT-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/specification/agents/openai.yaml and skills/specification/SKILL.md",
+        "method": "document-review",
+        "findings": [
+          "openai.yaml says to check or update a Specification and its Human-facing report.",
+          "SKILL.md says not to produce Design Report HTML, CSS, or JavaScript because an external viewer derives the report."
+        ],
+        "interpretations": [
+          "The starter prompt and short description can misrepresent the skill output boundary before the full SKILL.md is read."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERNAL-STALE-PATH-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/diagram/SKILL.md; skills/specification/SKILL.md; find .agent-factory",
+        "method": "inspection",
+        "findings": [
+          "Both skills state that this repository's current Design Document package is .agent-factory/specifications/agent-factory/.",
+          "No Specification package exists in the current worktree."
+        ],
+        "interpretations": [
+          "The project-specific current-package statement is unsupported by current repository state and conflicts with dynamic path/evidence rules."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERNAL-DOC-VALIDATION-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "README.md; codex plugin --help; codex plugin validate --help",
+        "method": "command",
+        "findings": [
+          "README asks developers to use Codex plugin validation tooling without naming a command.",
+          "Installed Codex CLI exposes add, list, marketplace, and remove but no plugin validate subcommand.",
+          "Bundled plugin-creator validate_plugin.py succeeds on this repository."
+        ],
+        "interpretations": [
+          "The development validation instruction is not directly executable in this environment and should name the supported validator."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERNAL-INTEGRATION-LIMIT-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "python3 skills/google-mail/scripts/sync_gmail.py --help",
+        "method": "command",
+        "findings": [
+          "Command exits with ModuleNotFoundError for google.auth in the current environment.",
+          "skills/google-mail/scripts/requirements.txt declares the required Google packages.",
+          "SKILL.md instructs dependency installation before running the script."
+        ],
+        "interpretations": [
+          "This is an environment/dependency limitation, not a demonstrated skill contract defect."
+        ],
+        "limitations": [
+          "No Gmail OAuth or live sync was attempted."
+        ]
+      }
+    },
+    {
+      "id": "WEB-CODEX-PLUGIN-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "OpenAI Codex Manual: Build plugins and Build skills",
+        "url": "https://learn.chatgpt.com/docs/build-plugins.md",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-20",
+        "findings": [
+          "A plugin requires .codex-plugin/plugin.json and may include skills at the plugin root.",
+          "A skill requires SKILL.md with name and description.",
+          "Repository marketplaces use .agents/plugins/marketplace.json.",
+          "Skills should use concise trigger descriptions and progressive disclosure."
+        ],
+        "limitations": [
+          "The installed CLI does not expose a plugin validate command."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

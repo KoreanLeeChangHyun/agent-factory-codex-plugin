@@ -1,0 +1,36 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "scope",
+          "evidence",
+          "minimal-diff",
+          "tests"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "result": "범위, Human 결정, 최소 변경, 검증 결과를 검토했고 문제를 발견하지 못했다.",
+        "checks": [
+          "세 파일만 변경",
+          "일반 <specification-id> 규칙 유지",
+          "current package 문장 제거",
+          "README 명령 실제 실행 성공"
+        ]
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass"
+      }
+    }
+  ],
+  "subsections": []
+}

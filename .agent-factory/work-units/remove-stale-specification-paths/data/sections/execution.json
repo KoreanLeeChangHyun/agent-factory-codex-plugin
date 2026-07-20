@@ -1,0 +1,30 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "result": "README.md, skills/diagram/SKILL.md, skills/specification/SKILL.md를 범위대로 수정했다.",
+        "changedPaths": [
+          "README.md",
+          "skills/diagram/SKILL.md",
+          "skills/specification/SKILL.md"
+        ],
+        "deviations": [
+          "동일 세션에서 Work Unit 정의와 실행을 연속 수행했다."
+        ]
+      },
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/worktree-inspect.json"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

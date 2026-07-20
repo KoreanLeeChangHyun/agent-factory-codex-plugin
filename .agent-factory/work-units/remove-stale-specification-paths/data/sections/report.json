@@ -1,0 +1,25 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "result": "존재하지 않는 current Specification package 문장을 제거하고 README에 실제 Plugin Creator 검증 명령을 추가했다.",
+        "specificationResult": "not-applicable",
+        "remainingItems": [
+          "Human-facing report 레거시 용어 전면 정리는 별도 범위"
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/worktree-inspect.json"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

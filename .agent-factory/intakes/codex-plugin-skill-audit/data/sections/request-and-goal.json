@@ -1,0 +1,35 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "HUMAN-REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Codex 플러그인 제작 프로젝트의 스킬을 확인한다."
+      }
+    },
+    {
+      "id": "DESIRED-OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "전체 스킬의 구조, 내부 참조, 스크립트, 테스트, 플러그인 등록 상태를 증거 기반으로 감사한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criterion": "스킬 목록과 연결 구조를 확인하고 제공된 검증을 실행하여 발견 사항과 한계를 보고한다."
+      }
+    },
+    {
+      "id": "HUMAN-REQUEST-002",
+      "kind": "human-request",
+      "content": {
+        "request": "존재하지 않는 현재 Specification 패키지 문구를 제거하고 README의 검증 안내를 실제 명령으로 교체한다."
+      }
+    }
+  ],
+  "subsections": []
+}

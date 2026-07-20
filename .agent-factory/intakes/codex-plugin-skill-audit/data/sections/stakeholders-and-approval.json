@@ -1,0 +1,28 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholder": "Codex 플러그인 프로젝트 Human 소유자"
+      }
+    },
+    {
+      "id": "DECISION-OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "APPROVAL-BOUNDARY-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "감사는 읽기 전용으로 수행하며 수정, Work Unit 실행, 커밋, 푸시는 별도 Human 결정이 필요하다."
+      }
+    }
+  ],
+  "subsections": []
+}

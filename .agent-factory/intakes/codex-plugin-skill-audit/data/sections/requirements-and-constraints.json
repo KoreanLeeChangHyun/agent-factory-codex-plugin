@@ -1,0 +1,21 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQUIREMENT-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "스킬 메타데이터, 본문, 참조, 스크립트, 테스트, 플러그인 등록 간 계약 일관성을 증거로 확인한다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "전체 테스트와 정적 검증 결과, 발견된 충돌, 실행하지 못한 통합 범위를 구분해 보고한다."
+      }
+    }
+  ],
+  "subsections": []
+}

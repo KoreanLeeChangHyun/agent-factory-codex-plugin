@@ -1,0 +1,35 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-STATUS-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "전체 스킬 감사를 수행한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-001"
+      }
+    },
+    {
+      "id": "OPEN-ITEMS-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "non-blocking",
+        "items": [
+          "Human-facing report 레거시 용어 전면 정리는 이번 Work Unit 범위 밖이다."
+        ]
+      }
+    },
+    {
+      "id": "DECISION-STATUS-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "일반 Specification 경로 규칙은 유지하고 프로젝트 전용 current package 문장 두 곳을 제거하며 README에 실행 가능한 검증 명령을 기록한다.",
+        "status": "accepted",
+        "source": "HUMAN-REQUEST-002"
+      }
+    }
+  ],
+  "subsections": []
+}
