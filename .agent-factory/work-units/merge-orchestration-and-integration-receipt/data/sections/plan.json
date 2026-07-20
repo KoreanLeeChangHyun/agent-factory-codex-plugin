@@ -1,0 +1,73 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Plan",
+        "statement": "현재 worktree.py, Work Unit manager, profile, tests와 ready Intake를 다시 읽고 실행 기준을 확인한다."
+      },
+      "attributes": {
+        "sequence": 1
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "구현 전에 integration 상태 분류, 승인 누락, dirty worktree, 분기 전략, already-merged 복구와 receipt 등록 실패 테스트를 작성한다."
+      },
+      "attributes": {
+        "sequence": 2
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "work-unit-execution에 안전한 merge/reconcile Git 경계와 결정적 JSON 결과를 구현한다."
+      },
+      "attributes": {
+        "sequence": 3
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "Work Unit manager에 normalized integration-result와 raw receipt 등록 계약을 구현하고 관련 skill, reference와 profile 설명을 갱신한다."
+      },
+      "attributes": {
+        "sequence": 4
+      }
+    },
+    {
+      "id": "PLAN-005",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "focused tests, schema checks, full regression과 실제 임시 Git repository 시나리오를 실행해 증거를 등록한다."
+      },
+      "attributes": {
+        "sequence": 5
+      }
+    },
+    {
+      "id": "PLAN-006",
+      "kind": "plan-step",
+      "content": {
+        "phase": "AI Review",
+        "statement": "범위, 승인 경계, idempotent recovery, 상태 축 분리, JSON 추적성과 잔여 위험을 검토하고 Human Review 및 Report를 준비한다."
+      },
+      "attributes": {
+        "sequence": 6
+      }
+    }
+  ],
+  "subsections": []
+}

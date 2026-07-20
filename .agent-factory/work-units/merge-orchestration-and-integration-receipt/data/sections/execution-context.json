@@ -1,0 +1,25 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "merge-orchestration-and-integration-receipt",
+        "objective": "Human 승인 병합과 Work Unit integration receipt 추적을 구현한다.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/merge-orchestration-and-integration-receipt \"/goal merge-orchestration-and-integration-receipt\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/merge-orchestration-and-integration-receipt",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/merge-orchestration-and-integration-receipt",
+        "targetBranch": "main",
+        "mergeStrategy": "fast-forward-or-explicit-no-ff",
+        "setupState": "planned",
+        "cleanupState": "pending-human-decision"
+      }
+    }
+  ],
+  "subsections": []
+}

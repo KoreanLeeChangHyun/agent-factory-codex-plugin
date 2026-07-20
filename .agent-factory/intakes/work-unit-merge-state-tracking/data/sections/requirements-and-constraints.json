@@ -1,0 +1,64 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "statement": "병합 작업은 Work Unit ID, repository, source branch, target branch, worktree path, Human decision, source commit, target-before commit, target-after commit, strategy, operation result를 구조화된 JSON으로 남겨야 한다."
+      },
+      "attributes": {
+        "source": "REQUEST-001"
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "statement": "저장된 실행 스냅샷은 불변 이력으로 보존하고, 현재 worktree와 integration 상태는 재실행 가능한 inspect 또는 reconcile로 다시 계산할 수 있어야 한다."
+      },
+      "attributes": {
+        "source": "REQUEST-001"
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "statement": "병합 후 증거 등록 전에 프로세스가 중단되어도 재실행이 source commit의 target ancestry를 확인하여 이미 병합된 상태를 복구하고 receipt를 등록할 수 있어야 한다."
+      },
+      "attributes": {
+        "source": "EVIDENCE-003"
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "rules": [
+          "Human의 명시적 병합 승인이 없으면 Git mutation을 거부한다.",
+          "dirty source worktree, repository mismatch, branch mismatch와 unresolved target을 mutation 전에 거부한다.",
+          "cleanup과 branch 삭제는 병합과 분리하고 별도 Human 승인을 유지한다.",
+          "Git mutation은 work-unit-execution이 소유하고 canonical Work Unit JSON 쓰기는 Work Unit manager가 소유한다.",
+          "Work Unit done과 integration state를 같은 상태 필드로 합치지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "승인 누락, dirty source, 잘못된 target checkout과 repository mismatch가 JSON refusal로 검증된다.",
+          "fast-forward 가능, 이미 병합됨, source와 target 분기 상태가 각각 결정적으로 분류된다.",
+          "성공 또는 already-merged 결과가 normalized integration-result와 등록된 raw receipt evidence로 Work Unit에서 조회된다.",
+          "receipt 등록 후 Work Unit full validation이 통과한다.",
+          "병합 뒤에도 locked worktree와 branch가 유지되고 cleanup은 별도 명령으로만 수행된다.",
+          "중단 후 재실행이 중복 병합 없이 동일 source commit의 통합 상태를 복구한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

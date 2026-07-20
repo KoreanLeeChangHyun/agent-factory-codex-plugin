@@ -1,0 +1,76 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "statement": "Human 승인 병합을 안전하고 재실행 가능하게 수행하고 Work Unit에 normalized integration result와 raw JSON receipt를 등록한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "work-unit-execution의 Git integration 상태 판정과 merge/reconcile command",
+          "FF 가능 시 fast-forward, 분기 시 명시적 --strategy no-ff와 Human 승인",
+          "Work Unit manager의 normalized integration-result 기록 계약",
+          "approval, dirty state, ancestry, idempotent recovery와 evidence validation 테스트",
+          "work-unit-execution skill, reference와 Work Unit profile 문서 정합성 갱신"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "자동 worktree cleanup",
+          "branch 삭제",
+          "push 또는 PR promotion",
+          "기존 Git 이력 재작성",
+          "remove-stale-specification-paths Work Unit의 소급 receipt 등록"
+        ]
+      }
+    },
+    {
+      "id": "EXPECTED-OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "artifacts": [
+          "merge/reconcile Git command implementation and deterministic JSON result",
+          "normalized integration-result registration through the Work Unit manager",
+          "integration receipt and recovery regression tests",
+          "updated work-unit-execution and Work Unit contract documentation"
+        ]
+      }
+    },
+    {
+      "id": "CONSTRAINTS-001",
+      "kind": "constraint",
+      "content": {
+        "rules": [
+          "Human 병합 승인 없이는 Git mutation을 거부한다.",
+          "dirty source worktree, repository mismatch, branch mismatch와 unresolved target을 mutation 전에 거부한다.",
+          "Git mutation과 canonical Work Unit JSON serialization 책임을 분리한다.",
+          "Work Unit lifecycle, worktree lifecycle과 integration state를 독립적으로 유지한다.",
+          "실행 당시 snapshot은 덮어쓰지 않고 새 receipt를 누적한다."
+        ]
+      }
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-item",
+      "content": {
+        "question": "이미 병합된 remove-stale-specification-paths Work Unit의 integration receipt 소급 등록은 이 Work Unit 이후 별도 결정으로 남는다."
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": false
+      }
+    }
+  ],
+  "subsections": []
+}

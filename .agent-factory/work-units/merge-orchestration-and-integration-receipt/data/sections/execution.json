@@ -1,0 +1,21 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "result": "Pending",
+        "changedPaths": [],
+        "deviations": []
+      },
+      "attributes": {
+        "status": "pending",
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

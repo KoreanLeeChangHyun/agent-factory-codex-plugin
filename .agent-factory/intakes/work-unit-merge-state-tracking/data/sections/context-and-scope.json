@@ -1,0 +1,45 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "timing": "maintenance",
+        "currentFlow": "worktree.py가 prepare, inspect, cleanup을 제공하고 병합은 Human 승인 후 별도 Git 명령으로 수행된다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "inScope": [
+          "skills/work-unit-execution/scripts/worktree.py의 Git 상태 모델과 명령 계약",
+          "skills/work-unit-planner의 상태 전이·Human 승인·증거 등록 계약",
+          "기존 Work Unit의 병합 기록과 현재 remove-stale-specification-paths 실행 사례",
+          "병합과 상태 재조정을 위한 책임 경계 및 검증 불변조건"
+        ],
+        "outOfScope": [
+          "제품 코드 구현",
+          "기존 Work Unit 또는 Git 이력 재작성",
+          "worktree cleanup 또는 branch 삭제",
+          "PR promotion과 push"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "제품 코드 구현",
+          "기존 Work Unit 또는 Git 이력 재작성",
+          "worktree cleanup 또는 branch 삭제",
+          "PR promotion과 push"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

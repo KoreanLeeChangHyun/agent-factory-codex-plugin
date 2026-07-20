@@ -1,0 +1,38 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "FF 가능 시 fast-forward, 분기 시 명시적 no-ff 승인 규칙이 구현됐는지 확인한다.",
+          "병합 receipt에서 Work Unit ID와 병합 전후 커밋 및 branch/worktree 상태를 확인한다.",
+          "승인 누락, dirty worktree와 mismatch가 실제 mutation 전에 거부되는지 테스트 증거를 확인한다.",
+          "already-merged 재실행이 중복 병합 없이 receipt를 복구하는지 확인한다.",
+          "병합 후 locked worktree와 branch가 유지되고 cleanup이 자동 수행되지 않는지 확인한다.",
+          "변경이 자동 cleanup, branch 삭제, push, PR promotion 또는 기존 이력 재작성으로 확장되지 않았는지 확인한다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "변경 diff, worktree.py와 Work Unit manager의 테스트, 임시 Git repository의 FF·분기·already-merged 결과, registered integration receipt와 full validation을 확인한다. 승인 기준은 선택 B, JSON 추적성, idempotent recovery, Human 승인과 cleanup 경계 준수이다. 불일치, 누락된 receipt, 중복 병합, 자동 cleanup 또는 검증 실패는 rework 사유이다. 최종 구현 승인, 실제 병합, cleanup, branch 삭제와 PR promotion은 Human이 결정한다."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "result": "Pending Human Review"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

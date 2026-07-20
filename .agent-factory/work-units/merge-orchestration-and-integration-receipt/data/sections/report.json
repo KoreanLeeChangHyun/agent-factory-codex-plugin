@@ -1,0 +1,22 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "result": "Pending",
+        "specificationResult": "gap-accepted-for-work-unit",
+        "remainingItems": [
+          "remove-stale-specification-paths Work Unit의 소급 integration receipt 등록 여부"
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

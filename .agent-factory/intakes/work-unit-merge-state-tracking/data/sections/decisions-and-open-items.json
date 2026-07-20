@@ -1,0 +1,102 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "RECOMMENDATION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "recommended",
+        "summary": "work-unit-execution이 Git integration 판정과 mutation을 소유하고 Work Unit manager가 normalized integration-result와 raw receipt 등록을 소유하는 조합이 현재 책임 경계를 보존한다.",
+        "recovery": "병합 명령은 source commit이 target의 ancestor인지 재검사하여 already-merged를 성공 상태로 반환해야 한다.",
+        "stateAxes": [
+          "workUnitLifecycle",
+          "worktreeLifecycle",
+          "integrationState"
+        ]
+      }
+    },
+    {
+      "id": "ALTERNATIVES-001",
+      "kind": "alternative-analysis",
+      "content": {
+        "optionA": "worktree.py에 merge만 추가하고 호출자가 수동으로 JSON을 등록한다.",
+        "optionAResult": "Git 책임은 명확하지만 evidence 등록 누락이 계속 가능하다.",
+        "optionB": "work-unit-execution에 Git merge와 manager evidence 등록을 조정하는 복구 가능한 orchestration 명령을 둔다.",
+        "optionBResult": "현재 책임을 분리하면서도 Work Unit 추적을 하나의 재실행 가능한 흐름으로 제공한다.",
+        "optionC": "현재처럼 수동 git merge와 free-form report 필드를 유지한다.",
+        "optionCResult": "이미 확인된 스냅샷 drift와 필드 불일치를 해결하지 못한다."
+      },
+      "attributes": {
+        "recommendation": "optionB"
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risks": [
+          "병합 성공 후 receipt 등록 전 중단되면 Git과 JSON 상태가 일시적으로 갈라질 수 있다.",
+          "target branch가 진행되어 source와 분기되면 fast-forward-only가 기존 repository 사례를 처리하지 못한다.",
+          "Work Unit done을 merged 의미로 재사용하면 승인과 integration의 독립성이 사라진다.",
+          "현재 스냅샷을 덮어쓰면 실행 당시 증거가 손실된다."
+        ],
+        "mitigations": [
+          "ancestry 기반 idempotent reconcile을 제공한다.",
+          "병합 전략을 명시적 입력과 Human 결정으로 둔다.",
+          "normalized integration-result를 별도 상태 축으로 둔다.",
+          "timestamped event receipt를 누적하고 live inspect를 별도로 계산한다."
+        ]
+      }
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-item",
+      "content": {
+        "question": "source와 target이 분기된 경우 첫 구현이 어떤 병합 전략을 허용해야 하는가?",
+        "answer": "B: FF 가능 시 ff-only, 분기 시 명시적 --strategy no-ff와 Human 승인으로 merge commit 허용"
+      },
+      "attributes": {
+        "resolvedBy": "INTERVIEW-001",
+        "blocking": true,
+        "resolved": true
+      }
+    },
+    {
+      "id": "OPEN-002",
+      "kind": "open-item",
+      "content": {
+        "question": "이미 병합된 remove-stale-specification-paths Work Unit에 integration receipt를 소급 등록할 것인가?"
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": false
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "readiness": "병합 전략 결정 완료; 소급 receipt 등록 여부는 후속 비차단 항목",
+        "blockingCount": 0,
+        "nonBlockingCount": 1
+      }
+    },
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "FF 가능 시 fast-forward로 병합하고, source와 target이 분기된 경우 명시적 --strategy no-ff와 Human 승인으로 merge commit을 허용한다.",
+        "rationale": "단순 병합의 이력은 최소화하면서 기존 repository의 분기 병합 사례를 지원하고, 위험이 커지는 분기 병합은 Human 결정 경계에 둔다.",
+        "traceability": [
+          "OPEN-001",
+          "INTERVIEW-001",
+          "REQ-001",
+          "ACCEPTANCE-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

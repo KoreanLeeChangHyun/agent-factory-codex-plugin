@@ -1,0 +1,57 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "현재 canonical Specification package는 없고 active work-unit-execution 계약은 merge와 integration receipt를 정의하지 않는다. Human이 상태 유지와 Work Unit 추적 필요를 명시했으므로 후속 Work Unit에서 skill contract와 reference를 갱신해야 한다.",
+        "checkedPaths": [
+          ".agent-factory/specifications/",
+          "skills/work-unit-execution/SKILL.md",
+          "skills/work-unit-execution/references/worktree-contract.md",
+          "skills/work-unit-planner/assets/profiles/work-unit.profile.json"
+        ]
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "WORK-BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "title": "Work Unit merge orchestration and integration receipt",
+        "goal": "Human 승인 병합을 안전하고 재실행 가능하게 수행하고 Work Unit에 normalized integration result와 raw JSON receipt를 등록한다.",
+        "scope": [
+          "work-unit-execution Git integration state 판정과 merge/reconcile command",
+          "FF 가능 시 fast-forward, 분기 시 명시적 --strategy no-ff와 Human 승인",
+          "Work Unit manager의 normalized integration-result 기록 계약",
+          "approval, dirty state, ancestry, idempotent recovery, evidence validation 테스트",
+          "skill, reference, profile 문서 정합성 갱신"
+        ],
+        "outOfScope": [
+          "자동 cleanup",
+          "branch 삭제",
+          "push 또는 PR promotion",
+          "기존 Git 이력 재작성"
+        ],
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "CONSTRAINT-001",
+          "ACCEPTANCE-001",
+          "DECISION-001"
+        ],
+        "dependencies": []
+      },
+      "attributes": {
+        "readiness": "ready",
+        "executionOrder": 1
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,52 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake의 WORK-BASIS-001을 실행 기준으로 사용한다.",
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "CONSTRAINT-001",
+          "ACCEPTANCE-001",
+          "DECISION-001"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-merge-state-tracking",
+          "path": ".agent-factory/intakes/work-unit-merge-state-tracking",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WORK-BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BASIS-SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "result": "현재 active contract에는 merge와 integration receipt가 없으며 이 Work Unit이 skill contract와 reference 정합성을 갱신한다."
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-merge-state-tracking",
+          "path": ".agent-factory/intakes/work-unit-merge-state-tracking",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "SPEC-IMPACT-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

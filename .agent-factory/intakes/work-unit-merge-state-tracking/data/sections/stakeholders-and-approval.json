@@ -1,0 +1,39 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDERS-001",
+      "kind": "stakeholder",
+      "content": {
+        "decisionOwner": "Human",
+        "affectedParties": [
+          "Execution Agent",
+          "Agent Factory lifecycle manager",
+          "Work Unit JSON Viewer"
+        ]
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "humanOwned": "병합 실행, 병합 전략 선택, rework, cleanup, branch 삭제와 PR promotion",
+        "currentAuthorization": "현재 요청은 분석과 Intake 기록까지이며 제품 구현 또는 Git 병합 mutation은 포함하지 않는다."
+      }
+    },
+    {
+      "id": "DECISION-OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human",
+        "decisions": [
+          "분기된 branch의 병합 전략",
+          "이미 병합된 Work Unit의 소급 receipt 등록",
+          "후속 구현 승인"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

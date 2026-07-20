@@ -1,0 +1,147 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-execution/scripts/worktree.py",
+        "method": "source inspection and CLI help",
+        "findings": [
+          "CLI subcommands are prepare, inspect, and cleanup; merge is absent.",
+          "Every command emits one schemaVersion 1.0.0 JSON document with command, context, error, ok, operations, and state.",
+          "inspect reports a point-in-time branch, worktree path, HEAD, dirty changes, and lock state."
+        ],
+        "interpretations": [
+          "The script can establish current worktree state but cannot establish or persist integration state against a target branch."
+        ],
+        "limitations": [
+          "The source contract does not define the desired merge strategy or target branch."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py; skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+        "method": "source and profile inspection",
+        "findings": [
+          "transition to done requires --human-review approved and writes approved status and approvedAt.",
+          "Review and done validation require execution, quality, AI review, report, and registered evidence, but do not require merge evidence.",
+          "The profile states that Human Review contains merge boundaries, while merge is not a Work Unit lifecycle status."
+        ],
+        "interpretations": [
+          "Human approval and Git integration are orthogonal states in the current model."
+        ],
+        "limitations": [
+          "Generic section content permits additional semantic objects, so schema validity alone does not establish a normalized integration receipt."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": ".agent-factory/work-units/remove-stale-specification-paths; worktree.py inspect; git merge-base --is-ancestor",
+        "method": "full package validation and current Git state inspection",
+        "findings": [
+          "The Work Unit validates as done and Human-approved.",
+          "The registered evidence snapshot reports dirty true and headCommit b0f53e6ca9b2e332acba89b67de352904563b371.",
+          "Current inspect reports dirty false and headCommit b8ded97a179bbf6bc4c3b649fd5f9cffd3f6c263.",
+          "The source branch is an ancestor of main, proving integration, but the Work Unit has no merge receipt.",
+          "human-review content still says Pending while its attributes say approved."
+        ],
+        "interpretations": [
+          "Historical execution snapshots and current live state are conflated, and approval content can drift from manager-owned attributes."
+        ],
+        "limitations": [
+          "This is one recent execution case and does not cover conflict or failed-merge recovery."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "Git history for ba5c7ed, 8e7bceb, 2ddc4a6, and 69d30eb",
+        "method": "commit and Work Unit artifact history inspection",
+        "findings": [
+          "Earlier Work Units were integrated with two-parent merge commits ba5c7ed and 8e7bceb.",
+          "Post-merge Work Unit updates manually wrote fields such as mergeCommit, integratedMainHead, and mergeDecision into report content.",
+          "The recorded merge field shapes differ between Work Units and are not produced by a shared command."
+        ],
+        "interpretations": [
+          "A fast-forward-only implementation would not cover all repository merge history, and manual free-form fields do not provide a stable viewer contract."
+        ],
+        "limitations": [
+          "Historical commits show outcomes but not every preflight command or failure path."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-005",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "skills/lifecycle/assets/schema/sectioned-document/section.schema.json; skills/work-unit-planner/assets/schema/metadata.schema.json",
+        "method": "schema inspection",
+        "findings": [
+          "Content items have a stable id and kind but unrestricted content and attributes objects.",
+          "Work Unit lifecycle statuses are backlog, ready, working, review, done, and blocked; no merged status exists.",
+          "done is terminal in x-statusTransitions."
+        ],
+        "interpretations": [
+          "Integration should be modeled as an orthogonal typed result or evidence record rather than adding a mutable merged lifecycle status without a broader lifecycle decision."
+        ],
+        "limitations": [
+          "A normalized integration-result content contract is not currently specified."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-006",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "pytest -q skills/work-unit-execution/tests/test_worktree.py; pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py",
+        "method": "focused regression test execution",
+        "findings": [
+          "work-unit-execution tests: 23 passed in 3.90s.",
+          "work-unit-planner manager tests: 15 passed in 252.18s."
+        ],
+        "interpretations": [
+          "The analyzed prepare, inspect, cleanup, review, and done behavior is the currently passing baseline."
+        ],
+        "limitations": [
+          "No merge or integration receipt tests exist because the capability is absent."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "main에도 다른 변경이 생겼을 때 Work Unit branch를 어떤 전략으로 병합할 것인가?",
+        "recommendation": "B",
+        "rationale": "최근 fast-forward 사례와 기존 two-parent merge commit 사례를 모두 지원하면서 분기된 경우에만 Human 통제를 요구한다.",
+        "answer": "B",
+        "decisionState": "accepted",
+        "choices": [
+          "A: 병합하지 않고 중단",
+          "B: FF 가능 시 단순 병합하고, 분기 시 명시적 Human 승인 후 no-ff 병합",
+          "C: 항상 no-ff merge commit 생성"
+        ]
+      },
+      "attributes": {
+        "answeredAt": "2026-07-20T23:31:17+09:00"
+      }
+    }
+  ],
+  "subsections": []
+}

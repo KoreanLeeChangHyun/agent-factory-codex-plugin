@@ -1,0 +1,123 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "병합 결과 JSON이 Work Unit ID, repository, source branch, target branch, worktree path, Human decision, source commit, target-before commit, target-after commit, strategy와 operation result를 포함한다."
+      }
+    },
+    {
+      "id": "ACCEPT-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "source/target 관계를 fast-forwardable, diverged, already-merged로 결정적으로 분류하고 선택 B의 전략을 적용한다."
+      }
+    },
+    {
+      "id": "ACCEPT-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Human 승인 누락, dirty source worktree, repository mismatch, branch mismatch와 unresolved target은 Git mutation 전에 canonical JSON refusal로 끝난다."
+      }
+    },
+    {
+      "id": "ACCEPT-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "병합 후 receipt 등록 전에 중단되어도 재실행이 ancestry를 확인해 중복 병합 없이 already-merged receipt를 복구한다."
+      }
+    },
+    {
+      "id": "ACCEPT-005",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "normalized integration-result와 raw JSON receipt가 Work Unit에 등록되고 full validation과 Viewer 소비에 필요한 안정된 필드 계약을 만족한다."
+      }
+    },
+    {
+      "id": "ACCEPT-006",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "병합 후 branch와 locked worktree는 유지되며 cleanup과 branch 삭제는 별도 Human 결정으로 남는다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "statement": "실패 테스트를 먼저 작성하고 구현 후 모든 focused 및 full regression 검증이 통과한다."
+      }
+    },
+    {
+      "id": "DOD-002",
+      "kind": "definition-of-done",
+      "content": {
+        "statement": "work-unit-execution, Work Unit manager/profile, skill/reference 문서와 JSON 출력 계약이 서로 일치한다."
+      }
+    },
+    {
+      "id": "DOD-003",
+      "kind": "definition-of-done",
+      "content": {
+        "statement": "실행 명령, 테스트 결과, final inspect, integration receipt 예시와 AI review를 등록된 evidence로 남긴다."
+      }
+    },
+    {
+      "id": "DOD-004",
+      "kind": "definition-of-done",
+      "content": {
+        "statement": "AI checklist와 Human checklist를 분리하고 Human이 승인, rework, merge와 cleanup 여부를 결정할 수 있는 검토 방법을 제공한다."
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "statement": "worktree command 단위 테스트가 승인 누락, dirty source, branch/repository/target mismatch와 unsafe argument를 검증한다."
+      }
+    },
+    {
+      "id": "TEST-002",
+      "kind": "test-criterion",
+      "content": {
+        "statement": "임시 Git repository 통합 테스트가 fast-forward, diverged explicit no-ff, already-merged와 merge refusal 상태를 검증한다."
+      }
+    },
+    {
+      "id": "TEST-003",
+      "kind": "test-criterion",
+      "content": {
+        "statement": "Work Unit manager 테스트가 normalized integration-result 필드, registered receipt, tampering과 full validation을 검증한다."
+      }
+    },
+    {
+      "id": "TEST-004",
+      "kind": "test-criterion",
+      "content": {
+        "statement": "중단 후 재실행 테스트가 동일 source commit을 중복 병합하지 않고 receipt 등록을 복구하는지 검증한다."
+      }
+    },
+    {
+      "id": "TEST-005",
+      "kind": "test-criterion",
+      "content": {
+        "statement": "work-unit-execution과 work-unit-planner 전체 테스트, schema checks, Ruff와 compile 검증이 통과한다."
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "statement": "TDD, scope, deterministic JSON, Human approval, idempotent recovery, evidence integrity와 cleanup 분리 경계를 확인한다."
+      },
+      "attributes": {
+        "status": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,34 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "ready Intake와 accepted B 결정을 정확히 반영했는지 확인한다.",
+          "Git mutation과 Work Unit JSON serialization 책임이 분리됐는지 확인한다.",
+          "Work Unit lifecycle, worktree lifecycle과 integration state가 독립적인지 확인한다.",
+          "승인 누락과 모든 preflight refusal이 mutation 전에 발생하는지 확인한다.",
+          "fast-forward, explicit no-ff, already-merged와 중단 복구가 테스트되는지 확인한다.",
+          "snapshot을 덮어쓰지 않고 normalized result와 raw receipt가 추적되는지 확인한다.",
+          "cleanup, branch 삭제, push와 PR promotion이 범위 밖으로 유지되는지 확인한다."
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "result": "Pending"
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending",
+        "remainingRisks": []
+      }
+    }
+  ],
+  "subsections": []
+}
