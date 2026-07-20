@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/final-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final clean locked worktree inspect result",
+      "sha256": "57ef82f41f14a94e45ab649f2407cefaf234c142952f3234df0d97914de06156",
+      "sizeBytes": 636
+    },
+    {
       "path": "blocks/evidence/integration-receipt-example.json",
       "mediaType": "application/json",
       "description": "Stable integration receipt contract example",
