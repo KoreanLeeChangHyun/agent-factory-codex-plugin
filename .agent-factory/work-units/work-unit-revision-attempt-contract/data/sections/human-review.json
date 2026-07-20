@@ -7,12 +7,12 @@
       "kind": "human-checklist",
       "content": {
         "checks": [
-          "execution-state/v1 JSON fields clearly distinguish revision attempt invocation and Git subject",
-          "retry resume and Human rework produce the expected current state and preserved history",
-          "new commit after approval cannot reuse prior passing evidence or approval",
-          "existing done v4 Work Units remain readable without rewrite",
-          "Viewer contract is JSON-only and no legacy Human-facing report is generated",
-          "merge and cleanup remain separate Human decisions"
+          "execution-state/v1이 revision, attempt, invocation chain과 Git subject를 구분하는지 확인한다.",
+          "retry와 resume 및 Human rework fixture가 attempt 증가, 동일 attempt 유지, revision 증가와 immutable history를 각각 입증하는지 확인한다.",
+          "current target과 다른 execution, quality, AI review, report 및 Human approval이 거부되는지 확인한다.",
+          "기존 done v4 패키지 6개가 rewrite 없이 full validation되는지 확인한다.",
+          "Viewer 계약이 JSON field와 unsupported contractVersion fallback만 정의하고 UI 구현을 추가하지 않았는지 확인한다.",
+          "Work Unit 결과 승인과 merge, PR promotion, cleanup이 별도 Human 결정으로 남아 있는지 확인한다."
         ]
       }
     },
@@ -20,8 +20,8 @@
       "id": "HUMAN-REVIEW-METHOD-001",
       "kind": "human-review-method",
       "content": {
-        "method": "Inspect the Work Unit diff and manager tests, run the recorded verification commands, compare execution-state history across retry, resume and rework fixtures, and confirm stale evidence refusal before choosing approve or rework.",
-        "approvalBoundary": "Human approval completes the Work Unit only; merge, PR promotion and cleanup require separate explicit decisions.",
+        "method": "구현 commit f9afa97100b7b20e82516fb064df40bb4b5da056, HEAD 검증 수정 commit 0af74648a865b9a645e97b72f284e5a57ab9cd6a 및 main 대비 diff를 검토하고, 등록된 attempt 3 verification evidence의 명령을 재실행한다. retry, resume, rework fixture의 execution-state history와 stale target 및 실제 worktree HEAD 거부 assertion을 확인한 뒤 approve, request-rework 또는 reject를 선택한다.",
+        "approvalBoundary": "이번 Human 승인은 Work Unit 결과만 완료한다. merge, PR promotion과 cleanup은 각각 별도의 명시적 Human 결정이 필요하다.",
         "decisionOptions": [
           "approve",
           "request-rework",
@@ -33,10 +33,18 @@
       "id": "HUMAN-REVIEW-STATUS",
       "kind": "human-review-result",
       "content": {
-        "summary": "Pending Human review after execution."
+        "summary": "실행과 AI Review 완료 후 Human 검토 대기."
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-20T17:59:36+00:00",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 3,
+          "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-3",
+          "headCommit": "0af74648a865b9a645e97b72f284e5a57ab9cd6a"
+        }
       }
     }
   ],

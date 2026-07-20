@@ -1,0 +1,45 @@
+Work Unit verification evidence: revision 1, attempt 3
+
+Current execution target
+- contractVersion: 1.0.0
+- revision: 1
+- attempt: 3
+- invocationId: 019f805d-cc07-70e0-bb73-1a9f0b178554-verification-3
+- headCommit: 0af74648a865b9a645e97b72f284e5a57ab9cd6a
+- git rev-parse HEAD: 0af74648a865b9a645e97b72f284e5a57ab9cd6a
+
+Runtime RED and correction
+- The first final worktree inspect exposed that attempt 2 claimed a guessed full hash, f9afa97ec593475093307102295b43d698203159, while the actual first implementation commit was f9afa97100b7b20e82516fb064df40bb4b5da056.
+- Attempt 2 passing outcomes were invalidated and archived in immutable history.
+- Focused regression tests for actual recorded-worktree HEAD enforcement passed: 3 tests in 171.503s.
+- The correction was committed as 0af74648a865b9a645e97b72f284e5a57ab9cd6a.
+
+Attempt 3 verification
+- python3 -m unittest skills/work-unit-planner/tests/test_work_unit_manager.py
+  Result: Ran 22 tests in 668.312s; OK.
+- python3 -m unittest skills/work-unit-execution/tests/test_worktree.py
+  Result: Ran 32 tests in 6.653s; OK.
+- python3 -m unittest skills/lifecycle/tests/test_document_profiles.py skills/lifecycle/tests/test_skill_metadata.py
+  Result: Ran 12 tests in 0.052s; OK.
+- python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+  Result: passed.
+- quick_validate.py for work-unit-planner, work-unit-execution, and lifecycle
+  Result: all three skills valid.
+- ruff check
+  Result: passed.
+- ruff format --check
+  Result: passed.
+- git diff --check main..HEAD
+  Result: passed.
+- Existing done sectioned v4 Work Unit packages
+  Result: six packages passed full validation without rewrite.
+- Recorded Codex exec option order
+  Result: parser accepted the exact invocation order.
+
+TDD evidence
+- Regression tests covering execution-state initialization, retry, resume, Human rework, immutable history, stale target refusal, done compatibility, integration receipt orthogonality, and recorded worktree HEAD binding were written and observed failing before implementation/correction, then passed after implementation.
+
+Deviations and environment notes
+- The original repository-relative plugin validator path did not exist; before the first implementation commit, TEST-001 was corrected to the authoritative installed plugin-creator validator path.
+- black was unavailable as a supplemental formatter check; ruff lint and ruff formatter checks passed.
+- Attempt 2 evidence remains historical only and is not used as current passing evidence.

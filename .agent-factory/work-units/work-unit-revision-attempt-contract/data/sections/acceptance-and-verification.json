@@ -105,8 +105,18 @@
         ]
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-3",
+          "headCommit": "0af74648a865b9a645e97b72f284e5a57ab9cd6a",
+          "revision": 1,
+          "attempt": 3
+        },
+        "evidence": [
+          "blocks/evidence/verification-attempt-3.txt",
+          "blocks/evidence/worktree-prepare.json"
+        ]
       }
     }
   ],

@@ -1,3 +1,32 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification-attempt-2.txt",
+      "mediaType": "text/plain",
+      "description": "Attempt 2 TDD, verification, compatibility, parser, plugin and skill validation evidence",
+      "sha256": "890a178ef6568c8f1d6da62964de298ec9b767766ac98f1464d1a696ce81633a",
+      "sizeBytes": 4707
+    },
+    {
+      "path": "blocks/evidence/verification-attempt-3.txt",
+      "mediaType": "text/plain",
+      "description": "Attempt 3 current-target TDD, regression, compatibility, parser, plugin and skill validation evidence",
+      "sha256": "c1f8df037cb581da86e811f322124c556de686f3aedc1d1a335d22a96cc68173",
+      "sizeBytes": 2530
+    },
+    {
+      "path": "blocks/evidence/worktree-final-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final locked worktree inspection for revision 1 attempt 3 before evidence registration",
+      "sha256": "6426d486d95849d0f623678fab67a6e1216b70f133ccc9cb785a818f244cbe63",
+      "sizeBytes": 1920
+    },
+    {
+      "path": "blocks/evidence/worktree-prepare.json",
+      "mediaType": "application/json",
+      "description": "Canonical worktree prepare result for attempt 1",
+      "sha256": "c78d823efdfff2f6bba04593abdc48ebe8c8206e60b8425fff2c6ffce8859b64",
+      "sizeBytes": 1274
+    }
+  ]
 }

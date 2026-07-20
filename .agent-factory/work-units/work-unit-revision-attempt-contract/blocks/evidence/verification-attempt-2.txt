@@ -1,0 +1,49 @@
+Work Unit: work-unit-revision-attempt-contract
+Current target: execution-state/v1 revision=1 attempt=2 invocationId=019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2 headCommit=f9afa97ec593475093307102295b43d698203159
+
+TDD RED (attempt 1, before implementation)
+Command: python3 -m unittest skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_execution_attempt_retry_and_resume_preserve_identity_history skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_rework_invalidates_results_and_review_rejects_stale_target skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_existing_done_v4_without_execution_state_remains_valid
+Observed result: FAIL. The pre-implementation manager parser did not expose execution-init, attempt-start, attempt-resume, or rework-start; the new regression tests could not execute their first new operation.
+
+Focused GREEN before implementation commit
+Command: python3 -m unittest -v skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_execution_attempt_retry_and_resume_preserve_identity_history
+Result: Ran 1 test in 44.789s; OK.
+Command: python3 -m unittest -v skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_rework_invalidates_results_and_review_rejects_stale_target skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_existing_done_v4_without_execution_state_remains_valid
+Result: Ran 2 tests in 175.982s; OK.
+Command: python3 -m unittest -v skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_active_execution_requires_init_and_state_is_manager_owned skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_existing_done_v4_without_execution_state_remains_valid
+Result: Ran 2 tests in 115.196s; OK.
+Command: python3 -m unittest -v skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_existing_done_v4_without_execution_state_remains_valid skills.work-unit-planner.tests.test_work_unit_manager.WorkUnitV4ManagerTests.test_review_and_done_transitions_enforce_results_and_atomic_human_approval
+Result: Ran 2 tests in 187.771s; OK.
+
+Attempt 2 verification at commit f9afa97ec593475093307102295b43d698203159
+Command: python3 -m unittest skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: Ran 22 tests in 661.742s; OK.
+Command: python3 -m unittest skills/work-unit-execution/tests/test_worktree.py
+Result: Ran 32 tests in 6.893s; OK.
+Command: python3 -m unittest skills/lifecycle/tests/test_document_profiles.py skills/lifecycle/tests/test_skill_metadata.py
+Result: Ran 12 tests in 0.034s; OK.
+Command: python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+Result: Plugin validation passed: /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-revision-attempt-contract
+Command: python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-planner
+Result: Skill is valid!
+Command: python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-execution
+Result: Skill is valid!
+Command: python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/lifecycle
+Result: Skill is valid!
+Command: ruff check skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: All checks passed!
+Command: ruff format --check skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: 2 files already formatted.
+Command: git diff --check
+Result: exit 0.
+Command: full validation loop for every schemaVersion=4.0.0 lifecycle.status=done package
+Result: Validated done v4 packages: 6.
+Command: codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-revision-attempt-contract --help
+Result: Codex execution option order parsed successfully.
+
+Verification deviations
+The originally recorded relative command `python3 plugin-creator/scripts/validate_plugin.py .` failed with exit 2 because that path does not exist in the repository. The Work Unit test criterion was corrected before commit to the installed authoritative validator command shown above, which passed.
+Supplemental `black --check` could not run because black is not installed. The available repository formatter boundary `ruff format --check` passed and ruff lint passed.
+
+Implementation commit
+f9afa97ec593475093307102295b43d698203159 feat: track work unit revisions and attempts

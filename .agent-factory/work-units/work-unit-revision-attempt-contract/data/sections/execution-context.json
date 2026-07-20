@@ -12,11 +12,12 @@
         "executionAgent": "Codex",
         "repository": "/home/deus/workspace/agent-factory/codex-plugins",
         "baseRef": "main",
-        "baseCommit": "ef9436dca92e205429e76a1f256e66836df3a664",
+        "baseCommit": "0ac6cf231ebcce39c1f30b095ed9f4718819163e",
         "branch": "work-unit/work-unit-revision-attempt-contract",
         "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-revision-attempt-contract",
-        "setupState": "not-prepared",
-        "cleanupState": "not-requested"
+        "setupState": "prepared",
+        "cleanupState": "not-requested",
+        "prepareEvidence": "blocks/evidence/worktree-prepare.json"
       }
     },
     {
@@ -24,18 +25,281 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "running",
+        "state": "done",
         "subject": {
           "algorithm": "gitCommit",
-          "digest": "0ac6cf231ebcce39c1f30b095ed9f4718819163e"
+          "digest": "0af74648a865b9a645e97b72f284e5a57ab9cd6a"
         },
         "currentRevision": 1,
-        "currentAttempt": 1,
-        "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554",
+        "currentAttempt": 3,
+        "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-3",
         "invocationChain": [
-          "019f805d-cc07-70e0-bb73-1a9f0b178554"
+          "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-3"
         ],
-        "history": []
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554",
+            "invocationChain": [
+              "019f805d-cc07-70e0-bb73-1a9f0b178554"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "0ac6cf231ebcce39c1f30b095ed9f4718819163e"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-STATUS",
+                "kind": "execution-result",
+                "content": {
+                  "phase": "not-started",
+                  "summary": "Work Unit execution has not started."
+                },
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "check": "TDD, compatibility, stale evidence refusal, immutable history, manager-only JSON writes and documentation consistency",
+                  "evidenceRequirements": [
+                    "focused failing-then-passing regression tests",
+                    "full related unittest output",
+                    "existing done v4 validation results",
+                    "plugin validation output"
+                  ]
+                },
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-REVIEW-STATUS",
+                "kind": "ai-review-result",
+                "content": {
+                  "summary": "Pending execution and AI review."
+                },
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-STATUS",
+                "kind": "report-result",
+                "content": {
+                  "summary": "Pending execution report. Canonical report output will remain JSON.",
+                  "requiredContent": [
+                    "changed artifacts",
+                    "revision attempt and Git subject contract",
+                    "test and compatibility evidence",
+                    "AI review result",
+                    "remaining risks and Human decisions"
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-REVIEW-STATUS",
+                "kind": "human-review-result",
+                "content": {
+                  "summary": "Pending Human review after execution."
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          },
+          {
+            "revision": 1,
+            "attempt": 2,
+            "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2",
+            "invocationChain": [
+              "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "f9afa97ec593475093307102295b43d698203159"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-STATUS",
+                "kind": "execution-result",
+                "content": {
+                  "phase": "complete",
+                  "summary": "execution-state/v1, revision/attempt lifecycle, immutable history, stale target refusal and version-aware consumer contract 구현을 완료했다.",
+                  "implementationCommit": "f9afa97ec593475093307102295b43d698203159",
+                  "changedArtifacts": [
+                    "skills/work-unit-planner/assets/scripts/work_unit.py",
+                    "skills/work-unit-planner/tests/test_work_unit_manager.py",
+                    "skills/work-unit-planner/SKILL.md",
+                    "skills/work-unit-planner/references/work-unit-structure.md",
+                    "skills/work-unit-planner/assets/profiles/work-unit.profile.json",
+                    "skills/work-unit-execution/SKILL.md",
+                    "skills/work-unit-execution/references/worktree-contract.md",
+                    "skills/lifecycle/SKILL.md",
+                    "skills/lifecycle/references/lifecycle.md"
+                  ],
+                  "results": [
+                    "revision 1 attempt 1과 attempt 2 및 invocation chain 기록",
+                    "retry 시 이전 outcome snapshot append-only history 보존",
+                    "Human rework 시 revision 증가, attempt reset과 current gate invalidation",
+                    "review 및 done 결과의 current execution target 강제",
+                    "done outcome immutability와 integration-put 직교성 유지",
+                    "기존 done v4 6개 rewrite 없는 full validation"
+                  ],
+                  "deviations": [
+                    "repository에 없던 relative plugin validator 경로를 installed authoritative validator absolute path로 교정했다.",
+                    "black은 설치되어 있지 않아 supplemental check가 불가능했고 ruff lint 및 formatter check를 사용했다."
+                  ]
+                },
+                "attributes": {
+                  "status": "complete",
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2",
+                    "headCommit": "f9afa97ec593475093307102295b43d698203159",
+                    "revision": 1,
+                    "attempt": 2
+                  },
+                  "evidence": [
+                    "blocks/evidence/verification-attempt-2.txt",
+                    "blocks/evidence/worktree-prepare.json"
+                  ]
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "check": "TDD, compatibility, stale evidence refusal, immutable history, manager-only JSON writes and documentation consistency",
+                  "evidenceRequirements": [
+                    "focused failing-then-passing regression tests",
+                    "full related unittest output",
+                    "existing done v4 validation results",
+                    "plugin validation output"
+                  ]
+                },
+                "attributes": {
+                  "status": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2",
+                    "headCommit": "f9afa97ec593475093307102295b43d698203159",
+                    "revision": 1,
+                    "attempt": 2
+                  },
+                  "evidence": [
+                    "blocks/evidence/verification-attempt-2.txt",
+                    "blocks/evidence/worktree-prepare.json"
+                  ]
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-REVIEW-STATUS",
+                "kind": "ai-review-result",
+                "content": {
+                  "summary": "Work Unit scope, accepted identity/version decisions, atomic lifecycle, target binding, compatibility, documentation 및 Human 경계를 검토했고 통과했다.",
+                  "completedChecks": [
+                    "Intake decision B의 revision/attempt 분리를 구현했다.",
+                    "package schemaVersion 4.0.0과 execution-state contractVersion 1.0.0을 분리했다.",
+                    "retry, resume, rework mutation과 history 보존을 atomic manager transaction으로 구현했다.",
+                    "execution, quality, AI review, report와 Human approval을 current target에 결합했다.",
+                    "existing done v4 6개와 integration-put idempotency/직교성을 유지했다.",
+                    "Viewer가 사용할 named JSON field와 unsupported version fallback을 문서화하고 UI는 변경하지 않았다.",
+                    "Human review, merge, PR promotion과 cleanup 경계를 분리했다."
+                  ],
+                  "remainingRisks": [
+                    "현재 Work Unit test criterion의 plugin validator 경로는 installed system skill 위치를 사용하므로 다른 설치 root에서는 실행 컨텍스트에 맞게 다시 해석해야 한다."
+                  ],
+                  "findings": []
+                },
+                "attributes": {
+                  "result": "pass",
+                  "checklistResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2",
+                    "headCommit": "f9afa97ec593475093307102295b43d698203159",
+                    "revision": 1,
+                    "attempt": 2
+                  }
+                }
+              },
+              "report-result": {
+                "id": "REPORT-STATUS",
+                "kind": "report-result",
+                "content": {
+                  "summary": "Work Unit revision 및 execution attempt 계약 구현과 attempt 2 검증을 완료했으며 Human review 준비가 됐다.",
+                  "implementationCommit": "f9afa97ec593475093307102295b43d698203159",
+                  "currentTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2",
+                    "headCommit": "f9afa97ec593475093307102295b43d698203159",
+                    "revision": 1,
+                    "attempt": 2
+                  },
+                  "specificationResult": "Intake의 not-applicable 결정을 유지했으며 별도 Specification package를 변경하지 않았다.",
+                  "verification": [
+                    "work-unit manager 22 tests passed",
+                    "worktree manager 32 tests passed",
+                    "lifecycle profile and metadata 12 tests passed",
+                    "existing done v4 packages 6 full validations passed",
+                    "plugin validation, three skill validations, ruff lint/format and git diff check passed",
+                    "recorded Codex exec option order parsed successfully"
+                  ],
+                  "remainingRisks": [
+                    "installed plugin validator path는 실행 환경별로 다시 해석할 수 있다."
+                  ],
+                  "unresolvedHumanDecisions": [
+                    "Work Unit 결과 approve, request-rework 또는 reject",
+                    "merge 여부",
+                    "PR promotion 여부",
+                    "linked worktree cleanup 여부"
+                  ],
+                  "deviations": [
+                    "최초 relative plugin validator command 실패 후 authoritative installed path로 test criterion을 교정했다.",
+                    "black 미설치로 supplemental black check는 수행하지 못했고 ruff formatter check가 통과했다."
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f805d-cc07-70e0-bb73-1a9f0b178554-verification-2",
+                    "headCommit": "f9afa97ec593475093307102295b43d698203159",
+                    "revision": 1,
+                    "attempt": 2
+                  },
+                  "evidence": [
+                    "blocks/evidence/verification-attempt-2.txt",
+                    "blocks/evidence/worktree-prepare.json"
+                  ]
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-REVIEW-STATUS",
+                "kind": "human-review-result",
+                "content": {
+                  "summary": "실행과 AI Review 완료 후 Human 검토 대기."
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ]
       }
     }
   ],
