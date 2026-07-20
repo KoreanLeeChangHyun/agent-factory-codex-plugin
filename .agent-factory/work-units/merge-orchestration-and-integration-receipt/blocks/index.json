@@ -27,6 +27,13 @@
       "description": "Canonical worktree prepare result",
       "sha256": "746c1271a3781cf2fa515582952edc60ed20c2669688b6d98dbd320866ca5757",
       "sizeBytes": 1349
+    },
+    {
+      "path": "blocks/integration/main-already-merged-a0c4433.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "8a34eac588cbf0f4f18394e672a69eb7f9d26d42b14907198ae7e19c0ed91910",
+      "sizeBytes": 771
     }
   ]
 }

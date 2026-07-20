@@ -22,6 +22,29 @@
           "blocks/evidence/integration-receipt-example.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-8A34EAC588CBF0F4",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "already-merged",
+        "relationship": "already-merged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/merge-orchestration-and-integration-receipt",
+        "sourceCommit": "a0c44334f03a298453ffdb951ec98364ee511535",
+        "strategy": "none",
+        "targetAfterCommit": "a0c44334f03a298453ffdb951ec98364ee511535",
+        "targetBeforeCommit": "a0c44334f03a298453ffdb951ec98364ee511535",
+        "targetBranch": "main",
+        "workUnitId": "merge-orchestration-and-integration-receipt",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/merge-orchestration-and-integration-receipt",
+        "receiptSha256": "8a34eac588cbf0f4f18394e672a69eb7f9d26d42b14907198ae7e19c0ed91910"
+      },
+      "attributes": {
+        "status": "already-merged"
+      },
+      "blockRef": "blocks/integration/main-already-merged-a0c4433.json"
     }
   ],
   "subsections": []
