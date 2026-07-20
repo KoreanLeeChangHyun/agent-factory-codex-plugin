@@ -36,6 +36,32 @@ class SkillMetadataTests(unittest.TestCase):
             "only when the recorded impact requires it", normalized_specification
         )
 
+    def test_named_work_unit_execution_requires_an_active_goal(self) -> None:
+        lifecycle = (SKILLS / "lifecycle" / "SKILL.md").read_text(encoding="utf-8")
+        lifecycle_reference = (
+            SKILLS / "lifecycle" / "references" / "lifecycle.md"
+        ).read_text(encoding="utf-8")
+        execution = (SKILLS / "work-unit-execution" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+
+        for text in (lifecycle, lifecycle_reference, execution):
+            with self.subTest(document=text[:80]):
+                self.assertNotIn(
+                    "The `codex exec` route does not require persistent Goal mode.",
+                    text,
+                )
+                self.assertNotIn(
+                    "Persistent Goal mode is not required for the `codex exec` route.",
+                    text,
+                )
+
+        self.assertIn("Goal preflight", lifecycle)
+        self.assertIn("Goal preflight", lifecycle_reference)
+        self.assertIn("Goal preflight", execution)
+        self.assertIn("before worktree preparation", execution)
+        self.assertIn("fail closed", execution)
+
     def test_openai_yaml_interfaces_follow_skill_creator_contract(self) -> None:
         paths = sorted(SKILLS.glob("*/agents/openai.yaml"))
         skill_directories = sorted(path.parent for path in SKILLS.glob("*/SKILL.md"))

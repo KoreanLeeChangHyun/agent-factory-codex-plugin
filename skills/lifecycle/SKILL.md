@@ -89,8 +89,10 @@ separate entry skill or mandatory pre-Intake questionnaire.
 
 When timing is not explicit, record that uncertainty in Intake and use
 `interview` only when the timing changes scope or another Human-owned decision.
-Goal mode may be recommended for long-running work, but it is not a lifecycle
-phase and may be created only on explicit Human request.
+Goal mode is not a lifecycle phase. A Human request to execute a named Work
+Unit is explicit authorization to create or reuse the matching Goal, and that
+Goal is mandatory for Work Unit Execution. Outside named Work Unit execution,
+create a Goal only on explicit Human request.
 
 Use these routes:
 
@@ -165,12 +167,18 @@ Use these routes:
   - `<project-root>/.agent-factory/deliverables/` for customer-facing software engineering deliverable
     documents.
 - Do not create `INDEX.md` files as artifact source of truth.
-- When the Human submits `/goal <work-unit-id>` or otherwise provides only a
-  Work Unit id as the Goal objective, resolve the id to
+- When the Human submits `/goal <work-unit-id>` or otherwise requests execution
+  of a named Work Unit, resolve the id to
   `<project-root>/.agent-factory/work-units/<work-unit-id>/` before planning.
-- A named Work Unit may also execute in a fresh `codex exec` session. Treat its
-  explicit Work Unit id and recorded execution context as the execution
-  identity; do not require persistent Goal mode for this route.
+- Run a Goal preflight before worktree preparation, planning, editing, or
+  verification. Reuse an unfinished Goal only when it targets the same Work
+  Unit. When no Goal exists, create one whose objective names the Work Unit.
+  If Goal state cannot be inspected, Goal creation is unavailable or fails, or
+  another unfinished Goal conflicts, stop without starting Execution.
+- A fresh `codex exec` session may bootstrap named Work Unit execution, but its
+  prompt must explicitly require creation of the matching Goal. The process or
+  prompt is not proof that the Goal exists; the Execution Agent must complete
+  the same Goal preflight and fail closed before any execution work.
 - For named Work Unit Goal execution in this project, work in Korean for
   planning, progress updates, review summaries, reports, and other
   Human-readable communication. Keep commands, file paths, identifiers, code,
@@ -215,9 +223,10 @@ Use these routes:
   checklist, Human review method, and unresolved items for the execution
   session to work without relying on hidden context from the defining session.
 - For code Work Units, define tests before implementation.
-- Create a Goal only when the Human explicitly requests Goal creation. A Goal
-  recommendation, active lifecycle, or available Goal tool is not itself
-  authorization.
+- Treat a Human request to execute a named Work Unit as explicit authorization
+  for its mandatory Goal. For all other tasks, create a Goal only when the
+  Human explicitly requests Goal creation; a recommendation, active lifecycle,
+  or available Goal tool is not itself authorization.
 - During Execution, prepare evidence, AI review results, a Human checklist, and
   a Human review method that explains what to inspect, how to inspect it, and
   which approval, rework, merge, or PR promotion decisions remain with the
