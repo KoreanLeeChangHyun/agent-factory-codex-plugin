@@ -1,0 +1,102 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "현재 Specification package가 없고 이번 결정은 Project Core 필드가 아니라 active Agent Factory lifecycle skill의 내부 handoff 실행 계약을 변경한다. 요구사항과 검증 기준은 이 Intake와 Work Unit에 직접 보존한다.",
+        "specificationRefs": []
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "WORK-BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "work-unit-artifact-handoff-contract",
+        "objective": "Implement and verify the lifecycle-owned two-checkpoint artifact handoff contract and ready-only execution entry contract accepted in this Intake.",
+        "dependencyStatus": "none",
+        "executionOrder": "1",
+        "humanReviewMethod": "Human은 변경 diff, 두 checkpoint success/refusal receipt와 read-only inspection 예시, ready 실행의 무질문 진입 및 non-ready 선행 거절 test output, exact changed-path 목록을 검토하고 Work Unit 승인·rework·integration을 별도로 결정한다.",
+        "scope": [
+          "Add deterministic lifecycle-owned checkpoint and read-only inspection commands with a shared JSON receipt contract.",
+          "Validate ready Intake and ready Work Unit packages through their owning managers before Git mutation.",
+          "Enforce separate Human approval, exact path and message disclosure, exact staged file isolation, path and symlink safety, race detection, failure cleanup, and replay recovery.",
+          "Reconstruct the second checkpoint commit in a fresh session and use it as worktree.py prepare base without moving branch/worktree ownership out of work-unit-execution.",
+          "Enforce ready as the single initial execution gate: reject non-ready packages before worktree preparation or scoped work, and start an explicitly requested ready Work Unit without re-asking settled decisions.",
+          "Update active lifecycle, intake, work-unit-planner, and work-unit-execution documentation.",
+          "Add focused unit and end-to-end temporary-repository tests and run the bundled plugin validator."
+        ],
+        "exclusions": [
+          "General backup policy",
+          "Artifact JSON schema or profile redesign",
+          "Existing Git history rewrite",
+          "Automatic approval",
+          "Work Unit result integration or cleanup",
+          "Push, publication, marketplace mutation, reinstall, or PR promotion"
+        ],
+        "expectedOutputs": [
+          "skills/lifecycle/assets/scripts/artifact_handoff.py",
+          "skills/lifecycle/tests/test_artifact_handoff.py",
+          "skills/lifecycle/SKILL.md and skills/lifecycle/references/lifecycle.md handoff and execution-entry contract updates",
+          "skills/intake/SKILL.md handoff boundary update",
+          "skills/work-unit-planner/SKILL.md, references/work-unit-structure.md, manager tests, and execution-entry boundary update",
+          "skills/work-unit-execution/SKILL.md and references/worktree-contract.md inspected checkpoint base and pre-execution refusal update"
+        ],
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "REQ-004",
+          "REQ-005",
+          "REQ-006",
+          "REQ-007",
+          "REQ-008",
+          "REQ-009",
+          "REQ-010",
+          "REQ-011",
+          "REQ-012",
+          "REQ-013"
+        ],
+        "acceptanceRefs": [
+          "ACCEPTANCE-001",
+          "ACCEPTANCE-002"
+        ],
+        "decisionRefs": [
+          "DECISION-001",
+          "DECISION-002",
+          "DECISION-003",
+          "DECISION-004",
+          "DECISION-005",
+          "DECISION-006"
+        ],
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-001",
+          "INTERNAL-EVIDENCE-002",
+          "INTERNAL-EVIDENCE-003",
+          "INTERNAL-EVIDENCE-004",
+          "INTERNAL-EVIDENCE-005"
+        ],
+        "plan": [
+          "Write failing tests for both checkpoint phases, refusal paths, exact staging, replay, inspection, validation-to-stage swap, ready execution entry, and non-ready pre-execution refusal.",
+          "Implement lifecycle commands with argument-array Git execution and deterministic receipts.",
+          "Make the Work Unit manager and execution contract enforce and document ready-only initial execution without repeated questions for settled decisions.",
+          "Update lifecycle boundary documentation and manager handoff instructions.",
+          "Run focused tests, relevant regression tests, plugin validation, AI review, and Human-facing report preparation."
+        ],
+        "verification": [
+          "pytest -q skills/lifecycle/tests/test_artifact_handoff.py",
+          "pytest -q skills/lifecycle/tests/test_document_profiles.py skills/intake/tests/test_intake_manager.py skills/work-unit-planner/tests/test_work_unit_manager.py skills/work-unit-execution/tests/test_worktree.py",
+          "python3 \"${CODEX_HOME:-$HOME/.codex}/skills/.system/plugin-creator/scripts/validate_plugin.py\" ."
+        ],
+        "unresolvedItems": []
+      }
+    }
+  ],
+  "subsections": []
+}

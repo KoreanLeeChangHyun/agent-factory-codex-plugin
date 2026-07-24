@@ -1,0 +1,271 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "이번 Intake가 결정할 범위를 무엇으로 확정할까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "Work Unit lifecycle artifact handoff 계약을 정의한다.",
+            "pros": "백업 발생의 근본 원인을 해결하고 범위가 명확하다.",
+            "cons": "일반적인 백업 정책은 별도 결정으로 남는다."
+          },
+          {
+            "id": "B",
+            "decision": "백업 저장 위치와 보존 정책만 정의한다.",
+            "pros": "작고 빠르게 결정할 수 있다.",
+            "cons": "수동 handoff와 불필요한 백업 발생이 계속될 수 있다."
+          },
+          {
+            "id": "C",
+            "decision": "handoff와 Agent Factory 전체 백업 정책을 함께 정의한다.",
+            "pros": "관련 정책을 한 번에 정리한다.",
+            "cons": "범위가 커지고 서로 다른 책임이 결합될 수 있다."
+          }
+        ],
+        "recommendation": "A",
+        "recommendationRationale": "직접 원인인 handoff 연결 규칙에 집중하면 불필요한 백업을 줄이고 구현과 검증 범위를 명확하게 유지할 수 있다.",
+        "answer": "A",
+        "selectedOption": "A",
+        "decisionState": "accepted"
+      }
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "ready Intake와 실행할 Work Unit을 실행 브랜치에 전달하는 공식 방식은 무엇으로 할까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "main에 ready Intake와 Work Unit을 checkpoint commit한 후 그 커밋에서 Work Unit branch와 worktree를 생성한다.",
+            "pros": "Git이 handoff와 복구 기록을 담당하며 미추적 원본, 별도 백업, 추가 handoff 명령이 필요 없다.",
+            "cons": "실행 전 lifecycle artifact 커밋이 main 이력에 남는다."
+          },
+          {
+            "id": "B",
+            "decision": "worktree.py handoff 명령으로 미추적 artifact를 Work Unit branch에 전달하고 원본을 승인 후 정리한다.",
+            "pros": "코드 변경은 실행 브랜치에만 유지할 수 있다.",
+            "cons": "복사, 해시 검증, 실패 복구, 원본 정리와 receipt 계약이 추가되어 복잡하다."
+          },
+          {
+            "id": "C",
+            "decision": "외부 staging 디렉터리를 표준화하고 그 경로를 거쳐 Work Unit branch로 전달한다.",
+            "pros": "main을 즉시 clean하게 유지하고 원본 보존이 쉽다.",
+            "cons": "lifecycle source가 여러 위치에 존재하며 경로, 보존, 정리 문제가 계속된다."
+          }
+        ],
+        "recommendation": "A",
+        "recommendationRationale": "canonical lifecycle artifact를 ready 시점에 Git checkpoint로 확정하면 handoff를 Git 이력으로 단순화하고 임시 백업과 수동 정리를 제거할 수 있다.",
+        "answer": "A",
+        "selectedOption": "A",
+        "decisionState": "accepted"
+      }
+    },
+    {
+      "id": "INTERVIEW-003",
+      "kind": "interview",
+      "content": {
+        "question": "ready Intake와 ready Work Unit 문서 묶음을 Git에 어떻게 저장할까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "Intake와 Work Unit을 한 번에 같은 checkpoint commit으로 기록한다.",
+            "pros": "두 문서가 항상 한 세트로 남아 원자적인 handoff가 된다.",
+            "cons": "일부만 별도로 승인하거나 이력을 구분하기 어렵다."
+          },
+          {
+            "id": "B",
+            "decision": "ready Intake를 먼저 commit하고 ready Work Unit을 나중에 별도 commit한다.",
+            "pros": "Intake 확정과 Work Unit 생성 이력을 단계별로 구분할 수 있다.",
+            "cons": "두 commit 사이에 Intake만 기록된 중간 상태가 존재한다."
+          },
+          {
+            "id": "C",
+            "decision": "두 문서 외에 당시 변경된 .agent-factory 전체를 함께 commit한다.",
+            "pros": "한 번의 commit으로 artifact 변경을 정리할 수 있다.",
+            "cons": "관련 없는 작업 파일이 섞일 수 있다."
+          }
+        ],
+        "recommendation": "A",
+        "recommendationRationale": "Intake와 Work Unit을 한 세트로 기록하면 불완전한 중간 handoff 상태를 피할 수 있다.",
+        "answer": "B",
+        "selectedOption": "B",
+        "decisionState": "accepted",
+        "questionClarified": true
+      }
+    },
+    {
+      "id": "INTERVIEW-004",
+      "kind": "interview",
+      "content": {
+        "question": "Intake와 Work Unit의 두 checkpoint commit을 실행할 때 Human 승인을 어떻게 받을까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "full validation 통과 후 별도 질문 없이 자동 commit한다.",
+            "pros": "흐름이 빠르고 미추적 파일이 즉시 정리된다.",
+            "cons": "Agent가 매번 확인하지 않고 main을 변경한다."
+          },
+          {
+            "id": "B",
+            "decision": "Intake commit과 Work Unit commit 전에 각각 Human 승인을 받는다.",
+            "pros": "각 단계의 정확한 파일과 commit을 Human이 확인할 수 있다.",
+            "cons": "승인 질문이 두 번 필요하다."
+          },
+          {
+            "id": "C",
+            "decision": "두 commit의 파일과 메시지를 모두 준비한 후 한 번의 Human 승인으로 순서대로 실행한다.",
+            "pros": "승인 횟수를 줄이면서 두 commit을 분리할 수 있다.",
+            "cons": "Work Unit 준비 전까지 Intake가 미추적 상태로 남는다."
+          }
+        ],
+        "recommendation": "B",
+        "recommendationRationale": "main 직접 변경이며 Intake 확정과 Work Unit 준비는 서로 다른 lifecycle 단계이므로 각 단계의 정확한 파일과 commit 메시지에 별도 Human 승인을 받는 것이 명확하다.",
+        "answer": "B",
+        "selectedOption": "B",
+        "decisionState": "accepted"
+      }
+    },
+    {
+      "id": "INTERVIEW-005",
+      "kind": "interview",
+      "content": {
+        "question": "두 checkpoint commit의 검증·승인 확인·Git 실행을 어느 구성요소가 소유해야 할까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "lifecycle이 공통 handoff 명령을 소유한다.",
+            "pros": "두 단계에 동일한 경로 격리, 검증, 승인, commit receipt 계약을 적용한다.",
+            "cons": "lifecycle에 새로운 Git 경계가 추가된다."
+          },
+          {
+            "id": "B",
+            "decision": "Intake manager와 Work Unit manager가 각자의 checkpoint 명령을 소유한다.",
+            "pros": "각 artifact의 검증과 commit이 가까이 위치한다.",
+            "cons": "Git 규칙과 승인 처리가 두 manager에 중복된다."
+          },
+          {
+            "id": "C",
+            "decision": "별도 명령 없이 각 Agent가 승인 후 raw git add와 git commit을 실행한다.",
+            "pros": "구현 비용이 가장 작다.",
+            "cons": "경로 혼입 방지와 receipt 형식이 호출자마다 달라질 수 있다."
+          }
+        ],
+        "recommendation": "A",
+        "recommendationRationale": "두 lifecycle 단계 사이의 공통 handoff를 중앙 명령으로 소유하면 관련 artifact만 stage하는 불변조건과 단계별 Human 승인을 한 곳에서 검증할 수 있다.",
+        "answer": "A",
+        "selectedOption": "A",
+        "decisionState": "accepted"
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "git status --short --branch; git ls-files .agent-factory/intakes/work-unit-artifact-handoff-contract; git check-ignore",
+        "method": "repository state inspection",
+        "findings": [
+          "main matches origin/main before the Intake mutations.",
+          "The work-unit-artifact-handoff-contract Intake package is untracked and is not ignored.",
+          "No file from this Intake package is present in the current Git index."
+        ],
+        "interpretations": [
+          "A branch created from the current main commit cannot contain this canonical Intake package until the package is committed."
+        ],
+        "limitations": [
+          "The inspection establishes current repository state only; it does not define the desired handoff policy."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/lifecycle/assets/scripts/sectioned_document.py; skills/intake/scripts/intake.py; skills/work-unit-planner/assets/scripts/work_unit.py; skills/work-unit-execution/scripts/worktree.py",
+        "method": "CLI parser and source inspection",
+        "findings": [
+          "The lifecycle shared engine owns sectioned artifact JSON mutation and validation commands but exposes no Git checkpoint command.",
+          "The Intake and Work Unit managers expose artifact creation, mutation, validation, and transition commands; neither exposes checkpoint commit handoff.",
+          "worktree.py exposes prepare, inspect, integrate, and cleanup and requires a base ref resolving to a commit for prepare.",
+          "worktree.py does not copy or move untracked lifecycle artifacts into a linked worktree."
+        ],
+        "interpretations": [
+          "The selected lifecycle-owned checkpoint contract is absent and requires scoped implementation plus tests and documentation.",
+          "The checkpoint command can remain separate from manager-owned JSON serialization and from work-unit-execution branch/worktree mutation."
+        ],
+        "limitations": [
+          "Source inspection does not prove the future command interface or receipt fields; those must be defined and verified by the Work Unit."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/lifecycle/SKILL.md; skills/intake/SKILL.md; skills/work-unit-planner/SKILL.md; skills/work-unit-execution/SKILL.md",
+        "method": "active lifecycle contract review",
+        "findings": [
+          "Intake owns readiness and handoff to work-unit-planner.",
+          "work-unit-planner may create a Work Unit only from a fully validated ready Intake and must not create branch or worktree side effects.",
+          "work-unit-execution owns named Work Unit branch and worktree side effects after an executable Work Unit exists.",
+          "The lifecycle skill is the top-level router across Intake, Work Unit, Execution, and Review."
+        ],
+        "interpretations": [
+          "A pre-execution two-checkpoint orchestration is a cross-phase lifecycle concern rather than artifact JSON manager ownership or execution worktree ownership."
+        ],
+        "limitations": [
+          "The current documents do not specify checkpoint validation, approval assertions, staged-path isolation, or receipt semantics."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "README.md; .codex-plugin/plugin.json; .agents/plugins/marketplace.json; Plugin Creator installing-and-updating reference",
+        "method": "plugin packaging configuration inspection",
+        "findings": [
+          "The repository is an existing agent-factory Codex plugin and README defines the bundled Plugin Creator validator as the structural validation command.",
+          "The repository marketplace entry points to the remote GitHub main branch rather than the local source directory.",
+          "The Plugin Creator local reinstall loop applies only when the marketplace entry points to the local plugin source being edited."
+        ],
+        "interpretations": [
+          "The Work Unit should run the plugin validator but should not perform or claim a local marketplace reinstall under the current configuration."
+        ],
+        "limitations": [
+          "Publication, marketplace upgrade, and reinstall are outside this Intake scope."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-005",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py; skills/work-unit-planner/references/work-unit-structure.md; skills/work-unit-planner/SKILL.md; skills/lifecycle/references/lifecycle.md",
+        "method": "manager source and active contract inspection",
+        "findings": [
+          "execution-init validates the full package and ready semantics, then rejects any lifecycle status other than ready.",
+          "attempt-start transitions a ready Work Unit to working and records the execution attempt.",
+          "The active skill contracts require full Work Unit validation before execution but do not explicitly state that an accepted execution request for a ready Work Unit proceeds without re-asking settled decisions."
+        ],
+        "interpretations": [
+          "The manager already provides the ready-only hard gate; the lifecycle and execution instructions need an explicit no-reprompt rule at the ready execution boundary."
+        ],
+        "limitations": [
+          "Source inspection establishes the current static contract and does not by itself verify future agent behavior."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

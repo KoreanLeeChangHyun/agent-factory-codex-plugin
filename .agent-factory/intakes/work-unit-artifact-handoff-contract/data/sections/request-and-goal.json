@@ -1,0 +1,55 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Work Unit lifecycle artifact handoff 계약을 Human 인터뷰로 결정한다.",
+        "selectedScope": "Work Unit lifecycle artifact handoff 계약",
+        "selectedIntakeId": "work-unit-artifact-handoff-contract"
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "ready Intake와 그 Intake에서 생성된 ready Work Unit을 승인된 두 checkpoint commit으로 main에 기록하고, 두 번째 commit을 Work Unit branch와 linked worktree의 base로 사용하여 수동 복사나 별도 백업 없이 canonical artifact를 전달한다.",
+        "decisionRefs": [
+          "DECISION-002",
+          "DECISION-003",
+          "DECISION-004",
+          "DECISION-005"
+        ]
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "각 checkpoint는 대상 package의 full validation과 별도 Human 승인을 요구한다.",
+          "각 checkpoint commit에는 승인된 정확한 package 경로만 포함된다.",
+          "두 번째 checkpoint receipt의 commit에서 생성한 Work Unit branch와 worktree에 ready Intake와 ready Work Unit이 모두 존재한다.",
+          "handoff 과정은 artifact 복사본, 외부 staging 디렉터리, 임시 백업을 만들지 않는다.",
+          "성공과 거부 결과가 deterministic JSON receipt로 추적된다."
+        ],
+        "decisionRefs": [
+          "DECISION-002",
+          "DECISION-003",
+          "DECISION-004",
+          "DECISION-005"
+        ]
+      }
+    },
+    {
+      "id": "REQUEST-002",
+      "kind": "human-request",
+      "content": {
+        "request": "Work Unit의 ready 단계는 실행 가능 여부를 명확히 보장해야 한다. ready Work Unit에 대한 실행 요청은 추가 질문 없이 실행하고, ready가 아니면 실행을 시작하기 전에 거절한다."
+      }
+    }
+  ],
+  "subsections": []
+}

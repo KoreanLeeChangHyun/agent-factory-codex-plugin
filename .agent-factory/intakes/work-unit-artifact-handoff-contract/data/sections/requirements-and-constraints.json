@@ -1,0 +1,225 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "text": "skills/lifecycle이 Intake와 Work Unit checkpoint에 공통으로 사용하는 deterministic handoff command와 machine-readable receipt contract를 소유해야 한다.",
+        "traceability": [
+          "DECISION-005",
+          "INTERNAL-EVIDENCE-002",
+          "INTERNAL-EVIDENCE-003"
+        ]
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "text": "Intake checkpoint는 package identity와 artifactType을 확인하고 Intake manager의 full validation이 성공하며 lifecycle status가 ready일 때만 허용해야 한다.",
+        "traceability": [
+          "DECISION-002",
+          "DECISION-003",
+          "SUCCESS-001"
+        ]
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "text": "Work Unit checkpoint는 package identity와 artifactType을 확인하고 Work Unit manager의 full validation이 성공하며 lifecycle status가 ready이고 canonical intake-basis-ref가 먼저 checkpoint된 동일 ready Intake를 가리킬 때만 허용해야 한다.",
+        "traceability": [
+          "DECISION-002",
+          "DECISION-003",
+          "SUCCESS-001"
+        ]
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": {
+        "text": "각 checkpoint는 exact package path, full validation result, exact commit message를 Human에게 제시한 뒤 해당 단계의 explicit approval input이 있을 때만 Git mutation을 수행해야 한다.",
+        "traceability": [
+          "DECISION-004",
+          "APPROVAL-BOUNDARY-001"
+        ]
+      }
+    },
+    {
+      "id": "REQ-005",
+      "kind": "requirement",
+      "content": {
+        "text": "Checkpoint는 승인된 canonical package의 manager-owned exact file set만 stage하고 commit해야 하며, unrelated staged 또는 unstaged 변경을 commit에 포함하거나 폐기하거나 덮어쓰지 않아야 한다.",
+        "traceability": [
+          "DECISION-003",
+          "DECISION-004",
+          "DECISION-005",
+          "SUCCESS-001"
+        ]
+      }
+    },
+    {
+      "id": "REQ-006",
+      "kind": "requirement",
+      "content": {
+        "text": "성공 receipt는 schema version, artifact type과 id, canonical package path, validation mode와 결과, target branch, before와 after commit, exact commit message, Human decision, operation ledger, success state를 포함해야 하며 refusal도 machine-readable error와 mutation-free operation evidence를 반환해야 한다.",
+        "traceability": [
+          "DECISION-005",
+          "SUCCESS-001"
+        ]
+      }
+    },
+    {
+      "id": "REQ-007",
+      "kind": "requirement",
+      "content": {
+        "text": "두 번째 Work Unit checkpoint의 after commit을 worktree.py prepare의 base로 사용해야 하며, 생성된 work-unit/<work-unit-id> branch와 canonical linked worktree에서 ready Intake와 ready Work Unit package가 모두 검증 가능해야 한다.",
+        "traceability": [
+          "DECISION-002",
+          "DECISION-003",
+          "INTERNAL-EVIDENCE-001",
+          "INTERNAL-EVIDENCE-002"
+        ]
+      }
+    },
+    {
+      "id": "REQ-008",
+      "kind": "requirement",
+      "content": {
+        "text": "Handoff는 artifact 복사본, 외부 staging directory, 임시 backup을 생성하지 않아야 하며, Intake와 Work Unit manager의 JSON ownership 및 work-unit-execution의 branch/worktree ownership을 변경하지 않아야 한다.",
+        "traceability": [
+          "DECISION-001",
+          "DECISION-002",
+          "DECISION-005",
+          "OUT-OF-SCOPE-001"
+        ]
+      }
+    },
+    {
+      "id": "REQ-009",
+      "kind": "requirement",
+      "content": {
+        "text": "Active lifecycle, intake, work-unit-planner, work-unit-execution 문서와 focused tests는 두 checkpoint의 순서, 승인 경계, failure atomicity, exact-path isolation, receipt, worktree base handoff를 일관되게 검증해야 한다.",
+        "traceability": [
+          "DECISION-002",
+          "DECISION-003",
+          "DECISION-004",
+          "DECISION-005"
+        ]
+      }
+    },
+    {
+      "id": "REQ-010",
+      "kind": "requirement",
+      "content": {
+        "text": "Checkpoint는 repository root와 expected artifact root에 package path를 고정하고 package 내부 symlink를 거부하며, validation과 staging 사이의 변경 또는 directory swap을 staged content 검증으로 탐지하여 commit 전에 거부해야 한다.",
+        "traceability": [
+          "REQ-002",
+          "REQ-003",
+          "REQ-005",
+          "Agent Rule filesystem security boundary"
+        ]
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "items": [
+          "Checkpoint 대상 branch는 Human이 결정한 main이다.",
+          "Artifact managers remain the sole JSON construction and serialization owners.",
+          "Work Unit planning does not create branch or linked worktree side effects.",
+          "Checkpoint failure before commit must leave HEAD unchanged and restore or preserve pre-existing index and working-tree state.",
+          "The command must not use shell interpolation for Git arguments."
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "A ready Intake checkpoint on main succeeds only with approved input, commits exactly the canonical Intake package, and returns a success receipt whose afterCommit equals main HEAD.",
+          "A ready Work Unit checkpoint succeeds only after its referenced ready Intake is already an ancestor of main and commits exactly the canonical Work Unit package as a separate second commit.",
+          "Draft, invalid, wrong-type, wrong-id, wrong-root, wrong-branch, missing-approval, mismatched-basis, symlink, content-race, unrelated-staged-collision, and Git failure cases return nonzero refusal JSON without an unauthorized commit.",
+          "Unrelated unstaged files are neither committed, overwritten, removed, nor backed up; unrelated staged state is preserved by refusing before mutation.",
+          "An exact replay after a successful commit returns already-checkpointed with the existing commit and creates no additional commit.",
+          "Read-only inspection reconstructs the exact Work Unit checkpoint commit from Git and package content without Human approval or mutation.",
+          "After the second checkpoint, worktree.py prepare with the inspected afterCommit creates work-unit/<work-unit-id> whose linked worktree contains and fully validates both packages.",
+          "Focused tests cover both success phases, exact replay recovery, read-only inspection, failure cleanup, staged-path isolation, and an adversarial validation-to-stage swap.",
+          "The bundled Plugin Creator validator succeeds for the modified plugin.",
+          "Skill documentation names the two approval prompts, exact path and message disclosure, inspection or receipt handoff, and the separation from Work Unit integration or cleanup."
+        ],
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "REQ-004",
+          "REQ-005",
+          "REQ-006",
+          "REQ-007",
+          "REQ-008",
+          "REQ-009",
+          "REQ-010",
+          "REQ-011",
+          "REQ-012"
+        ]
+      }
+    },
+    {
+      "id": "REQ-011",
+      "kind": "requirement",
+      "content": {
+        "text": "Commit이 성공한 뒤 caller가 receipt를 받기 전에 중단된 경우, 동일 artifact state와 동일 approved commit message로 재실행하면 추가 commit 없이 already-checkpointed success receipt를 반환하여 복구할 수 있어야 한다.",
+        "traceability": [
+          "REQ-006",
+          "DECISION-005"
+        ]
+      }
+    },
+    {
+      "id": "REQ-012",
+      "kind": "requirement",
+      "content": {
+        "text": "Fresh execution session은 hidden chat이나 uncommitted receipt 없이 lifecycle handoff command의 read-only inspection으로 ready Work Unit package의 exact checkpoint commit을 재구성하고, 그 commit을 worktree.py prepare base로 사용해야 한다.",
+        "traceability": [
+          "REQ-006",
+          "REQ-007",
+          "DECISION-002",
+          "work-unit-planner fresh-session contract"
+        ]
+      }
+    },
+    {
+      "id": "REQ-013",
+      "kind": "requirement",
+      "content": {
+        "text": "Work Unit 실행 진입점은 full validation을 통과한 lifecycle status ready만 허용해야 한다. ready가 아니면 worktree 준비, execution-init, attempt-start 또는 scoped work 전에 거절하고, ready이며 Human이 실행을 요청했으면 기록된 결정과 범위를 다시 질문하지 않고 실행을 시작해야 한다.",
+        "traceability": [
+          "REQUEST-002",
+          "DECISION-006",
+          "INTERNAL-EVIDENCE-005"
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "A full-valid ready Work Unit with an explicit execution request enters execution without a repeated approval or decision question.",
+          "A backlog, blocked, review, done, structurally invalid, or semantically non-ready Work Unit is refused before worktree preparation or scoped work.",
+          "Focused manager and contract tests verify both the ready success path and non-ready refusal paths."
+        ],
+        "requirementRefs": [
+          "REQ-013"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
