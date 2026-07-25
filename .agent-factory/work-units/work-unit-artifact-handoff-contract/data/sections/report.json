@@ -30,6 +30,29 @@
           "attempt": 1
         }
       }
+    },
+    {
+      "id": "INTEGRATION-1A52868C31E2751B",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/work-unit-artifact-handoff-contract",
+        "sourceCommit": "04b630aa6609521a3569bd68ba3e23b8f68565e8",
+        "strategy": "ff-only",
+        "targetAfterCommit": "04b630aa6609521a3569bd68ba3e23b8f68565e8",
+        "targetBeforeCommit": "9d45aa7099128ca1c91cd7a63acaf9bfcf82ea1c",
+        "targetBranch": "main",
+        "workUnitId": "work-unit-artifact-handoff-contract",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-artifact-handoff-contract",
+        "receiptSha256": "1a52868c31e2751b98480adf8833ac1ca08d2bd46daa60919e8663f406124777"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/main-04b630a.json"
     }
   ],
   "subsections": []

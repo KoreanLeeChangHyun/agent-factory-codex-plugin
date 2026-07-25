@@ -13,6 +13,13 @@
       "description": "Final worktree inspect JSON before evidence registration",
       "sha256": "6d34cd8361a0c66ff19cc3adb82bbd62583ec65603a43b81fab1f424313e68e0",
       "sizeBytes": 2446
+    },
+    {
+      "path": "blocks/integration/main-04b630a.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "1a52868c31e2751b98480adf8833ac1ca08d2bd46daa60919e8663f406124777",
+      "sizeBytes": 2863
     }
   ]
 }
