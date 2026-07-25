@@ -18,6 +18,66 @@
         "setupState": "not-prepared",
         "cleanupState": "not-requested"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "running",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "e6ce847fdc596247f6fdec359bdea8fda94d0e51"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087",
+        "invocationChain": [
+          "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "implement-checkpoint-verification",
+            "write-regression-test"
+          ],
+          "pendingStep": "run-verification",
+          "lastVerifiedHead": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
+          "checkpoints": [
+            {
+              "stepId": "write-regression-test",
+              "state": "pending",
+              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
+              "idempotencyKey": "fix-artifact-handoff-recheckpoint:test:v1"
+            },
+            {
+              "stepId": "implement-checkpoint-verification",
+              "state": "completed",
+              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
+              "idempotencyKey": "fix-artifact-handoff-recheckpoint:implementation:v1"
+            },
+            {
+              "stepId": "run-verification",
+              "state": "pending",
+              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
+              "idempotencyKey": "fix-artifact-handoff-recheckpoint:verification:v1"
+            },
+            {
+              "stepId": "write-regression-test",
+              "state": "completed",
+              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
+              "idempotencyKey": "fix-artifact-handoff-recheckpoint:test:completed:v1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

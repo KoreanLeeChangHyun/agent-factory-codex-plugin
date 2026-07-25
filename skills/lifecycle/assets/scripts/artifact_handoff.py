@@ -291,6 +291,45 @@ def commit_paths(
     return sorted(output_lines(result))
 
 
+def commit_package_paths(
+    execution: Execution,
+    repository: Path,
+    commit: str,
+    package: Path,
+) -> list[str]:
+    relative = package.relative_to(repository).as_posix()
+    result = execution.git(
+        repository,
+        ["ls-tree", "-r", "--name-only", "-z", commit, "--", relative],
+    )
+    if result.returncode != 0:
+        raise ContractError("git_inspection_failed", "cannot inspect checkpoint tree")
+    return sorted(output_lines(result))
+
+
+def checkpoint_commit_matches(
+    execution: Execution,
+    repository: Path,
+    commit: str,
+    package: Path,
+    expected_snapshot: dict[str, str],
+) -> bool:
+    files = sorted(expected_snapshot)
+    changed_paths = commit_paths(execution, repository, commit)
+    if not changed_paths or not set(changed_paths).issubset(files):
+        return False
+    if commit_package_paths(execution, repository, commit, package) != files:
+        return False
+    for path, expected_digest in expected_snapshot.items():
+        committed_blob = execution.git(repository, ["show", f"{commit}:{path}"])
+        if (
+            committed_blob.returncode != 0
+            or hashlib.sha256(committed_blob.stdout).hexdigest() != expected_digest
+        ):
+            return False
+    return True
+
+
 def latest_package_commit(
     execution: Execution, repository: Path, package: Path
 ) -> str:
@@ -329,6 +368,7 @@ def verify_work_unit_basis_checkpoint(
         execution, intake, "intake", refs[0]["id"]
     )
     files = relative_files(repository, intake, validation)
+    intake_snapshot = snapshot(repository, files)
     intake_commit = latest_package_commit(execution, repository, intake)
     ancestor = execution.git(
         repository, ["merge-base", "--is-ancestor", intake_commit, head]
@@ -340,7 +380,13 @@ def verify_work_unit_basis_checkpoint(
     if (
         ancestor.returncode != 0
         or same.returncode != 0
-        or commit_paths(execution, repository, intake_commit) != files
+        or not checkpoint_commit_matches(
+            execution,
+            repository,
+            intake_commit,
+            intake,
+            intake_snapshot,
+        )
     ):
         raise ContractError(
             "intake_checkpoint_mismatch",
@@ -453,6 +499,7 @@ def checkpoint(execution: Execution, args: argparse.Namespace) -> dict[str, Any]
         repository, ["diff", "--quiet", "HEAD", "--", package_relative]
     )
     if latest is not None and unchanged.returncode == 0:
+        current_snapshot = snapshot(repository, files)
         message = execution.git(repository, ["show", "-s", "--format=%B", latest])
         ancestor = execution.git(
             repository, ["merge-base", "--is-ancestor", latest, before]
@@ -461,7 +508,13 @@ def checkpoint(execution: Execution, args: argparse.Namespace) -> dict[str, Any]
             message.returncode == 0
             and ancestor.returncode == 0
             and message.stdout.decode("utf-8", errors="strict").strip() == args.message
-            and commit_paths(execution, repository, latest) == files
+            and checkpoint_commit_matches(
+                execution,
+                repository,
+                latest,
+                package,
+                current_snapshot,
+            )
         ):
             parent = execution.git(repository, ["rev-parse", f"{latest}^"])
             if parent.returncode != 0:
@@ -495,10 +548,14 @@ def checkpoint(execution: Execution, args: argparse.Namespace) -> dict[str, Any]
             repository, ["diff", "--cached", "--name-only", "-z"]
         )
         staged_paths = sorted(output_lines(staged_after))
-        if staged_after.returncode != 0 or staged_paths != files:
+        if (
+            staged_after.returncode != 0
+            or not staged_paths
+            or not set(staged_paths).issubset(files)
+        ):
             raise ContractError(
                 "staged_path_mismatch",
-                "staged file set differs from validated canonical package",
+                "staged file set is not a changed canonical package subset",
                 {"expected": files, "actual": staged_paths},
             )
         if snapshot(repository, files) != before_snapshot:
@@ -528,10 +585,19 @@ def checkpoint(execution: Execution, args: argparse.Namespace) -> dict[str, Any]
         cleanup_index(execution, repository, files)
         raise
     after = current_head(execution, repository)
-    if commit_paths(execution, repository, after) != files:
+    if (
+        commit_paths(execution, repository, after) != staged_paths
+        or not checkpoint_commit_matches(
+            execution,
+            repository,
+            after,
+            package,
+            before_snapshot,
+        )
+    ):
         raise ContractError(
             "checkpoint_verification_failed",
-            "checkpoint commit contains paths outside the canonical package",
+            "checkpoint commit does not preserve the validated canonical package",
         )
     return success(
         execution,
@@ -559,11 +625,18 @@ def inspect(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         execution, package, args.artifact_type, args.artifact_id
     )
     files = relative_files(repository, package, validation)
+    current_snapshot = snapshot(repository, files)
     commit = latest_package_commit(execution, repository, package)
-    if commit_paths(execution, repository, commit) != files:
+    if not checkpoint_commit_matches(
+        execution,
+        repository,
+        commit,
+        package,
+        current_snapshot,
+    ):
         raise ContractError(
             "checkpoint_scope_mismatch",
-            "latest artifact commit is not an exact package checkpoint",
+            "latest artifact commit does not preserve the canonical package",
         )
     target = execution.git(
         repository, ["rev-parse", "--verify", f"{args.target_branch}^{{commit}}"]
