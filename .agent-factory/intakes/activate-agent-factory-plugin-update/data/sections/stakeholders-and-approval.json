@@ -1,0 +1,37 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholders": [
+          "Human: 범위, checkpoint, integration, push 및 재설치의 최종 결정자",
+          "Codex: canonical 기록, cachebuster 변경, 검증, push 및 재설치 실행 담당"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human",
+        "decision": "선택지 A의 활성화 범위와 Agent Factory lifecycle 승인 경계"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundaries": [
+          "Human의 A 선택은 검토·통합된 main의 push와 agent-factory@agent-factory 재설치를 승인한다.",
+          "ready Intake checkpoint와 각 ready Work Unit checkpoint는 정확한 경로·검증 결과·커밋 메시지를 공개한 뒤 각각 별도 승인을 받아야 한다.",
+          "Work Unit 결과의 integration은 Human이 별도로 승인해야 한다.",
+          "worktree 및 branch cleanup과 PR promotion은 승인되지 않았다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

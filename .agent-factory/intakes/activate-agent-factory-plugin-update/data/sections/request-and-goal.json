@@ -1,0 +1,32 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Human은 선택지 A를 선택하여 cachebuster 갱신, 커밋, main 푸시, agent-factory 플러그인 재설치까지만 진행하도록 요청했다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "현재 검토된 Agent Factory 소스가 원격 main과 설치된 agent-factory@agent-factory 플러그인에 반영된다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "plugin.json의 기존 기본 버전을 보존하면서 단일 Codex cachebuster가 갱신된다.",
+          "검토·통합된 main이 origin/main에 push된다.",
+          "agent-factory@agent-factory가 갱신된 버전으로 재설치되고 enabled 상태가 확인된다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

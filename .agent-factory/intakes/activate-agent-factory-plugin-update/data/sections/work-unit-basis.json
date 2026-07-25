@@ -1,0 +1,139 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "이번 작업은 accepted product behavior, architecture, state model, API, 또는 durable supervisor 계약을 변경하지 않고 이미 검토된 소스의 manifest cachebuster와 배포·설치 상태만 갱신한다.",
+        "specificationRefs": []
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "bump-agent-factory-plugin-cachebuster",
+        "objective": "Use the plugin-creator helper to bump the Agent Factory plugin cachebuster, validate the plugin, and prepare the manifest change for Human review and main integration.",
+        "dependencyStatus": "none",
+        "executionOrder": "1",
+        "humanReviewMethod": "Human은 .codex-plugin/plugin.json의 단일 version diff, 기존 0.1.0 prefix 보존, helper 생성 suffix, plugin validator 결과, 변경 경로를 확인하고 integration 여부를 결정한다.",
+        "scope": [
+          "Run update_plugin_cachebuster.py with its default cachebuster against the repository plugin root.",
+          "Verify only the manifest version changes outside canonical Work Unit execution records.",
+          "Run plugin validation and git diff --check.",
+          "Prepare AI review and Korean Human review material."
+        ],
+        "exclusions": [
+          "origin/main push",
+          "marketplace snapshot upgrade",
+          "plugin reinstall",
+          "product code or skill behavior changes",
+          "worktree or branch cleanup",
+          "PR promotion"
+        ],
+        "expectedOutputs": [
+          ".codex-plugin/plugin.json",
+          "canonical Work Unit execution, AI review, Human review, and report records"
+        ],
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003"
+        ],
+        "acceptanceRefs": [
+          "AC-001"
+        ],
+        "decisionRefs": [
+          "DECISION-001"
+        ],
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-001",
+          "INTERNAL-EVIDENCE-002",
+          "INTERVIEW-001"
+        ],
+        "plan": [
+          "Record the initial manifest version and repository head.",
+          "Run the plugin-creator cachebuster helper once.",
+          "Validate the plugin and inspect the exact diff.",
+          "Complete AI review and prepare Human integration material."
+        ],
+        "verification": [
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+          "git diff --check",
+          "git diff -- .codex-plugin/plugin.json"
+        ],
+        "unresolvedItems": []
+      }
+    },
+    {
+      "id": "BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "publish-and-reinstall-agent-factory-plugin",
+        "objective": "After the cachebuster Work Unit is Human-approved and integrated into main, push main to origin, refresh the agent-factory Git marketplace snapshot, reinstall agent-factory@agent-factory, and verify the installed version and enabled status.",
+        "dependencyStatus": "requires bump-agent-factory-plugin-cachebuster Human approval and main integration",
+        "executionOrder": "2",
+        "humanReviewMethod": "Human은 push 전 원격 비교, push receipt, marketplace refresh 결과, exact plugin reinstall 결과, source와 installed version 일치, enabled 상태, 비정리 변경 경계를 확인한다.",
+        "scope": [
+          "Re-check remote main and fast-forward safety before push.",
+          "Push the reviewed and integrated local main to origin/main.",
+          "Refresh only the configured agent-factory Git marketplace snapshot.",
+          "Reinstall exact selector agent-factory@agent-factory through the approved Codex plugin-management mechanism.",
+          "Verify source and installed version equality and installed, enabled status."
+        ],
+        "exclusions": [
+          "manifest or skill behavior edits",
+          "worktree cleanup",
+          "branch deletion",
+          "new-thread smoke test",
+          "PR promotion",
+          "direct marketplace.json or Codex config edits"
+        ],
+        "expectedOutputs": [
+          "origin/main updated to the approved local main commit",
+          "agent-factory marketplace refresh receipt",
+          "agent-factory@agent-factory reinstall receipt",
+          "canonical Work Unit execution, AI review, Human review, and report records"
+        ],
+        "requirementRefs": [
+          "REQ-003",
+          "REQ-004",
+          "REQ-005",
+          "REQ-006"
+        ],
+        "acceptanceRefs": [
+          "AC-001"
+        ],
+        "decisionRefs": [
+          "DECISION-001"
+        ],
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-001",
+          "INTERNAL-EVIDENCE-003",
+          "INTERVIEW-001"
+        ],
+        "plan": [
+          "Verify the cachebuster Work Unit integration and current clean main.",
+          "Read remote main without mutating local refs and prove push safety.",
+          "Push main to origin/main and verify the remote head.",
+          "Refresh the agent-factory Git marketplace snapshot.",
+          "Reinstall agent-factory@agent-factory and verify version and enabled status.",
+          "Complete AI review and prepare Human review material."
+        ],
+        "verification": [
+          "git ls-remote origin refs/heads/main",
+          "codex plugin marketplace list",
+          "codex plugin list"
+        ],
+        "unresolvedItems": []
+      }
+    }
+  ],
+  "subsections": []
+}

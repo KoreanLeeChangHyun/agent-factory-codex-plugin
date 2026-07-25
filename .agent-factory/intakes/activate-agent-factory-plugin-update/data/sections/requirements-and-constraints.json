@@ -1,0 +1,72 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "cachebuster 갱신은 plugin-creator의 update_plugin_cachebuster.py 기본 동작을 사용하고 기존 0.1.0 prefix를 보존하며 단일 +codex.<UTC timestamp> suffix만 남겨야 한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "manifest 변경 Work Unit은 .codex-plugin/plugin.json과 해당 Work Unit canonical 실행·검토 기록만 변경하고 plugin validator 및 git diff --check를 통과해야 한다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "push와 재설치는 cachebuster 변경 Work Unit의 Human 승인 및 main integration 이후에만 실행해야 한다."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": {
+        "requirement": "push 직전에 원격 main이 기록된 기존 원격 head의 후손 관계와 fast-forward 가능 조건을 다시 확인하고, 조건이 달라지면 push하지 않고 evidence-backed blocker로 기록해야 한다."
+      }
+    },
+    {
+      "id": "REQ-005",
+      "kind": "requirement",
+      "content": {
+        "requirement": "검토·통합된 local main을 origin/main에 push한 뒤 agent-factory Git marketplace snapshot을 갱신하고 exact selector agent-factory@agent-factory를 재설치해야 한다."
+      }
+    },
+    {
+      "id": "REQ-006",
+      "kind": "requirement",
+      "content": {
+        "requirement": "재설치 후 codex plugin list에서 새 manifest 버전과 installed, enabled 상태를 확인해야 한다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "constraints": [
+          "worktree cleanup, branch deletion, 새 스레드 smoke test, PR promotion은 수행하지 않는다.",
+          "marketplace.json 또는 Codex config를 직접 편집하지 않는다.",
+          "push 또는 재설치 실패 시 범위를 넓혀 우회하지 않고 Work Unit의 durable blocker 계약을 사용한다."
+        ]
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "source plugin version differs from 0.1.0+codex.20260719040900, preserves 0.1.0, and has exactly one +codex. suffix.",
+          "origin/main resolves to the pushed local main commit that contains the reviewed manifest change.",
+          "agent-factory@agent-factory reports the same bumped version as installed and enabled.",
+          "no registered worktree is removed and no merged branch is deleted."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

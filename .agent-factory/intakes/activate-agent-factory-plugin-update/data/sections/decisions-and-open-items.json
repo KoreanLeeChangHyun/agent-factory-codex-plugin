@@ -1,0 +1,51 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "selectedOption": "A",
+        "decision": "cachebuster 갱신, 커밋, main 푸시, plugin 재설치까지만 진행하며 worktree 및 branch cleanup은 제외한다.",
+        "relatedInterview": "INTERVIEW-001",
+        "evidenceRefs": [
+          "REQUEST-001",
+          "INTERNAL-EVIDENCE-001",
+          "INTERNAL-EVIDENCE-002",
+          "INTERNAL-EVIDENCE-003"
+        ]
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risks": [
+          "원격 main이 push 전에 변경되면 현재 fast-forward 전제가 무효화될 수 있다.",
+          "Git marketplace snapshot을 갱신하지 않으면 재설치가 이전 cachebuster를 사용할 수 있다.",
+          "검토 전에 push하면 미검토 변경을 설치 대상으로 노출한다."
+        ],
+        "mitigations": [
+          "push 직전 원격 head와 fast-forward 조건을 재검증한다.",
+          "push 후 agent-factory marketplace snapshot을 명시적으로 갱신한다.",
+          "manifest 변경과 배포·재설치를 의존성이 있는 두 Work Unit으로 분리한다."
+        ]
+      }
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-items-status",
+      "content": {
+        "blockingStatus": "none",
+        "nonBlockingItems": [
+          "재설치 후 새 스레드 smoke test는 선택지 A 범위 밖이므로 별도 요청으로 남긴다.",
+          "등록된 worktree와 병합된 branch cleanup은 선택지 A 범위 밖이므로 별도 승인으로 남긴다."
+        ],
+        "blockingItems": []
+      }
+    }
+  ],
+  "subsections": []
+}
