@@ -1,0 +1,112 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "system-architecture profile이 공통 문서 계약에 맞게 구현되고 Specification manager의 check-schemas와 회귀 테스트가 이를 해석·검증한다."
+      }
+    },
+    {
+      "id": "ACCEPT-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "단일 canonical Project Core가 project-core profile로 full validation을 통과하고 목적·핵심 원칙·범위·Human 승인 경계·미결정만 명시한다."
+      }
+    },
+    {
+      "id": "ACCEPT-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "durable supervisor system-architecture Specification이 full validation을 통과하고 Project Core를 governed-by typed relation으로 참조하며 WORK-UNIT-BASIS-SPEC-001과 요구사항을 추적한다."
+      }
+    },
+    {
+      "id": "ACCEPT-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Specification은 worktree 준비·외부 부작용·실행 상태 mutation 전에 machine-checkable admission을 수행하고 누락·모순·비멱등 step·검증 불가능 output이 있으면 fail-closed로 거부하도록 정의한다."
+      }
+    },
+    {
+      "id": "ACCEPT-005",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Specification은 admitted Work Unit의 Plan·Work·AI Review·Report 진행을 동일 호스트 process interruption 뒤 startup trigger에서 재개해 Human review-ready 또는 명시적 terminal failure로 수렴시키는 상태 전이, checkpoint, retry, single-owner lease·heartbeat·fencing 계약을 정의한다."
+      }
+    },
+    {
+      "id": "ACCEPT-006",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Specification은 SQLite rollback journal과 durable synchronization을 기본값으로 하고 schema forward migration, integrity recovery 및 공식 수정 버전 또는 검증된 backport에서만 허용하는 WAL version gate를 정의한다."
+      }
+    },
+    {
+      "id": "ACCEPT-007",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "OPEN-001의 exact plugin hook 또는 Skill launcher recovery trigger와 writable plugin data discovery가 authoritative evidence와 prototype 또는 fixture 결과로 확정되며, process가 전혀 없을 때 외부 service 없이 self-relaunch할 수 없다는 보장 경계가 명시된다."
+      }
+    },
+    {
+      "id": "ACCEPT-008",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Specification은 trusted directory descriptor, no-follow symlink/path-swap 방어, restrictive permissions, secret redaction, side-effect idempotency key 또는 deterministic reconciliation과 관련 fault-injection 검증을 정의한다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "system-architecture profile과 관련 회귀 테스트가 추가되고 통과한다.",
+          "Project Core와 governed durable supervisor Specification package가 manager를 통해 생성되어 full validation을 통과한다.",
+          "Intake 요구사항과 acceptance criteria가 Specification source에 양방향 추적된다.",
+          "OPEN-001이 evidence-backed 계약으로 해결되거나 실행을 차단하는 명시적 Specification 미결정으로 보고된다.",
+          "Design Report 파생 HTML·CSS·JavaScript는 생성하지 않는다.",
+          "AI 검토와 Korean Human review 자료가 Work Unit에 기록된다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 skills/specification/scripts/specification.py check-schemas",
+          "python3 skills/specification/tests/test_specification_manager.py",
+          "python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/project-core --full",
+          "python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/work-unit-durable-execution-supervisor --full",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/specification",
+          "rg -n \"governed-by|admission|heartbeat|lease|fencing|rollback journal|WAL|idempotency|reconciliation|symlink|startup\" .agent-factory/specifications/work-unit-durable-execution-supervisor skills/specification/assets/profiles/system-architecture.profile.json",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "Specification schema/profile validation result",
+          "Specification manager regression result",
+          "Project Core and governed-by relation trace review",
+          "admission and recovery state contract review",
+          "SQLite version and durability policy review",
+          "startup trigger prototype or fixture evidence",
+          "security and idempotency fault-matrix review",
+          "diff scope review"
+        ]
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

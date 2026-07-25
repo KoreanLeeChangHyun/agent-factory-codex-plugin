@@ -1,0 +1,130 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "현재 Specification package와 system-architecture profile이 없고 Supervisor startup, admission manifest, SQLite state model, ownership, replay, idempotency, security와 observability는 코드 전에 canonical architecture Specification이 필요하다. 이 gap은 첫 Work Unit에서 Project Core, system-architecture profile과 governed Specification을 작성하는 범위로 수용한다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-SPEC-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "Work Unit Durable Execution Supervisor의 canonical Project Core와 system-architecture Specification을 작성하고 startup·storage·state·admission·recovery 계약을 검증한다.",
+        "status": "ready-for-planning",
+        "expectedOutputs": [
+          "Agent Factory Project Core canonical package",
+          "Specification manager가 해석·검증할 수 있는 system-architecture profile contract",
+          "Project Core에 governed-by relation을 가진 system-architecture Specification package",
+          "Supervisor process model과 plugin startup trigger",
+          "PLUGIN_DATA 또는 검증된 writable plugin data discovery 계약",
+          "SQLite schema, forward migration, rollback journal, durable synchronization과 version-gated WAL 정책",
+          "owner heartbeat·lease와 fencing state model",
+          "admission step manifest와 idempotency·reconciliation 계약",
+          "trusted directory descriptor, symlink rejection, restrictive permission과 secret redaction 정책",
+          "fault-injection matrix와 security·observability 요구사항"
+        ],
+        "traceability": [
+          "SPEC-IMPACT-001",
+          "REQUIREMENT-ADMISSION-001",
+          "REQUIREMENT-ENTRYPOINT-002",
+          "REQUIREMENT-STATE-003",
+          "REQUIREMENT-RECOVERY-004",
+          "REQUIREMENT-OWNERSHIP-005",
+          "REQUIREMENT-IDEMPOTENCY-006",
+          "REQUIREMENT-VERSION-007",
+          "REQUIREMENT-EVIDENCE-008",
+          "REQUIREMENT-SQLITE-009",
+          "REQUIREMENT-SECURITY-010",
+          "OPEN-001",
+          "INTERNAL-SPEC-PROFILES-001"
+        ]
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-CORE-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "승인된 Supervisor Specification에 따라 work-unit-execution Skill 안에 SQLite 실행 원장, admission, owner fencing과 recovery core를 구현한다.",
+        "status": "sequenced-after-WORK-UNIT-BASIS-SPEC-001",
+        "dependencies": [
+          "WORK-UNIT-BASIS-SPEC-001",
+          "require-goal-for-work-unit-execution"
+        ],
+        "expectedOutputs": [
+          "work-unit-execution Skill 소유 Supervisor CLI와 scripts",
+          "SQLite schema와 forward migration",
+          "현재 runtime에서 rollback journal과 durable sync를 사용하는 안전 기본값 및 fixed-version WAL gate",
+          "machine-checkable admission manifest validation",
+          "single-owner claim, heartbeat·lease와 fencing enforcement",
+          "append-only event, checkpoint, retry와 recovery projection",
+          "trusted plugin data path와 symlink·permission 방어",
+          "unit 및 process-level integration tests"
+        ],
+        "traceability": [
+          "REQUIREMENT-ADMISSION-001",
+          "REQUIREMENT-ENTRYPOINT-002",
+          "REQUIREMENT-STATE-003",
+          "REQUIREMENT-RECOVERY-004",
+          "REQUIREMENT-OWNERSHIP-005",
+          "REQUIREMENT-SQLITE-009",
+          "REQUIREMENT-SECURITY-010",
+          "ACCEPTANCE-ADMISSION-001",
+          "ACCEPTANCE-SUPERVISOR-003",
+          "ACCEPTANCE-OWNERSHIP-005",
+          "ACCEPTANCE-SQLITE-008",
+          "ACCEPTANCE-PATH-SECURITY-009"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "work-unit",
+          "id": "require-goal-for-work-unit-execution",
+          "path": ".agent-factory/work-units/require-goal-for-work-unit-execution"
+        }
+      ]
+    },
+    {
+      "id": "WORK-UNIT-BASIS-INTEGRATION-003",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "lifecycle과 work-unit-execution의 정상 실행 경로를 Supervisor entrypoint로 통합하고 실제 process kill·resume·idempotency fault tests로 review-ready 수렴을 검증한다.",
+        "status": "sequenced-after-WORK-UNIT-BASIS-CORE-002",
+        "dependencies": [
+          "WORK-UNIT-BASIS-CORE-002"
+        ],
+        "expectedOutputs": [
+          "수동 manager 명령 대신 Supervisor가 소유하는 lifecycle route",
+          "Work Unit admission fail-closed integration",
+          "Codex·Worker·Supervisor process termination fault-injection harness",
+          "SQLite rollback journal crash recovery와 integrity verification",
+          "외부 fake side effect idempotency와 reconciliation test",
+          "동시 Supervisor race와 stale fencing write rejection test",
+          "adversarial plugin data symlink swap test",
+          "Plan, Work, AI Review, Report와 Human review-ready end-to-end evidence"
+        ],
+        "traceability": [
+          "REQUIREMENT-ENTRYPOINT-002",
+          "REQUIREMENT-RECOVERY-004",
+          "REQUIREMENT-IDEMPOTENCY-006",
+          "REQUIREMENT-EVIDENCE-008",
+          "REQUIREMENT-SQLITE-009",
+          "REQUIREMENT-SECURITY-010",
+          "ACCEPTANCE-RECOVERY-002",
+          "ACCEPTANCE-IDEMPOTENCY-004",
+          "ACCEPTANCE-TERMINAL-006",
+          "ACCEPTANCE-DEPENDENCY-007",
+          "ACCEPTANCE-SQLITE-008",
+          "ACCEPTANCE-PATH-SECURITY-009"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

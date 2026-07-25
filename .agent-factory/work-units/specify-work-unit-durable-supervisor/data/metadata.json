@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "4.0.0",
+  "documentVersion": "1.0.33",
+  "id": "specify-work-unit-durable-supervisor",
+  "artifactType": "work-unit",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "work-unit",
+    "status": "ready"
+  },
+  "createdAt": "2026-07-25T10:12:25+00:00",
+  "updatedAt": "2026-07-25T10:16:03+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory work-unit manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-07-25T19:15:59+09:00",
+    "contractValid": true,
+    "intakeTraceabilityValid": true,
+    "definitionComplete": true,
+    "executionContextComplete": true,
+    "verificationPlanComplete": true,
+    "findings": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "specify-work-unit-durable-supervisor",
+        "objective": "Work Unit Durable Execution Supervisor의 Project Core, system-architecture profile과 canonical Specification을 작성·검증한다.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/specify-work-unit-durable-supervisor \"Create a persistent Goal for Work Unit specify-work-unit-durable-supervisor before any execution work, then execute that Work Unit through Plan, Work, AI Review, Report, and Human review-ready handoff.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "37bb1927d5d4cedda39aa0c021892c0368f9fd9d",
+        "branch": "work-unit/specify-work-unit-durable-supervisor",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/specify-work-unit-durable-supervisor",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

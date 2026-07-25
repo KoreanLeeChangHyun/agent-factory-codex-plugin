@@ -1,0 +1,42 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 Work Unit manager는 execution progress와 failure·resume 상태 명령을 제공하지만 실행 Agent가 명령 순서를 직접 수행하며 Agent 밖의 자동 복구 Supervisor는 없다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "included": [
+          "기존 work-unit-execution Skill이 소유하는 Supervisor entrypoint와 실행 상태 머신",
+          "Work Unit admission completeness 검사",
+          "plugin writable data 경계의 SQLite 실행 원장과 schema migration",
+          "동일 호스트 process ownership, recovery와 stale writer 차단",
+          "단계별 checkpoint, retry, idempotency receipt와 실행 증거",
+          "실제 subprocess 강제 종료 및 재기동 fault-injection 검증",
+          "lifecycle과 work-unit-execution의 Supervisor 경로 통합"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "excluded": [
+          "호스트 또는 영속 디스크 손실 후 복구",
+          "다른 호스트 Worker로의 분산 failover",
+          "PostgreSQL, NATS JetStream 또는 Redis service 설치와 운영",
+          "기존 완료 Work Unit 실행 이력 재작성",
+          "Human 승인 없는 merge, cleanup, 배포 또는 runtime restart"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

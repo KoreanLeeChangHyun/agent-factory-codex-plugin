@@ -1,0 +1,23 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "remainingRisks": [
+          "system-architecture profile, Project Core와 durable supervisor Specification은 아직 생성되지 않았다.",
+          "OPEN-001의 exact startup trigger와 writable data path는 Execution에서 증거로 확정해야 한다.",
+          "Supervisor core 구현, lifecycle 통합, process fault tests와 Human 승인은 후속 단계로 남아 있다."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

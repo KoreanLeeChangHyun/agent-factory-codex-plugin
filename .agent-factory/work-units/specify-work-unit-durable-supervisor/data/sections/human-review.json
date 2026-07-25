@@ -1,0 +1,44 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "Project Core의 목적·원칙·범위·승인 경계·미결정이 기존 결정과 일치하는지 확인합니다.",
+          "부실한 Work Unit을 실행 전에 거부하는 admission 기준이 충분히 엄격한지 확인합니다.",
+          "승인된 Work Unit의 재개 보장이 동일 호스트 process 장애 범위에서 끝까지 이어지는지 확인합니다.",
+          "process가 전혀 없을 때 자동 재기동할 수 없는 한계와 실제 startup trigger가 명확한지 확인합니다.",
+          "SQLite 안전 기본값, WAL 제한, 소유권 fencing과 side-effect 중복 방지 계약을 확인합니다.",
+          "보안·관측성·fault-injection 기준과 후속 구현 Work Unit의 입력이 충분한지 확인합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "외부 Design Report viewer 또는 canonical JSON을 통해 Project Core와 durable supervisor Specification을 검토합니다.",
+          "system-architecture profile, manager 회귀 테스트와 full validation 결과를 확인합니다.",
+          "Intake requirement·decision에서 Specification 항목으로 이어지는 traceability를 확인합니다.",
+          "OPEN-001 해결 증거와 startup trigger prototype 또는 fixture 결과를 확인합니다.",
+          "승인 또는 rework를 결정하며 구현·merge·cleanup은 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}
