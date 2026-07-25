@@ -6,10 +6,10 @@
       "id": "HUMAN-CHECK-001",
       "kind": "human-checklist",
       "content": [
-        "push 직전 local main과 remote main 비교 및 fast-forward 근거를 확인합니다.",
-        "push 후 origin/main이 정확한 local main commit인지 확인합니다.",
-        "agent-factory marketplace upgrade와 agent-factory@agent-factory reinstall receipt를 확인합니다.",
-        "source와 installed version이 0.1.0+codex.20260725184616으로 일치하고 installed, enabled인지 확인합니다.",
+        "blocks/operations/push-evidence.json에서 push 직전 remote main, local main, fast-forward 근거와 push 후 exact commit 일치를 확인합니다.",
+        "blocks/operations/marketplace-upgrade.json에서 agent-factory marketplace만 선택되고 errors가 비어 있는지 확인합니다.",
+        "blocks/operations/plugin-add.json에서 exact selector, marketplace, version, installedPath를 확인합니다.",
+        "blocks/verification/final-plugin-state.txt에서 source와 installed version 일치 및 installed, enabled 상태를 확인합니다.",
         "cleanup, branch 삭제, smoke test, PR promotion이 수행되지 않았는지 확인합니다."
       ]
     },
@@ -18,10 +18,10 @@
       "kind": "human-review-method",
       "content": {
         "inspect": [
-          "등록된 operational evidence에서 pre/post push commit과 command 결과를 비교합니다.",
+          "등록된 push evidence에서 remote main이 37b6f7feb4821c35dbc469035aa8d97a55ae2cb4로 갱신됐는지 확인합니다.",
           "marketplace upgrade 및 plugin add JSON receipt를 확인합니다.",
-          "final codex plugin list에서 exact plugin version과 상태를 확인합니다.",
-          "결과의 approve 또는 rework를 결정합니다. cleanup과 새 스레드 smoke test는 별도 범위입니다."
+          "final plugin state에서 0.1.0+codex.20260725184616과 installed, enabled 상태를 확인합니다.",
+          "게시·재설치 결과의 approve 또는 rework를 결정합니다. cleanup과 새 스레드 smoke test는 별도 범위입니다."
         ]
       }
     },
@@ -29,10 +29,20 @@
       "id": "HUMAN-RESULT-001",
       "kind": "human-review-result",
       "content": {
-        "status": "pending"
+        "status": "approved",
+        "decision": "게시 및 재설치 Work Unit 실행 결과 승인",
+        "humanEvidence": "승인"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-25T19:16:51+00:00",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "codex-exec-publish-and-reinstall-agent-factory-plugin-20260726-01",
+          "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4"
+        }
       }
     }
   ],

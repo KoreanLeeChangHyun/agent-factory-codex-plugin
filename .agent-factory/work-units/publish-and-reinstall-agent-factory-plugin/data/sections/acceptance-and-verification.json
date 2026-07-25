@@ -41,18 +41,26 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "pre-push local and remote commit comparison",
-          "push result and post-push remote head",
-          "marketplace upgrade JSON result",
-          "plugin add JSON result",
-          "final plugin list with version and enabled status"
-        ]
+        "status": "pass",
+        "summary": "pre/post push commit, fast-forward ancestry, marketplace JSON receipt, reinstall JSON receipt, source와 installed version 일치, installed/enabled 상태 및 final worktree inspect를 확인했다.",
+        "finalInspectCommand": "python3 skills/work-unit-execution/scripts/worktree.py inspect --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id publish-and-reinstall-agent-factory-plugin"
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "codex-exec-publish-and-reinstall-agent-factory-plugin-20260726-01",
+          "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/operations/push-evidence.json",
+          "blocks/operations/marketplace-upgrade.json",
+          "blocks/operations/plugin-add.json",
+          "blocks/verification/final-plugin-state.txt",
+          "blocks/execution/final-worktree-inspect.json"
+        ]
       }
     }
   ],

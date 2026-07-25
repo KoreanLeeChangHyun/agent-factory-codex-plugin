@@ -1,0 +1,8 @@
+{
+  "pluginId": "agent-factory@agent-factory",
+  "name": "agent-factory",
+  "marketplaceName": "agent-factory",
+  "version": "0.1.0+codex.20260725184616",
+  "installedPath": "/home/deus/.codex/plugins/cache/agent-factory/agent-factory/0.1.0+codex.20260725184616",
+  "authPolicy": "ON_INSTALL"
+}

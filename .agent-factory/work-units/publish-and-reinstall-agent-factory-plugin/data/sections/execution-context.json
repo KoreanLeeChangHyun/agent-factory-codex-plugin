@@ -18,6 +18,117 @@
         "setupState": "not-prepared",
         "cleanupState": "not-requested"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "done",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "codex-exec-publish-and-reinstall-agent-factory-plugin-20260726-01",
+        "invocationChain": [
+          "codex-exec-publish-and-reinstall-agent-factory-plugin-20260726-01"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "pre-push-safety",
+            "push-main",
+            "marketplace-upgrade",
+            "plugin-reinstall",
+            "final-verification"
+          ],
+          "pendingStep": null,
+          "lastVerifiedHead": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+          "checkpoints": [
+            {
+              "stepId": "pre-push-safety",
+              "state": "pending",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-pre-push-safety-pending"
+            },
+            {
+              "stepId": "pre-push-safety",
+              "state": "completed",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-pre-push-safety-completed"
+            },
+            {
+              "stepId": "push-main",
+              "state": "pending",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-push-main-pending"
+            },
+            {
+              "stepId": "push-main",
+              "state": "completed",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-push-main-completed"
+            },
+            {
+              "stepId": "marketplace-upgrade",
+              "state": "pending",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-marketplace-upgrade-pending"
+            },
+            {
+              "stepId": "marketplace-upgrade",
+              "state": "completed",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-marketplace-upgrade-completed"
+            },
+            {
+              "stepId": "plugin-reinstall",
+              "state": "pending",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-plugin-reinstall-pending"
+            },
+            {
+              "stepId": "plugin-reinstall",
+              "state": "completed",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-plugin-reinstall-completed"
+            },
+            {
+              "stepId": "final-verification",
+              "state": "pending",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-final-verification-pending"
+            },
+            {
+              "stepId": "final-verification",
+              "state": "completed",
+              "headCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+              "idempotencyKey": "publish-reinstall-r1-a1-final-verification-completed"
+            }
+          ],
+          "retry": {
+            "pre-push-safety": {
+              "count": 1,
+              "maxRetries": 2,
+              "events": [
+                {
+                  "idempotencyKey": "publish-reinstall-r1-a1-pre-push-manifest-path-retry-1",
+                  "classification": "transient",
+                  "evidence": "jq failed with exit 2 because agent-factory/.codex-plugin/plugin.json does not exist; canonical repository manifest is .codex-plugin/plugin.json."
+                }
+              ]
+            }
+          }
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "codex-exec-publish-and-reinstall-agent-factory-plugin-20260726-01",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

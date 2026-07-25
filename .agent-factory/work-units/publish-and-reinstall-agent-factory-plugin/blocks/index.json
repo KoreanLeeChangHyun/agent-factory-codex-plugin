@@ -1,3 +1,39 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/execution/final-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "final worktree inspect before evidence registration",
+      "sha256": "90a8b0fc62f6cbcae69f365e3b1ceb520b13905bbdc4db88738695a04b368474",
+      "sizeBytes": 2152
+    },
+    {
+      "path": "blocks/operations/marketplace-upgrade.json",
+      "mediaType": "application/json",
+      "description": "agent-factory marketplace upgrade JSON receipt",
+      "sha256": "286d1350a0721dc85d96026c3d73c2d126e41fd56e2fdb4634458c36972fd8a4",
+      "sizeBytes": 154
+    },
+    {
+      "path": "blocks/operations/plugin-add.json",
+      "mediaType": "application/json",
+      "description": "agent-factory plugin reinstall JSON receipt",
+      "sha256": "45abb17ba586b953ed1f2a66c51c12b952af257b5aa66857a15077991e226548",
+      "sizeBytes": 295
+    },
+    {
+      "path": "blocks/operations/push-evidence.json",
+      "mediaType": "application/json",
+      "description": "main push safety, result, and post-push remote head evidence",
+      "sha256": "71287e13503fc081b1ade1546a75b67e3e477333178ce0a06fef11f612e43732",
+      "sizeBytes": 665
+    },
+    {
+      "path": "blocks/verification/final-plugin-state.txt",
+      "mediaType": "text/plain",
+      "description": "source, remote, and installed Agent Factory plugin final state",
+      "sha256": "e8ab7626df6de4dc7c3fe54dfdff22413ab4a501bc27f0b82842b9d93811a250",
+      "sizeBytes": 541
+    }
+  ]
 }

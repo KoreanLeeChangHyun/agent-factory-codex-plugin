@@ -1,0 +1,14 @@
+command: codex plugin list
+exitCode: 0
+marketplace: agent-factory
+plugin: agent-factory@agent-factory
+status: installed, enabled
+installedVersion: 0.1.0+codex.20260725184616
+sourceManifestCommand: jq -r '[.name,.version] | @tsv' .codex-plugin/plugin.json
+sourceName: agent-factory
+sourceVersion: 0.1.0+codex.20260725184616
+remoteCommand: git ls-remote origin refs/heads/main
+remoteMain: 37b6f7feb4821c35dbc469035aa8d97a55ae2cb4
+localMain: 37b6f7feb4821c35dbc469035aa8d97a55ae2cb4
+sourceInstalledVersionEqual: true
+remoteLocalMainEqual: true

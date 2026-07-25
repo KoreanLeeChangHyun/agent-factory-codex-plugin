@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "workUnitId": "publish-and-reinstall-agent-factory-plugin",
+  "command": "git push origin main:main",
+  "prePushRemoteMain": "37bb1927d5d4cedda39aa0c021892c0368f9fd9d",
+  "localMain": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+  "fastForwardAncestorCheck": {
+    "command": "git merge-base --is-ancestor 37bb1927d5d4cedda39aa0c021892c0368f9fd9d main",
+    "exitCode": 0
+  },
+  "push": {
+    "exitCode": 0,
+    "output": "To https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin.git\n   37bb192..37b6f7f  main -> main"
+  },
+  "postPushRemoteMain": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+  "remoteEqualsLocal": true
+}
