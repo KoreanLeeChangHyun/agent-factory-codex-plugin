@@ -45,16 +45,28 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "focused regression result",
-          "skill validation result",
-          "active Goal-rule reference review",
-          "diff scope review"
+        "status": "pass",
+        "verified": [
+          "Goal preflight regression passed",
+          "lifecycle metadata suite passed",
+          "lifecycle and work-unit-execution quick validation passed",
+          "worktree manager 32 tests passed",
+          "Intake and Work Unit full validation passed"
         ]
       },
       "attributes": {
-        "status": "pending"
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f7fa8-17de-7161-b0ec-d79c47d990fc-attempt-2",
+          "headCommit": "89b71dfef1276e2fe2bc985af3c083b2e220e463",
+          "revision": 1,
+          "attempt": 2
+        },
+        "evidence": [
+          "blocks/evidence/verification-attempt-2.txt",
+          "blocks/evidence/worktree-final-inspect.json"
+        ]
       }
     }
   ],

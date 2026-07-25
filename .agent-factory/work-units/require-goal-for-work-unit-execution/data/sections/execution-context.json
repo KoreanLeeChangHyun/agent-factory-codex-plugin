@@ -12,11 +12,113 @@
         "executionAgent": "Codex",
         "repository": "/home/deus/workspace/agent-factory/codex-plugins",
         "baseRef": "main",
-        "baseCommit": "c585671fa149d22987cc51abc36c25709fbf99ee",
+        "baseCommit": "9af57733495f056d38f0e57b6004c47d8a819afd",
         "branch": "work-unit/require-goal-for-work-unit-execution",
         "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/require-goal-for-work-unit-execution",
-        "setupState": "not-prepared",
-        "cleanupState": "not-requested"
+        "setupState": "prepared-and-locked",
+        "cleanupState": "pending-human-decision"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "review",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "89b71dfef1276e2fe2bc985af3c083b2e220e463"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 2,
+        "invocationId": "019f7fa8-17de-7161-b0ec-d79c47d990fc-attempt-2",
+        "invocationChain": [
+          "019f7fa8-17de-7161-b0ec-d79c47d990fc-attempt-2"
+        ],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "019f7fa8-17de-7161-b0ec-d79c47d990fc",
+            "invocationChain": [
+              "019f7fa8-17de-7161-b0ec-d79c47d990fc"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "9af57733495f056d38f0e57b6004c47d8a819afd"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "pending",
+                  "changedArtifacts": [],
+                  "testsRun": []
+                },
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "planned",
+                  "requiredEvidence": [
+                    "focused regression result",
+                    "skill validation result",
+                    "active Goal-rule reference review",
+                    "diff scope review"
+                  ]
+                },
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "findings": []
+                },
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "remainingRisks": [
+                    "Implementation, verification, AI review, Human approval, and merge decisions remain pending."
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ]
       }
     }
   ],

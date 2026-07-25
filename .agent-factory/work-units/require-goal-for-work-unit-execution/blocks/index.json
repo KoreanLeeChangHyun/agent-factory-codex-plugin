@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification-attempt-2.txt",
+      "mediaType": "text/plain",
+      "description": "Goal 필수 실행 계약의 focused 및 full verification output",
+      "sha256": "18559d60818d642c932fea0ac47d8d621b4368efd7a4fb9f8e705a74b051638f",
+      "sizeBytes": 3829
+    },
+    {
+      "path": "blocks/evidence/worktree-final-inspect.json",
+      "mediaType": "application/json",
+      "description": "Human review 전 Work Unit 전용 worktree final inspect JSON",
+      "sha256": "bc031babc8a663a8aa13205fe31cbea9b9d186be57ae2bb4ec3a0590a045d7bc",
+      "sizeBytes": 1558
+    }
+  ]
 }

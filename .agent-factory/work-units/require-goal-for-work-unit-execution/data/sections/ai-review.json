@@ -18,13 +18,27 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "pass",
+        "summary": "Goal 강제, codex exec bootstrap 경계, fail-closed 동작, 비 Work Unit exec 비영향과 추적 필드 비추가를 검토해 통과했다.",
+        "completedChecks": [
+          "모든 named Work Unit 실행에 Goal preflight가 필수다.",
+          "codex exec process 또는 prompt만으로 Goal 존재를 인정하지 않는다.",
+          "Goal 검사 또는 생성 실패와 다른 unfinished Goal 충돌 시 실행을 시작하지 않는다.",
+          "일반 비 Work Unit 작업의 Goal 승인 규칙은 유지했다.",
+          "실행자 또는 진입 경로 추적 필드를 추가하지 않았다."
+        ],
         "findings": []
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f7fa8-17de-7161-b0ec-d79c47d990fc-attempt-2",
+          "headCommit": "89b71dfef1276e2fe2bc985af3c083b2e220e463",
+          "revision": 1,
+          "attempt": 2
+        }
       }
     }
   ],
