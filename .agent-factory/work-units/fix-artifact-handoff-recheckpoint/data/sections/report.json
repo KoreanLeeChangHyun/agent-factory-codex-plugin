@@ -39,6 +39,29 @@
           "blocks/evidence/worktree-final-inspect.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-AC9CC6386CA8571D",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/fix-artifact-handoff-recheckpoint",
+        "sourceCommit": "626042084ba6b45f23b15dff49c270ceeb011b08",
+        "strategy": "no-ff",
+        "targetAfterCommit": "bca17315b96d075db26cb75fa619e6533b1475ae",
+        "targetBeforeCommit": "1de81d1823bcaee6f698a9df638e3a217f4e3072",
+        "targetBranch": "main",
+        "workUnitId": "fix-artifact-handoff-recheckpoint",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-artifact-handoff-recheckpoint",
+        "receiptSha256": "ac9cc6386ca8571d4b574d32ba33f561cf959411bdd014f335143b7c5231202e"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/main-6260420.json"
     }
   ],
   "subsections": []

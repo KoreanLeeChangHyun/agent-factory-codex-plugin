@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.45",
+  "documentVersion": "1.0.46",
   "id": "fix-artifact-handoff-recheckpoint",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugins",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-25T13:04:20+00:00",
-  "updatedAt": "2026-07-25T13:33:32+00:00",
+  "updatedAt": "2026-07-25T13:37:37+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
