@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification.log",
+      "mediaType": "text/plain",
+      "description": "Work Unit TDD, regression, plugin validation, static checks, and AI Review evidence",
+      "sha256": "a24e469d9f029cbcd7133bf14e8c62cac35f4ee19df1a8ea8c695e2960d73095",
+      "sizeBytes": 2708
+    },
+    {
+      "path": "blocks/evidence/worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final worktree inspect JSON before evidence registration",
+      "sha256": "6d34cd8361a0c66ff19cc3adb82bbd62583ec65603a43b81fab1f424313e68e0",
+      "sizeBytes": 2446
+    }
+  ]
 }

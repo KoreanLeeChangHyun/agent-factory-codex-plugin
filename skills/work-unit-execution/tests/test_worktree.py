@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -9,6 +11,24 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "worktree.py"
+PLANNER_TEST = (
+    Path(__file__).resolve().parents[2]
+    / "work-unit-planner"
+    / "tests"
+    / "test_work_unit_manager.py"
+)
+
+
+def load_planner_test_helpers():
+    spec = importlib.util.spec_from_file_location("planner_test_helpers", PLANNER_TEST)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load Work Unit test helpers")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+helpers = load_planner_test_helpers()
 
 
 def run(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -27,12 +47,48 @@ def git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
 
 
 class WorktreeCliTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.template_temp = tempfile.TemporaryDirectory()
+        cls.template_repo = Path(cls.template_temp.name) / "template"
+        cls.template_repo.mkdir()
+        run("git", "init", "-b", "main", str(cls.template_repo))
+        run("git", "config", "user.name", "Agent Factory Test", cwd=cls.template_repo)
+        run(
+            "git",
+            "config",
+            "user.email",
+            "agent-factory@example.invalid",
+            cwd=cls.template_repo,
+        )
+        (cls.template_repo / "tracked.txt").write_text(
+            "baseline\n", encoding="utf-8"
+        )
+        (cls.template_repo / ".gitignore").write_text(
+            "/.agent-factory/worktree/\n", encoding="utf-8"
+        )
+        run("git", "add", "tracked.txt", ".gitignore", cwd=cls.template_repo)
+        run("git", "commit", "-m", "baseline", cwd=cls.template_repo)
+        intake = helpers.create_ready_intake(cls.template_repo)
+        package = helpers.create_package(cls.template_repo, "wu-001")
+        helpers.populate_ready_candidate(cls.template_repo, package, intake)
+        helpers.run_cli("transition", str(package), "ready")
+        shutil.rmtree(cls.template_repo / ".agent-factory" / "worktree")
+        run("git", "add", ".agent-factory", cwd=cls.template_repo)
+        run("git", "commit", "-m", "checkpoint ready work unit", cwd=cls.template_repo)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.template_temp.cleanup()
+
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.repo = self.root / "repo"
-        self.repo.mkdir()
-        self.assertEqual(run("git", "init", "-b", "main", str(self.repo)).returncode, 0)
+        self.assertEqual(
+            run("git", "clone", "-q", str(self.template_repo), str(self.repo)).returncode,
+            0,
+        )
         self.assertEqual(
             git(self.repo, "config", "user.name", "Agent Factory Test").returncode, 0
         )
@@ -42,14 +98,34 @@ class WorktreeCliTest(unittest.TestCase):
             ).returncode,
             0,
         )
-        (self.repo / "tracked.txt").write_text("baseline\n", encoding="utf-8")
-        (self.repo / ".gitignore").write_text(
-            "/.agent-factory/worktree/\n", encoding="utf-8"
+        context_path = (
+            self.repo
+            / ".agent-factory"
+            / "work-units"
+            / "wu-001"
+            / "data"
+            / "sections"
+            / "execution-context.json"
         )
+        context_section = json.loads(context_path.read_text(encoding="utf-8"))
+        context = next(
+            item
+            for item in context_section["content"]
+            if item["kind"] == "execution-context"
+        )["content"]
+        context["repository"] = str(self.repo)
+        context["worktreePath"] = str(
+            self.repo / ".agent-factory" / "worktree" / "wu-001"
+        )
+        context_path.write_text(
+            json.dumps(context_section, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(git(self.repo, "add", str(context_path)).returncode, 0)
         self.assertEqual(
-            git(self.repo, "add", "tracked.txt", ".gitignore").returncode, 0
+            git(self.repo, "commit", "-m", "bind test execution context").returncode,
+            0,
         )
-        self.assertEqual(git(self.repo, "commit", "-m", "baseline").returncode, 0)
         self.base_commit = git(self.repo, "rev-parse", "HEAD").stdout.strip()
         self.worktree = self.repo / ".agent-factory" / "worktree" / "wu-001"
         self.legacy_worktree = self.root / "worktrees" / "wu-001"
@@ -231,6 +307,65 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertIn("locked", listing)
         self.assertEqual(git(self.repo, "status", "--short").stdout, "")
 
+    def test_prepare_refuses_missing_work_unit_before_git_mutation(self) -> None:
+        result = run(
+            sys.executable,
+            str(SCRIPT),
+            "prepare",
+            "--repository",
+            str(self.repo),
+            "--work-unit-id",
+            "missing-unit",
+            "--base",
+            "main",
+        )
+        payload = json.loads(result.stdout)
+        self.assert_error(result, payload, "work_unit_admission_refused")
+        self.assertFalse(
+            (self.repo / ".agent-factory" / "worktree" / "missing-unit").exists()
+        )
+        self.assertNotEqual(
+            git(
+                self.repo,
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/work-unit/missing-unit",
+            ).returncode,
+            0,
+        )
+
+    def test_prepare_refuses_non_ready_package_before_git_mutation(self) -> None:
+        metadata_path = (
+            self.repo
+            / ".agent-factory"
+            / "work-units"
+            / "wu-001"
+            / "data"
+            / "metadata.json"
+        )
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        metadata["lifecycle"]["status"] = "backlog"
+        metadata_path.write_text(
+            json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        git(self.repo, "add", str(metadata_path))
+        git(self.repo, "commit", "-m", "make work unit non-ready")
+        result, payload = self.prepare()
+        self.assert_error(result, payload, "work_unit_admission_refused")
+        self.assertFalse(self.worktree.exists())
+        self.assertNotEqual(
+            git(
+                self.repo,
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/work-unit/wu-001",
+            ).returncode,
+            0,
+        )
+
     def test_prepare_accepts_explicit_canonical_path_assertion(self) -> None:
         result, payload = self.cli("prepare", "--base", "main", path=self.worktree)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -246,6 +381,28 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertFalse(self.legacy_worktree.exists())
 
     def test_prepare_reuses_registered_legacy_path(self) -> None:
+        context_path = (
+            self.repo
+            / ".agent-factory"
+            / "work-units"
+            / "wu-001"
+            / "data"
+            / "sections"
+            / "execution-context.json"
+        )
+        section = json.loads(context_path.read_text(encoding="utf-8"))
+        context = next(
+            item
+            for item in section["content"]
+            if item["kind"] == "execution-context"
+        )["content"]
+        context["worktreePath"] = str(self.legacy_worktree)
+        context_path.write_text(
+            json.dumps(section, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        git(self.repo, "add", str(context_path))
+        git(self.repo, "commit", "-m", "record legacy worktree")
         self.assertEqual(
             git(
                 self.repo,
@@ -271,7 +428,9 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertTrue(payload["context"]["locked"])
 
     def test_worktree_add_failure_returns_canonical_json(self) -> None:
-        (self.repo / ".agent-factory").write_text("not a directory\n", encoding="utf-8")
+        (self.repo / ".agent-factory" / "worktree").write_text(
+            "not a directory\n", encoding="utf-8"
+        )
 
         result, payload = self.prepare()
 

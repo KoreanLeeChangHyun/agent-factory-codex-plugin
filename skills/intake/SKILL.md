@@ -170,3 +170,11 @@ identifier.
 After `ready` validation succeeds, hand the package to `work-unit-planner`.
 Report the Intake id, validation result, specification impact, remaining
 non-blocking items, and Work Unit basis items.
+
+For the Git handoff boundary, use the lifecycle-owned
+`artifact_handoff.py checkpoint` command. Show the exact ready Intake package
+path, full-validation result, and exact commit message and obtain a
+checkpoint-specific Human approval before the command mutates `main`. The
+later ready Work Unit checkpoint requires a separate disclosure and approval;
+Intake manager ownership remains limited to canonical JSON construction,
+mutation, and validation.

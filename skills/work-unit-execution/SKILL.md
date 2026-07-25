@@ -40,39 +40,48 @@ its JSON result.
 3. Resolve the repository, base ref, and Work Unit id. Derive the branch as
    `work-unit/<work-unit-id>` and the worktree path as
    `<repository>/.agent-factory/worktree/<work-unit-id>`.
-4. Run `scripts/worktree.py prepare` before editing when the linked worktree
+4. Reconstruct the second lifecycle checkpoint with
+   `lifecycle/assets/scripts/artifact_handoff.py inspect` and use its exact
+   Work Unit checkpoint commit as `--base`.
+5. Run `scripts/worktree.py prepare` before editing when the linked worktree
    does not exist.
-5. Perform all scoped edits and verification inside the returned
+   `prepare` invokes the Work Unit manager's full-ready admission contract for
+   the same id, repository, base, branch, and path before any branch or
+   worktree mutation; direct invocation cannot bypass admission.
+6. Perform all scoped edits and verification inside the returned
    `context.worktreePath`.
-6. Before the first active attempt, pass the inspected `headCommit` to the Work
+7. Before the first active attempt, pass the inspected `headCommit` to the Work
    Unit manager's `execution-init`, then start the attempt with a unique Codex
    execution invocation id and the same inspected head. A same-revision retry
    uses a new `attempt-start`; `codex exec resume` uses `attempt-resume` and
    does not prepare another worktree or increment the attempt.
    The Work Unit manager independently resolves the prepared worktree `HEAD`
    and refuses a mismatched recorded digest.
-7. Run `scripts/worktree.py inspect` before reporting or asking for Human
+8. During the active attempt, use the Work Unit manager's durable progress,
+   bounded failure, and blocker-resolution commands. Resume preserves the same
+   revision and attempt and must not replay a completed non-idempotent step.
+9. Run `scripts/worktree.py inspect` before reporting or asking for Human
    review.
-8. Validate every recorded execution command against the installed CLI parser
+10. Validate every recorded execution command against the installed CLI parser
    before treating the execution context as ready. Record the exact command
    that passed, not a reconstructed equivalent. For Codex, global options such
    as `--ask-for-approval` precede the `exec` subcommand:
    `codex --ask-for-approval <policy> exec --sandbox <mode> -C <worktree> <prompt>`.
-9. Update execution, review, report, and Human-review sections before the final
+11. Update execution, review, report, and Human-review sections before the final
    inspect capture. Then run `inspect`, register its exact result, and run it
    once more to verify that the reported changed-path set is still current.
    Evidence registration may only change already-reported evidence/index paths;
    record that bounded registration delta explicitly when content hashes cannot
    be a fixed point.
-10. Record the exact command and canonical JSON result in the Work Unit
+12. Record the exact command and canonical JSON result in the Work Unit
    execution evidence. Treat a nonzero exit code or `ok: false` as refusal, not
    as permission to bypass validation.
-11. After a Human merge decision, run `integrate` with the approved target and,
+13. After a Human merge decision, run `integrate` with the approved target and,
    for diverged branches, the explicit `--strategy no-ff`. Register the raw
    JSON through the Work Unit manager's `integration-put`; rerun `integrate`
    to recover an interrupted registration as `already-merged` without a second
    merge.
-12. Run `cleanup` only after an explicit Human cleanup decision. Preserve the
+14. Run `cleanup` only after an explicit Human cleanup decision. Preserve the
    dedicated branch for Human merge, rework, or later disposal decisions.
 
 ## Commands

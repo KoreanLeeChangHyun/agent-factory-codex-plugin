@@ -47,9 +47,14 @@ Work Unit:
   Create executable Work Unit packages from a validated ready Intake
     -> each Work Unit is the minimum /goal <work-unit-id> execution unit for a fresh Codex Goal session
     -> each Work Unit includes basis, goal, scope, expected output, verification, AI checklist, Human checklist, Human review method, and unresolved items
+    -> checkpoint the ready Intake and ready Work Unit separately on main after
+       exact-path, full-validation, exact-message disclosure and separate Human approvals
 
 Execution:
   Execute one Work Unit through Plan -> Work -> AI Review -> Report
+    -> inspect the Work Unit checkpoint and use that exact commit as the worktree base
+    -> enforce full-ready admission before branch, worktree, attempt, or scoped mutation
+    -> persist step progress, retry state, recovery ownership, and blocking evidence
     -> perform scoped artifact writing when it is an expected Work Unit output
     -> apply checklist, TDD, and verification loop
     -> perform AI review
@@ -189,17 +194,69 @@ Use this resolution flow:
   `work-unit/<work-unit-id>`, then prepare or inspect the worktree and record its
   canonical JSON result as execution evidence. Re-execution and rework reuse the
   same registered pair.
+- A fresh execution session reconstructs the second checkpoint with
+  `lifecycle/assets/scripts/artifact_handoff.py inspect`. The initial
+  `worktree.py prepare` base is the returned exact checkpoint commit, not an
+  inferred branch tip or an uncommitted package.
+- `worktree.py prepare` mechanically invokes the Work Unit manager's full-ready
+  admission gate for the same id, repository, base, branch, and path before its
+  first Git mutation. A valid explicit execution request does not reopen
+  already settled Work Unit decisions.
 - Bind active execution to the inspected Git head through versioned
   `execution-state/v1`. Start a new attempt for a first invocation or retry,
   append a resumed Codex session to the same attempt, and require a
   Human-approved revision increment for rework. Current passing evidence and
   approval must match the revision, attempt, primary invocation, and Git head.
+- After attempt start, record durable pending and completed steps, the last
+  verified repository head, and stable idempotency identities. Bound transient
+  retries; convert permanent or exhausted failures into an evidence-backed
+  blocking item and `blocked` state. After recorded resolution,
+  `blocker-resolve` resumes the same revision and attempt with a new invocation
+  owner rather than creating an unapproved rework revision.
 - Never generate fallback worktree path names. Cleanup requires an explicit
   Human cleanup decision and must refuse dirty worktrees and forced removal.
 - If the package is missing, ambiguous, already complete, blocked, or lacks
   enough basis for a fresh session, stop and ask the Human before editing.
 - Preserve the separation between the defining session and the execution
   session. Do not rely on hidden chat history from the defining session.
+
+### Two-Checkpoint Artifact Handoff
+
+Run the lifecycle-owned command twice on checked-out `main`, once for the ready
+Intake and once for the ready Work Unit:
+
+```text
+python3 skills/lifecycle/assets/scripts/artifact_handoff.py checkpoint \
+  --repository <absolute-repository-root> \
+  --artifact-type <intake|work-unit> \
+  --artifact-id <id> \
+  --package <absolute-canonical-package-path> \
+  --target-branch main \
+  --message <exact-approved-message> \
+  --human-decision approved
+```
+
+Before each command, show the exact package path, owning-manager full
+validation result, and exact commit message and obtain a separate Human
+approval. The command refuses unrelated staged state, stages only the
+manager-reported canonical file set, detects validation-to-stage byte changes,
+and returns a deterministic JSON receipt. Exact replay of the same approved
+artifact state and message returns `already-checkpointed`.
+
+A fresh execution session reconstructs the second commit without mutation:
+
+```text
+python3 skills/lifecycle/assets/scripts/artifact_handoff.py inspect \
+  --repository <absolute-repository-root> \
+  --artifact-type work-unit \
+  --artifact-id <work-unit-id> \
+  --package <absolute-canonical-package-path> \
+  --target-branch main
+```
+
+Use `context.checkpointCommit` as `worktree.py prepare --base`. Checkpoint
+approval never authorizes Work Unit result integration, cleanup, push,
+publication, or PR promotion.
 
 ## Baseline Checklist
 

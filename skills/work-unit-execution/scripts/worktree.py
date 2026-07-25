@@ -15,6 +15,13 @@ from typing import Any, Sequence
 
 SCHEMA_VERSION = "1.0.0"
 WORKTREE_ROOT = Path(".agent-factory/worktree")
+WORK_UNIT_MANAGER = (
+    Path(__file__).resolve().parents[2]
+    / "work-unit-planner"
+    / "assets"
+    / "scripts"
+    / "work_unit.py"
+)
 
 
 class ContractError(Exception):
@@ -339,6 +346,66 @@ def inspect_context(
     }
 
 
+def admit_work_unit(
+    repository: Path,
+    work_unit_id: str,
+    base_ref: str,
+    branch: str,
+    worktree_path: Path,
+) -> dict[str, Any]:
+    package = (
+        repository / ".agent-factory" / "work-units" / work_unit_id
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(WORK_UNIT_MANAGER),
+            "admit",
+            str(package),
+            "--repository",
+            str(repository),
+            "--work-unit-id",
+            work_unit_id,
+            "--base",
+            base_ref,
+            "--branch",
+            branch,
+            "--path",
+            str(worktree_path),
+        ],
+        stdin=subprocess.DEVNULL,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+        shell=False,
+    )
+    if result.returncode != 0:
+        raise ContractError(
+            "work_unit_admission_refused",
+            "canonical Work Unit failed full-ready execution admission",
+            {
+                "package": str(package),
+                "reason": result.stderr.strip(),
+                "returnCode": result.returncode,
+            },
+        )
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise ContractError(
+            "work_unit_admission_refused",
+            "Work Unit manager returned invalid admission evidence",
+            {"error": str(error)},
+        ) from error
+    if payload.get("admitted") is not True:
+        raise ContractError(
+            "work_unit_admission_refused",
+            "Work Unit manager did not confirm admission",
+        )
+    return payload
+
+
 def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     repository = validate_repository(execution, args.repository)
     base_commit = resolve_base(execution, repository, args.base)
@@ -356,6 +423,10 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             "new worktrees must use <repository>/.agent-factory/worktree/<work-unit-id>",
             {"expected": str(canonical_path), "actual": str(worktree_path)},
         )
+
+    admission = admit_work_unit(
+        repository, args.work_unit_id, args.base, branch, worktree_path
+    )
 
     if registered is not None:
         if registered.get("branch") != f"refs/heads/{branch}":
@@ -389,6 +460,7 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             {
                 "baseCommit": base_commit,
                 "baseRef": args.base,
+                "admission": admission,
                 "reused": True,
                 "workUnitId": args.work_unit_id,
             }
@@ -433,6 +505,7 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         {
             "baseCommit": base_commit,
             "baseRef": args.base,
+            "admission": admission,
             "reused": False,
             "workUnitId": args.work_unit_id,
         }

@@ -51,7 +51,7 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
+        "status": "pass",
         "requiredEvidence": [
           "checkpoint success, refusal, race, replay, and inspection test results",
           "admission pre-side-effect and direct-worktree bypass test results",
@@ -61,8 +61,18 @@
         ]
       },
       "attributes": {
-        "status": "pending",
-        "evidence": []
+        "status": "pass",
+        "evidence": [
+          "blocks/evidence/verification.log",
+          "blocks/evidence/worktree-inspect.json"
+        ],
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "6ba5cd24-e854-4162-8aca-6882c063b4dd",
+          "headCommit": "9d45aa7099128ca1c91cd7a63acaf9bfcf82ea1c",
+          "revision": 1,
+          "attempt": 1
+        }
       }
     }
   ],

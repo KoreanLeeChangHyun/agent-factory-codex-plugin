@@ -337,7 +337,7 @@ def validate_execution_state(
     if item is None:
         return None
     content = item.get("content")
-    fields = {
+    required_fields = {
         "contractVersion",
         "state",
         "subject",
@@ -347,11 +347,16 @@ def validate_execution_state(
         "invocationChain",
         "history",
     }
-    if not isinstance(content, dict) or set(content) != fields:
+    optional_fields = {"progress", "recovery"}
+    if (
+        not isinstance(content, dict)
+        or not required_fields.issubset(content)
+        or set(content) - required_fields - optional_fields
+    ):
         raise ManagerError("execution-state/v1 fields do not match the contract")
     if content["contractVersion"] != EXECUTION_STATE_CONTRACT_VERSION:
         raise ManagerError("unsupported execution-state contractVersion")
-    if content["state"] not in {"planned", "running", "review", "done"}:
+    if content["state"] not in {"planned", "running", "blocked", "review", "done"}:
         raise ManagerError("execution-state state is not supported")
     revision = content["currentRevision"]
     attempt = content["currentAttempt"]
@@ -440,7 +445,140 @@ def validate_execution_state(
         raise ManagerError("execution-state history must precede the current attempt")
     if attempt is None and any(identity[0] >= revision for identity in identities):
         raise ManagerError("execution-state history must precede the planned revision")
+    if "progress" in content:
+        validate_execution_progress(content["progress"])
+    if "recovery" in content:
+        validate_recovery_state(content["recovery"], content)
     return item
+
+
+def empty_execution_progress(head_commit: str) -> dict[str, Any]:
+    return {
+        "completedSteps": [],
+        "pendingStep": None,
+        "lastVerifiedHead": head_commit,
+        "checkpoints": [],
+        "retry": {},
+    }
+
+
+def running_recovery(invocation_id: str | None) -> dict[str, Any]:
+    return {
+        "status": "running" if invocation_id else "planned",
+        "ownerInvocationId": invocation_id,
+        "blockerId": None,
+        "evidence": None,
+    }
+
+
+def validate_execution_progress(progress: Any) -> None:
+    fields = {
+        "completedSteps",
+        "pendingStep",
+        "lastVerifiedHead",
+        "checkpoints",
+        "retry",
+    }
+    if not isinstance(progress, dict) or set(progress) != fields:
+        raise ManagerError("execution progress fields do not match the contract")
+    completed = progress["completedSteps"]
+    if (
+        not isinstance(completed, list)
+        or len(completed) != len(set(completed))
+        or not all(isinstance(step, str) and step for step in completed)
+    ):
+        raise ManagerError("execution progress completedSteps is invalid")
+    pending = progress["pendingStep"]
+    if pending is not None and (not isinstance(pending, str) or not pending):
+        raise ManagerError("execution progress pendingStep is invalid")
+    validate_git_commit(progress["lastVerifiedHead"], "last verified repository head")
+    checkpoints = progress["checkpoints"]
+    if not isinstance(checkpoints, list):
+        raise ManagerError("execution progress checkpoints must be an array")
+    identities: set[str] = set()
+    for checkpoint in checkpoints:
+        if not isinstance(checkpoint, dict) or set(checkpoint) != {
+            "stepId",
+            "state",
+            "headCommit",
+            "idempotencyKey",
+        }:
+            raise ManagerError("execution progress checkpoint is invalid")
+        if checkpoint["state"] not in {"pending", "completed"}:
+            raise ManagerError("execution progress checkpoint state is invalid")
+        if not isinstance(checkpoint["stepId"], str) or not checkpoint["stepId"]:
+            raise ManagerError("execution progress checkpoint stepId is invalid")
+        validate_git_commit(checkpoint["headCommit"], "checkpoint headCommit")
+        key = checkpoint["idempotencyKey"]
+        if not isinstance(key, str) or not key or key in identities:
+            raise ManagerError("execution progress idempotency identity is invalid")
+        identities.add(key)
+    retry = progress["retry"]
+    if not isinstance(retry, dict):
+        raise ManagerError("execution progress retry must be an object")
+    for step_id, state in retry.items():
+        if (
+            not isinstance(step_id, str)
+            or not step_id
+            or not isinstance(state, dict)
+            or set(state) != {"count", "maxRetries", "events"}
+            or not isinstance(state["count"], int)
+            or isinstance(state["count"], bool)
+            or state["count"] < 1
+            or not isinstance(state["maxRetries"], int)
+            or isinstance(state["maxRetries"], bool)
+            or state["maxRetries"] < 1
+            or not isinstance(state["events"], list)
+            or state["count"] != len(state["events"])
+        ):
+            raise ManagerError("execution progress retry entry is invalid")
+        identities: set[str] = set()
+        for event in state["events"]:
+            if (
+                not isinstance(event, dict)
+                or set(event)
+                != {"idempotencyKey", "classification", "evidence"}
+                or not isinstance(event["idempotencyKey"], str)
+                or not event["idempotencyKey"]
+                or event["idempotencyKey"] in identities
+                or event["classification"] not in {"transient", "permanent"}
+                or not isinstance(event["evidence"], str)
+                or not event["evidence"]
+            ):
+                raise ManagerError("execution progress retry event is invalid")
+            identities.add(event["idempotencyKey"])
+
+
+def validate_recovery_state(recovery: Any, state: dict[str, Any]) -> None:
+    if not isinstance(recovery, dict) or set(recovery) != {
+        "status",
+        "ownerInvocationId",
+        "blockerId",
+        "evidence",
+    }:
+        raise ManagerError("execution recovery fields do not match the contract")
+    if recovery["status"] not in {"planned", "running", "blocked"}:
+        raise ManagerError("execution recovery status is invalid")
+    owner = recovery["ownerInvocationId"]
+    if owner is not None and (not isinstance(owner, str) or not owner):
+        raise ManagerError("execution recovery ownerInvocationId is invalid")
+    if recovery["status"] == "blocked":
+        if (
+            state["state"] != "blocked"
+            or not isinstance(recovery["blockerId"], str)
+            or not recovery["blockerId"]
+            or not isinstance(recovery["evidence"], str)
+            or not recovery["evidence"]
+        ):
+            raise ManagerError("blocked execution recovery requires blocker evidence")
+    if recovery["status"] == "running" and (
+        not state["invocationChain"] or owner != state["invocationChain"][-1]
+    ):
+        raise ManagerError(
+            "running execution recovery owner must match the latest invocation"
+        )
+    if recovery["status"] == "planned" and owner is not None:
+        raise ManagerError("planned execution recovery must not have an owner")
 
 
 def current_execution_target(package: Path) -> dict[str, Any]:
@@ -578,6 +716,8 @@ def command_execution_init(args: argparse.Namespace) -> None:
         "invocationId": None,
         "invocationChain": [],
         "history": [],
+        "progress": empty_execution_progress(head_commit),
+        "recovery": running_recovery(None),
     }
     base.validate_instance("section", section)
     commit_execution_state(package, section)
@@ -632,6 +772,8 @@ def command_attempt_start(args: argparse.Namespace) -> None:
     content["invocationId"] = args.invocation_id
     content["invocationChain"] = [args.invocation_id]
     content["subject"] = {"algorithm": "gitCommit", "digest": head_commit}
+    content["progress"] = empty_execution_progress(head_commit)
+    content["recovery"] = running_recovery(args.invocation_id)
     commit_execution_state(package, section, status="working", invalidate_outcomes=True)
     print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
 
@@ -662,6 +804,7 @@ def command_attempt_resume(args: argparse.Namespace) -> None:
             "attempt-resume invocationId must be unique in execution history"
         )
     chain.append(args.invocation_id)
+    state["content"]["recovery"] = running_recovery(args.invocation_id)
     commit_execution_state(package, section)
     print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
 
@@ -690,8 +833,302 @@ def command_rework_start(args: argparse.Namespace) -> None:
     content["currentAttempt"] = None
     content["invocationId"] = None
     content["invocationChain"] = []
+    content["progress"] = empty_execution_progress(content["subject"]["digest"])
+    content["recovery"] = running_recovery(None)
     commit_execution_state(package, section, status="working", invalidate_outcomes=True)
     print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def ensure_durable_state(content: dict[str, Any]) -> None:
+    content.setdefault(
+        "progress", empty_execution_progress(content["subject"]["digest"])
+    )
+    content.setdefault("recovery", running_recovery(content.get("invocationId")))
+
+
+def command_execution_progress(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    validate_package(package, full=True)
+    if base.load_metadata(package)["lifecycle"]["status"] != "working":
+        raise ManagerError("execution-progress requires a working Work Unit")
+    if not args.step_id or not args.idempotency_key:
+        raise ManagerError("execution progress identity must be non-empty")
+    head_commit = validate_git_commit(args.head_commit, "--head-commit")
+    validate_current_worktree_head(package, head_commit)
+    path = base.section_path(package, "execution-context")
+    section = base.load_object(path, "execution-context section")
+    state = next(
+        (entry for entry in iter_items(section) if entry["kind"] == "execution-state"),
+        None,
+    )
+    if state is None or state.get("content", {}).get("state") != "running":
+        raise ManagerError("execution-progress requires a running execution attempt")
+    content = state["content"]
+    ensure_durable_state(content)
+    progress = content["progress"]
+    checkpoint = {
+        "stepId": args.step_id,
+        "state": args.state,
+        "headCommit": head_commit,
+        "idempotencyKey": args.idempotency_key,
+    }
+    existing = next(
+        (
+            entry
+            for entry in progress["checkpoints"]
+            if entry["idempotencyKey"] == args.idempotency_key
+        ),
+        None,
+    )
+    if existing is not None:
+        if existing != checkpoint:
+            raise ManagerError(
+                "execution progress idempotency identity conflicts with prior checkpoint"
+            )
+        print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+        return
+    if args.state == "pending":
+        progress["pendingStep"] = args.step_id
+    else:
+        if args.step_id not in progress["completedSteps"]:
+            progress["completedSteps"].append(args.step_id)
+        if progress["pendingStep"] == args.step_id:
+            progress["pendingStep"] = None
+    progress["lastVerifiedHead"] = head_commit
+    progress["checkpoints"].append(checkpoint)
+    content["recovery"] = running_recovery(content["invocationChain"][-1])
+    commit_execution_state(package, section)
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def command_execution_failure(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    validate_package(package, full=True)
+    if base.load_metadata(package)["lifecycle"]["status"] != "working":
+        raise ManagerError("execution-failure requires a working Work Unit")
+    if not args.step_id or not args.evidence or not args.idempotency_key:
+        raise ManagerError(
+            "execution failure requires step, evidence, and idempotency identity"
+        )
+    if args.max_retries < 1:
+        raise ManagerError("--max-retries must be a positive integer")
+    path = base.section_path(package, "execution-context")
+    section = base.load_object(path, "execution-context section")
+    state = next(
+        (entry for entry in iter_items(section) if entry["kind"] == "execution-state"),
+        None,
+    )
+    if state is None or state.get("content", {}).get("state") != "running":
+        raise ManagerError("execution-failure requires a running execution attempt")
+    content = state["content"]
+    ensure_durable_state(content)
+    progress = content["progress"]
+    previous = progress["retry"].get(args.step_id)
+    event = {
+        "idempotencyKey": args.idempotency_key,
+        "classification": args.classification,
+        "evidence": args.evidence,
+    }
+    if previous is not None:
+        if previous["maxRetries"] != args.max_retries:
+            raise ManagerError("execution failure retry policy cannot change")
+        existing = next(
+            (
+                candidate
+                for candidate in previous["events"]
+                if candidate["idempotencyKey"] == args.idempotency_key
+            ),
+            None,
+        )
+        if existing is not None:
+            if existing != event:
+                raise ManagerError(
+                    "execution failure idempotency identity conflicts with prior event"
+                )
+            print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+            return
+        events = [*previous["events"], event]
+    else:
+        events = [event]
+    count = len(events)
+    progress["retry"][args.step_id] = {
+        "count": count,
+        "maxRetries": args.max_retries,
+        "events": events,
+    }
+    progress["pendingStep"] = args.step_id
+    should_block = args.classification == "permanent" or count >= args.max_retries
+    if not should_block:
+        commit_execution_state(package, section)
+        print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+        return
+    if not args.blocker_id:
+        raise ManagerError(
+            "exhausted or permanent execution failure requires --blocker-id"
+        )
+    execution_path = base.section_path(package, "execution")
+    execution = base.load_object(execution_path, "execution section")
+    if any(item["id"] == args.blocker_id for item in iter_items(execution)):
+        raise ManagerError("execution blocker id already exists")
+    execution["content"].append(
+        {
+            "id": args.blocker_id,
+            "kind": "open-item",
+            "content": {
+                "stepId": args.step_id,
+                "classification": args.classification,
+                "retryCount": count,
+                "maxRetries": args.max_retries,
+                "evidence": args.evidence,
+            },
+            "attributes": {"blocking": True, "resolved": False},
+        }
+    )
+    content["state"] = "blocked"
+    content["recovery"] = {
+        "status": "blocked",
+        "ownerInvocationId": content["invocationChain"][-1],
+        "blockerId": args.blocker_id,
+        "evidence": args.evidence,
+    }
+    base.validate_instance("section", execution)
+    base.validate_instance("section", section)
+    writes = {
+        path: section,
+        execution_path: execution,
+        package / base.METADATA_PATH: execution_metadata(package, "blocked"),
+    }
+    base.commit_transaction(package, json_writes=writes, full_validation=True)
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def command_blocker_resolve(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    validate_package(package, full=True)
+    if base.load_metadata(package)["lifecycle"]["status"] != "blocked":
+        raise ManagerError("blocker-resolve requires a blocked Work Unit")
+    if not args.resolution_evidence or not args.invocation_id:
+        raise ManagerError(
+            "blocker-resolve requires resolution evidence and invocation identity"
+        )
+    execution_path = base.section_path(package, "execution")
+    execution = base.load_object(execution_path, "execution section")
+    blocker = next(
+        (
+            item
+            for item in iter_items(execution)
+            if item["kind"] == "open-item" and item["id"] == args.blocker_id
+        ),
+        None,
+    )
+    if blocker is None or blocker.get("attributes", {}).get("resolved") is True:
+        raise ManagerError("blocker-resolve requires an unresolved blocking item")
+    context_path = base.section_path(package, "execution-context")
+    context = base.load_object(context_path, "execution-context section")
+    state = next(
+        (item for item in iter_items(context) if item["kind"] == "execution-state"),
+        None,
+    )
+    if (
+        state is None
+        or state.get("content", {}).get("state") != "blocked"
+        or state["content"].get("recovery", {}).get("blockerId") != args.blocker_id
+    ):
+        raise ManagerError("blocker-resolve does not match blocked execution state")
+    other_blockers = [
+        item["id"]
+        for item in iter_items(execution)
+        if item["kind"] == "open-item"
+        and item["id"] != args.blocker_id
+        and item.get("attributes", {}).get("blocking") is True
+        and item.get("attributes", {}).get("resolved") is not True
+    ]
+    if other_blockers:
+        raise ManagerError(
+            "blocker-resolve cannot resume while other blocking items remain: "
+            + ", ".join(other_blockers)
+        )
+    content = state["content"]
+    used = set(content["invocationChain"])
+    for record in content["history"]:
+        used.update(record["invocationChain"])
+    if args.invocation_id in used:
+        raise ManagerError("blocker-resolve invocationId must be unique")
+    blocker["attributes"]["resolved"] = True
+    blocker["content"]["resolutionEvidence"] = args.resolution_evidence
+    content["state"] = "running"
+    content["invocationChain"].append(args.invocation_id)
+    content["recovery"] = running_recovery(args.invocation_id)
+    base.validate_instance("section", execution)
+    base.validate_instance("section", context)
+    writes = {
+        execution_path: execution,
+        context_path: context,
+        package / base.METADATA_PATH: execution_metadata(package, "working"),
+    }
+    base.commit_transaction(package, json_writes=writes, full_validation=True)
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
+def command_admit(args: argparse.Namespace) -> None:
+    package = resolve_package(args.package)
+    result = validate_package(package, full=True)
+    metadata = base.load_metadata(package)
+    if metadata["lifecycle"]["status"] != "ready":
+        raise ManagerError("execution admission requires a ready Work Unit")
+    validate_ready_semantics(package)
+    context_item = find_kind(package, "execution-context")
+    assert context_item is not None
+    context = context_item["content"]
+    expected = {
+        "repository": str(Path(args.repository).resolve()),
+        "baseRef": args.base,
+        "branch": args.branch,
+        "worktreePath": str(Path(args.path).resolve()),
+    }
+    mismatches = {
+        key: {"expected": value, "actual": context.get(key)}
+        for key, value in expected.items()
+        if context.get(key) != value
+    }
+    if metadata["id"] != args.work_unit_id or package.name != args.work_unit_id:
+        mismatches["workUnitId"] = {
+            "expected": args.work_unit_id,
+            "actual": metadata["id"],
+        }
+    if mismatches:
+        raise ManagerError(f"execution admission context mismatch: {mismatches}")
+    repository = Path(args.repository).resolve()
+    relative = package.relative_to(repository)
+    base_check = subprocess.run(
+        ["git", "-C", str(repository), "cat-file", "-e", f"{args.base}:{relative}"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if base_check.returncode != 0:
+        raise ManagerError("execution admission base does not contain Work Unit package")
+    diff = subprocess.run(
+        ["git", "-C", str(repository), "diff", "--quiet", args.base, "--", str(relative)],
+        check=False,
+    )
+    if diff.returncode != 0:
+        raise ManagerError(
+            "execution admission package differs from the requested base"
+        )
+    print(
+        json.dumps(
+            {
+                **result,
+                "admitted": True,
+                "repository": str(repository),
+                "baseRef": args.base,
+                "branch": args.branch,
+                "worktreePath": args.path,
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 def item_kinds(value: Any) -> set[str]:
@@ -807,9 +1244,37 @@ def validate_ready_semantics(package: Path) -> None:
         Path(os.path.abspath(repository)) / ".agent-factory" / "worktree" / package.name
     )
     if Path(os.path.abspath(worktree_path)) != expected_worktree_path:
-        raise ManagerError(
-            f"execution context worktreePath must equal {expected_worktree_path}"
+        recorded = Path(os.path.abspath(worktree_path))
+        listing = subprocess.run(
+            [
+                "git",
+                "-C",
+                repository,
+                "worktree",
+                "list",
+                "--porcelain",
+                "-z",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
         )
+        raw = listing.stdout
+        matches = [
+            record
+            for record in raw.split(b"\0\0")
+            if f"worktree {recorded}\0".encode() in record + b"\0"
+            and f"branch refs/heads/{expected_branch}".encode() in record
+        ]
+        if (
+            listing.returncode != 0
+            or len(matches) != 1
+        ):
+            raise ManagerError(
+                f"execution context worktreePath must equal {expected_worktree_path} "
+                "unless it identifies the registered legacy worktree for the "
+                "derived branch"
+            )
     invocation = context["content"]["execInvocation"]
     if not isinstance(invocation, str) or not invocation.strip():
         raise ManagerError(
@@ -1162,7 +1627,7 @@ def validate_package(
     if status == "ready":
         validate_ready_semantics(package)
         validate_execution_state(package)
-    if status in {"working", "review"}:
+    if status in {"working", "review", "blocked"}:
         validate_execution_state(package, required=True)
     if status in {"review", "done"}:
         validate_review_semantics(package)
@@ -1367,6 +1832,40 @@ def parser() -> argparse.ArgumentParser:
     attempt_resume.add_argument("package")
     attempt_resume.add_argument("--invocation-id", required=True)
     attempt_resume.set_defaults(handler=command_attempt_resume)
+    execution_progress = commands.add_parser("execution-progress")
+    execution_progress.add_argument("package")
+    execution_progress.add_argument("--step-id", required=True)
+    execution_progress.add_argument(
+        "--state", required=True, choices=["pending", "completed"]
+    )
+    execution_progress.add_argument("--head-commit", required=True)
+    execution_progress.add_argument("--idempotency-key", required=True)
+    execution_progress.set_defaults(handler=command_execution_progress)
+    execution_failure = commands.add_parser("execution-failure")
+    execution_failure.add_argument("package")
+    execution_failure.add_argument("--step-id", required=True)
+    execution_failure.add_argument(
+        "--classification", required=True, choices=["transient", "permanent"]
+    )
+    execution_failure.add_argument("--max-retries", required=True, type=int)
+    execution_failure.add_argument("--evidence", required=True)
+    execution_failure.add_argument("--idempotency-key", required=True)
+    execution_failure.add_argument("--blocker-id")
+    execution_failure.set_defaults(handler=command_execution_failure)
+    blocker_resolve = commands.add_parser("blocker-resolve")
+    blocker_resolve.add_argument("package")
+    blocker_resolve.add_argument("--blocker-id", required=True)
+    blocker_resolve.add_argument("--resolution-evidence", required=True)
+    blocker_resolve.add_argument("--invocation-id", required=True)
+    blocker_resolve.set_defaults(handler=command_blocker_resolve)
+    admit = commands.add_parser("admit")
+    admit.add_argument("package")
+    admit.add_argument("--repository", required=True)
+    admit.add_argument("--work-unit-id", required=True)
+    admit.add_argument("--base", required=True)
+    admit.add_argument("--branch", required=True)
+    admit.add_argument("--path", required=True)
+    admit.set_defaults(handler=command_admit)
     rework_start = commands.add_parser("rework-start")
     rework_start.add_argument("package")
     rework_start.add_argument("--human-decision", choices=["approved"])

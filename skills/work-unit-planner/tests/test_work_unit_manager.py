@@ -1558,6 +1558,128 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("table of contents integrity", result.stderr)
 
+    def test_durable_progress_replay_and_blocked_attempt_resume(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            self.initialize_and_start_execution(package)
+            head = self.prepared_worktree_head(package)
+
+            pending = run_cli(
+                "execution-progress",
+                str(package),
+                "--step-id",
+                "work",
+                "--state",
+                "pending",
+                "--head-commit",
+                head,
+                "--idempotency-key",
+                "revision-1-attempt-1-work",
+            )
+            self.assertEqual(json.loads(pending.stdout)["status"], "working")
+            metadata_path = package / "data" / "metadata.json"
+            version = json.loads(metadata_path.read_text())["documentVersion"]
+            replay = run_cli(
+                "execution-progress",
+                str(package),
+                "--step-id",
+                "work",
+                "--state",
+                "pending",
+                "--head-commit",
+                head,
+                "--idempotency-key",
+                "revision-1-attempt-1-work",
+            )
+            self.assertEqual(json.loads(replay.stdout)["status"], "working")
+            self.assertEqual(
+                json.loads(metadata_path.read_text())["documentVersion"], version
+            )
+
+            first_failure = json.loads(
+                run_cli(
+                    "execution-failure",
+                    str(package),
+                    "--step-id",
+                    "work",
+                    "--classification",
+                    "transient",
+                    "--max-retries",
+                    "2",
+                    "--evidence",
+                    "temporary timeout",
+                    "--idempotency-key",
+                    "work-failure-1",
+                ).stdout
+            )
+            self.assertEqual(first_failure["status"], "working")
+            replayed_failure = json.loads(
+                run_cli(
+                    "execution-failure",
+                    str(package),
+                    "--step-id",
+                    "work",
+                    "--classification",
+                    "transient",
+                    "--max-retries",
+                    "2",
+                    "--evidence",
+                    "temporary timeout",
+                    "--idempotency-key",
+                    "work-failure-1",
+                ).stdout
+            )
+            self.assertEqual(replayed_failure["status"], "working")
+            blocked = json.loads(
+                run_cli(
+                    "execution-failure",
+                    str(package),
+                    "--step-id",
+                    "work",
+                    "--classification",
+                    "transient",
+                    "--max-retries",
+                    "2",
+                    "--evidence",
+                    "retry exhausted",
+                    "--idempotency-key",
+                    "work-failure-2",
+                    "--blocker-id",
+                    "BLOCKER-001",
+                ).stdout
+            )
+            self.assertEqual(blocked["status"], "blocked")
+
+            resumed = json.loads(
+                run_cli(
+                    "blocker-resolve",
+                    str(package),
+                    "--blocker-id",
+                    "BLOCKER-001",
+                    "--resolution-evidence",
+                    "dependency recovered",
+                    "--invocation-id",
+                    "session-2",
+                ).stdout
+            )
+            self.assertEqual(resumed["status"], "working")
+            shown = json.loads(
+                run_cli("show", str(package), "--section", "execution-context").stdout
+            )
+            state = next(
+                entry for entry in shown["content"] if entry["kind"] == "execution-state"
+            )["content"]
+            self.assertEqual(state["currentRevision"], 1)
+            self.assertEqual(state["currentAttempt"], 1)
+            self.assertEqual(state["invocationChain"], ["session-1", "session-2"])
+            self.assertEqual(state["progress"]["pendingStep"], "work")
+            self.assertEqual(state["progress"]["retry"]["work"]["count"], 2)
+            self.assertEqual(state["recovery"]["status"], "running")
+
 
 if __name__ == "__main__":
     unittest.main()

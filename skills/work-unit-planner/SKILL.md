@@ -89,6 +89,17 @@ is invalid. TOC array order owns document order.
   current attempt, increments revision, clears attempt identity, and
   invalidates current execution, quality, AI review, report, and Human review
   results in one transaction.
+- `admit` is the machine-readable initial execution gate. It full-validates the
+  canonical package and ready semantics, verifies the same Work Unit id,
+  repository, base, branch, worktree path, and committed base content, and
+  performs no mutation. `worktree.py prepare` must obtain this result before
+  its first Git mutation.
+- `execution-progress` durably records pending and completed steps, the last
+  verified repository head, and stable idempotency identities.
+  `execution-failure` records bounded transient retry state and atomically
+  creates an evidence-backed blocker when retry is exhausted or the failure is
+  permanent. `blocker-resolve` preserves the active revision and attempt while
+  assigning recovery to a new invocation and returning `blocked` to `working`.
 - `execution-init` and `attempt-start` resolve `git rev-parse HEAD` in the
   recorded prepared worktree and reject a supplied `--head-commit` that does
   not exactly match it. Before Human approval, a failed `review` audit may use

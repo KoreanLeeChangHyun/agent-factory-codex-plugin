@@ -151,6 +151,20 @@ Use these routes:
 
 - Do not jump from idea to implementation unless the user explicitly asks to
   bypass the lifecycle.
+- Before the first named Work Unit execution, checkpoint the fully validated
+  `ready` Intake and then the fully validated `ready` Work Unit as two separate
+  commits on `main` with
+  `assets/scripts/artifact_handoff.py checkpoint`. Before each commit, show the
+  exact canonical package path, full-validation result, and exact commit
+  message, then require that checkpoint's explicit Human approval. One approval
+  never authorizes the other checkpoint, integration, cleanup, push, or PR
+  promotion.
+- The handoff command commits only the owning manager's exact canonical file
+  set, refuses pre-existing staged changes and package symlinks, verifies staged
+  bytes against the validated snapshot, restores its package index entries on
+  failure, and returns one machine-readable receipt. Use its read-only
+  `inspect` command in a fresh session to reconstruct the Work Unit checkpoint
+  commit and pass that exact commit as the initial worktree base.
 - Keep Agent Factory lifecycle records under
   `<project-root>/.agent-factory/`.
 - Use these canonical artifact roots:
@@ -187,6 +201,11 @@ Use these routes:
   explicitly recorded registered legacy path only for reuse, inspection, or
   Human-approved cleanup. Record the returned canonical JSON in the Work Unit
   evidence.
+- Initial execution admission is mechanical, not only instructional:
+  `worktree.py prepare` calls the Work Unit manager's full-ready admission gate
+  before branch, worktree, execution-state, attempt, or scoped mutation. A
+  ready, explicitly requested Work Unit proceeds without asking again about
+  decisions already settled in its canonical package.
 - Initialize active `execution-state/v1` with the inspected Git head before the
   first attempt. A new non-resume invocation starts or retries an attempt;
   `codex exec resume` extends the current invocation chain. Human rework uses
@@ -222,6 +241,13 @@ Use these routes:
   a Human review method that explains what to inspect, how to inspect it, and
   which approval, rework, merge, or PR promotion decisions remain with the
   Human during Review.
+- After `attempt-start`, record each pending or completed externally visible
+  step with its repository head and stable idempotency identity. Transient
+  failures use a recorded bounded retry count; permanent or exhausted failures
+  atomically create an evidence-backed blocking item and enter `blocked`.
+  `blocker-resolve` preserves the revision and attempt, records resolution
+  evidence, assigns a new recovery invocation owner, and returns the Work Unit
+  to `working`.
 - Treat the Work Unit as AI-successful and ready for Human review when the
   scoped work, verification evidence, Human checklist, and Human review method
   are ready. Do not block or fail AI completion merely because Human final

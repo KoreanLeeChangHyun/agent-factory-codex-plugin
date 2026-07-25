@@ -6,14 +6,29 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "complete",
+        "summary": "두 단계 lifecycle checkpoint와 read-only inspection, full-ready Work Unit admission, durable step progress, 멱등 bounded retry, 근거 기반 blocked 전환 및 동일 attempt 복구 계약을 구현하고 검증했습니다.",
+        "registrationDelta": [
+          "첫 inspect 이후 changed-path 집합에 새로 추가된 경로는 blocks/evidence/worktree-inspect.json 하나이며, blocks/index.json과 metadata/report 경로는 첫 집합에 이미 포함되어 있었습니다."
+        ],
         "remainingRisks": [
-          "Implementation, verification, AI review, Human approval, integration, and publication decisions remain pending."
+          "Human의 Work Unit 결과 승인 또는 rework 결정이 남아 있습니다.",
+          "integration, cleanup, push, publication, PR promotion은 각각 별도 Human 결정입니다."
         ]
       },
       "attributes": {
-        "verificationResult": "pending"
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/verification.log",
+          "blocks/evidence/worktree-inspect.json"
+        ],
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "6ba5cd24-e854-4162-8aca-6882c063b4dd",
+          "headCommit": "9d45aa7099128ca1c91cd7a63acaf9bfcf82ea1c",
+          "revision": 1,
+          "attempt": 1
+        }
       }
     }
   ],

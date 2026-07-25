@@ -102,6 +102,13 @@ Active execution also stores one manager-owned `execution-state` item:
 }
 ```
 
+Newly initialized state also carries `progress` and `recovery`. `progress`
+owns ordered durable checkpoints, completed steps, the current pending step,
+the last verified Git head, per-step bounded retry state, and stable
+idempotency keys. `recovery` owns the current invocation, blocking item, and
+exact blocking evidence. Existing v4 history without these optional fields
+remains readable; the first durable progress command upgrades the active state.
+
 This item contract version is independent of package `schemaVersion: 4.0.0`.
 Consumers that do not find the item may render an existing terminal v4 package
 as legacy history. Consumers that find an unknown `contractVersion` must show
@@ -156,6 +163,15 @@ backlog -> ready -> working -> review -> done
   worktree's actual `HEAD` and reject a mismatched `--head-commit`.
 - `attempt-resume`: working only; appends a new Codex session id to the current
   attempt's invocation chain without changing attempt or primary invocation.
+- `execution-progress`: working only; records a pending or completed step,
+  current worktree head, and stable idempotency key. Exact replay is a no-op;
+  conflicting reuse is refused.
+- `execution-failure`: working only; increments a bounded retry record.
+  Permanent failure or retry exhaustion requires a blocker id and atomically
+  records an unresolved blocking item, recovery evidence, and `blocked`.
+- `blocker-resolve`: blocked only; records resolution evidence, resolves the
+  matching blocker, appends a unique recovery invocation, preserves revision
+  and attempt, and returns to `working`.
 - `rework-start --human-decision approved`: review only; archives the reviewed
   attempt, increments revision, clears attempt identity, invalidates current
   results and approval, and returns the package to working atomically. A later
@@ -192,6 +208,17 @@ python3 assets/scripts/work_unit.py attempt-start <package> \
   --invocation-id <execution-invocation-id> --head-commit <inspected-head-commit>
 python3 assets/scripts/work_unit.py attempt-resume <package> \
   --invocation-id <resumed-codex-session-id>
+python3 assets/scripts/work_unit.py execution-progress <package> \
+  --step-id <step-id> --state <pending|completed> \
+  --head-commit <inspected-head-commit> --idempotency-key <stable-key>
+python3 assets/scripts/work_unit.py execution-failure <package> \
+  --step-id <step-id> --classification <transient|permanent> \
+  --max-retries <positive-integer> --evidence <exact-evidence> \
+  --idempotency-key <stable-failure-key> \
+  [--blocker-id <blocking-open-item-id>]
+python3 assets/scripts/work_unit.py blocker-resolve <package> \
+  --blocker-id <id> --resolution-evidence <evidence> \
+  --invocation-id <new-recovery-invocation-id>
 python3 assets/scripts/work_unit.py rework-start <package> \
   --human-decision approved
 ```

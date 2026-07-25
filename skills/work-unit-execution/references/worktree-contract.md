@@ -26,6 +26,14 @@ must ignore `/.agent-factory/worktree/`. Existing registered external
 worktrees remain addressable through their explicitly recorded `--path` for
 reuse, inspection, and Human-approved cleanup.
 
+Before `prepare` mutates Git, it invokes the Work Unit manager's `admit`
+command for the canonical
+`<repository>/.agent-factory/work-units/<work-unit-id>` package. Admission
+requires full validation, ready semantics, the same repository, base ref,
+derived branch, recorded worktree path, and package content present unchanged
+at the requested base. The successful admission evidence is returned in the
+prepare context.
+
 ## Output Contract
 
 Every response uses schema version `1.0.0` and these top-level fields:
@@ -86,6 +94,7 @@ The script performs no requested mutation when preflight validation returns:
 - `invalid_branch`
 - `invalid_target_branch`
 - `branch_derivation_mismatch`
+- `work_unit_admission_refused`
 - `branch_collision`
 - `worktree_collision`
 - `path_collision`
