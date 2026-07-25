@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.46",
+  "documentVersion": "1.0.49",
   "id": "require-goal-for-work-unit-execution",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "review"
+    "status": "done"
   },
   "createdAt": "2026-07-20T18:07:07+00:00",
-  "updatedAt": "2026-07-20T18:16:45+00:00",
+  "updatedAt": "2026-07-25T11:14:54+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

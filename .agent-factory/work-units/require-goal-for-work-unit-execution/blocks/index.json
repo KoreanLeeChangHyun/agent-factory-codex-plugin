@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/integration-main.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "93574dc951a811d7847765bb0206f39bebd72d06a50f41eda3bb0908756e7eee",
+      "sizeBytes": 751
+    },
+    {
       "path": "blocks/evidence/verification-attempt-2.txt",
       "mediaType": "text/plain",
       "description": "Goal 필수 실행 계약의 focused 및 full verification output",
