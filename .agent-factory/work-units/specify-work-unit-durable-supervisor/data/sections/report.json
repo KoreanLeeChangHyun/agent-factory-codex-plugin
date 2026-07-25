@@ -41,6 +41,29 @@
           "blocks/evidence/worktree-inspect-final.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-651965B03B4A3FD7",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/specify-work-unit-durable-supervisor",
+        "sourceCommit": "302c69e71fcc2b04bb735fb7bd619dd91f97a9f3",
+        "strategy": "ff-only",
+        "targetAfterCommit": "302c69e71fcc2b04bb735fb7bd619dd91f97a9f3",
+        "targetBeforeCommit": "8a78aa952741940b5b74ac0c9fd3ca06c90d8d24",
+        "targetBranch": "main",
+        "workUnitId": "specify-work-unit-durable-supervisor",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/specify-work-unit-durable-supervisor",
+        "receiptSha256": "651965b03b4a3fd72b86313d9b61376b500ffe6d5a396dcbfde4ea51313d10e0"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/evidence/integration-main.json"
     }
   ],
   "subsections": []

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.55",
+  "documentVersion": "1.0.56",
   "id": "specify-work-unit-durable-supervisor",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-25T10:12:25+00:00",
-  "updatedAt": "2026-07-25T10:45:08+00:00",
+  "updatedAt": "2026-07-25T10:46:10+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

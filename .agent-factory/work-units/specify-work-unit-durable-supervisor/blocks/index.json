@@ -8,6 +8,13 @@
       "sizeBytes": 3651
     },
     {
+      "path": "blocks/evidence/integration-main.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "651965b03b4a3fd72b86313d9b61376b500ffe6d5a396dcbfde4ea51313d10e0",
+      "sizeBytes": 6925
+    },
+    {
       "path": "blocks/evidence/specification-semantic-review.json",
       "mediaType": "application/json",
       "description": "Machine-readable semantic review assertions and canonical hashes",
