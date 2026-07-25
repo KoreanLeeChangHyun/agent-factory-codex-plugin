@@ -36,11 +36,20 @@
       "id": "HUMAN-RESULT-001",
       "kind": "human-review-result",
       "content": {
-        "status": "pending",
-        "decision": "Human review required"
+        "status": "approved",
+        "decision": "Work Unit 결과 승인 및 main 병합 요청",
+        "humanEvidence": "병합해보세요"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "codex-goal-019f93fe-1417-7ec1-9755-460cbffcd588",
+          "headCommit": "8a78aa952741940b5b74ac0c9fd3ca06c90d8d24"
+        },
+        "approvedAt": "2026-07-25T10:45:09+00:00"
       }
     }
   ],

@@ -7,20 +7,21 @@
       "kind": "report-result",
       "content": {
         "status": "complete",
-        "summary": "Project Core, system-architecture profile과 governed Durable Execution Supervisor Specification을 생성하고 계획된 verification과 AI review를 통과해 Human review-ready로 준비했다.",
+        "summary": "Project Core, system-architecture profile과 governed Durable Execution Supervisor Specification이 verification과 AI review를 통과했고 Human이 결과를 승인해 main 병합을 요청했다.",
         "evidenceRegistrationDelta": "첫 final inspect 뒤 blocks/evidence/worktree-inspect-final.json 한 경로만 추가됐고 기존 changed path는 제거되지 않았다. report 갱신은 이미 보고된 report path 안에서 이루어졌다.",
         "completed": [
           "system-architecture profile contract와 9-test regression suite",
           "canonical Project Core full validation",
           "governed Durable Execution Supervisor Specification full validation",
           "OPEN-001 SessionStart(startup|resume), PLUGIN_ROOT·PLUGIN_DATA와 direct --data-dir contract resolution",
-          "admission, SQLite journal, ownership fencing, recovery, idempotency, security, observability와 fault matrix specification"
+          "admission, SQLite journal, ownership fencing, recovery, idempotency, security, observability와 fault matrix specification",
+          "Human review approval and merge request"
         ],
         "remainingRisks": [
           "Supervisor runtime, plugin hook file, lifecycle integration과 process-level fault tests는 후속 Work Unit 범위다.",
           "lease·heartbeat·retry timing과 descriptor-safe supported platform matrix는 구현 검증에서 확정해야 한다.",
           "Codex process가 전혀 없을 때 unattended self-relaunch와 host·disk loss recovery는 보장 범위 밖이다.",
-          "Human review, approval, integration과 cleanup은 pending이다."
+          "integration receipt 등록과 cleanup은 별도 lifecycle 단계로 남아 있다."
         ]
       },
       "attributes": {
