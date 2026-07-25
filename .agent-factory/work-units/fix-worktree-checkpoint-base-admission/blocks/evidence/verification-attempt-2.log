@@ -1,0 +1,38 @@
+Work Unit: fix-worktree-checkpoint-base-admission
+Execution target commit: 1c028a87d4ae61917be8547e3ebdda435359e648
+
+TDD red
+Command: pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py -k admission
+Result before implementation: 2 failed, 23 deselected in 64.09s
+Observed failures:
+- exact checkpoint hash was refused because expected baseRef was the hash while actual baseRef was main
+- advanced main was admitted instead of being refused
+
+Focused verification
+Command: pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py -k admission
+Result: 3 passed, 23 deselected in 134.81s
+
+Command: pytest -q skills/work-unit-execution/tests/test_worktree.py -k base
+Result: 3 passed, 33 deselected in 45.46s
+
+Full related regression
+Command: pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py
+Result: 26 passed in 993.25s
+
+Command: pytest -q skills/work-unit-execution/tests/test_worktree.py
+Result: 36 passed in 161.69s
+
+Skill validation
+Command: python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-planner
+Result: Skill is valid!
+
+Command: python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-execution
+Result: Skill is valid!
+
+Diff validation
+Command: git diff --check
+Result: passed
+
+Actual package replay
+Command: python3 skills/work-unit-planner/assets/scripts/work_unit.py admit /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/work-units/fix-worktree-checkpoint-base-admission --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id fix-worktree-checkpoint-base-admission --base 26ec224f2c2208b67b7f986731310d20a4ae5e15 --branch work-unit/fix-worktree-checkpoint-base-admission --path /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-worktree-checkpoint-base-admission
+Result: admitted=true; baseRef=main; requestedBase=26ec224f2c2208b67b7f986731310d20a4ae5e15; checkpointCommit=26ec224f2c2208b67b7f986731310d20a4ae5e15

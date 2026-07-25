@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification-attempt-2.log",
+      "mediaType": "text/plain",
+      "description": "Attempt 2 TDD, regression, skill validation, diff, and actual admission evidence",
+      "sha256": "a9405ece8ed40f6c70ac669877baec7b3721fba5f2d7e7dea07bc9f443613887",
+      "sizeBytes": 2020
+    },
+    {
+      "path": "blocks/evidence/worktree-final-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final pre-registration Work Unit worktree inspect receipt",
+      "sha256": "5122d611bd9a84e09128a0711abfefec5c7152e5b156b796781cd3c272a5f144",
+      "sizeBytes": 1704
+    }
+  ]
 }

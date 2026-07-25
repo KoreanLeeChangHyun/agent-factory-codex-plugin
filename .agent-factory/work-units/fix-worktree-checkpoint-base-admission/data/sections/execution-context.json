@@ -18,6 +18,137 @@
         "setupState": "not-prepared",
         "cleanupState": "not-requested"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "review",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "1c028a87d4ae61917be8547e3ebdda435359e648"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 2,
+        "invocationId": "codex-exec-fix-worktree-checkpoint-base-admission-20260726T0010KST",
+        "invocationChain": [
+          "codex-exec-fix-worktree-checkpoint-base-admission-20260726T0010KST"
+        ],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "codex-exec-fix-worktree-checkpoint-base-admission-20260725T2320KST",
+            "invocationChain": [
+              "codex-exec-fix-worktree-checkpoint-base-admission-20260725T2320KST"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "26ec224f2c2208b67b7f986731310d20a4ae5e15"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "pending",
+                  "changedArtifacts": [],
+                  "testsRun": []
+                },
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "planned",
+                  "requiredEvidence": [
+                    "failing-then-passing exact checkpoint admission regression",
+                    "manager and worktree focused test results",
+                    "two skill validation results",
+                    "changed-path and diff review"
+                  ]
+                },
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "findings": []
+                },
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "remainingRisks": [
+                    "Implementation, verification, AI review, Human approval, integration, and cleanup decisions remain pending."
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ],
+        "progress": {
+          "completedSteps": [
+            "implementation-and-verification",
+            "review-material-ready"
+          ],
+          "pendingStep": null,
+          "lastVerifiedHead": "1c028a87d4ae61917be8547e3ebdda435359e648",
+          "checkpoints": [
+            {
+              "stepId": "implementation-and-verification",
+              "state": "completed",
+              "headCommit": "1c028a87d4ae61917be8547e3ebdda435359e648",
+              "idempotencyKey": "fix-worktree-checkpoint-base-admission:r1:a2:implementation-verified:v1"
+            },
+            {
+              "stepId": "review-material-ready",
+              "state": "completed",
+              "headCommit": "1c028a87d4ae61917be8547e3ebdda435359e648",
+              "idempotencyKey": "fix-worktree-checkpoint-base-admission:r1:a2:review-material-ready:v1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "codex-exec-fix-worktree-checkpoint-base-admission-20260726T0010KST",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

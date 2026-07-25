@@ -6,10 +6,11 @@
       "id": "HUMAN-CHECK-001",
       "kind": "human-checklist",
       "content": [
-        "recorded baseRef main과 exact checkpoint hash 조합이 admission되는지 확인합니다.",
-        "main이 unrelated commit으로 전진해도 exact latest package checkpoint가 admission되는지 확인합니다.",
-        "stale, unreachable, unresolved, missing-package, drifted base가 mutation 전에 거절되는지 확인합니다.",
-        "active skill 문구와 변경 범위, 테스트 증거를 확인합니다."
+        "work_unit.py diff에서 recorded baseRef 문자열 비교가 제거되고 requested commit과 latest package checkpoint 비교로 대체됐는지 확인합니다.",
+        "unrelated commit으로 main이 전진한 뒤 exact hash는 승인되고 main 직접 입력은 mutation 전에 거절되는지 테스트를 확인합니다.",
+        "stale, unreachable, package 생성 전 commit, current package drift가 모두 거절되는지 확인합니다.",
+        "planner/execution SKILL.md와 reference가 symbolic baseRef와 exact checkpoint 역할을 동일하게 설명하는지 확인합니다.",
+        "변경 파일 7개와 검증 로그를 확인하고 approve 또는 rework를 결정합니다."
       ]
     },
     {
@@ -17,9 +18,10 @@
       "kind": "human-review-method",
       "content": {
         "inspect": [
-          "manager admission implementation과 manager/worktree test diff를 비교합니다.",
-          "planner/execution skill과 reference의 symbolic-ref/exact-checkpoint 역할을 확인합니다.",
-          "검증 evidence를 확인하고 승인 또는 rework를 결정합니다. integration과 cleanup은 별도 Human 결정입니다."
+          "skills/work-unit-planner/assets/scripts/work_unit.py와 두 테스트 파일의 diff를 비교합니다.",
+          "blocks/evidence/verification-attempt-2.log에서 TDD red, focused 6개, 전체 62개, 두 skill validation, actual package replay 결과를 확인합니다.",
+          "두 SKILL.md와 두 reference의 symbolic-ref/exact-checkpoint 문구를 확인합니다.",
+          "구현 결과의 approve 또는 rework를 결정합니다. main integration과 linked worktree cleanup은 별도 Human 결정입니다."
         ]
       }
     },

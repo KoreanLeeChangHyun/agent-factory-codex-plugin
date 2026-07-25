@@ -39,17 +39,27 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "failing-then-passing exact checkpoint admission regression",
-          "manager and worktree focused test results",
-          "two skill validation results",
-          "changed-path and diff review"
+        "status": "pass",
+        "verified": [
+          "exact checkpoint admission 회귀 테스트가 구현 전 실패하고 구현 후 통과했다.",
+          "focused manager 3개와 worktree base 3개 테스트가 통과했다.",
+          "planner 전체 26개와 execution 전체 36개 회귀 테스트가 통과했다.",
+          "두 스킬 quick validation과 git diff --check가 통과했다.",
+          "실제 ready Work Unit 패키지에서 이전에 거절된 exact hash가 admission됐다."
         ]
       },
       "attributes": {
-        "status": "pending",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "codex-exec-fix-worktree-checkpoint-base-admission-20260726T0010KST",
+          "headCommit": "1c028a87d4ae61917be8547e3ebdda435359e648",
+          "revision": 1,
+          "attempt": 2
+        },
+        "evidence": [
+          "blocks/evidence/verification-attempt-2.log"
+        ]
       }
     }
   ],
