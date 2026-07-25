@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "The helper ran once with no manual cachebuster override.",
+        "The base version remains 0.1.0 and exactly one +codex. suffix exists.",
+        "Only the manifest version changed outside canonical Work Unit records.",
+        "Plugin validation and git diff --check pass.",
+        "No excluded push, reinstall, cleanup, smoke test, or PR operation occurred."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

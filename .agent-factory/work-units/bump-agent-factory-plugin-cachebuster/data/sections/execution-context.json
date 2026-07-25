@@ -1,0 +1,24 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "bump-agent-factory-plugin-cachebuster",
+        "objective": "Refresh only the Agent Factory plugin manifest cachebuster and prepare the verified result for Human review.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/bump-agent-factory-plugin-cachebuster \"Execute Work Unit bump-agent-factory-plugin-cachebuster.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "c525b263b15688a72b83da0dc4d4100f34383418",
+        "branch": "work-unit/bump-agent-factory-plugin-cachebuster",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/bump-agent-factory-plugin-cachebuster",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

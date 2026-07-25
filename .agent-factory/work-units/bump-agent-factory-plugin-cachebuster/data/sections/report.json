@@ -1,0 +1,26 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "remainingRisks": [
+          "cachebuster 변경, 검증, Human 승인, main integration, push, 재설치가 아직 남아 있다."
+        ],
+        "unresolvedHumanDecisions": [
+          "cachebuster 변경 결과 approve 또는 rework",
+          "Work Unit 결과의 main integration"
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

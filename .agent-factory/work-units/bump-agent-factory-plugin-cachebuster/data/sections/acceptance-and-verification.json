@@ -1,0 +1,57 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "The source version differs from 0.1.0+codex.20260719040900, preserves the 0.1.0 prefix, and contains exactly one +codex. suffix.",
+        "Outside manager-owned Work Unit records, the only changed path is .codex-plugin/plugin.json and its only semantic change is version.",
+        "The repository plugin passes the installed plugin validator and git diff --check.",
+        "No push, marketplace refresh, reinstall, cleanup, branch deletion, smoke test, or PR promotion occurs in this Work Unit."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "The plugin-creator helper default cachebuster has been executed exactly once.",
+        "The generated manifest invariant and scoped changed-path boundary are verified.",
+        "Non-empty verification evidence is registered.",
+        "AI checklist and AI review pass.",
+        "Korean Human checklist and review method are complete for approval or rework and separate integration."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+          "git diff --check",
+          "git diff -- .codex-plugin/plugin.json",
+          "git status --short"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "initial and final manifest versions",
+          "plugin validator output",
+          "git diff --check result",
+          "exact changed paths and manifest diff"
+        ]
+      },
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

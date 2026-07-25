@@ -1,0 +1,32 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake activate-agent-factory-plugin-update의 BASIS-001을 cachebuster 변경 실행 기준으로 사용한다.",
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "AC-001",
+          "DECISION-001"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "activate-agent-factory-plugin-update",
+          "path": ".agent-factory/intakes/activate-agent-factory-plugin-update",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}
