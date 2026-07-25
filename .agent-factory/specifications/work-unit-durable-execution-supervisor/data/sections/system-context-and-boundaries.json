@@ -1,23 +1,24 @@
 {
   "id": "system-context-and-boundaries",
-  "title": "system-context-and-boundaries",
+  "title": "System Context and Boundaries",
   "content": [
     {
       "id": "SYSTEM-CONTEXT-001",
       "kind": "system-context",
       "content": {
         "participants": [
-          "Human: Work Unit basis, 실행 결과, rework, integration과 cleanup의 최종 승인자",
-          "Codex Execution Agent: admitted manifest의 Plan·Work·AI Review·Report step을 수행하는 Worker",
-          "Durable Execution Supervisor: admission, durable ownership, step orchestration, recovery와 audit의 단일 entrypoint",
-          "Codex plugin hook 또는 explicit Skill launcher: Supervisor recovery scan을 시작하는 trigger",
-          "Work Unit manager와 worktree manager: canonical artifact mutation과 Git worktree 경계를 제공하는 adapter"
+          "Human",
+          "work-unit-execution controller",
+          "Codex exec session",
+          "Work Unit manager",
+          "Git"
         ],
         "dependencies": [
-          "skills/work-unit-planner/assets/scripts/work_unit.py",
-          "skills/work-unit-execution/scripts/worktree.py",
-          "Python sqlite3 runtime",
-          "Codex plugin lifecycle hooks"
+          "codex exec",
+          "codex exec resume",
+          "canonical Work Unit JSON",
+          "persistent Goal",
+          "dedicated Git worktree"
         ]
       }
     },
@@ -26,16 +27,15 @@
       "kind": "boundaries",
       "content": {
         "guaranteed": [
-          "admission 전에 Work Unit completeness와 dependency를 read-only 검사한다.",
-          "admitted execution state는 PLUGIN_DATA SQLite에 commit된 뒤에만 repository·worktree·attempt mutation을 시작한다.",
-          "동일 호스트에서 Codex session, Worker 또는 Supervisor process가 중단된 뒤 다음 trusted startup|resume trigger가 nonterminal execution을 복구한다.",
-          "covered retry를 소진하면 증거를 가진 terminal failure로 수렴하고 Human approval action은 자동 수행하지 않는다."
+          "불완전 Work Unit은 exec 시작 전에 거부",
+          "admitted execution은 중간 interview 없이 terminal state까지 controller가 구동",
+          "조기 exec 종료 시 정확한 동일 세션 ID로 resume"
         ],
         "notGuaranteed": [
-          "Codex process가 전혀 없는 동안의 immediate self-relaunch",
-          "호스트 또는 persistent disk loss",
-          "다른 호스트 Worker failover",
-          "SQLite transaction과 외부 system side effect의 global atomic commit"
+          "완전 무중단",
+          "호스트·디스크·세션 저장소 손실",
+          "분산 failover",
+          "외부 side effect exactly-once"
         ]
       }
     }

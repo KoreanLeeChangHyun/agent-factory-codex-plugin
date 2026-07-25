@@ -1,66 +1,49 @@
 {
   "id": "security-observability-and-verification",
-  "title": "security-observability-and-verification",
+  "title": "Security, Observability and Verification",
   "content": [
     {
-      "id": "PATH-SECURITY-001",
+      "id": "SESSION-SECURITY-001",
       "kind": "security",
       "content": {
         "pathRules": [
-          "PLUGIN_DATA 또는 --data-dir는 absolute path이고 trusted owner의 directory여야 한다.",
-          "directory와 모든 parent traversal은 trusted directory descriptor에 anchor하고 symlink를 follow하지 않는다.",
-          "database, rollback journal과 temporary companion file의 create/open/rename도 같은 trusted descriptor boundary를 벗어날 수 없다.",
-          "단순 realpath 또는 lstat 후 sqlite3.connect(path) 방식은 validation과 open 사이 path-swap을 막지 못하므로 충분하지 않다.",
-          "platform/runtime이 descriptor-anchored no-follow open을 보장하지 못하면 storage preflight를 fail-closed한다."
+          "Use the exact session UUID returned by Codex.",
+          "Reject empty, ambiguous or --last targets.",
+          "Do not persist credentials, tokens or unnecessary prompt bodies."
         ],
         "permissions": [
-          "plugin data directory는 owner-only 0700 이하 권한을 요구한다.",
-          "database, journal, lock과 receipt file은 owner-only 0600 이하 권한을 요구한다.",
-          "기존 파일의 owner 또는 permission이 기준을 위반하면 자동 완화하지 않고 거부한다."
+          "Reuse the approved execution context.",
+          "Do not broaden sandbox or approval policy during resume."
         ]
       }
     },
     {
-      "id": "AUDIT-REDACTION-001",
+      "id": "EXECUTION-OBSERVABILITY-001",
       "kind": "observability",
       "content": {
-        "queryContract": "workUnitId + revision + attempt로 admission부터 terminal state까지 ordered event, current owner, completed/pending step, retry, receipt와 evidence를 조회할 수 있어야 한다.",
+        "queryContract": "Canonical Work Unit JSON links the exact Codex session and Git evidence.",
         "eventTypes": [
-          "admission-accepted",
-          "admission-rejected",
-          "owner-claimed",
-          "heartbeat",
-          "owner-takeover",
-          "stale-write-rejected",
-          "step-intent",
-          "step-completed",
-          "step-retry",
-          "recovery-started",
-          "reconciliation-completed",
-          "integrity-failed",
+          "admission-refused",
+          "session-started",
+          "session-recorded",
+          "resume-started",
+          "resume-failed",
           "review-ready",
           "terminal-failure"
         ],
         "requiredFields": [
-          "executionId",
           "workUnitId",
           "revision",
           "attempt",
-          "eventSequence",
-          "eventType",
-          "timestamp",
-          "ownerId",
-          "fenceToken",
-          "stepId",
-          "inputHash",
-          "resultCode",
-          "evidenceRefs"
+          "headCommit",
+          "codexSessionId",
+          "resumeCount",
+          "status",
+          "evidenceRef"
         ],
         "redactionRules": [
-          "credential, token, cookie, private key와 environment secret value를 저장하지 않는다.",
-          "전체 prompt, command body, stdout 또는 stderr는 기본 저장하지 않고 stable hash, allowlisted metadata와 bounded redacted excerpt만 기록한다.",
-          "receipt는 logical result identity와 verification에 필요한 최소 필드만 allowlist한다.",
-          "redaction 전 원문을 secondary log에 복제하지 않는다."
+          "Redact credentials and tokens.",
+          "Store prompt hashes or bounded summaries only when required."
         ]
       }
     },
@@ -69,16 +52,11 @@
       "kind": "fault-injection-matrix",
       "content": {
         "cases": [
-          "필수 admission field 각각 제거 -> nonzero refusal, branch/worktree/execution-init/attempt/scoped file 없음",
-          "Worker 또는 codex exec를 각 step 경계에서 SIGKILL -> 같은 revision·attempt에서 pending step 재개, completed step replay 없음",
-          "Supervisor를 SQLite commit 직전·직후 SIGKILL -> hot rollback/invariant 검증 후 last durable event에서 재개",
-          "side effect 성공 직후 receipt commit 전 SIGKILL -> 같은 idempotency key 또는 reconciliation으로 logical result 하나",
-          "두 Supervisor의 simultaneous claim -> 한 owner만 mutation, takeover 후 stale fence write 거부",
-          "SQLite 3.46.1과 WAL request -> refusal 또는 DELETE rollback journal 선택",
-          "database open 전 plugin data path symlink swap -> trusted boundary 밖 file access·creation 없이 refusal",
-          "untrusted plugin hook -> Codex startup warning과 recovery 미시작; disabled 또는 managed-only exclusion -> explicit diagnostic에서 precondition failure",
-          "newer schema 또는 incompatible workflow version -> replay 없이 terminal failure 또는 startup refusal",
-          "host 또는 disk loss -> out-of-scope 결과이며 recovery 성공으로 주장하지 않음"
+          "admission input missing -> refuse before exec",
+          "exec exits before terminal -> resume same UUID",
+          "wrong or missing UUID -> terminal failure without --last",
+          "controller starts twice -> second controller refused",
+          "Work Unit requests interview during active execution -> controller continues from recorded decisions or terminal-fails"
         ]
       }
     },
@@ -86,21 +64,18 @@
       "id": "VERIFICATION-GATES-001",
       "kind": "verification",
       "content": {
-        "promotionRule": "CORE 구현 Work Unit은 이 Specification의 Human approval 뒤에만 계획하며 INTEGRATION Work Unit은 CORE verification 뒤에만 실행한다.",
+        "promotionRule": "AI review and Human review precede merge.",
         "currentSpecificationGates": [
-          "system-architecture profile schema check",
-          "Specification manager regression suite",
-          "Project Core full validation",
-          "Durable Supervisor Specification full validation",
-          "governed-by relation resolution",
-          "startup hook fixture field assertion",
-          "traceability and forbidden derived viewer file check"
+          "Specification manager full validation",
+          "No active SQLite, WAL, lease or fencing contract",
+          "Exact session-target resume contract present"
         ],
         "implementationGates": [
-          "unit: admission field removal, state transition, migration, fencing, retry와 redaction",
-          "integration: real subprocess SIGKILL, SQLite crash recovery, dual Supervisor race와 side-effect reconciliation",
-          "security: descriptor path-swap, symlink, permission과 secret leakage adversarial tests",
-          "end-to-end: Plan·Work·AI Review·Report 후 review-ready evidence"
+          "CLI parser fixture captures session UUID",
+          "same-session resume process test",
+          "no --last or --ephemeral test",
+          "no mid-execution interview test",
+          "terminal convergence test"
         ]
       }
     }

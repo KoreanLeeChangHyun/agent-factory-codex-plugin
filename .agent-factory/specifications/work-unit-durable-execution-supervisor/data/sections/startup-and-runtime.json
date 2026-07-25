@@ -1,38 +1,31 @@
 {
   "id": "startup-and-runtime",
-  "title": "startup-and-runtime",
+  "title": "Startup and Runtime",
   "content": [
     {
-      "id": "STARTUP-HOOK-FIXTURE-001",
+      "id": "CONTROLLER-LAUNCH-001",
       "kind": "startup-trigger-fixture",
       "content": {
-        "event": "SessionStart",
-        "matcher": "startup|resume",
-        "handlerType": "command",
-        "command": "python3 \"$PLUGIN_ROOT/skills/work-unit-execution/scripts/supervisor.py\" recover --data-dir \"$PLUGIN_DATA\"",
-        "expectedResult": "nonterminal admitted execution을 scan하고 lease claim 가능한 execution만 같은 revision·attempt·Git head·workflow version에서 recover한다.",
-        "evidenceRef": "EXTERNAL-EVIDENCE-CODEX-HOOKS-001",
-        "requiredEnvironment": [
-          "PLUGIN_ROOT",
-          "PLUGIN_DATA"
-        ],
+        "event": "explicit named Work Unit execution request after admission",
+        "command": "work-unit-execution controller start --work-unit-id <id>",
+        "expectedResult": "Controller starts one persisted codex exec session and records its UUID before continuation monitoring.",
         "preconditions": [
-          "plugin hook feature가 enabled 상태다.",
-          "현재 hook definition hash가 Human 또는 managed policy에 의해 trusted 상태다.",
-          "PLUGIN_ROOT와 PLUGIN_DATA가 non-empty absolute path다.",
-          "PLUGIN_ROOT 아래 launcher와 PLUGIN_DATA directory가 security preflight를 통과한다."
+          "Work Unit full validation passes.",
+          "Matching persistent Goal exists.",
+          "Recorded execution context is complete."
         ]
       }
     },
     {
-      "id": "DIRECT-LAUNCH-001",
+      "id": "SESSION-RESUME-001",
       "kind": "skill-launcher",
       "content": {
-        "command": "python3 skills/work-unit-execution/scripts/supervisor.py recover --data-dir <absolute-trusted-plugin-data-path>",
+        "command": "codex exec resume <SESSION_ID> <continuation-prompt>",
         "rules": [
-          "Direct Skill process는 PLUGIN_DATA가 자동 제공된다고 가정하지 않는다.",
-          "--data-dir는 absolute path여야 하며 누락, relative path, symlink 또는 unsafe permission이면 nonzero refusal한다.",
-          "cwd, HOME, repository 내부 또는 temporary directory로 implicit fallback하지 않는다."
+          "Use the exact recorded SESSION_ID.",
+          "Do not use --last.",
+          "Do not use --ephemeral.",
+          "Do not create a replacement session for the same active attempt."
         ]
       }
     },
@@ -40,14 +33,15 @@
       "id": "RUNTIME-LIFECYCLE-001",
       "kind": "runtime-lifecycle",
       "content": {
-        "concurrency": "SessionStart hook이 중복 또는 concurrent 실행되어도 SQLite claim과 fencing으로 execution당 한 owner만 mutation한다.",
+        "concurrency": "One active controller and one codexSessionId per Work Unit revision and attempt.",
         "steps": [
-          "trigger input과 environment를 read-only validate한다.",
-          "trusted plugin data directory를 descriptor 기반으로 열고 SQLite runtime·schema·journal policy를 검증한다.",
-          "forward migration이 필요하면 exclusive transaction으로 적용하고 더 새로운 schema 또는 incompatible workflow history는 거부한다.",
-          "nonterminal admitted execution을 조회하고 expired 또는 absent owner만 atomic claim하면서 fence token을 증가시킨다.",
-          "pending step을 receipt와 target state로 reconcile하고 completed step을 replay하지 않는다.",
-          "Plan·Work·AI Review·Report step을 계속 수행하고 review-ready 또는 terminal-failure event와 evidence를 commit한다."
+          "admit",
+          "ensure Goal",
+          "prepare worktree and attempt",
+          "start codex exec and capture session UUID",
+          "monitor Work Unit terminal state",
+          "resume same session after nonterminal exec exit",
+          "stop only at review-ready or terminal failure"
         ]
       }
     },
@@ -56,11 +50,9 @@
       "kind": "runtime-boundary",
       "content": {
         "items": [
-          "Codex process가 없으면 SessionStart hook이 실행되지 않으므로 immediate unattended restart를 보장하지 않는다.",
-          "untrusted plugin hook은 Codex가 startup warning과 /hooks review 경로를 제공하며 trust 전에는 recovery를 시작하지 않는다.",
-          "hooks feature disable 또는 managed-only policy exclusion은 recovery precondition 불충족이며 /hooks 또는 explicit diagnostic launcher로 운영자가 확인해야 한다.",
-          "SessionStart의 clear 또는 compact source는 recovery matcher에서 제외하며 startup 또는 resume가 다음 recovery trigger다.",
-          "Supervisor가 이미 실행 중인 동안의 Worker recovery는 Supervisor process가 소유하고 hook 재호출을 요구하지 않는다."
+          "No claim of unattended restart when no Codex process exists.",
+          "No host-loss recovery.",
+          "No interview during active execution."
         ]
       }
     }

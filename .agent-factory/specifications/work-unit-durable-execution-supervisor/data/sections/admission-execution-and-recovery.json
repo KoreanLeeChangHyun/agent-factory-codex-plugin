@@ -1,76 +1,21 @@
 {
   "id": "admission-execution-and-recovery",
-  "title": "admission-execution-and-recovery",
+  "title": "Admission, Execution and Recovery",
   "content": [
-    {
-      "id": "EXECUTION-MANIFEST-001",
-      "kind": "admission-manifest",
-      "content": {
-        "contractVersion": "execution-manifest/v1",
-        "location": "Work Unit execution-context의 execution-manifest content item으로 planner가 생성하고 manager가 schema validation한다.",
-        "rule": "모든 실행 step은 manifest에 exactly once 나타나며 free-form plan text만으로 admission을 통과할 수 없다.",
-        "globalFields": [
-          "workUnitId",
-          "workUnitDocumentVersion",
-          "revision",
-          "repository",
-          "baseRef",
-          "goalId",
-          "workflowVersion",
-          "expectedArtifacts",
-          "humanApprovalBoundaries",
-          "dependencies"
-        ],
-        "stepFields": [
-          "stepId",
-          "phase",
-          "dependsOn",
-          "action",
-          "requiredTools",
-          "requiredPermissions",
-          "inputs",
-          "inputHash",
-          "expectedOutputs",
-          "verificationCommands",
-          "sideEffectPolicy",
-          "idempotencyKey",
-          "reconciliation",
-          "retryPolicy"
-        ],
-        "phaseValues": [
-          "Plan",
-          "Work",
-          "AI-Review",
-          "Report"
-        ],
-        "sideEffectPolicyValues": [
-          "none",
-          "idempotent",
-          "reconcilable"
-        ]
-      }
-    },
     {
       "id": "ADMISSION-CHECKS-001",
       "kind": "admission",
       "content": {
         "checks": [
-          "Work Unit package가 schemaVersion 4.0.0 full validation과 status ready를 통과한다.",
-          "Intake basis ref와 exact anchor가 ready Intake의 ready-for-planning basis로 resolve된다.",
-          "execution context repository, baseRef, derived branch, canonical worktreePath와 execInvocation이 manager contract와 installed CLI parser를 통과한다.",
-          "goal policy와 모든 recorded dependencies가 충족되고 required implementation dependency는 done 및 필요한 integration receipt를 가진다.",
-          "execution-manifest/v1의 global field와 모든 phase step field가 존재하고 dependency graph가 acyclic이며 Plan부터 Report까지 연결된다.",
-          "required tools와 commands가 설치·parse 가능하고 permission mode가 step requirement를 충족한다.",
-          "각 expected output은 path, artifact owner와 verification command를 가진다.",
-          "각 side-effecting step은 stable idempotency key와 target-supported idempotency 또는 deterministic reconciliation을 가진다.",
-          "plugin data path, SQLite runtime, journal policy, schema/workflow compatibility와 security preflight가 통과한다.",
-          "blocking open item, contradictory scope, unresolved artifact target 또는 unverifiable output이 없다."
+          "Work Unit is full-valid and ready.",
+          "Goal matches Work Unit.",
+          "Execution context, permissions, tools, verification and Human decisions are complete.",
+          "No active controller or session target conflicts."
         ],
         "refusalEffects": [
-          "branch 또는 worktree를 생성하지 않는다.",
-          "Work Unit execution-init 또는 attempt-start를 호출하지 않는다.",
-          "scoped repository file을 변경하지 않는다.",
-          "execution row를 만들지 않으며 redacted admissions audit에 nonzero refusal reason만 기록할 수 있다."
+          "No branch or worktree creation.",
+          "No attempt start.",
+          "No codex exec session creation."
         ]
       }
     },
@@ -79,23 +24,15 @@
       "kind": "fail-closed-order",
       "content": {
         "sequence": [
-          "canonical files, refs, dependencies와 environment를 read-only inspect한다.",
-          "manifest completeness, command parser, permissions, side-effect recovery와 security를 validate한다.",
-          "실패하면 refusal audit와 machine-readable nonzero result를 반환한다.",
-          "성공하면 admission digest와 execution identity를 SQLite 한 transaction으로 commit한다.",
-          "admitted commit 이후에만 owner claim, worktree prepare, execution-init과 attempt-start를 수행한다."
-        ]
-      }
-    },
-    {
-      "id": "DEPENDENCY-CONTRACT-001",
-      "kind": "dependency-contract",
-      "content": {
-        "items": [
-          "Work Unit basis에 recorded dependency가 있으면 dependency package가 존재하고 full validation을 통과해야 한다.",
-          "행동 또는 artifact가 dependency 결과에 의존하면 dependency status는 done이고 현재 revision의 passing evidence와 필요한 integration receipt가 baseRef에 적용돼야 한다.",
-          "ready, working, review, blocked 또는 stale revision dependency는 충족으로 간주하지 않는다.",
-          "Goal 기능 또는 required manager command가 현재 runtime에 없으면 admission을 거부하고 우회 경로를 만들지 않는다."
+          "validate",
+          "resolve-decisions",
+          "verify-permissions",
+          "verify-tools",
+          "admit",
+          "create-goal",
+          "prepare",
+          "start-attempt",
+          "start-exec"
         ]
       }
     },
@@ -104,48 +41,31 @@
       "kind": "execution",
       "content": {
         "sequence": [
-          "admitted execution을 claim하고 owner_id, lease와 새 fence_token을 commit한다.",
-          "worktree manager prepare 결과의 repository, branch, worktreePath와 headCommit을 journal에 기록한다.",
-          "Work Unit manager execution-init과 attempt-start를 exact headCommit과 invocation identity로 호출하고 canonical JSON result를 기록한다.",
-          "manifest dependency 순서대로 Plan·Work·AI Review·Report step을 실행한다.",
-          "각 step마다 pending intent commit, action, receipt 또는 reconciliation, verification, checkpoint와 completed event 순서를 지킨다.",
-          "Work Unit execution, AI review, report와 Korean Human review material을 manager로 갱신한다.",
-          "final worktree inspect를 두 번 수행해 changed-path set을 확인하고 execution evidence를 등록한다.",
-          "모든 acceptance와 AI checklist가 통과하면 review-ready를 commit하고 Work Unit을 review로 전환한다."
+          "start codex exec without --ephemeral",
+          "capture exact session UUID",
+          "record codexSessionId",
+          "monitor canonical terminal state",
+          "on nonterminal exit call codex exec resume <SESSION_ID>",
+          "repeat without Human interview",
+          "emit review-ready or terminal failure evidence"
         ]
       }
     },
     {
-      "id": "OWNERSHIP-RECOVERY-001",
+      "id": "SESSION-RECOVERY-001",
       "kind": "recovery",
       "content": {
-        "claimRules": [
-          "owner claim은 absent 또는 expired lease에서만 성공하고 fence_token을 strictly increment한다.",
-          "모든 journal mutation은 execution_id, owner_id와 current fence_token predicate를 포함한다.",
-          "heartbeat는 current owner와 fence가 일치할 때만 lease를 연장한다.",
-          "이전 owner의 늦은 checkpoint, receipt 또는 terminal write는 zero-row update로 거부하고 stale-writer event를 남긴다."
-        ],
         "recoverySteps": [
-          "SessionStart 또는 explicit recover가 nonterminal execution을 조회한다.",
-          "lease가 유효한 execution은 observe-only로 남기고 expired execution만 takeover한다.",
-          "journal integrity, pinned versions, Git head와 manager state를 다시 검증한다.",
-          "pending step에 receipt가 있으면 completed projection을 복구하고, receipt가 없으면 같은 idempotency key로 target을 조회 또는 reconcile한다.",
-          "completed step은 재실행하지 않고 다음 pending manifest step으로 이동한다.",
-          "recovery evidence와 새 owner identity를 append하고 running으로 전환한다."
-        ]
-      }
-    },
-    {
-      "id": "SIDE-EFFECT-001",
-      "kind": "idempotency-and-reconciliation",
-      "content": {
-        "rules": [
-          "stable idempotency key는 workUnitId, revision, attempt, stepId와 canonical inputHash에서 결정적으로 생성한다.",
-          "side effect 호출 전 pending intent와 key를 durable commit한다.",
-          "target이 idempotency key를 지원하면 retry와 reconciliation에서 같은 key를 사용한다.",
-          "target이 key를 지원하지 않으면 action 전에 deterministic lookup/reconciliation 계약과 logical uniqueness criterion이 있어야 한다.",
-          "side effect 성공 후 receipt commit 전에 crash한 경우 recovery는 target state를 먼저 reconcile하고 logical result를 중복 생성하지 않는다.",
-          "idempotency와 reconciliation 둘 다 없는 non-idempotent step은 admission에서 거부한다."
+          "read active Work Unit execution-state",
+          "resolve exact codexSessionId",
+          "refuse missing or ambiguous session ID",
+          "resume the same session with continuation prompt",
+          "verify unchanged revision, attempt and head"
+        ],
+        "claimRules": [
+          "One controller per active attempt.",
+          "Never select --last.",
+          "Never replace the session silently."
         ]
       }
     },
@@ -154,11 +74,10 @@
       "kind": "retry-and-terminal",
       "content": {
         "items": [
-          "retry policy는 step별 bounded attempts, retryable error classes와 deterministic backoff를 manifest에 기록한다.",
-          "retry마다 동일 inputHash와 idempotency identity를 유지하고 retry event와 error fingerprint를 기록한다.",
-          "retry exhaustion, incompatible version, integrity failure 또는 unreconcilable side effect는 terminal-failure로 commit한다.",
-          "terminal-failure report는 completed steps, pending step, last verified head, retry history, recovery attempts와 Human 조치 경계를 포함한다.",
-          "Human review, merge, cleanup 또는 scope change를 terminal recovery의 일부로 자동 실행하지 않는다."
+          "Retry recoverable exec exits by resuming the same session.",
+          "Do not ask the Human during active execution.",
+          "If exact resume is impossible, record evidence-backed terminal failure.",
+          "Human review begins only after review-ready or terminal failure."
         ]
       }
     }

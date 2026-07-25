@@ -1,20 +1,17 @@
 {
   "id": "components-and-ownership",
-  "title": "components-and-ownership",
+  "title": "Components and Ownership",
   "content": [
     {
       "id": "COMPONENTS-001",
       "kind": "components",
       "content": {
         "items": [
-          "Supervisor CLI: admit, run, recover, inspect entrypoint를 제공한다.",
-          "Admission validator: Work Unit contract, dependencies, manifest, tools, permissions, verification과 side-effect recovery capability를 검사한다.",
-          "Execution journal: admission, execution, ownership, step, event와 receipt transaction을 저장하고 projection을 재구성한다.",
-          "Ownership coordinator: lease·heartbeat·monotonic fencing token으로 한 owner만 mutation하도록 한다.",
-          "Step runner: durable intent를 commit한 뒤 step을 수행하고 receipt·checkpoint·verification을 commit한다.",
-          "Recovery reconciler: stale owner를 인계하고 pending side effect를 reconcile하며 completed step replay를 금지한다.",
-          "Manager adapters: Work Unit manager와 worktree manager의 exact command/result를 호출·기록한다.",
-          "Audit projection: redacted append-only event와 terminal Human review evidence를 조회 가능하게 한다."
+          "Admission gate: 실행 전 모든 결정·권한·입력·의존성 검사",
+          "Session controller: codex exec 시작, session UUID 캡처, 종료 감시와 동일 세션 resume",
+          "Work Unit manager: revision·attempt·codexSessionId·resume·terminal state의 canonical owner",
+          "Codex session store: 대화와 tool execution history owner",
+          "Git worktree: scoped repository changes owner"
         ]
       }
     },
@@ -22,11 +19,15 @@
       "id": "OWNERSHIP-001",
       "kind": "ownership",
       "content": {
-        "skillOwner": "skills/work-unit-execution",
-        "canonicalEntrypoint": "skills/work-unit-execution/scripts/supervisor.py",
-        "stateOwner": "PLUGIN_DATA SQLite execution journal",
-        "artifactOwners": "Work Unit manager는 Work Unit JSON을, worktree manager는 branch/worktree mutation을 계속 소유하며 Supervisor는 별도 serialization이나 Git orchestration을 재구현하지 않는다.",
-        "humanBoundary": "Supervisor는 Human approval, rework, integration, cleanup, deployment 또는 scope change를 수행하지 않는다."
+        "skillOwner": "work-unit-execution",
+        "canonicalEntrypoint": "session controller CLI",
+        "stateOwner": "canonical Work Unit execution-state; Codex owns session history",
+        "humanBoundary": "Human decisions are completed before admission; review, merge and cleanup remain after terminal execution.",
+        "artifactOwners": [
+          "Work Unit manager owns canonical JSON.",
+          "Codex owns exec session records.",
+          "Git owns branch and worktree state."
+        ]
       }
     }
   ],

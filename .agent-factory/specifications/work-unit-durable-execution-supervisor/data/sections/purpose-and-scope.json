@@ -1,12 +1,12 @@
 {
   "id": "purpose-and-scope",
-  "title": "purpose-and-scope",
+  "title": "Purpose and Scope",
   "content": [
     {
       "id": "ARCH-PURPOSE-001",
       "kind": "purpose",
       "content": {
-        "statement": "부실한 Work Unit은 mutation 전에 거부하고, admission을 통과한 Work Unit은 동일 호스트의 Codex session·Worker·Supervisor process interruption 뒤에도 durable journal에서 재개하여 Human review-ready 또는 명시적 terminal failure로 수렴시키는 Skill 소유 실행 구조를 정의한다."
+        "statement": "Admitted Work Unit이 실행 중 Human 인터뷰로 멈추지 않고 저장된 정확한 Codex exec 세션을 terminal state까지 자동 재개하도록 하는 session-targeted execution controller를 정의한다."
       }
     },
     {
@@ -14,20 +14,18 @@
       "kind": "scope",
       "content": {
         "included": [
-          "skills/work-unit-execution이 소유하는 단일 Supervisor entrypoint와 plugin-bundled recovery hook 계약",
-          "machine-checkable Work Unit admission과 fail-closed 순서",
-          "PLUGIN_DATA의 SQLite execution journal, schema migration, rollback journal과 WAL version gate",
-          "revision·attempt·Git head·workflow version binding과 append-only event projection",
-          "single-owner lease·heartbeat·monotonic fencing, step checkpoint·retry·resume",
-          "side-effect idempotency·receipt·reconciliation, security·redaction·observability",
-          "process kill, concurrency, crash recovery와 adversarial path-swap fault-injection 요구사항"
+          "Work Unit fail-closed admission",
+          "persistent Goal 연결",
+          "codexSessionId 캡처와 canonical 기록",
+          "codex exec resume <SESSION_ID> continuation loop",
+          "Plan, Work, AI Review, Report terminal 수렴"
         ],
         "excluded": [
-          "Supervisor runtime과 recovery loop의 실제 구현",
-          "lifecycle production entrypoint 통합",
-          "호스트 또는 영속 디스크 손실과 다른 호스트 failover",
-          "PostgreSQL, NATS, Redis 또는 별도 OS service",
-          "Human 승인 없는 merge, cleanup, deployment, scope 변경 또는 runtime restart"
+          "완전 무중단",
+          "호스트·디스크·Codex 세션 저장소 손실",
+          "SQLite·PostgreSQL 실행 원장",
+          "분산 queue·lease·fencing",
+          "실행 중 Human interview"
         ]
       }
     }

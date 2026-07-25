@@ -1,40 +1,34 @@
 {
   "id": "decisions-and-open-items",
-  "title": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
   "content": [
     {
       "id": "ACCEPTED-DECISIONS-001",
       "kind": "accepted-decisions",
       "content": {
         "items": [
-          "Supervisor code, CLI, state model과 workflow ownership은 skills/work-unit-execution에 둔다.",
-          "동일 호스트의 process interruption만 보장하고 호스트·disk loss와 cross-host failover는 제외한다.",
-          "canonical execution journal은 PLUGIN_DATA의 SQLite를 사용하며 외부 database나 broker를 요구하지 않는다.",
-          "SQLite 3.46.1에서는 rollback journal과 durable synchronization을 기본으로 하고 multi-process WAL을 금지한다.",
-          "Plugin recovery trigger는 trusted SessionStart hook의 startup|resume matcher이고 direct Skill invocation은 명시적 absolute --data-dir를 요구한다.",
-          "외부 side effect가 idempotency key 또는 deterministic reconciliation을 제공하지 않으면 admission에서 거부한다."
+          "Admission에서 미확정 Human 결정·권한·입력·의존성이 있으면 실행을 거부한다.",
+          "실행 후에는 단일 codexSessionId를 정확히 지정해 terminal state까지 resume한다.",
+          "실행 중 Human interview 또는 승인 질문을 열지 않는다.",
+          "SQLite, PostgreSQL, lease, fencing과 분산 queue는 초기 구현에서 제외한다."
         ]
       }
     },
     {
-      "id": "RESOLVED-OPEN-001",
+      "id": "SUPERSEDED-DESIGN-001",
       "kind": "resolved-open-item",
       "content": {
-        "source": "OPEN-001",
-        "resolution": "Plugin mode는 trusted SessionStart(startup|resume) hook이 PLUGIN_ROOT의 skills/work-unit-execution/scripts/supervisor.py recover를 PLUGIN_DATA와 함께 호출한다. Direct Skill mode는 같은 launcher에 absolute --data-dir를 전달해야 하며 implicit cwd 또는 home fallback은 허용하지 않는다.",
-        "limitation": "Codex process가 전혀 실행 중이지 않으면 plugin hook도 실행되지 않으므로 unattended self-relaunch는 보장하지 않는다.",
-        "evidenceRef": "EXTERNAL-EVIDENCE-CODEX-HOOKS-001"
+        "resolution": "이전 SQLite durable supervisor 설계는 DECISION-007의 session-targeted controller로 대체됐다.",
+        "source": "HUMAN-FEEDBACK-003",
+        "evidenceRef": "INTERNAL-CODEX-SESSION-002",
+        "limitation": "호스트 또는 Codex 세션 저장소 손실은 보장하지 않는다."
       }
     },
     {
       "id": "UNRESOLVED-ITEMS-001",
       "kind": "unresolved-items",
       "content": {
-        "items": [
-          "lease duration, heartbeat interval, retry backoff와 retry limit의 수치는 구현 Work Unit의 deterministic tests에서 선택하고 configuration으로 노출해야 한다.",
-          "trusted directory descriptor에 SQLite database와 companion journal file을 안전하게 고정할 수 없는 platform/runtime은 지원 대상에서 fail-closed해야 하며 지원 matrix는 구현 검증으로 확정한다.",
-          "unattended recovery가 필요하면 외부 runtime 또는 OS service를 범위에 추가하는 별도 Human 결정과 Intake가 필요하다."
-        ]
+        "items": []
       }
     }
   ],
