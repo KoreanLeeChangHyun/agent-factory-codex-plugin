@@ -1,0 +1,40 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": [
+        "두 체크포인트가 각각 정확한 경로·full 검증·커밋 메시지를 제시하고 별도 승인을 요구하는지 확인합니다.",
+        "부실하거나 모호한 Work Unit이 브랜치·워크트리·attempt·저장소 변경 전에 거절되는 증거를 확인합니다.",
+        "실행 중단 뒤 같은 revision과 attempt가 복구되고 이미 완료된 비멱등 작업이 반복되지 않는지 확인합니다.",
+        "재시도 한도 초과와 복구 불가능 오류가 근거 있는 blocker와 blocked 상태를 만들며, 해소 뒤 재개 가능한지 확인합니다.",
+        "변경 diff, 테스트, 플러그인 검증, 문서 일치성, 정확한 변경 경로 목록을 확인합니다."
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "체크포인트 receipt와 fresh-session inspect 결과를 비교합니다.",
+          "admission refusal, interruption recovery, idempotent replay, retry exhaustion, blocked recovery 테스트 출력을 확인합니다.",
+          "Work Unit diff와 AI Review 결과를 검토하고 승인 또는 rework를 결정합니다.",
+          "integration, cleanup, push, publication, PR promotion은 각각 별도 Human 결정으로 남깁니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

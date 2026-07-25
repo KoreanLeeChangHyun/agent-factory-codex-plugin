@@ -1,0 +1,32 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Checkpoint commands preserve exact-scope staging, path and symlink safety, race detection, failure cleanup, deterministic replay, and read-only inspection.",
+        "Admission is mechanically enforced before every earliest execution side effect and returns machine-readable refusal evidence.",
+        "Durable progress is versioned, reconstructible, same-attempt resumable, and does not replay completed non-idempotent work.",
+        "Retry identity and bounds are explicit; failure transitions to evidence-backed blocked instead of leaving an abandoned working attempt.",
+        "Lifecycle statuses and Human approval boundaries are unchanged, and no out-of-scope integration or publication action occurred.",
+        "Focused tests, regressions, plugin validation, diff scope, and documentation agree with the source Intake."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

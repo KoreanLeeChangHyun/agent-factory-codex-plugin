@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "work-unit-artifact-handoff-contract",
+        "objective": "Execute the approved artifact handoff, Work Unit admission, and durable continuation Work Unit through Plan, Work, AI Review, and Report.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-artifact-handoff-contract \"Execute Work Unit work-unit-artifact-handoff-contract from its canonical package through Plan, Work, AI Review, and Report.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/work-unit-artifact-handoff-contract",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-artifact-handoff-contract",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

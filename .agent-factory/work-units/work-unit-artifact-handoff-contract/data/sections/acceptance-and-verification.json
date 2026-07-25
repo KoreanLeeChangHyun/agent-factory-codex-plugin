@@ -1,0 +1,70 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "Each Intake and Work Unit checkpoint requires its own Human approval after exact artifact path, full validation result, and proposed commit message are shown.",
+        "Checkpoint creation validates through the owning manager, stages only the canonical package, detects path, symlink, repository, index, and validation-to-stage races, and emits a deterministic receipt.",
+        "Failure leaves no partial index or commit mutation; exact replay returns the original receipt while conflicting replay refuses safely.",
+        "Read-only inspection reconstructs and verifies the checkpoint in a fresh session, and worktree preparation uses the inspected Work Unit checkpoint commit as its base."
+      ]
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": [
+        "Missing, ambiguous, invalid, incomplete, non-ready, blocker-bearing, execution-context-invalid, or Intake-basis-invalid Work Units are refused with machine-readable reasons before branch, worktree, attempt, or scoped repository mutation.",
+        "Direct worktree preparation cannot bypass the same-id full-ready admission contract.",
+        "A valid ready Work Unit starts without repeating an execution question and persists revision, attempt, invocation chain, completed and pending steps, and inspected head.",
+        "Process or session interruption resumes the same revision and attempt and does not repeat completed non-idempotent side effects.",
+        "Transient operations use stable idempotency identity and bounded retry; exhausted or unrecoverable failures create evidence-backed blockers and transition out of working.",
+        "After blocker resolution, public commands resume the same revision and attempt; review is reachable only after all work, verification, and AI review gates pass."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "All approved expected outputs are implemented within scope.",
+        "Focused checkpoint, admission, interruption, retry, and blocked recovery tests fail before implementation and pass afterward.",
+        "Relevant lifecycle, Intake, Work Unit manager, and worktree regressions pass.",
+        "Plugin validation and git diff checks pass.",
+        "Execution, verification, AI review, and Human-facing report evidence are registered in the Work Unit."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "pytest -q skills/lifecycle/tests/test_artifact_handoff.py",
+          "pytest -q skills/lifecycle/tests/test_document_profiles.py skills/intake/tests/test_intake_manager.py skills/work-unit-planner/tests/test_work_unit_manager.py skills/work-unit-execution/tests/test_worktree.py",
+          "python3 \"${CODEX_HOME:-$HOME/.codex}/skills/.system/plugin-creator/scripts/validate_plugin.py\" .",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "checkpoint success, refusal, race, replay, and inspection test results",
+          "admission pre-side-effect and direct-worktree bypass test results",
+          "interruption resume, idempotent retry, exhaustion, blocking, and blocker-resolution test results",
+          "relevant regression and plugin validation results",
+          "AI diff and lifecycle invariant review"
+        ]
+      },
+      "attributes": {
+        "status": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}
