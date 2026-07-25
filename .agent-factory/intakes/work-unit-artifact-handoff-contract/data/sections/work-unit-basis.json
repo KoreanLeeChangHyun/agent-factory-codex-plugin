@@ -114,6 +114,57 @@
         ],
         "unresolvedItems": []
       }
+    },
+    {
+      "id": "WORK-BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "fix-artifact-handoff-recheckpoint",
+        "objective": "Fix and verify existing-package partial-change re-checkpoint behavior while preserving complete canonical package tree and hash verification.",
+        "dependencyStatus": "none",
+        "executionOrder": "2",
+        "humanReviewMethod": "Human은 두 승인 파일의 diff, 부분 변경 re-checkpoint 성공 receipt, exact replay와 inspect 결과, focused test 결과를 검토하고 승인·rework·integration을 별도로 결정한다.",
+        "scope": [
+          "Add a failing regression test for re-checkpointing an existing canonical package after modifying only a subset of its canonical files.",
+          "Change artifact_handoff checkpoint and inspection verification to distinguish changed commit paths from the complete canonical package tree and validated hashes.",
+          "Preserve exact canonical staging isolation, unrelated staged refusal, symlink and race defenses, replay recovery, approval boundaries, and receipt behavior.",
+          "Run the focused artifact handoff test suite."
+        ],
+        "exclusions": [
+          "Changes outside skills/lifecycle/assets/scripts/artifact_handoff.py and skills/lifecycle/tests/test_artifact_handoff.py",
+          "Artifact schema, manager profile, receipt schema, lifecycle documentation, approval boundary, worktree integration, cleanup, push, publication, reinstall, or PR promotion changes"
+        ],
+        "expectedOutputs": [
+          "skills/lifecycle/assets/scripts/artifact_handoff.py",
+          "skills/lifecycle/tests/test_artifact_handoff.py"
+        ],
+        "requirementRefs": [
+          "REQ-015",
+          "REQ-005",
+          "REQ-010",
+          "REQ-011"
+        ],
+        "acceptanceRefs": [
+          "ACCEPTANCE-003"
+        ],
+        "decisionRefs": [
+          "DECISION-009"
+        ],
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-010",
+          "REQUEST-004",
+          "INTERVIEW-007"
+        ],
+        "plan": [
+          "Write the partial-change existing-package re-checkpoint regression test before implementation.",
+          "Implement complete commit-tree file and hash verification separately from changed-path commit diff verification.",
+          "Run focused tests and inspect the final two-file diff for scope compliance."
+        ],
+        "verification": [
+          "pytest -q skills/lifecycle/tests/test_artifact_handoff.py"
+        ],
+        "unresolvedItems": []
+      }
     }
   ],
   "subsections": []

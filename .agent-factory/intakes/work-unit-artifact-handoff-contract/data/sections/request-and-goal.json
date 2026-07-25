@@ -62,6 +62,13 @@
       "content": {
         "request": "워크 유닛이 부실하면 애초에 실행을 거부하는 로직이 필요하다."
       }
+    },
+    {
+      "id": "REQUEST-004",
+      "kind": "human-request",
+      "content": {
+        "request": "기존 canonical package에서 일부 파일만 변경된 경우에도 artifact handoff가 전체 package tree와 hash를 검증한 뒤 변경된 canonical 파일 subset을 checkpoint할 수 있도록 artifact_handoff.py와 해당 테스트를 수정한다."
+      }
     }
   ],
   "subsections": []

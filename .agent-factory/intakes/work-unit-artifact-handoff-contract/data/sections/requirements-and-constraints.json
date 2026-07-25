@@ -251,6 +251,40 @@
           "INTERNAL-EVIDENCE-009"
         ]
       }
+    },
+    {
+      "id": "REQ-015",
+      "kind": "requirement",
+      "content": {
+        "text": "기존 canonical package의 일부 파일만 parent commit과 달라진 re-checkpoint는 변경된 canonical subset만 commit diff에 포함하되 checkpoint commit의 전체 package tree file set과 각 canonical file hash가 owning manager의 validated snapshot과 일치할 때 성공해야 한다.",
+        "traceability": [
+          "REQUEST-004",
+          "INTERNAL-EVIDENCE-010",
+          "DECISION-009",
+          "REQ-005",
+          "REQ-010",
+          "REQ-011"
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "A first checkpoint of a newly created canonical package still commits its complete canonical file set.",
+          "A re-checkpoint after modifying only a subset of an existing package commits exactly that changed canonical subset and succeeds only when the checkpoint commit tree contains the complete validated canonical package file set with matching hashes.",
+          "An exact replay of the re-checkpoint returns already-checkpointed without an additional commit.",
+          "Read-only inspect resolves and validates the latest partial re-checkpoint commit from the complete package tree rather than requiring every canonical path in that commit's diff.",
+          "Focused regression tests pass and existing unrelated staged-state, symlink, race, wrong-root, and failure-cleanup behavior remains unchanged."
+        ],
+        "requirementRefs": [
+          "REQ-015",
+          "REQ-005",
+          "REQ-010",
+          "REQ-011"
+        ]
+      }
     }
   ],
   "subsections": []

@@ -20,8 +20,8 @@
         "status": "interview-complete",
         "blockingCount": 0,
         "nonBlockingCount": 0,
-        "answeredQuestions": 6,
-        "totalQuestions": 6
+        "answeredQuestions": 7,
+        "totalQuestions": 7
       }
     },
     {
@@ -144,6 +144,20 @@
           "Assign deterministic idempotency identity or receipts to retryable mutations and verify replay behavior.",
           "Classify failures, apply a recorded bounded retry policy, and support an evidence-backed blocked-to-resume path after blocker resolution.",
           "Add interruption simulation, invalid-package prepare refusal, blocked recovery, and abandoned-working-state regression tests."
+        ]
+      }
+    },
+    {
+      "id": "DECISION-009",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "selectedOption": "A",
+        "decision": "부분 변경 re-checkpoint 결함 수정은 새 Work Unit fix-artifact-handoff-recheckpoint로 실행한다.",
+        "relatedInterview": "INTERVIEW-007",
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-010",
+          "REQUEST-004"
         ]
       }
     }
