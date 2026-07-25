@@ -1,0 +1,22 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-001",
+      "kind": "execution-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "changedArtifacts": [],
+        "testsRun": [],
+        "deviations": []
+      },
+      "attributes": {
+        "status": "pending",
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

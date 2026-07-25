@@ -1,0 +1,27 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "Plan: validate the package, reconstruct the checkpoint, prepare the dedicated worktree, inspect source version, installed state, local main, and remote main."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Work: record durable pending steps, re-check fast-forward safety, push main, refresh only the agent-factory marketplace, and reinstall the exact plugin selector with machine-readable receipts."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "AI Review: verify remote head, source and installed versions, installed and enabled status, idempotent step receipts, and exclusion compliance."
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": "Report: register non-empty operational evidence, prepare Korean Human review material, and leave cleanup and smoke testing outside this Work Unit."
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,32 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Pre-push remote and local ancestry was re-checked without force.",
+        "The post-push remote head equals the exact approved local main commit.",
+        "Only the agent-factory marketplace was refreshed.",
+        "The exact selector agent-factory@agent-factory was reinstalled.",
+        "Source and installed versions match and the plugin is installed and enabled.",
+        "No excluded edit, cleanup, smoke test, or PR operation occurred."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

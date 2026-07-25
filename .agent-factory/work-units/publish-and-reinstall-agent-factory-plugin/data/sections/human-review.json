@@ -1,0 +1,40 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": [
+        "push 직전 local main과 remote main 비교 및 fast-forward 근거를 확인합니다.",
+        "push 후 origin/main이 정확한 local main commit인지 확인합니다.",
+        "agent-factory marketplace upgrade와 agent-factory@agent-factory reinstall receipt를 확인합니다.",
+        "source와 installed version이 0.1.0+codex.20260725184616으로 일치하고 installed, enabled인지 확인합니다.",
+        "cleanup, branch 삭제, smoke test, PR promotion이 수행되지 않았는지 확인합니다."
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "등록된 operational evidence에서 pre/post push commit과 command 결과를 비교합니다.",
+          "marketplace upgrade 및 plugin add JSON receipt를 확인합니다.",
+          "final codex plugin list에서 exact plugin version과 상태를 확인합니다.",
+          "결과의 approve 또는 rework를 결정합니다. cleanup과 새 스레드 smoke test는 별도 범위입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

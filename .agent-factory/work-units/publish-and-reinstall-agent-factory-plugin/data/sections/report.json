@@ -1,0 +1,25 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "remainingRisks": [
+          "remote main, marketplace snapshot, and installed plugin remain unchanged until execution."
+        ],
+        "unresolvedHumanDecisions": [
+          "publication and reinstall result approve or rework"
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

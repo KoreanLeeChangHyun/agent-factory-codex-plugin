@@ -1,0 +1,33 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake activate-agent-factory-plugin-update의 BASIS-002를 push 및 재설치 실행 기준으로 사용하며, 선행 Work Unit bump-agent-factory-plugin-cachebuster는 done 및 main integration 완료 상태다.",
+        "requirementRefs": [
+          "REQ-003",
+          "REQ-004",
+          "REQ-005",
+          "REQ-006",
+          "AC-001",
+          "DECISION-001"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "activate-agent-factory-plugin-update",
+          "path": ".agent-factory/intakes/activate-agent-factory-plugin-update",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-002"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

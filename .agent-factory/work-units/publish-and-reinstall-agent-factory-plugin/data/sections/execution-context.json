@@ -1,0 +1,24 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "publish-and-reinstall-agent-factory-plugin",
+        "objective": "Push reviewed main and reinstall the exact Agent Factory plugin version from its refreshed Git marketplace.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/publish-and-reinstall-agent-factory-plugin \"Execute Work Unit publish-and-reinstall-agent-factory-plugin.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "f499de5",
+        "branch": "work-unit/publish-and-reinstall-agent-factory-plugin",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/publish-and-reinstall-agent-factory-plugin",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}
