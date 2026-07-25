@@ -6,11 +6,11 @@
       "id": "REQUIREMENT-ADMISSION-001",
       "kind": "requirement",
       "content": {
-        "requirement": "Supervisor는 Work Unit의 canonical ready 상태, 실행 context, Goal preflight 의존성, 단계별 필요한 도구·권한·검증·부작용 멱등성 또는 복구 선언을 기계적으로 검사하고 부족하면 repository·worktree·attempt mutation 전에 거부해야 한다.",
+        "requirement": "Controller는 Work Unit ready 상태, execution context, 활성 Goal, 필요한 도구·권한·입력·Human 결정과 실행 명령을 기계적으로 검사하고 부족하면 branch·worktree·attempt·codex exec 생성 전에 거부해야 한다.",
         "sourceBasis": [
           "REQUEST-001",
-          "INTERNAL-EXECUTION-CONTRACT-001",
-          "DECISION-005"
+          "HUMAN-FEEDBACK-003",
+          "DECISION-007"
         ]
       }
     },
@@ -18,12 +18,11 @@
       "id": "REQUIREMENT-ENTRYPOINT-002",
       "kind": "requirement",
       "content": {
-        "requirement": "정상 Work Unit 실행은 기존 work-unit-execution Skill이 소유하는 단일 Supervisor entrypoint를 통해 admission, prepare, attempt, progress, retry·resume, AI Review와 Report 순서를 구동해야 한다.",
+        "requirement": "정상 Work Unit 실행은 work-unit-execution Skill이 소유하는 단일 controller entrypoint를 통해 admission, Goal, prepare, attempt, codex exec 시작·재개, AI Review와 Report를 구동해야 한다.",
         "sourceBasis": [
-          "HUMAN-FEEDBACK-001",
-          "INTERNAL-EXECUTION-CONTRACT-001",
-          "DECISION-003",
-          "DECISION-005"
+          "HUMAN-FEEDBACK-003",
+          "INTERNAL-CODEX-SESSION-002",
+          "DECISION-007"
         ]
       }
     },
@@ -31,11 +30,11 @@
       "id": "REQUIREMENT-STATE-003",
       "kind": "requirement",
       "content": {
-        "requirement": "Supervisor는 plugin writable data 경계에 SQLite 실행 원장을 두고 Work Unit id, revision, attempt, invocation chain, 고정 Git head, step event, checkpoint, retry, recovery owner, idempotency identity와 receipt를 transaction으로 저장해야 한다.",
+        "requirement": "Canonical Work Unit execution-state는 Work Unit id, revision, attempt, 고정 Git head, 정확한 codexSessionId, resume 횟수와 terminal 결과를 기록하고 Codex 세션 기록과 Git evidence를 실행 근거로 사용해야 한다.",
         "sourceBasis": [
-          "INTERVIEW-005",
-          "INTERNAL-PLUGIN-BASELINE-001",
-          "WEB-CODEX-PLUGIN-INSTALL-001"
+          "HUMAN-FEEDBACK-003",
+          "INTERNAL-CODEX-SESSION-002",
+          "DECISION-007"
         ]
       }
     },
@@ -43,10 +42,11 @@
       "id": "REQUIREMENT-RECOVERY-004",
       "kind": "requirement",
       "content": {
-        "requirement": "동일 호스트에서 Codex session 또는 Worker process가 종료되어도 Supervisor는 admitted execution을 계속 소유하며, Supervisor process가 재기동되면 Human이 상태를 재구성하지 않아도 SQLite 원장에서 동일 revision과 attempt를 복구해야 한다.",
+        "requirement": "codex exec가 review-ready 또는 terminal failure 전에 종료되면 controller는 저장된 정확한 codexSessionId를 대상으로 codex exec resume를 다시 실행하고 terminal state까지 반복해야 한다.",
         "sourceBasis": [
-          "REQUEST-001",
-          "DECISION-005"
+          "HUMAN-FEEDBACK-003",
+          "INTERNAL-CODEX-SESSION-002",
+          "DECISION-007"
         ]
       }
     },
@@ -54,22 +54,32 @@
       "id": "REQUIREMENT-OWNERSHIP-005",
       "kind": "requirement",
       "content": {
-        "requirement": "동일 Work Unit execution에는 한 Supervisor owner만 mutation할 수 있어야 하며 owner identity, heartbeat 또는 lease와 증가형 fencing identity를 사용해 stale process write를 거부해야 한다.",
+        "requirement": "하나의 active Work Unit attempt는 하나의 canonical codexSessionId만 대상으로 하며 --last 또는 추정된 세션, 새 병렬 세션과 중복 controller 실행을 허용하지 않아야 한다.",
         "sourceBasis": [
-          "INTERNAL-EXECUTION-CONTRACT-001",
-          "WEB-POSTGRES-QUEUE-001",
-          "DECISION-005"
+          "INTERNAL-CODEX-SESSION-002",
+          "DECISION-007"
         ]
       }
     },
     {
-      "id": "REQUIREMENT-IDEMPOTENCY-006",
+      "id": "REQUIREMENT-CONTINUATION-011",
       "kind": "requirement",
       "content": {
-        "requirement": "모든 side-effecting step은 stable idempotency key, input hash, pending·completed event와 receipt 또는 명시적 reconciliation 계약을 가져야 하며 completed non-idempotent step을 replay해서는 안 된다.",
+        "requirement": "Admission 이후 Plan, Work, AI Review와 Report 실행 중에는 새 Human 인터뷰나 승인 질문을 열지 않으며 이미 확정된 Work Unit 결정을 다시 묻지 않아야 한다.",
         "sourceBasis": [
-          "INTERNAL-EXECUTION-CONTRACT-001",
-          "INTERNAL-DURABILITY-TEST-001"
+          "HUMAN-FEEDBACK-003",
+          "DECISION-007"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-FAILURE-012",
+      "kind": "requirement",
+      "content": {
+        "requirement": "복구 가능한 종료는 동일 세션 자동 resume로 처리하고, 재개할 수 없는 영구 실패는 증거와 원인을 포함한 terminal failure로 종료해야 하며 중간 대기 질문 상태로 남기지 않아야 한다.",
+        "sourceBasis": [
+          "HUMAN-FEEDBACK-003",
+          "DECISION-007"
         ]
       }
     },
@@ -77,10 +87,9 @@
       "id": "REQUIREMENT-VERSION-007",
       "kind": "requirement",
       "content": {
-        "requirement": "실행은 Work Unit revision, Git head, 실행 state schema와 Supervisor workflow version에 고정되어야 하며 incompatible history를 새 코드로 임의 replay하지 않아야 한다.",
+        "requirement": "Resume는 동일 Work Unit revision, attempt와 고정 Git head를 유지하며 Human-approved rework만 새 revision을 시작해야 한다.",
         "sourceBasis": [
-          "WEB-NATS-JETSTREAM-001",
-          "INTERNAL-EXECUTION-CONTRACT-001"
+          "INTERNAL-CODEX-SESSION-002"
         ]
       }
     },
@@ -88,10 +97,10 @@
       "id": "REQUIREMENT-EVIDENCE-008",
       "kind": "requirement",
       "content": {
-        "requirement": "Supervisor의 admission, ownership 전환, step 시작·완료·재시도, recovery와 terminal review-ready 결과는 append-only audit event와 검증 증거로 조회 가능해야 한다.",
+        "requirement": "Admission, codexSessionId, resume 호출, 검증 결과와 terminal 상태는 canonical Work Unit JSON과 exec 세션·Git evidence에서 조회 가능해야 한다.",
         "sourceBasis": [
-          "REQUEST-001",
-          "INTERNAL-EXECUTION-CONTRACT-001"
+          "HUMAN-FEEDBACK-003",
+          "INTERNAL-CODEX-SESSION-002"
         ]
       }
     },
@@ -99,100 +108,59 @@
       "id": "CONSTRAINT-001",
       "kind": "constraint",
       "content": {
-        "constraint": "호스트 또는 영속 디스크 손실, 다른 호스트 failover와 외부 PostgreSQL·message broker 운영은 이 Intake의 보장 범위가 아니다."
+        "constraint": "완전 무중단, 호스트·디스크 또는 Codex 세션 저장소 손실, 다른 호스트 failover는 보장 범위가 아니다."
       }
     },
     {
       "id": "CONSTRAINT-002",
       "kind": "constraint",
       "content": {
-        "constraint": "Goal 필수 실행 계약은 ready Intake work-unit-goal-required-execution과 ready Work Unit require-goal-for-work-unit-execution의 결과를 의존성으로 사용하며 이 Intake에서 완료 이력을 재작성하지 않는다."
+        "constraint": "초기 구현은 SQLite, PostgreSQL, Redis, NATS, 분산 queue, lease와 fencing을 도입하지 않는다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-003",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Work Unit exec에는 --ephemeral과 --last를 사용하지 않고 기록된 SESSION_ID를 명시한다."
       }
     },
     {
       "id": "ACCEPTANCE-ADMISSION-001",
       "kind": "acceptance-criterion",
       "content": {
-        "criterion": "필수 admission 항목 하나씩을 제거한 fixture는 모두 nonzero refusal이 되고 branch, worktree, execution-init, attempt와 scoped repository 변경이 생성되지 않는다."
+        "criterion": "필수 admission 항목 하나씩을 제거한 fixture는 모두 nonzero refusal이 되고 branch, worktree, attempt와 codex exec 세션이 생성되지 않는다."
       }
     },
     {
-      "id": "ACCEPTANCE-RECOVERY-002",
+      "id": "ACCEPTANCE-SESSION-010",
       "kind": "acceptance-criterion",
       "content": {
-        "criterion": "Worker 또는 codex exec를 step 경계별로 SIGKILL한 뒤 Supervisor가 같은 Work Unit revision과 attempt에서 pending step을 재개하고 completed step을 다시 수행하지 않는다."
+        "criterion": "첫 codex exec에서 얻은 세션 UUID를 execution-state에 기록하고 조기 종료 fixture에서 codex exec resume <동일 UUID>를 호출하며 --last와 새 세션을 사용하지 않는다."
       }
     },
     {
-      "id": "ACCEPTANCE-SUPERVISOR-003",
+      "id": "ACCEPTANCE-CONTINUATION-011",
       "kind": "acceptance-criterion",
       "content": {
-        "criterion": "Supervisor process를 SQLite commit 전후 지점에서 종료하고 새 Supervisor process를 기동하면 Human 상태 재입력 없이 마지막 durable event부터 실행을 재개한다."
-      }
-    },
-    {
-      "id": "ACCEPTANCE-IDEMPOTENCY-004",
-      "kind": "acceptance-criterion",
-      "content": {
-        "criterion": "외부 side effect 직후 receipt 기록 전에 process를 종료하는 fault test에서 동일 idempotency key와 reconciliation을 통해 fake side effect의 논리적 결과가 한 번만 생성된다."
-      }
-    },
-    {
-      "id": "ACCEPTANCE-OWNERSHIP-005",
-      "kind": "acceptance-criterion",
-      "content": {
-        "criterion": "동일 execution을 두 Supervisor process가 동시에 claim하는 race test에서 한 owner만 step mutation에 성공하고 takeover 후 이전 fencing identity의 write는 거부된다."
+        "criterion": "Admitted Work Unit은 중간 Human 인터뷰 없이 Plan, Work, AI Review와 Report를 거쳐 review-ready 또는 증거가 있는 terminal failure에 도달한다."
       }
     },
     {
       "id": "ACCEPTANCE-TERMINAL-006",
       "kind": "acceptance-criterion",
       "content": {
-        "criterion": "covered process interruption을 반복해도 admitted Work Unit은 Plan, Work, AI Review와 Report를 거쳐 review-ready terminal 상태와 Human 검토 증거를 생성한다."
-      }
-    },
-    {
-      "id": "ACCEPTANCE-DEPENDENCY-007",
-      "kind": "acceptance-criterion",
-      "content": {
-        "criterion": "구현과 테스트는 PostgreSQL, NATS 또는 Redis service 없이 현재 Python sqlite3 runtime에서 실행되며 plugin install만으로 배포 가능한 Skill source와 명시적 writable data preflight를 제공한다."
-      }
-    },
-    {
-      "id": "REQUIREMENT-SQLITE-009",
-      "kind": "requirement",
-      "content": {
-        "requirement": "Supervisor startup은 SQLite runtime version과 journal mode를 검증해야 한다. 현재 SQLite 3.46.1에서는 multi-process WAL mode를 사용하지 않고 rollback journal과 durable synchronization을 사용하며, WAL은 공식 수정 버전 또는 검증된 backport에서만 허용해야 한다.",
-        "sourceBasis": [
-          "INTERNAL-PLUGIN-BASELINE-001",
-          "WEB-SQLITE-ATOMIC-001",
-          "WEB-SQLITE-WAL-001"
-        ]
+        "criterion": "codex exec 종료와 동일 세션 resume를 반복해도 같은 revision과 attempt를 유지하고 Work Unit terminal 결과와 Human review evidence를 생성한다."
       }
     },
     {
       "id": "REQUIREMENT-SECURITY-010",
       "kind": "requirement",
       "content": {
-        "requirement": "SQLite database와 journal path는 trusted plugin data directory descriptor에 고정하고 symlink를 따라가지 않으며 restrictive permission을 적용하고 audit event에 credential·token·불필요한 command body를 저장하지 않아야 한다.",
+        "requirement": "Controller는 세션 ID를 명령 인자로만 전달하고 credential·token·불필요한 prompt body를 canonical evidence에 저장하지 않아야 한다.",
         "sourceBasis": [
-          "INTERNAL-PLUGIN-BASELINE-001",
-          "WEB-CODEX-PLUGIN-INSTALL-001"
+          "INTERNAL-CODEX-SESSION-002"
         ]
-      }
-    },
-    {
-      "id": "ACCEPTANCE-SQLITE-008",
-      "kind": "acceptance-criterion",
-      "content": {
-        "criterion": "현재 SQLite 3.46.1 fixture에서 Supervisor는 WAL 사용을 거부하거나 rollback journal mode를 선택하고 transaction commit 전후 SIGKILL 뒤 integrity_check와 실행 event invariant를 통과한다."
-      }
-    },
-    {
-      "id": "ACCEPTANCE-PATH-SECURITY-009",
-      "kind": "acceptance-criterion",
-      "content": {
-        "criterion": "검증과 database open 사이에 plugin data 경로를 symlink로 교체하는 adversarial test에서 trusted directory 밖의 file을 읽거나 생성하지 않고 fail-closed한다."
       }
     }
   ],

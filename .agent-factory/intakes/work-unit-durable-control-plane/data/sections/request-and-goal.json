@@ -36,6 +36,13 @@
       "content": {
         "criterion": "부실한 Work Unit은 repository·worktree·attempt mutation 전에 거부되고, admission을 통과한 Work Unit은 프로세스 강제 종료 뒤 새 Supervisor process가 같은 revision과 attempt를 중복 부작용 없이 재개한다."
       }
+    },
+    {
+      "id": "HUMAN-FEEDBACK-003",
+      "kind": "human-feedback",
+      "content": {
+        "request": "Work Unit 실행은 완전 무중단을 보장하는 것이 아니라 admission 이후 중간 인터뷰 없이 terminal state까지 진행해야 하며, 중단된 codex exec는 저장된 정확한 세션 ID를 대상으로 다시 실행한다. exec 세션 기록을 사용하고 SQLite 실행 원장은 초기 구현에서 제외한다."
+      }
     }
   ],
   "subsections": []

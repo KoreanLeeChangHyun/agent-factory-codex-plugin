@@ -418,6 +418,27 @@
           "프로필의 구체적인 section 구성은 Work Unit Execution에서 accepted Intake 요구사항과 Specification 공통 계약에 맞춰 작성하고 검증해야 한다."
         ]
       }
+    },
+    {
+      "id": "INTERNAL-CODEX-SESSION-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": "codex exec resume --help; skills/work-unit-planner execution-state contract",
+        "method": "installed CLI parser and repository contract inspection",
+        "findings": [
+          "설치된 CLI는 codex exec resume [SESSION_ID] [PROMPT]로 UUID 또는 thread name을 정확히 지정해 이전 세션을 재개한다.",
+          "--last는 가장 최근 세션을 선택하므로 Work Unit controller는 사용하지 않고 기록된 SESSION_ID를 사용해야 한다.",
+          "--ephemeral은 세션 파일을 보존하지 않으므로 Work Unit 실행에 사용하지 않아야 한다.",
+          "현재 Work Unit execution-state는 invocationChain을 기록하지만 정확한 단일 Codex 세션을 terminal state까지 반복 재개하는 controller는 구현돼 있지 않다."
+        ],
+        "interpretations": [
+          "SQLite보다 codexSessionId와 canonical Work Unit state를 연결하는 controller가 현재 요구의 최소 구현이다."
+        ],
+        "limitations": [
+          "호스트 또는 세션 저장소 손실은 이 방식으로 복구할 수 없다."
+        ]
+      }
     }
   ],
   "subsections": []
