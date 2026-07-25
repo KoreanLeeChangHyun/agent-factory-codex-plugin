@@ -33,10 +33,13 @@ its JSON result.
 ## Execution Workflow
 
 1. Resolve and read the complete named Work Unit package.
-2. Confirm that execution is running in either a named Goal session or a fresh
-   `codex exec` session, with the Work Unit identity and execution context
-   explicitly resolved. Persistent Goal mode is not required for the
-   `codex exec` route.
+2. Run the Goal preflight before worktree preparation or any other execution
+   work. Inspect the current Goal and require its unfinished objective to target
+   the same Work Unit. If no Goal exists, create one from the explicit Human
+   Work Unit execution request. If Goal inspection or creation is unavailable
+   or fails, or another unfinished Goal conflicts, fail closed. A fresh
+   `codex exec` process or prompt is only a bootstrap and is not proof of an
+   active Goal.
 3. Resolve the repository, base ref, and Work Unit id. Derive the branch as
    `work-unit/<work-unit-id>` and the worktree path as
    `<repository>/.agent-factory/worktree/<work-unit-id>`.

@@ -167,14 +167,22 @@ documentation, or maintenance work.
 
 ## Named Work Unit Goal Execution
 
-When the Human starts a fresh session with `/goal <work-unit-id>` or invokes a
-fresh `codex exec` session with an explicit Work Unit id and its recorded
-execution context, treat the request as execution of that exact Work Unit
-package. The `codex exec` route does not require persistent Goal mode.
+When the Human starts a fresh session with `/goal <work-unit-id>` or requests
+execution of a named Work Unit through a fresh `codex exec` session, treat the
+request as execution of that exact Work Unit package and as authorization to
+create or reuse its mandatory Goal. `codex exec` is only a bootstrap route; it
+does not remove the Goal requirement.
 
 Use this resolution flow:
 
 - Resolve `<work-unit-id>` to `<project-root>/.agent-factory/work-units/<work-unit-id>/`.
+- Run a Goal preflight before worktree preparation, planning, editing, or
+  verification. Inspect the current Goal, reuse it only when its unfinished
+  objective targets the same Work Unit, and create the matching Goal when none
+  exists. If Goal state cannot be inspected, Goal creation is unavailable or
+  fails, or another unfinished Goal conflicts, fail closed without starting
+  Execution. A `codex exec` process or prompt alone is not proof of an active
+  Goal.
 - Work in Korean for planning, progress updates, review summaries, reports, and
   other Human-readable communication during this project's named Work Unit Goal
   execution. Keep commands, file paths, identifiers, code, API names, package
