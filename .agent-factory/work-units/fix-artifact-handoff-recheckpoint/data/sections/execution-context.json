@@ -1,0 +1,24 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "fix-artifact-handoff-recheckpoint",
+        "objective": "Fix and verify existing-package partial-change re-checkpoint behavior.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-artifact-handoff-recheckpoint \"Execute Work Unit fix-artifact-handoff-recheckpoint.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "cdffa8f61b00130afcbe2aa2cf0cec5ffac8daab",
+        "branch": "work-unit/fix-artifact-handoff-recheckpoint",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-artifact-handoff-recheckpoint",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}

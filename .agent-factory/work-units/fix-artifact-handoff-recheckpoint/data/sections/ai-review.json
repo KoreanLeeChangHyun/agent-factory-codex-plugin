@@ -1,0 +1,30 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Complete canonical package tree and hash verification is independent from changed commit-path verification.",
+        "First checkpoint, partial re-checkpoint, exact replay, and inspect behavior are covered.",
+        "Unrelated staged refusal, symlink, race, wrong-root, and failure cleanup defenses remain unchanged.",
+        "Only the two approved files change during scoped execution."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

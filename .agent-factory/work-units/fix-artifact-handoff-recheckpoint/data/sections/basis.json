@@ -1,0 +1,33 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake work-unit-artifact-handoff-contract의 WORK-BASIS-002를 실행 기준으로 사용한다.",
+        "requirementRefs": [
+          "REQ-015",
+          "REQ-005",
+          "REQ-010",
+          "REQ-011",
+          "ACCEPTANCE-003",
+          "DECISION-009"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-artifact-handoff-contract",
+          "path": ".agent-factory/intakes/work-unit-artifact-handoff-contract",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WORK-BASIS-002"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

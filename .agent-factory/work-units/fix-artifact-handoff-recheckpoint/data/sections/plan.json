@@ -1,0 +1,27 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "Plan: validate the full Work Unit, inspect artifact_handoff.py and focused tests, and prepare the dedicated Git execution context."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Work: add a failing partial-change re-checkpoint regression test, then implement complete commit-tree verification separately from changed commit-path verification."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "AI Review: inspect the two-file diff for scope expansion and verify staging isolation, replay, inspection, symlink, race, and cleanup defenses remain intact."
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": "Report: register focused verification and review evidence, prepare the Human checklist and review method, and leave approval, integration, and cleanup decisions to the Human."
+    }
+  ],
+  "subsections": []
+}

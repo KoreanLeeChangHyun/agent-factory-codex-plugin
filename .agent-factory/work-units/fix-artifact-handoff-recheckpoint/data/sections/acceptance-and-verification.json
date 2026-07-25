@@ -1,0 +1,54 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "A first checkpoint of a newly created canonical package still commits its complete canonical file set.",
+        "A re-checkpoint after modifying only a subset of an existing package commits exactly that changed canonical subset and succeeds only when the checkpoint commit tree contains the complete validated canonical package file set with matching hashes.",
+        "An exact replay returns already-checkpointed without an additional commit, and inspect validates the latest partial re-checkpoint from the complete commit tree.",
+        "Existing unrelated staged-state, symlink, race, wrong-root, and failure-cleanup behavior remains unchanged."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "A focused regression test fails before implementation and passes afterward.",
+        "Checkpoint distinguishes changed commit paths from complete canonical package tree and hash verification.",
+        "The focused artifact handoff test suite passes.",
+        "Only the two approved implementation and test files change during scoped execution.",
+        "AI review evidence and Human review material are recorded."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "pytest -q skills/lifecycle/tests/test_artifact_handoff.py",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "failing-then-passing partial re-checkpoint regression",
+          "focused artifact handoff suite result",
+          "two-file diff scope review"
+        ]
+      },
+      "attributes": {
+        "status": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}
