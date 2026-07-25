@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.33",
+  "documentVersion": "1.0.34",
   "id": "bump-agent-factory-plugin-cachebuster",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugin",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-25T18:33:32+00:00",
-  "updatedAt": "2026-07-25T18:55:08+00:00",
+  "updatedAt": "2026-07-25T18:57:13+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

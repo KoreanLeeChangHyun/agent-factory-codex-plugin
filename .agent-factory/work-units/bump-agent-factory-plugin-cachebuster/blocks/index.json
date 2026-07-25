@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/integration-main-ff-only.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "e3b9a1eb70a51eea8c56c045a8f4dd264eaeb237cb1b95b846e817d640af1839",
+      "sizeBytes": 2020
+    },
+    {
       "path": "blocks/execution/final-worktree-inspect.json",
       "mediaType": "application/json",
       "description": "Exact first final worktree.py inspect canonical JSON result",

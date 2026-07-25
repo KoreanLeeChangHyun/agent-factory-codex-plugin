@@ -33,6 +33,29 @@
           "blocks/execution/final-worktree-inspect.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-E3B9A1EB70A51EEA",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/bump-agent-factory-plugin-cachebuster",
+        "sourceCommit": "421d12c264261263455437c474aaa92fe5b085f7",
+        "strategy": "ff-only",
+        "targetAfterCommit": "421d12c264261263455437c474aaa92fe5b085f7",
+        "targetBeforeCommit": "c0711e9239ee570ee30655431e380af1c77630af",
+        "targetBranch": "main",
+        "workUnitId": "bump-agent-factory-plugin-cachebuster",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/bump-agent-factory-plugin-cachebuster",
+        "receiptSha256": "e3b9a1eb70a51eea8c56c045a8f4dd264eaeb237cb1b95b846e817d640af1839"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/evidence/integration-main-ff-only.json"
     }
   ],
   "subsections": []
