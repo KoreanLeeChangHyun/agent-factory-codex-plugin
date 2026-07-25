@@ -24,7 +24,7 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "running",
+        "state": "done",
         "subject": {
           "algorithm": "gitCommit",
           "digest": "c0711e9239ee570ee30655431e380af1c77630af"
@@ -38,10 +38,12 @@
         "history": [],
         "progress": {
           "completedSteps": [
-            "cachebuster-update"
+            "cachebuster-update",
+            "verification-and-commit",
+            "ai-review-and-report"
           ],
-          "pendingStep": "verification-and-commit",
-          "lastVerifiedHead": "c0711e9239ee570ee30655431e380af1c77630af",
+          "pendingStep": null,
+          "lastVerifiedHead": "30201d0fc538a4d57ac6900e80c98cca73c7fad7",
           "checkpoints": [
             {
               "stepId": "cachebuster-update",
@@ -60,6 +62,24 @@
               "state": "pending",
               "headCommit": "c0711e9239ee570ee30655431e380af1c77630af",
               "idempotencyKey": "bump-agent-factory-plugin-cachebuster/verification-and-commit/pending/v1"
+            },
+            {
+              "stepId": "verification-and-commit",
+              "state": "completed",
+              "headCommit": "30201d0fc538a4d57ac6900e80c98cca73c7fad7",
+              "idempotencyKey": "bump-agent-factory-plugin-cachebuster/verification-and-commit/completed/v1"
+            },
+            {
+              "stepId": "ai-review-and-report",
+              "state": "pending",
+              "headCommit": "30201d0fc538a4d57ac6900e80c98cca73c7fad7",
+              "idempotencyKey": "bump-agent-factory-plugin-cachebuster/ai-review-and-report/pending/v1"
+            },
+            {
+              "stepId": "ai-review-and-report",
+              "state": "completed",
+              "headCommit": "30201d0fc538a4d57ac6900e80c98cca73c7fad7",
+              "idempotencyKey": "bump-agent-factory-plugin-cachebuster/ai-review-and-report/completed/v1"
             }
           ],
           "retry": {

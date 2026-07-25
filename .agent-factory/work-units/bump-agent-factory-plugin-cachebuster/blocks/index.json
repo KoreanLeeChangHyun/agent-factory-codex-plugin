@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/execution/final-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Exact first final worktree.py inspect canonical JSON result",
+      "sha256": "ed14e378a6f6ce07b9be8b565cd6fdec33547476e80ad80956ec0d2d31616f0a",
+      "sizeBytes": 2094
+    },
+    {
+      "path": "blocks/verification/cachebuster-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Cachebuster helper, manifest invariant, plugin validator, diff check, changed paths, and exclusions",
+      "sha256": "d54b7f19f610972313510bb0ff19c12c05ae2f6b2610e84bb0de2733d001857b",
+      "sizeBytes": 1464
+    }
+  ]
 }

@@ -6,10 +6,13 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "complete",
+        "summary": "cachebuster를 0.1.0+codex.20260725184616으로 갱신하고 commit 30201d0fc538a4d57ac6900e80c98cca73c7fad7에 scoped 결과를 기록했다.",
+        "finalInspectCommand": "python3 skills/work-unit-execution/scripts/worktree.py inspect --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id bump-agent-factory-plugin-cachebuster",
+        "evidenceRegistrationDelta": "첫 inspect 뒤 blocks/execution/final-worktree-inspect.json 등록과 이미 보고된 blocks/index.json, metadata.json, acceptance-and-verification.json, report.json 갱신만 허용했다.",
         "remainingRisks": [
-          "cachebuster 변경, 검증, Human 승인, main integration, push, 재설치가 아직 남아 있다."
+          "Human review와 main integration은 아직 수행되지 않았다.",
+          "push, marketplace refresh, reinstall, smoke test는 후속 Work Unit 범위다."
         ],
         "unresolvedHumanDecisions": [
           "cachebuster 변경 결과 approve 또는 rework",
@@ -17,8 +20,18 @@
         ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "codex-exec-bump-agent-factory-plugin-cachebuster-20260726-01",
+          "headCommit": "c0711e9239ee570ee30655431e380af1c77630af",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/verification/cachebuster-verification.txt",
+          "blocks/execution/final-worktree-inspect.json"
+        ]
       }
     }
   ],

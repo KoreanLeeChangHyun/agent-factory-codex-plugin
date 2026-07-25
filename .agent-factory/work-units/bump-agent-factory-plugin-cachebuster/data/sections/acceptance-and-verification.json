@@ -39,17 +39,23 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "initial and final manifest versions",
-          "plugin validator output",
-          "git diff --check result",
-          "exact changed paths and manifest diff"
-        ]
+        "status": "pass",
+        "summary": "version prefix와 단일 +codex. suffix, validator, diff check, changed-path 경계, final worktree inspect를 모두 확인했다.",
+        "finalInspectCommand": "python3 skills/work-unit-execution/scripts/worktree.py inspect --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id bump-agent-factory-plugin-cachebuster"
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "codex-exec-bump-agent-factory-plugin-cachebuster-20260726-01",
+          "headCommit": "c0711e9239ee570ee30655431e380af1c77630af",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/verification/cachebuster-verification.txt",
+          "blocks/execution/final-worktree-inspect.json"
+        ]
       }
     }
   ],

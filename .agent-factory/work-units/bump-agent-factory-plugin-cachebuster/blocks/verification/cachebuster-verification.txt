@@ -1,0 +1,39 @@
+Work Unit: bump-agent-factory-plugin-cachebuster
+Checkpoint commit: c0711e9239ee570ee30655431e380af1c77630af
+Execution commit: 30201d0fc538a4d57ac6900e80c98cca73c7fad7
+Branch: work-unit/bump-agent-factory-plugin-cachebuster
+
+Manifest version:
+- before: 0.1.0+codex.20260719040900
+- after: 0.1.0+codex.20260725184616
+
+Helper:
+python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/bump-agent-factory-plugin-cachebuster
+Updated plugin version: 0.1.0+codex.20260719040900 -> 0.1.0+codex.20260725184616
+
+Verification:
+python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+Plugin validation passed: /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/bump-agent-factory-plugin-cachebuster
+
+git diff --check
+PASS (no output)
+
+python3 manifest invariant check
+manifest invariant: PASS (0.1.0+codex.20260725184616)
+
+Committed changed paths from checkpoint:
+.agent-factory/work-units/bump-agent-factory-plugin-cachebuster/data/metadata.json
+.agent-factory/work-units/bump-agent-factory-plugin-cachebuster/data/sections/execution-context.json
+.codex-plugin/plugin.json
+
+Manifest diff:
+-  "version": "0.1.0+codex.20260719040900",
++  "version": "0.1.0+codex.20260725184616",
+
+Excluded operations:
+- no push
+- no marketplace refresh
+- no reinstall
+- no cleanup or branch deletion
+- no smoke test
+- no PR promotion
