@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.40",
+  "documentVersion": "1.0.41",
   "id": "publish-and-reinstall-agent-factory-plugin",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugin",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-25T18:57:56+00:00",
-  "updatedAt": "2026-07-25T19:16:51+00:00",
+  "updatedAt": "2026-07-25T19:20:18+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

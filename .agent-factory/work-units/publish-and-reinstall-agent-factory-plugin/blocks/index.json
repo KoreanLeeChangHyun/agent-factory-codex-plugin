@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/integration-main-ff-only.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "c76dce1a965d2f9d67d6fd3e6a3d9cbb140aa3230af45aa71d72def8a5b27e48",
+      "sizeBytes": 2537
+    },
+    {
       "path": "blocks/execution/final-worktree-inspect.json",
       "mediaType": "application/json",
       "description": "final worktree inspect before evidence registration",

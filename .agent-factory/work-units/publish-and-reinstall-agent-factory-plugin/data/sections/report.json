@@ -34,6 +34,29 @@
           "blocks/execution/final-worktree-inspect.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-C76DCE1A965D2F9D",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/publish-and-reinstall-agent-factory-plugin",
+        "sourceCommit": "ae9ada4c55d1597ac9974b74319597431c620071",
+        "strategy": "ff-only",
+        "targetAfterCommit": "ae9ada4c55d1597ac9974b74319597431c620071",
+        "targetBeforeCommit": "37b6f7feb4821c35dbc469035aa8d97a55ae2cb4",
+        "targetBranch": "main",
+        "workUnitId": "publish-and-reinstall-agent-factory-plugin",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/publish-and-reinstall-agent-factory-plugin",
+        "receiptSha256": "c76dce1a965d2f9d67d6fd3e6a3d9cbb140aa3230af45aa71d72def8a5b27e48"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/evidence/integration-main-ff-only.json"
     }
   ],
   "subsections": []
