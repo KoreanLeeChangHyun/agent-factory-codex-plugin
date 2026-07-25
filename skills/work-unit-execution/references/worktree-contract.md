@@ -29,10 +29,14 @@ reuse, inspection, and Human-approved cleanup.
 Before `prepare` mutates Git, it invokes the Work Unit manager's `admit`
 command for the canonical
 `<repository>/.agent-factory/work-units/<work-unit-id>` package. Admission
-requires full validation, ready semantics, the same repository, base ref,
-derived branch, recorded worktree path, and package content present unchanged
-at the requested base. The successful admission evidence is returned in the
-prepare context.
+requires full validation, ready semantics, the same repository, derived branch,
+and recorded worktree path. It resolves the requested base separately from the
+recorded symbolic `baseRef`, finds the latest package-changing commit reachable
+from that ref, requires the requested commit to equal that checkpoint, and
+requires current package content to match it. Therefore an exact inspected
+checkpoint remains valid after unrelated commits advance `baseRef`, while
+passing the advanced symbolic ref directly is refused. The successful
+admission evidence is returned in the prepare context.
 
 ## Output Contract
 
@@ -63,7 +67,9 @@ Every response uses schema version `1.0.0` and these top-level fields:
 `prepare` context includes `workUnitId`, `repository`, `baseRef`, `baseCommit`, `branch`,
 `worktreePath`, `headCommit`, `locked`, `lockReason`, `dirty`, and `changes`.
 `inspect` reports the same current-state fields except `baseRef` and
-`baseCommit`. `integrate` reports `workUnitId`, `repository`, `sourceBranch`,
+`baseCommit`. Its nested admission result reports the recorded `baseRef`, its
+resolved `baseRefCommit`, the `requestedBase`, and the admitted
+`checkpointCommit`. `integrate` reports `workUnitId`, `repository`, `sourceBranch`,
 `targetBranch`, `worktreePath`, `humanDecision`, `sourceCommit`,
 `targetBeforeCommit`, `targetAfterCommit`, `relationship`, `strategy`, and
 `operationResult`. `cleanup` also reports `humanDecision`, `worktreeRemoved`,

@@ -91,9 +91,12 @@ is invalid. TOC array order owns document order.
   results in one transaction.
 - `admit` is the machine-readable initial execution gate. It full-validates the
   canonical package and ready semantics, verifies the same Work Unit id,
-  repository, base, branch, worktree path, and committed base content, and
-  performs no mutation. `worktree.py prepare` must obtain this result before
-  its first Git mutation.
+  repository, branch, and worktree path, and treats the recorded `baseRef` as
+  the symbolic history owner rather than the requested execution commit.
+  The requested base must resolve to the latest package-changing commit
+  reachable from that `baseRef`, and the current package must match that exact
+  checkpoint. `worktree.py prepare` must obtain this mutation-free result
+  before its first Git mutation.
 - `execution-progress` durably records pending and completed steps, the last
   verified repository head, and stable idempotency identities.
   `execution-failure` records bounded transient retry state and atomically

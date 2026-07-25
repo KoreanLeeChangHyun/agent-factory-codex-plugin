@@ -307,6 +307,47 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertIn("locked", listing)
         self.assertEqual(git(self.repo, "status", "--short").stdout, "")
 
+    def test_prepare_accepts_exact_checkpoint_base_after_main_advances(self) -> None:
+        checkpoint = self.base_commit
+        (self.repo / "unrelated.txt").write_text("later\n", encoding="utf-8")
+        self.assertEqual(git(self.repo, "add", "unrelated.txt").returncode, 0)
+        self.assertEqual(
+            git(self.repo, "commit", "-m", "advance main without package").returncode,
+            0,
+        )
+
+        result, payload = self.cli("prepare", "--base", checkpoint)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["context"]["baseCommit"], checkpoint)
+        self.assertEqual(payload["context"]["admission"]["baseRef"], "main")
+        self.assertEqual(
+            payload["context"]["admission"]["checkpointCommit"], checkpoint
+        )
+
+    def test_prepare_refuses_advanced_symbolic_base_before_git_mutation(self) -> None:
+        (self.repo / "unrelated.txt").write_text("later\n", encoding="utf-8")
+        self.assertEqual(git(self.repo, "add", "unrelated.txt").returncode, 0)
+        self.assertEqual(
+            git(self.repo, "commit", "-m", "advance main without package").returncode,
+            0,
+        )
+
+        result, payload = self.prepare()
+
+        self.assert_error(result, payload, "work_unit_admission_refused")
+        self.assertFalse(self.worktree.exists())
+        self.assertNotEqual(
+            git(
+                self.repo,
+                "show-ref",
+                "--verify",
+                "--quiet",
+                "refs/heads/work-unit/wu-001",
+            ).returncode,
+            0,
+        )
+
     def test_prepare_refuses_missing_work_unit_before_git_mutation(self) -> None:
         result = run(
             sys.executable,

@@ -85,7 +85,10 @@ The execution-context item content must include `goalId`, `objective`,
 `worktreePath` must equal the absolute
 `<repository>/.agent-factory/worktree/<work-unit-id>` path. Existing registered
 legacy worktrees keep their recorded path only for rework, inspection, and
-Human-approved cleanup; new Work Units use the canonical path.
+Human-approved cleanup; new Work Units use the canonical path. `baseRef` names
+the symbolic Git history from which admission discovers the latest commit that
+changed the Work Unit package. It is not a substitute for the exact checkpoint
+commit passed to execution.
 
 Active execution also stores one manager-owned `execution-state` item:
 
@@ -155,6 +158,11 @@ backlog -> ready -> working -> review -> done
   Human approval and timestamp in the same transaction.
 - `execution-init`: ready only; creates or resets a pristine planned
   `execution-state/v1` at revision 1 and binds the inspected Git head.
+- `admit`: resolves the requested base and recorded symbolic `baseRef`
+  independently. It accepts only when the requested commit is the latest
+  package-changing commit reachable from `baseRef` and the ready package still
+  matches that checkpoint. A symbolic `baseRef` passed directly is accepted
+  only while it resolves to that exact commit.
 - `attempt-start`: ready or working; starts attempt 1 or archives the current
   attempt and increments it for a same-revision retry. It transitions ready to
   working and invalidates current outcome gates atomically.

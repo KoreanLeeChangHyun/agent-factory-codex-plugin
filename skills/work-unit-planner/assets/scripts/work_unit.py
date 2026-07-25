@@ -1082,7 +1082,6 @@ def command_admit(args: argparse.Namespace) -> None:
     context = context_item["content"]
     expected = {
         "repository": str(Path(args.repository).resolve()),
-        "baseRef": args.base,
         "branch": args.branch,
         "worktreePath": str(Path(args.path).resolve()),
     }
@@ -1100,8 +1099,75 @@ def command_admit(args: argparse.Namespace) -> None:
         raise ManagerError(f"execution admission context mismatch: {mismatches}")
     repository = Path(args.repository).resolve()
     relative = package.relative_to(repository)
+    requested_base = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repository),
+            "rev-parse",
+            "--verify",
+            "--end-of-options",
+            f"{args.base}^{{commit}}",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if requested_base.returncode != 0:
+        raise ManagerError("execution admission requested base is unresolved")
+    requested_commit = requested_base.stdout.strip()
+    recorded_base = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repository),
+            "rev-parse",
+            "--verify",
+            "--end-of-options",
+            f"{context['baseRef']}^{{commit}}",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if recorded_base.returncode != 0:
+        raise ManagerError("execution admission recorded baseRef is unresolved")
+    recorded_base_commit = recorded_base.stdout.strip()
+    package_checkpoint = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repository),
+            "log",
+            "-1",
+            "--format=%H",
+            recorded_base_commit,
+            "--",
+            str(relative),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if package_checkpoint.returncode != 0 or not package_checkpoint.stdout.strip():
+        raise ManagerError(
+            "execution admission recorded baseRef has no Work Unit package checkpoint"
+        )
+    checkpoint_commit = package_checkpoint.stdout.strip()
+    if requested_commit != checkpoint_commit:
+        raise ManagerError(
+            "execution admission requested base is not the latest Work Unit "
+            "package checkpoint reachable from recorded baseRef"
+        )
     base_check = subprocess.run(
-        ["git", "-C", str(repository), "cat-file", "-e", f"{args.base}:{relative}"],
+        [
+            "git",
+            "-C",
+            str(repository),
+            "cat-file",
+            "-e",
+            f"{checkpoint_commit}:{relative}",
+        ],
         text=True,
         capture_output=True,
         check=False,
@@ -1109,7 +1175,16 @@ def command_admit(args: argparse.Namespace) -> None:
     if base_check.returncode != 0:
         raise ManagerError("execution admission base does not contain Work Unit package")
     diff = subprocess.run(
-        ["git", "-C", str(repository), "diff", "--quiet", args.base, "--", str(relative)],
+        [
+            "git",
+            "-C",
+            str(repository),
+            "diff",
+            "--quiet",
+            checkpoint_commit,
+            "--",
+            str(relative),
+        ],
         check=False,
     )
     if diff.returncode != 0:
@@ -1122,7 +1197,10 @@ def command_admit(args: argparse.Namespace) -> None:
                 **result,
                 "admitted": True,
                 "repository": str(repository),
-                "baseRef": args.base,
+                "baseRef": context["baseRef"],
+                "baseRefCommit": recorded_base_commit,
+                "requestedBase": args.base,
+                "checkpointCommit": checkpoint_commit,
                 "branch": args.branch,
                 "worktreePath": args.path,
             },

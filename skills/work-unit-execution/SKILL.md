@@ -45,7 +45,9 @@ its JSON result.
    `<repository>/.agent-factory/worktree/<work-unit-id>`.
 4. Reconstruct the second lifecycle checkpoint with
    `lifecycle/assets/scripts/artifact_handoff.py inspect` and use its exact
-   Work Unit checkpoint commit as `--base`.
+   Work Unit checkpoint commit as `--base`. Keep the execution context's
+   symbolic `baseRef` unchanged; admission uses it to find the latest reachable
+   package checkpoint and compares that commit to the requested exact base.
 5. Run `scripts/worktree.py prepare` before editing when the linked worktree
    does not exist.
    `prepare` invokes the Work Unit manager's full-ready admission contract for

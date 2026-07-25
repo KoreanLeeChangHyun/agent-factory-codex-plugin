@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -340,6 +341,71 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
+    def create_admission_repository(
+        self, root: Path
+    ) -> tuple[Path, Path, str]:
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True)
+        subprocess.run(
+            ["git", "config", "user.name", "Agent Factory Test"],
+            cwd=root,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "agent-factory@example.invalid"],
+            cwd=root,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "commit", "--allow-empty", "-q", "-m", "baseline"],
+            cwd=root,
+            check=True,
+        )
+        intake = create_ready_intake(root)
+        package = create_package(root)
+        populate_ready_candidate(root, package, intake)
+        run_cli("transition", str(package), "ready")
+        worktree_root = root / ".agent-factory" / "worktree"
+        shutil.rmtree(worktree_root)
+        subprocess.run(["git", "add", ".agent-factory"], cwd=root, check=True)
+        subprocess.run(
+            ["git", "commit", "-q", "-m", "checkpoint ready work unit"],
+            cwd=root,
+            check=True,
+        )
+        checkpoint = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
+        return package, worktree_root / package.name, checkpoint
+
+    def admit(
+        self,
+        root: Path,
+        package: Path,
+        worktree: Path,
+        requested_base: str,
+        *,
+        check: bool = True,
+    ) -> subprocess.CompletedProcess[str]:
+        return run_cli(
+            "admit",
+            str(package),
+            "--repository",
+            str(root),
+            "--work-unit-id",
+            package.name,
+            "--base",
+            requested_base,
+            "--branch",
+            f"work-unit/{package.name}",
+            "--path",
+            str(worktree),
+            check=check,
+        )
+
     def initialize_and_start_execution(
         self,
         package: Path,
@@ -483,6 +549,127 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             result = json.loads(run_cli("validate", str(package), "--full").stdout)
             self.assertEqual(result["status"], "backlog")
             self.assertEqual(result["schemaVersion"], "4.0.0")
+
+    def test_admission_accepts_exact_latest_package_checkpoint_after_base_ref_advances(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package, worktree, checkpoint = self.create_admission_repository(root)
+            (root / "unrelated.txt").write_text("later\n", encoding="utf-8")
+            subprocess.run(["git", "add", "unrelated.txt"], cwd=root, check=True)
+            subprocess.run(
+                ["git", "commit", "-q", "-m", "advance main without package"],
+                cwd=root,
+                check=True,
+            )
+
+            payload = json.loads(
+                self.admit(root, package, worktree, checkpoint).stdout
+            )
+
+            self.assertTrue(payload["admitted"])
+            self.assertEqual(payload["baseRef"], "main")
+            self.assertEqual(payload["checkpointCommit"], checkpoint)
+
+    def test_admission_refuses_advanced_symbolic_base_instead_of_substituting_it(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package, worktree, _ = self.create_admission_repository(root)
+            (root / "unrelated.txt").write_text("later\n", encoding="utf-8")
+            subprocess.run(["git", "add", "unrelated.txt"], cwd=root, check=True)
+            subprocess.run(
+                ["git", "commit", "-q", "-m", "advance main without package"],
+                cwd=root,
+                check=True,
+            )
+
+            result = self.admit(root, package, worktree, "main", check=False)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(
+                "requested base is not the latest Work Unit package checkpoint",
+                result.stderr,
+            )
+
+    def test_admission_refuses_stale_unreachable_missing_and_drifted_bases(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package, worktree, first_checkpoint = self.create_admission_repository(
+                root
+            )
+            missing_package_commit = subprocess.run(
+                ["git", "rev-parse", f"{first_checkpoint}^"],
+                cwd=root,
+                text=True,
+                capture_output=True,
+                check=True,
+            ).stdout.strip()
+            unreachable_commit = subprocess.run(
+                [
+                    "git",
+                    "commit-tree",
+                    subprocess.run(
+                        ["git", "rev-parse", f"{first_checkpoint}^{{tree}}"],
+                        cwd=root,
+                        text=True,
+                        capture_output=True,
+                        check=True,
+                    ).stdout.strip(),
+                    "-m",
+                    "unreachable package tree",
+                ],
+                cwd=root,
+                text=True,
+                capture_output=True,
+                check=True,
+            ).stdout.strip()
+            run_cli("title-set", str(package), "Updated Work Unit")
+            subprocess.run(["git", "add", str(package)], cwd=root, check=True)
+            subprocess.run(
+                ["git", "commit", "-q", "-m", "new package checkpoint"],
+                cwd=root,
+                check=True,
+            )
+            latest_checkpoint = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                text=True,
+                capture_output=True,
+                check=True,
+            ).stdout.strip()
+
+            for refused_base in (
+                first_checkpoint,
+                missing_package_commit,
+                unreachable_commit,
+            ):
+                result = self.admit(
+                    root, package, worktree, refused_base, check=False
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(
+                    "requested base is not the latest Work Unit package checkpoint",
+                    result.stderr,
+                )
+
+            title_path = package / "data" / "title.json"
+            title_path.write_text(
+                json.dumps({"title": "Drifted Work Unit"}, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            drifted = self.admit(
+                root, package, worktree, latest_checkpoint, check=False
+            )
+            self.assertNotEqual(drifted.returncode, 0)
+            self.assertIn(
+                "execution admission package differs from the requested base",
+                drifted.stderr,
+            )
 
     def test_batch_update_increments_one_document_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
