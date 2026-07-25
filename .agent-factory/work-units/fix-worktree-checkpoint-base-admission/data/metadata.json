@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.41",
+  "documentVersion": "1.0.42",
   "id": "fix-worktree-checkpoint-base-admission",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugins",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-25T14:06:49+00:00",
-  "updatedAt": "2026-07-25T15:02:37+00:00",
+  "updatedAt": "2026-07-25T15:05:52+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

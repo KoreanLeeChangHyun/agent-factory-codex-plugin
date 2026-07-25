@@ -39,6 +39,29 @@
           "blocks/evidence/worktree-final-inspect.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-B9B7265D4BDF0706",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/fix-worktree-checkpoint-base-admission",
+        "sourceCommit": "625c5c8aa5ae806814342fd6700f91c2e0dd07de",
+        "strategy": "ff-only",
+        "targetAfterCommit": "625c5c8aa5ae806814342fd6700f91c2e0dd07de",
+        "targetBeforeCommit": "26ec224f2c2208b67b7f986731310d20a4ae5e15",
+        "targetBranch": "main",
+        "workUnitId": "fix-worktree-checkpoint-base-admission",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-worktree-checkpoint-base-admission",
+        "receiptSha256": "b9b7265d4bdf070639606661a6c6f14a20c4ff00259626018d5ed125bcafba27"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/evidence/integration-main-ff-only.json"
     }
   ],
   "subsections": []

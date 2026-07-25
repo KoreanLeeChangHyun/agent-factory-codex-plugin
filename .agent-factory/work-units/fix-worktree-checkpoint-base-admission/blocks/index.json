@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/integration-main-ff-only.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "b9b7265d4bdf070639606661a6c6f14a20c4ff00259626018d5ed125bcafba27",
+      "sizeBytes": 2392
+    },
+    {
       "path": "blocks/evidence/verification-attempt-2.log",
       "mediaType": "text/plain",
       "description": "Attempt 2 TDD, regression, skill validation, diff, and actual admission evidence",
