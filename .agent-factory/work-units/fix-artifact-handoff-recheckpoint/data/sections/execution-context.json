@@ -24,56 +24,125 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "running",
+        "state": "review",
         "subject": {
           "algorithm": "gitCommit",
-          "digest": "e6ce847fdc596247f6fdec359bdea8fda94d0e51"
+          "digest": "1b987cb90a5d0b9c6cd90df80ac4bbd52a2fc836"
         },
         "currentRevision": 1,
-        "currentAttempt": 1,
-        "invocationId": "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087",
+        "currentAttempt": 2,
+        "invocationId": "453021e6-200e-442e-9e20-fadb3ea4fc62",
         "invocationChain": [
-          "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087"
+          "453021e6-200e-442e-9e20-fadb3ea4fc62"
         ],
-        "history": [],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087",
+            "invocationChain": [
+              "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "e6ce847fdc596247f6fdec359bdea8fda94d0e51"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "pending",
+                  "changedArtifacts": [],
+                  "testsRun": []
+                },
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "planned",
+                  "requiredEvidence": [
+                    "failing-then-passing partial re-checkpoint regression",
+                    "focused artifact handoff suite result",
+                    "two-file diff scope review"
+                  ]
+                },
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "findings": []
+                },
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "remainingRisks": [
+                    "Implementation, verification, AI review, Human approval, integration, and cleanup decisions remain pending."
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ],
         "progress": {
           "completedSteps": [
-            "implement-checkpoint-verification",
-            "write-regression-test"
+            "verify-implementation"
           ],
-          "pendingStep": "run-verification",
-          "lastVerifiedHead": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
+          "pendingStep": null,
+          "lastVerifiedHead": "1b987cb90a5d0b9c6cd90df80ac4bbd52a2fc836",
           "checkpoints": [
             {
-              "stepId": "write-regression-test",
+              "stepId": "verify-implementation",
               "state": "pending",
-              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
-              "idempotencyKey": "fix-artifact-handoff-recheckpoint:test:v1"
+              "headCommit": "1b987cb90a5d0b9c6cd90df80ac4bbd52a2fc836",
+              "idempotencyKey": "fix-artifact-handoff-recheckpoint:attempt-2:verification:pending:v1"
             },
             {
-              "stepId": "implement-checkpoint-verification",
+              "stepId": "verify-implementation",
               "state": "completed",
-              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
-              "idempotencyKey": "fix-artifact-handoff-recheckpoint:implementation:v1"
-            },
-            {
-              "stepId": "run-verification",
-              "state": "pending",
-              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
-              "idempotencyKey": "fix-artifact-handoff-recheckpoint:verification:v1"
-            },
-            {
-              "stepId": "write-regression-test",
-              "state": "completed",
-              "headCommit": "e6ce847fdc596247f6fdec359bdea8fda94d0e51",
-              "idempotencyKey": "fix-artifact-handoff-recheckpoint:test:completed:v1"
+              "headCommit": "1b987cb90a5d0b9c6cd90df80ac4bbd52a2fc836",
+              "idempotencyKey": "fix-artifact-handoff-recheckpoint:attempt-2:verification:completed:v1"
             }
           ],
           "retry": {}
         },
         "recovery": {
           "status": "running",
-          "ownerInvocationId": "f0606ed6-1f2e-4d20-9b7a-c2cd31eaf087",
+          "ownerInvocationId": "453021e6-200e-442e-9e20-fadb3ea4fc62",
           "blockerId": null,
           "evidence": null
         }
