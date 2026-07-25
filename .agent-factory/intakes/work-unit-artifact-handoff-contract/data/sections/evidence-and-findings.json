@@ -516,6 +516,60 @@
         "selectedOption": "A",
         "decisionState": "accepted"
       }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-011",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py command_admit; skills/work-unit-execution/scripts/worktree.py prepare and admit_work_unit; related manager/worktree tests; observed fix-artifact-handoff-recheckpoint prepare refusal",
+        "method": "Source inspection, test coverage inspection, and actual Work Unit prepare execution",
+        "findings": [
+          "Lifecycle instructions require artifact_handoff inspect checkpointCommit to be passed as worktree.py prepare base.",
+          "worktree.py prepare resolves --base to baseCommit but passes the original --base string to Work Unit manager admit.",
+          "Work Unit manager admit compares the supplied --base string directly with execution-context baseRef, so an exact commit hash is rejected when the recorded baseRef is main even if both identify the same checkpoint.",
+          "The observed prepare returned work_unit_admission_refused with expected exact commit e6ce847fdc596247f6fdec359bdea8fda94d0e51 and actual main before branch or worktree creation.",
+          "Existing worktree tests call prepare with --base main and the ready Work Unit fixture also records baseRef main; no test passes an inspected exact checkpoint commit."
+        ],
+        "interpretations": [
+          "The symbolic provenance ref and immutable execution checkpoint are distinct values and admission must compare resolved Git/package identity rather than raw strings."
+        ],
+        "limitations": [
+          "The observed refusal and inspected code establish the local contract defect; this evidence does not select a new lifecycle phase, approval rule, or storage model."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-008",
+      "kind": "interview",
+      "content": {
+        "question": "exact checkpoint admission 결함 수정용 새 Work Unit ID를 무엇으로 정할까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "fix-worktree-checkpoint-base-admission",
+            "pros": "결함과 admission 경계가 명확하다.",
+            "cons": "이름이 비교적 길다."
+          },
+          {
+            "id": "B",
+            "decision": "align-worktree-base-ref",
+            "pros": "짧고 읽기 쉽다.",
+            "cons": "exact checkpoint admission 목적이 덜 드러난다."
+          },
+          {
+            "id": "C",
+            "decision": "Human이 다른 ID를 직접 지정한다.",
+            "pros": "원하는 명명 규칙을 반영한다.",
+            "cons": "ID 결정을 위한 추가 입력이 필요하다."
+          }
+        ],
+        "recommendation": "A",
+        "recommendationRationale": "symbolic baseRef와 inspected exact checkpoint commit의 불일치를 수정하는 범위를 가장 정확하게 표현한다.",
+        "answer": "A",
+        "selectedOption": "A",
+        "decisionState": "accepted"
+      }
     }
   ],
   "subsections": []

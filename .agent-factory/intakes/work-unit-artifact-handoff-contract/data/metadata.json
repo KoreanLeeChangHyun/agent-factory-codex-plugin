@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.106",
+  "documentVersion": "1.0.117",
   "id": "work-unit-artifact-handoff-contract",
   "artifactType": "intake",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "ready"
   },
   "createdAt": "2026-07-21T10:28:51+00:00",
-  "updatedAt": "2026-07-25T12:59:05+00:00",
+  "updatedAt": "2026-07-25T13:50:01+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,7 +19,7 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-07-25T21:58:49+09:00",
+    "reviewedAt": "2026-07-25T22:49:44+09:00",
     "contractValid": true,
     "evidenceComplete": true,
     "requirementsComplete": true,

@@ -165,6 +165,70 @@
         ],
         "unresolvedItems": []
       }
+    },
+    {
+      "id": "WORK-BASIS-003",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "fix-worktree-checkpoint-base-admission",
+        "objective": "Align Work Unit admission with the inspected exact checkpoint commit while preserving the symbolic execution-context baseRef and fail-closed mutation boundary.",
+        "dependencyStatus": "none",
+        "executionOrder": "3",
+        "humanReviewMethod": "Human은 exact checkpoint와 later-main-advance test, stale/unreachable/content-drift refusal evidence, active skill contract diff, changed-path 범위를 확인하고 승인·rework·integration을 별도로 결정한다.",
+        "scope": [
+          "Add failing manager and worktree tests that reproduce exact checkpoint hash rejection when execution-context baseRef is main.",
+          "Resolve the requested base commit independently from the recorded symbolic baseRef and require the requested commit to be the latest Work Unit package commit reachable from that recorded ref.",
+          "Verify current ready package content against the requested exact commit and preserve pre-mutation refusal for stale, unreachable, unresolved, missing-package, or drifted bases.",
+          "Preserve exact repository, branch, canonical worktree path, Work Unit identity, full-ready, and no-side-effect admission checks.",
+          "Align active work-unit-planner and work-unit-execution skill/reference wording with the symbolic-ref and exact-checkpoint roles.",
+          "Run focused manager and worktree tests plus skill validation."
+        ],
+        "exclusions": [
+          "Changes to artifact_handoff.py, checkpoint receipt schema, Work Unit schema or profile, execution-state contract, integration, cleanup, push, publication, reinstall, or PR promotion",
+          "Acceptance of an arbitrary ancestor or later unrelated main commit as a substitute for the latest Work Unit package checkpoint"
+        ],
+        "expectedOutputs": [
+          "skills/work-unit-planner/assets/scripts/work_unit.py",
+          "skills/work-unit-planner/tests/test_work_unit_manager.py",
+          "skills/work-unit-planner/SKILL.md",
+          "skills/work-unit-planner/references/work-unit-structure.md",
+          "skills/work-unit-execution/tests/test_worktree.py",
+          "skills/work-unit-execution/SKILL.md",
+          "skills/work-unit-execution/references/worktree-contract.md"
+        ],
+        "requirementRefs": [
+          "REQ-016",
+          "REQ-007",
+          "REQ-012",
+          "REQ-013"
+        ],
+        "acceptanceRefs": [
+          "ACCEPTANCE-004"
+        ],
+        "decisionRefs": [
+          "DECISION-010"
+        ],
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-011",
+          "REQUEST-005",
+          "INTERVIEW-008"
+        ],
+        "plan": [
+          "Write failing manager admission tests for exact checkpoint, later unrelated recorded-ref advancement, stale checkpoint, unresolved recorded ref, and package drift.",
+          "Write a failing worktree prepare test that passes the exact checkpoint commit while the package records baseRef main and proves no mutation on refusal cases.",
+          "Implement commit-resolution and latest-package-checkpoint admission verification with argument-array Git calls.",
+          "Align active skill contracts without changing artifact_handoff or execution-state ownership.",
+          "Run focused tests, skill validation, AI review, and Human-facing report preparation."
+        ],
+        "verification": [
+          "pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py -k admission",
+          "pytest -q skills/work-unit-execution/tests/test_worktree.py -k base",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-planner",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-execution",
+          "git diff --check"
+        ],
+        "unresolvedItems": []
+      }
     }
   ],
   "subsections": []

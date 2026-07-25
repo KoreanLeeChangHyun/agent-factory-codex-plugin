@@ -69,6 +69,13 @@
       "content": {
         "request": "기존 canonical package에서 일부 파일만 변경된 경우에도 artifact handoff가 전체 package tree와 hash를 검증한 뒤 변경된 canonical 파일 subset을 checkpoint할 수 있도록 artifact_handoff.py와 해당 테스트를 수정한다."
       }
+    },
+    {
+      "id": "REQUEST-005",
+      "kind": "human-request",
+      "content": {
+        "request": "worktree prepare의 exact checkpoint commit과 Work Unit execution context의 symbolic baseRef 문자열 불일치를 수정한다."
+      }
     }
   ],
   "subsections": []

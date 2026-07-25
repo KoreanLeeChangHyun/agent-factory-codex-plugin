@@ -285,6 +285,40 @@
           "REQ-011"
         ]
       }
+    },
+    {
+      "id": "REQ-016",
+      "kind": "requirement",
+      "content": {
+        "text": "Work Unit execution admission은 execution-context의 symbolic baseRef와 worktree prepare에 전달된 exact checkpoint commit을 raw string으로 비교하지 않아야 한다. 전달된 base는 recorded baseRef에서 도달 가능한 최신 Work Unit package commit으로 해석되고 current ready package content와 일치할 때만 admission되어야 한다.",
+        "traceability": [
+          "REQUEST-005",
+          "INTERNAL-EVIDENCE-011",
+          "DECISION-010",
+          "REQ-007",
+          "REQ-012",
+          "REQ-013"
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "A ready Work Unit whose execution context records baseRef main is admitted when prepare receives the exact latest Work Unit package checkpoint commit reconstructed by artifact_handoff inspect, even after unrelated later commits advance main.",
+          "Admission resolves the requested base to one commit, verifies that it is the latest commit touching the Work Unit package reachable from the recorded baseRef, and verifies that the current ready package content matches that commit.",
+          "A stale package commit, a commit not reachable from the recorded baseRef, an unresolved recorded baseRef, a base without the Work Unit package, or package content drift is refused before branch, worktree, or execution-state mutation.",
+          "Passing main directly remains accepted only when it resolves to the exact latest Work Unit package checkpoint commit; it cannot silently substitute a later unrelated main commit for the inspected checkpoint.",
+          "Focused manager and worktree tests cover exact commit admission, later unrelated target advancement, refusal paths, and mutation-free failure."
+        ],
+        "requirementRefs": [
+          "REQ-016",
+          "REQ-007",
+          "REQ-012",
+          "REQ-013"
+        ]
+      }
     }
   ],
   "subsections": []
