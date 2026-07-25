@@ -37,16 +37,27 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "failing-then-passing partial re-checkpoint regression",
-          "focused artifact handoff suite result",
-          "two-file diff scope review"
+        "status": "pass",
+        "verified": [
+          "부분 변경 re-checkpoint 회귀 테스트가 실패 후 구현 뒤 통과했다.",
+          "전체 artifact handoff focused suite 4개가 통과했다.",
+          "lifecycle skill quick validation이 통과했다.",
+          "git diff --check가 통과했다.",
+          "구현 diff는 승인된 artifact_handoff.py와 test_artifact_handoff.py 두 파일로 제한됐다."
         ]
       },
       "attributes": {
-        "status": "pending",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "453021e6-200e-442e-9e20-fadb3ea4fc62",
+          "headCommit": "1b987cb90a5d0b9c6cd90df80ac4bbd52a2fc836",
+          "revision": 1,
+          "attempt": 2
+        },
+        "evidence": [
+          "blocks/evidence/verification-attempt-2.log"
+        ]
       }
     }
   ],

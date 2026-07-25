@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification-attempt-2.log",
+      "mediaType": "text/plain",
+      "description": "Attempt 2 focused artifact handoff tests, lifecycle skill validation, and diff check",
+      "sha256": "552fd079dbd3e67e7577ee8c6bc5fb61c926bf5fe81514df0fd15575c271a7f5",
+      "sizeBytes": 305
+    },
+    {
+      "path": "blocks/evidence/worktree-final-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final pre-registration worktree inspection",
+      "sha256": "b661c18d1f733c39f4f2f8092874d2a42ff99046528e84626cceddaeaa7786a2",
+      "sizeBytes": 1640
+    }
+  ]
 }

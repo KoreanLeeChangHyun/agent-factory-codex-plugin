@@ -174,6 +174,91 @@ class ArtifactHandoffTests(unittest.TestCase):
             work_receipt["context"]["afterCommit"],
         )
 
+    def test_existing_package_recheckpoint_commits_changed_canonical_subset(self) -> None:
+        intake_result, intake_receipt = self.checkpoint(
+            "intake", "source-intake", "checkpoint intake source-intake"
+        )
+        self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+
+        helpers.run_intake(
+            "title-set", str(self.intake), "Updated Source Intake"
+        )
+        helpers.run_intake(
+            "metadata-set",
+            str(self.intake),
+            "readiness",
+            *helpers.data_args(
+                {
+                    "contractValid": True,
+                    "evidenceComplete": True,
+                    "requirementsComplete": True,
+                    "specificationConsistent": True,
+                    "executionReady": True,
+                    "reviewedAt": "2026-07-25T00:00:00+00:00",
+                    "findings": [],
+                }
+            ),
+        )
+        helpers.run_intake("transition", str(self.intake), "validating")
+        helpers.run_intake("transition", str(self.intake), "ready")
+
+        recheckpoint_result, recheckpoint = self.checkpoint(
+            "intake", "source-intake", "recheckpoint intake source-intake"
+        )
+        self.assertEqual(
+            recheckpoint_result.returncode, 0, recheckpoint_result.stdout
+        )
+        self.assertEqual(recheckpoint["state"], "checkpointed")
+
+        package_files = set(recheckpoint["context"]["validation"]["files"])
+        package_root = ".agent-factory/intakes/source-intake"
+        canonical_paths = {f"{package_root}/{path}" for path in package_files}
+        changed_paths = set(
+            run(
+                "git",
+                "diff-tree",
+                "--no-commit-id",
+                "--name-only",
+                "-r",
+                recheckpoint["context"]["afterCommit"],
+                cwd=self.repository,
+            ).stdout.splitlines()
+        )
+        self.assertTrue(changed_paths)
+        self.assertLess(changed_paths, canonical_paths)
+
+        replay_result, replay = self.checkpoint(
+            "intake", "source-intake", "recheckpoint intake source-intake"
+        )
+        self.assertEqual(replay_result.returncode, 0, replay_result.stdout)
+        self.assertEqual(replay["state"], "already-checkpointed")
+        self.assertEqual(
+            replay["context"]["afterCommit"],
+            recheckpoint["context"]["afterCommit"],
+        )
+
+        inspect_result, inspected = self.cli(
+            "inspect", "intake", "source-intake"
+        )
+        self.assertEqual(inspect_result.returncode, 0, inspect_result.stdout)
+        self.assertEqual(
+            inspected["context"]["checkpointCommit"],
+            recheckpoint["context"]["afterCommit"],
+        )
+
+        work_result, work_receipt = self.checkpoint(
+            "work-unit", "wu-001", "checkpoint work unit wu-001"
+        )
+        self.assertEqual(work_result.returncode, 0, work_result.stdout)
+        self.assertEqual(
+            work_receipt["context"]["beforeCommit"],
+            recheckpoint["context"]["afterCommit"],
+        )
+        self.assertNotEqual(
+            intake_receipt["context"]["afterCommit"],
+            recheckpoint["context"]["afterCommit"],
+        )
+
     def test_checkpoint_refuses_missing_approval_and_unrelated_staged_state(self) -> None:
         before = run("git", "rev-parse", "HEAD", cwd=self.repository).stdout.strip()
         denied, payload = self.cli(
