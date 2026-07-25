@@ -18,6 +18,71 @@
         "setupState": "not-prepared",
         "cleanupState": "not-requested"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "running",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "c0711e9239ee570ee30655431e380af1c77630af"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "codex-exec-bump-agent-factory-plugin-cachebuster-20260726-01",
+        "invocationChain": [
+          "codex-exec-bump-agent-factory-plugin-cachebuster-20260726-01"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "cachebuster-update"
+          ],
+          "pendingStep": "verification-and-commit",
+          "lastVerifiedHead": "c0711e9239ee570ee30655431e380af1c77630af",
+          "checkpoints": [
+            {
+              "stepId": "cachebuster-update",
+              "state": "pending",
+              "headCommit": "c0711e9239ee570ee30655431e380af1c77630af",
+              "idempotencyKey": "bump-agent-factory-plugin-cachebuster/cachebuster-update/v1"
+            },
+            {
+              "stepId": "cachebuster-update",
+              "state": "completed",
+              "headCommit": "c0711e9239ee570ee30655431e380af1c77630af",
+              "idempotencyKey": "bump-agent-factory-plugin-cachebuster/cachebuster-update/completed/v1"
+            },
+            {
+              "stepId": "verification-and-commit",
+              "state": "pending",
+              "headCommit": "c0711e9239ee570ee30655431e380af1c77630af",
+              "idempotencyKey": "bump-agent-factory-plugin-cachebuster/verification-and-commit/pending/v1"
+            }
+          ],
+          "retry": {
+            "cachebuster-update": {
+              "count": 1,
+              "maxRetries": 2,
+              "events": [
+                {
+                  "idempotencyKey": "bump-agent-factory-plugin-cachebuster/cachebuster-update/failure-1",
+                  "classification": "transient",
+                  "evidence": "completion checkpoint refused: pending idempotency key was reused; helper already succeeded and will not be rerun"
+                }
+              ]
+            }
+          }
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "codex-exec-bump-agent-factory-plugin-cachebuster-20260726-01",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []
