@@ -1,0 +1,57 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "Exact inspected checkpoint commit is admitted with recorded baseRef main even after unrelated later commits advance main.",
+        "Requested base resolves to the latest Work Unit package commit reachable from recorded baseRef and matches current ready package content.",
+        "Stale, unreachable, unresolved, missing-package, or drifted bases are refused before mutation.",
+        "Passing main directly is accepted only when it resolves to the exact latest Work Unit package checkpoint."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "Focused failing manager and worktree tests pass after implementation.",
+        "Active skill contracts distinguish symbolic baseRef from exact checkpoint commit.",
+        "Existing identity and mutation-free refusal checks remain passing.",
+        "AI review evidence and Human review material are recorded."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py -k admission",
+          "pytest -q skills/work-unit-execution/tests/test_worktree.py -k base",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-planner",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-unit-execution",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "failing-then-passing exact checkpoint admission regression",
+          "manager and worktree focused test results",
+          "two skill validation results",
+          "changed-path and diff review"
+        ]
+      },
+      "attributes": {
+        "status": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

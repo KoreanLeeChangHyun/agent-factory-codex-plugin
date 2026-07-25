@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Symbolic baseRef and exact checkpoint commit roles are distinct and consistently documented.",
+        "Latest reachable package checkpoint and current content checks are fail-closed.",
+        "Stale, unreachable, unresolved, missing-package, and drifted paths are mutation-free refusals.",
+        "Repository, branch, worktree path, identity, and readiness checks remain unchanged.",
+        "Diff stays within Work Unit scope."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

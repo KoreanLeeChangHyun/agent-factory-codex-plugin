@@ -1,0 +1,24 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "fix-worktree-checkpoint-base-admission",
+        "objective": "Align Work Unit admission with the inspected exact checkpoint commit.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-worktree-checkpoint-base-admission \"Execute Work Unit fix-worktree-checkpoint-base-admission.\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "baseCommit": "188013c00a8583e302834fc695819bf109a7e0f3",
+        "branch": "work-unit/fix-worktree-checkpoint-base-admission",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-worktree-checkpoint-base-admission",
+        "setupState": "not-prepared",
+        "cleanupState": "not-requested"
+      }
+    }
+  ],
+  "subsections": []
+}
