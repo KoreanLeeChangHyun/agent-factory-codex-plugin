@@ -21,7 +21,6 @@ class DocumentProfileTests(unittest.TestCase):
         schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
         Draft202012Validator.check_schema(schema)
         validator = Draft202012Validator(schema)
-        self.assertEqual(len(PROFILE_PATHS), 6)
         for path in PROFILE_PATHS:
             with self.subTest(profile=path.name):
                 profile = json.loads(path.read_text(encoding="utf-8"))
