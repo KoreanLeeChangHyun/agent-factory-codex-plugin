@@ -29,10 +29,20 @@
       "id": "HUMAN-RESULT-001",
       "kind": "human-review-result",
       "content": {
-        "status": "pending"
+        "status": "approved",
+        "decision": "구현 결과 승인",
+        "humanEvidence": "승인합니다."
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-25T15:02:37+00:00",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 2,
+          "invocationId": "codex-exec-fix-worktree-checkpoint-base-admission-20260726T0010KST",
+          "headCommit": "1c028a87d4ae61917be8547e3ebdda435359e648"
+        }
       }
     }
   ],
