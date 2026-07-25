@@ -15,12 +15,14 @@
       "id": "OUTCOME-001",
       "kind": "desired-outcome",
       "content": {
-        "outcome": "ready Intake와 그 Intake에서 생성된 ready Work Unit을 승인된 두 checkpoint commit으로 main에 기록하고, 두 번째 commit을 Work Unit branch와 linked worktree의 base로 사용하여 수동 복사나 별도 백업 없이 canonical artifact를 전달한다.",
+        "outcome": "ready Intake와 ready Work Unit을 승인된 두 checkpoint commit으로 main에 기록해 canonical artifact를 실행 worktree로 전달하고, 부실한 Work Unit은 실행 부작용 전에 거절하며, admission을 통과해 시작된 Work Unit은 durable recovery를 통해 review 또는 근거 있는 blocked까지 자동 실행 책임을 유지한다.",
         "decisionRefs": [
           "DECISION-002",
           "DECISION-003",
           "DECISION-004",
-          "DECISION-005"
+          "DECISION-005",
+          "DECISION-007",
+          "DECISION-008"
         ]
       }
     },
@@ -33,13 +35,17 @@
           "각 checkpoint commit에는 승인된 정확한 package 경로만 포함된다.",
           "두 번째 checkpoint receipt의 commit에서 생성한 Work Unit branch와 worktree에 ready Intake와 ready Work Unit이 모두 존재한다.",
           "handoff 과정은 artifact 복사본, 외부 staging 디렉터리, 임시 백업을 만들지 않는다.",
-          "성공과 거부 결과가 deterministic JSON receipt로 추적된다."
+          "성공과 거부 결과가 deterministic JSON receipt로 추적된다.",
+          "Full validation 또는 ready semantics가 불완전한 Work Unit은 worktree, execution state, repository mutation 전에 거절된다.",
+          "시작된 Work Unit은 durable checkpoint에서 재개하며 검증 완료 후 review 또는 복구 불가능 근거가 있는 blocked까지 자동 진행되고 active working 상태로 방치되지 않는다."
         ],
         "decisionRefs": [
           "DECISION-002",
           "DECISION-003",
           "DECISION-004",
-          "DECISION-005"
+          "DECISION-005",
+          "DECISION-007",
+          "DECISION-008"
         ]
       }
     },
@@ -48,6 +54,13 @@
       "kind": "human-request",
       "content": {
         "request": "Work Unit의 ready 단계는 실행 가능 여부를 명확히 보장해야 한다. ready Work Unit에 대한 실행 요청은 추가 질문 없이 실행하고, ready가 아니면 실행을 시작하기 전에 거절한다."
+      }
+    },
+    {
+      "id": "REQUEST-003",
+      "kind": "human-request",
+      "content": {
+        "request": "워크 유닛이 부실하면 애초에 실행을 거부하는 로직이 필요하다."
       }
     }
   ],

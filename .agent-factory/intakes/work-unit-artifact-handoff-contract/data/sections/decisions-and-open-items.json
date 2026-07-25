@@ -20,8 +20,8 @@
         "status": "interview-complete",
         "blockingCount": 0,
         "nonBlockingCount": 0,
-        "answeredQuestions": 5,
-        "totalQuestions": 5
+        "answeredQuestions": 6,
+        "totalQuestions": 6
       }
     },
     {
@@ -89,6 +89,62 @@
         "status": "accepted",
         "decision": "Work Unit의 ready 상태를 실행 가능 여부의 단일 진입 게이트로 사용한다. ready Work Unit의 명시적 실행 요청은 확정된 범위로 추가 질문 없이 실행하고, ready가 아닌 Work Unit은 실행 준비나 작업을 시작하기 전에 거절한다.",
         "source": "REQUEST-002"
+      }
+    },
+    {
+      "id": "DECISION-007",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "selectedOption": "A",
+        "decision": "실행 전 admission gate를 통과하지 못한 Work Unit은 무변경 거절한다. 시작된 Work Unit은 durable checkpoint, 자동 재개, 멱등 재시도로 진행하여 검증 완료 후 review에 도달하거나 복구 불가능 근거가 있는 blocked 상태에 도달할 때까지 자동 실행 책임을 유지한다.",
+        "relatedInterview": "INTERVIEW-006",
+        "evidenceRefs": [
+          "WEB-EVIDENCE-001",
+          "WEB-EVIDENCE-002",
+          "WEB-EVIDENCE-003",
+          "WEB-EVIDENCE-004",
+          "INTERNAL-EVIDENCE-006",
+          "INTERNAL-EVIDENCE-007",
+          "INTERNAL-EVIDENCE-008",
+          "INTERNAL-EVIDENCE-009"
+        ]
+      }
+    },
+    {
+      "id": "DECISION-008",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "Work Unit의 초기 실행 admission은 full package validation과 ready semantic validation을 모두 통과해야 하며, 하나라도 실패하면 worktree 준비, execution state 생성, attempt 시작, scoped mutation 전에 거절한다.",
+        "source": "REQUEST-003",
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-006",
+          "INTERNAL-EVIDENCE-007",
+          "INTERNAL-EVIDENCE-009"
+        ]
+      }
+    },
+    {
+      "id": "RISK-002",
+      "kind": "risk",
+      "content": {
+        "risks": [
+          "Codex goal continuation alone does not guarantee recovery after host, process, session, or external-service interruption.",
+          "worktree.py prepare can mutate Git for a missing or non-ready Work Unit because package admission is not coupled to the worktree boundary.",
+          "execution-state/v1 records attempt identity but not durable completed and pending steps, retry state, idempotency identity, lease, heartbeat, or recovery ownership.",
+          "Retrying a partially completed mutating step without idempotency can duplicate side effects.",
+          "Unlimited retries against permanent failures can consume resources indefinitely.",
+          "The current active-attempt blocked path cannot resolve its blocker or return to a resumable working attempt through public manager commands.",
+          "A session that ends while lifecycle status remains working can leave execution apparently active but operationally abandoned."
+        ],
+        "mitigations": [
+          "Place deterministic package admission before and in the same mechanical orchestration boundary as worktree mutation.",
+          "Persist canonical step progress and repository-head checkpoints and reconstruct them in a fresh session.",
+          "Assign deterministic idempotency identity or receipts to retryable mutations and verify replay behavior.",
+          "Classify failures, apply a recorded bounded retry policy, and support an evidence-backed blocked-to-resume path after blocker resolution.",
+          "Add interruption simulation, invalid-package prepare refusal, blocked recovery, and abandoned-working-state regression tests."
+        ]
       }
     }
   ],

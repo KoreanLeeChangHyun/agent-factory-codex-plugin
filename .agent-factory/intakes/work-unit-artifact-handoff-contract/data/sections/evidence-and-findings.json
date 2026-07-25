@@ -265,6 +265,204 @@
           "Source inspection establishes the current static contract and does not by itself verify future agent behavior."
         ]
       }
+    },
+    {
+      "id": "WEB-EVIDENCE-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Codex persisted goals and automatic continuation",
+        "url": "https://learn.chatgpt.com/docs/config-file/config-basic.md",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-25T00:00:00+09:00",
+        "findings": [
+          "Codex lists goals as a stable feature that enables persisted goals and automatic continuation.",
+          "The /goal command keeps an objective attached to the active chat while work continues and supports explicit pause, resume, edit, and clear operations.",
+          "The official manual does not state that a goal makes every tool action or process uninterruptible or guarantees terminal success despite host, session, policy, or external-service failures."
+        ],
+        "limitations": [
+          "This source establishes Codex product behavior, not an end-to-end distributed execution durability guarantee for Agent Factory Work Units."
+        ]
+      }
+    },
+    {
+      "id": "WEB-EVIDENCE-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Temporal durable execution recovery contract",
+        "url": "https://docs.temporal.io/",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-25T00:00:00+09:00",
+        "findings": [
+          "Temporal defines durable execution as persisting workflow state so execution resumes from the recorded point after process crashes, network failures, or infrastructure outages.",
+          "Failure-prone external work is modeled as retryable Activities while deterministic workflow state is recovered and replayed.",
+          "Completion depends on durable state persistence and recovery semantics rather than keeping one worker process continuously alive."
+        ],
+        "limitations": [
+          "Temporal is an external orchestration system; its guarantees do not automatically apply to Codex or this repository unless equivalent mechanisms are implemented and verified."
+        ]
+      }
+    },
+    {
+      "id": "WEB-EVIDENCE-003",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Azure Durable Task checkpoint, retry, and recovery model",
+        "url": "https://learn.microsoft.com/en-us/azure/durable-task/durable-functions/durable-functions-overview",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-25T00:00:00+09:00",
+        "findings": [
+          "Microsoft documents that Durable Functions manages workflow state, checkpoints, retries, and recovery for long-running workflows.",
+          "The reliability guidance distinguishes transient failures, which can be retried, from persistent failures, which remain errors.",
+          "Microsoft recommends idempotent operations so retries do not duplicate side effects."
+        ],
+        "limitations": [
+          "The documentation supports recoverable execution, not unconditional success when a permanent dependency or invalid input prevents completion."
+        ]
+      }
+    },
+    {
+      "id": "WEB-EVIDENCE-004",
+      "kind": "web-evidence",
+      "content": {
+        "title": "AWS retry, idempotency, and terminal failure boundaries",
+        "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/retry-backoff.html",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-25T00:00:00+09:00",
+        "findings": [
+          "AWS recommends exponential-backoff retries for transient failures and fail-fast handling for non-transient failures.",
+          "AWS requires retryable mutating operations to be idempotent because replaying a partially completed operation can otherwise corrupt state.",
+          "AWS Step Functions documents that retries are bounded by policy and unresolved or non-retriable errors reach an explicit failure path."
+        ],
+        "limitations": [
+          "The source does not define this repository’s state machine; it establishes design constraints that must be translated into Agent Factory requirements and tests."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-006",
+      "kind": "interview",
+      "content": {
+        "question": "Work Unit의 끝까지 진행 보장을 어떤 의미로 확정할까요?",
+        "choices": [
+          {
+            "id": "A",
+            "decision": "실행 전에 거절하거나, 시작 후 durable checkpoint·자동 재개·멱등 재시도를 통해 성공 또는 명시적인 복구 불가능 실패 상태까지 진행한다.",
+            "pros": "장애 후 이어서 진행할 수 있고 무한 정지나 중복 부작용을 방지한다.",
+            "cons": "영구 장애에서는 성공 대신 명시적 자동 실행 종결 상태가 될 수 있다."
+          },
+          {
+            "id": "B",
+            "decision": "시작한 Work Unit은 성공할 때까지 무제한 재시도하며 실패 종료를 허용하지 않는다.",
+            "pros": "문자 그대로 성공할 때까지 계속 시도한다.",
+            "cons": "영구 오류 시 무한 실행, 비용 증가, 자원 고착이 발생한다."
+          },
+          {
+            "id": "C",
+            "decision": "현재 Codex 세션 안에서만 automatic continuation을 보장하고 세션 장애 후 재개는 수동으로 처리한다.",
+            "pros": "구현 범위가 가장 작다.",
+            "cons": "중간 차단 문제를 근본적으로 해결하지 못한다."
+          }
+        ],
+        "recommendation": "A",
+        "recommendationRationale": "사전 거절 또는 시작 후 끝까지 책임지는 목표를 유지하면서 프로세스와 네트워크 장애를 견디고 영구 오류를 숨기지 않는 검증 가능한 계약이다.",
+        "answer": "A",
+        "selectedOption": "A",
+        "decisionState": "accepted"
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-006",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py; skills/work-unit-planner/assets/schema/metadata.schema.json; skills/work-unit-planner/references/work-unit-structure.md",
+        "method": "ready validation and lifecycle gate inspection",
+        "findings": [
+          "A ready Work Unit already requires all readiness flags, a review timestamp, no unresolved blocking open item, every profile-required section and content kind, a complete canonical execution context, and an anchored ready Intake basis.",
+          "execution-init rejects every lifecycle status other than ready before it creates execution state.",
+          "The current lifecycle supports blocked as an explicit automatic-execution stop with a required unresolved blocking open item; blocked can later return to a resumable lifecycle state after the blocker is resolved."
+        ],
+        "interpretations": [
+          "The requested initial refusal can be deterministic: full validation and ready semantic validation must complete before worktree preparation, execution-init, attempt-start, or scoped mutation.",
+          "A permanent failure can be recorded as blocked with evidence without inventing a new terminal lifecycle status or changing the existing metadata schema."
+        ],
+        "limitations": [
+          "Current validation proves structural and recorded semantic completeness; it cannot predict every future external failure or guarantee the substantive quality of an unrecorded requirement."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-007",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-execution/scripts/worktree.py:342-440; skills/work-unit-planner/assets/scripts/work_unit.py:543-584; skills/work-unit-execution/tests/test_worktree.py:217-232; skills/lifecycle/assets/scripts/",
+        "method": "source, command parser, file inventory, and existing test inspection",
+        "findings": [
+          "worktree.py prepare validates repository, base commit, derived branch, worktree registration, and path collisions, but it does not resolve or validate a canonical Work Unit package, lifecycle status, readiness flags, required content, execution context, or Intake basis.",
+          "The existing prepare success test creates and locks work-unit/wu-001 without creating any Work Unit package, proving the Git side effect boundary accepts a nonexistent package.",
+          "work_unit.py execution-init performs full package and ready semantic validation, but it also requires the prepared worktree HEAD, so worktree preparation necessarily precedes this manager gate in the documented workflow.",
+          "No skills/lifecycle/assets/scripts/artifact_handoff.py or combined admission-and-prepare command exists."
+        ],
+        "interpretations": [
+          "The current initial admission rule is declarative and caller-enforced rather than mechanically atomic at the earliest Git side-effect boundary.",
+          "A caller can create a branch and linked worktree for a missing, invalid, incomplete, or non-ready Work Unit by invoking worktree.py prepare directly."
+        ],
+        "limitations": [
+          "This analysis covers the repository and matching installed plugin files; it does not inspect an external launcher or proprietary Codex runtime that is not present in the plugin."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-008",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py:333-443,530-666,1155-1255; skills/work-unit-planner/assets/schema/metadata.schema.json; temporary blocked-resume reproduction command",
+        "method": "state-contract inspection and temporary-repository behavioral reproduction",
+        "findings": [
+          "execution-state/v1 records lifecycle substate, Git subject, revision, attempt, primary invocation, invocation chain, and archived attempt outcomes; it has no completed-step ledger, pending step, checkpoint payload, retry classification, retry counter or policy, idempotency identity, lease, heartbeat, or recovery owner.",
+          "attempt-resume only appends a unique Codex session id to invocationChain; no command discovers an interrupted session or starts a replacement session automatically.",
+          "A running Work Unit can transition to blocked after an unresolved blocker is added.",
+          "The reproduced blocked Work Unit rejects attempt-resume because status is not working, rejects resolving its blocker while blocked because blocked requires an unresolved blocker, and rejects direct blocked-to-working because generic transition to working is forbidden.",
+          "After the reproduced workaround blocked-to-backlog, blocker resolution, and backlog-to-ready, attempt-resume still rejects ready and attempt-start rejects the retained current attempt; the execution cannot resume through the public manager commands."
+        ],
+        "interpretations": [
+          "The current manager tracks attempt identity and stale-result binding but does not implement durable step-level execution or automatic continuation.",
+          "The current blocked recovery path is a deterministic dead end for an active attempt, contradicting the accepted recoverable blocked contract."
+        ],
+        "limitations": [
+          "The reproduction uses the repository test helpers and temporary Git data; it does not simulate host power loss or a remote service outage."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-009",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "pytest targeted manager/worktree tests; rg interruption and recovery coverage; plugin manifest and hooks inventory; SHA-256 comparison of repository and installed plugin files",
+        "method": "focused regression execution and configuration inspection",
+        "findings": [
+          "Four focused tests for ready rejection, execution attempt identity and resume history, manager-owned execution state, and worktree prepare passed in 103.30 seconds.",
+          "The broader selected suite was interrupted after 8 passing tests in 309.44 seconds because it exceeded the focused analysis time boundary; no failure was observed before interruption.",
+          "Existing tests cover required-kind rejection, invalid execution context, attempt identity history, duplicate invocation rejection, worktree collisions, integration replay, and cleanup safety.",
+          "No existing test covers automatic session recovery, durable completed-step reconstruction, idempotent replay of a scoped mutation, bounded transient retry, abandoned working detection, or blocked active-attempt recovery.",
+          "The plugin contains no hooks.json or Stop hook and its manifest only registers skills; no background scheduler or automatic continuation launcher is present.",
+          "SHA-256 hashes for the relevant repository skills and scripts exactly match the installed agent-factory plugin version 0.1.0+codex.20260719040900."
+        ],
+        "interpretations": [
+          "The current passing tests establish the existing identity and Git safety contracts but do not establish the requested start-or-durable-completion guarantee.",
+          "There is no plugin-local mechanism that automatically invokes attempt-resume after a Codex process or session ends."
+        ],
+        "limitations": [
+          "The full regression suite did not complete; conclusions about missing recovery coverage come from exact test-name and source searches plus focused tests, not a complete pass of every unrelated test."
+        ]
+      }
     }
   ],
   "subsections": []

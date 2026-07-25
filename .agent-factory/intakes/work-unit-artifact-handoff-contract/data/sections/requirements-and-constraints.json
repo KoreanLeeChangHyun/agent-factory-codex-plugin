@@ -198,11 +198,16 @@
       "id": "REQ-013",
       "kind": "requirement",
       "content": {
-        "text": "Work Unit 실행 진입점은 full validation을 통과한 lifecycle status ready만 허용해야 한다. ready가 아니면 worktree 준비, execution-init, attempt-start 또는 scoped work 전에 거절하고, ready이며 Human이 실행을 요청했으면 기록된 결정과 범위를 다시 질문하지 않고 실행을 시작해야 한다.",
+        "text": "Work Unit 초기 실행 admission은 package resolve, full validation, lifecycle status ready, readiness flags, reviewedAt, required sections와 content kinds, unresolved blocker 부재, canonical execution context, ready Intake basis를 모두 확인해야 한다. 하나라도 실패하면 worktree 준비, execution-init, attempt-start, scoped mutation 전에 machine-readable refusal을 반환하고 repository와 Work Unit execution state를 변경하지 않아야 한다.",
         "traceability": [
           "REQUEST-002",
+          "REQUEST-003",
           "DECISION-006",
-          "INTERNAL-EVIDENCE-005"
+          "DECISION-008",
+          "INTERNAL-EVIDENCE-005",
+          "INTERNAL-EVIDENCE-006",
+          "INTERNAL-EVIDENCE-007",
+          "INTERNAL-EVIDENCE-009"
         ]
       }
     },
@@ -211,12 +216,39 @@
       "kind": "acceptance-criterion",
       "content": {
         "criteria": [
-          "A full-valid ready Work Unit with an explicit execution request enters execution without a repeated approval or decision question.",
-          "A backlog, blocked, review, done, structurally invalid, or semantically non-ready Work Unit is refused before worktree preparation or scoped work.",
-          "Focused manager and contract tests verify both the ready success path and non-ready refusal paths."
+          "A missing, ambiguous, structurally invalid, semantically incomplete, non-ready, blocker-bearing, execution-context-invalid, or Intake-basis-invalid Work Unit is refused before worktree preparation, execution-init, attempt-start, or scoped mutation, with no repository or execution-state mutation.",
+          "Direct invocation of the Git worktree boundary cannot create or reuse an execution worktree unless the canonical Work Unit package passes full validation and ready admission for the same id, repository, base, branch, and path.",
+          "A full-valid ready Work Unit with an explicit execution request starts without a repeated approval or settled-decision question.",
+          "After attempt-start, each externally visible execution transition is durably recorded so a fresh Codex session can reconstruct the current revision, attempt, invocation chain, completed steps, pending step, and last verified repository head.",
+          "A simulated process or session interruption resumes the same working attempt from its last durable checkpoint without repeating an already completed non-idempotent side effect.",
+          "Transient failures follow a recorded bounded retry policy and retryable mutations use idempotency identity or deterministic receipts.",
+          "An unrecoverable failure or exhausted retry policy records exact evidence and an unresolved blocking item before transition to blocked; the executor must not silently leave an active working attempt abandoned.",
+          "After a blocked active attempt has evidence that its blocker is resolved, public manager commands can restore and resume the same revision and attempt without discarding history or creating an unapproved rework revision.",
+          "Only completed work with passing verification and AI review reaches review.",
+          "Focused manager, contract, and temporary-repository tests cover admission refusal, direct prepare bypass refusal, interruption recovery, idempotent replay, transient retry, blocked recovery, and explicit blocked outcomes."
         ],
         "requirementRefs": [
-          "REQ-013"
+          "REQ-013",
+          "REQ-014"
+        ]
+      }
+    },
+    {
+      "id": "REQ-014",
+      "kind": "requirement",
+      "content": {
+        "text": "Admission을 통과해 attempt가 시작된 Work Unit은 확정된 범위와 결정을 다시 묻지 않고 durable execution progress를 canonical execution state에 checkpoint해야 한다. 프로세스나 세션 중단과 transient failure 뒤에는 마지막 완료 checkpoint에서 자동 resume하고 retryable mutation은 idempotent하게 재실행하며, 검증 완료 후 review 또는 복구 불가능 근거와 unresolved blocking item을 가진 blocked에 도달할 때까지 자동 실행 책임을 유지해야 한다.",
+        "traceability": [
+          "REQUEST-002",
+          "DECISION-007",
+          "INTERVIEW-006",
+          "WEB-EVIDENCE-001",
+          "WEB-EVIDENCE-002",
+          "WEB-EVIDENCE-003",
+          "WEB-EVIDENCE-004",
+          "INTERNAL-EVIDENCE-006",
+          "INTERNAL-EVIDENCE-008",
+          "INTERNAL-EVIDENCE-009"
         ]
       }
     }
