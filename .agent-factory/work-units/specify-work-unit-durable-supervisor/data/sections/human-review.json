@@ -8,11 +8,13 @@
       "content": {
         "items": [
           "Project Core의 목적·원칙·범위·승인 경계·미결정이 기존 결정과 일치하는지 확인합니다.",
-          "부실한 Work Unit을 실행 전에 거부하는 admission 기준이 충분히 엄격한지 확인합니다.",
-          "승인된 Work Unit의 재개 보장이 동일 호스트 process 장애 범위에서 끝까지 이어지는지 확인합니다.",
-          "process가 전혀 없을 때 자동 재기동할 수 없는 한계와 실제 startup trigger가 명확한지 확인합니다.",
-          "SQLite 안전 기본값, WAL 제한, 소유권 fencing과 side-effect 중복 방지 계약을 확인합니다.",
-          "보안·관측성·fault-injection 기준과 후속 구현 Work Unit의 입력이 충분한지 확인합니다."
+          "system-architecture profile의 여섯 architecture section이 후속 구현 명세에 충분한지 확인합니다.",
+          "부실한 Work Unit이 branch·worktree·attempt mutation 전에 거부되는 admission manifest와 순서를 확인합니다.",
+          "admitted Work Unit이 동일 호스트 process interruption 후 SessionStart(startup|resume)에서 같은 revision·attempt로 복구되는지 확인합니다.",
+          "Codex process가 전혀 없을 때 self-relaunch하지 못하고 host·disk loss가 제외된다는 보장 경계를 확인합니다.",
+          "SQLite 3.46.1 rollback-journal 기본값, WAL gate, lease·fencing과 side-effect reconciliation을 확인합니다.",
+          "descriptor-anchored path-swap 방어, permission, secret redaction과 fault-injection matrix를 확인합니다.",
+          "runtime 구현, integration, merge와 cleanup은 아직 수행되지 않았음을 확인합니다."
         ]
       }
     },
@@ -21,11 +23,12 @@
       "kind": "human-review-method",
       "content": {
         "inspect": [
-          "외부 Design Report viewer 또는 canonical JSON을 통해 Project Core와 durable supervisor Specification을 검토합니다.",
-          "system-architecture profile, manager 회귀 테스트와 full validation 결과를 확인합니다.",
-          "Intake requirement·decision에서 Specification 항목으로 이어지는 traceability를 확인합니다.",
-          "OPEN-001 해결 증거와 startup trigger prototype 또는 fixture 결과를 확인합니다.",
-          "승인 또는 rework를 결정하며 구현·merge·cleanup은 별도 Human 결정입니다."
+          ".agent-factory/specifications/project-core canonical JSON을 검토합니다.",
+          ".agent-factory/specifications/work-unit-durable-execution-supervisor canonical JSON 또는 외부 Design Report viewer를 검토합니다.",
+          "skills/specification/assets/profiles/system-architecture.profile.json과 test_specification_manager.py diff를 확인합니다.",
+          "blocks/evidence/specification-verification.txt와 specification-semantic-review.json을 확인합니다.",
+          "OPEN-001 resolution의 SessionStart hook, PLUGIN_ROOT·PLUGIN_DATA와 hook trust 경계를 확인합니다.",
+          "승인 또는 rework를 결정합니다. merge와 cleanup은 별도 Human 결정입니다."
         ]
       }
     },
@@ -33,7 +36,8 @@
       "id": "HUMAN-RESULT-001",
       "kind": "human-review-result",
       "content": {
-        "status": "pending"
+        "status": "pending",
+        "decision": "Human review required"
       },
       "attributes": {
         "status": "pending"

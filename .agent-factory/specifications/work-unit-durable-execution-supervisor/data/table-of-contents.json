@@ -1,0 +1,56 @@
+{
+  "managerOwned": true,
+  "sections": [
+    {
+      "id": "purpose-and-scope",
+      "path": "data/sections/purpose-and-scope.json",
+      "subsections": []
+    },
+    {
+      "id": "basis-and-relations",
+      "path": "data/sections/basis-and-relations.json",
+      "subsections": []
+    },
+    {
+      "id": "decisions-and-open-items",
+      "path": "data/sections/decisions-and-open-items.json",
+      "subsections": []
+    },
+    {
+      "id": "verification-and-traceability",
+      "path": "data/sections/verification-and-traceability.json",
+      "subsections": []
+    },
+    {
+      "id": "system-context-and-boundaries",
+      "path": "data/sections/system-context-and-boundaries.json",
+      "subsections": []
+    },
+    {
+      "id": "components-and-ownership",
+      "path": "data/sections/components-and-ownership.json",
+      "subsections": []
+    },
+    {
+      "id": "startup-and-runtime",
+      "path": "data/sections/startup-and-runtime.json",
+      "subsections": []
+    },
+    {
+      "id": "state-storage-and-consistency",
+      "path": "data/sections/state-storage-and-consistency.json",
+      "subsections": []
+    },
+    {
+      "id": "admission-execution-and-recovery",
+      "path": "data/sections/admission-execution-and-recovery.json",
+      "subsections": []
+    },
+    {
+      "id": "security-observability-and-verification",
+      "path": "data/sections/security-observability-and-verification.json",
+      "subsections": []
+    }
+  ],
+  "sha256": "1c554bb09160176353a05b857234ab6029e96e0938b17521379134de8e79bea5"
+}

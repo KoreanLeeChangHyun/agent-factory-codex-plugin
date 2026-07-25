@@ -6,16 +6,39 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "complete",
+        "summary": "Project Core, system-architecture profile과 governed Durable Execution Supervisor Specification을 생성하고 계획된 verification과 AI review를 통과해 Human review-ready로 준비했다.",
+        "evidenceRegistrationDelta": "첫 final inspect 뒤 blocks/evidence/worktree-inspect-final.json 한 경로만 추가됐고 기존 changed path는 제거되지 않았다. report 갱신은 이미 보고된 report path 안에서 이루어졌다.",
+        "completed": [
+          "system-architecture profile contract와 9-test regression suite",
+          "canonical Project Core full validation",
+          "governed Durable Execution Supervisor Specification full validation",
+          "OPEN-001 SessionStart(startup|resume), PLUGIN_ROOT·PLUGIN_DATA와 direct --data-dir contract resolution",
+          "admission, SQLite journal, ownership fencing, recovery, idempotency, security, observability와 fault matrix specification"
+        ],
         "remainingRisks": [
-          "system-architecture profile, Project Core와 durable supervisor Specification은 아직 생성되지 않았다.",
-          "OPEN-001의 exact startup trigger와 writable data path는 Execution에서 증거로 확정해야 한다.",
-          "Supervisor core 구현, lifecycle 통합, process fault tests와 Human 승인은 후속 단계로 남아 있다."
+          "Supervisor runtime, plugin hook file, lifecycle integration과 process-level fault tests는 후속 Work Unit 범위다.",
+          "lease·heartbeat·retry timing과 descriptor-safe supported platform matrix는 구현 검증에서 확정해야 한다.",
+          "Codex process가 전혀 없을 때 unattended self-relaunch와 host·disk loss recovery는 보장 범위 밖이다.",
+          "Human review, approval, integration과 cleanup은 pending이다."
         ]
       },
       "attributes": {
-        "verificationResult": "pending"
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "codex-goal-019f93fe-1417-7ec1-9755-460cbffcd588",
+          "headCommit": "8a78aa952741940b5b74ac0c9fd3ca06c90d8d24",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/specification-verification.txt",
+          "blocks/evidence/specification-semantic-review.json",
+          "blocks/evidence/codex-exec-parser.txt",
+          "blocks/evidence/worktree-prepare.json",
+          "blocks/evidence/worktree-inspect-final.json"
+        ]
       }
     }
   ],

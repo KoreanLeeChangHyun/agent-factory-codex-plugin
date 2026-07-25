@@ -91,20 +91,34 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
+        "status": "pass",
+        "summary": "profile, manager regression, canonical package validation, relation, traceability, startup fixture, SQLite policy, security와 diff 검사가 통과했다.",
         "requiredEvidence": [
           "Specification schema/profile validation result",
           "Specification manager regression result",
           "Project Core and governed-by relation trace review",
           "admission and recovery state contract review",
           "SQLite version and durability policy review",
-          "startup trigger prototype or fixture evidence",
+          "startup trigger fixture evidence",
           "security and idempotency fault-matrix review",
           "diff scope review"
         ]
       },
       "attributes": {
-        "status": "pending"
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "codex-goal-019f93fe-1417-7ec1-9755-460cbffcd588",
+          "headCommit": "8a78aa952741940b5b74ac0c9fd3ca06c90d8d24",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/specification-verification.txt",
+          "blocks/evidence/specification-semantic-review.json",
+          "blocks/evidence/codex-exec-parser.txt",
+          "blocks/evidence/worktree-inspect-final.json"
+        ]
       }
     }
   ],

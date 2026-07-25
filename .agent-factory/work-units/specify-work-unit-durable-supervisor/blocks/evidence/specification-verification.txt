@@ -1,0 +1,19 @@
++zsh:4> python3 skills/specification/scripts/specification.py check-schemas
+{"valid": true, "schemaVersion": "1.0.0", "profiles": ["api-design", "class-architecture", "data-model", "project-core", "requirements-specification", "system-architecture"], "schemas": ["blocks.schema.json", "metadata.schema.json", "section.schema.json", "table-of-contents.schema.json", "title.schema.json"]}
++zsh:5> python3 skills/specification/tests/test_specification_manager.py
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 23.402s
+
+OK
++zsh:6> python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/project-core --full
+{"valid": true, "schemaVersion": "1.0.0", "profile": "project-core@1.0.0", "id": "project-core", "status": "draft", "sectionCount": 4, "validationMode": "full", "files": ["data/metadata.json", "data/title.json", "data/table-of-contents.json", "blocks/index.json", "data/sections/purpose-and-scope.json", "data/sections/basis-and-relations.json", "data/sections/decisions-and-open-items.json", "data/sections/verification-and-traceability.json"], "documentClass": "project-governance", "profileValidation": "base-valid-and-profile-valid"}
++zsh:7> python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/work-unit-durable-execution-supervisor --full
+{"valid": true, "schemaVersion": "1.0.0", "profile": "system-architecture@1.0.0", "id": "work-unit-durable-execution-supervisor", "status": "draft", "sectionCount": 10, "validationMode": "full", "files": ["data/metadata.json", "data/title.json", "data/table-of-contents.json", "blocks/index.json", "data/sections/purpose-and-scope.json", "data/sections/basis-and-relations.json", "data/sections/decisions-and-open-items.json", "data/sections/verification-and-traceability.json", "data/sections/system-context-and-boundaries.json", "data/sections/components-and-ownership.json", "data/sections/startup-and-runtime.json", "data/sections/state-storage-and-consistency.json", "data/sections/admission-execution-and-recovery.json", "data/sections/security-observability-and-verification.json"], "documentClass": "architecture", "profileValidation": "base-valid-and-profile-valid"}
++zsh:8> python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/specification
+Skill is valid!
++zsh:9> jq -e '.content[] | select(.id=="STARTUP-HOOK-FIXTURE-001") | .content.event=="SessionStart" and .content.matcher=="startup|resume" and (.content.requiredEnvironment==["PLUGIN_ROOT","PLUGIN_DATA"])' .agent-factory/specifications/work-unit-durable-execution-supervisor/data/sections/startup-and-runtime.json
+true
++zsh:10> find .agent-factory/specifications -type f '(' -name '*.html' -o -name '*.css' -o -name '*.js' ')' -print
++zsh:10> test -z ''
++zsh:11> git diff --check

@@ -1,0 +1,29 @@
+{
+  "id": "purpose-and-scope",
+  "title": "purpose-and-scope",
+  "content": [
+    {
+      "id": "PROJECT-PURPOSE-001",
+      "kind": "project-purpose",
+      "content": {
+        "statement": "Agent Factory는 Intake, Work Unit, Execution, Human Review lifecycle을 통해 Codex의 구조화된 software delivery를 제공하는 plugin이다."
+      }
+    },
+    {
+      "id": "PROJECT-SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "included": [
+          "Agent Factory lifecycle routing과 canonical Intake, Specification, Work Unit artifact management",
+          "Work Unit 계획·전용 worktree 실행·검증·AI Review·Human review 준비",
+          "skills, scripts, profiles, tests와 plugin packaging"
+        ],
+        "excluded": [
+          "Human 승인 없는 merge, cleanup, deployment 또는 runtime restart",
+          "명시적으로 승인된 Intake나 Work Unit 범위를 벗어난 product behavior"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

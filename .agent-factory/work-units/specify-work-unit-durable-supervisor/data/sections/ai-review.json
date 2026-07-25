@@ -22,13 +22,24 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "pass",
+        "summary": "AI checklist 8개 항목을 모두 확인했다. 명세는 Intake 근거에 추적되고 runtime 구현이나 host-loss recovery를 완료로 주장하지 않는다.",
         "findings": []
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "codex-goal-019f93fe-1417-7ec1-9755-460cbffcd588",
+          "headCommit": "8a78aa952741940b5b74ac0c9fd3ca06c90d8d24",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/specification-verification.txt",
+          "blocks/evidence/specification-semantic-review.json"
+        ]
       }
     }
   ],

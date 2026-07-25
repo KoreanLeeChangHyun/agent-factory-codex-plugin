@@ -18,6 +18,25 @@
         "setupState": "not-prepared",
         "cleanupState": "not-requested"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "review",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "8a78aa952741940b5b74ac0c9fd3ca06c90d8d24"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "codex-goal-019f93fe-1417-7ec1-9755-460cbffcd588",
+        "invocationChain": [
+          "codex-goal-019f93fe-1417-7ec1-9755-460cbffcd588"
+        ],
+        "history": []
+      }
     }
   ],
   "subsections": []

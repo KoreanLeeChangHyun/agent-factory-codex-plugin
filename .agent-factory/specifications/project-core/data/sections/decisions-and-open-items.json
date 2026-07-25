@@ -1,0 +1,28 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "decisions-and-open-items",
+  "content": [
+    {
+      "id": "APPROVAL-BOUNDARIES-001",
+      "kind": "human-approval-boundaries",
+      "content": {
+        "items": [
+          "Human은 Work Unit basis와 실행 결과의 승인 또는 rework를 결정한다.",
+          "merge, cleanup, branch disposal, PR promotion, deployment와 runtime restart는 별도 Human 결정이 필요하다.",
+          "Supervisor는 이미 admission을 통과한 동일 revision과 attempt의 covered process recovery만 새 범위 승인 없이 수행할 수 있다."
+        ]
+      }
+    },
+    {
+      "id": "UNRESOLVED-ITEMS-001",
+      "kind": "unresolved-items",
+      "content": {
+        "items": [
+          "Durable Execution Supervisor runtime, lifecycle integration과 process fault-injection 구현은 후속 Work Unit에 남아 있다.",
+          "Plugin은 alpha 상태이며 skills, artifact formats와 workflows의 production compatibility는 확정되지 않았다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

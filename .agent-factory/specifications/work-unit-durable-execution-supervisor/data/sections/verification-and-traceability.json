@@ -1,0 +1,60 @@
+{
+  "id": "verification-and-traceability",
+  "title": "verification-and-traceability",
+  "content": [
+    {
+      "id": "VERIFICATION-STRATEGY-001",
+      "kind": "verification-strategy",
+      "content": {
+        "commands": [
+          "python3 skills/specification/scripts/specification.py check-schemas",
+          "python3 skills/specification/tests/test_specification_manager.py",
+          "python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/project-core --full",
+          "python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/work-unit-durable-execution-supervisor --full",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/specification",
+          "git diff --check"
+        ],
+        "semanticChecks": [
+          "Project Core permitted content boundary",
+          "governed-by and Intake anchor resolution",
+          "OPEN-001 SessionStart/PLUGIN_DATA evidence and process-absence limitation",
+          "admission-before-mutation order",
+          "SQLite 3.46.1 rollback-journal default and WAL gate",
+          "single-owner fencing and side-effect reconciliation",
+          "path-swap, permission, redaction and fault matrix completeness"
+        ]
+      }
+    },
+    {
+      "id": "TRACEABILITY-001",
+      "kind": "traceability",
+      "content": {
+        "intakeAnchor": "WORK-UNIT-BASIS-SPEC-001",
+        "mappings": [
+          "REQUIREMENT-ADMISSION-001 -> EXECUTION-MANIFEST-001, ADMISSION-CHECKS-001, ADMISSION-ORDER-001, FAULT-MATRIX-001",
+          "REQUIREMENT-ENTRYPOINT-002 -> OWNERSHIP-001, STARTUP-HOOK-FIXTURE-001, DIRECT-LAUNCH-001, EXECUTION-FLOW-001",
+          "REQUIREMENT-STATE-003 -> JOURNAL-SCHEMA-001, EXECUTION-STATES-001, TRANSACTION-INVARIANTS-001",
+          "REQUIREMENT-RECOVERY-004 -> RUNTIME-LIFECYCLE-001, OWNERSHIP-RECOVERY-001, STARTUP-LIMITS-001",
+          "REQUIREMENT-OWNERSHIP-005 -> JOURNAL-SCHEMA-001, OWNERSHIP-RECOVERY-001, FAULT-MATRIX-001",
+          "REQUIREMENT-IDEMPOTENCY-006 -> SIDE-EFFECT-001, TRANSACTION-INVARIANTS-001, FAULT-MATRIX-001",
+          "REQUIREMENT-VERSION-007 -> VERSION-MIGRATION-001, EXECUTION-STATES-001",
+          "REQUIREMENT-EVIDENCE-008 -> AUDIT-REDACTION-001, EXECUTION-FLOW-001",
+          "REQUIREMENT-SQLITE-009 -> SQLITE-POLICY-001, VERSION-MIGRATION-001, FAULT-MATRIX-001",
+          "REQUIREMENT-SECURITY-010 -> PATH-SECURITY-001, AUDIT-REDACTION-001, FAULT-MATRIX-001",
+          "OPEN-001 -> EXTERNAL-EVIDENCE-CODEX-HOOKS-001, RESOLVED-OPEN-001, STARTUP-HOOK-FIXTURE-001, DIRECT-LAUNCH-001, STARTUP-LIMITS-001"
+        ]
+      }
+    },
+    {
+      "id": "REVIEW-STATUS-001",
+      "kind": "review-status",
+      "content": {
+        "status": "ai-verified",
+        "aiVerification": "pass",
+        "humanStatus": "pending",
+        "note": "profile, manager regression, full package validation, relation, traceability, startup fixture, SQLite policy, security와 forbidden viewer artifact 검사가 통과했다."
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,30 @@
+{
+  "id": "basis-and-relations",
+  "title": "basis-and-relations",
+  "content": [
+    {
+      "id": "CORE-PRINCIPLES-001",
+      "kind": "core-principles",
+      "content": {
+        "items": [
+          "요구사항과 변경은 Human statement, canonical lifecycle artifact, repository/runtime evidence 또는 authoritative source에 근거한다.",
+          "Intake에서 근거와 성공 기준을 준비하고 Work Unit으로 최소 실행 범위를 고정한 뒤 Execution과 Human Review를 수행한다.",
+          "기계적으로 불완전한 Work Unit은 mutation 전에 fail-closed로 거부한다.",
+          "admission을 통과한 Work Unit은 기록된 장애 범위 안에서 review-ready 또는 명시적 terminal failure까지 복구 가능해야 한다.",
+          "Skill과 manager가 canonical workflow와 artifact serialization ownership을 가진다.",
+          "Human이 승인, rework, integration, cleanup, deployment와 범위 변경의 최종 결정권을 가진다."
+        ]
+      }
+    },
+    {
+      "id": "GOVERNED-RELATIONS-001",
+      "kind": "governed-specification-relations",
+      "content": {
+        "specifications": [
+          "work-unit-durable-execution-supervisor"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

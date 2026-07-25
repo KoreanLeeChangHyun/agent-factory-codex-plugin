@@ -1,0 +1,95 @@
+{
+  "id": "state-storage-and-consistency",
+  "title": "state-storage-and-consistency",
+  "content": [
+    {
+      "id": "SQLITE-POLICY-001",
+      "kind": "storage-policy",
+      "content": {
+        "location": "Plugin hook mode는 PLUGIN_DATA, direct Skill mode는 validated absolute --data-dir 아래의 execution-journal.sqlite3를 사용한다.",
+        "writeTransactions": "ownership claim, event append, step transition과 receipt projection은 BEGIN IMMEDIATE transaction으로 serialize한다.",
+        "walGate": "SQLite 3.46.1은 WAL을 거부한다. WAL opt-in은 공식 수정 3.51.3 이상 또는 official documentation에 명시된 fixed backport 3.44.6·3.50.7과 검증된 build identity에서만 허용한다.",
+        "crashRecovery": "unclean shutdown 뒤 open 시 hot rollback journal recovery를 허용하고 integrity_check와 event invariant 검증 실패 시 execution mutation을 fail-closed한다.",
+        "pragmas": [
+          "journal_mode=DELETE",
+          "synchronous=FULL",
+          "foreign_keys=ON",
+          "locking_mode=NORMAL"
+        ]
+      }
+    },
+    {
+      "id": "JOURNAL-SCHEMA-001",
+      "kind": "state-model",
+      "content": {
+        "tables": [
+          "journal_meta: schema_version, workflow_version, created_at, migrated_at와 SQLite build identity",
+          "admissions: admission_id, work_unit_id, source_digest, result, redacted_reasons, checked_at; rejected admission도 repository mutation 없이 audit한다.",
+          "executions: execution_id, work_unit_id, revision, attempt, goal_id, repository identity, worktree path, git_head, workflow_version, state, admitted_at, terminal_at, current_fence",
+          "owners: execution_id, owner_id, fence_token, heartbeat_at, lease_expires_at; execution_id당 한 current owner",
+          "steps: execution_id, step_id, sequence, phase, action identity, input_hash, idempotency_key, side_effect_policy, state, retry_count, checkpoint, last_fence",
+          "receipts: execution_id, step_id, idempotency_key, input_hash, status, redacted receipt, reconciled_at; stable key unique",
+          "events: execution_id, sequence, event_type, step_id, fence_token, timestamp, redacted payload; execution별 append-only sequence unique"
+        ],
+        "keys": [
+          "execution identity는 work_unit_id + revision + attempt로 unique하다.",
+          "step identity는 execution_id + step_id로 unique하다.",
+          "fence_token은 execution별 strictly monotonic integer다.",
+          "event sequence는 execution별 gap-free monotonic integer다."
+        ]
+      }
+    },
+    {
+      "id": "EXECUTION-STATES-001",
+      "kind": "state-transitions",
+      "content": {
+        "states": [
+          "admitted: admission transaction이 commit됐고 repository mutation은 아직 시작되지 않음",
+          "running: current fenced owner가 step을 수행할 수 있음",
+          "recovering: 새 owner가 pending intent와 external state를 reconcile하는 중",
+          "review-ready: Plan·Work·AI Review·Report와 Human review evidence가 완료된 terminal state",
+          "terminal-failure: bounded retry 또는 nonrecoverable invariant failure 증거가 commit된 terminal state"
+        ],
+        "transitions": [
+          "admitted -> running: owner claim과 first fence commit",
+          "running -> recovering: expired owner takeover 또는 startup recovery claim",
+          "recovering -> running: pending step reconciliation과 invariant verification 성공",
+          "running -> review-ready: Report와 Human review material verification commit",
+          "running|recovering -> terminal-failure: retry exhaustion, incompatible version, integrity failure 또는 unreconcilable side effect"
+        ],
+        "forbidden": [
+          "rejected admission은 executions row를 만들 수 없다.",
+          "review-ready와 terminal-failure에서 step mutation으로 되돌아갈 수 없다.",
+          "stale fence token은 event, step, checkpoint 또는 receipt를 쓸 수 없다."
+        ]
+      }
+    },
+    {
+      "id": "TRANSACTION-INVARIANTS-001",
+      "kind": "consistency",
+      "content": {
+        "items": [
+          "execution state transition과 대응 event append는 같은 transaction에서 commit한다.",
+          "owner claim은 lease 조건 검사, fence increment와 ownership event append를 같은 transaction에서 수행한다.",
+          "step 시작 전에 pending intent와 stable idempotency identity를 commit한다.",
+          "step 완료, receipt, checkpoint와 completed event는 같은 transaction에서 commit한다.",
+          "Work Unit JSON 결과와 Git mutation은 SQLite와 atomic하지 않으므로 exact manager command/result와 observed Git head를 event에 기록하고 recovery 시 reconcile한다.",
+          "completed state는 matching input_hash, receipt 또는 verification evidence 없이 projection할 수 없다."
+        ]
+      }
+    },
+    {
+      "id": "VERSION-MIGRATION-001",
+      "kind": "migration-and-compatibility",
+      "content": {
+        "items": [
+          "journal schema migration은 ordered forward-only migration이며 exclusive transaction과 migration event를 사용한다.",
+          "runtime이 journal보다 오래된 schema 또는 incompatible workflow version을 만나면 history를 replay하지 않고 fail-closed한다.",
+          "execution은 Work Unit revision, attempt, Git head, execution-state contract version과 Supervisor workflow version에 고정된다.",
+          "migration 전후 integrity_check와 schema invariant를 기록하며 downgrade는 지원하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

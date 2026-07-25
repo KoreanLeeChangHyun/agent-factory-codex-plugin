@@ -17,6 +17,7 @@ PROFILE_IDS = [
     "data-model",
     "project-core",
     "requirements-specification",
+    "system-architecture",
 ]
 COMMON_SECTIONS = [
     "purpose-and-scope",
@@ -122,6 +123,25 @@ class SpecificationManagerTests(unittest.TestCase):
                     self.assertEqual(
                         result["profileValidation"], "base-valid-and-profile-valid"
                     )
+
+    def test_system_architecture_profile_covers_runtime_contract_sections(self) -> None:
+        profile = json.loads(
+            (PROFILE_ROOT / "system-architecture.profile.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(profile["documentClass"], "architecture")
+        self.assertEqual(
+            [entry["id"] for entry in profile["profileRequiredSections"]],
+            [
+                "system-context-and-boundaries",
+                "components-and-ownership",
+                "startup-and-runtime",
+                "state-storage-and-consistency",
+                "admission-execution-and-recovery",
+                "security-observability-and-verification",
+            ],
+        )
 
     def test_mutation_without_readiness_increments_one_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

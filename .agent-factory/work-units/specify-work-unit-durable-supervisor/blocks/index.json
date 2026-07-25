@@ -1,3 +1,46 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/codex-exec-parser.txt",
+      "mediaType": "text/plain",
+      "description": "Installed Codex exec parser output for the recorded global and exec options",
+      "sha256": "71e55de96e5126b214ad5abd775ca42b692b771bf332bd5f0b5d384964a212e0",
+      "sizeBytes": 3651
+    },
+    {
+      "path": "blocks/evidence/specification-semantic-review.json",
+      "mediaType": "application/json",
+      "description": "Machine-readable semantic review assertions and canonical hashes",
+      "sha256": "64e287e7a1f5feb9b4a249444282526b56c7880805e6984fb80aa76a1ce1d274",
+      "sizeBytes": 534
+    },
+    {
+      "path": "blocks/evidence/specification-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Specification schema, regression, package, skill and diff verification output",
+      "sha256": "3d49d44cd40976ba6d5ace906ec649f64f54df4d8f4e288b919eb5ada26339aa",
+      "sizeBytes": 2857
+    },
+    {
+      "path": "blocks/evidence/worktree-inspect-final.json",
+      "mediaType": "application/json",
+      "description": "Raw final pre-registration worktree inspect receipt",
+      "sha256": "3af80759547592404c17ef4153143ad3b9f8a61797a19a4ff30a226d7b41d617",
+      "sizeBytes": 5036
+    },
+    {
+      "path": "blocks/evidence/worktree-inspect-initial.json",
+      "mediaType": "application/json",
+      "description": "Raw initial clean worktree inspect receipt",
+      "sha256": "8b82916bd0942936a4350733ce9c940b2c1699837ef0fc2b71b3bcdbf91c744c",
+      "sizeBytes": 608
+    },
+    {
+      "path": "blocks/evidence/worktree-prepare.json",
+      "mediaType": "application/json",
+      "description": "Raw worktree prepare receipt",
+      "sha256": "1cecace9198551473181aff74d744d4bfacd781bcc2795226fd27507d745d780",
+      "sizeBytes": 1290
+    }
+  ]
 }

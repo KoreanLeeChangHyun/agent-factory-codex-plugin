@@ -1,0 +1,42 @@
+{
+  "id": "verification-and-traceability",
+  "title": "verification-and-traceability",
+  "content": [
+    {
+      "id": "CORE-BASIS-001",
+      "kind": "basis-traceability",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-durable-control-plane",
+          "path": ".agent-factory/intakes/work-unit-durable-control-plane",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WORK-UNIT-BASIS-SPEC-001"
+          }
+        }
+      ],
+      "content": {
+        "refs": [
+          "REQUEST-001",
+          "OUTCOME-001",
+          "SUCCESS-001",
+          "APPROVAL-001",
+          "DECISION-005",
+          "WORK-UNIT-BASIS-SPEC-001"
+        ]
+      }
+    },
+    {
+      "id": "CORE-REVIEW-001",
+      "kind": "review-status",
+      "content": {
+        "status": "ai-verified",
+        "aiVerification": "pass",
+        "humanStatus": "pending",
+        "verification": "project-core profile full validation, section boundary assertion와 source trace review가 통과했다."
+      }
+    }
+  ],
+  "subsections": []
+}
