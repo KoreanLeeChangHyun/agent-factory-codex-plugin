@@ -27,10 +27,20 @@
       "id": "HUMAN-RESULT-001",
       "kind": "human-review-result",
       "content": {
-        "status": "pending"
+        "status": "approved",
+        "decision": "구현 결과 승인",
+        "humanEvidence": "A"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-25T13:33:33+00:00",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 2,
+          "invocationId": "453021e6-200e-442e-9e20-fadb3ea4fc62",
+          "headCommit": "1b987cb90a5d0b9c6cd90df80ac4bbd52a2fc836"
+        }
       }
     }
   ],
