@@ -1,0 +1,34 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake harden-skill-script-filesystem-boundaries의 BASIS-001을 실행 기준으로 사용한다.",
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002",
+          "REQ-003",
+          "AC-001",
+          "AC-002",
+          "AC-003",
+          "DECISION-001"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "harden-skill-script-filesystem-boundaries",
+          "path": ".agent-factory/intakes/harden-skill-script-filesystem-boundaries",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

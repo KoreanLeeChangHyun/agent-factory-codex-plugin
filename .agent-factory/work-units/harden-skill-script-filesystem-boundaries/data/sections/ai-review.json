@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "모든 파일 접근이 trusted directory descriptor에서 시작하고 O_NOFOLLOW를 사용한다.",
+        "검증 snapshot과 Git index mutation 사이에 경로 문자열 재탐색이 없다.",
+        "오류 시 기존 Git index 및 외부 파일이 보존된다.",
+        "CLI, Gmail scope, lifecycle approval 및 기존 테스트 동작이 유지된다.",
+        "변경이 Work Unit scope 파일로 제한된다."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

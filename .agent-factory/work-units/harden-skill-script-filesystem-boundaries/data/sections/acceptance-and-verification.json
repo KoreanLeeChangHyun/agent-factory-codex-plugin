@@ -1,0 +1,58 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "Gmail destination, message, attachment, index, client 또는 token 경로의 심볼릭 링크 구성은 신뢰 경계 밖 파일 읽기·쓰기 없이 거부된다.",
+        "Artifact handoff는 validation과 staging 사이 canonical parent 교체를 commit 전에 거부하고 기존 index를 복구한다.",
+        "기존 Gmail CLI 및 read-only 동작과 artifact checkpoint replay, staged isolation, approval contract가 보존된다."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "두 적대적 테스트가 구현 전 실패하고 구현 후 통과한다.",
+        "집중 테스트, py_compile, schema checks, git diff --check 및 전체 pytest가 통과한다.",
+        "AI review와 Human review 자료가 canonical Work Unit에 기록된다."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m pytest -q skills/google-mail/tests/test_sync_gmail.py",
+          "python3 -m pytest -q skills/lifecycle/tests/test_artifact_handoff.py",
+          "python3 -m py_compile skills/google-mail/scripts/sync_gmail.py skills/lifecycle/assets/scripts/artifact_handoff.py",
+          "python3 skills/intake/scripts/intake.py check-schemas",
+          "python3 skills/specification/scripts/specification.py check-schemas",
+          "python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas",
+          "python3 -m pytest -q",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "failing-then-passing Gmail symlink regression",
+          "failing-then-passing artifact handoff directory-swap regression",
+          "focused and full test output",
+          "scoped diff review"
+        ]
+      },
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}
