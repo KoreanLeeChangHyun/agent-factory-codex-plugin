@@ -1,0 +1,41 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "스크립트가 Work Unit id만으로 app-server thread와 Goal을 만들고 검증하는지 확인합니다.",
+          "Goal 확인 전 turn 또는 worktree 실행이 시작되지 않는 테스트를 확인합니다.",
+          "실패 결과와 child process 정리가 명확한지 확인합니다.",
+          "공식 app-server schema 호환성 증거와 전체 변경 범위를 확인합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "app_server_goal.py의 initialize, thread/start, thread/goal/set, thread/goal/get, turn/start 순서를 확인합니다.",
+          "test_app_server_goal.py의 정상 경로와 각 fail-closed 사례를 확인합니다.",
+          "검증 evidence와 final worktree inspect를 확인합니다.",
+          "결과의 approve 또는 rework를 결정하며 main 병합과 worktree cleanup은 각각 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

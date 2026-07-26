@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "scripted-work-unit-goal-execution",
+        "objective": "codex app-server 공식 Goal RPC 기반 Work Unit 실행 런처를 구현한다.",
+        "execInvocation": "/goal scripted-work-unit-goal-execution",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/scripted-work-unit-goal-execution",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/scripted-work-unit-goal-execution",
+        "setupState": "pending",
+        "cleanupState": "pending-human-decision"
+      }
+    }
+  ],
+  "subsections": []
+}

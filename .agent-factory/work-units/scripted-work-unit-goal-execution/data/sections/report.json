@@ -1,0 +1,27 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "remainingRisks": [
+          "app-server protocol is marked experimental at the CLI command level and compatibility must be checked against the installed schema."
+        ],
+        "unresolvedHumanDecisions": [
+          "구현 결과 approve 또는 rework",
+          "main 병합 여부",
+          "linked worktree cleanup 여부"
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}
