@@ -37,10 +37,11 @@
         "history": [],
         "progress": {
           "completedSteps": [
-            "repository-and-hook-contract-evidence"
+            "repository-and-hook-contract-evidence",
+            "hook-policy-and-skill-implementation"
           ],
-          "pendingStep": "hook-policy-and-skill-implementation",
-          "lastVerifiedHead": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
+          "pendingStep": "verification-and-ai-review",
+          "lastVerifiedHead": "9eaf13860d1eadfd387762b174cad04637a2b3d9",
           "checkpoints": [
             {
               "stepId": "repository-and-hook-contract-evidence",
@@ -59,6 +60,18 @@
               "state": "pending",
               "headCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
               "idempotencyKey": "hook-policy-and-skill-implementation-pending-attempt-1"
+            },
+            {
+              "stepId": "hook-policy-and-skill-implementation",
+              "state": "completed",
+              "headCommit": "9eaf13860d1eadfd387762b174cad04637a2b3d9",
+              "idempotencyKey": "hook-policy-and-skill-implementation-complete-attempt-1"
+            },
+            {
+              "stepId": "verification-and-ai-review",
+              "state": "pending",
+              "headCommit": "9eaf13860d1eadfd387762b174cad04637a2b3d9",
+              "idempotencyKey": "verification-and-ai-review-pending-attempt-1"
             }
           ],
           "retry": {}
