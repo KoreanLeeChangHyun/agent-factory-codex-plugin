@@ -20,6 +20,13 @@
       "description": "Final execution worktree inspect receipt before evidence registration",
       "sha256": "f3f982c233dd5d2f36147c1113bd911326ea0f3bfe5a710c4f985d8d62845d60",
       "sizeBytes": 1794
+    },
+    {
+      "path": "blocks/integration/factory-lifecycle-routing-contract-to-factory.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "d5d3a550710b4dee68c8bde2c8243aea61c3460189c490dc1051377c6aeb4bf6",
+      "sizeBytes": 6717
     }
   ]
 }

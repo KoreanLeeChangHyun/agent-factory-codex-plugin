@@ -35,6 +35,29 @@
           "blocks/execution/factory-routing-validation.md"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-D5D3A550710B4DEE",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/factory-lifecycle-routing-contract",
+        "sourceCommit": "e1f404cba6d9543c5eea4e0762bf1d32123fc0e5",
+        "strategy": "ff-only",
+        "targetAfterCommit": "e1f404cba6d9543c5eea4e0762bf1d32123fc0e5",
+        "targetBeforeCommit": "d177a0265bef985aaf5a1bd8aadd9de5b2a27f76",
+        "targetBranch": "factory",
+        "workUnitId": "factory-lifecycle-routing-contract",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/factory-lifecycle-routing-contract",
+        "receiptSha256": "d5d3a550710b4dee68c8bde2c8243aea61c3460189c490dc1051377c6aeb4bf6"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/factory-lifecycle-routing-contract-to-factory.json"
     }
   ],
   "subsections": []

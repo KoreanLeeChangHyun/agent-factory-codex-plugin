@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.35",
+  "documentVersion": "1.0.36",
   "id": "factory-lifecycle-routing-contract",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-26T15:29:16+00:00",
-  "updatedAt": "2026-07-26T16:32:17+00:00",
+  "updatedAt": "2026-07-26T16:34:43+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
