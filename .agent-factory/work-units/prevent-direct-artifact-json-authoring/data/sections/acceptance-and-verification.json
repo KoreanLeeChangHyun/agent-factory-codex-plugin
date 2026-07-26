@@ -63,7 +63,7 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
+        "status": "pass",
         "requiredEvidence": [
           "direct apply_patch and Bash write denial results",
           "manager allowlist and read-only allow results",
@@ -74,8 +74,18 @@
         ]
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+          "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+          "revision": 1,
+          "attempt": 2
+        },
+        "evidence": [
+          "blocks/evidence/verification.md",
+          "blocks/evidence/worktree-final-inspect.json"
+        ]
       }
     }
   ],

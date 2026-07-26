@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification.md",
+      "mediaType": "text/markdown",
+      "description": "Artifact JSON guard implementation and verification evidence",
+      "sha256": "c6ef731baa131048d204dffaa663527376993f300fddd73f1a2197307ba6676f",
+      "sizeBytes": 3977
+    },
+    {
+      "path": "blocks/evidence/worktree-final-inspect.json",
+      "mediaType": "application/json",
+      "description": "Script-generated final worktree inspection",
+      "sha256": "5d49580ac05575ebf68a21e36e9eb3f78626763eefd813ca9472deb279aff5b7",
+      "sizeBytes": 1705
+    }
+  ]
 }

@@ -23,62 +23,120 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "running",
+        "state": "review",
         "subject": {
           "algorithm": "gitCommit",
-          "digest": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7"
+          "digest": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5"
         },
         "currentRevision": 1,
-        "currentAttempt": 1,
-        "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26",
+        "currentAttempt": 2,
+        "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
         "invocationChain": [
-          "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26"
+          "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification"
         ],
-        "history": [],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26",
+            "invocationChain": [
+              "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "planned",
+                  "requiredEvidence": [
+                    "direct apply_patch and Bash write denial results",
+                    "manager allowlist and read-only allow results",
+                    "exception fail-closed and audit results",
+                    "deterministic generated hook configuration check",
+                    "focused skill validation results",
+                    "final worktree inspection"
+                  ]
+                },
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ],
         "progress": {
           "completedSteps": [
-            "repository-and-hook-contract-evidence",
-            "hook-policy-and-skill-implementation"
+            "verification-and-ai-review"
           ],
-          "pendingStep": "verification-and-ai-review",
-          "lastVerifiedHead": "9eaf13860d1eadfd387762b174cad04637a2b3d9",
+          "pendingStep": null,
+          "lastVerifiedHead": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
           "checkpoints": [
-            {
-              "stepId": "repository-and-hook-contract-evidence",
-              "state": "pending",
-              "headCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
-              "idempotencyKey": "repository-and-hook-contract-evidence-attempt-1"
-            },
-            {
-              "stepId": "repository-and-hook-contract-evidence",
-              "state": "completed",
-              "headCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
-              "idempotencyKey": "repository-and-hook-contract-evidence-complete-attempt-1"
-            },
-            {
-              "stepId": "hook-policy-and-skill-implementation",
-              "state": "pending",
-              "headCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
-              "idempotencyKey": "hook-policy-and-skill-implementation-pending-attempt-1"
-            },
-            {
-              "stepId": "hook-policy-and-skill-implementation",
-              "state": "completed",
-              "headCommit": "9eaf13860d1eadfd387762b174cad04637a2b3d9",
-              "idempotencyKey": "hook-policy-and-skill-implementation-complete-attempt-1"
-            },
             {
               "stepId": "verification-and-ai-review",
               "state": "pending",
-              "headCommit": "9eaf13860d1eadfd387762b174cad04637a2b3d9",
-              "idempotencyKey": "verification-and-ai-review-pending-attempt-1"
+              "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+              "idempotencyKey": "verification-and-ai-review-pending-attempt-2"
+            },
+            {
+              "stepId": "verification-and-ai-review",
+              "state": "completed",
+              "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+              "idempotencyKey": "verification-and-ai-review-complete-attempt-2"
             }
           ],
           "retry": {}
         },
         "recovery": {
           "status": "running",
-          "ownerInvocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26",
+          "ownerInvocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
           "blockerId": null,
           "evidence": null
         }

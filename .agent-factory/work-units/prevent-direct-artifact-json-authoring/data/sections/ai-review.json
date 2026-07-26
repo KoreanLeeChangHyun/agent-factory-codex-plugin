@@ -20,11 +20,19 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending"
+        "status": "complete",
+        "summary": "AI checklist 전 항목을 구현과 자동 테스트로 검토했으며 직접 작성 차단, 정확한 manager 허용, 승인 예외의 범위·만료·일회성·감사, 플랫폼 한계 고지가 요구사항과 일치한다."
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+          "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+          "revision": 1,
+          "attempt": 2
+        }
       }
     }
   ],
