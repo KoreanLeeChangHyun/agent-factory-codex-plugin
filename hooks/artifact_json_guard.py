@@ -42,6 +42,7 @@ SHELL_CANONICAL_PATH = re.compile(
     re.VERBOSE,
 )
 PYTHON_NAMES = {"python", "python3", "py"}
+PATCH_TOOL_NAMES = {"apply_patch", "Edit", "Write"}
 READ_ONLY_COMMANDS = {
     "cat",
     "cmp",
@@ -137,13 +138,7 @@ def shell_targets(command: str, cwd: Path) -> list[dict[str, str]]:
 
 def has_broad_canonical_reference(command: str) -> bool:
     lowered = command.lower()
-    return (
-        ".agent-factory" in lowered
-        and any(
-            re.search(rf"(?<![a-z0-9-]){re.escape(collection)}(?![a-z0-9-])", lowered)
-            for collection in CANONICAL_COLLECTIONS
-        )
-    )
+    return ".agent-factory" in lowered
 
 
 def has_shell_control(command: str) -> bool:
@@ -510,7 +505,7 @@ def run_hook() -> int:
         or is_exact_grant_command(command, cwd)
     ):
         return 0
-    if tool_name == "apply_patch":
+    if tool_name in PATCH_TOOL_NAMES:
         targets = patch_targets(command, cwd)
         dynamic = False
         if not targets:
@@ -555,7 +550,11 @@ def parser() -> argparse.ArgumentParser:
     grant = subparsers.add_parser("grant")
     grant.add_argument("--plugin-data", required=True)
     grant.add_argument("--session-id", required=True)
-    grant.add_argument("--tool-name", choices=("Bash", "apply_patch"), required=True)
+    grant.add_argument(
+        "--tool-name",
+        choices=("Bash", *sorted(PATCH_TOOL_NAMES)),
+        required=True,
+    )
     grant.add_argument("--path", action="append", required=True)
     grant.add_argument("--reason", required=True)
     grant.add_argument("--approval-reference", required=True)

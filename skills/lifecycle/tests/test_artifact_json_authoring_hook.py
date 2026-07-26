@@ -105,6 +105,26 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
 
+    def test_apply_patch_aliases_are_denied(self) -> None:
+        patch = (
+            "*** Begin Patch\n"
+            f"*** Update File: {self.target}\n"
+            "@@\n"
+            "-old\n"
+            "+new\n"
+            "*** End Patch\n"
+        )
+        for tool_name in ("Edit", "Write"):
+            with self.subTest(tool_name=tool_name):
+                result = run_guard(
+                    tool_name,
+                    patch,
+                    self.root,
+                    self.plugin_data,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("canonical Artifact JSON", result.stderr)
+
     def test_bash_direct_write_variants_are_denied(self) -> None:
         target = str(self.target)
         commands = [
@@ -161,6 +181,23 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
         result = run_guard("Bash", command, self.root, self.plugin_data)
         self.assertEqual(result.returncode, 2)
         self.assertIn("dynamically constructed canonical path", result.stderr)
+
+    def test_obfuscated_collection_and_root_writes_are_denied(self) -> None:
+        commands = [
+            (
+                "root=.agent-factory; left=inta; right=kes; "
+                "printf '{}' > \"$root/$left$right/x/data/metadata.json\""
+            ),
+            "root=.agent-factory; rm -rf \"$root\"",
+        ]
+        for command in commands:
+            with self.subTest(command=command):
+                result = run_guard("Bash", command, self.root, self.plugin_data)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(
+                    "dynamically constructed canonical path",
+                    result.stderr,
+                )
 
     def test_exact_manager_commands_are_allowed(self) -> None:
         manager_commands = [
@@ -450,6 +487,7 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
                 self.assertIn("apply_patch", text)
                 self.assertIn("shell redirection", text)
                 self.assertIn("explicit Human approval", text)
+                self.assertIn("filesystem-capable", text)
                 self.assertIn("manager", text)
 
 

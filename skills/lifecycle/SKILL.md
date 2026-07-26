@@ -70,8 +70,9 @@ typed semantic data only and must not construct JSON input.
 ## Canonical JSON Authoring Gate
 
 - Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
-  file copy or move, or a temporary JSON value file to create, update, delete,
-  or replace canonical Intake, Work Unit, or Specification JSON.
+  file copy or move, a temporary JSON value file, or any filesystem-capable
+  local or MCP tool to create, update, delete, or replace canonical Intake,
+  Work Unit, or Specification JSON.
 - Use only the owning manager with typed semantic arguments. Exact manager
   commands and read-only inspection are the normal paths.
 - The Plugin's generated `hooks/hooks.json` runs

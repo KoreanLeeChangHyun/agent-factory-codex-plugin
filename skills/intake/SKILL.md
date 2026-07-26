@@ -77,12 +77,12 @@ Intake retains its transitions and semantic validation. Do not edit package
 JSON directly.
 
 Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
-file copy or move, or a temporary JSON value file to create, update, delete, or
-replace canonical Intake JSON. Use only the Intake manager with typed semantic
-arguments. If the manager cannot express a necessary recovery, stop, disclose
-the exact artifact, paths, and reason, and obtain explicit Human approval
-before using the lifecycle's audited one-shot exception. Never self-approve an
-exception.
+file copy or move, a temporary JSON value file, or any filesystem-capable local
+or MCP tool to create, update, delete, or replace canonical Intake JSON. Use
+only the Intake manager with typed semantic arguments. If the manager cannot
+express a necessary recovery, stop, disclose the exact artifact, paths, and
+reason, and obtain explicit Human approval before using the lifecycle's audited
+one-shot exception. Never self-approve an exception.
 
 The title renders as H1, top-level sections as H2, and optional subsections as
 H3. Reject deeper nesting. Keep large content in its own section file and large

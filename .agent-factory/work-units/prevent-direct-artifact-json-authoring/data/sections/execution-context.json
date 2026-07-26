@@ -23,16 +23,16 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "review",
+        "state": "running",
         "subject": {
           "algorithm": "gitCommit",
-          "digest": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5"
+          "digest": "6729ff63fabb8d76e371601a7aa444770165c7df"
         },
         "currentRevision": 1,
-        "currentAttempt": 2,
-        "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+        "currentAttempt": 3,
+        "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-completion-audit",
         "invocationChain": [
-          "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification"
+          "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-completion-audit"
         ],
         "history": [
           {
@@ -110,33 +110,166 @@
                 }
               }
             }
+          },
+          {
+            "revision": 1,
+            "attempt": 2,
+            "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+            "invocationChain": [
+              "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "complete",
+                  "summary": "canonical Intake, Work Unit, Specification JSON의 LLM 직접 작성을 차단하는 plugin PreToolUse hook, manager allowlist, Human 승인 일회성 예외와 skill 계약을 구현했다.",
+                  "changedArtifacts": [
+                    "hooks/artifact_json_guard.py",
+                    "hooks/generate_hooks_config.py",
+                    "hooks/hooks.json",
+                    "skills/lifecycle/tests/test_artifact_json_authoring_hook.py",
+                    "skills/intake/SKILL.md",
+                    "skills/work-unit-planner/SKILL.md",
+                    "skills/specification/SKILL.md",
+                    "skills/lifecycle/SKILL.md",
+                    "skills/lifecycle/references/common-document-contract.md"
+                  ],
+                  "testsRun": [
+                    "Artifact JSON authoring hook 17 tests passed",
+                    "lifecycle skill metadata 5 tests passed",
+                    "lifecycle suite 32 tests passed",
+                    "Intake manager 32 tests passed",
+                    "Work Unit manager 26 tests passed",
+                    "Specification manager 9 tests passed",
+                    "four skill quick validations passed",
+                    "plugin validation and generated config check passed",
+                    "git diff --check passed"
+                  ],
+                  "deviations": [
+                    "hook 차단은 JSON 응답을 만들지 않고 공식 exit code 2와 stderr 사유를 사용한다.",
+                    "전체 manager 회귀 suite는 구현 commit 9eaf13860d1eadfd387762b174cad04637a2b3d9에서 실행했으며 이후 manager script 변경은 없다.",
+                    "최초 worktree 검사를 보고서 작성 후 등록했으며 등록으로 발생한 bounded evidence/index delta는 두 번째 검사에서 확인한다."
+                  ]
+                },
+                "attributes": {
+                  "status": "complete",
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+                    "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+                    "revision": 1,
+                    "attempt": 2
+                  },
+                  "evidence": [
+                    "blocks/evidence/verification.md",
+                    "blocks/evidence/worktree-final-inspect.json"
+                  ]
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "pass",
+                  "requiredEvidence": [
+                    "direct apply_patch and Bash write denial results",
+                    "manager allowlist and read-only allow results",
+                    "exception fail-closed and audit results",
+                    "deterministic generated hook configuration check",
+                    "focused skill validation results",
+                    "final worktree inspection"
+                  ]
+                },
+                "attributes": {
+                  "status": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+                    "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+                    "revision": 1,
+                    "attempt": 2
+                  },
+                  "evidence": [
+                    "blocks/evidence/verification.md",
+                    "blocks/evidence/worktree-final-inspect.json"
+                  ]
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "complete",
+                  "summary": "AI checklist 전 항목을 구현과 자동 테스트로 검토했으며 직접 작성 차단, 정확한 manager 허용, 승인 예외의 범위·만료·일회성·감사, 플랫폼 한계 고지가 요구사항과 일치한다."
+                },
+                "attributes": {
+                  "result": "pass",
+                  "checklistResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+                    "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+                    "revision": 1,
+                    "attempt": 2
+                  }
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "complete",
+                  "summary": "canonical Artifact JSON은 manager typed 인자만으로 생성·수정하도록 skill 계약과 PreToolUse 차단을 추가했다. 예외는 Human 사전 승인 후 정확한 범위의 단기 일회성 grant로만 허용하며 감사 기록을 남긴다.",
+                  "verification": "집중 테스트 17개, 관련 skill 및 manager 회귀 테스트 104개, metadata 5개, quick validation 4개, plugin validation, 생성 설정 일치 검사와 diff 검사가 모두 통과했다. 보고서 작성 후 생성한 worktree 검사 원본을 등록했고 이후 변경은 해당 evidence 등록과 참조 갱신으로 한정했다.",
+                  "limitations": [
+                    "plugin hook은 trust 또는 disable, 일부 tool opt-out, timeout 정책의 영향을 받으므로 조직 수준 절대 강제에는 managed hooks 정책이 추가로 필요하다."
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+                    "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
+                    "revision": 1,
+                    "attempt": 2
+                  },
+                  "evidence": [
+                    "blocks/evidence/verification.md",
+                    "blocks/evidence/worktree-final-inspect.json"
+                  ]
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
           }
         ],
         "progress": {
-          "completedSteps": [
-            "verification-and-ai-review"
-          ],
+          "completedSteps": [],
           "pendingStep": null,
-          "lastVerifiedHead": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
-          "checkpoints": [
-            {
-              "stepId": "verification-and-ai-review",
-              "state": "pending",
-              "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
-              "idempotencyKey": "verification-and-ai-review-pending-attempt-2"
-            },
-            {
-              "stepId": "verification-and-ai-review",
-              "state": "completed",
-              "headCommit": "13b0a6ecc43085948f383d3a5545aaef6bcecbb5",
-              "idempotencyKey": "verification-and-ai-review-complete-attempt-2"
-            }
-          ],
+          "lastVerifiedHead": "6729ff63fabb8d76e371601a7aa444770165c7df",
+          "checkpoints": [],
           "retry": {}
         },
         "recovery": {
           "status": "running",
-          "ownerInvocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-verification",
+          "ownerInvocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-completion-audit",
           "blockerId": null,
           "evidence": null
         }

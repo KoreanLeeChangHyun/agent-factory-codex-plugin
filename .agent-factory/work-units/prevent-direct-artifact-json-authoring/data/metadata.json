@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.50",
+  "documentVersion": "1.0.51",
   "id": "prevent-direct-artifact-json-authoring",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "review"
+    "status": "working"
   },
   "createdAt": "2026-07-26T09:42:49+00:00",
-  "updatedAt": "2026-07-26T10:44:36+00:00",
+  "updatedAt": "2026-07-26T10:48:57+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
