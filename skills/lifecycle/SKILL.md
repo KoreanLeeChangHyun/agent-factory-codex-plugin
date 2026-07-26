@@ -83,30 +83,25 @@ three artifact scripts remain separate controllers for their distinct profile,
 semantic validation, readiness, and state-transition rules. LLM callers supply
 typed semantic data only and must not construct JSON input.
 
-## Canonical JSON Authoring Gate
+## Mandatory Artifact Manager Script Gate
 
-- Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
-  file copy or move, a temporary JSON value file, or any filesystem-capable
-  local or MCP tool to create, update, delete, or replace canonical Intake,
-  Work Unit, or Specification JSON.
-- Use only the owning manager with typed semantic arguments. Exact manager
-  commands and read-only inspection are the normal paths.
-- The Plugin's generated `hooks/hooks.json` runs
-  `hooks/artifact_json_guard.py` as a `PreToolUse` guard for Bash and
-  `apply_patch` aliases. Treat a denial as a hard stop, not as permission to
-  find another write route.
-- If the owning manager cannot express a necessary recovery, disclose the exact
-  artifact, absolute JSON paths, and reason, then obtain explicit Human
-  approval. The Human, not the LLM, must then run `grant` directly outside Codex
-  tool execution for the exact session, tool, artifact, paths, reason, and
-  expiry. The scoped session may only consume that short-lived audited one-shot
-  grant. Never invoke `grant` from an LLM tool call, inference, prior approval
-  for another action, or self-approval.
-- Plugin hooks require trust and can be disabled, and specialized tool paths
-  can opt out. A hook timeout can also continue through the normal tool flow.
-  The skill contract remains mandatory when the hook is inactive. Do not claim
-  that a non-managed Plugin hook is an absolute enforcement boundary;
-  enterprise enforcement requires managed hooks and policy.
+- Resolve and invoke the artifact-owning script before every canonical package
+  operation: `intake/scripts/intake.py` for Intake,
+  `specification/scripts/specification.py` for Specification, and
+  `work-unit-planner/assets/scripts/work_unit.py` for Work Unit.
+- Use the owning script for creation, authoritative display, mutation,
+  validation, lifecycle or execution-state transitions, block registration,
+  and recovery. Supply only typed semantic arguments.
+- Never use `apply_patch`, shell redirection, an ad hoc program, file copy or
+  move, temporary JSON files, or any generic filesystem or MCP write tool to
+  create, update, delete, replace, move, or repair canonical Intake, Work Unit,
+  or Specification JSON.
+- Never add, invoke, or rely on hooks for this contract. Manager-script-only
+  authoring is a mandatory skill instruction.
+- If the owning script is unavailable, fails, or cannot express the required
+  operation, stop before mutation and report the exact command, package,
+  operation, and failure or capability gap. Never bypass the script and never
+  create an exception path.
 
 Intake checks and updates relevant specification source when accepted
 requirements, feedback, or evidence changes it. Implementation and other scoped

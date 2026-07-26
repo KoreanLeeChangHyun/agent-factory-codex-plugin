@@ -1,6 +1,6 @@
 ---
 name: intake
-description: Use for every Agent Factory Intake that turns Human requests and feedback, web evidence, internal analysis, direct user research, Human interview decisions, and specification alignment into a validated sectioned document and executable Work Unit basis. Owns the Intake profile, split JSON package, synthesis, manager-only writes, readiness loop, and Work Unit handoff.
+description: Use for every Agent Factory Intake that turns Human requests and feedback, web evidence, internal analysis, direct user research, Human interview decisions, and specification alignment into a validated sectioned document and executable Work Unit basis. Owns the Intake profile, split JSON package, synthesis, readiness loop, and Work Unit handoff. All canonical Intake package operations must go through scripts/intake.py and fail closed when that script cannot perform the operation.
 ---
 
 # Agent Factory Intake
@@ -8,6 +8,27 @@ description: Use for every Agent Factory Intake that turns Human requests and fe
 Prepare the complete basis from which `work-unit-planner` can create a
 self-contained Work Unit for a fresh Execution session. Apply `fact-only` and
 `agent-rule` throughout Intake.
+
+## Mandatory Manager Script Gate
+
+Treat `scripts/intake.py` as a hard precondition for every canonical Intake
+package operation. Resolve it from this skill directory and invoke it before
+creating, showing, mutating, validating, transitioning, registering or removing
+blocks, or recovering an Intake package.
+
+- Use the manager command that owns the requested operation. Use `show` and
+  `validate` for authoritative package inspection and validation.
+- Supply only typed semantic arguments. Let the manager construct, serialize,
+  order, version, and transactionally write canonical JSON.
+- Never create, update, delete, replace, move, or repair canonical Intake JSON
+  with `apply_patch`, shell redirection, an ad hoc program, file copy or move,
+  temporary JSON files, or any generic filesystem or MCP write tool.
+- Never add, invoke, or rely on a hook to enforce this rule. The skill
+  instruction and exact manager invocation are the enforcement contract.
+- If `scripts/intake.py` is unavailable, fails, or cannot express the required
+  operation, stop before mutation. Report the exact command, package, operation,
+  and failure or capability gap. Do not fall back to direct JSON editing and do
+  not create an exception path.
 
 ## Domain Boundary
 
@@ -81,14 +102,9 @@ table-of-contents generation, block integrity, and transaction mechanics;
 Intake retains its transitions and semantic validation. Do not edit package
 JSON directly.
 
-Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
-file copy or move, a temporary JSON value file, or any filesystem-capable local
-or MCP tool to create, update, delete, or replace canonical Intake JSON. Use
-only the Intake manager with typed semantic arguments. If the manager cannot
-express a necessary recovery, stop, disclose the exact artifact, paths, and
-reason, and obtain explicit Human approval before using the lifecycle's audited
-one-shot exception. The Human must create that grant directly outside LLM tool
-execution; the LLM must never invoke `grant` or self-approve an exception.
+Use only `scripts/intake.py` with typed semantic arguments for canonical Intake
+package management. The Mandatory Manager Script Gate applies without an
+exception.
 
 The title renders as H1, top-level sections as H2, and optional subsections as
 H3. Reject deeper nesting. Keep large content in its own section file and large

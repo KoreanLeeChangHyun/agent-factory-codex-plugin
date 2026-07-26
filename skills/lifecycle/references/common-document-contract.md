@@ -84,14 +84,20 @@ paths with typed options such as `--string`, `--integer`, `--number`,
 `--boolean`, `--null`, `--string-list`, `--empty-object`, and `--empty-list`.
 Scalar metadata replacements use the corresponding `--value-*` option.
 
+LLM callers must resolve and invoke the artifact-owning script before every
+canonical package operation: `intake/scripts/intake.py`,
+`specification/scripts/specification.py`, or
+`work-unit-planner/assets/scripts/work_unit.py`. This is a hard precondition,
+not a preferred path. Use the script for creation, authoritative display,
+mutation, validation, transitions, block registration, and recovery.
+
 LLM callers must not use `apply_patch`, shell redirection, ad hoc interpreter
-programs, file copy or move, temporary JSON value files, or any
-filesystem-capable local or MCP tool to author canonical Intake, Work Unit, or
-Specification JSON. If the owning manager cannot express a necessary recovery,
-the caller stops and obtains explicit Human approval for the exact artifact,
-paths, and reason. The Human must record the short-lived audited one-shot grant
-directly outside LLM tool execution; the LLM may consume it but must never
-create it. An exception for one operation never authorizes another.
+programs, file copy or move, temporary JSON value files, or any generic
+filesystem or MCP write tool to author canonical Intake, Work Unit, or
+Specification JSON. Do not add, invoke, or rely on hooks. If the owning script
+is unavailable, fails, or cannot express the operation, stop before mutation,
+report the exact command and capability gap, and do not create a direct-write
+fallback or exception path.
 
 The Specification manager configures the same engine with its metadata schema
 and the profile declared by each package. It rejects unknown profile ids,
