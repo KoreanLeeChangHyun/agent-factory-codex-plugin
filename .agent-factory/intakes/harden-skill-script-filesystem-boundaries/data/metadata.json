@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.10",
+  "id": "harden-skill-script-filesystem-boundaries",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "ready"
+  },
+  "createdAt": "2026-07-26T02:04:58+00:00",
+  "updatedAt": "2026-07-26T02:06:27+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-07-26T11:06:11+09:00",
+    "contractValid": true,
+    "evidenceComplete": true,
+    "requirementsComplete": true,
+    "specificationConsistent": true,
+    "executionReady": true,
+    "findings": []
+  }
+}

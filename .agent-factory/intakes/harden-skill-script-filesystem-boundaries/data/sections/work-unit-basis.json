@@ -1,0 +1,32 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "기존 Agent Rule의 파일시스템 보안 경계를 구현하는 결함 수정이며 Project Core 또는 별도 Specification의 의미를 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "스킬 스크립트의 Gmail 출력 및 artifact checkpoint 파일시스템 경계를 강화하고 재현 결함을 회귀 테스트로 고정한다.",
+        "executionOrder": 1,
+        "expectedOutputs": [
+          "secure descriptor-relative Gmail file operations",
+          "descriptor-anchored artifact checkpoint staging",
+          "adversarial symlink-swap regression tests",
+          "focused and full verification evidence"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
