@@ -21,7 +21,7 @@
       "kind": "ai-review-result",
       "content": {
         "status": "complete",
-        "summary": "최종 구현 HEAD와 attempt 4 target이 일치한다. 요구사항별 completion audit, negative tests, lifecycle 전체 회귀, manager source 무변경, Human-only grant와 설치 잔여 경계를 재검토했다."
+        "summary": "최종 구현 HEAD와 attempt 4 target이 일치한다. 요구사항별 audit, negative tests, lifecycle 회귀, manager source 무변경, Human-only grant, 설치 잔여 경계와 실제 Codex v0.145.0 Bash·apply_patch PreToolUse 차단 원본을 재검토했다."
       },
       "attributes": {
         "result": "pass",

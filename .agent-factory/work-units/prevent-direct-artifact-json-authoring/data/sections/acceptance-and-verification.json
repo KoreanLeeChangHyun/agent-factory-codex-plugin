@@ -74,6 +74,7 @@
           "LLM self-grant denial and Human-created exception scope·expiry·one-shot audit",
           "deterministic generated hook configuration and 30-second timeout check",
           "focused and full lifecycle regression",
+          "actual Codex Bash and apply_patch PreToolUse runtime denial with absent targets",
           "plugin validation and installed-cache promotion state",
           "final worktree inspection"
         ]
@@ -89,7 +90,9 @@
         },
         "evidence": [
           "blocks/evidence/completion-audit-attempt-3.md",
-          "blocks/evidence/worktree-final-inspect-attempt-3.json"
+          "blocks/evidence/worktree-final-inspect-attempt-3.json",
+          "blocks/evidence/codex-bash-runtime-smoke.txt",
+          "blocks/evidence/codex-apply-patch-runtime-smoke.txt"
         ]
       }
     }

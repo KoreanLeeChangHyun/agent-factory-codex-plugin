@@ -1,6 +1,20 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/codex-apply-patch-runtime-smoke.txt",
+      "mediaType": "text/plain",
+      "description": "Raw Codex v0.145.0 apply_patch PreToolUse runtime smoke output",
+      "sha256": "5dfabf66954aab1166278900cc195f82365f2474991e8ac4e0c8b93f2fd42dde",
+      "sizeBytes": 2622
+    },
+    {
+      "path": "blocks/evidence/codex-bash-runtime-smoke.txt",
+      "mediaType": "text/plain",
+      "description": "Raw Codex v0.145.0 Bash PreToolUse runtime smoke output",
+      "sha256": "e46950ac4b2f6ca285d1bd0b936e38a2e17bc16b941bb6488ce1c494fa567064",
+      "sizeBytes": 2477
+    },
+    {
       "path": "blocks/evidence/completion-audit-attempt-3.md",
       "mediaType": "text/markdown",
       "description": "Attempt 3 requirement-by-requirement completion audit and verification evidence",

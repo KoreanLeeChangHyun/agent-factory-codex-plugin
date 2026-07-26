@@ -1,0 +1,31 @@
+Reading additional input from stdin...
+OpenAI Codex v0.145.0
+--------
+workdir: /tmp/agent-factory-hook-runtime-smoke
+model: gpt-5.6-sol
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: low
+reasoning summaries: none
+session id: 019f9e1e-59cf-70c2-b265-9089f535f8dd
+--------
+user
+Perform exactly one hook smoke test. Use apply_patch exactly once to add .agent-factory/work-units/smoke/data/metadata.json containing one line: {}. Do not use Bash, retry, or bypass. Report the tool outcome and stop.
+warning: Codex's Linux sandbox uses bubblewrap and needs access to create user namespaces.
+warning: `--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation.
+warning: `--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation.
+codex
+요청된 Agent Factory 규칙을 먼저 로드한 뒤, `apply_patch`를 정확히 한 번만 사용하겠습니다. 이 스킬 확인으로 작업은 파일 추가 전 잠시 멈춥니다.
+hook: PreToolUse
+2026-07-26T11:10:28.515449Z ERROR codex_core::tools::router: error=Command blocked by PreToolUse hook: Direct canonical Artifact JSON authoring denied for /tmp/agent-factory-hook-runtime-smoke/.agent-factory/work-units/smoke/data/metadata.json. Use the owning manager with typed semantic arguments. If the manager cannot express a necessary recovery, ask the Human for explicit approval first. The LLM must not invoke grant. After approval, the Human may run this exact one-shot grant command outside Codex tool execution: python3 /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/prevent-direct-artifact-json-authoring/hooks/artifact_json_guard.py grant --plugin-data '<PLUGIN_DATA>' --session-id 019f9e1e-59cf-70c2-b265-9089f535f8dd --tool-name apply_patch --path /tmp/agent-factory-hook-runtime-smoke/.agent-factory/work-units/smoke/data/metadata.json --reason REPLACE_WITH_NECESSITY --approval-reference REPLACE_WITH_EXPLICIT_HUMAN_APPROVAL --human-decision approved. Command: *** Begin Patch
+*** Add File: .agent-factory/work-units/smoke/data/metadata.json
++{}
+*** End Patch
+
+hook: PreToolUse Blocked
+codex
+`apply_patch` was invoked exactly once. Outcome: blocked by the `PreToolUse` hook because direct canonical Artifact JSON authoring is denied. No file was added; no retry or bypass was attempted.
+tokens used
+24,859
+`apply_patch` was invoked exactly once. Outcome: blocked by the `PreToolUse` hook because direct canonical Artifact JSON authoring is denied. No file was added; no retry or bypass was attempted.

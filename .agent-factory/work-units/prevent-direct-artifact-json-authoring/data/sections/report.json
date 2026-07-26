@@ -7,8 +7,8 @@
       "kind": "report-result",
       "content": {
         "status": "complete",
-        "summary": "canonical Intake, Work Unit, Specification JSON은 manager typed 인자로만 작성한다. hook은 patch alias와 Bash 직접·동적 우회를 차단하고 LLM self-grant를 거부하며, Human이 Codex 도구 밖에서 만든 정확한 단기 일회성 grant만 소비한다.",
-        "verification": "최종 구현 HEAD에서 hook 19개, lifecycle 36개, metadata 5개, quick validation 4개, plugin validation, generated config와 diff check가 통과했다. attempt 4가 이 HEAD를 review target으로 결속한다.",
+        "summary": "canonical Intake, Work Unit, Specification JSON은 manager typed 인자로만 작성한다. hook은 patch alias와 Bash 직접·동적 우회를 차단하고 LLM self-grant를 거부하며 Human이 Codex 도구 밖에서 만든 정확한 단기 일회성 grant만 소비한다.",
+        "verification": "최종 구현 HEAD에서 hook 19개, lifecycle 36개, metadata 5개, quick validation 4개, plugin validation, generated config와 diff check가 통과했다. 실제 Codex v0.145.0에서 Bash와 apply_patch tool call이 PreToolUse에 의해 차단됐고 두 target file은 생성되지 않았다.",
         "limitations": [
           "non-managed plugin hook은 trust·disable, specialized tool opt-out와 timeout의 영향을 받으므로 managed policy 없이는 절대 OS-level enforcement가 아니다.",
           "현재 설치 cache에는 hook이 없으므로 별도 Human 승인 후 main integration, remote publication, cachebuster, reinstall, hook trust와 새 thread runtime 검증이 필요하다."
@@ -25,7 +25,9 @@
         },
         "evidence": [
           "blocks/evidence/completion-audit-attempt-3.md",
-          "blocks/evidence/worktree-final-inspect-attempt-3.json"
+          "blocks/evidence/worktree-final-inspect-attempt-3.json",
+          "blocks/evidence/codex-bash-runtime-smoke.txt",
+          "blocks/evidence/codex-apply-patch-runtime-smoke.txt"
         ]
       }
     }
