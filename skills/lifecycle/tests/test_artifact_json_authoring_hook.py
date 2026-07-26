@@ -294,6 +294,20 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.plugin_data / "artifact-json-exceptions").exists())
 
+    def test_exact_grant_command_is_not_recursively_blocked(self) -> None:
+        command = (
+            f"python3 '{GUARD}' grant "
+            f"--plugin-data '{self.plugin_data}' "
+            f"--session-id '{SESSION_ID}' "
+            "--tool-name apply_patch "
+            f"--path '{self.target}' "
+            "--reason 'manager recovery cannot express this repair' "
+            "--approval-reference 'Human message approval-test' "
+            "--human-decision approved"
+        )
+        result = run_guard("Bash", command, self.root, self.plugin_data)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_one_shot_exact_scope_grant_is_consumed_and_audited(self) -> None:
         granted = self.grant(self.target)
         self.assertEqual(granted.returncode, 0, granted.stderr)
