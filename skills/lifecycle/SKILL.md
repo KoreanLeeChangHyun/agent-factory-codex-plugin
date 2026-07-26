@@ -193,6 +193,13 @@ Use these routes:
   prompt must explicitly require creation of the matching Goal. The process or
   prompt is not proof that the Goal exists; the Execution Agent must complete
   the same Goal preflight and fail closed before any execution work.
+- Programmatic Work Unit execution uses
+  `work-unit-execution/scripts/app_server_goal.py`. The launcher starts a Codex
+  app-server thread, sets and reads back the exact Work Unit Goal through
+  `thread/goal/set` and `thread/goal/get`, verifies the matching Goal update
+  notification, and sends `turn/start` only after the Goal is active. It must
+  fail closed without starting a turn when any protocol evidence is absent or
+  inconsistent.
 - For named Work Unit Goal execution in this project, work in Korean for
   planning, progress updates, review summaries, reports, and other
   Human-readable communication. Keep commands, file paths, identifiers, code,

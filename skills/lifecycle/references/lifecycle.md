@@ -167,11 +167,14 @@ documentation, or maintenance work.
 
 ## Named Work Unit Goal Execution
 
-When the Human starts a fresh session with `/goal <work-unit-id>` or requests
-execution of a named Work Unit through a fresh `codex exec` session, treat the
-request as execution of that exact Work Unit package and as authorization to
-create or reuse its mandatory Goal. `codex exec` is only a bootstrap route; it
-does not remove the Goal requirement.
+When the Human starts a fresh session with `/goal <work-unit-id>`, requests
+execution of a named Work Unit through a fresh `codex exec` session, or invokes
+the programmatic Work Unit launcher, treat the request as execution of that
+exact Work Unit package and as authorization to create or reuse its mandatory
+Goal. `codex exec` is only a bootstrap route; it does not remove the Goal
+requirement. The programmatic route uses
+`work-unit-execution/scripts/app_server_goal.py` so Goal creation and
+verification are app-server protocol operations rather than prompt inference.
 
 Use this resolution flow:
 
@@ -183,6 +186,14 @@ Use this resolution flow:
   fails, or another unfinished Goal conflicts, fail closed without starting
   Execution. A `codex exec` process or prompt alone is not proof of an active
   Goal.
+- For programmatic execution, require a successful `initialize` and
+  `initialized` handshake followed by `thread/start`, successful
+  `thread/goal/set` and `thread/goal/get` responses, and observation of the
+  matching asynchronous `thread/goal/updated` notification before
+  `turn/start`. The notification may arrive while either Goal request is in
+  flight, but the Goal thread id, objective, and active status must match at
+  every Goal boundary. Do not read private Codex SQLite state or accept a
+  model-authored receipt as Goal proof.
 - Work in Korean for planning, progress updates, review summaries, reports, and
   other Human-readable communication during this project's named Work Unit Goal
   execution. Keep commands, file paths, identifiers, code, API names, package

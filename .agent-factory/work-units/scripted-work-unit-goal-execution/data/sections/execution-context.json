@@ -17,6 +17,75 @@
         "setupState": "pending",
         "cleanupState": "pending-human-decision"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "running",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "9582f6824c9317f07c2eb633a0edb0f4baca5c2e"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26",
+        "invocationChain": [
+          "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "protocol-schema-inspection",
+            "failing-goal-runner-tests",
+            "passing-goal-runner-tests",
+            "full-regression-and-schema",
+            "ai-source-review"
+          ],
+          "pendingStep": null,
+          "lastVerifiedHead": "9582f6824c9317f07c2eb633a0edb0f4baca5c2e",
+          "checkpoints": [
+            {
+              "stepId": "protocol-schema-inspection",
+              "state": "completed",
+              "headCommit": "9582f6824c9317f07c2eb633a0edb0f4baca5c2e",
+              "idempotencyKey": "protocol-schema-inspection-v1"
+            },
+            {
+              "stepId": "failing-goal-runner-tests",
+              "state": "completed",
+              "headCommit": "9582f6824c9317f07c2eb633a0edb0f4baca5c2e",
+              "idempotencyKey": "failing-goal-runner-tests-v1"
+            },
+            {
+              "stepId": "passing-goal-runner-tests",
+              "state": "completed",
+              "headCommit": "9582f6824c9317f07c2eb633a0edb0f4baca5c2e",
+              "idempotencyKey": "passing-goal-runner-tests-v1"
+            },
+            {
+              "stepId": "full-regression-and-schema",
+              "state": "completed",
+              "headCommit": "9582f6824c9317f07c2eb633a0edb0f4baca5c2e",
+              "idempotencyKey": "full-regression-and-schema-v1"
+            },
+            {
+              "stepId": "ai-source-review",
+              "state": "completed",
+              "headCommit": "9582f6824c9317f07c2eb633a0edb0f4baca5c2e",
+              "idempotencyKey": "ai-source-review-v1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

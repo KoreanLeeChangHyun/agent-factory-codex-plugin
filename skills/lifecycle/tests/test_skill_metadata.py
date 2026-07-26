@@ -44,6 +44,12 @@ class SkillMetadataTests(unittest.TestCase):
         execution = (SKILLS / "work-unit-execution" / "SKILL.md").read_text(
             encoding="utf-8"
         )
+        app_server_goal = (
+            SKILLS
+            / "work-unit-execution"
+            / "scripts"
+            / "app_server_goal.py"
+        )
 
         for text in (lifecycle, lifecycle_reference, execution):
             with self.subTest(document=text[:80]):
@@ -61,6 +67,13 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("Goal preflight", execution)
         self.assertIn("before worktree preparation", execution)
         self.assertIn("fail closed", execution)
+        self.assertTrue(app_server_goal.is_file())
+        for text in (lifecycle, lifecycle_reference, execution):
+            with self.subTest(programmatic_document=text[:80]):
+                self.assertIn("app_server_goal.py", text)
+                self.assertIn("thread/goal/set", text)
+                self.assertIn("thread/goal/get", text)
+                self.assertIn("turn/start", text)
 
     def test_openai_yaml_interfaces_follow_skill_creator_contract(self) -> None:
         paths = sorted(SKILLS.glob("*/agents/openai.yaml"))

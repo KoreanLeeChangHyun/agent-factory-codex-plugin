@@ -1,0 +1,750 @@
+#!/usr/bin/env python3
+"""Launch a named Work Unit only after app-server confirms its thread Goal."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import queue
+import re
+import subprocess
+import sys
+import threading
+import time
+from pathlib import Path
+from typing import Any, Callable, IO, Sequence
+
+
+SCHEMA_VERSION = "1.0.0"
+CLIENT_NAME = "agent_factory_work_unit_runner"
+CLIENT_TITLE = "Agent Factory Work Unit Runner"
+CLIENT_VERSION = "1.0.0"
+WORK_UNIT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+WORK_UNIT_MANAGER = (
+    Path(__file__).resolve().parents[2]
+    / "work-unit-planner"
+    / "assets"
+    / "scripts"
+    / "work_unit.py"
+)
+Validator = Callable[[Path, str], dict[str, str]]
+
+
+class ContractError(Exception):
+    def __init__(
+        self, code: str, message: str, details: dict[str, Any] | None = None
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.details = details or {}
+
+
+class JsonArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        raise ContractError("invalid_arguments", message)
+
+
+class StreamReader:
+    def __init__(self, stream: IO[str]) -> None:
+        self.items: queue.Queue[tuple[str, str | None]] = queue.Queue()
+        self.thread = threading.Thread(target=self._read, args=(stream,), daemon=True)
+        self.thread.start()
+
+    def _read(self, stream: IO[str]) -> None:
+        try:
+            for line in stream:
+                self.items.put(("line", line))
+        except (OSError, UnicodeError) as error:
+            self.items.put(("error", type(error).__name__))
+        finally:
+            self.items.put(("eof", None))
+
+    def next(self, deadline: float) -> str:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise ContractError(
+                "app_server_timeout", "timed out waiting for app-server"
+            )
+        try:
+            kind, value = self.items.get(timeout=remaining)
+        except queue.Empty as error:
+            raise ContractError(
+                "app_server_timeout", "timed out waiting for app-server"
+            ) from error
+        if kind == "line" and value is not None:
+            return value
+        if kind == "error":
+            raise ContractError(
+                "app_server_read_failed",
+                "unable to read app-server output",
+                {"type": value},
+            )
+        raise ContractError("app_server_eof", "app-server closed its output")
+
+
+class StderrCollector:
+    def __init__(self, stream: IO[str]) -> None:
+        self._parts: list[str] = []
+        self.thread = threading.Thread(target=self._read, args=(stream,), daemon=True)
+        self.thread.start()
+
+    def _read(self, stream: IO[str]) -> None:
+        try:
+            for line in stream:
+                self._parts.append(line)
+                if sum(len(part) for part in self._parts) > 8192:
+                    self._parts = ["".join(self._parts)[-4096:]]
+        except (OSError, UnicodeError):
+            return
+
+    def text(self) -> str:
+        return "".join(self._parts).strip()
+
+
+class AppServerClient:
+    def __init__(
+        self,
+        codex_executable: str,
+        deadline: float,
+        operations: list[dict[str, Any]],
+    ) -> None:
+        self.deadline = deadline
+        self.operations = operations
+        self.next_id = 1
+        self.notifications: list[dict[str, Any]] = []
+        try:
+            self.process = subprocess.Popen(
+                [codex_executable, "app-server", "--stdio"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="strict",
+                bufsize=1,
+                shell=False,
+            )
+        except OSError as error:
+            raise ContractError(
+                "app_server_start_failed",
+                "unable to start codex app-server",
+                {"type": type(error).__name__},
+            ) from error
+        if (
+            self.process.stdin is None
+            or self.process.stdout is None
+            or self.process.stderr is None
+        ):
+            self.close()
+            raise ContractError(
+                "app_server_start_failed", "app-server pipes are unavailable"
+            )
+        self.stdin = self.process.stdin
+        self.stdout = StreamReader(self.process.stdout)
+        self.stderr = StderrCollector(self.process.stderr)
+
+    def send(self, message: dict[str, Any]) -> None:
+        method = message.get("method", "unknown")
+        try:
+            self.stdin.write(
+                json.dumps(
+                    message,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+            self.stdin.flush()
+        except (BrokenPipeError, OSError, UnicodeError) as error:
+            raise ContractError(
+                "app_server_write_failed",
+                "unable to write app-server request",
+                {"method": method, "type": type(error).__name__},
+            ) from error
+        self.operations.append({"direction": "sent", "method": method})
+
+    def notify(self, method: str, params: dict[str, Any] | None = None) -> None:
+        message: dict[str, Any] = {"method": method}
+        if params is not None:
+            message["params"] = params
+        self.send(message)
+
+    def read(self) -> dict[str, Any]:
+        line = self.stdout.next(self.deadline)
+        try:
+            message = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise ContractError(
+                "invalid_app_server_json",
+                "app-server emitted invalid JSON",
+                {"line": line.rstrip("\r\n")[:200]},
+            ) from error
+        if not isinstance(message, dict):
+            raise ContractError(
+                "invalid_app_server_message",
+                "app-server message must be an object",
+            )
+        method = message.get("method")
+        self.operations.append(
+            {
+                "direction": "received",
+                "method": method if isinstance(method, str) else "response",
+            }
+        )
+        return message
+
+    def request(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
+        request_id = self.next_id
+        self.next_id += 1
+        self.send({"id": request_id, "method": method, "params": params})
+        while True:
+            message = self.read()
+            if message.get("id") == request_id:
+                error = message.get("error")
+                if error is not None:
+                    details = error if isinstance(error, dict) else {"error": error}
+                    raise ContractError(
+                        "app_server_rpc_error",
+                        f"app-server rejected {method}",
+                        {"method": method, "rpcError": details},
+                    )
+                result = message.get("result")
+                if not isinstance(result, dict):
+                    raise ContractError(
+                        "invalid_app_server_response",
+                        f"app-server returned an invalid result for {method}",
+                        {"method": method},
+                    )
+                return result
+            if isinstance(message.get("method"), str) and "id" not in message:
+                self.notifications.append(message)
+                continue
+            raise ContractError(
+                "unexpected_app_server_message",
+                "received an unrelated app-server message",
+            )
+
+    def wait_notification(self, method: str) -> dict[str, Any]:
+        for index, message in enumerate(self.notifications):
+            if message.get("method") == method:
+                return self.notifications.pop(index)
+        while True:
+            message = self.read()
+            if message.get("method") == method and "id" not in message:
+                return message
+            if isinstance(message.get("method"), str) and "id" not in message:
+                self.notifications.append(message)
+                continue
+            raise ContractError(
+                "unexpected_app_server_message",
+                "received a response while waiting for a notification",
+            )
+
+    def next_notification(self) -> dict[str, Any]:
+        if self.notifications:
+            return self.notifications.pop(0)
+        while True:
+            message = self.read()
+            if isinstance(message.get("method"), str) and "id" not in message:
+                return message
+            raise ContractError(
+                "unexpected_app_server_message",
+                "received a response while waiting for execution events",
+            )
+
+    def close(self) -> dict[str, Any]:
+        process = getattr(self, "process", None)
+        if process is None:
+            return {"returnCode": None, "stderr": ""}
+        stdin = getattr(self, "stdin", None)
+        if stdin is not None:
+            try:
+                stdin.close()
+            except OSError:
+                pass
+        if process.poll() is None:
+            try:
+                process.wait(timeout=0.5)
+            except subprocess.TimeoutExpired:
+                process.terminate()
+                try:
+                    process.wait(timeout=1)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=1)
+        if process.poll() is None:
+            try:
+                process.kill()
+                process.wait(timeout=1)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        stderr = getattr(self, "stderr", None)
+        stdout = getattr(self, "stdout", None)
+        if stdout is not None:
+            stdout.thread.join(timeout=1)
+        if stderr is not None:
+            stderr.thread.join(timeout=1)
+        for stream in (process.stdout, process.stderr):
+            if stream is not None:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+        return {
+            "returnCode": process.returncode,
+            "stderr": stderr.text() if stderr is not None else "",
+        }
+
+
+def absolute_repository(value: Path) -> Path:
+    if not value.is_absolute():
+        raise ContractError(
+            "path_not_absolute",
+            "repository must be an absolute path",
+            {"value": str(value)},
+        )
+    try:
+        repository = value.resolve(strict=True)
+    except OSError as error:
+        raise ContractError(
+            "invalid_repository",
+            "repository does not exist",
+            {"type": type(error).__name__},
+        ) from error
+    if not repository.is_dir():
+        raise ContractError("invalid_repository", "repository must be a directory")
+    return repository
+
+
+def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, str]:
+    if not WORK_UNIT_ID.fullmatch(work_unit_id):
+        raise ContractError(
+            "invalid_work_unit_id",
+            "work-unit-id contains unsupported characters",
+            {"value": work_unit_id},
+        )
+    git_result = subprocess.run(
+        ["git", "-C", str(repository), "rev-parse", "--show-toplevel"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="strict",
+        check=False,
+        shell=False,
+    )
+    if git_result.returncode != 0:
+        raise ContractError("invalid_repository", "repository is not a Git worktree")
+    reported = Path(git_result.stdout.strip()).resolve(strict=False)
+    if reported != repository:
+        raise ContractError(
+            "repository_root_mismatch",
+            "repository must be the Git top-level directory",
+            {"expected": str(repository), "actual": str(reported)},
+        )
+    package = repository / ".agent-factory" / "work-units" / work_unit_id
+    validation = subprocess.run(
+        [
+            sys.executable,
+            str(WORK_UNIT_MANAGER),
+            "validate",
+            str(package),
+            "--full",
+        ],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="strict",
+        check=False,
+        shell=False,
+    )
+    if validation.returncode != 0:
+        raise ContractError(
+            "work_unit_validation_failed",
+            "Work Unit full validation failed",
+            {"stderr": validation.stderr.strip()},
+        )
+    try:
+        validation_payload = json.loads(validation.stdout)
+    except json.JSONDecodeError as error:
+        raise ContractError(
+            "invalid_work_unit_validation",
+            "Work Unit manager returned invalid JSON",
+        ) from error
+    if (
+        not isinstance(validation_payload, dict)
+        or validation_payload.get("valid") is not True
+        or validation_payload.get("id") != work_unit_id
+        or validation_payload.get("status") != "ready"
+    ):
+        raise ContractError(
+            "work_unit_not_ready",
+            "Work Unit must be fully valid and ready",
+            {"validation": validation_payload},
+        )
+    context_path = package / "data" / "sections" / "execution-context.json"
+    try:
+        context_section = json.loads(context_path.read_text(encoding="utf-8"))
+        contexts = [
+            item["content"]
+            for item in context_section["content"]
+            if item.get("kind") == "execution-context"
+        ]
+    except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as error:
+        raise ContractError(
+            "invalid_execution_context",
+            "unable to read Work Unit execution context",
+            {"type": type(error).__name__},
+        ) from error
+    if len(contexts) != 1:
+        raise ContractError(
+            "invalid_execution_context",
+            "Work Unit must contain exactly one execution context",
+        )
+    context = contexts[0]
+    if context.get("goalId") != work_unit_id:
+        raise ContractError(
+            "goal_id_mismatch",
+            "execution context goalId must match work-unit-id",
+        )
+    if Path(context.get("repository", "")).resolve(strict=False) != repository:
+        raise ContractError(
+            "execution_repository_mismatch",
+            "execution context repository does not match repository",
+        )
+    return {"objective": work_unit_id, "package": str(package)}
+
+
+def goal_value(
+    result: dict[str, Any],
+    *,
+    required: bool,
+) -> dict[str, Any]:
+    goal = result.get("goal")
+    if goal is None and not required:
+        return {}
+    if not isinstance(goal, dict):
+        raise ContractError("goal_missing", "app-server returned no Goal")
+    return goal
+
+
+def validate_goal(
+    goal: dict[str, Any],
+    thread_id: str,
+    objective: str,
+    *,
+    required_status: str,
+) -> None:
+    if goal.get("threadId") != thread_id:
+        raise ContractError(
+            "goal_thread_mismatch",
+            "Goal threadId does not match the created thread",
+            {"expected": thread_id, "actual": goal.get("threadId")},
+        )
+    if goal.get("objective") != objective:
+        raise ContractError(
+            "goal_objective_mismatch",
+            "Goal objective does not match work-unit-id",
+            {"expected": objective, "actual": goal.get("objective")},
+        )
+    if goal.get("status") != required_status:
+        raise ContractError(
+            "goal_not_active" if required_status == "active" else "goal_not_complete",
+            f"Goal status must be {required_status}",
+            {"actual": goal.get("status")},
+        )
+
+
+def notification_goal(message: dict[str, Any]) -> dict[str, Any]:
+    params = message.get("params")
+    if not isinstance(params, dict) or not isinstance(params.get("goal"), dict):
+        raise ContractError(
+            "invalid_goal_notification",
+            "thread/goal/updated did not include a Goal",
+        )
+    return params["goal"]
+
+
+def run_protocol(
+    client: AppServerClient,
+    repository: Path,
+    work_unit_id: str,
+) -> dict[str, Any]:
+    client.request(
+        "initialize",
+        {
+            "clientInfo": {
+                "name": CLIENT_NAME,
+                "title": CLIENT_TITLE,
+                "version": CLIENT_VERSION,
+            }
+        },
+    )
+    client.notify("initialized")
+    thread_result = client.request(
+        "thread/start",
+        {
+            "approvalPolicy": "never",
+            "cwd": str(repository),
+            "sandbox": "danger-full-access",
+        },
+    )
+    thread = thread_result.get("thread")
+    if not isinstance(thread, dict) or not isinstance(thread.get("id"), str):
+        raise ContractError(
+            "invalid_thread_response", "thread/start returned no thread id"
+        )
+    thread_id = thread["id"]
+    objective = work_unit_id
+
+    set_goal = goal_value(
+        client.request(
+            "thread/goal/set",
+            {
+                "threadId": thread_id,
+                "objective": objective,
+                "status": "active",
+            },
+        ),
+        required=True,
+    )
+    validate_goal(set_goal, thread_id, objective, required_status="active")
+
+    fetched_goal = goal_value(
+        client.request("thread/goal/get", {"threadId": thread_id}),
+        required=True,
+    )
+    validate_goal(fetched_goal, thread_id, objective, required_status="active")
+
+    updated_message = client.wait_notification("thread/goal/updated")
+    updated_goal = notification_goal(updated_message)
+    validate_goal(updated_goal, thread_id, objective, required_status="active")
+
+    turn_result = client.request(
+        "turn/start",
+        {
+            "threadId": thread_id,
+            "input": [
+                {
+                    "type": "text",
+                    "text": (
+                        f"Execute Agent Factory Work Unit {work_unit_id}. "
+                        "Run the mandatory Goal preflight, resolve the canonical "
+                        "package, and execute only that Work Unit."
+                    ),
+                }
+            ],
+        },
+    )
+    turn = turn_result.get("turn")
+    if not isinstance(turn, dict) or not isinstance(turn.get("id"), str):
+        raise ContractError("invalid_turn_response", "turn/start returned no turn id")
+    turn_ids = [turn["id"]]
+    completed_goal: dict[str, Any] | None = None
+    completed_goal_turn_id: str | None = None
+    completed_turns: set[str] = set()
+
+    while True:
+        message = client.next_notification()
+        method = message.get("method")
+        params = message.get("params")
+        if method == "thread/goal/updated":
+            candidate = notification_goal(message)
+            if candidate.get("threadId") != thread_id:
+                raise ContractError(
+                    "goal_thread_mismatch",
+                    "Goal notification belongs to another thread",
+                )
+            if candidate.get("objective") != objective:
+                raise ContractError(
+                    "goal_objective_mismatch",
+                    "Goal notification objective changed",
+                )
+            if candidate.get("status") == "complete":
+                completed_goal = candidate
+                if isinstance(params, dict) and isinstance(params.get("turnId"), str):
+                    completed_goal_turn_id = params["turnId"]
+                if completed_turns and (
+                    completed_goal_turn_id is None
+                    or completed_goal_turn_id in completed_turns
+                ):
+                    return {
+                        "goal": completed_goal,
+                        "threadId": thread_id,
+                        "turnIds": turn_ids,
+                    }
+        elif method == "turn/started" and isinstance(params, dict):
+            candidate = params.get("turn")
+            if isinstance(candidate, dict) and isinstance(candidate.get("id"), str):
+                if candidate["id"] not in turn_ids:
+                    turn_ids.append(candidate["id"])
+        elif method == "turn/completed" and isinstance(params, dict):
+            if params.get("threadId") != thread_id:
+                raise ContractError(
+                    "turn_thread_mismatch",
+                    "turn/completed belongs to another thread",
+                )
+            completed = params.get("turn")
+            if not isinstance(completed, dict):
+                raise ContractError(
+                    "invalid_turn_notification",
+                    "turn/completed did not include a turn",
+                )
+            turn_id = completed.get("id")
+            status = completed.get("status")
+            if not isinstance(turn_id, str):
+                raise ContractError(
+                    "invalid_turn_notification",
+                    "turn/completed did not include a turn id",
+                )
+            if status != "completed":
+                raise ContractError(
+                    "turn_failed",
+                    "Work Unit execution turn did not complete",
+                    {"turnId": turn_id, "status": status},
+                )
+            completed_turns.add(turn_id)
+            if completed_goal is not None and (
+                completed_goal_turn_id is None
+                or completed_goal_turn_id in completed_turns
+            ):
+                return {
+                    "goal": completed_goal,
+                    "threadId": thread_id,
+                    "turnIds": turn_ids,
+                }
+
+
+def success_payload(
+    repository: Path,
+    work_unit_id: str,
+    package: dict[str, str],
+    protocol: dict[str, Any],
+    operations: list[dict[str, Any]],
+    process: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "command": "execute",
+        "context": {
+            "goal": protocol["goal"],
+            "package": package["package"],
+            "repository": str(repository),
+            "threadId": protocol["threadId"],
+            "turnIds": protocol["turnIds"],
+            "workUnitId": work_unit_id,
+        },
+        "error": None,
+        "ok": True,
+        "operations": operations,
+        "process": process,
+        "schemaVersion": SCHEMA_VERSION,
+        "state": "complete",
+    }
+
+
+def error_payload(
+    error: ContractError,
+    operations: list[dict[str, Any]],
+    process: dict[str, Any] | None,
+) -> dict[str, Any]:
+    return {
+        "command": "execute",
+        "context": None,
+        "error": {
+            "code": error.code,
+            "details": error.details,
+            "message": error.message,
+        },
+        "ok": False,
+        "operations": operations,
+        "process": process,
+        "schemaVersion": SCHEMA_VERSION,
+        "state": "refused",
+    }
+
+
+def execute(
+    *,
+    repository: Path,
+    work_unit_id: str,
+    codex_executable: str,
+    timeout_seconds: float,
+    validator: Validator = validate_work_unit,
+) -> dict[str, Any]:
+    operations: list[dict[str, Any]] = []
+    client: AppServerClient | None = None
+    process_evidence: dict[str, Any] | None = None
+    try:
+        if timeout_seconds <= 0:
+            raise ContractError(
+                "invalid_timeout", "timeout-seconds must be greater than zero"
+            )
+        resolved_repository = absolute_repository(repository)
+        package = validator(resolved_repository, work_unit_id)
+        deadline = time.monotonic() + timeout_seconds
+        client = AppServerClient(codex_executable, deadline, operations)
+        protocol = run_protocol(client, resolved_repository, work_unit_id)
+        process_evidence = client.close()
+        client = None
+        return success_payload(
+            resolved_repository,
+            work_unit_id,
+            package,
+            protocol,
+            operations,
+            process_evidence,
+        )
+    except ContractError as error:
+        if client is not None:
+            process_evidence = client.close()
+        return error_payload(error, operations, process_evidence)
+    except (OSError, UnicodeError) as error:
+        if client is not None:
+            process_evidence = client.close()
+        return error_payload(
+            ContractError(
+                "unexpected_io_error",
+                "unable to execute Work Unit",
+                {"type": type(error).__name__},
+            ),
+            operations,
+            process_evidence,
+        )
+
+
+def build_parser() -> JsonArgumentParser:
+    parser = JsonArgumentParser(prog="app_server_goal.py")
+    parser.add_argument("--repository", required=True)
+    parser.add_argument("--work-unit-id", required=True)
+    parser.add_argument("--codex", default="codex")
+    parser.add_argument("--timeout-seconds", type=float, default=3600.0)
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    try:
+        args = build_parser().parse_args(
+            list(sys.argv[1:] if argv is None else argv)
+        )
+        payload = execute(
+            repository=Path(args.repository),
+            work_unit_id=args.work_unit_id,
+            codex_executable=args.codex,
+            timeout_seconds=args.timeout_seconds,
+        )
+    except ContractError as error:
+        payload = error_payload(error, [], None)
+    print(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    )
+    return 0 if payload["ok"] else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
