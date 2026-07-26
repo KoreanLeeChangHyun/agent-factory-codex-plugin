@@ -117,6 +117,22 @@
           "C: 병합하지 않음 — 구현은 승인 상태로 보존하되 main 반영을 중단한다."
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-PROMOTION-001",
+      "kind": "interview",
+      "content": {
+        "question": "remote marketplace 활성화를 위해 누적된 local main 전체를 origin/main에 promotion할까요?",
+        "recommendation": "C",
+        "rationale": "현재 ahead history에는 이번 guard 외에 scripted Goal launcher, filesystem-boundary Intake·Work Unit checkpoint와 기타 변경이 함께 포함된다. 직접 push는 되돌리기 비용과 범위가 크므로 사실 기반으로 promotion scope를 분리 검토하는 것이 가장 안전하다.",
+        "answer": "pending",
+        "decisionState": "awaiting-human",
+        "choices": [
+          "A: 전체 promotion — 현재 origin/main보다 앞선 26개 commit과 이후 결정·cachebuster commit을 push하고 reinstall 단계로 진행한다.",
+          "B: local 유지 — remote push와 reinstall을 보류하고 현재 local main 통합 상태를 유지한다.",
+          "C: promotion 분리 설계 — 별도 Work Unit에서 누적 26개 commit의 범위를 재검토하고 remote 반영 전략을 정한다."
+        ]
+      }
     }
   ],
   "subsections": []

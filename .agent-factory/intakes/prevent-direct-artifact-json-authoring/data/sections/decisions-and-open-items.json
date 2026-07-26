@@ -15,8 +15,8 @@
       "id": "OPEN-STATUS-DIRECT-JSON-001",
       "kind": "open-items-status",
       "content": {
-        "status": "blocking 또는 non-blocking open item이 없다.",
-        "blockingCount": 0,
+        "status": "누적 26개 local main commit의 remote promotion 결정 1건이 blocking이다.",
+        "blockingCount": 1,
         "nonBlockingCount": 0
       }
     },
@@ -47,6 +47,15 @@
         "decision": "Human-approved Artifact JSON guard Work Unit을 local main에 병합한다.",
         "status": "accepted",
         "rationale": "Human이 선택 A로 local main integration을 명시 승인했다. push·reinstall·trust·cleanup은 포함하지 않는다.",
+        "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
+      }
+    },
+    {
+      "id": "DECISION-PROMOTION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "origin/main remote promotion 및 marketplace reinstall 범위",
+        "status": "awaiting-human",
         "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
       }
     }
