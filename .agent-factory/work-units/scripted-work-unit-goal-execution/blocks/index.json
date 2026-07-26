@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/integration-main.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "ec7157506820c303e473b3951c752eb5687fe08d1af80c02ee2c1539aec940c7",
+      "sizeBytes": 2421
+    },
+    {
       "path": "blocks/evidence/verification.md",
       "mediaType": "text/markdown",
       "description": "구현, 테스트, 설치 스키마 및 AI 검토 증거",
