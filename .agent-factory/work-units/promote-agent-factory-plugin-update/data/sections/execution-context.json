@@ -36,10 +36,25 @@
         ],
         "history": [],
         "progress": {
-          "completedSteps": [],
+          "completedSteps": [
+            "cachebuster-validation"
+          ],
           "pendingStep": null,
-          "lastVerifiedHead": "b627507c73c50e3d59a0956205748255995095ff",
-          "checkpoints": [],
+          "lastVerifiedHead": "cf0dec839fd58bf148c10bd56929646ace93fbc6",
+          "checkpoints": [
+            {
+              "stepId": "cachebuster-validation",
+              "state": "pending",
+              "headCommit": "cf0dec839fd58bf148c10bd56929646ace93fbc6",
+              "idempotencyKey": "cachebuster-validation-pending-v1"
+            },
+            {
+              "stepId": "cachebuster-validation",
+              "state": "completed",
+              "headCommit": "cf0dec839fd58bf148c10bd56929646ace93fbc6",
+              "idempotencyKey": "cachebuster-validation-complete-v1"
+            }
+          ],
           "retry": {}
         },
         "recovery": {
