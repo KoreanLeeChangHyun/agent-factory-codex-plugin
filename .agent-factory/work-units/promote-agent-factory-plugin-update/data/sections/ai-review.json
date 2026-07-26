@@ -14,10 +14,10 @@
         "checklistResult": "pass",
         "executionTarget": {
           "contractVersion": "1.0.0",
-          "invocationId": "promotion-20260726-a",
-          "headCommit": "67eff31363566138d1f99daf2cdae28aa024305b",
+          "invocationId": "promotion-20260726-final-review",
+          "headCommit": "d32ea3d46f696385b56c7b731edbce11a755efe4",
           "revision": 1,
-          "attempt": 1
+          "attempt": 2
         }
       }
     },
