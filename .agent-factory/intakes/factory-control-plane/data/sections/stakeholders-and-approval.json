@@ -1,0 +1,50 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholder": "병렬 Intake·계획·실행을 요청하고 결과·충돌·승급을 결정하는 Human"
+      }
+    },
+    {
+      "id": "STAKEHOLDER-002",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholder": "Intake Manager, Work Unit Planner, Work Unit Execution Codex 세션과 결정적 Factory Coordinator"
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human",
+        "decision": "Work Unit 병합 또는 재작업, 충돌 의미, 승급 여부와 대상 브랜치, 정책 예외와 cleanup"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "work-unit/<id>에서 factory로의 공식 통합은 Human 승인 후에만 수행한다. Factory Coordinator는 승인된 동일 요청의 기계적 큐 처리·재시도·reconcile을 수행할 수 있으나 범위나 전략을 새로 승인하지 않는다."
+      }
+    },
+    {
+      "id": "APPROVAL-002",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "factory에서 어떤 브랜치로든 승급하는 행위는 Human이 직접 수행하거나 Human이 명시적으로 요청·승인한 경우에만 Codex가 실행한다. 승급 승인과 Work Unit 통합 승인은 서로 대체하지 않는다."
+      }
+    },
+    {
+      "id": "APPROVAL-003",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "충돌 발생 시 Coordinator는 source와 factory를 변경하지 않고 실패 receipt를 남긴다. 충돌 해결 구현은 해당 Intake 또는 Work Unit 재작업 세션이 수행하고 Human이 결과를 다시 검토한다."
+      }
+    }
+  ],
+  "subsections": []
+}

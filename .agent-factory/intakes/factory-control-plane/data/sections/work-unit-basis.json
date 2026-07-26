@@ -1,0 +1,160 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "기존 Project Core와 Work Unit Durable Execution Supervisor Specification은 참고 근거로만 사용할 수 있고 factory 중심 lifecycle, integration queue, CAS merge, hook과 promotion을 규정하지 않는다. 이 gap은 아래 Work Unit에서 해결하며 Specification 생성·수정은 실행 prerequisite가 아니다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "factory-lifecycle-routing-contract",
+        "candidate": "Lifecycle의 canonical integration base를 factory로 전환하고 Intake·계획·실행 branch와 worktree routing, checkpoint target, optional Specification 정책을 계약화한다.",
+        "status": "first",
+        "expectedOutputs": [
+          "factory 중심 lifecycle 및 handoff 문서",
+          "Intake·planning·work-unit branch identity와 worktree path 계약",
+          "artifact checkpoint의 factory-targeted isolated branch 흐름",
+          "Specification optional/reference-only gate",
+          "main hardcode 제거 또는 명시적 legacy compatibility",
+          "routing과 dirty-state regression tests"
+        ],
+        "traceability": [
+          "REQUIREMENT-BRANCH-001",
+          "REQUIREMENT-PARALLEL-002",
+          "REQUIREMENT-SPEC-013",
+          "REQUIREMENT-MANAGER-014",
+          "ACCEPTANCE-PARALLEL-006"
+        ]
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "factory-coordinator-durable-queue",
+        "candidate": "Factory Coordinator의 영속 integration queue, repository lock, artifact-key single-writer ownership, operation journal과 Codex session launch·resume 경계를 구현한다.",
+        "status": "sequenced-after-WORK-UNIT-BASIS-001",
+        "dependencies": [
+          "factory-lifecycle-routing-contract"
+        ],
+        "expectedOutputs": [
+          "deterministic Coordinator CLI",
+          "queue item schema와 idempotency key",
+          "repository-wide lock owner·lease·stale recovery",
+          "artifact-key single-writer fencing",
+          "exact Codex session id capture와 resume routing",
+          "phase journal과 restart reconcile",
+          "unit 및 process concurrency tests"
+        ],
+        "traceability": [
+          "REQUIREMENT-QUEUE-003",
+          "REQUIREMENT-LOCK-004",
+          "REQUIREMENT-RECOVERY-008",
+          "REQUIREMENT-MANAGER-014",
+          "ACCEPTANCE-CRASH-003"
+        ]
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-003",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "factory-cas-integration-engine",
+        "candidate": "고정 source commit과 factory HEAD를 대상으로 merge preflight, ancestry 분류, CAS ref update, integration receipt, conflict·crash reconciliation을 구현한다.",
+        "status": "sequenced-after-WORK-UNIT-BASIS-002",
+        "dependencies": [
+          "factory-coordinator-durable-queue"
+        ],
+        "expectedOutputs": [
+          "merge-tree based clean·conflict preflight",
+          "fast-forward, merge commit와 already-integrated classification",
+          "expected old OID update-ref fencing",
+          "commit policy and hook·signing compatibility decision",
+          "structured success, CAS-retry, conflict와 terminal failure receipt",
+          "source preservation and rework routing",
+          "concurrent merge and crash-point integration tests"
+        ],
+        "traceability": [
+          "REQUIREMENT-INTEGRATE-005",
+          "REQUIREMENT-PREFLIGHT-006",
+          "REQUIREMENT-CAS-007",
+          "REQUIREMENT-CONFLICT-009",
+          "ACCEPTANCE-CONCURRENCY-001",
+          "ACCEPTANCE-CONFLICT-002",
+          "ACCEPTANCE-CRASH-003"
+        ]
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-004",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "factory-ref-and-promotion-hooks",
+        "candidate": "reference-transaction factory 보호, 원격 receive hook 정책 fixture와 Human 승인 promotion entrypoint를 구현한다.",
+        "status": "sequenced-after-WORK-UNIT-BASIS-003",
+        "dependencies": [
+          "factory-cas-integration-engine"
+        ],
+        "expectedOutputs": [
+          "fast fail-closed reference-transaction hook",
+          "Coordinator operation context verification",
+          "direct factory update refusal tests",
+          "Human-approved arbitrary-target promotion command",
+          "pre-receive 또는 update hook policy fixture",
+          "force update와 Work Unit direct promotion refusal tests",
+          "audit-only post-receive receipt guidance"
+        ],
+        "traceability": [
+          "REQUIREMENT-HOOK-010",
+          "REQUIREMENT-PROMOTION-011",
+          "REQUIREMENT-REMOTE-HOOK-012",
+          "ACCEPTANCE-HOOK-004",
+          "ACCEPTANCE-PROMOTION-005"
+        ]
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-005",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "factory-parallel-recovery-verification",
+        "candidate": "병렬 Intake·계획·실행, queue serialization, stale CAS, conflict, hook refusal와 전 phase crash recovery를 end-to-end 검증하고 운영·Human review 자료를 완성한다.",
+        "status": "sequenced-after-WORK-UNIT-BASIS-004",
+        "dependencies": [
+          "factory-lifecycle-routing-contract",
+          "factory-coordinator-durable-queue",
+          "factory-cas-integration-engine",
+          "factory-ref-and-promotion-hooks"
+        ],
+        "expectedOutputs": [
+          "parallel worktree end-to-end harness",
+          "lost-update negative assertions",
+          "every crash boundary restart matrix",
+          "existing 40-test integration·handoff regression preservation",
+          "Human Korean review checklist",
+          "Coordinator operations and recovery runbook",
+          "promotion and cleanup approval separation evidence"
+        ],
+        "traceability": [
+          "ACCEPTANCE-CONCURRENCY-001",
+          "ACCEPTANCE-CONFLICT-002",
+          "ACCEPTANCE-CRASH-003",
+          "ACCEPTANCE-HOOK-004",
+          "ACCEPTANCE-PROMOTION-005",
+          "ACCEPTANCE-PARALLEL-006",
+          "ACCEPTANCE-REGRESSION-007"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

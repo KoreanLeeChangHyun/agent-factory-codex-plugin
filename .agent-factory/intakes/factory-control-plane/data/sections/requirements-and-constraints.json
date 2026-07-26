@@ -1,0 +1,218 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQUIREMENT-BRANCH-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "factory는 모든 공식 Intake·Work Unit 계획·Work Unit 실행 결과의 중심 통합 브랜치여야 하며 main을 암묵적 통합 대상으로 사용하지 않아야 한다.",
+        "sourceBasis": [
+          "REQUEST-001",
+          "INTERVIEW-FACTORY-009"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-PARALLEL-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Intake, Work Unit 계획과 Work Unit 실행은 각각 분리된 branch, worktree와 index에서 동시에 진행할 수 있어야 하며 실행 중 다른 작업의 uncommitted state를 읽거나 변경하지 않아야 한다.",
+        "sourceBasis": [
+          "REQUEST-001",
+          "WEB-GIT-WORKTREE-001"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-QUEUE-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Factory Coordinator는 하나의 repository integration queue를 소유하고 승인된 factory 갱신을 한 번에 하나씩 처리해야 한다.",
+        "sourceBasis": [
+          "REQUEST-003",
+          "INTERNAL-INTEGRATION-005"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-LOCK-004",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Coordinator는 소유자, operation id, acquiredAt와 recovery 정보를 가진 repository-wide integration lock을 사용하고 stale owner를 결정적으로 reconcile해야 한다. git worktree lock을 integration lock으로 취급하지 않아야 한다.",
+        "sourceBasis": [
+          "WEB-GIT-WORKTREE-001",
+          "INTERNAL-INTEGRATION-005"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-INTEGRATE-005",
+      "kind": "requirement",
+      "content": {
+        "requirement": "공식 Work Unit 통합 source는 work-unit/<work-unit-id>의 고정 source commit이고 target은 factory여야 하며 Human merge approval 없이는 Git ref mutation을 거부해야 한다.",
+        "sourceBasis": [
+          "REQUEST-002",
+          "APPROVAL-001"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-PREFLIGHT-006",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Coordinator는 factory worktree나 index를 변경하기 전에 merge-tree 또는 동등한 Git merge machinery로 clean, conflict와 error를 구분하고 source·factory commit을 receipt에 고정해야 한다.",
+        "sourceBasis": [
+          "WEB-GIT-MERGE-TREE-002"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-CAS-007",
+      "kind": "requirement",
+      "content": {
+        "requirement": "최종 factory ref 갱신은 expected factory HEAD와 일치할 때만 성공하는 compare-and-update여야 하며 불일치 시 기존 결과를 덮어쓰지 않고 새 HEAD로 재검사해야 한다.",
+        "sourceBasis": [
+          "WEB-GIT-UPDATE-REF-003"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-RECOVERY-008",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Queue item은 operation id, approval reference, source branch·commit, expected target, phase, attempt, Codex session id, result와 timestamps를 영속 기록하고 프로세스 중단 후 동일 operation을 중복 병합 없이 resume 또는 reconcile해야 한다.",
+        "sourceBasis": [
+          "REQUEST-003",
+          "INTERNAL-RUNTIME-007"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-CONFLICT-009",
+      "kind": "requirement",
+      "content": {
+        "requirement": "충돌 또는 병합 실패 시 Coordinator는 source branch·commit과 factory ref를 보존하고 conflict paths, messages, failure phase와 재작업 필요 상태를 기록해야 하며 의미 충돌을 자동 해결하지 않아야 한다.",
+        "sourceBasis": [
+          "APPROVAL-003",
+          "WEB-GIT-MERGE-TREE-002"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-HOOK-010",
+      "kind": "requirement",
+      "content": {
+        "requirement": "reference-transaction hook은 승인된 Coordinator 경로가 아닌 refs/heads/factory 갱신을 fail-closed로 거부하되 큐 실행, 병합 또는 Codex 호출을 hook 내부에서 수행하지 않아야 한다.",
+        "sourceBasis": [
+          "WEB-GIT-HOOKS-004"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-PROMOTION-011",
+      "kind": "requirement",
+      "content": {
+        "requirement": "factory에서 임의 target branch로의 promotion은 독립된 Human 승인과 고정 source·target commit을 요구하며 Work Unit merge 승인에서 promotion 권한을 추론하지 않아야 한다.",
+        "sourceBasis": [
+          "REQUEST-002",
+          "APPROVAL-002"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-REMOTE-HOOK-012",
+      "kind": "requirement",
+      "content": {
+        "requirement": "원격 pre-receive 또는 update 정책은 보호 대상 승급 ref에 Human approval evidence를 요구하고 직접 Work Unit-to-protected-branch 갱신과 승인되지 않은 force update를 거부해야 한다.",
+        "sourceBasis": [
+          "WEB-GIT-HOOKS-004"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-SPEC-013",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Specification은 존재할 경우 참고·정합성 근거로 사용할 수 있지만 Intake readiness, Work Unit 계획, 실행, factory 통합 또는 promotion의 필수 선행조건이 아니어야 한다.",
+        "sourceBasis": [
+          "INTERVIEW-FACTORY-009"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-MANAGER-014",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Canonical Intake, Work Unit과 Specification JSON은 각 manager만 작성해야 하며 동일 package 동시 mutation은 단일 writer ownership 또는 process lock으로 직렬화해야 한다.",
+        "sourceBasis": [
+          "INTERNAL-ARTIFACT-006"
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-CONCURRENCY-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "두 개 이상의 clean integration 요청이 같은 factory HEAD를 기준으로 동시에 준비되는 테스트에서 queue 순서대로 모두 보존되고 stale expected HEAD 갱신은 거부·재검사되며 lost update가 발생하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-CONFLICT-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "동일 파일 충돌 fixture는 factory와 source ref를 변경하지 않고 conflict paths와 rework-required receipt를 남기며 source worktree는 clean 상태로 유지된다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-CRASH-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "preflight 전후, commit 생성 후, ref update 전후와 receipt 기록 전후 강제 종료 fixture를 재시작하면 operation이 중복 merge commit 없이 completed, rework-required 또는 evidence-backed terminal failure로 수렴한다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-HOOK-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "직접 git update-ref와 git merge를 통한 factory 변경은 승인 context 없이 거부되고 Coordinator의 정확한 operation context는 허용되며 hook 실패는 ref를 변경하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-PROMOTION-005",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "Human promotion approval 없이 factory에서 dev, staging, main, prod와 임의 fixture branch로의 ref update가 모두 거부되고 승인된 정확한 source·target pair만 한 번 반영된다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-PARALLEL-006",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "동시에 실행되는 Intake manager, Work Unit planner와 두 Work Unit worktree fixture가 서로의 index와 uncommitted files를 변경하지 않으며 결과가 독립 commit으로 queue에 제출된다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-REGRESSION-007",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "기존 worktree integration과 artifact handoff 회귀 테스트가 유지되고 queue, CAS, hook, crash recovery와 parallel artifact authoring 신규 테스트가 추가된다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "source branch, locked worktree, cleanup과 branch deletion은 integration 성공 후에도 자동 수행하지 않고 별도 Human 결정으로 유지한다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-002",
+      "kind": "constraint",
+      "content": {
+        "constraint": "초기 구현은 단일 local Git repository의 factory 제어면을 대상으로 하며 Git hosting provider별 API와 완전한 분산 consensus는 범위 밖이다."
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,45 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "기존 lifecycle은 ready Intake와 Work Unit checkpoint를 main에 두고, worktree integration은 work-unit/<id> source와 하나의 checked-out target worktree를 전제로 직접 git merge를 실행한다. Human은 factory를 새 중심 통합 브랜치로 확정했고 d177a026에서 factory와 잠긴 전용 worktree를 생성했다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "included": [
+          "Intake·Work Unit 계획·실행의 병렬 worktree 운영",
+          "factory 중심 통합 큐와 저장소 단위 직렬화",
+          "예상 factory HEAD 기반 경쟁 방지",
+          "fast-forward·분기·already-integrated·conflict 판정",
+          "Codex 세션 실행·재개와 재작업 라우팅",
+          "integration receipt·작업 저널·중단 복구",
+          "factory ref 보호 hook",
+          "Human 승인 승급 경계",
+          "Specification 선택적 참고 정책"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "excluded": [
+          "Human 승인 없는 자동 승급",
+          "충돌의 무승인 의미 자동 해결",
+          "source branch와 worktree 자동 삭제",
+          "고정된 dev·staging·main·prod 승급 순서",
+          "Specification을 Intake 또는 실행의 필수 선행 게이트로 만드는 것",
+          "원격 호스팅 서비스별 branch protection 구현"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

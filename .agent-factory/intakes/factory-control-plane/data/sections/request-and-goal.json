@@ -1,0 +1,42 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Intake, Work Unit 계획과 Work Unit 실행을 각각의 worktree에서 병렬 수행하고 모든 공식 작업 결과를 factory 브랜치로 통합한다."
+      }
+    },
+    {
+      "id": "REQUEST-002",
+      "kind": "human-request",
+      "content": {
+        "request": "factory에서 dev, staging, main, prod 또는 기타 브랜치로의 승급 대상은 Human이 판단하며 승급은 Human 직접 실행 또는 Human 요청·승인 후 Codex 실행만 허용한다."
+      }
+    },
+    {
+      "id": "REQUEST-003",
+      "kind": "human-request",
+      "content": {
+        "request": "Factory Coordinator가 통합 큐, 잠금, Codex 실행·재개, 병합, receipt와 실패 상태를 담당하고 충돌 의미와 재작업 결정은 Human 경계로 유지한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "병렬 작업은 서로의 working tree와 index를 방해하지 않고 진행되며 factory 갱신은 경쟁·충돌·중단에도 결정적이고 재실행 가능하게 직렬화된다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criterion": "동시에 생성된 Intake와 Work Unit 결과가 유실 없이 큐에 등록되고, 승인된 work-unit/<id> 결과만 예상 factory HEAD 조건으로 통합되며 충돌·경쟁·중단은 source를 보존한 구조화된 상태로 수렴한다."
+      }
+    }
+  ],
+  "subsections": []
+}

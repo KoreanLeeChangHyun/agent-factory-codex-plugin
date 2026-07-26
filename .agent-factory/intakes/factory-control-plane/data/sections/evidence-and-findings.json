@@ -1,0 +1,160 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "WEB-GIT-WORKTREE-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Git worktree 공식 계약",
+        "url": "https://git-scm.com/docs/git-worktree.html",
+        "authorityTier": "T1 authoritative primary",
+        "retrievedAt": "2026-07-26T00:00:00+09:00",
+        "findings": [
+          "Linked worktree는 HEAD와 index 같은 worktree별 파일을 분리한다.",
+          "refs와 object store는 common Git directory를 통해 공유된다.",
+          "git worktree lock은 worktree가 prune, move 또는 delete되지 않도록 보호한다."
+        ],
+        "interpretations": [
+          "worktree 병렬성은 factory ref 갱신의 직렬화를 제공하지 않으므로 별도 통합 큐와 잠금이 필요하다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-GIT-MERGE-TREE-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Git merge-tree 공식 계약",
+        "url": "https://git-scm.com/docs/git-merge-tree.html",
+        "authorityTier": "T1 authoritative primary",
+        "retrievedAt": "2026-07-26T00:00:00+09:00",
+        "findings": [
+          "git merge-tree --write-tree는 working tree와 index를 읽거나 쓰지 않고 merge machinery를 실행한다.",
+          "종료 코드 0은 clean merge, 1은 conflict, 그 외는 오류를 나타낸다."
+        ],
+        "interpretations": [
+          "Coordinator는 factory worktree를 오염시키기 전에 병합 가능성과 충돌 경로를 사전 판정할 수 있다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-GIT-UPDATE-REF-003",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Git update-ref 공식 계약",
+        "url": "https://git-scm.com/docs/git-update-ref.html",
+        "authorityTier": "T1 authoritative primary",
+        "retrievedAt": "2026-07-26T00:00:00+09:00",
+        "findings": [
+          "git update-ref <ref> <new-oid> <old-oid>는 현재 ref가 old-oid와 일치할 때만 갱신한다.",
+          "update-ref --stdin transaction은 준비 단계에서 대상 ref lock을 획득하고 조건이 맞지 않으면 전체 갱신을 거부한다."
+        ],
+        "interpretations": [
+          "expected factory HEAD를 old-oid로 사용하면 Coordinator 밖의 동시 ref 변경을 fencing할 수 있다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-GIT-HOOKS-004",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Git hooks 공식 계약",
+        "url": "https://git-scm.com/docs/githooks",
+        "authorityTier": "T1 authoritative primary",
+        "retrievedAt": "2026-07-26T00:00:00+09:00",
+        "findings": [
+          "reference-transaction hook은 Git 명령의 ref transaction 준비·commit·abort 상태에서 실행된다.",
+          "preparing 또는 prepared 단계의 nonzero 종료는 ref transaction을 중단할 수 있다.",
+          "pre-receive와 update hook은 원격 receive-pack ref 갱신을 거부할 수 있고 post-receive는 결과를 변경하지 못한다."
+        ],
+        "interpretations": [
+          "reference-transaction은 local factory 직접 변경 방어선으로, pre-receive 또는 update는 원격 Human 승인 승급 보호로 사용할 수 있다.",
+          "hook은 Coordinator의 큐·복구·의미 판단을 대체하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-INTEGRATION-005",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-execution/scripts/worktree.py:160-174,525-710",
+        "method": "repository source inspection",
+        "findings": [
+          "source identity는 work-unit/<work-unit-id>로 고정된다.",
+          "target branch는 정확히 하나의 registered worktree에 checkout되어야 한다.",
+          "integrate는 source와 target 청결 상태, Human 승인, ancestry와 전략을 검사한 뒤 target worktree에서 git merge를 실행한다.",
+          "diverged merge 실패 시 git merge --abort를 실행하고 integration_failed를 반환한다.",
+          "repository-wide queue, process lock, expected target HEAD input과 update-ref CAS는 없다."
+        ],
+        "interpretations": [
+          "기존 integrate는 단일 Work Unit 병합 primitive로 재사용 가능하지만 Intake·계획 통합과 동시 factory 갱신을 조정하는 control plane은 아니다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-ARTIFACT-006",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/lifecycle/assets/scripts/artifact_handoff.py:458-616; skills/lifecycle/assets/scripts/sectioned_document.py:560-716",
+        "method": "repository source inspection",
+        "findings": [
+          "checkpoint는 Human 승인, target branch, clean index, content snapshot을 확인한 뒤 canonical package만 stage하고 commit한다.",
+          "sectioned manager는 temporary file 교체와 package-local transaction journal recovery를 사용한다.",
+          "동일 package를 수정하는 별도 process를 직렬화하는 flock, fcntl 또는 lockfile 계약은 확인되지 않았다."
+        ],
+        "interpretations": [
+          "각 Intake ID의 전용 worktree는 index와 경로 충돌을 줄이지만 동일 package 또는 공유 artifact에 대한 manager write ownership 직렬화가 추가로 필요하다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-RUNTIME-007",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": "git 2.45.2; codex-cli 0.145.0; skills/work-unit-execution/scripts/app_server_goal.py:474-648",
+        "method": "installed CLI and repository runtime inspection",
+        "findings": [
+          "설치된 Git은 merge-tree --write-tree와 update-ref old-oid compare-and-update를 지원한다.",
+          "설치된 Codex CLI는 비대화형 codex exec와 정확한 SESSION_ID를 지정한 codex exec resume를 지원한다.",
+          "현재 app_server_goal.py는 named Work Unit Goal의 thread/start, goal set/get와 turn/start를 수행하며 Intake 또는 merge queue coordinator는 아니다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-TEST-008",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "skills/work-unit-execution/tests/test_worktree.py; skills/lifecycle/tests/test_artifact_handoff.py",
+        "method": "pytest regression execution",
+        "findings": [
+          "관련 회귀 테스트 40개가 통과했다.",
+          "기존 테스트는 승인 거부, dirty 상태, fast-forward, explicit no-ff, already-merged, conflict abort와 checkpoint 안전성을 다룬다.",
+          "동시 두 integration의 factory 갱신, repository-wide queue와 Intake branch integration 테스트는 확인되지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-FACTORY-009",
+      "kind": "interview",
+      "content": {
+        "question": "중심 통합 브랜치와 승급·병합 소유권을 어떻게 확정할 것인가?",
+        "decisionState": "accepted",
+        "acceptedDecisions": [
+          "중심 통합 브랜치는 factory다.",
+          "공식 경로는 work-unit/<id>에서 factory다.",
+          "승급 대상 브랜치는 Human이 필요에 따라 선택한다.",
+          "승급은 Human 직접 실행 또는 Human 요청·승인 후 Codex 실행만 가능하다.",
+          "결정적 Factory Coordinator가 큐·잠금·실행·병합·receipt·실패 상태를 담당한다.",
+          "충돌 의미, 재작업, 병합과 승급 결정은 Human 소유다.",
+          "Specification은 필요시 참고하며 필수 게이트가 아니다.",
+          "reference-transaction과 원격 receive hook을 방어선으로 둔다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
