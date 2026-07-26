@@ -1,0 +1,31 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholders": [
+          "Agent Factory Human 결정권자",
+          "Agent Factory 스킬과 Work Unit 유지보수자"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "AI는 분류, Intake, Work Unit 계획, 검증 및 Human review 자료를 준비한다. 정확한 레거시 경로 삭제, Intake와 Work Unit checkpoint, 실행 결과 승인, integration, cleanup, push와 PR promotion은 각각 Human 결정이다."
+      }
+    }
+  ],
+  "subsections": []
+}

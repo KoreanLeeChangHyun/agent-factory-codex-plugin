@@ -1,0 +1,56 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "이번 작업은 레거시 lifecycle artifact 처분과 현행 v4 package 계획이며 Project Core 또는 기존 기능 Specification 의미를 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Human이 승인한 정확한 10개 레거시 Work Unit 패키지를 제거하고 참조 및 잔존 패키지를 검증한다.",
+        "executionOrder": 1,
+        "expectedOutputs": [
+          "10개 레거시 패키지 제거",
+          "changed-path 및 잔존 참조 검증",
+          "Human review 자료"
+        ],
+        "targets": [
+          ".agent-factory/work-units/agent-extension-goal-execution-integration",
+          ".agent-factory/work-units/agent-factory-json-block-data-migration",
+          ".agent-factory/work-units/agent-factory-skill-docs-json-block-contract",
+          ".agent-factory/work-units/intake-json-package-and-viewer-design",
+          ".agent-factory/work-units/vscode-extension-ui-structure-draft",
+          ".agent-factory/work-units/work-unit-execution-context-sufficiency-research",
+          ".agent-factory/work-units/work-unit-execution-skill-worktree-manager",
+          ".agent-factory/work-units/work-unit-json-storage-format",
+          ".agent-factory/work-units/work-unit-json-storage-format-v3",
+          ".agent-factory/work-units/workspace-extension-four-tab-mvp-design"
+        ]
+      }
+    },
+    {
+      "id": "BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "기존 workspace-extension-four-tab-mvp 레거시 패키지를 제거한 뒤 동일 id의 현행 v4 Work Unit을 현재 Intake 근거로 새로 계획한다.",
+        "executionOrder": 2,
+        "expectedOutputs": [
+          "workspace-extension-four-tab-mvp v4 package",
+          "현행 execution context와 verification 계획",
+          "Human checklist와 review method"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
