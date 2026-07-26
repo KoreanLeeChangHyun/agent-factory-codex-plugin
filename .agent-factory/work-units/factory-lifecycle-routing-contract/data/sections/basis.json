@@ -1,0 +1,56 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake factory-control-plane의 WORK-UNIT-BASIS-001을 실행 기준으로 사용한다.",
+        "requirementRefs": [
+          "REQUIREMENT-BRANCH-001",
+          "REQUIREMENT-PARALLEL-002",
+          "REQUIREMENT-SPEC-013",
+          "REQUIREMENT-MANAGER-014",
+          "ACCEPTANCE-PARALLEL-006",
+          "DECISION-001",
+          "DECISION-002",
+          "DECISION-007"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "factory-control-plane",
+          "path": ".agent-factory/intakes/factory-control-plane",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WORK-UNIT-BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BASIS-EVIDENCE-001",
+      "kind": "evidence-reference",
+      "content": {
+        "summary": "현재 main 하드코드, worktree의 shared refs, manager writer serialization 공백과 확정된 factory 정책을 구현 근거로 사용한다.",
+        "evidenceRefs": [
+          "INTERNAL-INTEGRATION-005",
+          "INTERNAL-ARTIFACT-006",
+          "WEB-GIT-WORKTREE-001",
+          "INTERVIEW-FACTORY-009"
+        ]
+      }
+    },
+    {
+      "id": "BASIS-SPEC-001",
+      "kind": "specification-reference",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "summary": "Specification은 선택 참고자료이며 이 Work Unit의 admission이나 완료 조건이 아니다. factory lifecycle routing gap은 Intake 요구사항을 기준으로 구현한다."
+      }
+    }
+  ],
+  "subsections": []
+}

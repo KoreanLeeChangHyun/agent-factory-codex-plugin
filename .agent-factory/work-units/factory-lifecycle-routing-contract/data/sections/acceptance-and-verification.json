@@ -1,0 +1,106 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "ready Intake와 Work Unit은 각각 Human이 승인하고 현재 checkout된 authoring branch에서만 checkpoint되며 branch mismatch와 detached HEAD는 Git mutation 전에 거부된다."
+      }
+    },
+    {
+      "id": "ACCEPT-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "활성 lifecycle 계약은 Intake intake/<id>, planning work-unit-plan/<id>, execution work-unit/<id>의 분리된 branch·worktree 책임을 설명하고 main을 암묵적 authoring 또는 integration target으로 지시하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPT-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Work Unit 결과의 공식 integration target은 factory로 기록되며 checkpoint 승인이 integration, cleanup, push 또는 promotion을 승인하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPT-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "Specification 부재 또는 gap-accepted-for-work-unit 상태는 Intake·Work Unit readiness와 실행 admission을 그 자체로 거부하지 않으며 Specification은 명시된 경우에만 참고된다."
+      }
+    },
+    {
+      "id": "ACCEPT-005",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "기존 checkpoint의 exact canonical file staging, approval refusal, replay, content-race detection과 Work Unit Intake basis 검증 동작이 유지된다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "실패 우선 테스트와 구현 후 green evidence가 등록된다.",
+          "factory 중심 routing과 세 branch class의 ownership이 skill과 reference에서 일치한다.",
+          "bootstrap patch 4cc5bc6가 정식 regression coverage에 포함된다.",
+          "main hardcode search 결과가 명시적 compatibility 이외에는 비어 있다.",
+          "Intake와 Work Unit full validation이 통과한다.",
+          "AI checklist와 review result가 완료된다.",
+          "Human이 변경·테스트·factory integration 여부를 검토할 수 있는 한국어 자료가 준비된다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m pytest -q skills/lifecycle/tests/test_artifact_handoff.py",
+          "python3 -m pytest -q skills/work-unit-execution/tests/test_worktree.py",
+          "python3 -m pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py",
+          "python3 skills/intake/scripts/intake.py validate .agent-factory/intakes/factory-control-plane --full",
+          "python3 skills/work-unit-planner/assets/scripts/work_unit.py validate .agent-factory/work-units/factory-lifecycle-routing-contract --full",
+          "rg -n \"target-branch main|commits on `main`|checkpoint.*main|integration.*main\" skills/lifecycle skills/intake skills/work-unit-planner skills/work-unit-execution",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "TEST-002",
+      "kind": "test-criterion",
+      "content": {
+        "scenarios": [
+          "non-main checked-out authoring branch checkpoint success",
+          "mismatched target refusal with unchanged HEAD and index",
+          "detached HEAD refusal",
+          "pre-existing staged state preservation",
+          "exact replay already-checkpointed",
+          "ready Work Unit anchored Intake checkpoint validation",
+          "parallel linked worktree index isolation fixture"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "focused red-green test result",
+          "artifact handoff and worktree regression result",
+          "Work Unit manager regression result",
+          "Intake and Work Unit full validation",
+          "active-contract hardcode search",
+          "final diff and worktree inspect"
+        ]
+      },
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

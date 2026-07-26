@@ -1,0 +1,71 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "statement": "Agent Factory lifecycle의 artifact authoring과 execution routing을 factory 중심 병렬 worktree 모델로 계약화하고 main 암묵 의존을 제거한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "Intake authoring branch intake/<intake-id>와 전용 linked worktree 계약",
+          "Work Unit planning branch work-unit-plan/<work-unit-id>와 전용 linked worktree 계약",
+          "Execution branch work-unit/<work-unit-id>와 canonical execution worktree 계약",
+          "ready Intake와 Work Unit의 checked-out authoring branch checkpoint",
+          "factory를 공식 integration target으로 명시하는 lifecycle·execution handoff 계약",
+          "Specification optional/reference-only 정책",
+          "branch mismatch, detached HEAD, dirty index, package checkpoint basis 회귀 테스트",
+          "승인된 bootstrap checkpoint patch 검토와 정식 계약 편입"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Factory Coordinator queue와 durable journal 구현",
+          "repository-wide integration lock과 artifact writer lease 구현",
+          "merge-tree, commit-tree 또는 update-ref CAS integration engine",
+          "reference-transaction, pre-receive와 promotion hook 구현",
+          "Work Unit 결과의 실제 factory integration",
+          "source worktree cleanup, branch deletion, push와 promotion",
+          "Specification 생성 또는 수정"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "artifacts": [
+          "factory 중심 lifecycle과 authoring/execution branch routing 문서",
+          "artifact_handoff의 checked-out approved branch checkpoint 계약과 테스트",
+          "Intake·planning·execution worktree identity와 path 규칙",
+          "main hardcode 제거 또는 명시적 legacy compatibility 결정",
+          "Specification optional gate 검증",
+          "focused 및 regression test evidence"
+        ]
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "items": [
+          "Canonical Intake와 Work Unit JSON은 owning manager만 작성한다.",
+          "Human checkpoint 승인은 factory integration, cleanup, push 또는 promotion을 승인하지 않는다.",
+          "기존 완료 Work Unit 이력을 재작성하지 않는다.",
+          "bootstrap commit 4cc5bc6의 동작을 회귀시키지 않고 부족한 계약만 보완한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

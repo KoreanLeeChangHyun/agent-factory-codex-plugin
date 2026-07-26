@@ -1,0 +1,26 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "factory-lifecycle-routing-contract",
+        "objective": "factory 중심 lifecycle authoring·checkpoint·execution routing 계약을 구현하고 검증한다.",
+        "execInvocation": "codex --ask-for-approval never exec --sandbox danger-full-access -C /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/factory-lifecycle-routing-contract \"/goal factory-lifecycle-routing-contract\"",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "work-unit-plan/factory-lifecycle-routing-contract",
+        "branch": "work-unit/factory-lifecycle-routing-contract",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/factory-lifecycle-routing-contract",
+        "setupState": "planned",
+        "cleanupState": "pending-human-decision",
+        "integrationTarget": "factory",
+        "integrationState": "pending-human-decision",
+        "checkpointResolution": "Execution admission은 ready Work Unit checkpoint를 inspect하여 정확한 commit을 resolve한다."
+      }
+    }
+  ],
+  "subsections": []
+}

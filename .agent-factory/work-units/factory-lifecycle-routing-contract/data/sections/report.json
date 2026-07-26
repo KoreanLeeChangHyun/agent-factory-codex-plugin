@@ -1,0 +1,25 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "specificationResult": "Specification is optional and no Specification mutation is planned.",
+        "remainingRisks": [
+          "Implementation, verification, AI review, Human approval and factory integration decisions remain pending.",
+          "Later Factory Coordinator, CAS integration and hook Work Units remain outside this Work Unit."
+        ],
+        "artifacts": []
+      },
+      "attributes": {
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

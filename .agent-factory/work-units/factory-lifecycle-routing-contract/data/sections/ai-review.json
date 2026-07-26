@@ -1,0 +1,35 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "변경이 WORK-UNIT-BASIS-001과 명시된 scope에 한정되는가?",
+          "Intake, planning, execution branch와 worktree 책임이 서로 모순되지 않는가?",
+          "main이 암묵적 checkpoint 또는 integration target으로 남지 않았는가?",
+          "checked-out target 검증, approval, staged-state와 content-race 보호가 유지되는가?",
+          "Specification이 필수 gate로 재도입되지 않았는가?",
+          "factory integration, cleanup과 promotion이 자동 실행되지 않는가?",
+          "focused, regression, full validation과 diff evidence가 충분한가?"
+        ]
+      }
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

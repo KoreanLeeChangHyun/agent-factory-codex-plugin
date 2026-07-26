@@ -1,0 +1,44 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "Intake·Work Unit 계획·실행이 각각 별도 branch와 worktree를 사용하는지 확인합니다.",
+          "checkpoint 대상이 현재 checkout된 Human 승인 authoring branch와 정확히 일치해야 하는지 확인합니다.",
+          "Work Unit 결과의 공식 통합 대상이 factory이고 main이 암묵적 중심 브랜치가 아닌지 확인합니다.",
+          "Specification이 선택 참고자료이며 실행 필수조건이 아닌지 확인합니다.",
+          "bootstrap patch와 추가 구현의 변경 범위 및 테스트 evidence를 확인합니다.",
+          "충돌 처리, cleanup, factory 병합과 promotion이 별도 Human 결정으로 남는지 확인합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "git diff로 lifecycle, intake, work-unit-planner와 work-unit-execution의 활성 계약을 검토합니다.",
+          "artifact handoff, worktree, Work Unit manager 회귀 테스트와 full validation evidence를 확인합니다.",
+          "non-main checkpoint success, mismatch·detached refusal과 parallel index isolation fixture를 확인합니다.",
+          "구현 승인 또는 rework를 먼저 결정하고 factory integration은 별도 결정합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending",
+        "decision": "Execution과 Human review가 아직 수행되지 않았다."
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

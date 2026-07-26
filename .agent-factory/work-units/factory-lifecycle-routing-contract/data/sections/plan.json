@@ -1,0 +1,75 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Plan",
+        "statement": "Intake checkpoint 32bdfda6, bootstrap commit 4cc5bc6, active lifecycle·handoff·worktree contracts와 tests를 재검사하고 main hardcode 및 branch identity 소비자를 목록화한다.",
+        "verification": [
+          "source Intake full validation",
+          "artifact handoff inspect",
+          "rg based active contract inventory",
+          "existing test baseline"
+        ]
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "실패 우선 테스트로 non-main authoring branch success, mismatched or detached target refusal, factory routing과 optional Specification 경계를 고정한다.",
+        "verification": [
+          "새 테스트가 구현 전 의도한 이유로 실패하거나 기존 bootstrap coverage의 부족을 증명한다."
+        ]
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "최소 코드와 skill/reference 계약을 구현해 Intake, Work Unit planning, execution branch와 worktree 책임을 분리하고 factory를 공식 integration target으로 명시한다.",
+        "verification": [
+          "manager-only canonical artifact policy 유지",
+          "main compatibility가 남으면 명시적으로 문서화",
+          "integration과 promotion approval 분리"
+        ]
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Work",
+        "statement": "focused tests, lifecycle·worktree·artifact handoff 회귀, skill validation, diff와 dirty-state 검사를 반복해 green 상태를 만든다.",
+        "verification": [
+          "artifact handoff tests",
+          "worktree tests",
+          "skill metadata or quick validation",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "PLAN-005",
+      "kind": "plan-step",
+      "content": {
+        "phase": "AI Review",
+        "statement": "scope, approval 경계, branch identity, backward compatibility, hidden main dependency와 테스트 공백을 독립 검토하고 발견 사항을 수정한다."
+      }
+    },
+    {
+      "id": "PLAN-006",
+      "kind": "plan-step",
+      "content": {
+        "phase": "Report",
+        "statement": "변경 파일, 테스트 evidence, Specification 처리, 남은 위험과 Human 검토·factory integration 방법을 canonical Report에 기록한다."
+      }
+    }
+  ],
+  "subsections": []
+}
