@@ -6,15 +6,32 @@
       "id": "EXECUTION-001",
       "kind": "execution-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
-        "changedArtifacts": [],
-        "testsRun": [],
+        "status": "complete",
+        "summary": "factory 중심 branch·worktree routing과 authoring package admission을 구현하고 전체 회귀를 통과했다.",
+        "changedArtifacts": [
+          "skills/lifecycle",
+          "skills/intake",
+          "skills/work-unit-planner",
+          "skills/work-unit-execution"
+        ],
+        "testsRun": [
+          "artifact_handoff: 6 passed",
+          "worktree: 38 passed",
+          "work_unit_manager: 28 passed",
+          "app_server_goal: 10 passed and 9 subtests passed"
+        ],
         "deviations": []
       },
       "attributes": {
-        "status": "pending",
-        "verificationResult": "pending"
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9d5c-22bf-7e11-aa49-bfe9eaa85833",
+          "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+          "revision": 1,
+          "attempt": 1
+        }
       }
     }
   ],

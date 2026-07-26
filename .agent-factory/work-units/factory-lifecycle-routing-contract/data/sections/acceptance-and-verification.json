@@ -86,19 +86,22 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "focused red-green test result",
-          "artifact handoff and worktree regression result",
-          "Work Unit manager regression result",
-          "Intake and Work Unit full validation",
-          "active-contract hardcode search",
-          "final diff and worktree inspect"
-        ]
+        "status": "pass",
+        "summary": "TDD, 전체 회귀, canonical full validation, 정적 검사와 활성 계약 검색이 통과했다."
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9d5c-22bf-7e11-aa49-bfe9eaa85833",
+          "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/execution/factory-routing-tests.md",
+          "blocks/execution/factory-routing-validation.md"
+        ]
       }
     }
   ],

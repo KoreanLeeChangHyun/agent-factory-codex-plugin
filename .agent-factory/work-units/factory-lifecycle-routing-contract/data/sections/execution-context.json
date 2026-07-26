@@ -26,7 +26,7 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "running",
+        "state": "review",
         "subject": {
           "algorithm": "gitCommit",
           "digest": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8"
@@ -43,10 +43,12 @@
             "PLAN-001",
             "PLAN-002",
             "PLAN-003",
-            "PLAN-004"
+            "PLAN-004",
+            "PLAN-005",
+            "PLAN-006"
           ],
           "pendingStep": null,
-          "lastVerifiedHead": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+          "lastVerifiedHead": "d0eb012645de702210ccfcb1cbc9f7ed45301550",
           "checkpoints": [
             {
               "stepId": "PLAN-001",
@@ -95,6 +97,30 @@
               "state": "completed",
               "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
               "idempotencyKey": "factory-routing-regression-validation-v1-complete"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "pending",
+              "headCommit": "d0eb012645de702210ccfcb1cbc9f7ed45301550",
+              "idempotencyKey": "factory-routing-ai-review-v1"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "completed",
+              "headCommit": "d0eb012645de702210ccfcb1cbc9f7ed45301550",
+              "idempotencyKey": "factory-routing-ai-review-v1-complete"
+            },
+            {
+              "stepId": "PLAN-006",
+              "state": "pending",
+              "headCommit": "d0eb012645de702210ccfcb1cbc9f7ed45301550",
+              "idempotencyKey": "factory-routing-report-v1"
+            },
+            {
+              "stepId": "PLAN-006",
+              "state": "completed",
+              "headCommit": "d0eb012645de702210ccfcb1cbc9f7ed45301550",
+              "idempotencyKey": "factory-routing-report-v1-complete"
             }
           ],
           "retry": {}

@@ -33,7 +33,7 @@
       "kind": "human-review-result",
       "content": {
         "status": "pending",
-        "decision": "Execution과 Human review가 아직 수행되지 않았다."
+        "decision": "Execution 결과는 Human 검토 대기 중이며 factory 통합은 별도 결정이다."
       },
       "attributes": {
         "status": "pending"

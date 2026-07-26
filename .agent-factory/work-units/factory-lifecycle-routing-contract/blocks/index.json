@@ -1,3 +1,25 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/execution/factory-routing-tests.md",
+      "mediaType": "text/markdown",
+      "description": "TDD and full regression test evidence",
+      "sha256": "c754e1053c8df23bbd57877184c0fc89d911a70301fef10df2d1fb5a79a65128",
+      "sizeBytes": 2037
+    },
+    {
+      "path": "blocks/execution/factory-routing-validation.md",
+      "mediaType": "text/markdown",
+      "description": "Canonical validation and active contract search evidence",
+      "sha256": "0fdb3f205a921f20eaa3db3c1c7a0fc2a1bbee98d91f3f45646f3d8182cfe00a",
+      "sizeBytes": 1251
+    },
+    {
+      "path": "blocks/execution/factory-routing-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final execution worktree inspect receipt before evidence registration",
+      "sha256": "f3f982c233dd5d2f36147c1113bd911326ea0f3bfe5a710c4f985d8d62845d60",
+      "sizeBytes": 1794
+    }
+  ]
 }

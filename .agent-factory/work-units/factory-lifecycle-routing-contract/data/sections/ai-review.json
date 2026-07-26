@@ -21,13 +21,24 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "pass",
+        "summary": "범위, branch identity, 승인 경계, Specification 선택성, 호환성과 테스트 공백을 검토했다. 문서의 inspect repository root 표기를 명확히 한 뒤 열린 finding이 없다.",
         "findings": []
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9d5c-22bf-7e11-aa49-bfe9eaa85833",
+          "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/execution/factory-routing-tests.md",
+          "blocks/execution/factory-routing-validation.md"
+        ]
       }
     }
   ],
