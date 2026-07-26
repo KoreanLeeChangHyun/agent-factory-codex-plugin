@@ -1,6 +1,6 @@
 ---
 name: work-unit-planner
-description: Use when transforming a validated ready Agent Factory Intake package into executable Work Units for a named /goal work-unit-id. Work Units are self-contained execution and review units with Plan, Work, AI Review, Report, verification, separate AI and Human checklists, and Human approval boundaries.
+description: Use when transforming a validated ready Agent Factory Intake package into executable Work Units for a named /goal work-unit-id. Work Units are self-contained execution and review units with Plan, Work, AI Review, Report, verification, separate AI and Human checklists, and Human approval boundaries. All canonical Work Unit package operations must go through assets/scripts/work_unit.py and fail closed when that script cannot perform the operation.
 ---
 
 # Work Unit Planner
@@ -12,6 +12,28 @@ engine and structural component schemas.
 Read `lifecycle/references/lifecycle.md`,
 `lifecycle/references/common-document-contract.md`, and
 `references/work-unit-structure.md` before creating or reviewing a package.
+
+## Mandatory Manager Script Gate
+
+Treat `assets/scripts/work_unit.py` as a hard precondition for every canonical
+Work Unit package operation. Resolve it from this skill directory and invoke it
+before creating, showing, mutating, validating, transitioning, admitting,
+recording execution or review state, registering or removing blocks, or
+recovering a Work Unit package.
+
+- Use the manager command that owns the requested operation. Use `show`,
+  `validate`, and `admit` for their authoritative package gates.
+- Supply only typed semantic arguments. Let the manager construct, serialize,
+  order, version, and transactionally write canonical JSON.
+- Never create, update, delete, replace, move, or repair canonical Work Unit
+  JSON with `apply_patch`, shell redirection, an ad hoc program, file copy or
+  move, temporary JSON files, or any generic filesystem or MCP write tool.
+- Never add, invoke, or rely on a hook to enforce this rule. The skill
+  instruction and exact manager invocation are the enforcement contract.
+- If `assets/scripts/work_unit.py` is unavailable, fails, or cannot express the
+  required operation, stop before mutation. Report the exact command, package,
+  operation, and failure or capability gap. Do not fall back to direct JSON
+  editing and do not create an exception path.
 
 ## Planning Boundary
 
@@ -39,14 +61,7 @@ Read `lifecycle/references/lifecycle.md`,
   metadata ids must match.
 - Use only `assets/scripts/work_unit.py` to create and mutate canonical data.
   Run `validate --full` before transition to `ready` or handoff.
-- Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
-  file copy or move, a temporary JSON value file, or any filesystem-capable
-  local or MCP tool to create, update, delete, or replace canonical Work Unit
-  JSON. If the manager cannot express a necessary recovery, stop, disclose the
-  exact artifact, paths, and reason, and obtain explicit Human approval before
-  using the lifecycle's audited one-shot exception. The Human must create that
-  grant directly outside LLM tool execution; the LLM must never invoke `grant`
-  or self-approve an exception.
+- Apply the Mandatory Manager Script Gate without an exception.
 - Canonical data is strict JSON. Actual CSS or style data is forbidden.
 - Do not manually edit the manager-owned table of contents or block index.
 - Use registered `blocks/**` for large logs, screenshots, and other non-JSON

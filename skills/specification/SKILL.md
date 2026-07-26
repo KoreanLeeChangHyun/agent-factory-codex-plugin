@@ -1,6 +1,6 @@
 ---
 name: specification
-description: Use when checking, creating, or updating Project Core, specification or Design Document source consumed by the external Human-facing Design Report viewer during Agent Factory Intake or scoped Execution. Keeps accepted requirements and evidence aligned with canonical specification JSON.
+description: Use when checking, creating, or updating Project Core, specification or Design Document source consumed by the external Human-facing Design Report viewer during Agent Factory Intake or scoped Execution. Keeps accepted requirements and evidence aligned with canonical specification JSON. All canonical Specification package operations must go through scripts/specification.py and fail closed when that script cannot perform the operation.
 ---
 
 # Design Documents Convention
@@ -11,6 +11,28 @@ Chrome extension Design Report viewer.
 
 This is an Agent Factory skill for Codex CLI use in target projects and in
 this repository.
+
+## Mandatory Manager Script Gate
+
+Treat `scripts/specification.py` as a hard precondition for every canonical
+Specification package operation. Resolve it from this skill directory and
+invoke it before creating, showing, mutating, validating, registering or
+removing blocks, or recovering Project Core or any other Specification package.
+
+- Use the manager command that owns the requested operation. Use `show` and
+  `validate` for authoritative package inspection and validation.
+- Supply only typed semantic arguments. Let the manager construct, serialize,
+  order, version, and transactionally write canonical JSON.
+- Never create, update, delete, replace, move, or repair canonical
+  Specification JSON with `apply_patch`, shell redirection, an ad hoc program,
+  file copy or move, temporary JSON files, or any generic filesystem or MCP
+  write tool.
+- Never add, invoke, or rely on a hook to enforce this rule. The skill
+  instruction and exact manager invocation are the enforcement contract.
+- If `scripts/specification.py` is unavailable, fails, or cannot express the
+  required operation, stop before mutation. Report the exact command, package,
+  operation, and failure or capability gap. Do not fall back to direct JSON
+  editing and do not create an exception path.
 
 Treat `lifecycle/references/lifecycle.md` as the canonical
 lifecycle sequence. The adoption summaries here apply that sequence only to
@@ -31,14 +53,9 @@ Specification controller for profile selection and semantic validation. Supply
 only typed semantic data arguments to mutation commands; never compose JSON
 strings or temporary JSON value files.
 
-Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
-file copy or move, a temporary JSON value file, or any filesystem-capable local
-or MCP tool to create, update, delete, or replace canonical Specification JSON.
-If the manager cannot express a necessary recovery, stop, disclose the exact
-artifact, paths, and reason, and obtain explicit Human approval before using
-the lifecycle's audited one-shot exception. Never self-approve an exception.
-The Human must create that grant directly outside LLM tool execution; the LLM
-must never invoke `grant`.
+Use only `scripts/specification.py` with typed semantic arguments for canonical
+Specification package management. The Mandatory Manager Script Gate applies
+without an exception.
 
 ## Rules
 
