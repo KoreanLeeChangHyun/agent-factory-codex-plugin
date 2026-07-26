@@ -10,8 +10,7 @@
       },
       "attributes": {
         "status": "pending",
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pending"
       }
     }
   ],

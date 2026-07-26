@@ -23,26 +23,28 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "planned",
+        "state": "running",
         "subject": {
           "algorithm": "gitCommit",
-          "digest": "4ca935637120d938f7fefdb353223a603dcca4d4"
+          "digest": "b627507c73c50e3d59a0956205748255995095ff"
         },
         "currentRevision": 1,
-        "currentAttempt": null,
-        "invocationId": null,
-        "invocationChain": [],
+        "currentAttempt": 1,
+        "invocationId": "promotion-20260726-a",
+        "invocationChain": [
+          "promotion-20260726-a"
+        ],
         "history": [],
         "progress": {
           "completedSteps": [],
           "pendingStep": null,
-          "lastVerifiedHead": "4ca935637120d938f7fefdb353223a603dcca4d4",
+          "lastVerifiedHead": "b627507c73c50e3d59a0956205748255995095ff",
           "checkpoints": [],
           "retry": {}
         },
         "recovery": {
-          "status": "planned",
-          "ownerInvocationId": null,
+          "status": "running",
+          "ownerInvocationId": "promotion-20260726-a",
           "blockerId": null,
           "evidence": null
         }
