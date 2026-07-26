@@ -9,7 +9,8 @@
         "status": "pending"
       },
       "attributes": {
-        "verificationResult": "pending"
+        "verificationResult": "pending",
+        "evidence": []
       }
     }
   ],

@@ -17,6 +17,59 @@
         "setupState": "pending",
         "cleanupState": "pending-human-decision"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "running",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26",
+        "invocationChain": [
+          "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "repository-and-hook-contract-evidence"
+          ],
+          "pendingStep": "hook-policy-and-skill-implementation",
+          "lastVerifiedHead": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
+          "checkpoints": [
+            {
+              "stepId": "repository-and-hook-contract-evidence",
+              "state": "pending",
+              "headCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
+              "idempotencyKey": "repository-and-hook-contract-evidence-attempt-1"
+            },
+            {
+              "stepId": "repository-and-hook-contract-evidence",
+              "state": "completed",
+              "headCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
+              "idempotencyKey": "repository-and-hook-contract-evidence-complete-attempt-1"
+            },
+            {
+              "stepId": "hook-policy-and-skill-implementation",
+              "state": "pending",
+              "headCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
+              "idempotencyKey": "hook-policy-and-skill-implementation-pending-attempt-1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

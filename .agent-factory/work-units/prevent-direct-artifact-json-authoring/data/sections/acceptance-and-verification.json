@@ -72,6 +72,10 @@
           "focused skill validation results",
           "final worktree inspection"
         ]
+      },
+      "attributes": {
+        "status": "planned",
+        "evidence": []
       }
     }
   ],

@@ -31,6 +31,13 @@ Specification controller for profile selection and semantic validation. Supply
 only typed semantic data arguments to mutation commands; never compose JSON
 strings or temporary JSON value files.
 
+Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
+file copy or move, or a temporary JSON value file to create, update, delete, or
+replace canonical Specification JSON. If the manager cannot express a
+necessary recovery, stop, disclose the exact artifact, paths, and reason, and
+obtain explicit Human approval before using the lifecycle's audited one-shot
+exception. Never self-approve an exception.
+
 ## Rules
 
 - Treat only explicit user statements, Project Core contents, Design Document

@@ -84,6 +84,13 @@ paths with typed options such as `--string`, `--integer`, `--number`,
 `--boolean`, `--null`, `--string-list`, `--empty-object`, and `--empty-list`.
 Scalar metadata replacements use the corresponding `--value-*` option.
 
+LLM callers must not use `apply_patch`, shell redirection, ad hoc interpreter
+programs, file copy or move, or temporary JSON value files to author canonical
+Intake, Work Unit, or Specification JSON. If the owning manager cannot express
+a necessary recovery, the caller stops and obtains explicit Human approval for
+the exact artifact, paths, and reason before a short-lived audited one-shot
+exception is recorded. An exception for one operation never authorizes another.
+
 The Specification manager configures the same engine with its metadata schema
 and the profile declared by each package. It rejects unknown profile ids,
 versions, and document-class mismatches as `profile-unresolved`; the former

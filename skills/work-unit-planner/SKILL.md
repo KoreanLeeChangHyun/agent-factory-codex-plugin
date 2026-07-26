@@ -39,6 +39,12 @@ Read `lifecycle/references/lifecycle.md`,
   metadata ids must match.
 - Use only `assets/scripts/work_unit.py` to create and mutate canonical data.
   Run `validate --full` before transition to `ready` or handoff.
+- Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
+  file copy or move, or a temporary JSON value file to create, update, delete,
+  or replace canonical Work Unit JSON. If the manager cannot express a
+  necessary recovery, stop, disclose the exact artifact, paths, and reason, and
+  obtain explicit Human approval before using the lifecycle's audited one-shot
+  exception. Never self-approve an exception.
 - Canonical data is strict JSON. Actual CSS or style data is forbidden.
 - Do not manually edit the manager-owned table of contents or block index.
 - Use registered `blocks/**` for large logs, screenshots, and other non-JSON

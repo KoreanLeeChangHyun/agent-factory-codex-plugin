@@ -67,6 +67,28 @@ three artifact scripts remain separate controllers for their distinct profile,
 semantic validation, readiness, and state-transition rules. LLM callers supply
 typed semantic data only and must not construct JSON input.
 
+## Canonical JSON Authoring Gate
+
+- Never use `apply_patch`, shell redirection, an ad hoc Python or Node program,
+  file copy or move, or a temporary JSON value file to create, update, delete,
+  or replace canonical Intake, Work Unit, or Specification JSON.
+- Use only the owning manager with typed semantic arguments. Exact manager
+  commands and read-only inspection are the normal paths.
+- The Plugin's generated `hooks/hooks.json` runs
+  `hooks/artifact_json_guard.py` as a `PreToolUse` guard for Bash and
+  `apply_patch` aliases. Treat a denial as a hard stop, not as permission to
+  find another write route.
+- If the owning manager cannot express a necessary recovery, disclose the exact
+  artifact, absolute JSON paths, and reason, then obtain explicit Human
+  approval. Only after that approval may the scoped session record and consume
+  the guard's short-lived audited one-shot exception. Never invoke `grant` from
+  inference, prior approval for another action, or self-approval.
+- Plugin hooks require trust and can be disabled, and specialized tool paths
+  can opt out. A hook timeout can also continue through the normal tool flow.
+  The skill contract remains mandatory when the hook is inactive. Do not claim
+  that a non-managed Plugin hook is an absolute enforcement boundary;
+  enterprise enforcement requires managed hooks and policy.
+
 Intake checks and updates relevant specification source when accepted
 requirements, feedback, or evidence changes it. Implementation and other scoped
 delivery artifact writing belongs to Work Unit Execution.
