@@ -6,11 +6,19 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending"
+        "status": "complete",
+        "summary": "cachebuster 단일 suffix 교체, 승인된 전체 main push, remote marketplace 출처, 활성 버전과 설치 cache hook 원본 일치를 검토해 통과했다."
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "promotion-20260726-a",
+          "headCommit": "67eff31363566138d1f99daf2cdae28aa024305b",
+          "revision": 1,
+          "attempt": 1
+        }
       }
     },
     {

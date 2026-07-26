@@ -6,11 +6,26 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending"
+        "status": "complete",
+        "summary": "Agent Factory plugin 0.1.0+codex.20260726140548을 origin/main에 배포하고 remote marketplace에서 enabled 상태로 재설치했다.",
+        "verification": "local main과 origin/main은 67eff31363566138d1f99daf2cdae28aa024305b로 일치하고 설치 cache의 hooks/hooks.json과 artifact_json_guard.py는 저장소 원본과 byte-identical하다.",
+        "limitations": [
+          "현재 thread는 재설치 전 plugin definition으로 시작했으므로 새 thread에서 hook trust와 runtime 동작을 최종 확인해야 한다."
+        ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "promotion-20260726-a",
+          "headCommit": "67eff31363566138d1f99daf2cdae28aa024305b",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/cachebuster-verification.md",
+          "blocks/evidence/promotion-runtime-verification.md"
+        ]
       }
     }
   ],

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.37",
+  "documentVersion": "1.0.44",
   "id": "promote-agent-factory-plugin-update",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "working"
   },
   "createdAt": "2026-07-26T14:03:00+00:00",
-  "updatedAt": "2026-07-26T14:07:07+00:00",
+  "updatedAt": "2026-07-26T14:10:02+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

@@ -37,10 +37,11 @@
         "history": [],
         "progress": {
           "completedSteps": [
-            "cachebuster-validation"
+            "cachebuster-validation",
+            "remote-promotion-reinstall"
           ],
           "pendingStep": null,
-          "lastVerifiedHead": "cf0dec839fd58bf148c10bd56929646ace93fbc6",
+          "lastVerifiedHead": "67eff31363566138d1f99daf2cdae28aa024305b",
           "checkpoints": [
             {
               "stepId": "cachebuster-validation",
@@ -53,6 +54,18 @@
               "state": "completed",
               "headCommit": "cf0dec839fd58bf148c10bd56929646ace93fbc6",
               "idempotencyKey": "cachebuster-validation-complete-v1"
+            },
+            {
+              "stepId": "remote-promotion-reinstall",
+              "state": "pending",
+              "headCommit": "67eff31363566138d1f99daf2cdae28aa024305b",
+              "idempotencyKey": "remote-promotion-reinstall-pending-v1"
+            },
+            {
+              "stepId": "remote-promotion-reinstall",
+              "state": "completed",
+              "headCommit": "67eff31363566138d1f99daf2cdae28aa024305b",
+              "idempotencyKey": "remote-promotion-reinstall-complete-v1"
             }
           ],
           "retry": {}

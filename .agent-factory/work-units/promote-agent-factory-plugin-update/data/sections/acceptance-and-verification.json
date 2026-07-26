@@ -52,7 +52,7 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
+        "status": "pass",
         "requiredEvidence": [
           "cachebuster helper output",
           "plugin validation and generated hooks check",
@@ -61,8 +61,18 @@
         ]
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "promotion-20260726-a",
+          "headCommit": "67eff31363566138d1f99daf2cdae28aa024305b",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/cachebuster-verification.md",
+          "blocks/evidence/promotion-runtime-verification.md"
+        ]
       }
     }
   ],

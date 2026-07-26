@@ -6,6 +6,13 @@
       "description": "Cachebuster helper와 plugin/hook 검증 결과",
       "sha256": "282628d4a222722a2dc54a4d9f2397f305d40bd0ca467c154b8140fff977eb2b",
       "sizeBytes": 519
+    },
+    {
+      "path": "blocks/evidence/promotion-runtime-verification.md",
+      "mediaType": "text/markdown",
+      "description": "origin/main push, marketplace reinstall과 설치 cache hook 검증 결과",
+      "sha256": "aa863c85ec84f34a3d7cd906b24b3d027ad76630fc80648103a850d9766ba4d3",
+      "sizeBytes": 829
     }
   ]
 }
