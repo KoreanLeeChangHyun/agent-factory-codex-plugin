@@ -404,10 +404,6 @@ def current_head(execution: Execution, repository: Path) -> str:
 def require_target_branch(
     execution: Execution, repository: Path, target_branch: str
 ) -> None:
-    if target_branch != "main":
-        raise ContractError(
-            "target_branch_mismatch", "lifecycle checkpoints target main"
-        )
     result = execution.git(repository, ["symbolic-ref", "--short", "HEAD"])
     current = result.stdout.decode("utf-8", errors="strict").strip()
     if result.returncode != 0 or current != target_branch:

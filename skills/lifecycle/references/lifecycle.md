@@ -47,8 +47,9 @@ Work Unit:
   Create executable Work Unit packages from a validated ready Intake
     -> each Work Unit is the minimum /goal <work-unit-id> execution unit for a fresh Codex Goal session
     -> each Work Unit includes basis, goal, scope, expected output, verification, AI checklist, Human checklist, Human review method, and unresolved items
-    -> checkpoint the ready Intake and ready Work Unit separately on main after
-       exact-path, full-validation, exact-message disclosure and separate Human approvals
+    -> checkpoint the ready Intake and ready Work Unit separately on their checked-out
+       Human-approved artifact authoring branches after exact-branch, exact-path,
+       full-validation, exact-message disclosure and separate Human approvals
 
 Execution:
   Execute one Work Unit through Plan -> Work -> AI Review -> Report
@@ -241,8 +242,10 @@ Use this resolution flow:
 
 ### Two-Checkpoint Artifact Handoff
 
-Run the lifecycle-owned command twice on checked-out `main`, once for the ready
-Intake and once for the ready Work Unit:
+Run the lifecycle-owned command twice, once for the ready Intake and once for
+the ready Work Unit. Each command runs in the Human-approved artifact authoring
+branch's worktree, and `--target-branch` must name that currently checked-out
+branch:
 
 ```text
 python3 skills/lifecycle/assets/scripts/artifact_handoff.py checkpoint \
@@ -250,17 +253,19 @@ python3 skills/lifecycle/assets/scripts/artifact_handoff.py checkpoint \
   --artifact-type <intake|work-unit> \
   --artifact-id <id> \
   --package <absolute-canonical-package-path> \
-  --target-branch main \
+  --target-branch <checked-out-artifact-authoring-branch> \
   --message <exact-approved-message> \
   --human-decision approved
 ```
 
 Before each command, show the exact package path, owning-manager full
 validation result, and exact commit message and obtain a separate Human
-approval. The command refuses unrelated staged state, stages only the
-manager-reported canonical file set, detects validation-to-stage byte changes,
-and returns a deterministic JSON receipt. Exact replay of the same approved
-artifact state and message returns `already-checkpointed`.
+approval. The command refuses a target other than the currently checked-out
+branch and refuses unrelated staged state, stages only the manager-reported
+canonical file set, detects validation-to-stage byte changes, and returns a
+deterministic JSON receipt. Exact replay of the same approved artifact state
+and message returns `already-checkpointed`. Checkpoint approval does not
+authorize integration into `factory` or promotion from `factory`.
 
 A fresh execution session reconstructs the second commit without mutation:
 
@@ -270,7 +275,7 @@ python3 skills/lifecycle/assets/scripts/artifact_handoff.py inspect \
   --artifact-type work-unit \
   --artifact-id <work-unit-id> \
   --package <absolute-canonical-package-path> \
-  --target-branch main
+  --target-branch <checked-out-artifact-authoring-branch>
 ```
 
 Use `context.checkpointCommit` as `worktree.py prepare --base`. Checkpoint

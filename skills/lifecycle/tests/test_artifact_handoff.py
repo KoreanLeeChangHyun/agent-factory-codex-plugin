@@ -85,7 +85,12 @@ class ArtifactHandoffTests(unittest.TestCase):
         self.temporary.cleanup()
 
     def cli(
-        self, command: str, artifact_type: str, artifact_id: str, *extra: str
+        self,
+        command: str,
+        artifact_type: str,
+        artifact_id: str,
+        *extra: str,
+        target_branch: str = "main",
     ) -> tuple[subprocess.CompletedProcess[str], dict]:
         package_collection = (
             "intakes" if artifact_type == "intake" else "work-units"
@@ -109,14 +114,19 @@ class ArtifactHandoffTests(unittest.TestCase):
             "--package",
             str(package),
             "--target-branch",
-            "main",
+            target_branch,
             *extra,
         )
         payload = json.loads(result.stdout)
         return result, payload
 
     def checkpoint(
-        self, artifact_type: str, artifact_id: str, message: str
+        self,
+        artifact_type: str,
+        artifact_id: str,
+        message: str,
+        *,
+        target_branch: str = "main",
     ) -> tuple[subprocess.CompletedProcess[str], dict]:
         return self.cli(
             "checkpoint",
@@ -126,6 +136,42 @@ class ArtifactHandoffTests(unittest.TestCase):
             message,
             "--human-decision",
             "approved",
+            target_branch=target_branch,
+        )
+
+    def test_checkpoint_uses_the_checked_out_approved_target_branch(self) -> None:
+        target_branch = "intake/source-intake"
+        switched = run("git", "switch", "-c", target_branch, cwd=self.repository)
+        self.assertEqual(switched.returncode, 0, switched.stderr)
+        before = run("git", "rev-parse", "HEAD", cwd=self.repository).stdout.strip()
+
+        refused, refusal = self.checkpoint(
+            "intake",
+            "source-intake",
+            "checkpoint intake source-intake",
+            target_branch="main",
+        )
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertEqual(refusal["error"]["code"], "target_branch_mismatch")
+        self.assertEqual(
+            run("git", "rev-parse", "HEAD", cwd=self.repository).stdout.strip(),
+            before,
+        )
+
+        result, receipt = self.checkpoint(
+            "intake",
+            "source-intake",
+            "checkpoint intake source-intake",
+            target_branch=target_branch,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(receipt["state"], "checkpointed")
+        self.assertEqual(receipt["context"]["targetBranch"], target_branch)
+        self.assertEqual(
+            run(
+                "git", "symbolic-ref", "--short", "HEAD", cwd=self.repository
+            ).stdout.strip(),
+            target_branch,
         )
 
     def test_two_checkpoint_handoff_replay_and_inspection(self) -> None:

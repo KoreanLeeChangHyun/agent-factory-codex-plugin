@@ -180,12 +180,13 @@ Use these routes:
   bypass the lifecycle.
 - Before the first named Work Unit execution, checkpoint the fully validated
   `ready` Intake and then the fully validated `ready` Work Unit as two separate
-  commits on `main` with
+  commits on their Human-approved artifact authoring branches with
   `assets/scripts/artifact_handoff.py checkpoint`. Before each commit, show the
-  exact canonical package path, full-validation result, and exact commit
-  message, then require that checkpoint's explicit Human approval. One approval
-  never authorizes the other checkpoint, integration, cleanup, push, or PR
-  promotion.
+  exact checked-out target branch, canonical package path, full-validation
+  result, and exact commit message, then require that checkpoint's explicit
+  Human approval. The command must refuse a target branch that is not the
+  repository's currently checked-out branch. One approval never authorizes the
+  other checkpoint, integration, cleanup, push, or PR promotion.
 - The handoff command commits only the owning manager's exact canonical file
   set, refuses pre-existing staged changes and package symlinks, verifies staged
   bytes against the validated snapshot, restores its package index entries on
