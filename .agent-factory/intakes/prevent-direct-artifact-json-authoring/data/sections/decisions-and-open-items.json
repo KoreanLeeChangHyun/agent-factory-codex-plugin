@@ -15,8 +15,8 @@
       "id": "OPEN-STATUS-DIRECT-JSON-001",
       "kind": "open-items-status",
       "content": {
-        "status": "blocking 또는 non-blocking open item이 없다.",
-        "blockingCount": 0,
+        "status": "local main integration 결정 1건이 blocking이다.",
+        "blockingCount": 1,
         "nonBlockingCount": 0
       }
     },
@@ -37,6 +37,15 @@
         "decision": "보강된 Artifact JSON 직접 작성 차단 구현을 승인한다.",
         "status": "accepted",
         "rationale": "Human이 2026-07-26 대화에서 명시적으로 승인했다. 이 승인은 Work Unit 구현 review에 한정되며 병합·push·reinstall·trust·cleanup을 승인하지 않는다.",
+        "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
+      }
+    },
+    {
+      "id": "DECISION-INTEGRATION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human-approved Artifact JSON guard Work Unit의 local main integration",
+        "status": "awaiting-human",
         "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
       }
     }
