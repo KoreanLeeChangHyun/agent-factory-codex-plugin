@@ -1,0 +1,56 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-HUMAN-DIRECT-JSON-001",
+      "kind": "evidence",
+      "content": {
+        "source": "Human feedback, 2026-07-26",
+        "finding": "Human은 LLM의 직접 JSON 생성 구조가 매우 위험하므로 Intake, Work Unit, Specification에서 이를 절대 금지하고, 불가피한 경우 사전 승인을 요구하며 스킬 또는 hook으로 강제하라고 명시했다."
+      }
+    },
+    {
+      "id": "EVIDENCE-REPOSITORY-DIRECT-JSON-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/intake/SKILL.md; skills/work-unit-planner/SKILL.md; skills/specification/SKILL.md; skills/lifecycle/references/common-document-contract.md; skills/lifecycle/assets/scripts/artifact_handoff.py; .codex-plugin/plugin.json",
+        "method": "저장소 스킬, manager 경계, checkpoint 구현과 plugin manifest 점검",
+        "findings": [
+          "세 artifact 스킬은 이미 typed semantic arguments와 manager-only JSON serialization을 요구한다.",
+          "현재 plugin에는 hooks/hooks.json 또는 manifest hooks 등록이 없다.",
+          "artifact_handoff checkpoint는 repository Git hooks를 비활성화하고 commit하므로 Git hook은 canonical checkpoint 강제 경계가 될 수 없다.",
+          "직접 JSON 파일 쓰기를 실행 전에 거부하는 기계적 경계가 현재 없다."
+        ],
+        "interpretations": [
+          "스킬 문구와 Git hook만으로는 Human 요구를 충족하지 못하며 Codex tool lifecycle hook과 manager 계약을 결합해야 한다."
+        ],
+        "limitations": [
+          "현재 설치된 plugin hook의 실제 trust 승인 및 interactive smoke test는 Work Unit Execution에서 검증해야 한다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-CODEX-HOOKS-DIRECT-JSON-003",
+      "kind": "web-evidence",
+      "content": {
+        "title": "OpenAI Codex Manual: Hooks",
+        "url": "https://learn.chatgpt.com/docs/hooks",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-26",
+        "findings": [
+          "Plugin은 기본 hooks/hooks.json 또는 manifest hooks entry로 lifecycle hook을 제공할 수 있다.",
+          "PreToolUse는 Bash와 apply_patch tool arguments를 관찰하고 tool call을 거부할 수 있다.",
+          "Plugin hook은 정의 hash에 대한 Human trust review 전에는 실행되지 않는다.",
+          "특수 tool path는 기본 hook 경로를 opt out할 수 있어 tool hook은 완전한 enforcement boundary가 아니라 guardrail로 취급해야 한다."
+        ],
+        "limitations": [
+          "Plugin hook은 managed requirements hook과 달리 사용자가 비활성화할 수 있다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

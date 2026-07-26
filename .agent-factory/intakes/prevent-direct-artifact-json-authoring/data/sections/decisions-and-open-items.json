@@ -1,0 +1,25 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-DIRECT-JSON-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "스킬 계약과 plugin PreToolUse hook을 결합하고 manager 명령을 유일한 정상 JSON 직렬화 경계로 유지한다.",
+        "status": "accepted",
+        "rationale": "Human은 skill 또는 hook 강제를 요구했고 공식 Codex hook은 Bash와 apply_patch 호출을 실행 전에 검사할 수 있으나 hook만으로는 완전한 정책 경계가 아니므로 두 계층을 결합한다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-DIRECT-JSON-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "blocking 또는 non-blocking open item이 없다.",
+        "blockingCount": 0,
+        "nonBlockingCount": 0
+      }
+    }
+  ],
+  "subsections": []
+}

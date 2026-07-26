@@ -1,0 +1,40 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-DIRECT-JSON-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "제품 Specification 내용 변경이 아니라 Specification 작성 manager와 skill의 authoring 경계를 강화한다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-DIRECT-JSON-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "Intake, Work Unit, Specification canonical JSON 직접 쓰기를 거부하는 plugin hook, 사전 Human 승인 예외 경계, 스킬 계약과 자동화 테스트를 구현한다.",
+        "status": "ready-for-planning",
+        "expectedOutputs": [
+          "deterministic hook policy script",
+          "script-generated plugin hooks configuration",
+          "typed manager allowlist and direct JSON deny tests",
+          "Human-approved exception audit contract",
+          "Intake, Work Unit, Specification 및 lifecycle skill updates"
+        ],
+        "traceability": [
+          "REQUIREMENT-DIRECT-JSON-001",
+          "REQUIREMENT-HOOK-DIRECT-JSON-002",
+          "REQUIREMENT-EXCEPTION-DIRECT-JSON-003",
+          "CONSTRAINT-DIRECT-JSON-001",
+          "ACCEPTANCE-DIRECT-JSON-001",
+          "DECISION-DIRECT-JSON-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
