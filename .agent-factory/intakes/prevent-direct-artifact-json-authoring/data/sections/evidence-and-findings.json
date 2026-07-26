@@ -50,6 +50,22 @@
           "Plugin hook은 managed requirements hook과 달리 사용자가 비활성화할 수 있다."
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-HUMAN-REVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "구현 결과를 승인할까요?",
+        "recommendation": "A",
+        "rationale": "요구한 manager-only 경계, hook 차단, 승인 예외 감사가 구현됐고 전체 관련 회귀 검증과 clean worktree 검사가 통과했으며, 승인 후에도 병합은 별도 결정이라 되돌릴 수 있다.",
+        "answer": "pending",
+        "decisionState": "pending",
+        "choices": [
+          "A: 구현 승인 — Work Unit Human review를 승인하되 병합과 정리는 별도로 결정한다.",
+          "B: 재작업 — 발견한 문제를 반영한 뒤 다시 검토한다.",
+          "C: 검토 보류 — 현재 상태를 유지하고 추가 확인 후 결정한다."
+        ]
+      }
     }
   ],
   "subsections": []

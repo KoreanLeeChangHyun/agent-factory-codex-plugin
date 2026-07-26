@@ -15,9 +15,18 @@
       "id": "OPEN-STATUS-DIRECT-JSON-001",
       "kind": "open-items-status",
       "content": {
-        "status": "blocking 또는 non-blocking open item이 없다.",
-        "blockingCount": 0,
+        "status": "Work Unit Human review 결정 1건이 blocking이다.",
+        "blockingCount": 1,
         "nonBlockingCount": 0
+      }
+    },
+    {
+      "id": "DECISION-HUMAN-REVIEW-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Artifact JSON 직접 작성 차단 구현의 Human review 결과",
+        "status": "awaiting-human",
+        "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
       }
     }
   ],
