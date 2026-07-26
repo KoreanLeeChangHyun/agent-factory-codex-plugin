@@ -109,8 +109,8 @@
         "question": "Human-approved Work Unit 브랜치를 local main에 병합할까요?",
         "recommendation": "A",
         "rationale": "Work Unit은 done이고 브랜치가 clean하며 실제 runtime 차단까지 검증됐다. local integration은 다음 promotion 전 필수이며 push·reinstall·cleanup과 분리되어 범위가 제한적이다.",
-        "answer": "pending",
-        "decisionState": "awaiting-human",
+        "answer": "A",
+        "decisionState": "accepted",
         "choices": [
           "A: local main 병합 — 승인된 브랜치를 main에 integrate하고 receipt를 Work Unit에 등록한다. push·reinstall·trust·cleanup은 제외한다.",
           "B: 병합 전 보류 — 브랜치와 locked worktree를 그대로 유지한다.",
