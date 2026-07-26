@@ -27,6 +27,29 @@
           "blocks/evidence/promotion-runtime-verification.md"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-1AE8ECF28FF884F1",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/promote-agent-factory-plugin-update",
+        "sourceCommit": "a8395b0e613d91b15cabe0d320b123a31e6d5d35",
+        "strategy": "ff-only",
+        "targetAfterCommit": "a8395b0e613d91b15cabe0d320b123a31e6d5d35",
+        "targetBeforeCommit": "67eff31363566138d1f99daf2cdae28aa024305b",
+        "targetBranch": "main",
+        "workUnitId": "promote-agent-factory-plugin-update",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/promote-agent-factory-plugin-update",
+        "receiptSha256": "1ae8ecf28ff884f191ea3f6837917bfc81d9e21d47ea788a4f854944c060179d"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/evidence/final-integration-receipt.json"
     }
   ],
   "subsections": []

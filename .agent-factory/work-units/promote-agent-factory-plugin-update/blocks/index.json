@@ -8,6 +8,13 @@
       "sizeBytes": 519
     },
     {
+      "path": "blocks/evidence/final-integration-receipt.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "1ae8ecf28ff884f191ea3f6837917bfc81d9e21d47ea788a4f854944c060179d",
+      "sizeBytes": 1727
+    },
+    {
       "path": "blocks/evidence/promotion-runtime-verification.md",
       "mediaType": "text/markdown",
       "description": "origin/main push, marketplace reinstall과 설치 cache hook 검증 결과",
