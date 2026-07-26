@@ -17,6 +17,36 @@
         "setupState": "pending",
         "cleanupState": "pending-human-decision"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "planned",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "4ca935637120d938f7fefdb353223a603dcca4d4"
+        },
+        "currentRevision": 1,
+        "currentAttempt": null,
+        "invocationId": null,
+        "invocationChain": [],
+        "history": [],
+        "progress": {
+          "completedSteps": [],
+          "pendingStep": null,
+          "lastVerifiedHead": "4ca935637120d938f7fefdb353223a603dcca4d4",
+          "checkpoints": [],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "planned",
+          "ownerInvocationId": null,
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []
