@@ -20,6 +20,92 @@
         "integrationState": "pending-human-decision",
         "checkpointResolution": "Execution admission은 ready Work Unit checkpoint를 inspect하여 정확한 commit을 resolve한다."
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "running",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019f9d5c-22bf-7e11-aa49-bfe9eaa85833",
+        "invocationChain": [
+          "019f9d5c-22bf-7e11-aa49-bfe9eaa85833"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004"
+          ],
+          "pendingStep": null,
+          "lastVerifiedHead": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+          "checkpoints": [
+            {
+              "stepId": "PLAN-001",
+              "state": "pending",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-plan-inspection-v1"
+            },
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-plan-inspection-v1-complete"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "pending",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-red-green-v1"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-red-green-v1-complete"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "pending",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-contract-implementation-v1"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-contract-implementation-v1-complete"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "pending",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-regression-validation-v1"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "headCommit": "866fda2b0c60f2a910dc01ec187ee670eeb1ecd8",
+              "idempotencyKey": "factory-routing-regression-validation-v1-complete"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019f9d5c-22bf-7e11-aa49-bfe9eaa85833",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

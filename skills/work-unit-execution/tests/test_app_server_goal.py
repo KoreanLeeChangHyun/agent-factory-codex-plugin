@@ -293,6 +293,129 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertEqual(payload["error"]["code"], "path_not_absolute")
         self.assertEqual(self.methods(), [])
 
+    def test_explicit_authoring_package_is_passed_to_validator(self) -> None:
+        module = load_module()
+        package = self.root / "authoring" / ".agent-factory" / "work-units" / "wu-001"
+        calls: list[tuple[Path, str, Path]] = []
+
+        def validator(
+            repository: Path,
+            work_unit_id: str,
+            package_path: Path,
+        ) -> dict[str, str]:
+            calls.append((repository, work_unit_id, package_path))
+            return {"objective": work_unit_id, "package": str(package_path)}
+
+        payload = module.execute(
+            repository=self.repository,
+            work_unit_id="wu-001",
+            codex_executable=str(self.server),
+            timeout_seconds=1.0,
+            package_path=package,
+            validator=validator,
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(
+            calls,
+            [(self.repository.resolve(), "wu-001", package)],
+        )
+        self.assertEqual(payload["context"]["package"], str(package))
+
+    def test_validator_accepts_package_from_same_repository_worktree(self) -> None:
+        module = load_module()
+        subprocess.run(["git", "init", "-q", str(self.repository)], check=True)
+        subprocess.run(
+            ["git", "-C", str(self.repository), "config", "user.name", "Test"],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repository),
+                "config",
+                "user.email",
+                "test@example.com",
+            ],
+            check=True,
+        )
+        (self.repository / "README").write_text("test\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(self.repository), "add", "README"],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(self.repository), "commit", "-qm", "initial"],
+            check=True,
+        )
+        authoring = self.root / "authoring"
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repository),
+                "worktree",
+                "add",
+                "--detach",
+                str(authoring),
+            ],
+            check=True,
+            stdout=subprocess.DEVNULL,
+        )
+        package = authoring / ".agent-factory" / "work-units" / "wu-001"
+        section = package / "data" / "sections"
+        section.mkdir(parents=True)
+        (section / "execution-context.json").write_text(
+            json.dumps(
+                {
+                    "content": [
+                        {
+                            "kind": "execution-context",
+                            "content": {
+                                "goalId": "wu-001",
+                                "repository": str(self.repository.resolve()),
+                            },
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        fake_manager = self.root / "fake-work-unit.py"
+        fake_manager.write_text(
+            "import json\n"
+            'print(json.dumps({"valid": True, "id": "wu-001", '
+            '"status": "ready"}))\n',
+            encoding="utf-8",
+        )
+        module.WORK_UNIT_MANAGER = fake_manager
+
+        result = module.validate_work_unit(
+            self.repository.resolve(),
+            "wu-001",
+            package,
+        )
+
+        self.assertEqual(result["package"], str(package.resolve()))
+
+    def test_validator_refuses_package_from_different_repository(self) -> None:
+        module = load_module()
+        other = self.root / "other"
+        subprocess.run(["git", "init", "-q", str(self.repository)], check=True)
+        subprocess.run(["git", "init", "-q", str(other)], check=True)
+        package = other / ".agent-factory" / "work-units" / "wu-001"
+        package.mkdir(parents=True)
+
+        with self.assertRaises(module.ContractError) as raised:
+            module.validate_work_unit(
+                self.repository.resolve(),
+                "wu-001",
+                package,
+            )
+
+        self.assertEqual(raised.exception.code, "work_unit_repository_mismatch")
+
     def test_stdout_payload_is_stable_json(self) -> None:
         payload = self.execute()
         encoded = json.dumps(

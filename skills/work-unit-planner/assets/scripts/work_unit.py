@@ -1098,7 +1098,40 @@ def command_admit(args: argparse.Namespace) -> None:
     if mismatches:
         raise ManagerError(f"execution admission context mismatch: {mismatches}")
     repository = Path(args.repository).resolve()
-    relative = package.relative_to(repository)
+    package_root = package.parents[2].resolve()
+    expected_package = (
+        package_root / ".agent-factory" / "work-units" / args.work_unit_id
+    )
+    if package != expected_package:
+        raise ManagerError(
+            "execution admission package path does not use the canonical layout"
+        )
+    relative = package.relative_to(package_root)
+
+    def common_git_dir(path: Path) -> Path:
+        resolved = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(path),
+                "rev-parse",
+                "--path-format=absolute",
+                "--git-common-dir",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if resolved.returncode != 0 or not resolved.stdout.strip():
+            raise ManagerError(
+                "execution admission package root is not a Git worktree"
+            )
+        return Path(resolved.stdout.strip()).resolve()
+
+    if common_git_dir(package_root) != common_git_dir(repository):
+        raise ManagerError(
+            "execution admission package belongs to a different Git repository"
+        )
     requested_base = subprocess.run(
         [
             "git",
@@ -1178,7 +1211,7 @@ def command_admit(args: argparse.Namespace) -> None:
         [
             "git",
             "-C",
-            str(repository),
+            str(package_root),
             "diff",
             "--quiet",
             checkpoint_commit,
@@ -1201,6 +1234,7 @@ def command_admit(args: argparse.Namespace) -> None:
                 "baseRefCommit": recorded_base_commit,
                 "requestedBase": args.base,
                 "checkpointCommit": checkpoint_commit,
+                "packageRoot": str(package_root),
                 "branch": args.branch,
                 "worktreePath": args.path,
             },

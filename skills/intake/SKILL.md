@@ -54,6 +54,11 @@ it during Intake.
 
 ## Canonical Package
 
+Author an Intake on `intake/<intake-id>` in the dedicated linked worktree
+`<project-root>/.agent-factory/worktree/intake-<intake-id>`. Other Intake,
+Work Unit planning, and Work Unit execution worktrees may operate in parallel.
+Checkpoint only the currently checked-out Human-approved authoring branch.
+
 Store one sectioned package at:
 
 ```text
@@ -182,7 +187,8 @@ non-blocking items, and Work Unit basis items.
 
 For the Git handoff boundary, use the lifecycle-owned
 `artifact_handoff.py checkpoint` command. Show the exact ready Intake package
-path, currently checked-out artifact authoring branch, full-validation result,
+path, currently checked-out `intake/<intake-id>` authoring branch,
+full-validation result,
 and exact commit message and obtain a checkpoint-specific Human approval before
 the command mutates that branch. Checkpoint approval does not authorize
 integration into `factory`. The later ready Work Unit checkpoint requires a

@@ -28,7 +28,7 @@ WORK_UNIT_MANAGER = (
     / "scripts"
     / "work_unit.py"
 )
-Validator = Callable[[Path, str], dict[str, str]]
+Validator = Callable[..., dict[str, str]]
 
 
 class ContractError(Exception):
@@ -319,7 +319,35 @@ def absolute_repository(value: Path) -> Path:
     return repository
 
 
-def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, str]:
+def git_common_dir(path: Path, error_code: str, message: str) -> Path:
+    result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(path),
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-common-dir",
+        ],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="strict",
+        check=False,
+        shell=False,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        raise ContractError(error_code, message)
+    return Path(result.stdout.strip()).resolve(strict=False)
+
+
+def validate_work_unit(
+    repository: Path,
+    work_unit_id: str,
+    package_path: Path | None = None,
+) -> dict[str, str]:
     if not WORK_UNIT_ID.fullmatch(work_unit_id):
         raise ContractError(
             "invalid_work_unit_id",
@@ -346,7 +374,42 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, str]:
             "repository must be the Git top-level directory",
             {"expected": str(repository), "actual": str(reported)},
         )
-    package = repository / ".agent-factory" / "work-units" / work_unit_id
+    if package_path is None:
+        package = repository / ".agent-factory" / "work-units" / work_unit_id
+    else:
+        if not package_path.is_absolute():
+            raise ContractError(
+                "path_not_absolute", "Work Unit package path must be absolute"
+            )
+        package = package_path.resolve(strict=False)
+        if len(package.parents) < 3:
+            raise ContractError(
+                "invalid_work_unit_package",
+                "Work Unit package path does not have the canonical layout",
+            )
+        package_root = package.parents[2]
+        expected = (
+            package_root / ".agent-factory" / "work-units" / work_unit_id
+        )
+        if package != expected:
+            raise ContractError(
+                "invalid_work_unit_package",
+                "Work Unit package path does not match work-unit-id",
+                {"expected": str(expected), "actual": str(package)},
+            )
+        if git_common_dir(
+            package_root,
+            "invalid_work_unit_package",
+            "Work Unit package root is not a Git worktree",
+        ) != git_common_dir(
+            repository,
+            "invalid_repository",
+            "repository is not a Git worktree",
+        ):
+            raise ContractError(
+                "work_unit_repository_mismatch",
+                "Work Unit package belongs to a different Git repository",
+            )
     validation = subprocess.run(
         [
             sys.executable,
@@ -675,6 +738,7 @@ def execute(
     work_unit_id: str,
     codex_executable: str,
     timeout_seconds: float,
+    package_path: Path | None = None,
     validator: Validator = validate_work_unit,
 ) -> dict[str, Any]:
     operations: list[dict[str, Any]] = []
@@ -686,7 +750,14 @@ def execute(
                 "invalid_timeout", "timeout-seconds must be greater than zero"
             )
         resolved_repository = absolute_repository(repository)
-        package = validator(resolved_repository, work_unit_id)
+        if package_path is None:
+            package = validator(resolved_repository, work_unit_id)
+        else:
+            package = validator(
+                resolved_repository,
+                work_unit_id,
+                package_path,
+            )
         deadline = time.monotonic() + timeout_seconds
         client = AppServerClient(codex_executable, deadline, operations)
         protocol = run_protocol(client, resolved_repository, work_unit_id)
@@ -722,6 +793,7 @@ def build_parser() -> JsonArgumentParser:
     parser = JsonArgumentParser(prog="app_server_goal.py")
     parser.add_argument("--repository", required=True)
     parser.add_argument("--work-unit-id", required=True)
+    parser.add_argument("--package")
     parser.add_argument("--codex", default="codex")
     parser.add_argument("--timeout-seconds", type=float, default=3600.0)
     return parser
@@ -737,6 +809,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             work_unit_id=args.work_unit_id,
             codex_executable=args.codex,
             timeout_seconds=args.timeout_seconds,
+            package_path=Path(args.package) if args.package is not None else None,
         )
     except ContractError as error:
         payload = error_payload(error, [], None)

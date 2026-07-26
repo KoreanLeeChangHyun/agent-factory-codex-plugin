@@ -14,7 +14,9 @@ Resolve all values from the Work Unit execution contract or an explicit Human
 decision before running a command:
 
 - canonical repository root
-- base ref for `prepare`
+- exact fully validated ready Work Unit package path reconstructed by
+  `artifact_handoff.py inspect`; it may be in the checked-out planning worktree
+- exact Work Unit checkpoint commit for `prepare --base`
 - Work Unit id; derive the dedicated branch as `work-unit/<work-unit-id>`
 - canonical linked worktree path, derived as
   `<repository>/.agent-factory/worktree/<work-unit-id>`
@@ -52,7 +54,8 @@ its JSON result.
    `<repository>/.agent-factory/worktree/<work-unit-id>`.
 4. Reconstruct the second lifecycle checkpoint with
    `lifecycle/assets/scripts/artifact_handoff.py inspect` and use its exact
-   Work Unit checkpoint commit as `--base`. Keep the execution context's
+   Work Unit checkpoint commit as `--base` and its exact absolute
+   `context.packagePath` as `--package`. Keep the execution context's
    symbolic `baseRef` unchanged; admission uses it to find the latest reachable
    package checkpoint and compares that commit to the requested exact base.
 5. Run `scripts/worktree.py prepare` before editing when the linked worktree
@@ -105,11 +108,13 @@ values through a shell.
 python3 scripts/app_server_goal.py \
   --repository <absolute-repository-root> \
   --work-unit-id <work-unit-id> \
+  --package <absolute-checkpointed-package-path> \
   [--timeout-seconds <positive-seconds>]
 
 python3 scripts/worktree.py prepare \
   --repository <absolute-repository-root> \
   --work-unit-id <work-unit-id> \
+  --package <absolute-checkpointed-package-path> \
   --base <commit-ish>
 
 python3 scripts/worktree.py inspect \
@@ -137,6 +142,9 @@ or clean up a worktree that Git already registers outside the canonical root.
 - Validate the repository root, base commit, branch name, registered
   worktrees, filesystem path, branch ownership, repository ownership, and dirty
   state before the relevant mutation.
+- An explicit package must use the canonical
+  `.agent-factory/work-units/<work-unit-id>` layout in a linked worktree of the
+  same Git common repository. A package from another repository is refused.
 - The app-server launcher performs only read-only Work Unit validation before
   Goal confirmation. It refuses RPC errors, a missing or mismatched Goal,
   invalid JSON, EOF, timeout, and non-completed execution turns, and always

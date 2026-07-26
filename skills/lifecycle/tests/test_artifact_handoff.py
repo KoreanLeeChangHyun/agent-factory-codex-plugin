@@ -174,6 +174,31 @@ class ArtifactHandoffTests(unittest.TestCase):
             target_branch,
         )
 
+    def test_checkpoint_refuses_detached_head_without_mutation(self) -> None:
+        before = run("git", "rev-parse", "HEAD", cwd=self.repository).stdout.strip()
+        detached = run("git", "switch", "--detach", cwd=self.repository)
+        self.assertEqual(detached.returncode, 0, detached.stderr)
+
+        refused, refusal = self.checkpoint(
+            "intake",
+            "source-intake",
+            "checkpoint intake source-intake",
+            target_branch="intake/source-intake",
+        )
+
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertEqual(refusal["error"]["code"], "target_branch_mismatch")
+        self.assertEqual(
+            run("git", "rev-parse", "HEAD", cwd=self.repository).stdout.strip(),
+            before,
+        )
+        self.assertEqual(
+            run(
+                "git", "diff", "--cached", "--name-only", cwd=self.repository
+            ).stdout.strip(),
+            "",
+        )
+
     def test_two_checkpoint_handoff_replay_and_inspection(self) -> None:
         intake_result, intake_receipt = self.checkpoint(
             "intake", "source-intake", "checkpoint intake source-intake"

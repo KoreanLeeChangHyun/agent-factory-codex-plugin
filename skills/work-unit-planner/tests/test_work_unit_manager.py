@@ -572,6 +572,54 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(payload["baseRef"], "main")
             self.assertEqual(payload["checkpointCommit"], checkpoint)
 
+    def test_admission_accepts_package_from_linked_authoring_worktree(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package, worktree, checkpoint = self.create_admission_repository(root)
+            authoring = root.parent / f"{root.name}-authoring"
+            subprocess.run(
+                ["git", "worktree", "add", "--detach", str(authoring), checkpoint],
+                cwd=root,
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
+            authoring_package = (
+                authoring / ".agent-factory" / "work-units" / package.name
+            )
+            shutil.rmtree(package)
+
+            payload = json.loads(
+                self.admit(root, authoring_package, worktree, checkpoint).stdout
+            )
+
+            self.assertTrue(payload["admitted"])
+            self.assertEqual(payload["checkpointCommit"], checkpoint)
+            self.assertEqual(payload["packageRoot"], str(authoring.resolve()))
+
+    def test_admission_refuses_package_from_different_git_repository(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package, worktree, checkpoint = self.create_admission_repository(root)
+            other = root.parent / f"{root.name}-other"
+            subprocess.run(
+                ["git", "clone", "-q", str(root), str(other)],
+                check=True,
+            )
+            other_package = (
+                other / ".agent-factory" / "work-units" / package.name
+            )
+
+            result = self.admit(
+                root,
+                other_package,
+                worktree,
+                checkpoint,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("belongs to a different Git repository", result.stderr)
+
     def test_admission_refuses_advanced_symbolic_base_instead_of_substituting_it(
         self,
     ) -> None:

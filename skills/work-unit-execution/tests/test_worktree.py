@@ -325,6 +325,55 @@ class WorktreeCliTest(unittest.TestCase):
             payload["context"]["admission"]["checkpointCommit"], checkpoint
         )
 
+    def test_prepare_accepts_checkpointed_package_from_authoring_worktree(
+        self,
+    ) -> None:
+        authoring = self.root / "authoring"
+        self.assertEqual(
+            git(
+                self.repo,
+                "worktree",
+                "add",
+                "--detach",
+                str(authoring),
+                self.base_commit,
+            ).returncode,
+            0,
+        )
+        package = self.repo / ".agent-factory" / "work-units" / "wu-001"
+        authoring_package = (
+            authoring / ".agent-factory" / "work-units" / "wu-001"
+        )
+        shutil.rmtree(package)
+
+        result, payload = self.cli(
+            "prepare",
+            "--base",
+            self.base_commit,
+            "--package",
+            str(authoring_package),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(payload["state"], "prepared")
+        self.assertEqual(
+            payload["context"]["admission"]["packageRoot"],
+            str(authoring.resolve()),
+        )
+        self.assertTrue(self.worktree.is_dir())
+
+    def test_prepare_refuses_relative_package_before_git_mutation(self) -> None:
+        result, payload = self.cli(
+            "prepare",
+            "--base",
+            self.base_commit,
+            "--package",
+            ".agent-factory/work-units/wu-001",
+        )
+
+        self.assert_error(result, payload, "path_not_absolute")
+        self.assertFalse(self.worktree.exists())
+
     def test_prepare_refuses_advanced_symbolic_base_before_git_mutation(self) -> None:
         (self.repo / "unrelated.txt").write_text("later\n", encoding="utf-8")
         self.assertEqual(git(self.repo, "add", "unrelated.txt").returncode, 0)

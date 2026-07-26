@@ -14,6 +14,7 @@ All commands require explicitly resolved values:
 | --- | --- | --- |
 | `--repository` | all | Absolute canonical Git repository root. |
 | `--work-unit-id` | all | Work Unit id used to derive `work-unit/<work-unit-id>`. |
+| `--package` | `prepare` | Optional absolute checkpointed Work Unit package path. Pass the `artifact_handoff.py inspect` `context.packagePath` when the package is in its planning worktree. Omission retains the canonical-repository-worktree compatibility path. |
 | `--base` | `prepare` | Commit-ish that resolves to one commit. |
 | `--branch` | all | Optional resolved branch assertion; when present it must equal the derived branch. |
 | `--path` | all | Optional absolute path assertion. Omit it for the canonical `<repository>/.agent-factory/worktree/<work-unit-id>` path. A noncanonical value is accepted only for an already registered legacy worktree. |
@@ -27,8 +28,10 @@ worktrees remain addressable through their explicitly recorded `--path` for
 reuse, inspection, and Human-approved cleanup.
 
 Before `prepare` mutates Git, it invokes the Work Unit manager's `admit`
-command for the canonical
-`<repository>/.agent-factory/work-units/<work-unit-id>` package. Admission
+command for the explicit `--package`, or for the compatibility default
+`<repository>/.agent-factory/work-units/<work-unit-id>`. An explicit package
+must use the canonical package layout in a linked worktree that shares the same
+Git common directory as `--repository`. Admission
 requires full validation, ready semantics, the same repository, derived branch,
 and recorded worktree path. It resolves the requested base separately from the
 recorded symbolic `baseRef`, finds the latest package-changing commit reachable
@@ -69,7 +72,8 @@ Every response uses schema version `1.0.0` and these top-level fields:
 `inspect` reports the same current-state fields except `baseRef` and
 `baseCommit`. Its nested admission result reports the recorded `baseRef`, its
 resolved `baseRefCommit`, the `requestedBase`, and the admitted
-`checkpointCommit`. `integrate` reports `workUnitId`, `repository`, `sourceBranch`,
+`checkpointCommit` plus the checked `packageRoot`. `integrate` reports
+`workUnitId`, `repository`, `sourceBranch`,
 `targetBranch`, `worktreePath`, `humanDecision`, `sourceCommit`,
 `targetBeforeCommit`, `targetAfterCommit`, `relationship`, `strategy`, and
 `operationResult`. `cleanup` also reports `humanDecision`, `worktreeRemoved`,

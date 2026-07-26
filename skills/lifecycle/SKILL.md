@@ -61,6 +61,22 @@ Use these lifecycle phases:
   approval, rework, merge, or PR promotion decision material.
 - Review is Human review after Execution.
 
+Use these branch and linked-worktree roles for parallel lifecycle work:
+
+- Intake authors on `intake/<intake-id>` in
+  `<project-root>/.agent-factory/worktree/intake-<intake-id>`.
+- Work Unit planning authors on `work-unit-plan/<work-unit-id>` in
+  `<project-root>/.agent-factory/worktree/plan-<work-unit-id>`.
+- Work Unit Execution uses `work-unit/<work-unit-id>` in
+  `<project-root>/.agent-factory/worktree/<work-unit-id>`.
+- The official Work Unit integration route is
+  `work-unit/<work-unit-id> -> factory`.
+
+Artifact checkpoint approval, Work Unit result integration into `factory`,
+cleanup, push, and promotion from `factory` are separate Human decisions.
+The Human chooses any promotion target branch; Agent Factory does not infer
+`main`, `dev`, `staging`, `prod`, or another target.
+
 For Intake, Work Unit, and Specification packages, the lifecycle-owned common
 engine alone creates the physical skeleton and serializes canonical JSON. The
 three artifact scripts remain separate controllers for their distinct profile,
@@ -225,7 +241,9 @@ Use these routes:
   `thread/goal/set` and `thread/goal/get`, verifies the matching Goal update
   notification, and sends `turn/start` only after the Goal is active. It must
   fail closed without starting a turn when any protocol evidence is absent or
-  inconsistent.
+  inconsistent. Pass the inspected authoring-worktree package as the launcher's
+  absolute `--package` input when the package is not present in the canonical
+  repository worktree.
 - For named Work Unit Goal execution in this project, work in Korean for
   planning, progress updates, review summaries, reports, and other
   Human-readable communication. Keep commands, file paths, identifiers, code,
@@ -241,7 +259,9 @@ Use these routes:
   registered branch and worktree pair for re-execution or rework. Preserve an
   explicitly recorded registered legacy path only for reuse, inspection, or
   Human-approved cleanup. Record the returned canonical JSON in the Work Unit
-  evidence.
+  evidence. Pass `artifact_handoff.py inspect`'s exact `context.packagePath`
+  to `worktree.py prepare --package`; admission accepts that package only when
+  its authoring worktree belongs to the same Git common repository.
 - Initial execution admission is mechanical, not only instructional:
   `worktree.py prepare` calls the Work Unit manager's full-ready admission gate
   before branch, worktree, execution-state, attempt, or scoped mutation. A

@@ -72,6 +72,22 @@ Promotion and operations:
     -> operation and maintenance requests return to Intake
 ```
 
+## Parallel Branch And Worktree Routing
+
+Lifecycle authoring and execution use independent linked worktrees:
+
+| Role | Branch | Linked worktree |
+| --- | --- | --- |
+| Intake authoring | `intake/<intake-id>` | `<project-root>/.agent-factory/worktree/intake-<intake-id>` |
+| Work Unit planning | `work-unit-plan/<work-unit-id>` | `<project-root>/.agent-factory/worktree/plan-<work-unit-id>` |
+| Work Unit execution | `work-unit/<work-unit-id>` | `<project-root>/.agent-factory/worktree/<work-unit-id>` |
+
+The official integration route is
+`work-unit/<work-unit-id> -> factory`. Integration requires a separate Human
+decision after review. Promotion from `factory` also requires a separate Human
+decision, and the Human chooses the target branch. No lifecycle rule silently
+selects `main`, `dev`, `staging`, `prod`, or another promotion target.
+
 All Agent Factory work follows Intake -> Work Unit -> Execution -> Review.
 This includes analysis, research, Design Document work, Design Report review
 through the external viewer, document work, code changes, verification,
@@ -249,7 +265,7 @@ branch:
 
 ```text
 python3 skills/lifecycle/assets/scripts/artifact_handoff.py checkpoint \
-  --repository <absolute-repository-root> \
+  --repository <absolute-artifact-authoring-worktree-root> \
   --artifact-type <intake|work-unit> \
   --artifact-id <id> \
   --package <absolute-canonical-package-path> \
@@ -271,7 +287,7 @@ A fresh execution session reconstructs the second commit without mutation:
 
 ```text
 python3 skills/lifecycle/assets/scripts/artifact_handoff.py inspect \
-  --repository <absolute-repository-root> \
+  --repository <absolute-work-unit-planning-worktree-root> \
   --artifact-type work-unit \
   --artifact-id <work-unit-id> \
   --package <absolute-canonical-package-path> \
@@ -280,7 +296,12 @@ python3 skills/lifecycle/assets/scripts/artifact_handoff.py inspect \
 
 Use `context.checkpointCommit` as `worktree.py prepare --base`. Checkpoint
 approval never authorizes Work Unit result integration, cleanup, push,
-publication, or PR promotion.
+publication, or PR promotion. Pass the same inspect receipt's absolute
+`context.packagePath` to both `app_server_goal.py --package` and
+`worktree.py prepare --package`. The package may reside in the checked-out
+`work-unit-plan/<work-unit-id>` authoring worktree, but both commands require it
+to belong to the same Git common repository as the execution context's
+canonical repository.
 
 ## Baseline Checklist
 

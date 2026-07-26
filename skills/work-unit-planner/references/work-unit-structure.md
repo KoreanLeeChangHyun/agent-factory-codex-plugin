@@ -88,7 +88,9 @@ legacy worktrees keep their recorded path only for rework, inspection, and
 Human-approved cleanup; new Work Units use the canonical path. `baseRef` names
 the symbolic Git history from which admission discovers the latest commit that
 changed the Work Unit package. It is not a substitute for the exact checkpoint
-commit passed to execution.
+commit passed to execution. For a newly planned Work Unit, `baseRef` is
+`work-unit-plan/<work-unit-id>`, the branch checked out in
+`<project-root>/.agent-factory/worktree/plan-<work-unit-id>`.
 
 Active execution also stores one manager-owned `execution-state` item:
 
@@ -162,7 +164,9 @@ backlog -> ready -> working -> review -> done
   independently. It accepts only when the requested commit is the latest
   package-changing commit reachable from `baseRef` and the ready package still
   matches that checkpoint. A symbolic `baseRef` passed directly is accepted
-  only while it resolves to that exact commit.
+  only while it resolves to that exact commit. The package may reside in a
+  linked planning worktree; admission requires its root and the recorded
+  repository to share the same Git common directory and reports `packageRoot`.
 - `attempt-start`: ready or working; starts attempt 1 or archives the current
   attempt and increments it for a same-revision retry. It transitions ready to
   working and invalidates current outcome gates atomically.

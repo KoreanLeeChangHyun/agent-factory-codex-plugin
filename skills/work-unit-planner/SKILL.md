@@ -34,6 +34,8 @@ Read `lifecycle/references/lifecycle.md`,
 
 ## Package Rules
 
+- Author a Work Unit on `work-unit-plan/<work-unit-id>` in the dedicated linked
+  worktree `<project-root>/.agent-factory/worktree/plan-<work-unit-id>`.
 - Store each package at
   `<project-root>/.agent-factory/work-units/<work-unit-id>/`; directory and
   metadata ids must match.
@@ -86,6 +88,9 @@ is invalid. TOC array order owns document order.
   agent, repository, base ref, dedicated `work-unit/<work-unit-id>` branch, and
   canonical absolute linked worktree path
   `<repository>/.agent-factory/worktree/<work-unit-id>`.
+  Record `work-unit-plan/<work-unit-id>` as `baseRef` for a newly planned Work
+  Unit. It is the symbolic authoring-history owner, not the exact execution
+  checkpoint.
 - Keep the physical package at schema version `4.0.0`. Active execution uses a
   manager-owned `execution-state` item whose independent semantic contract is
   `contractVersion: 1.0.0`. Existing terminal v4 packages without this item
@@ -103,8 +108,10 @@ is invalid. TOC array order owns document order.
   the symbolic history owner rather than the requested execution commit.
   The requested base must resolve to the latest package-changing commit
   reachable from that `baseRef`, and the current package must match that exact
-  checkpoint. `worktree.py prepare` must obtain this mutation-free result
-  before its first Git mutation.
+  checkpoint. The package may be read from the checked-out planning worktree;
+  admission verifies that its root and the canonical repository share one Git
+  common directory. `worktree.py prepare` must obtain this mutation-free
+  result before its first Git mutation.
 - `execution-progress` durably records pending and completed steps, the last
   verified repository head, and stable idempotency identities.
   `execution-failure` records bounded transient retry state and atomically
@@ -130,6 +137,8 @@ is invalid. TOC array order owns document order.
 - Human approval, rework, merge, deployment, and PR promotion remain Human
   decisions. AI completion means review material is ready, not that Human
   approval already occurred.
+- The official Work Unit integration target is `factory`. The Human separately
+  decides integration, cleanup, push, and any later promotion target.
 - Register a successful `work-unit-execution integrate` JSON document with
   `integration-put <package> <receipt> --path blocks/<path>`. The manager
   validates execution-context identity and result consistency, then atomically

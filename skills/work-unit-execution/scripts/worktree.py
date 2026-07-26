@@ -352,10 +352,8 @@ def admit_work_unit(
     base_ref: str,
     branch: str,
     worktree_path: Path,
+    package: Path,
 ) -> dict[str, Any]:
-    package = (
-        repository / ".agent-factory" / "work-units" / work_unit_id
-    )
     result = subprocess.run(
         [
             sys.executable,
@@ -410,6 +408,15 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     repository = validate_repository(execution, args.repository)
     base_commit = resolve_base(execution, repository, args.base)
     branch = validate_execution_identity(execution, args.work_unit_id, args.branch)
+    if args.package is None:
+        package = repository / ".agent-factory" / "work-units" / args.work_unit_id
+    else:
+        requested_package = Path(args.package)
+        if not requested_package.is_absolute():
+            raise ContractError(
+                "path_not_absolute", "Work Unit package path must be absolute"
+            )
+        package = requested_package.resolve(strict=False)
     worktree_path, canonical_path = resolve_worktree_path(
         repository, args.work_unit_id, args.path
     )
@@ -425,7 +432,7 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         )
 
     admission = admit_work_unit(
-        repository, args.work_unit_id, args.base, branch, worktree_path
+        repository, args.work_unit_id, args.base, branch, worktree_path, package
     )
 
     if registered is not None:
@@ -809,6 +816,7 @@ def build_parser() -> JsonArgumentParser:
 
     prepare_parser = common("prepare")
     prepare_parser.add_argument("--base", required=True)
+    prepare_parser.add_argument("--package")
     common("inspect")
     integrate_parser = common("integrate")
     integrate_parser.add_argument("--target-branch", required=True)
