@@ -6,10 +6,19 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "complete",
+        "summary": "프로그램에서 Work Unit id만 지정해 app-server Goal을 기계적으로 설정·검증하고 실행하는 런처 구현이 Human review 준비 상태다.",
+        "specificationResult": "제품 Specification 변경 없이 Agent Factory lifecycle 및 Work Unit execution skill contract와 실행 스크립트를 갱신했다.",
+        "verification": [
+          "TDD red 이후 Goal launcher 7 tests passed",
+          "work-unit-execution 42 tests passed",
+          "lifecycle 17 tests passed",
+          "installed app-server schema compatibility passed",
+          "skill quick validation passed",
+          "final worktree inspect registered and bounded evidence delta confirmed"
+        ],
         "remainingRisks": [
-          "app-server protocol is marked experimental at the CLI command level and compatibility must be checked against the installed schema."
+          "codex app-server CLI는 experimental 표시가 있으므로 설치 버전 변경 시 생성 schema 회귀 검사를 계속 실행해야 한다."
         ],
         "unresolvedHumanDecisions": [
           "구현 결과 approve 또는 rework",
@@ -18,8 +27,18 @@
         ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-attempt-2",
+          "headCommit": "db8fb4d7e1121f181cce22f7055c096b26e86835",
+          "revision": 1,
+          "attempt": 2
+        },
+        "evidence": [
+          "blocks/evidence/verification.md",
+          "blocks/evidence/worktree-final-inspect.json"
+        ]
       }
     }
   ],

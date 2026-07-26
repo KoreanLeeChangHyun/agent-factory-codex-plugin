@@ -6,14 +6,43 @@
       "id": "EXECUTION-001",
       "kind": "execution-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
-        "changedArtifacts": [],
-        "testsRun": []
+        "status": "complete",
+        "summary": "app-server Goal RPC로 Work Unit Goal을 설정·검증한 뒤에만 실행 turn을 시작하는 CLI 런처와 테스트를 구현했다.",
+        "changedArtifacts": [
+          "skills/work-unit-execution/scripts/app_server_goal.py",
+          "skills/work-unit-execution/tests/test_app_server_goal.py",
+          "skills/work-unit-execution/SKILL.md",
+          "skills/lifecycle/SKILL.md",
+          "skills/lifecycle/references/lifecycle.md",
+          "skills/lifecycle/tests/test_skill_metadata.py"
+        ],
+        "testsRun": [
+          "Goal launcher 7 tests passed",
+          "work-unit-execution 42 tests passed",
+          "lifecycle 17 tests passed",
+          "two quick validations passed",
+          "installed app-server schema compatibility passed"
+        ],
+        "deviations": [
+          "비동기 Goal notification은 Goal 요청 처리 중 도착할 수 있어 문서를 실제 프로토콜 의미에 맞게 교정했다.",
+          "final inspect 등록 후 변경은 inspect block, block index와 해당 evidence reference 갱신으로 제한된다.",
+          "최초 실행 대상이 시작 전 기준 커밋이어서 manager가 review 전환을 거부했고 구현 커밋 대상의 2차 시도로 증거를 재고정했다."
+        ]
       },
       "attributes": {
-        "status": "pending",
-        "verificationResult": "pending"
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-attempt-2",
+          "headCommit": "db8fb4d7e1121f181cce22f7055c096b26e86835",
+          "revision": 1,
+          "attempt": 2
+        },
+        "evidence": [
+          "blocks/evidence/verification.md",
+          "blocks/evidence/worktree-final-inspect.json"
+        ]
       }
     }
   ],

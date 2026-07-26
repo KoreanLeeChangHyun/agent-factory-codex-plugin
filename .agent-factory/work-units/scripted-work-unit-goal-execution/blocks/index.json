@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/verification.md",
+      "mediaType": "text/markdown",
+      "description": "구현, 테스트, 설치 스키마 및 AI 검토 증거",
+      "sha256": "cba244d03cb6b08dde4a52a602960f33c25bda410aff1e3a8763103298890e2d",
+      "sizeBytes": 2863
+    },
+    {
+      "path": "blocks/evidence/worktree-final-inspect.json",
+      "mediaType": "application/json",
+      "description": "구현 커밋 기준 최종 worktree inspect JSON",
+      "sha256": "fd18a2706ee8d90d5ccfb78624e57b3c876879a6049178080534f91eb569e075",
+      "sizeBytes": 1511
+    }
+  ]
 }
