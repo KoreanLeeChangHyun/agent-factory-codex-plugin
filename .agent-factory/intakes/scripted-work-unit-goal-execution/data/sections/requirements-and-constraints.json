@@ -1,0 +1,58 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQUIREMENT-SCRIPTED-GOAL-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "재사용 가능한 스크립트 실행 진입점은 명명된 Work Unit id를 받아 codex app-server의 programmatic thread를 시작해야 한다.",
+        "sourceBasis": [
+          "EVIDENCE-HUMAN-SCRIPTED-GOAL-001",
+          "EVIDENCE-REPOSITORY-SCRIPTED-GOAL-001",
+          "EVIDENCE-CODEX-APP-SERVER-003",
+          "INTERVIEW-SCRIPTED-GOAL-002"
+        ]
+      }
+    },
+    {
+      "id": "REQUIREMENT-SCRIPTED-GOAL-PREFLIGHT-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "런처는 같은 app-server thread에서 동일 Work Unit objective를 thread/goal/set으로 설정하고 thread/goal/get 결과가 일치하는지 확인해야 하며, 실패 또는 불일치 시 turn 시작과 worktree 준비 전에 종료해야 한다.",
+        "sourceBasis": [
+          "EVIDENCE-HUMAN-SCRIPTED-GOAL-001",
+          "EVIDENCE-CODEX-APP-SERVER-003",
+          "DECISION-SCRIPTED-GOAL-PROTOCOL-003"
+        ]
+      }
+    },
+    {
+      "id": "CONSTRAINT-SCRIPTED-GOAL-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "현재 Codex CLI의 codex exec JSONL에는 Goal lifecycle 항목이 없으므로 receipt 문자열이나 private SQLite를 Goal 성공 증거로 사용하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-SCRIPTED-GOAL-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "자동화 테스트는 app-server 요청 순서와 thread 및 objective 일치 검증, Goal RPC 오류·불일치·조기 실행의 fail-closed 동작, Goal 확인 후 같은 thread의 turn 시작을 검증한다."
+      }
+    },
+    {
+      "id": "REQUIREMENT-SCRIPTED-GOAL-EVENTS-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "런처는 app-server의 Goal RPC 응답과 Goal 갱신 알림을 프로토콜 증거로 검증하고, 확인된 thread에서만 Work Unit 실행 turn을 시작해야 한다.",
+        "sourceBasis": [
+          "EVIDENCE-CODEX-APP-SERVER-003",
+          "INTERVIEW-SCRIPTED-GOAL-002",
+          "DECISION-SCRIPTED-GOAL-PROTOCOL-003"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

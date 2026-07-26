@@ -1,0 +1,40 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-SCRIPTED-GOAL-001",
+      "kind": "context",
+      "content": {
+        "context": "기존 require-goal-for-work-unit-execution Work Unit은 Goal 필수 계약 문서와 문구 기반 회귀 테스트를 병합했지만 스크립트 실행 진입점을 구현하지 않았다."
+      }
+    },
+    {
+      "id": "SCOPE-SCRIPTED-GOAL-001",
+      "kind": "scope",
+      "content": {
+        "included": [
+          "work-unit-execution의 재사용 가능한 app-server 런처",
+          "thread 생성과 thread/goal/set 및 thread/goal/get 기반 preflight",
+          "Goal 확인 후 같은 thread의 실행 turn 시작",
+          "프로토콜 인자와 순서 및 실패 동작 검증",
+          "문구 검사를 넘어선 자동화 테스트",
+          "관련 Agent Factory 스킬 문서 정합성"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-SCRIPTED-GOAL-001",
+      "kind": "out-of-scope",
+      "content": {
+        "excluded": [
+          "Codex CLI 제품에 새로운 --goal 옵션 추가",
+          "대화형 /goal 동작 변경",
+          "명명되지 않은 일반 codex exec 동작 변경",
+          "기존 완료 Work Unit 이력 재작성"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

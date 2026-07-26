@@ -1,0 +1,163 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-HUMAN-SCRIPTED-GOAL-001",
+      "kind": "evidence",
+      "content": {
+        "source": "Human feedback, 2026-07-26",
+        "finding": "Human은 /goal 작업아이디가 세션 직접 실행 방식이며 스크립트에서도 exec와 Goal을 결합해 실행할 수 있어야 한다고 명시했다."
+      }
+    },
+    {
+      "id": "EVIDENCE-REPOSITORY-SCRIPTED-GOAL-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-execution/scripts/worktree.py; skills/lifecycle/tests/test_skill_metadata.py; .agent-factory/work-units/require-goal-for-work-unit-execution",
+        "method": "저장소 파일과 테스트 및 완료 Work Unit 기록 점검",
+        "findings": [
+          "worktree.py는 prepare, inspect, integrate, cleanup만 제공한다.",
+          "Goal 관련 Python, shell, JavaScript, TypeScript 실행 코드는 존재하지 않는다.",
+          "Goal 회귀 테스트는 SKILL.md의 Goal preflight 및 fail closed 문구 포함 여부만 검사한다.",
+          "완료 Work Unit report는 강제가 스킬 계약과 회귀 테스트 수준이며 Codex 제품 자체 CLI 옵션을 추가하지 않는다고 기록한다."
+        ],
+        "interpretations": [
+          "기존 완료 처리는 Human이 요구한 스크립트 실행 경로를 충족하지 못했다."
+        ],
+        "limitations": [
+          "실제 codex exec 자식 세션을 실행하는 통합 검증은 아직 수행하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-CODEX-SCRIPTED-GOAL-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "OpenAI Codex Manual: Non-interactive mode and JSONL output",
+        "url": "https://learn.chatgpt.com/docs/codex-cli/noninteractive",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-26",
+        "findings": [
+          "codex exec --json은 thread, turn, item 및 error JSONL 이벤트를 제공한다.",
+          "공식 문서가 열거한 item 유형은 agent message, reasoning, command execution, file change, MCP tool call, web search, plan update이며 Goal lifecycle 항목은 포함하지 않는다.",
+          "Goal은 대화형 Codex CLI에서 /goal로 활성 chat에 설정하는 기능으로 문서화돼 있다."
+        ],
+        "limitations": [
+          "Goal 이벤트 부재는 현재 공식 문서와 공개 소스의 열거형을 함께 대조한 결과이며 향후 Codex 버전에서 바뀔 수 있다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-SCRIPTED-GOAL-001",
+      "kind": "interview",
+      "content": {
+        "question": "스크립트가 Goal preflight를 어느 수준까지 책임져야 합니까?",
+        "choiceA": {
+          "decision": "codex exec 호출과 필수 프롬프트 구성만 담당한다.",
+          "pros": "구현이 작고 현재 Execution Agent 책임 경계를 유지한다.",
+          "cons": "Goal 생성 성공을 스크립트가 독립적으로 입증하지 못한다."
+        },
+        "choiceB": {
+          "decision": "codex exec를 JSON 이벤트 모드로 실행하고 Goal preflight 증거를 확인한 뒤에만 실행 성공으로 인정한다.",
+          "pros": "스크립트 실행에서도 Goal 선행 조건을 기계적으로 검증할 수 있다.",
+          "cons": "Codex JSON 이벤트 계약 조사와 스트림 처리 및 실패 종료 로직이 추가된다."
+        },
+        "choiceC": {
+          "decision": "스크립트가 Goal 확인 전에 Work Unit 검증과 worktree 준비까지 수행한다.",
+          "pros": "외부 런처가 실행 준비 전체를 한 곳에서 관리한다.",
+          "cons": "Goal preflight 이전 worktree 준비 금지 계약과 충돌한다."
+        },
+        "recommendation": "B",
+        "rationale": "Human이 요구한 스크립트 기반 Goal 실행을 문구 수준이 아니라 기계적으로 보장하면서도 Goal 이전 Git mutation 금지 경계를 유지한다.",
+        "answer": "B",
+        "decisionState": "accepted"
+      }
+    },
+    {
+      "id": "EVIDENCE-CODEX-EXEC-SOURCE-002",
+      "kind": "web-evidence",
+      "content": {
+        "title": "openai/codex exec JSON event model",
+        "url": "https://github.com/openai/codex/blob/main/codex-rs/exec/src/exec_events.rs",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-26",
+        "findings": [
+          "공개된 current main의 exec JSON ThreadItemDetails에는 agent message, reasoning, command execution, file change, MCP tool call, collaboration tool call, web search 및 plan 항목이 있으며 Goal 항목이 없다.",
+          "event_processor_with_jsonl_output.rs는 app-server ThreadItem을 해당 제한된 exec 항목으로 매핑한다."
+        ],
+        "limitations": [
+          "main 브랜치 소스는 설치된 0.145.0 릴리스와 정확히 동일한 태그가 아닐 수 있다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-CODEX-APP-SERVER-003",
+      "kind": "web-evidence",
+      "content": {
+        "title": "OpenAI Codex app-server protocol README",
+        "url": "https://github.com/openai/codex/blob/main/codex-rs/app-server/README.md",
+        "authorityTier": "T1 authoritative primary",
+        "freshness": "F5",
+        "retrievedAt": "2026-07-26",
+        "findings": [
+          "app-server는 materialized thread에 Goal을 생성 또는 갱신하는 thread/goal/set과 조회하는 thread/goal/get을 제공한다.",
+          "Goal 변경 시 전체 Goal을 포함하는 thread/goal/updated 알림을 제공한다."
+        ],
+        "limitations": [
+          "app-server 통합은 codex exec 래퍼보다 구현 범위와 프로토콜 책임이 크다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-CODEX-RUNTIME-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": "codex-cli 0.145.0 local help and feature list",
+        "method": "codex --version, codex exec --help, codex features list 실행",
+        "findings": [
+          "설치 버전은 codex-cli 0.145.0이다.",
+          "goals feature는 stable 및 true다.",
+          "codex exec는 --json을 제공하지만 --goal 옵션은 제공하지 않는다."
+        ],
+        "interpretations": [
+          "Goal을 기계적으로 설정하고 조회하려면 exec JSON 출력만이 아니라 Goal 전용 프로토콜이 필요하다."
+        ],
+        "limitations": [
+          "Intake 단계에서는 실제 자식 Codex 세션 smoke test를 실행하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-SCRIPTED-GOAL-002",
+      "kind": "interview",
+      "content": {
+        "question": "현재 exec JSON 계약에 Goal 이벤트가 없는 상황에서 어떤 프로토콜로 기계 검증을 구현해야 합니까?",
+        "choiceA": {
+          "decision": "공식 app-server의 thread/goal/set, thread/goal/get 및 Goal 알림을 사용한다.",
+          "pros": "Goal 생성과 조회가 명시적이며 기계 검증 요구를 충족한다.",
+          "cons": "단순 codex exec 래퍼보다 프로토콜 구현과 테스트 범위가 커진다."
+        },
+        "choiceB": {
+          "decision": "codex exec --json을 유지하고 모델이 출력한 Goal receipt 문자열을 성공 증거로 인정한다.",
+          "pros": "구현이 작고 codex exec 진입점을 유지한다.",
+          "cons": "모델 출력은 Goal 상태의 독립적 기계 증거가 아니다."
+        },
+        "choiceC": {
+          "decision": "codex exec thread id로 private SQLite thread_goals 상태를 조회한다.",
+          "pros": "현재 로컬 상태에서 Goal 존재를 직접 확인할 수 있다.",
+          "cons": "비공개 저장소 스키마에 결합돼 버전 호환성과 유지보수 위험이 크다."
+        },
+        "recommendation": "A",
+        "rationale": "Human이 선택한 기계 검증 목표를 공식 공개 프로토콜로 충족하고 private state와 자기보고 receipt를 피한다.",
+        "answer": "A",
+        "decisionState": "accepted"
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,28 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-SCRIPTED-GOAL-001",
+      "kind": "human-request",
+      "content": {
+        "request": "대화형 세션의 /goal 작업아이디뿐 아니라 스크립트에서도 codex exec와 Goal을 결합해 Work Unit을 실행할 수 있어야 한다."
+      }
+    },
+    {
+      "id": "OUTCOME-SCRIPTED-GOAL-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "재사용 가능한 실행 스크립트가 Work Unit id를 받아 codex app-server thread를 만들고, 동일 Work Unit Goal을 공식 RPC로 설정·조회한 뒤에만 실행 turn을 시작한다."
+      }
+    },
+    {
+      "id": "SUCCESS-SCRIPTED-GOAL-001",
+      "kind": "success-criterion",
+      "content": {
+        "criterion": "문서 문구 검사가 아니라 실행 가능한 app-server 런처와 자동화 테스트로 Goal 검증 이전에는 turn 시작, worktree 준비 또는 실행 작업이 발생하지 않음을 검증한다."
+      }
+    }
+  ],
+  "subsections": []
+}
