@@ -34,6 +34,25 @@
           "DECISION-DIRECT-JSON-001"
         ]
       }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-REMOTE-PROMOTION-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "승인된 누적 local main을 origin/main에 push할 수 있도록 plugin cachebuster를 manager script로 갱신하고, remote marketplace에서 재설치한 뒤 새 hook 포함 상태를 검증한다.",
+        "status": "ready-for-planning",
+        "expectedOutputs": [
+          "plugin cachebuster 갱신 commit",
+          "origin/main push 결과",
+          "remote marketplace reinstall 결과",
+          "설치 cache의 hooks 포함 및 활성 버전 검증"
+        ],
+        "traceability": [
+          "DECISION-PROMOTION-001",
+          "REQUIREMENT-HOOK-DIRECT-JSON-002",
+          "CONSTRAINT-DIRECT-JSON-001"
+        ]
+      }
     }
   ],
   "subsections": []

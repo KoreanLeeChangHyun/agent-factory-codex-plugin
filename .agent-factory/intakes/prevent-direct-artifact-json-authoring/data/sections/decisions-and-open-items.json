@@ -15,8 +15,8 @@
       "id": "OPEN-STATUS-DIRECT-JSON-001",
       "kind": "open-items-status",
       "content": {
-        "status": "누적 26개 local main commit의 remote promotion 결정 1건이 blocking이다.",
-        "blockingCount": 1,
+        "status": "blocking 또는 non-blocking open item이 없다.",
+        "blockingCount": 0,
         "nonBlockingCount": 0
       }
     },
@@ -54,8 +54,9 @@
       "id": "DECISION-PROMOTION-001",
       "kind": "decision-status",
       "content": {
-        "decision": "origin/main remote promotion 및 marketplace reinstall 범위",
-        "status": "awaiting-human",
+        "decision": "누적된 local main 전체와 후속 결정·cachebuster commit을 origin/main에 promotion하고 marketplace reinstall을 진행한다.",
+        "status": "accepted",
+        "rationale": "Human이 2026-07-26 대화에서 A를 명시 선택했다. 승인 범위는 누적 local main 전체 push, cachebuster 갱신, marketplace reinstall과 활성화 검증이며 worktree cleanup과 직접 JSON 예외는 포함하지 않는다.",
         "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
       }
     }
