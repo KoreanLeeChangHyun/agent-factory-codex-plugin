@@ -7,15 +7,26 @@
       "kind": "report-result",
       "content": {
         "status": "complete",
-        "summary": "canonical Artifact JSON은 manager typed 인자만으로 생성·수정하도록 skill 계약과 PreToolUse 차단을 추가했다. 예외는 Human 사전 승인 후 정확한 범위의 단기 일회성 grant로만 허용하며 감사 기록을 남긴다.",
-        "verification": "집중 테스트 17개, 관련 skill 및 manager 회귀 테스트 104개, metadata 5개, quick validation 4개, plugin validation, 생성 설정 일치 검사와 diff 검사가 모두 통과했다. 보고서 작성 후 생성한 worktree 검사 원본을 등록했고 이후 변경은 해당 evidence 등록과 참조 갱신으로 한정했다.",
+        "summary": "canonical Intake, Work Unit, Specification JSON은 manager typed 인자로만 작성한다. hook은 patch alias와 Bash 직접·동적 우회를 차단하고 LLM self-grant를 거부하며, Human이 Codex 도구 밖에서 만든 정확한 단기 일회성 grant만 소비한다.",
+        "verification": "최종 구현 HEAD에서 hook 19개, lifecycle 36개, metadata 5개, quick validation 4개, plugin validation, generated config와 diff check가 통과했다. attempt 4가 이 HEAD를 review target으로 결속한다.",
         "limitations": [
-          "plugin hook은 trust 또는 disable, 일부 tool opt-out, timeout 정책의 영향을 받으므로 조직 수준 절대 강제에는 managed hooks 정책이 추가로 필요하다."
+          "non-managed plugin hook은 trust·disable, specialized tool opt-out와 timeout의 영향을 받으므로 managed policy 없이는 절대 OS-level enforcement가 아니다.",
+          "현재 설치 cache에는 hook이 없으므로 별도 Human 승인 후 main integration, remote publication, cachebuster, reinstall, hook trust와 새 thread runtime 검증이 필요하다."
         ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-final-review",
+          "headCommit": "2905f262c341307bc49cc2bfcfc6a171ac62118f",
+          "revision": 1,
+          "attempt": 4
+        },
+        "evidence": [
+          "blocks/evidence/completion-audit-attempt-3.md",
+          "blocks/evidence/worktree-final-inspect-attempt-3.json"
+        ]
       }
     }
   ],

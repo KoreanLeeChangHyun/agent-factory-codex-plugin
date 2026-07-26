@@ -56,14 +56,33 @@
       "kind": "interview",
       "content": {
         "question": "구현 결과를 승인할까요?",
-        "recommendation": "A",
-        "rationale": "요구한 manager-only 경계, hook 차단, 승인 예외 감사가 구현됐고 전체 관련 회귀 검증과 clean worktree 검사가 통과했으며, 승인 후에도 병합은 별도 결정이라 되돌릴 수 있다.",
-        "answer": "pending",
-        "decisionState": "pending",
+        "recommendation": "superseded",
+        "rationale": "Human 답변 전에 AI completion audit가 검증 공백을 발견해 same-revision retry를 시작했으므로 이전 추천은 폐기되었다.",
+        "answer": "not-answered",
+        "decisionState": "superseded-before-answer",
         "choices": [
-          "A: 구현 승인 — Work Unit Human review를 승인하되 병합과 정리는 별도로 결정한다.",
-          "B: 재작업 — 발견한 문제를 반영한 뒤 다시 검토한다.",
-          "C: 검토 보류 — 현재 상태를 유지하고 추가 확인 후 결정한다."
+          "A: 구현 승인",
+          "B: 재작업",
+          "C: 검토 보류"
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-COMPLETION-AUDIT-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "completion-audit",
+        "source": "hooks/artifact_json_guard.py; hooks/generate_hooks_config.py; skills/lifecycle/tests/test_artifact_json_authoring_hook.py; installed plugin cache; Codex PreToolUse source",
+        "method": "목표 요구사항별 current-state source, negative test, 전체 lifecycle regression, plugin install 상태 감사",
+        "findings": [
+          "attempt 2 검토는 Edit·Write matcher alias의 명시적 차단과 collection 이름 분할·canonical root 동적 쓰기·삭제를 입증하지 못했다.",
+          "만료 epoch와 현재 epoch가 같은 경계에서 grant가 허용되는 결함이 있었다.",
+          "PreToolUse permissionDecision ask는 공식 구현에서 지원되지 않고 실패-open이므로 hook이 Human 승인 UI를 직접 만들 수 없다.",
+          "LLM Bash가 grant를 직접 만들 수 있던 구조를 제거하고 Human이 Codex 도구 밖에서만 grant를 생성하도록 변경했다.",
+          "현재 설치된 agent-factory cache에는 hooks 디렉터리가 없어 코드 승인·병합 후 cachebuster, remote marketplace 반영, reinstall, trust와 새 thread 검증이 필요하다."
+        ],
+        "limitations": [
+          "plugin hook은 trust·disable, specialized tool opt-out와 timeout의 영향을 받으며 managed policy 없이는 절대 OS-level 경계가 아니다."
         ]
       }
     }

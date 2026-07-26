@@ -40,7 +40,7 @@
       "kind": "plan-step",
       "content": {
         "phase": "Work",
-        "statement": "불가피한 예외의 명시적 Human 승인, 정확한 대상·경로·사유, 범위·만료·감사 기록 및 fail-closed 동작을 구현한다."
+        "statement": "불가피한 예외는 LLM tool call로 grant를 만들 수 없게 차단하고, Human이 Codex 도구 밖에서 직접 생성한 정확한 대상·경로·사유·session·tool·만료의 일회성 grant만 감사 후 소비하도록 구현한다."
       },
       "attributes": {
         "sequence": 4

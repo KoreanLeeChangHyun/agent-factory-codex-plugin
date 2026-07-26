@@ -8,11 +8,11 @@
       "content": {
         "items": [
           "canonical artifact root와 .json 대상 판별이 Intake, Work Unit, Specification에 정확히 한정되는지 확인한다.",
-          "apply_patch add/update와 Bash redirection, heredoc, Python 쓰기, copy/move 우회가 실행 전 거부되는지 확인한다.",
-          "owning manager의 typed semantic argument 호출만 정상 authoring 경계로 허용되는지 확인한다.",
+          "apply_patch 및 Edit·Write alias와 Bash redirection, heredoc, interpreter, copy/move, root·collection 분할 우회가 실행 전 거부되는지 확인한다.",
+          "owning manager typed semantic argument 호출만 정상 authoring 경계로 허용되는지 확인한다.",
           "read-only 검사와 canonical artifact 밖 JSON 작업에 오탐이 없는지 확인한다.",
-          "예외가 Human 승인 없이 생성·사용되지 않고 범위·만료·일회성·감사 조건을 검증하는지 확인한다.",
-          "hook 신뢰·비활성화 및 tool opt-out 한계를 절대적 보장으로 과장하지 않는지 확인한다."
+          "LLM Bash가 grant를 만들 수 없고 Human이 외부에서 생성한 grant만 정확한 scope·session·tool·만료·일회성·감사 조건으로 소비되는지 확인한다.",
+          "filesystem-capable local·MCP tool의 skill 금지 계약과 hook trust·비활성화·tool opt-out·timeout 한계를 절대 보장으로 과장하지 않는지 확인한다."
         ]
       }
     },
@@ -21,11 +21,18 @@
       "kind": "ai-review-result",
       "content": {
         "status": "complete",
-        "summary": "AI checklist 전 항목을 구현과 자동 테스트로 검토했으며 직접 작성 차단, 정확한 manager 허용, 승인 예외의 범위·만료·일회성·감사, 플랫폼 한계 고지가 요구사항과 일치한다."
+        "summary": "최종 구현 HEAD와 attempt 4 target이 일치한다. 요구사항별 completion audit, negative tests, lifecycle 전체 회귀, manager source 무변경, Human-only grant와 설치 잔여 경계를 재검토했다."
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-final-review",
+          "headCommit": "2905f262c341307bc49cc2bfcfc6a171ac62118f",
+          "revision": 1,
+          "attempt": 4
+        }
       }
     }
   ],

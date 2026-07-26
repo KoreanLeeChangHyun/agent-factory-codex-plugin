@@ -7,7 +7,7 @@
       "kind": "execution-result",
       "content": {
         "status": "complete",
-        "summary": "canonical Intake, Work Unit, Specification JSON의 LLM 직접 작성을 차단하는 plugin PreToolUse hook, manager allowlist, Human 승인 일회성 예외와 skill 계약을 구현했다.",
+        "summary": "최종 구현 HEAD 2905f262c341307bc49cc2bfcfc6a171ac62118f에서 completion audit 보강과 검증을 완료했다. patch alias, 동적 canonical root, 정확한 만료 경계와 LLM self-grant를 차단하고 manager-only·Human-created exception 계약을 일치시켰다.",
         "changedArtifacts": [
           "hooks/artifact_json_guard.py",
           "hooks/generate_hooks_config.py",
@@ -20,25 +20,35 @@
           "skills/lifecycle/references/common-document-contract.md"
         ],
         "testsRun": [
-          "Artifact JSON authoring hook 17 tests passed",
+          "Artifact JSON authoring hook 19 tests passed",
+          "lifecycle full suite 36 tests passed",
           "lifecycle skill metadata 5 tests passed",
-          "lifecycle suite 32 tests passed",
-          "Intake manager 32 tests passed",
-          "Work Unit manager 26 tests passed",
-          "Specification manager 9 tests passed",
           "four skill quick validations passed",
-          "plugin validation and generated config check passed",
-          "git diff --check passed"
+          "plugin validation passed",
+          "generated hook config check passed",
+          "git diff --check passed",
+          "unchanged manager sources retain prior Intake 32, Work Unit 26, Specification 9 passing regressions"
         ],
         "deviations": [
-          "hook 차단은 JSON 응답을 만들지 않고 공식 exit code 2와 stderr 사유를 사용한다.",
-          "전체 manager 회귀 suite는 구현 commit 9eaf13860d1eadfd387762b174cad04637a2b3d9에서 실행했으며 이후 manager script 변경은 없다.",
-          "최초 worktree 검사를 보고서 작성 후 등록했으며 등록으로 발생한 bounded evidence/index delta는 두 번째 검사에서 확인한다."
+          "attempt 2 review was invalidated by completion audit gaps; attempt 3 implemented the fixes; attempt 4 binds the verified final implementation HEAD to the review contract.",
+          "PreToolUse ask is unsupported, so LLM grant creation is denied and only a Human outside Codex tool execution can create a grant.",
+          "installed cache activation remains a separate approval and promotion workflow."
         ]
       },
       "attributes": {
-        "status": "pending",
-        "verificationResult": "pending"
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019f9c41-ba3a-7003-8ab6-bfa0d75d7b26-final-review",
+          "headCommit": "2905f262c341307bc49cc2bfcfc6a171ac62118f",
+          "revision": 1,
+          "attempt": 4
+        },
+        "evidence": [
+          "blocks/evidence/completion-audit-attempt-3.md",
+          "blocks/evidence/worktree-final-inspect-attempt-3.json"
+        ]
       }
     }
   ],
