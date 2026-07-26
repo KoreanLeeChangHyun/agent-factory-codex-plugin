@@ -89,8 +89,9 @@ programs, file copy or move, temporary JSON value files, or any
 filesystem-capable local or MCP tool to author canonical Intake, Work Unit, or
 Specification JSON. If the owning manager cannot express a necessary recovery,
 the caller stops and obtains explicit Human approval for the exact artifact,
-paths, and reason before a short-lived audited one-shot exception is recorded.
-An exception for one operation never authorizes another.
+paths, and reason. The Human must record the short-lived audited one-shot grant
+directly outside LLM tool execution; the LLM may consume it but must never
+create it. An exception for one operation never authorizes another.
 
 The Specification manager configures the same engine with its metadata schema
 and the profile declared by each package. It rejects unknown profile ids,

@@ -7,7 +7,7 @@
           {
             "command": "python3 \"$PLUGIN_ROOT/hooks/artifact_json_guard.py\" hook",
             "statusMessage": "Checking canonical Artifact JSON authoring",
-            "timeout": 5,
+            "timeout": 30,
             "type": "command"
           }
         ],

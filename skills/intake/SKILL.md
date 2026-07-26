@@ -82,7 +82,8 @@ or MCP tool to create, update, delete, or replace canonical Intake JSON. Use
 only the Intake manager with typed semantic arguments. If the manager cannot
 express a necessary recovery, stop, disclose the exact artifact, paths, and
 reason, and obtain explicit Human approval before using the lifecycle's audited
-one-shot exception. Never self-approve an exception.
+one-shot exception. The Human must create that grant directly outside LLM tool
+execution; the LLM must never invoke `grant` or self-approve an exception.
 
 The title renders as H1, top-level sections as H2, and optional subsections as
 H3. Reject deeper nesting. Keep large content in its own section file and large

@@ -44,8 +44,9 @@ Read `lifecycle/references/lifecycle.md`,
   local or MCP tool to create, update, delete, or replace canonical Work Unit
   JSON. If the manager cannot express a necessary recovery, stop, disclose the
   exact artifact, paths, and reason, and obtain explicit Human approval before
-  using the lifecycle's audited one-shot exception. Never self-approve an
-  exception.
+  using the lifecycle's audited one-shot exception. The Human must create that
+  grant directly outside LLM tool execution; the LLM must never invoke `grant`
+  or self-approve an exception.
 - Canonical data is strict JSON. Actual CSS or style data is forbidden.
 - Do not manually edit the manager-owned table of contents or block index.
 - Use registered `blocks/**` for large logs, screenshots, and other non-JSON

@@ -37,6 +37,8 @@ or MCP tool to create, update, delete, or replace canonical Specification JSON.
 If the manager cannot express a necessary recovery, stop, disclose the exact
 artifact, paths, and reason, and obtain explicit Human approval before using
 the lifecycle's audited one-shot exception. Never self-approve an exception.
+The Human must create that grant directly outside LLM tool execution; the LLM
+must never invoke `grant`.
 
 ## Rules
 

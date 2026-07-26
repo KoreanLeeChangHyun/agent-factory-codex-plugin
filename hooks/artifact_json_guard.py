@@ -402,7 +402,7 @@ def consume_grant(
                 or record.get("toolName") != tool_name
                 or record.get("paths") != expected_paths
                 or not isinstance(record.get("expiresAtEpoch"), int)
-                or record["expiresAtEpoch"] < now_epoch
+                or record["expiresAtEpoch"] <= now_epoch
             ):
                 continue
             identities = {
@@ -467,7 +467,9 @@ def denial_reason(
         "Direct canonical Artifact JSON authoring denied for "
         f"{', '.join(paths)}. Use the owning manager with typed semantic arguments. "
         "If the manager cannot express a necessary recovery, ask the Human for "
-        "explicit approval first. Only after approval, record an exact one-shot grant: "
+        "explicit approval first. The LLM must not invoke grant. After approval, "
+        "the Human may run this exact one-shot grant command outside Codex tool "
+        "execution: "
         f"{rendered}"
     )
 
@@ -500,11 +502,17 @@ def run_hook() -> int:
         raise GuardError("invalid PreToolUse input: cwd must be absolute")
     command = payload["tool_input"]["command"]
 
-    if tool_name == "Bash" and (
-        is_exact_manager_command(command, cwd)
-        or is_exact_grant_command(command, cwd)
-    ):
+    if tool_name == "Bash" and is_exact_manager_command(command, cwd):
         return 0
+    if tool_name == "Bash" and is_exact_grant_command(command, cwd):
+        print(
+            "Human-only Artifact JSON exception grant denied inside an LLM Bash "
+            "tool call. After reviewing the exact artifact, absolute JSON paths, "
+            "reason, session, tool, and expiry, the Human must run the grant "
+            "command directly outside Codex tool execution.",
+            file=sys.stderr,
+        )
+        return 2
     if tool_name in PATCH_TOOL_NAMES:
         targets = patch_targets(command, cwd)
         dynamic = False

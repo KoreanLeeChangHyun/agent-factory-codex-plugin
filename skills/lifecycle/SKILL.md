@@ -81,9 +81,11 @@ typed semantic data only and must not construct JSON input.
   find another write route.
 - If the owning manager cannot express a necessary recovery, disclose the exact
   artifact, absolute JSON paths, and reason, then obtain explicit Human
-  approval. Only after that approval may the scoped session record and consume
-  the guard's short-lived audited one-shot exception. Never invoke `grant` from
-  inference, prior approval for another action, or self-approval.
+  approval. The Human, not the LLM, must then run `grant` directly outside Codex
+  tool execution for the exact session, tool, artifact, paths, reason, and
+  expiry. The scoped session may only consume that short-lived audited one-shot
+  grant. Never invoke `grant` from an LLM tool call, inference, prior approval
+  for another action, or self-approval.
 - Plugin hooks require trust and can be disabled, and specialized tool paths
   can opt out. A hook timeout can also continue through the normal tool flow.
   The skill contract remains mandatory when the hook is inactive. Do not claim

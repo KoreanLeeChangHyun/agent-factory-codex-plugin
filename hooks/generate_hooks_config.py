@@ -29,7 +29,7 @@ def config() -> dict[str, Any]:
                                 'python3 "$PLUGIN_ROOT/hooks/'
                                 'artifact_json_guard.py" hook'
                             ),
-                            "timeout": 5,
+                            "timeout": 30,
                             "statusMessage": (
                                 "Checking canonical Artifact JSON authoring"
                             ),
