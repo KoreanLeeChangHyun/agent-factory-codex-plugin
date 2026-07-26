@@ -1,0 +1,19 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-001",
+      "kind": "execution-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending",
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

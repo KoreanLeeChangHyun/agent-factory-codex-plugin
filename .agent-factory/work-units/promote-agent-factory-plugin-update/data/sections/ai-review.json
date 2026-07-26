@@ -1,0 +1,30 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    },
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "cachebuster가 기존 suffix를 교체했는지 확인한다.",
+          "push 대상이 승인된 main 전체인지 확인한다.",
+          "재설치 출처와 활성 버전이 remote marketplace와 일치하는지 확인한다.",
+          "설치 cache에 JSON guard hook이 포함됐는지 확인한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

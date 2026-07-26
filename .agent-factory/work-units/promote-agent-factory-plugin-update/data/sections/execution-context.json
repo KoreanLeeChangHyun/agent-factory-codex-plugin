@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "promote-agent-factory-plugin-update",
+        "objective": "Agent Factory plugin의 승인된 전체 remote promotion과 reinstall을 완료한다.",
+        "execInvocation": "/goal promote-agent-factory-plugin-update",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/promote-agent-factory-plugin-update",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/promote-agent-factory-plugin-update",
+        "setupState": "pending",
+        "cleanupState": "pending-human-decision"
+      }
+    }
+  ],
+  "subsections": []
+}
