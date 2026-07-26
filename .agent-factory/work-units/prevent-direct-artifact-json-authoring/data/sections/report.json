@@ -30,6 +30,29 @@
           "blocks/evidence/codex-apply-patch-runtime-smoke.txt"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-C77284DD3E6779F5",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/prevent-direct-artifact-json-authoring",
+        "sourceCommit": "a0be5fd64ae24144ea6aaf0471b60dc5e44abba5",
+        "strategy": "ff-only",
+        "targetAfterCommit": "a0be5fd64ae24144ea6aaf0471b60dc5e44abba5",
+        "targetBeforeCommit": "dc2b6d21b913f6057c08c753441c3bb640ca6ee7",
+        "targetBranch": "main",
+        "workUnitId": "prevent-direct-artifact-json-authoring",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/prevent-direct-artifact-json-authoring",
+        "receiptSha256": "c77284dd3e6779f5288867da2e64ef5ceabe2d07f0e1714ad3c0408b974898df"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/evidence/integration-receipt.json"
     }
   ],
   "subsections": []
