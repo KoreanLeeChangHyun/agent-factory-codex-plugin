@@ -15,8 +15,8 @@
       "id": "OPEN-STATUS-DIRECT-JSON-001",
       "kind": "open-items-status",
       "content": {
-        "status": "attempt 3 실행·검증 중이며 현재 Human blocking decision은 없다.",
-        "blockingCount": 0,
+        "status": "Work Unit Human review 결정 1건이 blocking이다.",
+        "blockingCount": 1,
         "nonBlockingCount": 0
       }
     },
@@ -27,6 +27,15 @@
         "decision": "Artifact JSON 직접 작성 차단 구현의 Human review 결과",
         "status": "superseded-before-answer",
         "rationale": "Human 답변 전에 AI failed review audit가 attempt 3 retry를 시작했다.",
+        "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
+      }
+    },
+    {
+      "id": "DECISION-HUMAN-REVIEW-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "보강된 Artifact JSON 직접 작성 차단 구현의 Human review 결과",
+        "status": "awaiting-human",
         "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
       }
     }
