@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -92,6 +93,7 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 2)
                 self.assertIn("canonical Artifact JSON", result.stderr)
                 self.assertIn(str(self.target), result.stderr)
+                self.assertIn("LLM must not invoke grant", result.stderr)
                 self.assertEqual(result.stdout, "")
 
     def test_apply_patch_outside_canonical_artifacts_is_allowed(self) -> None:
@@ -331,7 +333,7 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.plugin_data / "artifact-json-exceptions").exists())
 
-    def test_exact_grant_command_is_not_recursively_blocked(self) -> None:
+    def test_llm_bash_cannot_create_its_own_grant(self) -> None:
         command = (
             f"python3 '{GUARD}' grant "
             f"--plugin-data '{self.plugin_data}' "
@@ -343,7 +345,9 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
             "--human-decision approved"
         )
         result = run_guard("Bash", command, self.root, self.plugin_data)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Human-only", result.stderr)
+        self.assertFalse((self.plugin_data / "artifact-json-exceptions").exists())
 
     def test_one_shot_exact_scope_grant_is_consumed_and_audited(self) -> None:
         granted = self.grant(self.target)
@@ -422,7 +426,7 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
         )
         self.assertEqual(len(grants), 1)
         record = json.loads(grants[0].read_text(encoding="utf-8"))
-        record["expiresAtEpoch"] = 0
+        record["expiresAtEpoch"] = int(time.time())
         grants[0].write_text(
             json.dumps(record, sort_keys=True) + "\n",
             encoding="utf-8",
@@ -471,6 +475,7 @@ class ArtifactJsonAuthoringHookTests(unittest.TestCase):
             command,
             'python3 "$PLUGIN_ROOT/hooks/artifact_json_guard.py" hook',
         )
+        self.assertEqual(groups[0]["hooks"][0]["timeout"], 30)
 
     def test_skill_contracts_require_manager_only_and_human_approved_exception(
         self,
