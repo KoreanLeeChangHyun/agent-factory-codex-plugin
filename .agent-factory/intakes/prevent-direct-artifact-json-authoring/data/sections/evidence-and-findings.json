@@ -92,9 +92,9 @@
       "content": {
         "question": "보강된 Artifact JSON 직접 작성 차단 구현을 승인할까요?",
         "recommendation": "A",
-        "rationale": "completion audit에서 발견한 네 가지 공백을 실패 테스트로 보완했고 최종 implementation HEAD에 결속된 full validation과 clean worktree가 확인되었다. 승인은 코드 review에만 한정되어 promotion은 되돌릴 수 있는 별도 결정으로 남는다.",
-        "answer": "pending",
-        "decisionState": "awaiting-human",
+        "rationale": "completion audit에서 발견한 네 가지 공백을 실패 테스트로 보완했고 최종 implementation HEAD에 결속된 full validation과 clean worktree, 실제 Codex runtime 차단이 확인되었다.",
+        "answer": "A",
+        "decisionState": "accepted",
         "choices": [
           "A: 구현 승인 — Work Unit을 done으로 전환하되 병합·push·reinstall·trust·cleanup은 별도 결정한다.",
           "B: 재작업 — 문제를 지정해 같은 Work Unit에서 다시 보완한다.",

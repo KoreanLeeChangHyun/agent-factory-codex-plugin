@@ -1,15 +1,15 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.23",
+  "documentVersion": "1.0.29",
   "id": "prevent-direct-artifact-json-authoring",
   "artifactType": "intake",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "intake",
-    "status": "draft"
+    "status": "ready"
   },
   "createdAt": "2026-07-26T09:36:45+00:00",
-  "updatedAt": "2026-07-26T11:07:11+00:00",
+  "updatedAt": "2026-07-26T13:42:14+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,12 +19,12 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": null,
+    "reviewedAt": "2026-07-26T11:12:00+00:00",
     "contractValid": true,
-    "evidenceComplete": false,
-    "requirementsComplete": false,
-    "specificationConsistent": false,
-    "executionReady": false,
+    "evidenceComplete": true,
+    "requirementsComplete": true,
+    "specificationConsistent": true,
+    "executionReady": true,
     "findings": []
   }
 }

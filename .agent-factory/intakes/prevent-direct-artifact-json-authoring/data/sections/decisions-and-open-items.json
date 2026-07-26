@@ -15,8 +15,8 @@
       "id": "OPEN-STATUS-DIRECT-JSON-001",
       "kind": "open-items-status",
       "content": {
-        "status": "Work Unit Human review 결정 1건이 blocking이다.",
-        "blockingCount": 1,
+        "status": "blocking 또는 non-blocking open item이 없다.",
+        "blockingCount": 0,
         "nonBlockingCount": 0
       }
     },
@@ -34,8 +34,9 @@
       "id": "DECISION-HUMAN-REVIEW-002",
       "kind": "decision-status",
       "content": {
-        "decision": "보강된 Artifact JSON 직접 작성 차단 구현의 Human review 결과",
-        "status": "awaiting-human",
+        "decision": "보강된 Artifact JSON 직접 작성 차단 구현을 승인한다.",
+        "status": "accepted",
+        "rationale": "Human이 2026-07-26 대화에서 명시적으로 승인했다. 이 승인은 Work Unit 구현 review에 한정되며 병합·push·reinstall·trust·cleanup을 승인하지 않는다.",
         "relatedWorkUnit": "prevent-direct-artifact-json-authoring"
       }
     }
