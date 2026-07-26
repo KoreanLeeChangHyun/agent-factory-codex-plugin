@@ -1,0 +1,42 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "LLM의 apply_patch 또는 Bash 직접 JSON 쓰기 사례가 실제로 차단되는지 테스트 결과를 확인합니다.",
+          "Intake, Work Unit, Specification manager의 정상 명령은 계속 동작하는지 확인합니다.",
+          "예외 승인 기록이 대상 artifact, 정확한 경로, 사유, 범위와 만료 또는 일회성 소비를 포함하는지 확인합니다.",
+          "승인 없는 예외, 범위 불일치, 만료와 재사용이 모두 거부되는지 확인합니다.",
+          "plugin hook은 사용자의 trust 또는 disable 선택과 일부 tool opt-out을 넘어서 강제할 수 없다는 잔여 한계를 확인합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "hook 정책 스크립트와 생성된 hooks/hooks.json의 매처 및 명령을 비교합니다.",
+          "자동화 테스트에서 직접 쓰기 거부, manager 허용, read-only·비대상 허용, 예외 실패 폐쇄 사례를 확인합니다.",
+          "Intake, Work Unit, Specification 및 lifecycle skill 문구가 같은 manager-only 경계를 선언하는지 확인합니다.",
+          "구현 결과의 approve 또는 rework를 결정하며 main 병합, worktree cleanup과 예외 사용 승인은 각각 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

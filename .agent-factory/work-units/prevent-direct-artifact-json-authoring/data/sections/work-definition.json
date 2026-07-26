@@ -1,0 +1,56 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "statement": "Intake, Work Unit, Specification canonical JSON의 LLM 직접 작성을 skill 계약과 plugin PreToolUse hook으로 거부하고, 불가피한 예외는 명시적 Human 승인과 감사 기록 없이는 실패 폐쇄한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "canonical Intake, Work Unit, Specification JSON 직접 쓰기 탐지 정책",
+          "apply_patch와 Bash PreToolUse 거부 hook",
+          "manager typed semantic command 허용 경계",
+          "명시적 Human 승인 예외의 대상·경로·사유·감사 계약",
+          "결정적 hook 설정 생성 스크립트",
+          "관련 Agent Factory skill 및 lifecycle 계약 갱신",
+          "직접 쓰기 거부와 정상 manager 허용 자동화 테스트"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "canonical artifact가 아닌 일반 프로젝트 JSON 금지",
+          "artifact manager 내부 JSON 직렬화 금지",
+          "Codex 제품 자체 수정",
+          "plugin trust 또는 disable 기능 제거",
+          "기업 관리형 requirements.toml 정책 배포",
+          "Git hook을 기본 집행 경계로 사용"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "artifacts": [
+          "deterministic hook policy script",
+          "script-generated plugin hooks configuration",
+          "typed manager allowlist and direct JSON deny tests",
+          "Human-approved exception audit contract",
+          "Intake, Work Unit, Specification 및 lifecycle skill updates"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

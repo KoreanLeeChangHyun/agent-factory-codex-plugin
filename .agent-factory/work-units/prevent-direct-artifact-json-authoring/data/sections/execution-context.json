@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "prevent-direct-artifact-json-authoring",
+        "objective": "canonical Intake, Work Unit, Specification JSON의 LLM 직접 작성을 skill과 plugin hook으로 차단한다.",
+        "execInvocation": "/goal prevent-direct-artifact-json-authoring",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/prevent-direct-artifact-json-authoring",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/prevent-direct-artifact-json-authoring",
+        "setupState": "pending",
+        "cleanupState": "pending-human-decision"
+      }
+    }
+  ],
+  "subsections": []
+}
