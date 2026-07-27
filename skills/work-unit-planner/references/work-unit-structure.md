@@ -111,6 +111,9 @@ the last verified Git head, per-step bounded retry state, and stable
 idempotency keys. `recovery` owns the current invocation, blocking item, and
 exact blocking evidence. Existing v4 history without these optional fields
 remains readable; the first durable progress command upgrades the active state.
+Human-approved Rework adds a non-empty `reworkInstruction` to the active
+revision. The manager preserves that instruction when the revision is later
+archived into execution history.
 
 This item contract version is independent of package `schemaVersion: 4.0.0`.
 Consumers that do not find the item may render an existing terminal v4 package
@@ -180,7 +183,8 @@ backlog -> ready -> working -> review -> done
 - `blocker-resolve`: blocked only; records resolution evidence, resolves the
   matching blocker, appends a unique recovery invocation, preserves revision
   and attempt, and returns to `working`.
-- `rework-start --human-decision approved`: review only; archives the reviewed
+- `rework-start --human-decision approved --instruction <text>`: review only;
+  requires and stores the exact Human Rework instruction, archives the reviewed
   attempt, increments revision, clears attempt identity, invalidates current
   results and approval, and returns the package to working atomically. A later
   `attempt-start` begins attempt 1 of that revision.
@@ -228,7 +232,8 @@ python3 assets/scripts/work_unit.py blocker-resolve <package> \
   --blocker-id <id> --resolution-evidence <evidence> \
   --invocation-id <new-recovery-invocation-id>
 python3 assets/scripts/work_unit.py rework-start <package> \
-  --human-decision approved
+  --human-decision approved \
+  --instruction "<exact Human Rework instruction>"
 ```
 
 Use `section-item-put` for one item and `section-items-put` for a batch.

@@ -202,6 +202,7 @@ class AppServerGoalTest(unittest.TestCase):
     @staticmethod
     def validator(repository: Path, work_unit_id: str) -> dict[str, str]:
         return {
+            "mode": "execution",
             "objective": work_unit_id,
             "package": str(
                 repository / ".agent-factory" / "work-units" / work_unit_id
@@ -244,6 +245,257 @@ class AppServerGoalTest(unittest.TestCase):
                 "thread/goal/get",
                 "turn/start",
             ],
+        )
+
+    def test_execution_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
+        module = load_module()
+
+        prompt = module.execution_prompt("wu-001", "execution", None)
+
+        self.assertIn("$workflow-agent", prompt)
+        self.assertIn("Goal preflight", prompt)
+        self.assertIn("execute only that Work Unit", prompt)
+
+    def test_rework_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
+        module = load_module()
+
+        prompt = module.execution_prompt(
+            "wu-001",
+            "rework",
+            "Commit the implementation and rebind all evidence.",
+        )
+
+        self.assertIn("$workflow-agent", prompt)
+        self.assertIn("Human-approved rework", prompt)
+        self.assertIn(
+            "Commit the implementation and rebind all evidence.",
+            prompt,
+        )
+        self.assertIn("execute only that Work Unit", prompt)
+
+    def test_launch_mode_accepts_ready_execution_and_manager_approved_rework(
+        self,
+    ) -> None:
+        module = load_module()
+        ready = {"valid": True, "id": "wu-001", "status": "ready"}
+        rework = {"valid": True, "id": "wu-001", "status": "working"}
+        planned_rework = {
+            "content": [
+                {
+                    "id": "EXECUTION-STATE-001",
+                    "kind": "execution-state",
+                    "content": {
+                        "state": "planned",
+                        "currentRevision": 2,
+                        "currentAttempt": None,
+                        "history": [{"revision": 1, "attempt": 1}],
+                        "reworkInstruction": "Commit and rebind evidence.",
+                    },
+                }
+            ]
+        }
+
+        self.assertEqual(module.launch_mode(ready, {}, "wu-001"), "execution")
+        self.assertEqual(
+            module.launch_mode(rework, planned_rework, "wu-001"),
+            "rework",
+        )
+
+    def test_launch_mode_refuses_unapproved_or_active_working_state(self) -> None:
+        module = load_module()
+        validation = {"valid": True, "id": "wu-001", "status": "working"}
+        active = {
+            "content": [
+                {
+                    "id": "EXECUTION-STATE-001",
+                    "kind": "execution-state",
+                    "content": {
+                        "state": "running",
+                        "currentRevision": 1,
+                        "currentAttempt": 1,
+                        "history": [],
+                    },
+                }
+            ]
+        }
+
+        with self.assertRaises(module.ContractError) as raised:
+            module.launch_mode(validation, active, "wu-001")
+
+        self.assertEqual(raised.exception.code, "work_unit_not_launchable")
+
+        planned_without_instruction = {
+            "content": [
+                {
+                    "id": "EXECUTION-STATE-001",
+                    "kind": "execution-state",
+                    "content": {
+                        "state": "planned",
+                        "currentRevision": 2,
+                        "currentAttempt": None,
+                        "history": [{"revision": 1, "attempt": 1}],
+                    },
+                }
+            ]
+        }
+        with self.assertRaises(module.ContractError) as missing:
+            module.launch_mode(
+                validation,
+                planned_without_instruction,
+                "wu-001",
+            )
+
+        self.assertEqual(missing.exception.code, "rework_instruction_missing")
+
+    def test_validate_work_unit_uses_planned_rework_from_canonical_worktree(
+        self,
+    ) -> None:
+        module = load_module()
+        subprocess.run(
+            ["git", "init", "-b", "main", str(self.repository)],
+            check=True,
+            stdout=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            ["git", "-C", str(self.repository), "config", "user.name", "Test"],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repository),
+                "config",
+                "user.email",
+                "test@example.com",
+            ],
+            check=True,
+        )
+        package = (
+            self.repository / ".agent-factory" / "work-units" / "wu-001"
+        )
+        section = package / "data" / "sections" / "execution-context.json"
+        section.parent.mkdir(parents=True)
+        worktree = (
+            self.repository / ".agent-factory" / "worktree" / "wu-001"
+        )
+        context = {
+            "content": [
+                {
+                    "id": "EXEC-CONTEXT-001",
+                    "kind": "execution-context",
+                    "content": {
+                        "goalId": "wu-001",
+                        "repository": str(self.repository),
+                        "branch": "work-unit/wu-001",
+                        "worktreePath": str(worktree),
+                    },
+                }
+            ]
+        }
+        section.write_text(json.dumps(context), encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(self.repository), "add", "."],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(self.repository), "commit", "-m", "fixture"],
+            check=True,
+            stdout=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repository),
+                "worktree",
+                "add",
+                "-b",
+                "work-unit/wu-001",
+                str(worktree),
+            ],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        linked_section = (
+            worktree
+            / ".agent-factory"
+            / "work-units"
+            / "wu-001"
+            / "data"
+            / "sections"
+            / "execution-context.json"
+        )
+        context["content"].append(
+            {
+                "id": "EXECUTION-STATE-001",
+                "kind": "execution-state",
+                "content": {
+                    "state": "planned",
+                    "currentRevision": 2,
+                    "currentAttempt": None,
+                    "history": [{"revision": 1, "attempt": 1}],
+                    "reworkInstruction": "Commit and rebind evidence.",
+                },
+            }
+        )
+        linked_section.write_text(json.dumps(context), encoding="utf-8")
+        manager = self.root / "fake-work-unit-manager"
+        manager_log = self.root / "fake-work-unit-manager.log"
+        manager.write_text(
+            textwrap.dedent(
+                f"""\
+                #!/usr/bin/env python3
+                import json
+                import pathlib
+                import sys
+
+                log = pathlib.Path({str(manager_log)!r})
+                with log.open("a", encoding="utf-8") as stream:
+                    stream.write(json.dumps(sys.argv[1:]) + "\\n")
+                package = pathlib.Path(sys.argv[2])
+                section = json.loads(
+                    (package / "data/sections/execution-context.json").read_text()
+                )
+                if sys.argv[1] == "show":
+                    print(json.dumps(section))
+                    raise SystemExit(0)
+                status = (
+                    "working"
+                    if any(item.get("kind") == "execution-state" for item in section["content"])
+                    else "ready"
+                )
+                print(json.dumps({{"valid": True, "id": "wu-001", "status": status}}))
+                """
+            ),
+            encoding="utf-8",
+        )
+        manager.chmod(0o755)
+        module.WORK_UNIT_MANAGER = manager
+
+        selected = module.validate_work_unit(self.repository, "wu-001")
+
+        self.assertEqual(selected["mode"], "rework")
+        self.assertEqual(selected["instruction"], "Commit and rebind evidence.")
+        self.assertEqual(
+            selected["package"],
+            str(worktree / ".agent-factory" / "work-units" / "wu-001"),
+        )
+        commands = [
+            json.loads(line)
+            for line in manager_log.read_text(encoding="utf-8").splitlines()
+        ]
+        self.assertEqual(
+            [command[0] for command in commands],
+            ["validate", "show", "validate", "show"],
+        )
+        self.assertTrue(
+            all(
+                command[-2:] == ["--section", "execution-context"]
+                for command in commands
+                if command[0] == "show"
+            )
         )
 
     def test_goal_preflight_failures_never_start_a_turn(self) -> None:

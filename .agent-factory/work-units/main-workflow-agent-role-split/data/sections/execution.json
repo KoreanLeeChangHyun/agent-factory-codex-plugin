@@ -6,13 +6,19 @@
       "id": "EXECUTION-001",
       "kind": "execution-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution 대기"
+        "status": "complete",
+        "summary": "Human-approved revision 3에서 Work Unit 범위의 전체 구현·문서·테스트 변경을 검토하고 검증한 뒤 구현 커밋 f5089e13f73e4a12a5c5af1e6f011e3b0314927c로 고정했다."
       },
       "attributes": {
-        "status": "pending",
-        "verificationResult": "pending",
-        "evidence": []
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019fa412-fcee-7d53-ac09-bac9df21a311",
+          "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+          "revision": 3,
+          "attempt": 1
+        }
       }
     }
   ],

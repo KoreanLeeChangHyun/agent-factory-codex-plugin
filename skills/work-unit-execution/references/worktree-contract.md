@@ -80,7 +80,8 @@ execution state. Inspect immediately before `execution-init` and each new
 `attempt-start`. A Codex session resume stays in the current attempt and does
 not consume a new worktree prepare result; append its session id through
 `attempt-resume`. Human-approved rework reuses the registered worktree but
-starts a new revision through `rework-start` before its first new attempt.
+starts a new revision through `rework-start --instruction <exact-text>` before
+its first new attempt.
 
 `integrate` classifies ancestry before mutation. `fast-forwardable` uses
 `ff-only`; `diverged` requires explicit `--strategy no-ff`; `already-merged`

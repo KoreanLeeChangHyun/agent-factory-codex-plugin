@@ -63,18 +63,25 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "pending",
+        "status": "pass",
         "requiredEvidence": [
-          "TDD red/green 결과",
-          "새 스킬 quick validation",
-          "Goal launcher와 lifecycle 회귀 테스트",
-          "plugin validator 결과",
-          "final worktree inspect JSON"
+          "blocks/evidence/rework-revision-3-verification.txt",
+          "blocks/evidence/rework-revision-3-final-worktree-inspect.json"
         ]
       },
       "attributes": {
-        "status": "pending",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019fa412-fcee-7d53-ac09-bac9df21a311",
+          "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+          "revision": 3,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/rework-revision-3-verification.txt",
+          "blocks/evidence/rework-revision-3-final-worktree-inspect.json"
+        ]
       }
     }
   ],

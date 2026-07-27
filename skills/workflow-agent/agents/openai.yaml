@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Workflow Agent"
+  short_description: "Execute Goal-bound Work Units and approved rework safely."
+  default_prompt: "Use $workflow-agent to execute the active Goal-bound Work Unit or approved rework."
