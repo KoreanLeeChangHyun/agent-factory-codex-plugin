@@ -1,0 +1,41 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "구형·손상 Work Unit 패키지를 어떻게 처리할 것인가?",
+        "choiceA": "복구 가능한 패키지는 마이그레이션하고 복구 불가능한 패키지만 제거",
+        "choiceB": "모든 구형·손상 패키지 제거",
+        "choiceC": "모두 마이그레이션하고 불가능한 항목은 유지",
+        "recommendation": "A",
+        "rationale": "기록 보존과 삭제 안전성을 함께 확보한다.",
+        "answer": "B",
+        "decisionState": "accepted"
+      }
+    },
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-unit-planner/assets/scripts/work_unit.py, work_unit.py --help, .agent-factory/work-units, git worktree list, worktree.py inspect/cleanup",
+        "method": "repository inspection and canonical manager commands",
+        "findings": [
+          "work_unit.py는 package별 show만 제공하고 status 및 delete 명령은 제공하지 않는다.",
+          "Work Unit root에는 schema v2 1개, schema v3 10개, schema v4 21개가 있다.",
+          "schema v4 중 fact-only-agent-rule-responsibility-refactor와 main-workflow-agent-role-split은 현재 manager validation을 통과하지 못한다.",
+          "Human이 모든 구형·손상 패키지 제거를 선택했다.",
+          "done 및 clean 상태의 전용 Work Unit worktree 11개를 승인된 cleanup 명령으로 제거했고 branch는 보존했다."
+        ],
+        "limitations": [
+          "Canonical package deletion은 manager-only 계약이지만 현재 manager에 delete 명령이 없어 삭제 실행이 차단된다."
+        ],
+        "interpretations": []
+      }
+    }
+  ],
+  "subsections": []
+}

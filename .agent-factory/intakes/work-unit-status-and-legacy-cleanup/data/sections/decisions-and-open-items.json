@@ -1,0 +1,24 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "모든 구형 schema v2/v3 패키지와 현행 manager validation을 통과하지 못하는 손상 v4 패키지를 관리자 delete 명령으로 제거한다.",
+        "basis": "Human answer B와 repository manager validation evidence"
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "none",
+        "items": []
+      }
+    }
+  ],
+  "subsections": []
+}

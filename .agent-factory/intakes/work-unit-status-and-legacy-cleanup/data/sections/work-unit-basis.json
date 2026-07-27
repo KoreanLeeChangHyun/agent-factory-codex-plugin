@@ -1,0 +1,74 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": "이번 변경은 기존 Work Unit manager 운영 CLI와 저장 자료 정리이며 현재 Specification의 제품 설계 범위를 변경하지 않는다.",
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Work Unit manager에 안전한 package delete 명령을 구현한다.",
+        "executionOrder": 1,
+        "expectedOutputs": [
+          "work_unit.py delete 명령",
+          "invalid package용 --allow-invalid 및 exact confirm-id 경계",
+          "파일시스템 경계와 회귀 테스트",
+          "관리자 문서"
+        ]
+      }
+    },
+    {
+      "id": "BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Human이 승인한 구형·손상 Work Unit package 13개를 manager delete 명령으로 제거한다.",
+        "executionOrder": 2,
+        "targets": [
+          "agent-extension-goal-execution-integration",
+          "agent-factory-json-block-data-migration",
+          "agent-factory-skill-docs-json-block-contract",
+          "intake-json-package-and-viewer-design",
+          "vscode-extension-ui-structure-draft",
+          "work-unit-execution-context-sufficiency-research",
+          "work-unit-execution-skill-worktree-manager",
+          "work-unit-json-storage-format",
+          "work-unit-json-storage-format-v3",
+          "workspace-extension-four-tab-mvp",
+          "workspace-extension-four-tab-mvp-design",
+          "fact-only-agent-rule-responsibility-refactor",
+          "main-workflow-agent-role-split"
+        ],
+        "dependsOn": [
+          "BASIS-001"
+        ]
+      }
+    },
+    {
+      "id": "BASIS-003",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Work Unit manager에 빠른 전체 상태 조회 status --all을 구현한다.",
+        "executionOrder": 3,
+        "expectedOutputs": [
+          "id",
+          "lifecycle status",
+          "execution state",
+          "Human approval status",
+          "integration result",
+          "회귀 테스트와 문서"
+        ],
+        "dependsOn": [
+          "BASIS-002"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
