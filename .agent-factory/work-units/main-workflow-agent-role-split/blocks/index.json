@@ -22,6 +22,27 @@
       "sizeBytes": 2725
     },
     {
+      "path": "blocks/evidence/rework-revision-3-final-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Final revision 3 pre-review worktree inspection identifying implementation commit f5089e13f73e4a12a5c5af1e6f011e3b0314927c",
+      "sha256": "40d17c99000b5e3dea45e2ff94555db38c0d7a405f0caba308251097d4279570",
+      "sizeBytes": 1632
+    },
+    {
+      "path": "blocks/evidence/rework-revision-3-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Human-approved revision 3 implementation review and verification evidence",
+      "sha256": "15b890181d26e4570f2b195918d4fe23ce843c8493eb1480194696a44dce664a",
+      "sizeBytes": 2208
+    },
+    {
+      "path": "blocks/evidence/rework-revision-3-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Revision 3 worktree inspection identifying implementation commit f5089e13f73e4a12a5c5af1e6f011e3b0314927c",
+      "sha256": "875a48a75d86c742838814a59ef95258c9df5b4ced48f7e4fd70b9775d67ea19",
+      "sizeBytes": 1257
+    },
+    {
       "path": "blocks/evidence/tdd.txt",
       "mediaType": "text/plain",
       "description": "TDD red and green evidence",

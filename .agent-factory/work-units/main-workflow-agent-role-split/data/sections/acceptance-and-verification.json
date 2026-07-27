@@ -65,14 +65,23 @@
       "content": {
         "status": "pass",
         "requiredEvidence": [
-          "blocks/evidence/rework-revision-2-tdd.txt",
-          "blocks/evidence/rework-revision-2-verification.txt",
-          "blocks/evidence/rework-revision-2-worktree-inspect.json"
+          "blocks/evidence/rework-revision-3-verification.txt",
+          "blocks/evidence/rework-revision-3-final-worktree-inspect.json"
         ]
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019fa412-fcee-7d53-ac09-bac9df21a311",
+          "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+          "revision": 3,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/rework-revision-3-verification.txt",
+          "blocks/evidence/rework-revision-3-final-worktree-inspect.json"
+        ]
       }
     }
   ],
