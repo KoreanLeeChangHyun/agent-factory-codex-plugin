@@ -1,0 +1,73 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "reason": "Git 전담 Codex 역할은 기존 Project Core 범위 안이지만 일반 approval interaction 통합은 현재 별도 승인 경계를 변경하므로 Work Unit에서 Project Core와 lifecycle 계약을 정합화해야 한다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "specification",
+          "id": "project-core",
+          "path": ".agent-factory/specifications/project-core"
+        }
+      ]
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Git 전담 Codex role과 별도 execution launcher를 구현하여 Main Agent가 approved Git operation을 위임하고 compact receipt만 소비하도록 한다.",
+        "executionOrder": 1,
+        "scope": [
+          "git-agent role skill과 agents/openai.yaml",
+          "Git operation 전용 typed admission과 별도 Codex execution launcher",
+          "공통 app-server client 중복 방지",
+          "artifact_handoff.py와 worktree.py 호출 orchestration",
+          "raw canonical evidence와 compact receipt projection",
+          "Main Agent와 Workflow Agent routing 정합화",
+          "focused regression tests와 plugin validation"
+        ],
+        "outOfScope": [
+          "Human 승인 자동 생성",
+          "Git mutation safety 재구현 또는 우회",
+          "자동 충돌 코드 수정",
+          "PR provider API 구현",
+          "현재 실행 중 Work Unit 변경"
+        ],
+        "dependencies": []
+      }
+    },
+    {
+      "id": "BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "일반 Work Unit의 Human 승인 상호작용을 범위, 결과, 반영 세 단계 중심으로 통합하고 Git 전담 Codex가 기존 승인 토큰을 추가 prompt 없이 소비하도록 한다.",
+        "executionOrder": 2,
+        "scope": [
+          "Intake와 Work Unit checkpoint의 단일 범위 검토 화면 및 내부 별도 receipt",
+          "실행 결과와 scoped Specification 또는 Project Core 결과의 단일 결과 검토",
+          "integration과 clean worktree cleanup의 명시적 반영 결정",
+          "고위험 예외의 별도 확인 유지",
+          "Project Core, lifecycle, main-agent, human-review 및 tests 정합화"
+        ],
+        "outOfScope": [
+          "영구 삭제 또는 dirty worktree 제거의 확인 축소",
+          "runtime restart 이중 확인 축소",
+          "외부 push, PR promotion 또는 deployment의 자동 승인"
+        ],
+        "dependencies": [
+          "BASIS-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

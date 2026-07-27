@@ -1,0 +1,51 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "Human은 Main Agent 컨텍스트 소비를 줄이기 위해 Git 관련 조작을 별도 Git 전담 Codex 실행 세션에 위임하는 선택 A를 승인했다.",
+        "basis": "Human statements: 깃 전담 코덱스요, 메인의 컨텍스트를 덜 소모하고 싶음, 승인, 진행"
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "Git 전담 Codex는 기존 deterministic Git script를 실행·조정하고 Main에는 compact receipt만 반환하며, raw evidence는 canonical block에 남긴다.",
+        "basis": "Human goal and repository evidence EVIDENCE-001 through EVIDENCE-005"
+      }
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "기존 Workflow Agent 내부의 Work Unit prepare와 inspect 격리는 유지하고, Git 전담 Codex의 우선 경계는 Main-owned checkpoint, 상태 조사, integration, cleanup 및 승인된 push로 둔다.",
+        "basis": "EVIDENCE-001 and EVIDENCE-004"
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "none",
+        "items": []
+      }
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "Human은 일반 Work Unit 승인 포인트를 범위, 결과, 반영 중심으로 줄이고 고위험 예외만 추가 확인하는 방향을 승인했다.",
+        "basis": "Human response: 좋습니다"
+      }
+    }
+  ],
+  "subsections": []
+}
