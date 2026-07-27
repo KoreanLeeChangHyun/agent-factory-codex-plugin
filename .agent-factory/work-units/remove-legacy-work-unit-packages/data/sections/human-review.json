@@ -30,7 +30,15 @@
         "status": "pending"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-27T16:44:38+00:00",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "e7768176-588e-466e-9deb-bcb87a7fbbd5",
+          "headCommit": "216e1b47554792ebc332946457b6f20409bdc3c1"
+        }
       }
     }
   ],
