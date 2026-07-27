@@ -67,7 +67,9 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "pending",
+        "status": "pass",
+        "summary": "집중 테스트 red/green, quick validation, metadata unit test, plugin validation, git diff --check와 final worktree inspect를 확인했다.",
+        "finalInspectCommand": "python3 skills/work-unit-execution/scripts/worktree.py inspect --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id human-review-contextual-approval",
         "requiredEvidence": [
           "집중 테스트 red/green 결과",
           "human-review quick validation 결과",
@@ -78,8 +80,18 @@
         ]
       },
       "attributes": {
-        "status": "pending",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019fa3fe-a4c8-7900-b34d-ba8be6550555",
+          "headCommit": "22723a443ccdef2c949dfa0c254d8c4017263b4c",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/verification.txt",
+          "blocks/evidence/final-worktree-inspect.json"
+        ]
       }
     }
   ],

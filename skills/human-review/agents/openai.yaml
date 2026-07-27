@@ -1,4 +1,4 @@
 interface:
-  display_name: "Human Review Language"
-  short_description: "Write Human-reviewed artifacts in the Human language."
-  default_prompt: "Use $human-review to ensure Human-facing review artifacts use the Human language instead of defaulting to English."
+  display_name: "Human Review Approval"
+  short_description: "Prepare contextual Human approval prompts."
+  default_prompt: "Use $human-review to prepare Human-facing review material and request contextual YES or NO approval."

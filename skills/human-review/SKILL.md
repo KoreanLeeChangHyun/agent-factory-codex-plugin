@@ -19,6 +19,23 @@ description: Use when creating or updating Human-facing Agent Factory lifecycle 
 - Keep machine-facing material unchanged when translation would reduce
   precision or break usage.
 
+## Approval-Only Prompts
+
+- Use an approval-only prompt only when the Human must approve or reject a
+  specific result or action. Present exactly two choices: `YES` and `NO`.
+- Keep this approval prompt separate from the three-choice `A`/`B`/`C`
+  interview flow. Use `interview` when the Human must choose among project or
+  lifecycle alternatives.
+- Determine approval intent from the current approval request and the Human's
+  full response, not a fixed string allowlist.
+- Treat `YES`, `Y`, `승인`, `네`, `진행`, and `ㄱㄱ` as non-exhaustive examples
+  of wording that can express clear approval in context. Other wording may
+  also mean `YES` when the response unambiguously approves the current request.
+- Treat a clear rejection or rework request as `NO`. A negated, deferred,
+  conditional, partial, or ambiguous response is not approval.
+- When approval intent is not clear, do not perform the approval-gated action;
+  ask the Human again for an explicit `YES` or `NO`.
+
 ## Do Not Translate
 
 Do not translate these unless the user explicitly asks:

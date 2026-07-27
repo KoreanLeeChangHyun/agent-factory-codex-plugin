@@ -21,13 +21,20 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "summary": "AI Review 대기",
+        "status": "pass",
+        "summary": "AI checklist 7개 항목을 모두 통과했다. 고정 문자열 허용 목록, 모호한 자동 승인, interview 형식 침범, Human 승인 경계 약화와 범위 밖 변경은 발견되지 않았다.",
         "findings": []
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019fa3fe-a4c8-7900-b34d-ba8be6550555",
+          "headCommit": "22723a443ccdef2c949dfa0c254d8c4017263b4c",
+          "revision": 1,
+          "attempt": 1
+        }
       }
     }
   ],

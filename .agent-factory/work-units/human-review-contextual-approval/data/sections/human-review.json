@@ -22,10 +22,10 @@
       "kind": "human-review-method",
       "content": {
         "inspect": [
-          "skills/human-review/SKILL.md와 agents/openai.yaml을 확인합니다.",
-          "skills/lifecycle/tests/test_skill_metadata.py의 집중 회귀 검증을 확인합니다.",
-          "quick validation, unit test, plugin validation과 git diff --check 결과를 확인합니다.",
-          "구현 결과 승인 질문에는 YES 또는 NO로 답합니다. 문맥상 명확한 승인 표현도 YES로 해석할 수 있지만 모호하거나 조건부인 답변은 재확인합니다.",
+          "skills/human-review/SKILL.md의 Approval-Only Prompts에서 YES와 NO 두 선택, 문맥 판별, 비포괄적 예시와 모호 응답 재확인 규칙을 확인합니다.",
+          "skills/human-review/agents/openai.yaml의 display_name, short_description과 default_prompt가 승인 역할과 일치하는지 확인합니다.",
+          "skills/lifecycle/tests/test_skill_metadata.py의 집중 회귀 테스트와 blocks/evidence/verification.txt의 red/green 및 필수 검증 결과를 확인합니다.",
+          "구현 결과 승인에는 YES, rework에는 NO로 답합니다. 다른 표현은 현재 요청 문맥에서 명확한 경우에만 해석하며, 모호하거나 조건부이면 YES 또는 NO를 다시 요청합니다.",
           "결과 승인 후 main 병합과 linked worktree cleanup은 각각 별도로 결정합니다."
         ]
       }
@@ -37,7 +37,15 @@
         "status": "pending"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-27T15:17:54+00:00",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "019fa3fe-a4c8-7900-b34d-ba8be6550555",
+          "headCommit": "22723a443ccdef2c949dfa0c254d8c4017263b4c"
+        }
       }
     }
   ],
