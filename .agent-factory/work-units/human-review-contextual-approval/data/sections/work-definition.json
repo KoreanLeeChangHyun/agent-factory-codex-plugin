@@ -1,0 +1,53 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "statement": "human-review에 승인 전용 YES 또는 NO 프롬프트와 문맥 기반 승인 의도 판별 규칙을 추가하고 관련 메타데이터와 검증을 정합화한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/human-review/SKILL.md 승인 전용 규칙 추가",
+          "skills/human-review/agents/openai.yaml 설명과 기본 prompt 정합화",
+          "문맥 기반 명확한 승인 의도와 모호한 응답 fail-closed 경계",
+          "skills/lifecycle/tests/test_skill_metadata.py 집중 회귀 검증",
+          "skill과 plugin 정적 검증"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "skills/interview/SKILL.md의 A/B/C 형식 변경",
+          "skills/work-unit-planner 상태 또는 transition 변경",
+          "lifecycle Human 승인 권한과 별도 승인 경계 변경",
+          "고정 문자열 파서 또는 별도 승인 런타임 구현",
+          "역사적 Intake와 Work Unit 변경",
+          "commit, merge, cleanup, push, PR promotion"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "artifacts": [
+          "승인 전용 규칙이 추가된 skills/human-review/SKILL.md",
+          "승인 역할이 반영된 skills/human-review/agents/openai.yaml",
+          "문맥 기반 승인 규칙을 보호하는 집중 회귀 테스트",
+          "skill quick validation, metadata test, plugin validation과 git diff 검증 결과"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

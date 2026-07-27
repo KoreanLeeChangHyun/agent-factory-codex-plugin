@@ -1,0 +1,45 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "승인 전용 프롬프트가 interview와 명확히 구분되는지 확인합니다.",
+          "승인 선택지가 YES와 NO 두 가지로만 제시되는지 확인합니다.",
+          "승인 의도를 고정 문자열 목록이 아니라 대화 문맥으로 판별하는지 확인합니다.",
+          "예시 표현이 완전한 허용 목록처럼 제한되지 않는지 확인합니다.",
+          "모호하거나 조건부인 답변을 자동 승인하지 않는지 확인합니다.",
+          "Human 언어 규칙과 기존 lifecycle 승인 경계가 유지되는지 확인합니다.",
+          "변경 파일과 검증 결과가 Work Unit 범위와 일치하는지 확인합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "skills/human-review/SKILL.md와 agents/openai.yaml을 확인합니다.",
+          "skills/lifecycle/tests/test_skill_metadata.py의 집중 회귀 검증을 확인합니다.",
+          "quick validation, unit test, plugin validation과 git diff --check 결과를 확인합니다.",
+          "구현 결과 승인 질문에는 YES 또는 NO로 답합니다. 문맥상 명확한 승인 표현도 YES로 해석할 수 있지만 모호하거나 조건부인 답변은 재확인합니다.",
+          "결과 승인 후 main 병합과 linked worktree cleanup은 각각 별도로 결정합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

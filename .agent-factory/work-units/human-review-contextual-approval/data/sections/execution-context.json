@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "human-review-contextual-approval",
+        "objective": "human-review 승인 프롬프트가 YES 또는 NO 두 선택지만 제공하고 명확한 승인 의도를 문맥으로 판별하도록 구현한다.",
+        "execInvocation": "python3 skills/work-unit-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id human-review-contextual-approval",
+        "executionAgent": "Codex Work Unit Execution Agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/human-review-contextual-approval",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/human-review-contextual-approval",
+        "setupState": "pending",
+        "cleanupState": "pending-human-decision"
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,35 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "승인 전용 프롬프트가 YES와 NO 두 선택지만 제공하는지 확인한다.",
+          "승인 의도 판별이 고정 문자열 화이트리스트로 구현되지 않았는지 확인한다.",
+          "예시 표현이 비포괄적 예시로 설명되는지 확인한다.",
+          "부정, 보류, 조건부와 모호한 응답을 자동 승인하지 않는지 확인한다.",
+          "human-review의 기존 Human 언어 규칙이 보존되는지 확인한다.",
+          "interview, Work Unit manager와 lifecycle 승인 경계가 변경되지 않았는지 확인한다.",
+          "테스트가 승인 프롬프트와 메타데이터 책임을 검증하는지 확인한다."
+        ]
+      }
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "AI Review 대기",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

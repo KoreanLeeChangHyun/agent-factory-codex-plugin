@@ -1,0 +1,87 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "human-review는 승인 전용 프롬프트가 interview와 다르며 YES와 NO 두 선택지만 제공한다고 명시한다."
+      }
+    },
+    {
+      "id": "ACCEPT-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "승인 응답은 고정 문자열 허용 목록이 아니라 현재 승인 요청과 답변의 문맥에서 명확한 승인 의도를 판별한다."
+      }
+    },
+    {
+      "id": "ACCEPT-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "YES, Y, 승인, 네, 진행, ㄱㄱ는 비포괄적 예시로만 설명되고 다른 명확한 승인 표현도 문맥에 따라 승인으로 해석할 수 있다."
+      }
+    },
+    {
+      "id": "ACCEPT-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "부정, 보류, 조건부 또는 모호한 응답은 자동 승인하지 않고 명확한 YES 또는 NO 응답을 다시 요청한다."
+      }
+    },
+    {
+      "id": "ACCEPT-005",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "기존 Human 언어 규칙을 보존하고 interview의 A/B/C 형식, Work Unit manager 상태와 lifecycle 승인 경계를 변경하지 않는다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "집중 회귀 테스트를 구현 전에 추가하고 실패·성공 결과를 기록한다.",
+          "skills/human-review/SKILL.md와 agents/openai.yaml이 승인 책임과 일치한다.",
+          "human-review quick validation이 통과한다.",
+          "skill metadata unit test와 plugin validation이 통과한다.",
+          "git diff --check가 통과한다.",
+          "AI Review와 한국어 Human 검토 자료가 준비된다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m unittest skills.lifecycle.tests.test_skill_metadata",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/human-review",
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "pending",
+        "requiredEvidence": [
+          "집중 테스트 red/green 결과",
+          "human-review quick validation 결과",
+          "skill metadata unit test 결과",
+          "plugin validation 결과",
+          "git diff --check 결과",
+          "final worktree inspect JSON"
+        ]
+      },
+      "attributes": {
+        "status": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}
