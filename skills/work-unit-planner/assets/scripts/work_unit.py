@@ -15,6 +15,7 @@ import subprocess
 import sys
 import uuid
 from contextlib import contextmanager
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -78,6 +79,7 @@ def profile() -> dict[str, Any]:
     return normalized
 
 
+@lru_cache(maxsize=1)
 def validate_schemas() -> dict[str, dict[str, Any]]:
     contracts = base.schemas()
     for contract in contracts.values():
@@ -283,6 +285,104 @@ def command_delete(args: argparse.Namespace) -> None:
     if validation_error is not None:
         result["validationError"] = validation_error
     print(json.dumps(result, ensure_ascii=False))
+
+
+def resolve_collection(value: str | Path) -> Path:
+    requested = Path(value)
+    if requested.is_symlink():
+        raise ManagerError(f"Work Unit collection must not be a symlink: {requested}")
+    collection = Path(os.path.abspath(requested))
+    if collection.name != "work-units" or collection.parent.name != ".agent-factory":
+        raise ManagerError(
+            "collection must be <project-root>/.agent-factory/work-units"
+        )
+    base.assert_plain_path(collection, "directory")
+    if collection.resolve(strict=True) != collection:
+        raise ManagerError("Work Unit collection path must not traverse symlinks")
+    return collection
+
+
+def status_value(item: dict[str, Any] | None, field: str) -> str | None:
+    if item is None:
+        return None
+    attributes = item.get("attributes", {})
+    value = attributes.get(field) if isinstance(attributes, dict) else None
+    if isinstance(value, str) and value:
+        return value
+    content = item.get("content")
+    value = content.get(field) if isinstance(content, dict) else None
+    return value if isinstance(value, str) and value else None
+
+
+def package_status(package: Path) -> dict[str, Any]:
+    package = resolve_package(package)
+    validate_package(package, full=True)
+    metadata = base.load_object(package / base.METADATA_PATH, "Work Unit metadata")
+    items = [
+        item for section in base.load_sections(package) for item in iter_items(section)
+    ]
+    execution = next(
+        (item for item in items if item["kind"] == "execution-state"), None
+    )
+    human_review = next(
+        (item for item in items if item["kind"] == "human-review-result"), None
+    )
+    integrations = [item for item in items if item["kind"] == "integration-result"]
+    integration = integrations[-1] if integrations else None
+    integration_result = status_value(integration, "operationResult")
+    if integration_result is None and integration is not None:
+        integration_result = status_value(integration, "status")
+    return {
+        "id": metadata["id"],
+        "lifecycleStatus": metadata["lifecycle"]["status"],
+        "executionState": (
+            "not-initialized" if execution is None else execution["content"]["state"]
+        ),
+        "humanApprovalStatus": status_value(human_review, "status") or "not-recorded",
+        "integrationResult": integration_result or "not-integrated",
+        "validationStatus": "valid",
+    }
+
+
+def command_status(args: argparse.Namespace) -> None:
+    collection = resolve_collection(args.root)
+    candidates = sorted(
+        (
+            entry
+            for entry in collection.iterdir()
+            if entry.is_dir() or entry.is_symlink()
+        ),
+        key=lambda entry: entry.name,
+    )
+    results: list[dict[str, Any]] = []
+    for candidate in candidates:
+        try:
+            results.append(package_status(candidate))
+        except ManagerError as error:
+            results.append(
+                {
+                    "id": candidate.name,
+                    "lifecycleStatus": None,
+                    "executionState": None,
+                    "humanApprovalStatus": None,
+                    "integrationResult": None,
+                    "validationStatus": "invalid",
+                    "validationError": str(error),
+                }
+            )
+    invalid_count = sum(entry["validationStatus"] == "invalid" for entry in results)
+    print(
+        json.dumps(
+            {
+                "root": str(collection),
+                "count": len(results),
+                "validCount": len(results) - invalid_count,
+                "invalidCount": invalid_count,
+                "workUnits": results,
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 def iter_items(section: dict[str, Any]) -> Iterable[dict[str, Any]]:
@@ -2013,6 +2113,10 @@ def parser() -> argparse.ArgumentParser:
     delete.add_argument("--confirm-id", required=True)
     delete.add_argument("--allow-invalid", action="store_true")
     delete.set_defaults(handler=command_delete)
+    status = commands.add_parser("status")
+    status.add_argument("--all", action="store_true", required=True)
+    status.add_argument("--root", default=".agent-factory/work-units")
+    status.set_defaults(handler=command_status)
     title = commands.add_parser("title-set")
     title.add_argument("package")
     title.add_argument("title")

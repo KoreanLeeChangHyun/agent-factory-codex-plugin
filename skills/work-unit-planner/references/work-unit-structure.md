@@ -205,6 +205,8 @@ python3 assets/scripts/work_unit.py create \
 python3 assets/scripts/work_unit.py delete \
   <project-root>/.agent-factory/work-units/<id> \
   --confirm-id <id> [--allow-invalid]
+python3 assets/scripts/work_unit.py status --all \
+  [--root <project-root>/.agent-factory/work-units]
 python3 assets/scripts/work_unit.py section-items-put <package> <section-id> \
   <typed-data-arguments>
 python3 assets/scripts/work_unit.py metadata-set <package> readiness \
@@ -247,6 +249,10 @@ serialization. Do not create JSON input files or pass JSON strings.
 canonical or legacy package id, and uses descriptor-relative no-follow
 traversal so a package-path replacement is refused instead of deleting the
 replacement.
+`status --all` reads every immediate Work Unit package directory in stable id
+order and returns lifecycle, execution, Human approval, integration, and
+validation status. An invalid or symlink package is retained as an error row so
+one damaged package cannot hide the remaining collection.
 Use `show <package> --section <id>` for focused reads of large documents.
 Mutations are serialized per package, increment one patch revision, and use a
 recovery journal. Manual canonical edits are recovery-only exceptions and must

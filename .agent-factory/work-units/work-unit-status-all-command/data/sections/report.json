@@ -6,10 +6,12 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "completed",
+        "summary": "work_unit.py status --all 구현과 실제 25개 Work Unit 전체 조회 검증을 완료했다.",
         "remainingRisks": [
-          "구현, 검증, Human 승인, integration 및 cleanup이 남아 있다."
+          "main integration 전에는 명령이 실행 브랜치에만 존재한다.",
+          "현재 fact-only-agent-rule-responsibility-refactor 1개는 validation error 행으로 보고된다.",
+          "Human 승인 후 integration과 linked worktree cleanup이 남아 있다."
         ],
         "unresolvedHumanDecisions": [
           "구현 결과 승인 또는 rework",
@@ -18,8 +20,18 @@
         ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "ce97e732-fda8-42a6-aa50-31ffae6354b4",
+          "headCommit": "09caa5fe418eedbf41d644a2a4d47a577c35d672",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/status-summary.json",
+          "blocks/evidence/verification.txt"
+        ]
       }
     }
   ],

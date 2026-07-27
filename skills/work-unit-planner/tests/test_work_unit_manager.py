@@ -345,6 +345,113 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
+    def test_status_all_reports_sorted_aggregate_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            running = create_package(root, "a-running-unit")
+            populate_ready_candidate(root, running, intake)
+            run_cli("transition", str(running), "ready")
+            self.initialize_and_start_execution(running)
+            receipt = root / "status-integration-receipt.json"
+            receipt.write_text(
+                json.dumps(self.integration_receipt(running)), encoding="utf-8"
+            )
+            run_cli(
+                "integration-put",
+                str(running),
+                str(receipt),
+                "--path",
+                "blocks/integration/status-receipt.json",
+            )
+            create_package(root, "z-backlog-unit")
+
+            result = json.loads(
+                run_cli(
+                    "status",
+                    "--all",
+                    "--root",
+                    str(root / ".agent-factory" / "work-units"),
+                ).stdout
+            )
+
+            self.assertEqual(result["count"], 2)
+            self.assertEqual(result["validCount"], 2)
+            self.assertEqual(result["invalidCount"], 0)
+            self.assertEqual(
+                [entry["id"] for entry in result["workUnits"]],
+                ["a-running-unit", "z-backlog-unit"],
+            )
+            self.assertEqual(
+                result["workUnits"][0],
+                {
+                    "id": "a-running-unit",
+                    "lifecycleStatus": "working",
+                    "executionState": "running",
+                    "humanApprovalStatus": "pending",
+                    "integrationResult": "fast-forwarded",
+                    "validationStatus": "valid",
+                },
+            )
+            self.assertEqual(
+                result["workUnits"][1],
+                {
+                    "id": "z-backlog-unit",
+                    "lifecycleStatus": "backlog",
+                    "executionState": "not-initialized",
+                    "humanApprovalStatus": "not-recorded",
+                    "integrationResult": "not-integrated",
+                    "validationStatus": "valid",
+                },
+            )
+
+    def test_status_all_isolates_invalid_packages(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            create_package(root, "valid-unit")
+            broken = root / ".agent-factory" / "work-units" / "broken-unit"
+            broken.mkdir()
+
+            result = json.loads(
+                run_cli(
+                    "status",
+                    "--all",
+                    "--root",
+                    str(root / ".agent-factory" / "work-units"),
+                ).stdout
+            )
+
+            self.assertEqual(result["count"], 2)
+            self.assertEqual(result["validCount"], 1)
+            self.assertEqual(result["invalidCount"], 1)
+            invalid = result["workUnits"][0]
+            self.assertEqual(invalid["id"], "broken-unit")
+            self.assertEqual(invalid["validationStatus"], "invalid")
+            self.assertIsNone(invalid["lifecycleStatus"])
+            self.assertIsNone(invalid["executionState"])
+            self.assertIsNone(invalid["humanApprovalStatus"])
+            self.assertIsNone(invalid["integrationResult"])
+            self.assertIn("validationError", invalid)
+
+    def test_status_all_rejects_noncanonical_and_symlink_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            collection = root / ".agent-factory" / "work-units"
+            collection.mkdir(parents=True)
+            unrelated = root / "unrelated"
+            unrelated.mkdir()
+            rejected = run_cli("status", "--all", "--root", str(unrelated), check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn(
+                "collection must be <project-root>/.agent-factory/work-units",
+                rejected.stderr,
+            )
+            linked = root / "linked-work-units"
+            linked.symlink_to(collection, target_is_directory=True)
+            rejected = run_cli("status", "--all", "--root", str(linked), check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("must not be a symlink", rejected.stderr)
+
     def test_delete_valid_package_requires_exact_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/status-summary.json",
+      "mediaType": "application/json",
+      "description": "실제 repository status --all 집계 요약",
+      "sha256": "37f75fc7bd8c301df9b38f013817ca034fe1625e0c2d777d4a05137338cceed4",
+      "sizeBytes": 442
+    },
+    {
+      "path": "blocks/evidence/verification.txt",
+      "mediaType": "text/plain",
+      "description": "status --all TDD와 전체 검증 결과",
+      "sha256": "649a40e58ccc192a369e5e83cf94bc7807d15a17383f2ae2501658a881c5a564",
+      "sizeBytes": 1196
+    }
+  ]
 }
