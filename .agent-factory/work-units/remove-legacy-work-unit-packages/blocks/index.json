@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/delete-results.json",
+      "mediaType": "application/json",
+      "description": "11개 구형 Work Unit manager 삭제 결과",
+      "sha256": "55be262f90cc537b47d3ac7026504d425d32e2befad5a5374ea947776c3b085a",
+      "sizeBytes": 1378
+    },
+    {
+      "path": "blocks/evidence/verification.txt",
+      "mediaType": "text/plain",
+      "description": "삭제 전후 inventory와 범위 검증",
+      "sha256": "a2dcf656c295eebfff0101c730f8306f2a49497e25bb655c10e2e50500182c3d",
+      "sizeBytes": 714
+    }
+  ]
 }

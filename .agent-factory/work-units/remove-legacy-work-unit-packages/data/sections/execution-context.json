@@ -17,6 +17,38 @@
         "setupState": "not-prepared",
         "cleanupState": "not-requested"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "running",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "216e1b47554792ebc332946457b6f20409bdc3c1"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "e7768176-588e-466e-9deb-bcb87a7fbbd5",
+        "invocationChain": [
+          "e7768176-588e-466e-9deb-bcb87a7fbbd5"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [],
+          "pendingStep": null,
+          "lastVerifiedHead": "216e1b47554792ebc332946457b6f20409bdc3c1",
+          "checkpoints": [],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "e7768176-588e-466e-9deb-bcb87a7fbbd5",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

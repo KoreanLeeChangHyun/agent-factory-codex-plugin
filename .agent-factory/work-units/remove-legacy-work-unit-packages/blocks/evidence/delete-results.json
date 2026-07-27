@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "command": "python3 skills/work-unit-planner/assets/scripts/work_unit.py delete <package> --confirm-id <id> --allow-invalid",
+  "results": [
+    {"id": "agent-extension-goal-execution-integration", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "agent-factory-json-block-data-migration", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "agent-factory-skill-docs-json-block-contract", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "intake-json-package-and-viewer-design", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "vscode-extension-ui-structure-draft", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "work-unit-execution-context-sufficiency-research", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "work-unit-execution-skill-worktree-manager", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "work-unit-json-storage-format", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "work-unit-json-storage-format-v3", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "workspace-extension-four-tab-mvp", "operationResult": "deleted", "validation": "invalid"},
+    {"id": "workspace-extension-four-tab-mvp-design", "operationResult": "deleted", "validation": "invalid"}
+  ]
+}
