@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "삭제 대상은 canonical Work Unit collection 바로 아래의 exact id package로 제한된다.",
+        "confirm-id, artifact type, metadata id, symlink 및 root 경계가 mutation 전에 검증된다.",
+        "--allow-invalid는 validation 우회가 아니라 invalid package 삭제의 명시적 Human 경계로만 사용된다.",
+        "실패 시 unrelated package와 repository 파일을 변경하지 않는다.",
+        "변경이 Work Unit manager, tests 및 관련 문서로 제한된다."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

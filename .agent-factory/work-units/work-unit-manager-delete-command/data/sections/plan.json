@@ -1,0 +1,27 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "Plan: manager package resolution, transaction, symlink 및 filesystem deletion 경계를 점검한다."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Work: 실패 우선 테스트를 추가하고 valid package와 --allow-invalid package의 exact confirm-id 삭제를 최소 구현한다."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "AI Review: 경로 탈출, symlink, TOCTOU, confirmation mismatch, wrong artifact 및 partial deletion 거부를 검토한다."
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": "Report: 검증 증거와 Human checklist를 기록하고 결과 승인·integration·cleanup 결정을 Human에게 남긴다."
+    }
+  ],
+  "subsections": []
+}

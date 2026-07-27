@@ -1,0 +1,31 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "ready Intake work-unit-status-and-legacy-cleanup의 BASIS-001을 실행 기준으로 사용한다.",
+        "requirementRefs": [
+          "REQ-003",
+          "AC-002",
+          "AC-003",
+          "DECISION-001"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-status-and-legacy-cleanup",
+          "path": ".agent-factory/intakes/work-unit-status-and-legacy-cleanup",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

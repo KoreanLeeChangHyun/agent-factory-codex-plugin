@@ -1,0 +1,58 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "delete는 canonical Work Unit package root와 metadata id를 확인하고 exact confirm-id 일치 없이는 거부한다.",
+        "valid package는 기본 경로로 삭제할 수 있고 validation 실패 package는 --allow-invalid 없이는 거부한다.",
+        "symlink, root escape, wrong artifact, confirmation mismatch 및 불완전 삭제 위험을 mutation 전에 거부한다.",
+        "성공 결과는 삭제된 id, path, validation 상태와 operation result를 machine-readable JSON으로 반환한다."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "삭제 안전 경계 테스트가 구현 전에 실패하고 구현 후 통과한다.",
+        "focused manager tests, schema checks, py_compile, ruff 및 git diff --check가 통과한다.",
+        "문서, AI review, Human checklist 및 review method가 준비된다."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m pytest -q skills/work-unit-planner/tests/test_work_unit_manager.py",
+          "python3 skills/work-unit-planner/assets/scripts/work_unit.py check-schemas",
+          "python3 -m py_compile skills/work-unit-planner/assets/scripts/work_unit.py",
+          "ruff check skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py",
+          "ruff format --check skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-planner/tests/test_work_unit_manager.py",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "TDD red-green evidence",
+          "valid and invalid deletion fixtures",
+          "symlink and confirmation refusal fixtures",
+          "focused verification output",
+          "scoped diff review"
+        ]
+      },
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

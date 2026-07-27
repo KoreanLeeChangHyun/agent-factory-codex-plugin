@@ -1,0 +1,39 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": [
+        "valid package와 invalid/legacy package의 삭제 승인 경계가 분리되는지 확인합니다.",
+        "confirm-id 불일치, symlink, root escape와 wrong artifact fixture가 mutation 없이 거부되는지 확인합니다.",
+        "삭제 결과 JSON이 정확한 대상과 결과를 보고하는지 확인합니다.",
+        "변경 범위와 테스트 증거를 검토합니다."
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "구현 및 테스트 diff를 검토합니다.",
+          "focused manager test와 보안 경계 fixture 증거를 확인합니다.",
+          "구현 결과 approve, request-rework 또는 reject를 결정합니다.",
+          "integration과 cleanup은 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}
