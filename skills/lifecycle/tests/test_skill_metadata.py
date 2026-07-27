@@ -98,6 +98,36 @@ class SkillMetadataTests(unittest.TestCase):
                 prompt = interface["default_prompt"]
                 self.assertIn(f"${path.parents[1].name}", prompt)
 
+    def test_human_review_uses_contextual_yes_no_approval_prompts(self) -> None:
+        skill_path = SKILLS / "human-review" / "SKILL.md"
+        metadata_path = SKILLS / "human-review" / "agents" / "openai.yaml"
+        skill = skill_path.read_text(encoding="utf-8")
+        normalized_skill = " ".join(skill.split())
+        metadata = yaml.safe_load(metadata_path.read_text(encoding="utf-8"))
+        interface = metadata["interface"]
+
+        self.assertIn("## Approval-Only Prompts", skill)
+        self.assertIn("exactly two choices: `YES` and `NO`", normalized_skill)
+        self.assertIn("three-choice `A`/`B`/`C` interview flow", normalized_skill)
+        self.assertIn("not a fixed string allowlist", normalized_skill)
+        self.assertIn("non-exhaustive examples", normalized_skill)
+        for example in ("YES", "Y", "승인", "네", "진행", "ㄱㄱ"):
+            with self.subTest(example=example):
+                self.assertIn(f"`{example}`", skill)
+        for unsafe_response in ("negated", "deferred", "conditional", "ambiguous"):
+            with self.subTest(unsafe_response=unsafe_response):
+                self.assertIn(unsafe_response, normalized_skill)
+        self.assertIn(
+            "ask the Human again for an explicit `YES` or `NO`",
+            normalized_skill,
+        )
+
+        self.assertEqual(interface["display_name"], "Human Review Approval")
+        self.assertIn("approval", interface["short_description"].lower())
+        self.assertIn("$human-review", interface["default_prompt"])
+        self.assertIn("YES or NO", interface["default_prompt"])
+        self.assertIn("context", interface["default_prompt"].lower())
+
     def test_main_and_workflow_agent_roles_are_separated(self) -> None:
         main_agent = (SKILLS / "main-agent" / "SKILL.md").read_text(
             encoding="utf-8"

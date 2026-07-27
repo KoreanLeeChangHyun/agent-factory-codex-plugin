@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/final-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "보고서 갱신 후 첫 final worktree inspect raw JSON",
+      "sha256": "42cabf16a000dee48cc6043d737c9b530ebb0f1e10d5d0ac87a843a75a673274",
+      "sizeBytes": 1805
+    },
+    {
+      "path": "blocks/evidence/verification.txt",
+      "mediaType": "text/plain",
+      "description": "TDD red/green과 필수 검증 명령 결과",
+      "sha256": "1e8db31391d6d5b750ab8b3f70a9fe9476bd26d3e173b8dce065c23c644a0d1a",
+      "sizeBytes": 1372
+    }
+  ]
 }

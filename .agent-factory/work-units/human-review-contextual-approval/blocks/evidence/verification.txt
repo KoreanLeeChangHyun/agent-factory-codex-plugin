@@ -1,0 +1,44 @@
+Work Unit: human-review-contextual-approval
+
+TDD red
+Command: python3 -m unittest skills.lifecycle.tests.test_skill_metadata.SkillMetadataTests.test_human_review_uses_contextual_yes_no_approval_prompts
+Exit: 1
+Result: FAILED (failures=1)
+Failure: AssertionError: '## Approval-Only Prompts' not found
+
+TDD green
+Command: python3 -m unittest skills.lifecycle.tests.test_skill_metadata.SkillMetadataTests.test_human_review_uses_contextual_yes_no_approval_prompts
+Exit: 0
+Result:
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+OK
+
+Required verification
+Command: python3 -m unittest skills.lifecycle.tests.test_skill_metadata
+Exit: 0
+Result:
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.055s
+
+OK
+
+Command: python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/human-review
+Exit: 0
+Result: Skill is valid!
+
+Command: python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+Exit: 0
+Result: Plugin validation passed: /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/human-review-contextual-approval
+
+Command: git diff --check
+Exit: 0
+Result: no output
+
+Scoped implementation files:
+skills/human-review/SKILL.md
+skills/human-review/agents/openai.yaml
+skills/lifecycle/tests/test_skill_metadata.py
