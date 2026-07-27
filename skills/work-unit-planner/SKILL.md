@@ -70,6 +70,11 @@ recovering a Work Unit package.
   transactions from `.manager/transaction.json`.
 - Existing incompatible data need not be rewritten or accepted by v4. Never
   relabel incompatible storage as a conforming package.
+- Delete a package only through `work_unit.py delete <package> --confirm-id
+  <exact-id>`. A package that does not pass current full validation additionally
+  requires `--allow-invalid`. The manager verifies canonical or legacy package
+  identity, anchors traversal and removal to no-follow directory descriptors,
+  and refuses symlink, path, identity, confirmation, or replacement races.
 
 ## Required Sections
 
@@ -160,12 +165,12 @@ is invalid. TOC array order owns document order.
 
 ## Commands
 
-The manager supports schema checks, creation, focused/full display, title and
-metadata replacement, single/batch section item updates, optional section
-management, block registration/removal, execution initialization, attempt
-start/resume, Human-approved rework, integration receipt registration,
-validation, and lifecycle transitions. `execution-state` is manager-owned and
-cannot be replaced through generic section commands.
+The manager supports schema checks, creation, confirmed package deletion,
+focused/full display, title and metadata replacement, single/batch section item
+updates, optional section management, block registration/removal, execution
+initialization, attempt start/resume, Human-approved rework, integration receipt
+registration, validation, and lifecycle transitions. `execution-state` is
+manager-owned and cannot be replaced through generic section commands.
 Supply only typed semantic data arguments; the shared manager constructs and
 serializes JSON. Never compose JSON strings or temporary JSON value files. See
 `references/work-unit-structure.md` for exact examples and validation gates.

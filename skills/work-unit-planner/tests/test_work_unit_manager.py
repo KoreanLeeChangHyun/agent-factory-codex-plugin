@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -341,9 +345,188 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
-    def create_admission_repository(
-        self, root: Path
-    ) -> tuple[Path, Path, str]:
+    def test_delete_valid_package_requires_exact_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                "different-unit",
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertIn("confirmation id must equal", denied.stderr)
+            self.assertTrue(package.is_dir())
+
+            deleted = json.loads(
+                run_cli(
+                    "delete",
+                    str(package),
+                    "--confirm-id",
+                    package.name,
+                ).stdout
+            )
+            self.assertEqual(deleted["id"], package.name)
+            self.assertEqual(deleted["path"], str(package))
+            self.assertEqual(deleted["validation"], "valid")
+            self.assertEqual(deleted["operationResult"], "deleted")
+            self.assertFalse(package.exists())
+
+    def test_delete_invalid_legacy_package_requires_explicit_allowance(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = root / ".agent-factory" / "work-units" / "legacy-unit"
+            (package / "data").mkdir(parents=True)
+            (package / "data" / "work-unit.json").write_text(
+                json.dumps(
+                    {
+                        "id": package.name,
+                        "version": "3.0.0",
+                        "status": "review",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                package.name,
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertIn("requires --allow-invalid", denied.stderr)
+            self.assertTrue(package.is_dir())
+
+            deleted = json.loads(
+                run_cli(
+                    "delete",
+                    str(package),
+                    "--confirm-id",
+                    package.name,
+                    "--allow-invalid",
+                ).stdout
+            )
+            self.assertEqual(deleted["validation"], "invalid")
+            self.assertEqual(deleted["operationResult"], "deleted")
+            self.assertFalse(package.exists())
+
+    def test_delete_invalid_package_rejects_identity_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = root / ".agent-factory" / "work-units" / "legacy-unit"
+            (package / "data").mkdir(parents=True)
+            (package / "data" / "work-unit.json").write_text(
+                json.dumps(
+                    {
+                        "id": "different-unit",
+                        "version": "3.0.0",
+                        "status": "review",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                package.name,
+                "--allow-invalid",
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertIn("identity does not match", denied.stderr)
+            self.assertTrue(package.is_dir())
+
+    def test_delete_rejects_symlink_package_without_touching_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            collection = root / ".agent-factory" / "work-units"
+            collection.mkdir(parents=True)
+            target = root / "outside"
+            target.mkdir()
+            marker = target / "marker.txt"
+            marker.write_text("preserve", encoding="utf-8")
+            package = collection / "linked-unit"
+            os.symlink(target, package)
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                package.name,
+                "--allow-invalid",
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertIn("must not be a symlink", denied.stderr)
+            self.assertEqual(marker.read_text(encoding="utf-8"), "preserve")
+
+    def test_delete_rejects_package_swap_before_rename(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            moved = package.parent / "moved-unit"
+            spec = importlib.util.spec_from_file_location(
+                "work_unit_delete_race_test", SCRIPT
+            )
+            assert spec is not None and spec.loader is not None
+            manager = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(manager)
+            original_rename = os.rename
+            swapped = False
+
+            def swapping_rename(
+                source: str,
+                target: str,
+                *,
+                src_dir_fd: int | None = None,
+                dst_dir_fd: int | None = None,
+            ) -> None:
+                nonlocal swapped
+                if source == package.name and not swapped:
+                    swapped = True
+                    original_rename(
+                        source,
+                        moved.name,
+                        src_dir_fd=src_dir_fd,
+                        dst_dir_fd=dst_dir_fd,
+                    )
+                    os.mkdir(package.name, dir_fd=src_dir_fd)
+                    (package / "marker.txt").write_text(
+                        "preserve replacement", encoding="utf-8"
+                    )
+                original_rename(
+                    source,
+                    target,
+                    src_dir_fd=src_dir_fd,
+                    dst_dir_fd=dst_dir_fd,
+                )
+
+            with mock.patch.object(manager.os, "rename", side_effect=swapping_rename):
+                with self.assertRaisesRegex(
+                    manager.ManagerError, "changed during deletion"
+                ):
+                    manager.command_delete(
+                        SimpleNamespace(
+                            package=str(package),
+                            confirm_id=package.name,
+                            allow_invalid=False,
+                        )
+                    )
+
+            self.assertTrue(moved.is_dir())
+            self.assertEqual(
+                (package / "marker.txt").read_text(encoding="utf-8"),
+                "preserve replacement",
+            )
+
+    def create_admission_repository(self, root: Path) -> tuple[Path, Path, str]:
         subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True)
         subprocess.run(
             ["git", "config", "user.name", "Agent Factory Test"],
@@ -564,9 +747,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 check=True,
             )
 
-            payload = json.loads(
-                self.admit(root, package, worktree, checkpoint).stdout
-            )
+            payload = json.loads(self.admit(root, package, worktree, checkpoint).stdout)
 
             self.assertTrue(payload["admitted"])
             self.assertEqual(payload["baseRef"], "main")
@@ -599,9 +780,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            package, worktree, first_checkpoint = self.create_admission_repository(
-                root
-            )
+            package, worktree, first_checkpoint = self.create_admission_repository(root)
             missing_package_commit = subprocess.run(
                 ["git", "rev-parse", f"{first_checkpoint}^"],
                 cwd=root,
@@ -648,9 +827,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 missing_package_commit,
                 unreachable_commit,
             ):
-                result = self.admit(
-                    root, package, worktree, refused_base, check=False
-                )
+                result = self.admit(root, package, worktree, refused_base, check=False)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(
                     "requested base is not the latest Work Unit package checkpoint",
@@ -1873,7 +2050,9 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 run_cli("show", str(package), "--section", "execution-context").stdout
             )
             state = next(
-                entry for entry in shown["content"] if entry["kind"] == "execution-state"
+                entry
+                for entry in shown["content"]
+                if entry["kind"] == "execution-state"
             )["content"]
             self.assertEqual(state["currentRevision"], 1)
             self.assertEqual(state["currentAttempt"], 1)

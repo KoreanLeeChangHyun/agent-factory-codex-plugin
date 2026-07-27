@@ -202,6 +202,9 @@ python3 assets/scripts/work_unit.py check-schemas
 python3 assets/scripts/work_unit.py create \
   <project-root>/.agent-factory/work-units/<id> \
   --id <id> --title <title> --project-id <project-id> --theme default
+python3 assets/scripts/work_unit.py delete \
+  <project-root>/.agent-factory/work-units/<id> \
+  --confirm-id <id> [--allow-invalid]
 python3 assets/scripts/work_unit.py section-items-put <package> <section-id> \
   <typed-data-arguments>
 python3 assets/scripts/work_unit.py metadata-set <package> readiness \
@@ -239,6 +242,11 @@ python3 assets/scripts/work_unit.py rework-start <package> \
 Use `section-item-put` for one item and `section-items-put` for a batch.
 Use typed JSON Pointer data arguments; the manager owns JSON construction and
 serialization. Do not create JSON input files or pass JSON strings.
+`delete` permanently removes only the exact confirmed package. It requires
+`--allow-invalid` when full validation fails, still requires a matching
+canonical or legacy package id, and uses descriptor-relative no-follow
+traversal so a package-path replacement is refused instead of deleting the
+replacement.
 Use `show <package> --section <id>` for focused reads of large documents.
 Mutations are serialized per package, increment one patch revision, and use a
 recovery journal. Manual canonical edits are recovery-only exceptions and must
