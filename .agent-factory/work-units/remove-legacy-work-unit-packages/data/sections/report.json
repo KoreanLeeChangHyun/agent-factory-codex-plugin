@@ -32,6 +32,29 @@
           "blocks/evidence/verification.txt"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-78E4DC73B05D02D5",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/remove-legacy-work-unit-packages",
+        "sourceCommit": "6c8f58a4cc5831c200f79d461911e1fd6ca0897f",
+        "strategy": "ff-only",
+        "targetAfterCommit": "6c8f58a4cc5831c200f79d461911e1fd6ca0897f",
+        "targetBeforeCommit": "216e1b47554792ebc332946457b6f20409bdc3c1",
+        "targetBranch": "main",
+        "workUnitId": "remove-legacy-work-unit-packages",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-legacy-work-unit-packages",
+        "receiptSha256": "78e4dc73b05d02d58548b1a94e7fb66e4c3c4a26855d53c8b3b6ed60cbcef4cb"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/main-6c8f58a.json"
     }
   ],
   "subsections": []

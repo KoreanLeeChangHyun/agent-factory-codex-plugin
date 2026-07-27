@@ -1,0 +1,36 @@
+{
+  "command": "integrate",
+  "context": {
+    "humanDecision": "approved",
+    "operationResult": "fast-forwarded",
+    "relationship": "fast-forwardable",
+    "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+    "sourceBranch": "work-unit/remove-legacy-work-unit-packages",
+    "sourceCommit": "6c8f58a4cc5831c200f79d461911e1fd6ca0897f",
+    "strategy": "ff-only",
+    "targetAfterCommit": "6c8f58a4cc5831c200f79d461911e1fd6ca0897f",
+    "targetBeforeCommit": "216e1b47554792ebc332946457b6f20409bdc3c1",
+    "targetBranch": "main",
+    "workUnitId": "remove-legacy-work-unit-packages",
+    "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-legacy-work-unit-packages"
+  },
+  "error": null,
+  "ok": true,
+  "operations": [
+    {
+      "args": [
+        "git",
+        "-C",
+        "/home/deus/workspace/agent-factory/codex-plugins",
+        "merge",
+        "--ff-only",
+        "6c8f58a4cc5831c200f79d461911e1fd6ca0897f"
+      ],
+      "returnCode": 0,
+      "stderr": "",
+      "stdout": "Updating 216e1b4..6c8f58a\nFast-forward"
+    }
+  ],
+  "schemaVersion": "1.0.0",
+  "state": "integrated"
+}

@@ -13,6 +13,13 @@
       "description": "삭제 전후 inventory와 범위 검증",
       "sha256": "a2dcf656c295eebfff0101c730f8306f2a49497e25bb655c10e2e50500182c3d",
       "sizeBytes": 714
+    },
+    {
+      "path": "blocks/integration/main-6c8f58a.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "78e4dc73b05d02d58548b1a94e7fb66e4c3c4a26855d53c8b3b6ed60cbcef4cb",
+      "sizeBytes": 1162
     }
   ]
 }

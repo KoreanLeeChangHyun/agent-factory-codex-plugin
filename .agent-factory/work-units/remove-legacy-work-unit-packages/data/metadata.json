@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.28",
+  "documentVersion": "1.0.29",
   "id": "remove-legacy-work-unit-packages",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-27T16:33:51+00:00",
-  "updatedAt": "2026-07-27T16:44:38+00:00",
+  "updatedAt": "2026-07-27T16:47:18+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
