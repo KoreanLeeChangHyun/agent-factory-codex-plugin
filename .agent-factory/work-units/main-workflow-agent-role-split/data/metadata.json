@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.71",
+  "documentVersion": "1.0.72",
   "id": "main-workflow-agent-role-split",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugins",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-27T13:21:21+00:00",
-  "updatedAt": "2026-07-27T15:21:50+00:00",
+  "updatedAt": "2026-07-27T15:28:43+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

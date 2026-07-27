@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/evidence/integration-main.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "b4a0478734c9164304a186adf0a3a5ce662e357b14895940c510a0d1ce5a65bc",
+      "sizeBytes": 733
+    },
+    {
       "path": "blocks/evidence/rework-revision-2-tdd.txt",
       "mediaType": "text/plain",
       "description": "Revision 2 manager-show boundary TDD red and green evidence",

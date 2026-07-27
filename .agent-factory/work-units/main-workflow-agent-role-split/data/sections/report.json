@@ -42,6 +42,29 @@
           "blocks/evidence/rework-revision-3-final-worktree-inspect.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-B4A0478734C91643",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "already-merged",
+        "relationship": "already-merged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/main-workflow-agent-role-split",
+        "sourceCommit": "223340b8bc70ccba01ceb8ddafd03ac90cc58b3f",
+        "strategy": "no-ff",
+        "targetAfterCommit": "736fcc3f39b39d991386a3fc1d537745fde1ec7c",
+        "targetBeforeCommit": "736fcc3f39b39d991386a3fc1d537745fde1ec7c",
+        "targetBranch": "main",
+        "workUnitId": "main-workflow-agent-role-split",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/main-workflow-agent-role-split",
+        "receiptSha256": "b4a0478734c9164304a186adf0a3a5ce662e357b14895940c510a0d1ce5a65bc"
+      },
+      "attributes": {
+        "status": "already-merged"
+      },
+      "blockRef": "blocks/evidence/integration-main.json"
     }
   ],
   "subsections": []
