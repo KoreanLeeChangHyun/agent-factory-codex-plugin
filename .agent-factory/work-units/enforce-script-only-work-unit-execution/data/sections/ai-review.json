@@ -1,0 +1,35 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECK-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "Main Agent가 script invocation 이외의 Execution 작업을 소유하지 않는다.",
+          "Workflow Agent가 launcher-established matching Goal 없는 직접 실행을 인정하지 않는다.",
+          "lifecycle과 reference에서 raw codex exec 및 대화형 직접 Execution 허용 경로가 제거된다.",
+          "launcher가 Goal 확인 전 turn을 시작하지 않는 기존 fail-closed protocol을 보존한다.",
+          "향후 Kanban은 동일 launcher 경계의 caller로만 기록되고 UI 또는 별도 runtime은 구현하지 않는다.",
+          "hook과 별도 우회 경로가 추가되지 않는다.",
+          "Human 승인, rework, integration, cleanup과 promotion 경계가 유지된다."
+        ]
+      }
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

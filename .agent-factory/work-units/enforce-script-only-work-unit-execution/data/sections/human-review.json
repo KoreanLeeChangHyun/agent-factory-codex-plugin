@@ -1,0 +1,44 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "Main Agent가 app_server_goal.py를 실행만 하고 구현·검증·AI Review·Report를 직접 수행하지 않는지 확인합니다.",
+          "Workflow Agent가 script-established Goal-bound turn에서만 실행되도록 계약과 테스트를 확인합니다.",
+          "raw codex exec와 대화형 /goal 직접 Execution 허용 경로가 남아 있지 않은지 확인합니다.",
+          "향후 Kanban이 동일 launcher 경계를 재사용하도록 기록됐고 Kanban 구현은 포함되지 않았는지 확인합니다.",
+          "hook이 추가되지 않았고 기존 Human 승인 경계가 유지되는지 확인합니다.",
+          "Project Core와 검증 증거가 변경 내용과 일치하는지 확인합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "main-agent, workflow-agent, lifecycle과 work-unit-execution diff를 검토합니다.",
+          "launcher와 skill metadata 집중 테스트의 red-green 증거를 확인합니다.",
+          "Project Core 변경과 full validation 결과를 확인합니다.",
+          "구현 결과 승인 또는 rework를 결정합니다.",
+          "main integration과 linked worktree cleanup은 각각 별도로 결정합니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}
