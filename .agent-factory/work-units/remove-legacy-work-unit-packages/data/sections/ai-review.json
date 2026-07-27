@@ -16,13 +16,24 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "pass",
+        "summary": "승인된 v2/v3 package 11개만 manager 명령으로 제거됐고 제외 대상과 기타 package는 보존됐다.",
         "findings": []
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "e7768176-588e-466e-9deb-bcb87a7fbbd5",
+          "headCommit": "216e1b47554792ebc332946457b6f20409bdc3c1",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/delete-results.json",
+          "blocks/evidence/verification.txt"
+        ]
       }
     }
   ],

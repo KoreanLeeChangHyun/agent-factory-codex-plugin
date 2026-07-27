@@ -6,10 +6,11 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "completed",
+        "summary": "승인된 구형 Work Unit package 11개 삭제 및 범위 검증을 완료했다.",
         "remainingRisks": [
-          "실제 삭제, 검증, Human 승인, integration 및 cleanup이 남아 있다."
+          "main integration 전에는 삭제가 실행 브랜치에만 존재한다.",
+          "Human 승인 후 integration과 linked worktree cleanup이 남아 있다."
         ],
         "unresolvedHumanDecisions": [
           "삭제 결과 승인 또는 rework",
@@ -18,8 +19,18 @@
         ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "e7768176-588e-466e-9deb-bcb87a7fbbd5",
+          "headCommit": "216e1b47554792ebc332946457b6f20409bdc3c1",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/delete-results.json",
+          "blocks/evidence/verification.txt"
+        ]
       }
     }
   ],

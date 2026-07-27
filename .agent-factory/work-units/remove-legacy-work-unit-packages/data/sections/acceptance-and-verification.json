@@ -41,17 +41,27 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "pre-delete inventory",
-          "11 manager delete JSON results",
-          "post-delete inventory",
-          "scoped diff review"
+        "status": "pass",
+        "results": [
+          "11 of 11 manager deletions succeeded.",
+          "All approved targets are absent.",
+          "Both excluded v4 packages remain present.",
+          "Scoped package-root diff and git diff --check passed."
         ]
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "e7768176-588e-466e-9deb-bcb87a7fbbd5",
+          "headCommit": "216e1b47554792ebc332946457b6f20409bdc3c1",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/delete-results.json",
+          "blocks/evidence/verification.txt"
+        ]
       }
     }
   ],
