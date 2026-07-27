@@ -166,11 +166,14 @@ is invalid. TOC array order owns document order.
 ## Commands
 
 The manager supports schema checks, creation, confirmed package deletion,
-focused/full display, title and metadata replacement, single/batch section item
-updates, optional section management, block registration/removal, execution
-initialization, attempt start/resume, Human-approved rework, integration receipt
-registration, validation, and lifecycle transitions. `execution-state` is
-manager-owned and cannot be replaced through generic section commands.
+aggregate `status --all` reads, focused/full display, title and metadata
+replacement, single/batch section item updates, optional section management,
+block registration/removal, execution initialization, attempt start/resume,
+Human-approved rework, integration receipt registration, validation, and
+lifecycle transitions. `status --all` returns stable id-sorted rows and
+isolates an invalid package as an error row instead of failing the collection
+read. `execution-state` is manager-owned and cannot be replaced through generic
+section commands.
 Supply only typed semantic data arguments; the shared manager constructs and
 serializes JSON. Never compose JSON strings or temporary JSON value files. See
 `references/work-unit-structure.md` for exact examples and validation gates.
