@@ -1,0 +1,57 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "statement": "단일 agent-factory 플러그인에 primary lifecycle 관리용 main-agent 역할 스킬과 Goal 기반 Work Unit Execution/Rework용 workflow-agent 역할 스킬을 구현한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/main-agent/SKILL.md와 agents/openai.yaml 추가",
+          "skills/workflow-agent/SKILL.md와 agents/openai.yaml 추가",
+          "main-agent가 프로그램 방식 Work Unit Execution과 Human-approved Rework를 app_server_goal.py로 위임하는 계약",
+          "app_server_goal.py의 실행 turn이 workflow-agent 역할을 사용하도록 하는 명시적 prompt",
+          "workflow-agent가 Goal preflight, Work Unit Execution, AI Review, Report만 소유하는 계약",
+          "lifecycle 및 work-unit-execution 라우팅 정합화",
+          "역할 경계, launcher prompt, skill metadata와 plugin 구조 집중 테스트"
+        ]
+      }
+    },
+    {
+      "id": "OUT-OF-SCOPE-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "두 개의 독립 플러그인",
+          "프로젝트 .codex/agents TOML 생성",
+          "raw codex exec를 Goal 활성화 증거로 인정",
+          "app-server Goal RPC 프로토콜 재구현",
+          "Intake 또는 Work Unit manager ownership 변경",
+          "Human 승인, merge, cleanup, push 또는 PR promotion 자동화",
+          "무관한 스킬 책임 변경"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "artifacts": [
+          "main-agent 역할 스킬과 UI metadata",
+          "workflow-agent 역할 스킬과 UI metadata",
+          "Goal launcher에서 workflow-agent를 호출하는 실행 prompt",
+          "관련 lifecycle과 execution routing 문서",
+          "역할 경계 및 plugin 검증 테스트 결과"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

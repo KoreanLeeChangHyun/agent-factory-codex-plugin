@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "main-workflow-agent-role-split",
+        "objective": "단일 agent-factory 플러그인에서 메인 lifecycle 역할과 Goal 기반 Work Unit Execution/Rework 역할을 분리한다.",
+        "execInvocation": "python3 skills/work-unit-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id main-workflow-agent-role-split",
+        "executionAgent": "Codex app-server workflow-agent role",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/main-workflow-agent-role-split",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/main-workflow-agent-role-split",
+        "setupState": "pending",
+        "cleanupState": "pending-human-decision"
+      }
+    }
+  ],
+  "subsections": []
+}

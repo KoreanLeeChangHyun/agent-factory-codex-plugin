@@ -1,0 +1,82 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "main-agent는 단순 질문, Intake, Work Unit 관리와 Execution/Rework 결과 확인을 소유하고 Work Unit 구현을 primary thread에서 직접 수행하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPT-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "프로그램 방식 Execution과 Human-approved Rework는 app_server_goal.py를 통해 동일 thread Goal이 검증된 뒤 workflow-agent 역할의 execution turn으로 시작된다."
+      }
+    },
+    {
+      "id": "ACCEPT-003",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "workflow-agent는 활성 Goal과 일치하는 named Work Unit의 Plan, Work, AI Review, Report 및 승인된 Rework만 수행하고 Intake 결정, Human 승인, merge, cleanup, push 또는 PR promotion을 소유하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPT-004",
+      "kind": "acceptance-criterion",
+      "content": {
+        "statement": "기존 app-server Goal set/get/update 검증 및 turn/start fail-closed 순서와 기존 Work Unit execution contract가 보존된다."
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "두 신규 스킬이 skill-creator 검증을 통과한다.",
+          "app_server_goal.py prompt가 workflow-agent 역할 사용을 명시한다.",
+          "역할 경계와 routing을 검증하는 테스트가 통과한다.",
+          "기존 work-unit-execution 및 lifecycle 회귀 테스트가 통과한다.",
+          "plugin-creator validator와 git diff --check가 통과한다.",
+          "AI Review와 Human 검토 자료가 준비된다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/main-agent",
+          "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/workflow-agent",
+          "python3 skills/work-unit-execution/tests/test_app_server_goal.py",
+          "python3 skills/work-unit-execution/tests/test_worktree.py",
+          "python3 -m unittest skills.lifecycle.tests.test_skill_metadata",
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+          "git diff --check"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "pending",
+        "requiredEvidence": [
+          "TDD red/green 결과",
+          "새 스킬 quick validation",
+          "Goal launcher와 lifecycle 회귀 테스트",
+          "plugin validator 결과",
+          "final worktree inspect JSON"
+        ]
+      },
+      "attributes": {
+        "status": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,27 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Report 대기",
+        "specificationResult": "Project Core aligned; 변경 없음",
+        "unresolvedHumanDecisions": [
+          "구현 결과 approve 또는 rework",
+          "main 병합 여부",
+          "linked worktree cleanup 여부"
+        ],
+        "verification": [],
+        "remainingRisks": []
+      },
+      "attributes": {
+        "verificationResult": "pending",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}
