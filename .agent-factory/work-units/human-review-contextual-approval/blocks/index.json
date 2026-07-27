@@ -8,6 +8,13 @@
       "sizeBytes": 1805
     },
     {
+      "path": "blocks/evidence/integration-main.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "c155d359fd7a6ea6f09d7d44d00a206971ff881a787583d27d84e758b3b66d2c",
+      "sizeBytes": 739
+    },
+    {
       "path": "blocks/evidence/verification.txt",
       "mediaType": "text/plain",
       "description": "TDD red/green과 필수 검증 명령 결과",

@@ -43,6 +43,29 @@
           "blocks/evidence/final-worktree-inspect.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-C155D359FD7A6EA6",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "already-merged",
+        "relationship": "already-merged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/human-review-contextual-approval",
+        "sourceCommit": "b68830cf7406c1de1f820d62c62c81e4976b7231",
+        "strategy": "no-ff",
+        "targetAfterCommit": "5781f9a2867025625a66555d8076fac25c0938c6",
+        "targetBeforeCommit": "5781f9a2867025625a66555d8076fac25c0938c6",
+        "targetBranch": "main",
+        "workUnitId": "human-review-contextual-approval",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/human-review-contextual-approval",
+        "receiptSha256": "c155d359fd7a6ea6f09d7d44d00a206971ff881a787583d27d84e758b3b66d2c"
+      },
+      "attributes": {
+        "status": "already-merged"
+      },
+      "blockRef": "blocks/evidence/integration-main.json"
     }
   ],
   "subsections": []
