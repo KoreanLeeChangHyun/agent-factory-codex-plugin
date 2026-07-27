@@ -28,7 +28,7 @@
       "id": "BASIS-002",
       "kind": "work-unit-basis",
       "content": {
-        "goal": "Human이 승인한 구형·손상 Work Unit package 13개를 manager delete 명령으로 제거한다.",
+        "goal": "Human이 승인한 schema v2/v3 과거 Work Unit package 11개를 manager delete 명령으로 제거한다.",
         "executionOrder": 2,
         "targets": [
           "agent-extension-goal-execution-integration",
@@ -41,9 +41,7 @@
           "work-unit-json-storage-format",
           "work-unit-json-storage-format-v3",
           "workspace-extension-four-tab-mvp",
-          "workspace-extension-four-tab-mvp-design",
-          "fact-only-agent-rule-responsibility-refactor",
-          "main-workflow-agent-role-split"
+          "workspace-extension-four-tab-mvp-design"
         ],
         "dependsOn": [
           "BASIS-001"

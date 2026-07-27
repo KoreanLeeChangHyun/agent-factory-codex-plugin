@@ -10,7 +10,7 @@
     {
       "id": "REQ-002",
       "kind": "requirement",
-      "content": "모든 구형·손상 Work Unit 패키지를 제거한다."
+      "content": "schema v2/v3 Work Unit package 11개를 exact confirm-id와 --allow-invalid를 사용해 제거한다."
     },
     {
       "id": "AC-001",

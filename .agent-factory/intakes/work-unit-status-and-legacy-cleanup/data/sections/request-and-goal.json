@@ -18,6 +18,13 @@
       "id": "SUCCESS-001",
       "kind": "success-criterion",
       "content": "정식 패키지 상태를 한 번의 명령으로 조회하고 구형·손상 패키지가 남지 않는다."
+    },
+    {
+      "id": "REQUEST-002",
+      "kind": "human-request",
+      "content": {
+        "request": "schema v2/v3 과거 Work Unit 11개를 즉시 제거하고 전체 Work Unit 조회 status --all을 빠르게 구현한다."
+      }
     }
   ],
   "subsections": []
