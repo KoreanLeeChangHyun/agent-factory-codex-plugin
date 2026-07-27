@@ -17,13 +17,24 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution has not started.",
+        "status": "pass",
+        "summary": "필수 다섯 상태 필드, 안정 정렬, full validation, 손상 package 오류 격리와 root 경계가 구현·검증됐다.",
         "findings": []
       },
       "attributes": {
-        "result": "pending",
-        "checklistResult": "pending"
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "ce97e732-fda8-42a6-aa50-31ffae6354b4",
+          "headCommit": "09caa5fe418eedbf41d644a2a4d47a577c35d672",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/status-summary.json",
+          "blocks/evidence/verification.txt"
+        ]
       }
     }
   ],

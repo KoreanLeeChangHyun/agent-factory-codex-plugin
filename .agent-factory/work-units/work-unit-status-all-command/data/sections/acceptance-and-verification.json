@@ -42,18 +42,28 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "planned",
-        "requiredEvidence": [
-          "TDD red-green output",
-          "valid, incomplete, and invalid package fixtures",
-          "real repository aggregate output",
-          "full regression and static checks",
-          "scoped diff review"
+        "status": "pass",
+        "results": [
+          "TDD red confirmed the command was absent.",
+          "Focused status tests passed.",
+          "Full manager regression passed 34 tests.",
+          "Real 25-package aggregate completed in 1.73 seconds.",
+          "Schema, compile, lint, format, and diff checks passed."
         ]
       },
       "attributes": {
-        "status": "planned",
-        "evidence": []
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "ce97e732-fda8-42a6-aa50-31ffae6354b4",
+          "headCommit": "09caa5fe418eedbf41d644a2a4d47a577c35d672",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/status-summary.json",
+          "blocks/evidence/verification.txt"
+        ]
       }
     }
   ],

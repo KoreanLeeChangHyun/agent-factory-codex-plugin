@@ -23,7 +23,7 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "1.0.0",
-        "state": "running",
+        "state": "review",
         "subject": {
           "algorithm": "gitCommit",
           "digest": "09caa5fe418eedbf41d644a2a4d47a577c35d672"
@@ -36,10 +36,25 @@
         ],
         "history": [],
         "progress": {
-          "completedSteps": [],
+          "completedSteps": [
+            "verification"
+          ],
           "pendingStep": null,
-          "lastVerifiedHead": "09caa5fe418eedbf41d644a2a4d47a577c35d672",
-          "checkpoints": [],
+          "lastVerifiedHead": "088769691e75f1c5f2e926b5c9471dd348f6be7c",
+          "checkpoints": [
+            {
+              "stepId": "verification",
+              "state": "pending",
+              "headCommit": "088769691e75f1c5f2e926b5c9471dd348f6be7c",
+              "idempotencyKey": "work-unit-status-all-command:verification:pending:v1"
+            },
+            {
+              "stepId": "verification",
+              "state": "completed",
+              "headCommit": "088769691e75f1c5f2e926b5c9471dd348f6be7c",
+              "idempotencyKey": "work-unit-status-all-command:verification:completed:v1"
+            }
+          ],
           "retry": {}
         },
         "recovery": {

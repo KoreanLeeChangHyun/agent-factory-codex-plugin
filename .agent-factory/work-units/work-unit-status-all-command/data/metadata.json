@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.13",
+  "documentVersion": "1.0.22",
   "id": "work-unit-status-all-command",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "working"
+    "status": "review"
   },
   "createdAt": "2026-07-27T16:49:48+00:00",
-  "updatedAt": "2026-07-27T16:53:50+00:00",
+  "updatedAt": "2026-07-27T17:05:16+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
