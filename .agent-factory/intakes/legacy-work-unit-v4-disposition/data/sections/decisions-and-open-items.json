@@ -18,6 +18,15 @@
         "status": "none",
         "items": []
       }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "세 관리자에 패키지 수준 CRUD를 완성하고, 정상 패키지는 확인 ID로 삭제하며 손상·구형 패키지는 --allow-invalid와 확인 ID를 함께 요구해 영구 삭제한다.",
+        "basis": "Human request for complete CRUD and Human answer B"
+      }
     }
   ],
   "subsections": []

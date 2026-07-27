@@ -40,6 +40,23 @@
           "기존 마이그레이션 Intake 일부는 누락된 disposition audit typed reference 때문에 현재 full validation이 실패한다."
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "패키지 전체 삭제 방식을 어떤 계약으로 정할 것인가?",
+        "choiceA": "검증 가능한 정상 패키지만 확인 ID로 영구 삭제",
+        "choiceB": "정상 패키지는 확인 ID로, 손상·구형 패키지는 --allow-invalid와 확인 ID로 영구 삭제",
+        "choiceC": "패키지를 .agent-factory/trash로 원자적 이동",
+        "recommendation": "B",
+        "rationale": "유효하지 않은 패키지도 관리자 경로로 처리하면서 위험한 삭제를 명시적으로 분리한다.",
+        "answer": "B",
+        "decisionState": "accepted"
+      },
+      "attributes": {
+        "status": "accepted"
+      }
     }
   ],
   "subsections": []

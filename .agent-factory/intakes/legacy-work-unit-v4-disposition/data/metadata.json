@@ -1,15 +1,15 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.26",
+  "documentVersion": "1.0.29",
   "id": "legacy-work-unit-v4-disposition",
   "artifactType": "intake",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "intake",
-    "status": "ready"
+    "status": "draft"
   },
   "createdAt": "2026-07-26T18:52:17+00:00",
-  "updatedAt": "2026-07-26T18:53:06+00:00",
+  "updatedAt": "2026-07-26T20:01:59+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,12 +19,12 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-07-27T03:52:50+09:00",
+    "reviewedAt": null,
     "contractValid": true,
-    "evidenceComplete": true,
-    "requirementsComplete": true,
-    "specificationConsistent": true,
-    "executionReady": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
     "findings": []
   }
 }
