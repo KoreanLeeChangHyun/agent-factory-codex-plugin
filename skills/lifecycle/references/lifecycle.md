@@ -194,6 +194,14 @@ Use this resolution flow:
   flight, but the Goal thread id, objective, and active status must match at
   every Goal boundary. Do not read private Codex SQLite state or accept a
   model-authored receipt as Goal proof.
+- Keep the Human-facing `main-agent` in the primary lifecycle thread for
+  questions, Intake, Work Unit management, launcher delegation, and result
+  follow-up. Start the execution turn with the explicit `$workflow-agent`
+  role; do not perform the named Work Unit implementation in the primary
+  thread.
+- Use `workflow-agent` only for the Goal-matched Plan -> Work -> AI Review ->
+  Report sequence or manager-approved planned Rework. It does not own Intake,
+  Human approval, merge, cleanup, push, or PR promotion.
 - Work in Korean for planning, progress updates, review summaries, reports, and
   other Human-readable communication during this project's named Work Unit Goal
   execution. Keep commands, file paths, identifiers, code, API names, package

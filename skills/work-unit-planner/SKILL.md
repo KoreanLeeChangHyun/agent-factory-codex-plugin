@@ -108,8 +108,9 @@ is invalid. TOC array order owns document order.
 - `execution-init` binds revision 1 to the inspected Git head. `attempt-start`
   starts attempt 1 or archives the previous attempt before a same-revision
   retry. `attempt-resume` appends a Codex session id to the current invocation
-  chain without creating an attempt. Human-approved `rework-start` archives the
-  current attempt, increments revision, clears attempt identity, and
+  chain without creating an attempt. Human-approved `rework-start` requires
+  and stores the exact Human Rework instruction, archives the current attempt,
+  increments revision, clears attempt identity, and
   invalidates current execution, quality, AI review, report, and Human review
   results in one transaction.
 - `admit` is the machine-readable initial execution gate. It full-validates the

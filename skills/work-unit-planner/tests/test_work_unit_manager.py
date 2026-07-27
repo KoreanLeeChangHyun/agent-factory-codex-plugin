@@ -1172,11 +1172,22 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     *data_value(root, f"replace-{section_id}.json", replacement),
                 )
             run_cli("transition", str(package), "review")
+            missing = run_cli(
+                "rework-start",
+                str(package),
+                "--human-decision",
+                "approved",
+                check=False,
+            )
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertIn("requires --instruction", missing.stderr)
             run_cli(
                 "rework-start",
                 str(package),
                 "--human-decision",
                 "approved",
+                "--instruction",
+                "Commit the implementation and rebind all evidence to that commit.",
             )
             rework_head = self.advance_prepared_worktree(package, "rework head")
             run_cli(
@@ -1198,6 +1209,10 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             )["content"]
             self.assertEqual(state["currentRevision"], 2)
             self.assertEqual(state["currentAttempt"], 1)
+            self.assertEqual(
+                state["reworkInstruction"],
+                "Commit the implementation and rebind all evidence to that commit.",
+            )
             self.assertEqual(len(state["history"]), 1)
             self.assertEqual(
                 state["history"][0]["outcomes"]["report-result"]["attributes"][

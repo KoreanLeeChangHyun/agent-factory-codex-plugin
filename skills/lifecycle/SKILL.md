@@ -134,6 +134,12 @@ Use these routes:
 
 ## Skill Routing
 
+- Use `main-agent` as the Human-facing primary lifecycle role for ordinary
+  questions, Intake, Work Unit management, programmatic execution delegation,
+  and execution-result follow-up. It must not implement a named Work Unit in
+  the primary thread.
+- Use `workflow-agent` only in a Goal-bound execution turn for the named Work
+  Unit's Plan -> Work -> AI Review -> Report or manager-approved Rework.
 - Use `fact-only` for all Agent Factory lifecycle work.
 - Use `intake` for every Intake package, the five Intake-related skill domains, its manager
   validation loop, and readiness handoff to `work-unit-planner`.
@@ -219,7 +225,8 @@ Use these routes:
   `thread/goal/set` and `thread/goal/get`, verifies the matching Goal update
   notification, and sends `turn/start` only after the Goal is active. It must
   fail closed without starting a turn when any protocol evidence is absent or
-  inconsistent.
+  inconsistent. Its execution turn explicitly invokes `workflow-agent`; the
+  primary `main-agent` delegates this work instead of implementing it directly.
 - For named Work Unit Goal execution in this project, work in Korean for
   planning, progress updates, review summaries, reports, and other
   Human-readable communication. Keep commands, file paths, identifiers, code,

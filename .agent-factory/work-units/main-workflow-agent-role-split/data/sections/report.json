@@ -6,21 +6,65 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Report 대기",
+        "status": "complete",
+        "summary": "Human-approved revision 3에서 전체 Work Unit 범위 변경을 재검토하고 검증했으며, 최종 구현 커밋 f5089e13f73e4a12a5c5af1e6f011e3b0314927c를 work-unit/main-workflow-agent-role-split에 의도적으로 기록했다. manager-owned executionTarget은 attempt 시작 입력 subject 1cc301da74563c8758eddf659de2cad13e3ae1dc로 보존했다.",
         "specificationResult": "Project Core aligned; 변경 없음",
         "unresolvedHumanDecisions": [
           "구현 결과 approve 또는 rework",
           "main 병합 여부",
           "linked worktree cleanup 여부"
         ],
-        "verification": [],
-        "remainingRisks": []
+        "verification": [
+          "main-agent와 workflow-agent quick validation 통과",
+          "app_server_goal.py 12 tests 통과",
+          "worktree.py 36 tests 통과",
+          "work_unit.py manager 26 tests 통과",
+          "lifecycle metadata 6 tests 통과",
+          "plugin validator, py_compile, git diff --check 통과",
+          "final registered worktree inspection headCommit f5089e13f73e4a12a5c5af1e6f011e3b0314927c",
+          "evidence registration delta는 blocks/index.json, metadata, acceptance-and-verification, report와 새 final inspect block에 한정됨"
+        ],
+        "remainingRisks": [
+          "Human review와 별도 merge 및 cleanup 결정은 아직 수행되지 않았다."
+        ]
       },
       "attributes": {
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "invocationId": "019fa412-fcee-7d53-ac09-bac9df21a311",
+          "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+          "revision": 3,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/rework-revision-3-verification.txt",
+          "blocks/evidence/rework-revision-3-final-worktree-inspect.json"
+        ]
       }
+    },
+    {
+      "id": "INTEGRATION-B4A0478734C91643",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "already-merged",
+        "relationship": "already-merged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/main-workflow-agent-role-split",
+        "sourceCommit": "223340b8bc70ccba01ceb8ddafd03ac90cc58b3f",
+        "strategy": "no-ff",
+        "targetAfterCommit": "736fcc3f39b39d991386a3fc1d537745fde1ec7c",
+        "targetBeforeCommit": "736fcc3f39b39d991386a3fc1d537745fde1ec7c",
+        "targetBranch": "main",
+        "workUnitId": "main-workflow-agent-role-split",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/main-workflow-agent-role-split",
+        "receiptSha256": "b4a0478734c9164304a186adf0a3a5ce662e357b14895940c510a0d1ce5a65bc"
+      },
+      "attributes": {
+        "status": "already-merged"
+      },
+      "blockRef": "blocks/evidence/integration-main.json"
     }
   ],
   "subsections": []

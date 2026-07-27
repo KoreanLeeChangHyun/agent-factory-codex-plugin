@@ -40,11 +40,13 @@ its JSON result.
    or fails, or another unfinished Goal conflicts, fail closed. A fresh
    `codex exec` process or prompt is only a bootstrap and is not proof of an
    active Goal.
-   Programmatic callers use `scripts/app_server_goal.py`. It performs the
+   Programmatic callers and the primary `main-agent` use
+   `scripts/app_server_goal.py`. It performs the
    app-server `initialize` handshake, starts a thread, sets and reads back the
    matching Goal through `thread/goal/set` and `thread/goal/get`, requires the
    matching `thread/goal/updated` notification, and sends `turn/start` only
    after all three Goal results agree on thread, objective, and active status.
+   The started turn explicitly invokes `$workflow-agent`.
    Do not substitute a model-authored receipt or private Codex SQLite state for
    this protocol evidence.
 3. Resolve the repository, base ref, and Work Unit id. Derive the branch as
@@ -138,9 +140,13 @@ or clean up a worktree that Git already registers outside the canonical root.
   worktrees, filesystem path, branch ownership, repository ownership, and dirty
   state before the relevant mutation.
 - The app-server launcher performs only read-only Work Unit validation before
-  Goal confirmation. It refuses RPC errors, a missing or mismatched Goal,
-  invalid JSON, EOF, timeout, and non-completed execution turns, and always
-  closes the child process and its pipes.
+  Goal confirmation. It admits a fully valid `ready` initial execution or the
+  manager-owned `working` + `planned` state produced by Human-approved Rework.
+  Planned Rework must carry the exact manager-owned Human instruction, which
+  the launcher includes in the workflow-agent turn. It refuses other lifecycle
+  or attempt states, missing Rework instructions, RPC errors, a missing or
+  mismatched Goal, invalid JSON, EOF, timeout, and non-completed execution turns,
+  and always closes the child process and its pipes.
 - Create with `git worktree add --lock ... -b`; do not reset an existing branch.
 - Create new linked worktrees only under the canonical repository-local root.
   The target repository must ignore `/.agent-factory/worktree/` so nested
@@ -171,8 +177,9 @@ or clean up a worktree that Git already registers outside the canonical root.
 - `lifecycle` routes named Work Unit Goal Execution through
   this skill.
 - Programmatic callers and Agent extensions use `app_server_goal.py` for Goal
-  admission and execution startup. Execution Agents use `worktree.py` for Git
-  orchestration after their Goal preflight. Callers record both script results
+  admission and execution startup. The primary `main-agent` delegates through
+  that launcher, and the launched `workflow-agent` uses `worktree.py` for Git
+  orchestration after its Goal preflight. Callers record both script results
   instead of implementing either boundary again.
 
 ## Reporting

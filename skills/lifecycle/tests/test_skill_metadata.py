@@ -128,6 +128,30 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("YES or NO", interface["default_prompt"])
         self.assertIn("context", interface["default_prompt"].lower())
 
+    def test_main_and_workflow_agent_roles_are_separated(self) -> None:
+        main_agent = (SKILLS / "main-agent" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        workflow_agent = (SKILLS / "workflow-agent" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("primary lifecycle", main_agent)
+        self.assertIn("app_server_goal.py", main_agent)
+        self.assertIn("must not execute Work Unit implementation", main_agent)
+        self.assertIn("Goal preflight", workflow_agent)
+        self.assertIn("Plan -> Work -> AI Review -> Report", workflow_agent)
+        for excluded in (
+            "Intake decisions",
+            "Human approval",
+            "merge",
+            "cleanup",
+            "push",
+            "PR promotion",
+        ):
+            with self.subTest(excluded=excluded):
+                self.assertIn(excluded, workflow_agent)
+
     def test_plugin_manifest_routes_to_all_skills_with_valid_starter_prompts(
         self,
     ) -> None:
