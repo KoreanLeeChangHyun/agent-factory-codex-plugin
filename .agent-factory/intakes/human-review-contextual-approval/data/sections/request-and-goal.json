@@ -1,0 +1,33 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "승인 전용 프롬프트는 인터뷰와 구분하고 YES 또는 NO 두 가지 선택지만 제공한다."
+    },
+    {
+      "id": "FEEDBACK-001",
+      "kind": "human-feedback",
+      "content": "승인 응답은 YES, Y, 승인, 네, 진행, ㄱㄱ 같은 예시의 고정 목록이 아니라 대화 문맥을 보고 판단한다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": "human-review가 승인 전용 프롬프트와 문맥상 명확한 승인 의도 판별 규칙을 소유하고, 구조화된 인터뷰 규칙과 혼동되지 않도록 한다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "승인 전용 프롬프트가 YES와 NO 두 선택지만 제시한다.",
+        "승인 응답을 고정 문자열 화이트리스트가 아니라 대화 문맥의 명확한 승인 의도로 판단한다.",
+        "예시 표현은 비포괄적 예시로만 기록된다.",
+        "모호하거나 조건부인 응답은 자동 승인하지 않는다.",
+        "interview의 A/B/C 세 선택지 규칙은 변경하지 않는다."
+      ]
+    }
+  ],
+  "subsections": []
+}

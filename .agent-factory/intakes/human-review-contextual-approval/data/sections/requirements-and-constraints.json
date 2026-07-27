@@ -1,0 +1,51 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": "승인 전용 프롬프트는 YES와 NO 두 가지 선택지만 제공해야 한다."
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": "승인 응답은 고정 문자열 목록이 아니라 현재 승인 요청과 사용자의 답변 문맥에서 명확한 승인 의도가 있는지 판별해야 한다."
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": "YES, Y, 승인, 네, 진행, ㄱㄱ는 승인 표현의 예시이며 완전한 허용 목록으로 취급하지 않아야 한다."
+    },
+    {
+      "id": "REQ-004",
+      "kind": "constraint",
+      "content": "부정, 보류, 조건부 또는 문맥상 모호한 답변은 자동 승인으로 처리하지 않아야 한다."
+    },
+    {
+      "id": "REQ-005",
+      "kind": "constraint",
+      "content": "승인 전용 프롬프트 규칙은 interview의 A/B/C 세 선택지 의사결정 규칙을 변경하거나 대체하지 않아야 한다."
+    },
+    {
+      "id": "REQ-006",
+      "kind": "constraint",
+      "content": "Human 최종 승인권과 별도 merge, cleanup, push, PR promotion 승인 경계를 유지해야 한다."
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "human-review가 승인 전용 프롬프트와 interview의 차이를 명시한다.",
+        "승인 프롬프트는 YES와 NO 두 선택지만 제시한다.",
+        "명확한 승인 의도는 표현의 고정 목록이 아니라 대화 문맥으로 판별한다.",
+        "예시 표현이 비포괄적 예시임을 명시한다.",
+        "모호하거나 조건부인 답변을 자동 승인하지 않고 명확한 응답을 다시 요청한다.",
+        "human-review의 기존 한국어 Human-facing 자료 규칙을 보존한다.",
+        "interview, Work Unit manager와 lifecycle 승인 경계는 변경하지 않는다.",
+        "관련 스킬 메타데이터와 정적 검증이 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

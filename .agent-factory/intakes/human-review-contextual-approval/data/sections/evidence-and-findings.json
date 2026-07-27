@@ -1,0 +1,83 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/human-review/SKILL.md; skills/human-review/agents/openai.yaml",
+        "method": "document review",
+        "findings": [
+          "human-review는 Human-facing 검토 자료, 승인 프롬프트, rework, merge와 promotion 검토 자료를 한국어로 작성하도록 정의한다.",
+          "human-review에는 승인 전용 프롬프트의 선택지 수, 승인 응답 해석, 모호한 응답 처리 규칙이 없다.",
+          "agents/openai.yaml은 현재 Human-facing 자료의 언어 선택만 기본 prompt로 정의한다."
+        ],
+        "interpretations": [
+          "승인 프롬프트 규칙은 승인 자료를 소유하는 human-review에 추가하는 것이 현재 책임 경계와 일치한다."
+        ],
+        "limitations": [
+          "정적 문서 검토이며 모델의 실제 자연어 판별 정확도는 측정하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/interview/SKILL.md; skills/fact-only/references/interview-decision-gate.md",
+        "method": "document review",
+        "findings": [
+          "interview는 설계, 범위, 우선순위와 승인 경계 같은 Human-only 결정을 구조화하며 질문마다 A, B, C 세 선택지를 요구한다.",
+          "Interview Decision Gate는 명확한 기존 결정을 단순 적용하거나 기록하는 작업에서는 추가 인터뷰를 요구하지 않는다.",
+          "사용자는 이번 요청이 인터뷰가 아니라 말 그대로 승인 전용임을 명시했다."
+        ],
+        "interpretations": [
+          "승인 전용 YES 또는 NO 프롬프트는 interview의 A/B/C 의사결정 형식과 별도 규칙으로 유지할 수 있다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": ".agent-factory/specifications/project-core; specification.py show and validate",
+        "method": "manager-backed document review",
+        "findings": [
+          "Project Core는 Human이 승인, rework, integration, cleanup, deployment와 범위 변경의 최종 결정권을 가진다고 정의한다.",
+          "Project Core full package는 specification manager의 fast validation을 통과했다.",
+          "문맥 기반 승인 의도 판별은 Human 최종 승인 권한을 변경하지 않는다."
+        ],
+        "interpretations": [
+          "이번 변경은 기존 Project Core 승인 경계 안의 human-review 프롬프트 해석 규칙 정합화이며 Project Core 수정이 필요하지 않다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "EVIDENCE-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "rg --files; rg -n 'human-review|approval|승인' skills tests",
+        "method": "repository search",
+        "findings": [
+          "human-review 디렉터리에는 SKILL.md와 agents/openai.yaml만 있고 전용 테스트 파일은 없다.",
+          "lifecycle은 Human-facing review artifact와 최종 review material을 human-review로 라우팅한다.",
+          "기존 Work Unit manager 테스트는 canonical approved 상태 전이를 검증하며 자연어 승인 표현 판별을 구현하지 않는다."
+        ],
+        "interpretations": [
+          "Work Unit manager 상태 계약은 유지하고 스킬 문서와 메타데이터 수준에서 승인 의도 규칙을 검증하는 범위가 적합하다."
+        ],
+        "limitations": [
+          "저장소 검색은 저장소 밖 소비자의 동적 prompt 조합을 확인하지 못한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

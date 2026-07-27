@@ -1,0 +1,48 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "aligned",
+        "reason": "Project Core는 Human의 최종 승인권과 별도 승인 경계를 이미 정의한다. 이번 변경은 그 경계 안에서 human-review 승인 프롬프트의 선택지와 문맥 판별 규칙을 명확히 하며 Project Core의 목적, 원칙, 범위 또는 승인 권한을 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "aligned"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "specification",
+          "id": "project-core",
+          "path": ".agent-factory/specifications/project-core"
+        }
+      ]
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "human-review에 승인 전용 YES 또는 NO 프롬프트와 문맥 기반 승인 의도 판별 규칙을 추가하고 관련 메타데이터와 검증을 정합화한다.",
+        "executionOrder": 1,
+        "scope": [
+          "skills/human-review/SKILL.md 승인 전용 규칙 추가",
+          "skills/human-review/agents/openai.yaml 설명 정합화",
+          "문맥 기반 명확한 승인 의도와 모호한 응답 fail-closed 경계",
+          "관련 스킬 메타데이터와 정적 검증"
+        ],
+        "outOfScope": [
+          "skills/interview/SKILL.md 형식 변경",
+          "Work Unit manager approved 상태와 transition 변경",
+          "lifecycle Human 승인 권한과 별도 승인 경계 변경",
+          "고정 문자열 파서 또는 별도 승인 런타임 구현",
+          "역사적 artifact 변경",
+          "commit, merge, cleanup, push, PR promotion"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

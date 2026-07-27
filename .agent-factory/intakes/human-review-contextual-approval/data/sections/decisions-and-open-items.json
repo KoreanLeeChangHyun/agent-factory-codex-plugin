@@ -1,0 +1,32 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "Human은 승인 전용 프롬프트를 구조화된 interview와 구분하기로 결정했다."
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "Human은 승인 전용 선택지를 YES와 NO 두 가지로 정했다."
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": "Human은 승인 여부를 고정 문자열 목록이 아니라 대화 문맥의 승인 의도로 판단하도록 정했다."
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": "YES, Y, 승인, 네, 진행, ㄱㄱ는 승인 표현의 예시일 뿐 완전한 허용 목록이 아니다."
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": "차단 미결정 없음"
+    }
+  ],
+  "subsections": []
+}
