@@ -1,0 +1,48 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Human이 승인한 schema v2/v3 과거 Work Unit package 11개를 안전한 manager delete 명령으로 제거한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "agent-extension-goal-execution-integration",
+        "agent-factory-json-block-data-migration",
+        "agent-factory-skill-docs-json-block-contract",
+        "intake-json-package-and-viewer-design",
+        "vscode-extension-ui-structure-draft",
+        "work-unit-execution-context-sufficiency-research",
+        "work-unit-execution-skill-worktree-manager",
+        "work-unit-json-storage-format",
+        "work-unit-json-storage-format-v3",
+        "workspace-extension-four-tab-mvp",
+        "workspace-extension-four-tab-mvp-design"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "fact-only-agent-rule-responsibility-refactor 및 main-workflow-agent-role-split 삭제",
+        "현행 v4 Work Unit package 수정 또는 삭제",
+        "status --all 구현",
+        "Human 승인 없는 integration, cleanup, push 또는 PR promotion"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": [
+        "정확한 11개 package 삭제 diff",
+        "각 delete 명령의 machine-readable 결과",
+        "삭제 전후 inventory와 범위 검증 증거"
+      ]
+    }
+  ],
+  "subsections": []
+}

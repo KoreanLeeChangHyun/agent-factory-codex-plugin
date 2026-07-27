@@ -1,0 +1,30 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "삭제 대상이 Intake BASIS-002의 11개와 정확히 일치한다.",
+        "각 삭제가 manager exact confirmation 경계를 통과했다.",
+        "제외된 v4 두 개와 다른 package가 보존됐다.",
+        "diff와 evidence에 범위 외 변경이 없다."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}
