@@ -1,0 +1,38 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": [
+        "status --all 결과에 모든 Work Unit id가 한 번씩 나오는지 확인합니다.",
+        "정상 행의 lifecycle, execution, Human approval, integration 값을 확인합니다.",
+        "손상 v4 두 개가 오류 행으로 표시되고 전체 조회는 성공하는지 확인합니다.",
+        "테스트와 변경 범위를 확인하고 approve, request-rework 또는 reject를 결정합니다."
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "실제 repository status --all JSON과 package directory inventory를 대조합니다.",
+          "focused/full test 및 정적 검사 증거를 확인합니다.",
+          "integration과 cleanup은 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

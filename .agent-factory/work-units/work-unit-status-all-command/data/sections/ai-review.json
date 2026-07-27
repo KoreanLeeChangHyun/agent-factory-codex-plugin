@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "필수 다섯 상태 필드가 정확한 section/block에서 계산된다.",
+        "모든 package directory가 누락 없이 한 행으로 표현된다.",
+        "손상 package 하나가 다른 package 조회를 막지 않는다.",
+        "출력 순서와 JSON 구조가 결정적이다.",
+        "범위 외 canonical package 변경이 없다."
+      ]
+    },
+    {
+      "id": "AI-RESULT-001",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution has not started.",
+        "findings": []
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}
