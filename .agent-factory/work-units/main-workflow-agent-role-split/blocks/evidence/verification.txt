@@ -1,0 +1,31 @@
+Verification commands and results
+
+python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/main-agent
+Skill is valid!
+
+python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/workflow-agent
+Skill is valid!
+
+python3 skills/work-unit-execution/tests/test_app_server_goal.py
+Ran 12 tests in 1.481s
+OK
+
+python3 skills/work-unit-execution/tests/test_worktree.py
+Ran 36 tests in 132.261s
+OK
+
+python3 -m unittest skills.lifecycle.tests.test_skill_metadata
+Ran 6 tests in 0.018s
+OK
+
+python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+Plugin validation passed: /home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/main-workflow-agent-role-split
+
+git diff --check
+PASS (exit 0)
+
+python3 -m py_compile skills/work-unit-execution/scripts/app_server_goal.py skills/work-unit-execution/tests/test_app_server_goal.py
+PASS (exit 0)
+
+python3 skills/work-unit-execution/scripts/app_server_goal.py --help
+PASS (exit 0); the recorded --repository and --work-unit-id options are accepted by the installed parser.

@@ -6,16 +6,26 @@
       "id": "REPORT-001",
       "kind": "report-result",
       "content": {
-        "status": "pending",
-        "summary": "Report 대기",
+        "status": "complete",
+        "summary": "Human-approved revision 2 rework에서 linked worktree 실행 상태 읽기를 Work Unit manager로 라우팅하고 main-agent와 workflow-agent 역할 분리를 유지했다.",
         "specificationResult": "Project Core aligned; 변경 없음",
         "unresolvedHumanDecisions": [
           "구현 결과 approve 또는 rework",
           "main 병합 여부",
           "linked worktree cleanup 여부"
         ],
-        "verification": [],
-        "remainingRisks": []
+        "verification": [
+          "manager show 경계 TDD red/green 통과",
+          "두 신규 스킬 quick validation 통과",
+          "app_server_goal.py 12 tests 통과",
+          "worktree.py 36 tests 통과",
+          "lifecycle metadata 6 tests 통과",
+          "plugin validator, py_compile, git diff --check 통과",
+          "inspect evidence 등록 delta는 blocks/index.json, metadata, quality/report 경로와 새 inspect block에 한정됨"
+        ],
+        "remainingRisks": [
+          "Human review와 별도 merge 및 cleanup 결정은 아직 수행되지 않았다."
+        ]
       },
       "attributes": {
         "verificationResult": "pending",

@@ -28,7 +28,7 @@ WORK_UNIT_MANAGER = (
     / "scripts"
     / "work_unit.py"
 )
-Validator = Callable[[Path, str], dict[str, str]]
+Validator = Callable[[Path, str], dict[str, Any]]
 
 
 class ContractError(Exception):
@@ -319,7 +319,99 @@ def absolute_repository(value: Path) -> Path:
     return repository
 
 
-def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, str]:
+def manager_validation(package: Path, work_unit_id: str) -> dict[str, Any]:
+    validation = subprocess.run(
+        [
+            sys.executable,
+            str(WORK_UNIT_MANAGER),
+            "validate",
+            str(package),
+            "--full",
+        ],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="strict",
+        check=False,
+        shell=False,
+    )
+    if validation.returncode != 0:
+        raise ContractError(
+            "work_unit_validation_failed",
+            "Work Unit full validation failed",
+            {"package": str(package), "stderr": validation.stderr.strip()},
+        )
+    try:
+        payload = json.loads(validation.stdout)
+    except json.JSONDecodeError as error:
+        raise ContractError(
+            "invalid_work_unit_validation",
+            "Work Unit manager returned invalid JSON",
+            {"package": str(package)},
+        ) from error
+    if (
+        not isinstance(payload, dict)
+        or payload.get("valid") is not True
+        or payload.get("id") != work_unit_id
+    ):
+        raise ContractError(
+            "work_unit_validation_failed",
+            "Work Unit manager did not return a valid matching package",
+            {"package": str(package), "validation": payload},
+        )
+    return payload
+
+
+def execution_context_section(package: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    shown = subprocess.run(
+        [
+            sys.executable,
+            str(WORK_UNIT_MANAGER),
+            "show",
+            str(package),
+            "--section",
+            "execution-context",
+        ],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="strict",
+        check=False,
+        shell=False,
+    )
+    if shown.returncode != 0:
+        raise ContractError(
+            "work_unit_show_failed",
+            "Work Unit manager could not show the execution context",
+            {"package": str(package), "stderr": shown.stderr.strip()},
+        )
+    try:
+        section = json.loads(shown.stdout)
+        contexts = [
+            item["content"]
+            for item in section["content"]
+            if item.get("kind") == "execution-context"
+        ]
+    except (json.JSONDecodeError, KeyError, TypeError) as error:
+        raise ContractError(
+            "invalid_execution_context",
+            "Work Unit manager returned an invalid execution context",
+            {"package": str(package), "type": type(error).__name__},
+        ) from error
+    if len(contexts) != 1:
+        raise ContractError(
+            "invalid_execution_context",
+            "Work Unit must contain exactly one execution context",
+            {"package": str(package)},
+        )
+    return section, contexts[0]
+
+
+def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
     if not WORK_UNIT_ID.fullmatch(work_unit_id):
         raise ContractError(
             "invalid_work_unit_id",
@@ -347,67 +439,8 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, str]:
             {"expected": str(repository), "actual": str(reported)},
         )
     package = repository / ".agent-factory" / "work-units" / work_unit_id
-    validation = subprocess.run(
-        [
-            sys.executable,
-            str(WORK_UNIT_MANAGER),
-            "validate",
-            str(package),
-            "--full",
-        ],
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        encoding="utf-8",
-        errors="strict",
-        check=False,
-        shell=False,
-    )
-    if validation.returncode != 0:
-        raise ContractError(
-            "work_unit_validation_failed",
-            "Work Unit full validation failed",
-            {"stderr": validation.stderr.strip()},
-        )
-    try:
-        validation_payload = json.loads(validation.stdout)
-    except json.JSONDecodeError as error:
-        raise ContractError(
-            "invalid_work_unit_validation",
-            "Work Unit manager returned invalid JSON",
-        ) from error
-    if (
-        not isinstance(validation_payload, dict)
-        or validation_payload.get("valid") is not True
-        or validation_payload.get("id") != work_unit_id
-        or validation_payload.get("status") != "ready"
-    ):
-        raise ContractError(
-            "work_unit_not_ready",
-            "Work Unit must be fully valid and ready",
-            {"validation": validation_payload},
-        )
-    context_path = package / "data" / "sections" / "execution-context.json"
-    try:
-        context_section = json.loads(context_path.read_text(encoding="utf-8"))
-        contexts = [
-            item["content"]
-            for item in context_section["content"]
-            if item.get("kind") == "execution-context"
-        ]
-    except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as error:
-        raise ContractError(
-            "invalid_execution_context",
-            "unable to read Work Unit execution context",
-            {"type": type(error).__name__},
-        ) from error
-    if len(contexts) != 1:
-        raise ContractError(
-            "invalid_execution_context",
-            "Work Unit must contain exactly one execution context",
-        )
-    context = contexts[0]
+    validation_payload = manager_validation(package, work_unit_id)
+    context_section, context = execution_context_section(package)
     if context.get("goalId") != work_unit_id:
         raise ContractError(
             "goal_id_mismatch",
@@ -418,7 +451,174 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, str]:
             "execution_repository_mismatch",
             "execution context repository does not match repository",
         )
-    return {"objective": work_unit_id, "package": str(package)}
+    worktree = repository / ".agent-factory" / "worktree" / work_unit_id
+    if Path(context.get("worktreePath", "")).resolve(strict=False) != worktree:
+        raise ContractError(
+            "execution_worktree_mismatch",
+            "execution context worktreePath is not canonical",
+        )
+    selected_package = package
+    selected_validation = validation_payload
+    selected_section = context_section
+    if worktree.exists():
+        worktree_result = subprocess.run(
+            ["git", "-C", str(worktree), "rev-parse", "--show-toplevel"],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="strict",
+            check=False,
+            shell=False,
+        )
+        reported_worktree = Path(worktree_result.stdout.strip()).resolve(strict=False)
+        if worktree_result.returncode != 0 or reported_worktree != worktree:
+            raise ContractError(
+                "execution_worktree_mismatch",
+                "canonical execution worktree is not the registered Git worktree",
+            )
+        branch_result = subprocess.run(
+            ["git", "-C", str(worktree), "branch", "--show-current"],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="strict",
+            check=False,
+            shell=False,
+        )
+        expected_branch = f"work-unit/{work_unit_id}"
+        if (
+            branch_result.returncode != 0
+            or branch_result.stdout.strip() != expected_branch
+        ):
+            raise ContractError(
+                "execution_branch_mismatch",
+                "canonical execution worktree has the wrong branch",
+                {
+                    "actual": branch_result.stdout.strip(),
+                    "expected": expected_branch,
+                },
+            )
+        selected_package = (
+            worktree / ".agent-factory" / "work-units" / work_unit_id
+        )
+        selected_validation = manager_validation(selected_package, work_unit_id)
+        selected_section, linked_context = execution_context_section(
+            selected_package
+        )
+        if (
+            linked_context.get("goalId") != work_unit_id
+            or Path(linked_context.get("repository", "")).resolve(strict=False)
+            != repository
+            or Path(linked_context.get("worktreePath", "")).resolve(strict=False)
+            != worktree
+        ):
+            raise ContractError(
+                "invalid_execution_context",
+                "linked Work Unit execution context does not match the launcher",
+            )
+    mode = launch_mode(selected_validation, selected_section, work_unit_id)
+    return {
+        "mode": mode,
+        "instruction": (
+            rework_instruction(selected_section) if mode == "rework" else None
+        ),
+        "objective": work_unit_id,
+        "package": str(selected_package),
+    }
+
+
+def launch_mode(
+    validation: dict[str, Any],
+    execution_context: dict[str, Any],
+    work_unit_id: str,
+) -> str:
+    if (
+        validation.get("valid") is not True
+        or validation.get("id") != work_unit_id
+    ):
+        raise ContractError(
+            "work_unit_validation_failed",
+            "Work Unit manager did not return a valid matching package",
+            {"validation": validation},
+        )
+    if validation.get("status") == "ready":
+        return "execution"
+    states = [
+        item.get("content")
+        for item in execution_context.get("content", [])
+        if isinstance(item, dict) and item.get("kind") == "execution-state"
+    ]
+    if (
+        validation.get("status") == "working"
+        and len(states) == 1
+        and isinstance(states[0], dict)
+        and states[0].get("state") == "planned"
+        and isinstance(states[0].get("currentRevision"), int)
+        and states[0]["currentRevision"] >= 2
+        and states[0].get("currentAttempt") is None
+        and isinstance(states[0].get("history"), list)
+        and len(states[0]["history"]) > 0
+    ):
+        instruction = states[0].get("reworkInstruction")
+        if not isinstance(instruction, str) or not instruction.strip():
+            raise ContractError(
+                "rework_instruction_missing",
+                "manager-approved planned rework requires a Human instruction",
+            )
+        return "rework"
+    raise ContractError(
+        "work_unit_not_launchable",
+        "Work Unit must be ready for initial execution or in manager-approved planned rework",
+        {"status": validation.get("status")},
+    )
+
+
+def rework_instruction(execution_context: dict[str, Any]) -> str | None:
+    states = [
+        item.get("content")
+        for item in execution_context.get("content", [])
+        if isinstance(item, dict) and item.get("kind") == "execution-state"
+    ]
+    if len(states) != 1 or not isinstance(states[0], dict):
+        return None
+    instruction = states[0].get("reworkInstruction")
+    return instruction.strip() if isinstance(instruction, str) else None
+
+
+def execution_prompt(
+    work_unit_id: str, mode: str, instruction: str | None
+) -> str:
+    if mode == "execution":
+        action = f"execute Agent Factory Work Unit {work_unit_id}"
+        instruction_text = ""
+    elif mode == "rework":
+        if not isinstance(instruction, str) or not instruction.strip():
+            raise ContractError(
+                "rework_instruction_missing",
+                "Human-approved rework requires a canonical instruction",
+            )
+        action = (
+            "perform Human-approved rework for Agent Factory Work Unit "
+            f"{work_unit_id}"
+        )
+        instruction_text = (
+            f" Human-approved rework instruction: {instruction.strip()}"
+        )
+    else:
+        raise ContractError(
+            "invalid_execution_mode",
+            "execution mode must be execution or rework",
+            {"mode": mode},
+        )
+    return (
+        f"Use $workflow-agent to {action}. "
+        "Run the mandatory Goal preflight, resolve the canonical package, "
+        f"and execute only that Work Unit.{instruction_text}"
+    )
 
 
 def goal_value(
@@ -475,6 +675,8 @@ def run_protocol(
     client: AppServerClient,
     repository: Path,
     work_unit_id: str,
+    mode: str,
+    instruction: str | None,
 ) -> dict[str, Any]:
     client.request(
         "initialize",
@@ -533,11 +735,7 @@ def run_protocol(
             "input": [
                 {
                     "type": "text",
-                    "text": (
-                        f"Execute Agent Factory Work Unit {work_unit_id}. "
-                        "Run the mandatory Goal preflight, resolve the canonical "
-                        "package, and execute only that Work Unit."
-                    ),
+                    "text": execution_prompt(work_unit_id, mode, instruction),
                 }
             ],
         },
@@ -624,7 +822,7 @@ def run_protocol(
 def success_payload(
     repository: Path,
     work_unit_id: str,
-    package: dict[str, str],
+    package: dict[str, Any],
     protocol: dict[str, Any],
     operations: list[dict[str, Any]],
     process: dict[str, Any],
@@ -632,6 +830,7 @@ def success_payload(
     return {
         "command": "execute",
         "context": {
+            "executionMode": package["mode"],
             "goal": protocol["goal"],
             "package": package["package"],
             "repository": str(repository),
@@ -689,7 +888,13 @@ def execute(
         package = validator(resolved_repository, work_unit_id)
         deadline = time.monotonic() + timeout_seconds
         client = AppServerClient(codex_executable, deadline, operations)
-        protocol = run_protocol(client, resolved_repository, work_unit_id)
+        protocol = run_protocol(
+            client,
+            resolved_repository,
+            work_unit_id,
+            package["mode"],
+            package.get("instruction"),
+        )
         process_evidence = client.close()
         client = None
         return success_payload(

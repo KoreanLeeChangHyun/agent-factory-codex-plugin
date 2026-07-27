@@ -63,17 +63,15 @@
       "id": "QUALITY-001",
       "kind": "quality-check",
       "content": {
-        "status": "pending",
+        "status": "pass",
         "requiredEvidence": [
-          "TDD red/green 결과",
-          "새 스킬 quick validation",
-          "Goal launcher와 lifecycle 회귀 테스트",
-          "plugin validator 결과",
-          "final worktree inspect JSON"
+          "blocks/evidence/rework-revision-2-tdd.txt",
+          "blocks/evidence/rework-revision-2-verification.txt",
+          "blocks/evidence/rework-revision-2-worktree-inspect.json"
         ]
       },
       "attributes": {
-        "status": "pending",
+        "status": "planned",
         "evidence": []
       }
     }

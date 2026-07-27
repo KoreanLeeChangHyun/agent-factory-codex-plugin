@@ -6,13 +6,12 @@
       "id": "EXECUTION-001",
       "kind": "execution-result",
       "content": {
-        "status": "pending",
-        "summary": "Execution 대기"
+        "status": "complete",
+        "summary": "revision 2 rework에서 canonical execution context 직접 읽기를 manager show로 교체하고 역할 분리와 Goal protocol 동작을 보존했다."
       },
       "attributes": {
         "status": "pending",
-        "verificationResult": "pending",
-        "evidence": []
+        "verificationResult": "pending"
       }
     }
   ],

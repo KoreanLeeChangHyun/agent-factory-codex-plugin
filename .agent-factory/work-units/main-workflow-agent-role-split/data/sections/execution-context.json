@@ -14,8 +14,315 @@
         "baseRef": "main",
         "branch": "work-unit/main-workflow-agent-role-split",
         "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/main-workflow-agent-role-split",
-        "setupState": "pending",
+        "setupState": "prepared",
         "cleanupState": "pending-human-decision"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "running",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "1cc301da74563c8758eddf659de2cad13e3ae1dc"
+        },
+        "currentRevision": 3,
+        "currentAttempt": 1,
+        "invocationId": "019fa412-fcee-7d53-ac09-bac9df21a311",
+        "invocationChain": [
+          "019fa412-fcee-7d53-ac09-bac9df21a311"
+        ],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "019fa3c8-5a19-7ec1-bce0-64c15b60a806",
+            "invocationChain": [
+              "019fa3c8-5a19-7ec1-bce0-64c15b60a806"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "1cc301da74563c8758eddf659de2cad13e3ae1dc"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "complete",
+                  "summary": "두 역할 스킬, UI metadata, launcher prompt와 planned rework admission, lifecycle routing 및 집중 테스트를 Work Unit 범위 안에서 구현했다."
+                },
+                "attributes": {
+                  "status": "complete",
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3c8-5a19-7ec1-bce0-64c15b60a806",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 1,
+                    "attempt": 1
+                  }
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "pass",
+                  "requiredEvidence": [
+                    "blocks/evidence/tdd.txt",
+                    "blocks/evidence/verification.txt",
+                    "blocks/evidence/worktree-prepare.json",
+                    "blocks/evidence/worktree-inspect.json"
+                  ]
+                },
+                "attributes": {
+                  "status": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3c8-5a19-7ec1-bce0-64c15b60a806",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 1,
+                    "attempt": 1
+                  },
+                  "evidence": [
+                    "blocks/evidence/tdd.txt",
+                    "blocks/evidence/verification.txt",
+                    "blocks/evidence/worktree-prepare.json",
+                    "blocks/evidence/worktree-inspect.json"
+                  ]
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "pass",
+                  "summary": "역할 중복, 자기 승인, Goal 검증 이전 실행, raw codex exec 오인, 범위 밖 mutation 및 검증 누락을 검토했으며 blocking finding이 없다.",
+                  "findings": []
+                },
+                "attributes": {
+                  "result": "pass",
+                  "checklistResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3c8-5a19-7ec1-bce0-64c15b60a806",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 1,
+                    "attempt": 1
+                  }
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "complete",
+                  "summary": "main-agent는 primary lifecycle 관리와 launcher 위임을, workflow-agent는 Goal 기반 Execution/Rework의 Plan, Work, AI Review, Report를 담당하도록 분리했다.",
+                  "specificationResult": "Project Core aligned; 변경 없음",
+                  "unresolvedHumanDecisions": [
+                    "구현 결과 approve 또는 rework",
+                    "main 병합 여부",
+                    "linked worktree cleanup 여부"
+                  ],
+                  "verification": [
+                    "두 신규 스킬 quick validation 통과",
+                    "app_server_goal.py 12 tests 통과",
+                    "worktree.py 36 tests 통과",
+                    "lifecycle metadata 6 tests 통과",
+                    "plugin validator 및 git diff --check 통과",
+                    "inspect evidence 등록 delta는 blocks/evidence/worktree-inspect.json과 이미 보고된 blocks/index.json, quality/report 경로에 한정됨"
+                  ],
+                  "remainingRisks": [
+                    "Human review와 별도 merge 및 cleanup 결정은 아직 수행되지 않았다."
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3c8-5a19-7ec1-bce0-64c15b60a806",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 1,
+                    "attempt": 1
+                  },
+                  "evidence": [
+                    "blocks/evidence/tdd.txt",
+                    "blocks/evidence/verification.txt",
+                    "blocks/evidence/worktree-prepare.json",
+                    "blocks/evidence/worktree-inspect.json"
+                  ]
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          },
+          {
+            "revision": 2,
+            "attempt": 1,
+            "invocationId": "019fa3df-9ae1-7040-b8b2-e9f97c8cb6f3",
+            "invocationChain": [
+              "019fa3df-9ae1-7040-b8b2-e9f97c8cb6f3"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "1cc301da74563c8758eddf659de2cad13e3ae1dc"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "complete",
+                  "summary": "revision 2 rework에서 canonical execution context 직접 읽기를 manager show로 교체하고 역할 분리와 Goal protocol 동작을 보존했다."
+                },
+                "attributes": {
+                  "status": "complete",
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3df-9ae1-7040-b8b2-e9f97c8cb6f3",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 2,
+                    "attempt": 1
+                  }
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "pass",
+                  "requiredEvidence": [
+                    "blocks/evidence/rework-revision-2-tdd.txt",
+                    "blocks/evidence/rework-revision-2-verification.txt",
+                    "blocks/evidence/rework-revision-2-worktree-inspect.json"
+                  ]
+                },
+                "attributes": {
+                  "status": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3df-9ae1-7040-b8b2-e9f97c8cb6f3",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 2,
+                    "attempt": 1
+                  },
+                  "evidence": [
+                    "blocks/evidence/rework-revision-2-tdd.txt",
+                    "blocks/evidence/rework-revision-2-verification.txt",
+                    "blocks/evidence/rework-revision-2-worktree-inspect.json"
+                  ]
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "pass",
+                  "summary": "manager 전용 canonical 읽기 경계를 복원했으며 역할 소유권, Goal 확인 후 turn 시작 순서, rework admission, 제외 범위와 집중 테스트가 모두 통과했다.",
+                  "findings": []
+                },
+                "attributes": {
+                  "result": "pass",
+                  "checklistResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3df-9ae1-7040-b8b2-e9f97c8cb6f3",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 2,
+                    "attempt": 1
+                  }
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "complete",
+                  "summary": "Human-approved revision 2 rework에서 linked worktree 실행 상태 읽기를 Work Unit manager로 라우팅하고 main-agent와 workflow-agent 역할 분리를 유지했다.",
+                  "specificationResult": "Project Core aligned; 변경 없음",
+                  "unresolvedHumanDecisions": [
+                    "구현 결과 approve 또는 rework",
+                    "main 병합 여부",
+                    "linked worktree cleanup 여부"
+                  ],
+                  "verification": [
+                    "manager show 경계 TDD red/green 통과",
+                    "두 신규 스킬 quick validation 통과",
+                    "app_server_goal.py 12 tests 통과",
+                    "worktree.py 36 tests 통과",
+                    "lifecycle metadata 6 tests 통과",
+                    "plugin validator, py_compile, git diff --check 통과",
+                    "inspect evidence 등록 delta는 blocks/index.json, metadata, quality/report 경로와 새 inspect block에 한정됨"
+                  ],
+                  "remainingRisks": [
+                    "Human review와 별도 merge 및 cleanup 결정은 아직 수행되지 않았다."
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "1.0.0",
+                    "invocationId": "019fa3df-9ae1-7040-b8b2-e9f97c8cb6f3",
+                    "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+                    "revision": 2,
+                    "attempt": 1
+                  },
+                  "evidence": [
+                    "blocks/evidence/rework-revision-2-tdd.txt",
+                    "blocks/evidence/rework-revision-2-verification.txt",
+                    "blocks/evidence/rework-revision-2-worktree-inspect.json"
+                  ]
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ],
+        "progress": {
+          "completedSteps": [
+            "review-and-verify-scope"
+          ],
+          "pendingStep": null,
+          "lastVerifiedHead": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+          "checkpoints": [
+            {
+              "stepId": "review-and-verify-scope",
+              "state": "completed",
+              "headCommit": "1cc301da74563c8758eddf659de2cad13e3ae1dc",
+              "idempotencyKey": "main-workflow-agent-role-split-r3-review-verify-v1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fa412-fcee-7d53-ac09-bac9df21a311",
+          "blockerId": null,
+          "evidence": null
+        },
+        "reworkInstruction": "현재 linked worktree의 모든 Work Unit 범위 변경을 검토하고 필요한 검증을 수행한 뒤 work-unit/main-workflow-agent-role-split 브랜치에 의도적으로 커밋하라. manager-owned executionTarget은 attempt 시작 입력 subject로 보존하되, 최종 구현 커밋과 최종 canonical Work Unit review 기록을 모두 커밋하여 clean worktree를 남기고 최종 커밋 SHA를 Report 및 worktree inspection 증거에 명시하라. merge, cleanup, push, deployment, PR promotion은 수행하지 마라."
       }
     }
   ],

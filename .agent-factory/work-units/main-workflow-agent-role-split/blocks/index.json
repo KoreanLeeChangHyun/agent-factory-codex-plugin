@@ -1,3 +1,53 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/rework-revision-2-tdd.txt",
+      "mediaType": "text/plain",
+      "description": "Revision 2 manager-show boundary TDD red and green evidence",
+      "sha256": "c6fc8ef7845b3efb6511d2afbe1e30b6b7401c46ba89ef59976688d6b6bfbfac",
+      "sizeBytes": 702
+    },
+    {
+      "path": "blocks/evidence/rework-revision-2-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Revision 2 full Work Unit verification results",
+      "sha256": "d9c5f723c638ee95f6cfeecbf20a639942a529c96310636bb09eacba0ffd0ef2",
+      "sizeBytes": 827
+    },
+    {
+      "path": "blocks/evidence/rework-revision-2-worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Revision 2 final pre-registration worktree inspect receipt",
+      "sha256": "1a50cb36403de1dd2039ffbc276e728214db6c686c8a5ff26c5e43a9d64eb76d",
+      "sizeBytes": 2725
+    },
+    {
+      "path": "blocks/evidence/tdd.txt",
+      "mediaType": "text/plain",
+      "description": "TDD red and green evidence",
+      "sha256": "bd6c75a077f861ef2a33788c9b4035d9d7c959241b69bffe5ce653e0b8335fbb",
+      "sizeBytes": 821
+    },
+    {
+      "path": "blocks/evidence/verification.txt",
+      "mediaType": "text/plain",
+      "description": "Scoped verification command results",
+      "sha256": "df91361e9434812c22a10af414a38bdc837d78f91f474f2754fd4c6c8167f031",
+      "sizeBytes": 1110
+    },
+    {
+      "path": "blocks/evidence/worktree-inspect.json",
+      "mediaType": "application/json",
+      "description": "Raw final Work Unit worktree inspect receipt before evidence registration",
+      "sha256": "5bb24a050c21ca7bfc5ce85f57cc6d5271ec1ae39ee7f4a5c81f8e6fb257ffee",
+      "sizeBytes": 2348
+    },
+    {
+      "path": "blocks/evidence/worktree-prepare.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit worktree prepare receipt",
+      "sha256": "89716162c5c56a620e598ba5ca0c94d778780003a8e4a6395269188c92aa8f9e",
+      "sizeBytes": 2309
+    }
+  ]
 }

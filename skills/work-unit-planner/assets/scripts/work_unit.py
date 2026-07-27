@@ -347,7 +347,7 @@ def validate_execution_state(
         "invocationChain",
         "history",
     }
-    optional_fields = {"progress", "recovery"}
+    optional_fields = {"progress", "recovery", "reworkInstruction"}
     if (
         not isinstance(content, dict)
         or not required_fields.issubset(content)
@@ -356,6 +356,11 @@ def validate_execution_state(
         raise ManagerError("execution-state/v1 fields do not match the contract")
     if content["contractVersion"] != EXECUTION_STATE_CONTRACT_VERSION:
         raise ManagerError("unsupported execution-state contractVersion")
+    if "reworkInstruction" in content and (
+        not isinstance(content["reworkInstruction"], str)
+        or not content["reworkInstruction"].strip()
+    ):
+        raise ManagerError("execution-state reworkInstruction must be non-empty")
     if content["state"] not in {"planned", "running", "blocked", "review", "done"}:
         raise ManagerError("execution-state state is not supported")
     revision = content["currentRevision"]
@@ -393,15 +398,27 @@ def validate_execution_state(
         raise ManagerError("execution-state history must be an array")
     identities: list[tuple[int, int]] = []
     for record in history:
-        if not isinstance(record, dict) or set(record) != {
+        required_record_fields = {
             "revision",
             "attempt",
             "invocationId",
             "invocationChain",
             "subject",
             "outcomes",
-        }:
+        }
+        if (
+            not isinstance(record, dict)
+            or not required_record_fields.issubset(record)
+            or set(record) - required_record_fields - {"reworkInstruction"}
+        ):
             raise ManagerError("execution-state history record fields are invalid")
+        if "reworkInstruction" in record and (
+            not isinstance(record["reworkInstruction"], str)
+            or not record["reworkInstruction"].strip()
+        ):
+            raise ManagerError(
+                "execution-state history reworkInstruction must be non-empty"
+            )
         record_revision = record["revision"]
         record_attempt = record["attempt"]
         if (
@@ -618,16 +635,17 @@ def archive_current_attempt(package: Path, state: dict[str, Any]) -> None:
     content = state["content"]
     if content["currentAttempt"] is None:
         return
-    content["history"].append(
-        {
-            "revision": content["currentRevision"],
-            "attempt": content["currentAttempt"],
-            "invocationId": content["invocationId"],
-            "invocationChain": copy.deepcopy(content["invocationChain"]),
-            "subject": copy.deepcopy(content["subject"]),
-            "outcomes": outcome_snapshot(package),
-        }
-    )
+    record = {
+        "revision": content["currentRevision"],
+        "attempt": content["currentAttempt"],
+        "invocationId": content["invocationId"],
+        "invocationChain": copy.deepcopy(content["invocationChain"]),
+        "subject": copy.deepcopy(content["subject"]),
+        "outcomes": outcome_snapshot(package),
+    }
+    if "reworkInstruction" in content:
+        record["reworkInstruction"] = content["reworkInstruction"]
+    content["history"].append(record)
 
 
 def invalidated_outcome_writes(package: Path) -> dict[Path, Any]:
@@ -817,6 +835,8 @@ def command_rework_start(args: argparse.Namespace) -> None:
         raise ManagerError("rework-start requires a Work Unit in review")
     if args.human_decision != "approved":
         raise ManagerError("rework-start requires --human-decision approved")
+    if not isinstance(args.instruction, str) or not args.instruction.strip():
+        raise ManagerError("rework-start requires --instruction")
     path = base.section_path(package, "execution-context")
     section = base.load_object(path, "execution-context section")
     state = next(
@@ -833,6 +853,7 @@ def command_rework_start(args: argparse.Namespace) -> None:
     content["currentAttempt"] = None
     content["invocationId"] = None
     content["invocationChain"] = []
+    content["reworkInstruction"] = args.instruction.strip()
     content["progress"] = empty_execution_progress(content["subject"]["digest"])
     content["recovery"] = running_recovery(None)
     commit_execution_state(package, section, status="working", invalidate_outcomes=True)
@@ -1947,6 +1968,7 @@ def parser() -> argparse.ArgumentParser:
     rework_start = commands.add_parser("rework-start")
     rework_start.add_argument("package")
     rework_start.add_argument("--human-decision", choices=["approved"])
+    rework_start.add_argument("--instruction")
     rework_start.set_defaults(handler=command_rework_start)
     return root
 

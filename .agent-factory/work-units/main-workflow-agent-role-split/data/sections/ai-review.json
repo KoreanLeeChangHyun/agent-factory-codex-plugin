@@ -20,8 +20,8 @@
       "id": "AI-RESULT-001",
       "kind": "ai-review-result",
       "content": {
-        "status": "pending",
-        "summary": "AI Review 대기",
+        "status": "pass",
+        "summary": "manager 전용 canonical 읽기 경계를 복원했으며 역할 소유권, Goal 확인 후 turn 시작 순서, rework admission, 제외 범위와 집중 테스트가 모두 통과했다.",
         "findings": []
       },
       "attributes": {
