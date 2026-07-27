@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.27",
+  "documentVersion": "1.0.28",
   "id": "work-unit-manager-delete-command",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "done"
   },
   "createdAt": "2026-07-27T15:50:15+00:00",
-  "updatedAt": "2026-07-27T16:25:02+00:00",
+  "updatedAt": "2026-07-27T16:27:03+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

@@ -13,6 +13,13 @@
       "description": "Final pre-registration worktree inspection receipt",
       "sha256": "47c7b544b572cb7cd9406ebea68bd37640f536a198e6ff110052386ea1edc55e",
       "sizeBytes": 1616
+    },
+    {
+      "path": "blocks/integration/main-d22a188.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "c8703719e809d6da007ed15b55d5a803bad772c3ed47ab90fb239556d483afc0",
+      "sizeBytes": 2157
     }
   ]
 }

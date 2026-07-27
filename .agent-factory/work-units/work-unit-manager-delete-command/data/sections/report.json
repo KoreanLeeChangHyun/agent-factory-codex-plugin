@@ -39,6 +39,29 @@
           "blocks/evidence/worktree-inspect.json"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-C8703719E809D6DA",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/work-unit-manager-delete-command",
+        "sourceCommit": "2ed0c50bf999b86515d0b20e4eed5874c5885a3f",
+        "strategy": "no-ff",
+        "targetAfterCommit": "d22a188842344e079f587f922513740e655039cc",
+        "targetBeforeCommit": "bf96c56b109f8051b58c5be09a23b0b0b3bf9d2c",
+        "targetBranch": "main",
+        "workUnitId": "work-unit-manager-delete-command",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-manager-delete-command",
+        "receiptSha256": "c8703719e809d6da007ed15b55d5a803bad772c3ed47ab90fb239556d483afc0"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/main-d22a188.json"
     }
   ],
   "subsections": []
