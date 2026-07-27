@@ -1,0 +1,58 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-SCRIPT-ONLY-001",
+      "kind": "specification-impact",
+      "content": {
+        "result": "Project Core는 full validation을 통과했지만 Main Agent의 launcher-only 위임과 Workflow Agent의 script-only admission 원칙을 포함하지 않는다. 이번 Work Unit Execution에서 Project Core core principles와 traceability를 갱신한다.",
+        "checkedPaths": [
+          ".agent-factory/specifications/project-core",
+          "skills/main-agent/SKILL.md",
+          "skills/workflow-agent/SKILL.md",
+          "skills/lifecycle/SKILL.md",
+          "skills/work-unit-execution/SKILL.md"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "specification",
+          "id": "project-core",
+          "path": ".agent-factory/specifications/project-core"
+        }
+      ],
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-SCRIPT-ONLY-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "candidate": "명명된 Work Unit Execution을 Main Agent의 app_server_goal.py 위임과 Goal-bound Workflow Agent 실행 경로로만 강제하고 관련 계약과 테스트를 갱신한다.",
+        "status": "ready-for-planning",
+        "expectedOutputs": [
+          "Main Agent launcher-only 계약",
+          "Workflow Agent script-only admission 계약",
+          "lifecycle과 work-unit-execution의 단일 진입점 계약",
+          "app_server_goal.py 기반 미래 Kanban 재사용 경계",
+          "Project Core core principles와 traceability 갱신",
+          "우회 경로 제거와 fail-closed 자동화 테스트"
+        ],
+        "traceability": [
+          "REQUIREMENT-SCRIPT-ONLY-MAIN-001",
+          "REQUIREMENT-SCRIPT-ONLY-LAUNCHER-002",
+          "REQUIREMENT-SCRIPT-ONLY-ADMISSION-003",
+          "REQUIREMENT-SCRIPT-ONLY-KANBAN-004",
+          "CONSTRAINT-SCRIPT-ONLY-001",
+          "ACCEPTANCE-SCRIPT-ONLY-001",
+          "DECISION-SCRIPT-ONLY-001",
+          "DECISION-SCRIPT-ONLY-KANBAN-002",
+          "SPEC-IMPACT-SCRIPT-ONLY-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

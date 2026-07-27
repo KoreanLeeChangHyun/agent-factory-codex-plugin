@@ -1,0 +1,35 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-SCRIPT-ONLY-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "모든 명명된 Work Unit Execution은 Main Agent가 전용 Goal-bound 실행 스크립트를 호출하는 경로로만 시작한다.",
+        "status": "accepted",
+        "selectedModel": "A",
+        "rationale": "Human은 Main Agent가 스크립트를 실행만 하고 Workflow Agent가 실행을 담당한다고 확정했다."
+      }
+    },
+    {
+      "id": "DECISION-SCRIPT-ONLY-KANBAN-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "향후 Kanban의 Human 실행 기능은 동일 실행 스크립트 경계를 재사용한다.",
+        "status": "accepted",
+        "rationale": "Human이 향후 Kanban에서 사람이 실행할 수 있도록 할 계획을 명시했다. 이번 범위에서는 Kanban을 구현하지 않는다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-SCRIPT-ONLY-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "blocking 또는 non-blocking open item이 없다.",
+        "blockingCount": 0,
+        "nonBlockingCount": 0
+      }
+    }
+  ],
+  "subsections": []
+}

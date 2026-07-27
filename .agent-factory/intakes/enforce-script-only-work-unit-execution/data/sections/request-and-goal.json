@@ -1,0 +1,28 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-SCRIPT-ONLY-001",
+      "kind": "human-request",
+      "content": {
+        "request": "모든 Work Unit Execution은 Main Agent가 Goal과 Execution을 결합한 전용 스크립트를 실행하는 방식으로만 시작한다. Main Agent는 스크립트를 실행만 하며 Execution을 직접 수행하지 않는다. hook은 사용하지 않는다. 향후 Kanban에서 Human이 실행할 수 있도록 할 예정이다."
+      }
+    },
+    {
+      "id": "OUTCOME-SCRIPT-ONLY-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "Main Agent가 단일 실행 스크립트에 Work Unit을 위임하고, 스크립트가 Goal을 기계적으로 검증한 뒤 Goal-bound Workflow Agent만 시작하는 단일 Execution 경로를 만든다."
+      }
+    },
+    {
+      "id": "SUCCESS-SCRIPT-ONLY-001",
+      "kind": "success-criterion",
+      "content": {
+        "criterion": "Main Agent 직접 실행, raw codex exec, 대화형 /goal 직접 Execution, Workflow Agent 독립 실행이 허용 경로로 남지 않으며 전용 스크립트 경로와 fail-closed 검증이 자동화 테스트로 확인된다."
+      }
+    }
+  ],
+  "subsections": []
+}
