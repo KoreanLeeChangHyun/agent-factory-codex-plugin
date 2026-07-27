@@ -17,6 +17,143 @@
         "setupState": "not-prepared",
         "cleanupState": "not-requested"
       }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "1.0.0",
+        "state": "done",
+        "subject": {
+          "algorithm": "gitCommit",
+          "digest": "fb71805b8e79eca435779084bcc450b531c9a9d1"
+        },
+        "currentRevision": 1,
+        "currentAttempt": 2,
+        "invocationId": "68ee3d0b-a920-433e-af8c-e003371fbb73",
+        "invocationChain": [
+          "68ee3d0b-a920-433e-af8c-e003371fbb73"
+        ],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "cea9d378-ce1a-4164-a82b-33bc99aa1d80",
+            "invocationChain": [
+              "cea9d378-ce1a-4164-a82b-33bc99aa1d80"
+            ],
+            "subject": {
+              "algorithm": "gitCommit",
+              "digest": "bd68801ac093c451b071f0c6968b41bb39430107"
+            },
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-001",
+                "kind": "execution-result",
+                "content": {
+                  "status": "pending",
+                  "changedArtifacts": [],
+                  "testsRun": []
+                },
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": {
+                  "status": "planned",
+                  "requiredEvidence": [
+                    "TDD red-green evidence",
+                    "valid and invalid deletion fixtures",
+                    "symlink and confirmation refusal fixtures",
+                    "focused verification output",
+                    "scoped diff review"
+                  ]
+                },
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-RESULT-001",
+                "kind": "ai-review-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "findings": []
+                },
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-001",
+                "kind": "report-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "Execution has not started.",
+                  "remainingRisks": [
+                    "구현, 검증, AI review, Human 승인, integration 및 cleanup이 남아 있다.",
+                    "실제 구형·손상 package 삭제는 후속 Work Unit이다."
+                  ],
+                  "unresolvedHumanDecisions": [
+                    "구현 결과 승인 또는 rework",
+                    "main integration 여부",
+                    "linked worktree cleanup 여부"
+                  ]
+                },
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-RESULT-001",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ],
+        "progress": {
+          "completedSteps": [
+            "verification"
+          ],
+          "pendingStep": null,
+          "lastVerifiedHead": "fb71805b8e79eca435779084bcc450b531c9a9d1",
+          "checkpoints": [
+            {
+              "stepId": "verification",
+              "state": "pending",
+              "headCommit": "fb71805b8e79eca435779084bcc450b531c9a9d1",
+              "idempotencyKey": "work-unit-manager-delete-command:verification:pending:v1"
+            },
+            {
+              "stepId": "verification",
+              "state": "completed",
+              "headCommit": "fb71805b8e79eca435779084bcc450b531c9a9d1",
+              "idempotencyKey": "work-unit-manager-delete-command:verification:completed:v1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "68ee3d0b-a920-433e-af8c-e003371fbb73",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
     }
   ],
   "subsections": []

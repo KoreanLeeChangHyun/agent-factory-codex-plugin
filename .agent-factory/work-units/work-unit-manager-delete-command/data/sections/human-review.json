@@ -17,8 +17,9 @@
       "kind": "human-review-method",
       "content": {
         "inspect": [
-          "구현 및 테스트 diff를 검토합니다.",
-          "focused manager test와 보안 경계 fixture 증거를 확인합니다.",
+          "Commit fb71805b8e79eca435779084bcc450b531c9a9d1과 main 대비 diff를 검토합니다.",
+          "blocks/evidence/verification.txt의 focused 및 full test 결과를 확인합니다.",
+          "confirmation, invalid allowance, identity, symlink 및 package-swap fixture를 확인합니다.",
           "구현 결과 approve, request-rework 또는 reject를 결정합니다.",
           "integration과 cleanup은 별도 Human 결정입니다."
         ]
@@ -31,7 +32,15 @@
         "status": "pending"
       },
       "attributes": {
-        "status": "pending"
+        "status": "approved",
+        "approvedAt": "2026-07-27T16:25:02+00:00",
+        "executionTarget": {
+          "contractVersion": "1.0.0",
+          "revision": 1,
+          "attempt": 2,
+          "invocationId": "68ee3d0b-a920-433e-af8c-e003371fbb73",
+          "headCommit": "fb71805b8e79eca435779084bcc450b531c9a9d1"
+        }
       }
     }
   ],
