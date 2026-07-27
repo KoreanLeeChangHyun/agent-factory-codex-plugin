@@ -1,0 +1,55 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "Human은 하나의 agent-factory 플러그인을 유지하고 그 안에서 메인 에이전트와 워크플로우 에이전트 역할을 분리하기로 결정했다."
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "메인 에이전트는 단순 질문, Intake, Work Unit 관리, Execution과 Rework 결과 확인을 담당한다."
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": "워크플로우 에이전트는 Work Unit Execution과 Rework를 담당한다."
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": "차단 미결정 없음"
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-item",
+      "content": "공식 지원 경로 결정 완료: 플러그인에는 역할 스킬을 배포하고 workflow-agent 역할은 built-in worker가 수행한다.",
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": "Human은 플러그인에 main-agent와 workflow-agent 역할 스킬을 두고 메인 에이전트가 built-in worker를 Work Unit Execution과 Rework 담당 워크플로우 에이전트로 위임하는 구조를 승인했다."
+    },
+    {
+      "id": "OPEN-002",
+      "kind": "open-item",
+      "content": "해결 완료: Goal + exec는 app_server_goal.py의 Goal RPC 검증 후 app-server execution turn 시작을 의미한다.",
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "DECISION-005",
+      "kind": "decision-status",
+      "content": "Human은 워크플로우 에이전트를 app_server_goal.py로 실행하며, launcher가 thread Goal을 설정·조회·알림 확인한 뒤 동일 thread의 execution turn을 시작하는 경로를 승인했다. 이 결정은 DECISION-004의 built-in worker 직접 위임 부분을 대체한다."
+    }
+  ],
+  "subsections": []
+}

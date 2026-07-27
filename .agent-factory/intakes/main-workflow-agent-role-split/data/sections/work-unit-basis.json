@@ -1,0 +1,50 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "단일 agent-factory 플러그인에 lifecycle 관리용 main-agent 역할 스킬과 Goal 기반 Execution/Rework용 workflow-agent 역할 스킬을 추가하고 기존 app_server_goal.py 실행 경계와 연결한다.",
+        "scope": [
+          "skills/main-agent 신규 역할 스킬",
+          "skills/workflow-agent 신규 역할 스킬",
+          "메인 역할에서 app_server_goal.py를 통한 named Work Unit 실행·Rework 위임",
+          "워크플로우 역할에서 Goal preflight, Work Unit Execution, AI Review, Report 수행",
+          "lifecycle 및 work-unit-execution 라우팅 정합화",
+          "skill metadata, plugin validation, 관련 테스트"
+        ],
+        "outOfScope": [
+          "두 개의 독립 플러그인",
+          "프로젝트 .codex/agents TOML 생성",
+          "raw codex exec를 Goal 증거로 인정",
+          "Goal launcher 프로토콜 재구현",
+          "Human 승인 자동화",
+          "merge, cleanup, push, PR promotion"
+        ],
+        "executionOrder": 1,
+        "dependencies": []
+      }
+    },
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "aligned",
+        "reason": "Project Core는 lifecycle routing, Work Unit 실행·검증·Human review 준비, skills와 plugin packaging, Human의 최종 승인 및 rework 경계를 이미 포함한다. 이번 역할 분리는 해당 범위 안의 책임 배치이며 Project Core 목적·원칙·범위·승인 경계를 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "aligned"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "specification",
+          "id": "project-core",
+          "path": ".agent-factory/specifications/project-core"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}
