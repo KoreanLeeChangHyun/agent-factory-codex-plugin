@@ -33,6 +33,29 @@
           "blocks/evidence/verification.txt"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-A661BBECEC8E5BFD",
+      "kind": "integration-result",
+      "content": {
+        "humanDecision": "approved",
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/work-unit-status-all-command",
+        "sourceCommit": "ad73926e691fad8605d8ea50a7a7d145bf4a164e",
+        "strategy": "no-ff",
+        "targetAfterCommit": "fbd6399ea7ed0ffcd387271312eff5adb1bcb7ba",
+        "targetBeforeCommit": "9f3a65f7401bb7b8cdfa1bdb977050b7e54fc7e0",
+        "targetBranch": "main",
+        "workUnitId": "work-unit-status-all-command",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/work-unit-status-all-command",
+        "receiptSha256": "a661bbecec8e5bfd8e68a4a488512d1bd311d5818fa6ed6c07220eaf5528dbb6"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/main-fbd6399.json"
     }
   ],
   "subsections": []

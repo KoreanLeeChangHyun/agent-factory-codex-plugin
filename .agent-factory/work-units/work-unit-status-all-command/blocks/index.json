@@ -13,6 +13,13 @@
       "description": "status --all TDD와 전체 검증 결과",
       "sha256": "649a40e58ccc192a369e5e83cf94bc7807d15a17383f2ae2501658a881c5a564",
       "sizeBytes": 1196
+    },
+    {
+      "path": "blocks/integration/main-fbd6399.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "a661bbecec8e5bfd8e68a4a488512d1bd311d5818fa6ed6c07220eaf5528dbb6",
+      "sizeBytes": 1159
     }
   ]
 }
