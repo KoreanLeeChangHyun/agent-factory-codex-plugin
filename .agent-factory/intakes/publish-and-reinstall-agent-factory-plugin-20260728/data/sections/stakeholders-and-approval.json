@@ -1,0 +1,26 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": [
+        "Agent Factory 플러그인을 사용하는 Human",
+        "Agent Factory lifecycle을 수행하는 Codex 에이전트",
+        "원격 agent-factory marketplace 소비자"
+      ]
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Human은 cumulative main 게시, marketplace 갱신, plugin 재설치, 최종 결과 승인과 rework를 결정한다. 이 Intake 작성은 push·재설치·PR promotion을 승인하지 않는다."
+    }
+  ],
+  "subsections": []
+}

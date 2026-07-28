@@ -1,0 +1,66 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "codex plugin list; installed and repository work_unit.py --help; git log origin/main..main; prior publish-and-reinstall-agent-factory-plugin and promote-agent-factory-plugin-update Work Units",
+        "method": "manager display and command inspection",
+        "findings": [
+          "활성 설치본 버전은 0.1.0+codex.20260726140548이고 Work Unit 관리자에 delete 명령이 없다.",
+          "local main에는 fb71805의 안전 삭제 기능이 있으며 origin/main보다 35개 커밋 앞서 있다.",
+          "기존 배포 Work Unit은 fast-forward 확인, push, marketplace upgrade, plugin reinstall, 설치 상태 검증과 새 스레드 handoff를 사용했다.",
+          "기존 사례에는 cachebuster와 게시를 한 Work Unit으로 묶은 방식과 별도 Work Unit으로 분리한 방식이 모두 있다."
+        ],
+        "interpretations": [
+          "현재 저장소 버전을 원격 marketplace에 게시하고 재설치해야 동일 ID 삭제·재생성을 활성 관리자 규칙에 맞게 재개할 수 있다."
+        ],
+        "limitations": [
+          "push와 재설치는 아직 실행되지 않았다.",
+          "한 Work Unit 또는 두 Work Unit 분할은 Human 결정 전까지 미확정이다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "활성 설치본에 delete 명령이 없는 상황에서 어떤 경로로 계속할까요?",
+        "recommendation": "A",
+        "recommendationRationale": "정식 배포·재설치로 활성 관리자와 저장소 기능을 일치시키면 동일 ID 재생성 목표와 관리자 전용 원칙을 모두 지킨다.",
+        "answer": "A",
+        "state": "answered",
+        "decision": "현재 저장소 버전을 정식 배포·재설치한 뒤 새 스레드에서 동일 ID Work Unit 삭제·재생성을 재개한다.",
+        "choices": [
+          "A: 정식 배포·재설치 후 새 스레드에서 재개.",
+          "B: invalid 패키지를 남기고 새 ID Work Unit 생성.",
+          "C: 중단."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "cachebuster 갱신과 게시·재설치를 몇 개의 Work Unit으로 나눌까요?",
+        "recommendation": "A",
+        "recommendationRationale": "소스 변경과 외부 게시 승인을 분리하면 게시 전 검토가 가능하고 실패·재작업 범위를 줄인다.",
+        "answer": "A",
+        "state": "answered",
+        "decision": "두 Work Unit으로 분리한다: 첫째 cachebuster 갱신·검증, 둘째 push·marketplace 갱신·재설치.",
+        "choices": [
+          "A: 두 Work Unit으로 분리. 장점: 소스 변경과 외부 승인 분리. 단점: 체크포인트와 리뷰 증가.",
+          "B: 한 Work Unit으로 결합. 장점: 빠름. 단점: 변경과 외부 push 결합.",
+          "C: release Intake 보류. 장점: 외부 변경 없음. 단점: 복구 중단."
+        ],
+        "sourceRefs": [
+          "EVIDENCE-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

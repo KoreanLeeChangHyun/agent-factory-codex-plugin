@@ -1,0 +1,49 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "현재 저장소 버전을 정식 배포·재설치하고 새 스레드에서 원래 Work Unit 복구를 재개한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-001"
+      }
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-items-status",
+      "content": "차단 미결정 0건."
+    },
+    {
+      "id": "OPEN-002",
+      "kind": "open-item",
+      "content": "Human이 선택 A를 승인하여 cachebuster 갱신·검증과 원격 게시·재설치를 두 Work Unit으로 분리하는 것으로 해결되었다.",
+      "attributes": {
+        "resolvedBy": "INTERVIEW-002",
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "cachebuster 갱신·검증과 원격 게시·재설치를 두 개의 독립 Work Unit으로 분리한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-002"
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk-status",
+      "content": [
+        "push 직전 origin/main이 변경되면 fast-forward 검증을 중단하고 Human에게 보고한다.",
+        "누적 main 게시 범위는 정확한 checkpoint commit과 변경 목록으로 검토한다.",
+        "재설치가 성공해도 현재 스레드는 이전 플러그인 정의를 유지하므로 후속 복구는 새 스레드에서 시작한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

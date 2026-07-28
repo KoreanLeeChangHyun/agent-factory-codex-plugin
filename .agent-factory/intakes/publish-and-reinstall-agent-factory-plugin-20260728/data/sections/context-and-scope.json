@@ -1,0 +1,35 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "활성 agent-factory 0.1.0+codex.20260726140548의 Work Unit 관리자에는 delete 명령이 없고, local main에는 fb71805 Add safe Work Unit package deletion이 포함되어 있으며 origin/main보다 35개 커밋 앞서 있다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "현재 승인된 누적 main의 배포 준비",
+        "plugin-creator helper를 통한 단일 cachebuster suffix 갱신",
+        "plugin 및 관련 정적 검증",
+        "origin/main fast-forward 안전 확인과 Human 승인 후 push",
+        "agent-factory marketplace upgrade와 plugin reinstall",
+        "설치 버전·enabled 상태·Work Unit delete 명령 검증"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "fact-only와 agent-rule 책임 분리 구현",
+        "유효하지 않은 fact-only-agent-rule-responsibility-refactor Work Unit 삭제·재생성",
+        "직접 marketplace.json 또는 Codex 설정 편집",
+        "기존 worktree cleanup 또는 branch 삭제",
+        "승인되지 않은 force push 또는 PR promotion"
+      ]
+    }
+  ],
+  "subsections": []
+}
