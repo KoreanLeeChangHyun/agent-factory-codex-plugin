@@ -1,0 +1,40 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholders": [
+          "Human decision owner",
+          "Work Unit execution agent",
+          "Work Unit manager maintainer"
+        ]
+      }
+    },
+    {
+      "id": "DECISION-OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human",
+        "decisions": [
+          "재발 방지 인터페이스 경계 선택",
+          "Work Unit checkpoint 승인",
+          "구현 결과 Human review와 integration 여부"
+        ]
+      }
+    },
+    {
+      "id": "APPROVAL-BOUNDARY-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundaries": [
+          "Intake와 Work Unit checkpoint는 각각 exact package path, full validation 결과, exact commit message 공개 후 별도 Human 승인을 요구한다.",
+          "구현 결과의 review, integration, cleanup, push, PR promotion은 별도 Human 결정이다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

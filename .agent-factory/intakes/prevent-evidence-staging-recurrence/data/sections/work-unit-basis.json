@@ -1,0 +1,77 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "이번 유지보수 요청은 Project Core 필드나 기존 durable supervisor Specification의 제품 설계를 변경하지 않고 active manager 입력 및 실행 skill 계약을 수정한다.",
+        "specificationRefs": []
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "WORK-BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "workUnitId": "prevent-evidence-staging-recurrence",
+        "objective": "Add stdin evidence input to common block-put and Work Unit integration-put, prohibit repository-local evidence-staging, and verify the recurrence prevention contract.",
+        "dependencyStatus": "none",
+        "executionOrder": "1",
+        "humanReviewMethod": "Human은 stdin 입력 계약, 저장소 내부 staging 금지 문구, 변경 diff, 새 회귀 테스트, 기존 manager 회귀 테스트, final changed-path 목록을 검토하고 approve 또는 rework와 integration을 별도로 결정한다.",
+        "scope": [
+          "공통 sectioned document block-put의 stdin source 지원",
+          "Work Unit integration-put의 stdin receipt 지원",
+          "저장소 내부 .agent-factory/evidence-staging 사용 금지 계약",
+          "관련 manager와 integration 회귀 테스트",
+          "활성 Agent Factory skill 문서 갱신"
+        ],
+        "exclusions": [
+          "기존 Git history 재작성",
+          "관련 없는 미커밋 변경",
+          "자동 integration, cleanup, push, PR promotion"
+        ],
+        "expectedOutputs": [
+          "skills/lifecycle/assets/scripts/sectioned_document.py",
+          "skills/work-unit-planner/assets/scripts/work_unit.py",
+          "관련 manager tests",
+          "skills/work-unit-planner/SKILL.md와 관련 active skill/reference 문서"
+        ],
+        "requirementRefs": [
+          "REQ-001",
+          "REQ-002"
+        ],
+        "acceptanceRefs": [
+          "ACCEPTANCE-001"
+        ],
+        "decisionRefs": [
+          "DECISION-001"
+        ],
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-001",
+          "INTERVIEW-001"
+        ],
+        "plan": [
+          "stdin source와 repository staging 부재를 증명하는 실패 테스트를 먼저 작성한다.",
+          "공통 block-put과 integration-put의 최소 stdin 입력 구현을 추가한다.",
+          "저장소 내부 evidence-staging 금지와 권장 pipeline을 활성 skill에 기록한다.",
+          "focused tests, 관련 regression tests, plugin validation, git diff check를 실행한다.",
+          "AI review와 Human review 자료를 작성한다."
+        ],
+        "verification": [
+          "python3 -m unittest skills.lifecycle.tests.test_sectioned_document",
+          "python3 -m unittest skills.work_unit_planner.tests.test_work_unit_manager",
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+          "git diff --check",
+          "test ! -e .agent-factory/evidence-staging"
+        ],
+        "unresolvedItems": []
+      }
+    }
+  ],
+  "subsections": []
+}

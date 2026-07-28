@@ -1,0 +1,30 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "selectedOption": "A",
+        "decision": "공통 block-put과 integration-put에 stdin 입력을 추가하고 저장소 내부 evidence-staging 사용을 금지한다.",
+        "relatedInterview": "INTERVIEW-001",
+        "evidenceRefs": [
+          "INTERNAL-EVIDENCE-001",
+          "INTERVIEW-001"
+        ]
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "resolved",
+        "blockingItems": [],
+        "nonBlockingItems": []
+      }
+    }
+  ],
+  "subsections": []
+}
