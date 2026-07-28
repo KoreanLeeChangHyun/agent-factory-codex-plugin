@@ -15,7 +15,7 @@
     {
       "id": "OPEN-001",
       "kind": "open-items-status",
-      "content": "차단 미결정 0건."
+      "content": "차단 항목 1건: OPEN-003."
     },
     {
       "id": "OPEN-002",
@@ -34,6 +34,42 @@
         "decision": "fact-only와 agent-rule을 모두 유지하고, 사실 판정 규칙은 fact-only가 단일 소유하며 agent-rule은 비판적 검토·엔지니어링·변경 안전성·검증 규칙에 집중한다.",
         "status": "accepted",
         "source": "INTERVIEW-001"
+      }
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": {
+        "decision": "유효하지 않은 fact-only-agent-rule-responsibility-refactor Work Unit을 관리자 명령으로 삭제하고, 준비 완료된 Intake를 근거로 동일 ID의 표준 v4 패키지를 재생성한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-002"
+      }
+    },
+    {
+      "id": "DECISION-005",
+      "kind": "decision-status",
+      "content": {
+        "decision": "현재 저장소 버전을 정식 배포·재설치하고 새 스레드에서 동일 ID Work Unit 삭제·재생성을 재개한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-003"
+      }
+    },
+    {
+      "id": "OPEN-003",
+      "kind": "open-item",
+      "content": "활성 설치본의 Work Unit 관리자에 delete 명령이 없다. 저장소 버전을 정식 배포·재설치하고 새 스레드에서 관리자 기능을 확인하기 전까지 동일 ID 재생성을 진행할 수 없다.",
+      "attributes": {
+        "blocking": true,
+        "resolved": false
+      }
+    },
+    {
+      "id": "DECISION-006",
+      "kind": "decision-status",
+      "content": {
+        "decision": "후속 release Intake ID는 publish-and-reinstall-agent-factory-plugin-20260728로 한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-004"
       }
     }
   ],
