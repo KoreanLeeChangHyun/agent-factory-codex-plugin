@@ -1,0 +1,22 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-001",
+      "kind": "report-result",
+      "content": {
+        "status": "pending",
+        "summary": "Execution이 시작되지 않았다.",
+        "remainingRisks": [
+          "cachebuster 갱신, 검증, Human 승인과 merge가 남아 있다.",
+          "후속 origin/main push와 plugin reinstall은 별도 Work Unit이다."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

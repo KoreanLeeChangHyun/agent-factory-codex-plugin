@@ -1,0 +1,42 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": "Agent Factory plugin cachebuster 갱신·검증 basis",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "publish-and-reinstall-agent-factory-plugin-20260728",
+          "path": ".agent-factory/intakes/publish-and-reinstall-agent-factory-plugin-20260728",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "release 준비를 위한 manifest cachebuster 변경으로 Project Core 또는 Specification 설계 계약을 변경하지 않는다."
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "publish-and-reinstall-agent-factory-plugin-20260728",
+          "path": ".agent-factory/intakes/publish-and-reinstall-agent-factory-plugin-20260728",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "SPEC-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

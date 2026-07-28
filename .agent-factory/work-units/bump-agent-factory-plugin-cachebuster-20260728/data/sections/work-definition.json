@@ -1,0 +1,53 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "plugin-creator helper로 Agent Factory plugin manifest의 cachebuster suffix를 한 번 갱신하고 플러그인과 생성 산출물을 검증한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "plugin-creator update_plugin_cachebuster.py로 .codex-plugin/plugin.json version suffix 갱신",
+        "plugin manifest 전체 검증",
+        "generated hooks check",
+        "skill metadata 관련 회귀 검증",
+        "변경 파일 및 diff 품질 검토"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "origin/main push",
+        "agent-factory marketplace upgrade",
+        "plugin reinstall",
+        "fact-only-agent-rule-responsibility-refactor Work Unit 삭제·재생성",
+        "기능 코드, lifecycle 계약 또는 marketplace 설정 직접 수정",
+        "worktree cleanup, branch 삭제, merge 또는 PR promotion"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": [
+        "기존 base version을 보존하고 단일 +codex cachebuster suffix가 갱신된 .codex-plugin/plugin.json",
+        "plugin validation, generated hooks, skill metadata, diff 검증 증거",
+        "AI review 및 Korean Human review 자료"
+      ]
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk-status",
+      "content": [
+        "helper 외 수동 manifest 편집을 금지한다.",
+        "동일 suffix가 중첩되거나 base version이 바뀌면 실패로 처리한다.",
+        "예상 파일 밖의 변경은 scope 확장 없이 중단하고 Human에게 보고한다."
+      ]
+    }
+  ],
+  "subsections": []
+}
