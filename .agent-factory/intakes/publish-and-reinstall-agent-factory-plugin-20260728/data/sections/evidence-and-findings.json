@@ -60,6 +60,26 @@
           "EVIDENCE-001"
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-003",
+      "kind": "interview",
+      "content": {
+        "question": "첫 번째 Work Unit ID를 무엇으로 할까요?",
+        "recommendation": "A",
+        "recommendationRationale": "기존 cachebuster Work Unit과 역할 연속성이 분명하고 날짜 접미사로 충돌을 피한다.",
+        "answer": "A",
+        "state": "answered",
+        "decision": "첫 번째 Work Unit ID는 bump-agent-factory-plugin-cachebuster-20260728로 한다.",
+        "choices": [
+          "A: bump-agent-factory-plugin-cachebuster-20260728. 장점: 기존 명명 연속성과 비충돌. 단점: ID가 김.",
+          "B: prepare-agent-factory-plugin-release-20260728. 장점: 게시 준비 목적 명확. 단점: cachebuster 작업이 덜 명확.",
+          "C: Human이 별도 ID 지정. 장점: 원하는 규칙 반영. 단점: 추가 입력 필요."
+        ],
+        "sourceRefs": [
+          "BASIS-001"
+        ]
+      }
     }
   ],
   "subsections": []

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.16",
+  "documentVersion": "1.0.21",
   "id": "publish-and-reinstall-agent-factory-plugin-20260728",
   "artifactType": "intake",
   "projectId": "agent-factory-codex-plugins",
@@ -9,7 +9,7 @@
     "status": "ready"
   },
   "createdAt": "2026-07-28T13:42:50+00:00",
-  "updatedAt": "2026-07-28T13:49:49+00:00",
+  "updatedAt": "2026-07-28T13:57:15+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,7 +19,7 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-07-28T22:49:36+09:00",
+    "reviewedAt": "2026-07-28T22:57:07+09:00",
     "contractValid": true,
     "evidenceComplete": true,
     "requirementsComplete": true,

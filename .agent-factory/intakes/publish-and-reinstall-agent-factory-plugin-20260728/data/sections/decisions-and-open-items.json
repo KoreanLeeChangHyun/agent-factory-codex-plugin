@@ -43,6 +43,15 @@
         "누적 main 게시 범위는 정확한 checkpoint commit과 변경 목록으로 검토한다.",
         "재설치가 성공해도 현재 스레드는 이전 플러그인 정의를 유지하므로 후속 복구는 새 스레드에서 시작한다."
       ]
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": {
+        "decision": "BASIS-001의 Work Unit ID는 bump-agent-factory-plugin-cachebuster-20260728로 한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-003"
+      }
     }
   ],
   "subsections": []
