@@ -21,6 +21,7 @@ CLIENT_NAME = "agent_factory_work_unit_runner"
 CLIENT_TITLE = "Agent Factory Work Unit Runner"
 CLIENT_VERSION = "1.0.0"
 WORK_UNIT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+MAX_AUTOMATIC_RECOVERIES = 20
 WORK_UNIT_MANAGER = (
     Path(__file__).resolve().parents[2]
     / "work-unit-planner"
@@ -451,83 +452,72 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
             "execution_repository_mismatch",
             "execution context repository does not match repository",
         )
-    worktree = repository / ".agent-factory" / "worktree" / work_unit_id
-    if Path(context.get("worktreePath", "")).resolve(strict=False) != worktree:
+    execution_route = context.get("executionMode", "worktree")
+    if execution_route not in {"worktree", "specification-direct"}:
         raise ContractError(
-            "execution_worktree_mismatch",
-            "execution context worktreePath is not canonical",
+            "invalid_execution_context",
+            "executionMode must be worktree or specification-direct",
         )
-    selected_package = package
-    selected_validation = validation_payload
-    selected_section = context_section
-    if worktree.exists():
-        worktree_result = subprocess.run(
-            ["git", "-C", str(worktree), "rev-parse", "--show-toplevel"],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="strict",
-            check=False,
-            shell=False,
-        )
-        reported_worktree = Path(worktree_result.stdout.strip()).resolve(strict=False)
-        if worktree_result.returncode != 0 or reported_worktree != worktree:
+    if execution_route == "worktree":
+        worktree = repository / ".agent-factory" / "worktree" / work_unit_id
+        if Path(context.get("worktreePath", "")).resolve(strict=False) != worktree:
             raise ContractError(
                 "execution_worktree_mismatch",
-                "canonical execution worktree is not the registered Git worktree",
+                "execution context worktreePath is not canonical",
             )
-        branch_result = subprocess.run(
-            ["git", "-C", str(worktree), "branch", "--show-current"],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="strict",
-            check=False,
-            shell=False,
-        )
-        expected_branch = f"work-unit/{work_unit_id}"
-        if (
-            branch_result.returncode != 0
-            or branch_result.stdout.strip() != expected_branch
-        ):
-            raise ContractError(
-                "execution_branch_mismatch",
-                "canonical execution worktree has the wrong branch",
-                {
-                    "actual": branch_result.stdout.strip(),
-                    "expected": expected_branch,
-                },
+        if worktree.exists():
+            worktree_result = subprocess.run(
+                ["git", "-C", str(worktree), "rev-parse", "--show-toplevel"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="strict",
+                check=False,
+                shell=False,
             )
-        selected_package = (
-            worktree / ".agent-factory" / "work-units" / work_unit_id
-        )
-        selected_validation = manager_validation(selected_package, work_unit_id)
-        selected_section, linked_context = execution_context_section(
-            selected_package
-        )
-        if (
-            linked_context.get("goalId") != work_unit_id
-            or Path(linked_context.get("repository", "")).resolve(strict=False)
-            != repository
-            or Path(linked_context.get("worktreePath", "")).resolve(strict=False)
-            != worktree
-        ):
-            raise ContractError(
-                "invalid_execution_context",
-                "linked Work Unit execution context does not match the launcher",
+            reported_worktree = Path(
+                worktree_result.stdout.strip()
+            ).resolve(strict=False)
+            if worktree_result.returncode != 0 or reported_worktree != worktree:
+                raise ContractError(
+                    "execution_worktree_mismatch",
+                    "canonical execution worktree is not the registered Git worktree",
+                )
+            branch_result = subprocess.run(
+                ["git", "-C", str(worktree), "branch", "--show-current"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="strict",
+                check=False,
+                shell=False,
             )
-    mode = launch_mode(selected_validation, selected_section, work_unit_id)
+            expected_branch = f"work-unit/{work_unit_id}"
+            if (
+                branch_result.returncode != 0
+                or branch_result.stdout.strip() != expected_branch
+            ):
+                raise ContractError(
+                    "execution_branch_mismatch",
+                    "canonical execution worktree has the wrong branch",
+                    {
+                        "actual": branch_result.stdout.strip(),
+                        "expected": expected_branch,
+                    },
+                )
+    mode = launch_mode(validation_payload, context_section, work_unit_id)
     return {
         "mode": mode,
+        "executionRoute": execution_route,
         "instruction": (
-            rework_instruction(selected_section) if mode == "rework" else None
+            rework_instruction(context_section) if mode == "rework" else None
         ),
         "objective": work_unit_id,
-        "package": str(selected_package),
+        "package": str(package),
     }
 
 
@@ -552,27 +542,39 @@ def launch_mode(
         for item in execution_context.get("content", [])
         if isinstance(item, dict) and item.get("kind") == "execution-state"
     ]
-    if (
-        validation.get("status") == "working"
-        and len(states) == 1
-        and isinstance(states[0], dict)
-        and states[0].get("state") == "planned"
-        and isinstance(states[0].get("currentRevision"), int)
-        and states[0]["currentRevision"] >= 2
-        and states[0].get("currentAttempt") is None
-        and isinstance(states[0].get("history"), list)
-        and len(states[0]["history"]) > 0
-    ):
-        instruction = states[0].get("reworkInstruction")
-        if not isinstance(instruction, str) or not instruction.strip():
-            raise ContractError(
-                "rework_instruction_missing",
-                "manager-approved planned rework requires a Human instruction",
-            )
-        return "rework"
+    if validation.get("status") in {"working", "blocked"} and len(states) == 1:
+        state = states[0]
+        if (
+            isinstance(state, dict)
+            and state.get("state") == "planned"
+            and isinstance(state.get("currentRevision"), int)
+            and state["currentRevision"] >= 2
+            and state.get("currentAttempt") is None
+            and isinstance(state.get("history"), list)
+            and len(state["history"]) > 0
+        ):
+            instruction = state.get("reworkInstruction")
+            if not isinstance(instruction, str) or not instruction.strip():
+                raise ContractError(
+                    "rework_instruction_missing",
+                    "planned rework requires an instruction",
+                )
+            return "rework"
+        if (
+            isinstance(state, dict)
+            and state.get("state") in {"running", "blocked"}
+            and isinstance(state.get("currentRevision"), int)
+            and state["currentRevision"] >= 1
+            and isinstance(state.get("currentAttempt"), int)
+            and state["currentAttempt"] >= 1
+            and isinstance(state.get("invocationId"), str)
+            and state["invocationId"]
+            and isinstance(state.get("history"), list)
+        ):
+            return "resume"
     raise ContractError(
         "work_unit_not_launchable",
-        "Work Unit must be ready for initial execution or in manager-approved planned rework",
+        "Work Unit must be ready for initial execution or in planned rework",
         {"status": validation.get("status")},
     )
 
@@ -599,14 +601,22 @@ def execution_prompt(
         if not isinstance(instruction, str) or not instruction.strip():
             raise ContractError(
                 "rework_instruction_missing",
-                "Human-approved rework requires a canonical instruction",
+                "rework requires a canonical instruction",
             )
         action = (
-            "perform Human-approved rework for Agent Factory Work Unit "
+            "perform rework for Agent Factory Work Unit "
             f"{work_unit_id}"
         )
         instruction_text = (
-            f" Human-approved rework instruction: {instruction.strip()}"
+            f" Rework instruction: {instruction.strip()}"
+        )
+    elif mode == "resume":
+        action = f"resume Agent Factory Work Unit {work_unit_id}"
+        instruction_text = (
+            " Continue the manager-owned current revision and attempt. "
+            "Bind this Goal thread with attempt-resume or blocker-resolve as "
+            "applicable, preserve completed work, and do not repeat decisions "
+            "already recorded in the canonical package."
         )
     else:
         raise ContractError(
@@ -615,9 +625,32 @@ def execution_prompt(
             {"mode": mode},
         )
     return (
-        f"Use $workflow-agent to {action}. "
-        "Run the mandatory Goal preflight, resolve the canonical package, "
-        f"and execute only that Work Unit.{instruction_text}"
+        "You are the Workflow Agent. You must execute the named Work Unit "
+        "without asking for another approval, checkpoint, or readiness "
+        f"decision. Use $workflow-agent to {action}. The primary agent already "
+        "completed the one-time readiness admission and the launcher confirmed "
+        "the active Goal. Do not reassess readiness after execution starts. "
+        "Read the canonical package and execute only that Work Unit through "
+        "Plan -> Work -> AI Review -> Report. For a Specification-only Work "
+        "Unit, update the primary root canonical Specification only through "
+        "specification.py and do not create a worktree. For every other Work "
+        "Unit, create or reuse its dedicated linked worktree, where "
+        ".agent-factory is excluded, and perform all scoped non-canonical "
+        f"changes there.{instruction_text}"
+    )
+
+
+def recovery_prompt(work_unit_id: str, reason: str) -> str:
+    return (
+        "You are the Workflow Agent. You must continue $workflow-agent "
+        f"execution of Agent Factory Work Unit {work_unit_id}. The prior turn "
+        f"ended as {reason}; resume the same manager-owned revision and attempt, "
+        "preserve completed work, and do not repeat canonical decisions. Do not "
+        "reassess readiness or ask for approval/checkpoint decisions. Continue "
+        "Plan -> Work -> AI Review -> Report. For a Specification-only Work "
+        "Unit, write only the primary canonical Specification through "
+        "specification.py; otherwise continue in the dedicated linked worktree. "
+        "Removed checkpoint or approval procedures must not block execution."
     )
 
 
@@ -728,25 +761,62 @@ def run_protocol(
     updated_goal = notification_goal(updated_message)
     validate_goal(updated_goal, thread_id, objective, required_status="active")
 
-    turn_result = client.request(
-        "turn/start",
-        {
-            "threadId": thread_id,
-            "input": [
+    turn_ids: list[str] = []
+    recovery_count = 0
+
+    def start_turn(prompt: str) -> str:
+        turn_result = client.request(
+            "turn/start",
+            {
+                "threadId": thread_id,
+                "input": [{"type": "text", "text": prompt}],
+            },
+        )
+        turn = turn_result.get("turn")
+        if not isinstance(turn, dict) or not isinstance(turn.get("id"), str):
+            raise ContractError(
+                "invalid_turn_response", "turn/start returned no turn id"
+            )
+        turn_id = turn["id"]
+        if turn_id not in turn_ids:
+            turn_ids.append(turn_id)
+        return turn_id
+
+    def recover(reason: str) -> None:
+        nonlocal recovery_count
+        if recovery_count >= MAX_AUTOMATIC_RECOVERIES:
+            raise ContractError(
+                "goal_recovery_exhausted",
+                "automatic Goal continuation limit was reached",
+                {"reason": reason, "recoveries": recovery_count},
+            )
+        recovery_count += 1
+        reactivated = goal_value(
+            client.request(
+                "thread/goal/set",
                 {
-                    "type": "text",
-                    "text": execution_prompt(work_unit_id, mode, instruction),
-                }
-            ],
-        },
-    )
-    turn = turn_result.get("turn")
-    if not isinstance(turn, dict) or not isinstance(turn.get("id"), str):
-        raise ContractError("invalid_turn_response", "turn/start returned no turn id")
-    turn_ids = [turn["id"]]
+                    "threadId": thread_id,
+                    "objective": objective,
+                    "status": "active",
+                },
+            ),
+            required=True,
+        )
+        validate_goal(
+            reactivated, thread_id, objective, required_status="active"
+        )
+        fetched = goal_value(
+            client.request("thread/goal/get", {"threadId": thread_id}),
+            required=True,
+        )
+        validate_goal(fetched, thread_id, objective, required_status="active")
+        start_turn(recovery_prompt(work_unit_id, reason))
+
+    start_turn(execution_prompt(work_unit_id, mode, instruction))
     completed_goal: dict[str, Any] | None = None
     completed_goal_turn_id: str | None = None
     completed_turns: set[str] = set()
+    blocked_goal_turn_id: str | None = None
 
     while True:
         message = client.next_notification()
@@ -774,9 +844,20 @@ def run_protocol(
                 ):
                     return {
                         "goal": completed_goal,
+                        "recoveryCount": recovery_count,
                         "threadId": thread_id,
                         "turnIds": turn_ids,
                     }
+            elif candidate.get("status") == "blocked":
+                blocked_goal_turn_id = (
+                    params.get("turnId") if isinstance(params, dict) else None
+                )
+                if (
+                    blocked_goal_turn_id is None
+                    or blocked_goal_turn_id in completed_turns
+                ):
+                    recover("blocked")
+                    blocked_goal_turn_id = None
         elif method == "turn/started" and isinstance(params, dict):
             candidate = params.get("turn")
             if isinstance(candidate, dict) and isinstance(candidate.get("id"), str):
@@ -801,6 +882,10 @@ def run_protocol(
                     "invalid_turn_notification",
                     "turn/completed did not include a turn id",
                 )
+            if status == "interrupted":
+                completed_turns.add(turn_id)
+                recover("interrupted")
+                continue
             if status != "completed":
                 raise ContractError(
                     "turn_failed",
@@ -808,12 +893,25 @@ def run_protocol(
                     {"turnId": turn_id, "status": status},
                 )
             completed_turns.add(turn_id)
+            if (
+                blocked_goal_turn_id is None
+                and completed_goal is None
+            ):
+                continue
+            if (
+                blocked_goal_turn_id is None
+                or blocked_goal_turn_id == turn_id
+            ) and completed_goal is None:
+                recover("blocked")
+                blocked_goal_turn_id = None
+                continue
             if completed_goal is not None and (
                 completed_goal_turn_id is None
                 or completed_goal_turn_id in completed_turns
             ):
                 return {
                     "goal": completed_goal,
+                    "recoveryCount": recovery_count,
                     "threadId": thread_id,
                     "turnIds": turn_ids,
                 }
@@ -831,11 +929,13 @@ def success_payload(
         "command": "execute",
         "context": {
             "executionMode": package["mode"],
+            "executionRoute": package["executionRoute"],
             "goal": protocol["goal"],
             "package": package["package"],
             "repository": str(repository),
             "threadId": protocol["threadId"],
             "turnIds": protocol["turnIds"],
+            "recoveryCount": protocol["recoveryCount"],
             "workUnitId": work_unit_id,
         },
         "error": None,

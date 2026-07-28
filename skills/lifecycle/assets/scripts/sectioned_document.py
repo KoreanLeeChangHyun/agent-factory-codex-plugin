@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import stat
+import subprocess
 import sys
 import tempfile
 import uuid
@@ -270,11 +271,39 @@ def resolve_package(value: str | Path, *, must_exist: bool = True) -> Path:
     requested = Path(value)
     if requested.is_symlink():
         raise ManagerError(f"canonical package must not be a symlink: {requested}")
-    package = Path(os.path.abspath(requested))
+    package = canonical_primary_package(requested)
     package_project_root(package)
     if must_exist:
         assert_plain_path(package, "directory")
     return package
+
+
+def canonical_primary_package(requested: Path) -> Path:
+    candidate = Path(os.path.abspath(requested))
+    probe = subprocess.run(
+        ["git", "-C", str(Path.cwd()), "worktree", "list", "--porcelain"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if probe.returncode != 0:
+        return candidate
+    roots = [
+        Path(line.removeprefix("worktree ")).resolve()
+        for line in probe.stdout.splitlines()
+        if line.startswith("worktree ")
+    ]
+    if not roots:
+        return candidate
+    primary = roots[0]
+    for root in sorted(roots, key=lambda path: len(path.parts), reverse=True):
+        try:
+            relative = candidate.relative_to(root)
+        except ValueError:
+            continue
+        if relative.parts[:1] == (".agent-factory",):
+            return primary / relative
+    return candidate
 
 
 def safe_relative_path(value: str, label: str) -> Path:

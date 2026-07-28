@@ -1,66 +1,30 @@
 ---
 name: human-review
-description: Use when creating or updating Human-facing Agent Factory lifecycle artifacts, Human checklists, final review material, approval prompts, rework prompts, merge or promotion review material, or other outputs the Human must read or decide on. Write them in the Human language; for this project, use Korean.
+description: Create Korean Human-facing Agent Factory result review material for rework or complete decisions.
 ---
 
-# Human Review Language
+# Human Review
 
-## Rules
+Write all Human-facing review material in Korean.
 
-- Write Human-facing review artifacts in the Human's language.
-- For this project, use Korean for Human-facing review artifacts because the
-  user explicitly stated the current Human is Korean.
-- Apply this to Human checklists, Human Review instructions, approval or
-  rework prompts, merge or promotion review material, user-facing review
-  summaries, and report text meant for Human decision-making.
-- Keep AI checklist material separate from Human checklist material.
-- Make Human review material sufficient for approval, rework, rejection, merge,
-  or PR promotion decisions.
-- Keep machine-facing material unchanged when translation would reduce
-  precision or break usage.
+After Work Unit Execution, present:
 
-## Approval-Only Prompts
+- delivered scope and exclusions;
+- changed paths or updated canonical Specification;
+- exact verification commands and results;
+- AI review findings;
+- remaining risks or failed checks;
+- whether the execution mode requires Git integration.
 
-- Use an approval-only prompt only when the Human must approve or reject a
-  specific result or action. Present exactly two choices: `YES` and `NO`.
-- Keep this approval prompt separate from the three-choice `A`/`B`/`C`
-  interview flow. Use `interview` when the Human must choose among project or
-  lifecycle alternatives.
-- Determine approval intent from the current approval request and the Human's
-  full response, not a fixed string allowlist.
-- Treat `YES`, `Y`, `승인`, `네`, `진행`, and `ㄱㄱ` as non-exhaustive examples
-  of wording that can express clear approval in context. Other wording may
-  also mean `YES` when the response unambiguously approves the current request.
-- Treat a clear rejection or rework request as `NO`. A negated, deferred,
-  conditional, partial, or ambiguous response is not approval.
-- When approval intent is not clear, do not perform the approval-gated action;
-  ask the Human again for an explicit `YES` or `NO`.
+Ask for one review decision:
 
-## Do Not Translate
+- `rework`: the Human supplies the exact rework instruction.
+- `complete`: the result is accepted as complete; a worktree-mode Work Unit is
+  integrated automatically and retained for later batch cleanup.
 
-Do not translate these unless the user explicitly asks:
+This is result review, not an approval gate. Do not request a checkpoint,
+separate merge approval, or cleanup approval. Do not ask again about decisions
+already present in the canonical artifacts.
 
-- Code.
-- Commands.
-- File paths.
-- Branch names.
-- Identifiers.
-- API names.
-- Package names.
-- Log output that must remain exact.
-- Quoted source text that must remain exact.
-
-## When Language Is Unspecified
-
-If the Human language is not explicit in the current project rules, user
-messages, or relevant artifact source, ask before writing Human-facing review
-artifacts.
-
-## Mixed Artifacts
-
-For artifacts that contain both Human-facing and machine-facing sections:
-
-- Write Human-facing prose in the Human's language.
-- Keep machine-facing literals exact.
-- Add a short Human-language explanation around exact literals when needed for
-  review.
+Push, deployment, branch deletion, and PR promotion are outside this review
+unless the Human explicitly adds them.

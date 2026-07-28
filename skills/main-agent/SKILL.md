@@ -1,44 +1,58 @@
 ---
 name: main-agent
-description: Manage the primary Agent Factory lifecycle for ordinary questions, Intake, Work Unit planning, and execution-result follow-up. Use when Codex is the Human-facing primary agent that must route lifecycle work and delegate named Work Unit Execution or Human-approved Rework without implementing it in the primary thread.
+description: Manage the Human-facing Agent Factory lifecycle, record conversation in Intake, decide Work Unit readiness once, launch background Goal + Exec, and route result review.
 ---
 
 # Main Agent
 
-Act as the Human-facing owner of the primary lifecycle. Apply `fact-only`,
-`agent-rule`, and `lifecycle`, then route specialized work through the owning
-Agent Factory skills.
+Apply `fact-only`, `agent-rule`, and `lifecycle`. Record Human requests and
+feedback in the active canonical Intake by default through `intake.py`.
+Own the Human-facing primary lifecycle.
 
-## Responsibilities
+## Work Unit creation
 
-- Answer ordinary Human questions and report current lifecycle state.
-- Own Intake coordination and Work Unit planning through their canonical
-  managers and required skills.
-- Confirm the two approved lifecycle checkpoints before the first named Work
-  Unit execution.
-- Delegate programmatic Work Unit Execution and Human-approved Rework through
-  `skills/work-unit-execution/scripts/app_server_goal.py`.
-- Inspect the launch receipt and completed Work Unit review material, then
-  present the remaining Human decisions.
+Create a Work Unit through `work_unit.py` when the Intake contains enough
+information for independent execution or the Human explicitly requests Work
+Unit creation. A Work Unit must define scope, exclusions, expected output,
+execution mode, verification, AI review, and Human review material.
 
-## Execution Delegation
+## One-time execution admission
 
-For programmatic execution, invoke the recorded command from the canonical Work
-Unit execution context. The launcher must establish and read back the matching
-thread Goal before its execution turn starts, and that turn must explicitly use
-`$workflow-agent`.
+Only an explicit Human request to execute a named Work Unit authorizes launch.
+Immediately before launch, decide once whether the canonical Work Unit is
+sufficient:
 
-For rework, pass the exact Human Rework instruction to the Work Unit manager's
-Human-approved `rework-start` transition before invoking the same launcher.
-Treat a missing instruction, launcher refusal, a mismatched Goal, or a
-non-completed turn as a failed delegation.
+- its source Intake and Work Unit are full-valid;
+- no unresolved item blocks execution;
+- scope, exclusions, outputs, verification, and execution context are complete;
+- `executionMode` is `specification-direct` or `worktree`;
+- the requested Work Unit id and active repository match.
 
-The primary thread must not execute Work Unit implementation, verification,
-AI Review, Report, or approved Rework directly. Do not treat raw `codex exec`,
-a prompt, or a model-authored receipt as Goal evidence.
+Do not create a checkpoint, commit an artifact snapshot, request approval, or
+repeat decisions already recorded in canonical artifacts. If admission passes,
+start `skills/work-unit-execution/scripts/app_server_goal.py` as a background
+process. The launcher establishes the Goal and tells the started agent:
+`You are the Workflow Agent. You must execute this Work Unit.`
 
-## Human Boundaries
+After launch, do not reassess readiness and do not interrupt implementation with
+another approval, checkpoint, or decision request.
 
-Leave Work Unit approval, rework authorization, merge, cleanup, push,
-deployment, and PR promotion to the Human. One decision never authorizes
-another.
+## Result review
+
+Present completed execution, verification, AI review, and report evidence to the
+Human. The Human chooses:
+
+- `rework`: record the exact instruction through `rework-start` and invoke the
+  same background launcher again.
+- `complete`: record `--review-decision complete`, integrate the source branch
+  automatically for `worktree` mode, and retain the completed worktree for
+  later batch cleanup.
+
+`specification-direct` execution updates the primary canonical Specification and
+has no worktree or merge step. Push, deployment, branch deletion, and PR
+promotion remain outside this lifecycle unless the Human explicitly requests
+them.
+
+The primary thread does not implement Work Unit scope except when the Human
+explicitly grants an exception for that named Work Unit.
+Without such an exception, it must not execute Work Unit implementation.

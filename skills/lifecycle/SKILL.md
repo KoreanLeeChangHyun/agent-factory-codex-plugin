@@ -1,302 +1,125 @@
 ---
 name: lifecycle
-description: Use when Codex must follow the Agent Factory lifecycle from Intake through Work Units, execution, Human review, merge or rework, and Human-decided PR promotion.
+description: Route Agent Factory work through canonical Intake, Work Unit planning, background Goal execution, Human review, integration or rework, and later batch cleanup.
 ---
 
 # Agent Factory Lifecycle
 
-Read `references/common-document-contract.md` when creating, validating, or
-reviewing Intake, Specification, or Work Unit document structure and profiles.
-
-Use this skill as the top-level router for the Agent Factory workflow in Codex
-CLI.
-
-This is an Agent Factory skill for applying the lifecycle consistently in
-target projects and in this repository.
-
-## Source Location
-
-Use this Plugin's `skills/` directory as the single active location for Agent
-Factory skills and bundled assets. Resolve references, schemas, scripts, tests,
-and templates relative to the owning bundled skill. Do not use legacy
-standalone skill roots as active Agent Factory skill locations.
-
-## Dynamic Path Resolution
-
-- Treat the root directory opened in the current editor, IDE, or Codex
-  workspace as `<project-root>`.
-- Resolve Agent Factory artifacts from `<project-root>/.agent-factory/`. Do not
-  hardcode a user home, machine-specific workspace path, or Plugin installation
-  path.
-- Resolve bundled Plugin resources from the installed Plugin and the owning
-  skill, independently of `<project-root>`.
-- Do not substitute the shell's current subdirectory for `<project-root>` when
-  the opened workspace root is available.
-- If no root directory is open, or a multi-root workspace does not identify the
-  target root, stop and ask the Human which root is in scope.
-
-## Lifecycle
-
-Use this required artifact and approval lifecycle:
+Use the opened primary workspace as `<project-root>`. Canonical lifecycle data
+lives only under `<project-root>/.agent-factory/`.
+Always start with `intake`; there is no separate initialization phase.
 
 ```text
-Intake
-  -> Work Unit
-  -> Execution
-  -> Review
+Conversation -> Intake -> Work Unit -> background Goal + Exec
+             -> Human review (rework | complete)
+             -> complete integration -> later batch cleanup
 ```
 
-Use these lifecycle phases:
+## Mandatory Manager Script Gate
 
-- Intake uses `intake` to coordinate Human requirements and feedback, external
-  research, internal code or data analysis, direct user research, Human
-  decision interviews, and specification checks or updates. It repeats write -> manager apply -> deterministic
-  validation -> semantic review -> revision until the canonical Intake package
-  is ready for Work Unit planning.
-- Work Unit packages the accepted basis into the minimum `/goal
-  <work-unit-id>` execution unit for a fresh Codex Goal session.
-- Execution runs one Work Unit through Plan -> Work -> AI Review -> Report,
-  performs scoped artifact writing when it is an expected Work Unit output,
-  records verification evidence, performs AI review, and prepares any Human
-  approval, rework, merge, or PR promotion decision material.
-- Review is Human review after Execution.
+Every canonical operation uses its owning manager:
 
-For Intake, Work Unit, and Specification packages, the lifecycle-owned common
-engine alone creates the physical skeleton and serializes canonical JSON. The
-three artifact scripts remain separate controllers for their distinct profile,
-semantic validation, readiness, and state-transition rules. LLM callers supply
-typed semantic data only and must not construct JSON input.
+- Intake: `intake/scripts/intake.py`
+- Specification: `specification/scripts/specification.py`
+- Work Unit: `work-unit-planner/assets/scripts/work_unit.py`
 
-## Mandatory Artifact Manager Script Gate
+Never create, update, delete, copy, move, or repair canonical JSON through
+`apply_patch`, shell redirection, ad hoc scripts, generic filesystem tools, or a
+linked worktree. If the owning manager cannot express an operation, stop and
+report that capability gap. Treat each manager as a hard precondition: stop
+before mutation, do not create an exception path, and do not fall back to direct
+JSON editing.
 
-- Resolve and invoke the artifact-owning script before every canonical package
-  operation: `intake/scripts/intake.py` for Intake,
-  `specification/scripts/specification.py` for Specification, and
-  `work-unit-planner/assets/scripts/work_unit.py` for Work Unit.
-- Use the owning script for creation, authoritative display, mutation,
-  validation, lifecycle or execution-state transitions, block registration,
-  and recovery. Supply only typed semantic arguments.
-- Never use `apply_patch`, shell redirection, an ad hoc program, file copy or
-  move, temporary JSON files, or any generic filesystem or MCP write tool to
-  create, update, delete, replace, move, or repair canonical Intake, Work Unit,
-  or Specification JSON.
-- Never add, invoke, or rely on hooks for this contract. Manager-script-only
-  authoring is a mandatory skill instruction.
-- If the owning script is unavailable, fails, or cannot express the required
-  operation, stop before mutation and report the exact command, package,
-  operation, and failure or capability gap. Never bypass the script and never
-  create an exception path.
+Conversation is recorded in the active Intake by default. When the Intake is
+sufficient or the Human asks for a Work Unit, create the minimum independently
+executable Work Unit from a full-valid ready Intake.
+Use `intake` for every Intake package and every canonical Intake mutation.
+Use `user-research` when Intake evidence requires direct observation of users
+or operators.
 
-Intake checks and updates relevant specification source when accepted
-requirements, feedback, or evidence changes it. Implementation and other scoped
-delivery artifact writing belongs to Work Unit Execution.
+Canonical `intakes`, `specifications`, and `work-units` remain tracked in the
+primary repository. CRUD never creates a worktree and always resolves back to
+the primary root, even when a manager is invoked from a linked worktree.
 
-Every Agent Factory task must pass through Intake -> Work Unit -> Execution ->
-Review, including analysis, research, Design Document work, Design Report review
-through the external viewer, document work, code work, verification, operation,
-and maintenance.
+## Execution admission
 
-Detailed lifecycle rules are in `references/lifecycle.md`. Read that reference
-when creating or updating Project Core, Specification data shown in the Design
-Report viewer, Work Units, execution records, review output files, or handoff
-material.
+Only an explicit Human request to execute a named Work Unit starts execution.
+The primary `main-agent` makes one sufficiency decision immediately before
+launch:
 
-## Lifecycle Entry
+- full-valid Intake and Work Unit;
+- no unresolved blocking item;
+- complete scope, exclusions, outputs, verification, and execution context;
+- matching repository and Work Unit id;
+- explicit `executionMode`.
 
-Agent Factory work can begin when a project starts, while it is in progress, at
-release handoff, or during maintenance. Always start with `intake`; do not add a
-separate entry skill or mandatory pre-Intake questionnaire.
+There are no artifact commits, immutable snapshot hashes, checkpoints, or
+approval procedures. Do not ask again about decisions recorded in canonical
+artifacts.
 
-When timing is not explicit, record that uncertainty in Intake and use
-`interview` only when the timing changes scope or another Human-owned decision.
-Goal mode is not a lifecycle phase. A Human request to execute a named Work
-Unit is explicit authorization to create or reuse the matching Goal, and that
-Goal is mandatory for Work Unit Execution. Outside named Work Unit execution,
-create a Goal only on explicit Human request.
+After admission, the main agent starts
+`work-unit-execution/scripts/app_server_goal.py` as a background process. The
+launcher establishes the Goal and explicitly tells the started agent that it is
+the Workflow Agent and must execute the Work Unit.
 
-Use these routes:
+This launcher is the Goal preflight. It confirms `thread/goal/set` and
+`thread/goal/get` before `turn/start` and fails closed before worktree
+preparation when Goal evidence is inconsistent.
 
-- New project start: complete a canonical Intake, transition it to `ready`, and
-  create Work Units from its accepted basis. Create or update Specification,
-  Project Core, or Design Document only when the Intake impact decision and Work
-  Unit scope require those outputs. The separate Chrome extension derives the
-  Design Report view from canonical Specification JSON.
-- In-progress project adoption: collect the current project baseline through
-  Intake, validate specification alignment, transition Intake to `ready`, and
-  create Work Units only from its Work Unit basis entries.
-- Ending or release-handoff adoption: collect final-state, review, release,
-  deliverable, risk, and handoff baseline material, create only approved
-  finalization, rework, verification, release, or handoff Work Units, and use
-  those Work Units during Execution for scoped artifact writing.
-- Maintenance or operations adoption: collect runtime, deployment, incident,
-  behavior, maintenance request, and approval baseline material during Intake,
-  transition Intake to `ready`, and create scoped Work Units from it.
+## Execution routes
 
-## Skill Routing
+`executionMode: specification-direct`:
 
-- Use `main-agent` as the Human-facing primary lifecycle role for ordinary
-  questions, Intake, Work Unit management, programmatic execution delegation,
-  and execution-result follow-up. It must not implement a named Work Unit in
-  the primary thread.
-- Use `workflow-agent` only in a Goal-bound execution turn for the named Work
-  Unit's Plan -> Work -> AI Review -> Report or manager-approved Rework.
-- Use `fact-only` for all Agent Factory lifecycle work.
-- Use `intake` for every Intake package, the five Intake-related skill domains, its manager
-  validation loop, and readiness handoff to `work-unit-planner`.
-- Use `interview` when the Human must decide scope, priority,
-  architecture, approval boundaries, risk, or promotion.
-- Use `web-search` when recording web research, external-source
-  verification, comparison research, recommendation evidence, or investigation
-  summaries.
-- Use `analysis` for internal code, repository, database, data, configuration,
-  log, test, runtime, and existing-document evidence during Intake.
-- Use `user-research` when Intake needs direct observation, contextual inquiry,
-  workflow shadowing, usability sessions, journey reconstruction, or review of
-  consented user-research artifacts.
-- Use `diagram` when creating, updating, reviewing, or choosing
-  diagrams, diagram data models, JavaScript diagram renderers, architecture
-  diagrams, class diagrams, sequence diagrams, ERDs, workflows, state diagrams,
-  deployment diagrams, data-flow diagrams, UI-flow diagrams, or traceability
-  graphs.
-- Use `agent-rule` before modifying files, designing, coding, reviewing,
-  refactoring, changing skills or artifacts, or making architecture, frontend,
-  runtime, API, framework, state-model, DOM ownership, security, verification,
-  or workflow claims.
-- Use `specification` during Intake to check or update relevant specification
-  source and during Execution when scoped work produces new design facts.
-- Use `work-unit-planner` when transforming a validated `ready` Intake package
-  into executable Work Units.
-- Use `work-unit-execution` for named Work Unit Goal Execution to validate
-  the explicit repository and base ref, derive the dedicated branch and
-  repository-local linked worktree path, prepare or inspect the execution
-  worktree, and record canonical JSON evidence.
-- Use `human-review` for Human-facing review artifacts and final
-  review material.
-- Use `svg-icon` when creating, replacing, reviewing, or refactoring
-  user-facing UI icons or icon-like controls.
+- no Git worktree or execution branch is created;
+- the Workflow Agent updates the primary canonical Specification only through
+  `specification.py`;
+- no merge or worktree cleanup follows.
 
-## Execution Rules
+`executionMode: worktree` (or omitted legacy mode):
 
-- Do not jump from idea to implementation unless the user explicitly asks to
-  bypass the lifecycle.
-- Before the first named Work Unit execution, checkpoint the fully validated
-  `ready` Intake and then the fully validated `ready` Work Unit as two separate
-  commits on `main` with
-  `assets/scripts/artifact_handoff.py checkpoint`. Before each commit, show the
-  exact canonical package path, full-validation result, and exact commit
-  message, then require that checkpoint's explicit Human approval. One approval
-  never authorizes the other checkpoint, integration, cleanup, push, or PR
-  promotion.
-- The handoff command commits only the owning manager's exact canonical file
-  set, refuses pre-existing staged changes and package symlinks, verifies staged
-  bytes against the validated snapshot, restores its package index entries on
-  failure, and returns one machine-readable receipt. Use its read-only
-  `inspect` command in a fresh session to reconstruct the Work Unit checkpoint
-  commit and pass that exact commit as the initial worktree base.
-- Keep Agent Factory lifecycle records under
-  `<project-root>/.agent-factory/`.
-- Use these canonical artifact roots:
-  - `<project-root>/.agent-factory/intakes/<intake-id>/` for the canonical
-    sectioned package whose metadata, title, manager-owned table of contents,
-    individual section files, and connected blocks combine Human input,
-    interview, user research, web research, internal analysis, specification alignment, readiness,
-    and Work Unit basis.
-  - `<project-root>/.agent-factory/specifications/` for Specification packages.
-  - `<project-root>/.agent-factory/work-units/` for Work Unit packages, execution evidence, review
-    material, and Work Unit outputs.
-  - `<project-root>/.agent-factory/deliverables/` for customer-facing software engineering deliverable
-    documents.
-- Do not create `INDEX.md` files as artifact source of truth.
-- When the Human submits `/goal <work-unit-id>` or otherwise requests execution
-  of a named Work Unit, resolve the id to
-  `<project-root>/.agent-factory/work-units/<work-unit-id>/` before planning.
-- Run a Goal preflight before worktree preparation, planning, editing, or
-  verification. Reuse an unfinished Goal only when it targets the same Work
-  Unit. When no Goal exists, create one whose objective names the Work Unit.
-  If Goal state cannot be inspected, Goal creation is unavailable or fails, or
-  another unfinished Goal conflicts, stop without starting Execution.
-- A fresh `codex exec` session may bootstrap named Work Unit execution, but its
-  prompt must explicitly require creation of the matching Goal. The process or
-  prompt is not proof that the Goal exists; the Execution Agent must complete
-  the same Goal preflight and fail closed before any execution work.
-- Programmatic Work Unit execution uses
-  `work-unit-execution/scripts/app_server_goal.py`. The launcher starts a Codex
-  app-server thread, sets and reads back the exact Work Unit Goal through
-  `thread/goal/set` and `thread/goal/get`, verifies the matching Goal update
-  notification, and sends `turn/start` only after the Goal is active. It must
-  fail closed without starting a turn when any protocol evidence is absent or
-  inconsistent. Its execution turn explicitly invokes `workflow-agent`; the
-  primary `main-agent` delegates this work instead of implementing it directly.
-- For named Work Unit Goal execution in this project, work in Korean for
-  planning, progress updates, review summaries, reports, and other
-  Human-readable communication. Keep commands, file paths, identifiers, code,
-  API names, package names, branch names, and exact log output unchanged.
-- For named Work Unit Goal execution, validate and read the full sectioned Work
-  Unit package before work begins: metadata, title, table of contents, all
-  canonical sections, the block index, and referenced blocks.
-- Before scoped edits in named Work Unit Goal execution, use
-  `work-unit-execution` with the package's explicitly resolved execution
-  context to prepare or inspect the dedicated branch and linked worktree.
-  Derive the branch as `work-unit/<work-unit-id>` and the worktree path as
-  `<project-root>/.agent-factory/worktree/<work-unit-id>`. Reuse the same
-  registered branch and worktree pair for re-execution or rework. Preserve an
-  explicitly recorded registered legacy path only for reuse, inspection, or
-  Human-approved cleanup. Record the returned canonical JSON in the Work Unit
-  evidence.
-- Initial execution admission is mechanical, not only instructional:
-  `worktree.py prepare` calls the Work Unit manager's full-ready admission gate
-  before branch, worktree, execution-state, attempt, or scoped mutation. A
-  ready, explicitly requested Work Unit proceeds without asking again about
-  decisions already settled in its canonical package.
-- Initialize active `execution-state/v1` with the inspected Git head before the
-  first attempt. A new non-resume invocation starts or retries an attempt;
-  `codex exec resume` extends the current invocation chain. Human rework uses
-  the manager's Human-approved rework operation so revision history and stale
-  result invalidation are atomic while the same branch/worktree pair is reused.
-- Run worktree cleanup only after an explicit Human cleanup decision. Do not
-  remove a dirty worktree, force removal, delete a branch, merge, or promote a
-  PR on the Human's behalf.
-- Execute only the resolved Work Unit scope unless the Human explicitly expands
-  or changes scope. If the id cannot be resolved, more than one package
-  matches, or the package lacks enough basis for a fresh session, stop and ask
-  the Human before editing.
-- Do not create executable Work Units from vague ideas or unvalidated notes.
-  Create them from a canonical Intake package whose status is `ready`; that
-  package may incorporate canonical Specification references, Human requests,
-  Goal records, rework, operation, maintenance, repository evidence, runtime
-  evidence, or review evidence.
-- Before implementation, migration, cleanup, or artifact-writing work, create or
-  update the relevant Work Unit unless the user explicitly asks to bypass the
-  lifecycle.
-- Keep Work Unit scope small enough to execute and review.
-- Treat each Work Unit as a self-contained minimum execution and review unit for
-  a fresh Codex Goal session. The session that defines the Work Unit and the
-  session that executes the Work Unit are separate. The Work Unit must therefore
-  contain enough basis, scope, expected output, AI checklist, verification, Human
-  checklist, Human review method, and unresolved items for the execution
-  session to work without relying on hidden context from the defining session.
-- For code Work Units, define tests before implementation.
-- Treat a Human request to execute a named Work Unit as explicit authorization
-  for its mandatory Goal. For all other tasks, create a Goal only when the
-  Human explicitly requests Goal creation; a recommendation, active lifecycle,
-  or available Goal tool is not itself authorization.
-- During Execution, prepare evidence, AI review results, a Human checklist, and
-  a Human review method that explains what to inspect, how to inspect it, and
-  which approval, rework, merge, or PR promotion decisions remain with the
-  Human during Review.
-- After `attempt-start`, record each pending or completed externally visible
-  step with its repository head and stable idempotency identity. Transient
-  failures use a recorded bounded retry count; permanent or exhausted failures
-  atomically create an evidence-backed blocking item and enter `blocked`.
-  `blocker-resolve` preserves the revision and attempt, records resolution
-  evidence, assigns a new recovery invocation owner, and returns the Work Unit
-  to `working`.
-- Treat the Work Unit as AI-successful and ready for Human review when the
-  scoped work, verification evidence, Human checklist, and Human review method
-  are ready. Do not block or fail AI completion merely because Human final
-  review, approval, merge, or PR promotion has not happened yet.
+- branch is `work-unit/<work-unit-id>`;
+- path is `<project-root>/.agent-factory/worktree/<work-unit-id>`;
+- sparse checkout excludes the entire `.agent-factory`;
+- implementation and non-canonical verification run in that worktree;
+- canonical manager writes still route to the primary root.
 
-## Output
+Execution runs `Plan -> Work -> AI Review -> Report`. Once started, the
+Workflow Agent does not repeat admission, request approval, or reconstruct a
+checkpoint. The launcher automatically continues interrupted turns and
+reactivates Goals blocked by removed workflow gates. A genuine unrecoverable
+error becomes an explicit failed receipt, never an indefinitely waiting blocked
+process.
 
-State which lifecycle phase the work is in, which skills were applied, which
-artifacts changed, and what remains unresolved.
+Execution state records revision, attempt, invocation chain, and idempotent
+step records. It does not bind state to Git commits or immutable hashes.
+
+## Human review
+
+After execution, show the result and evidence to the Human. This is a review
+decision, not an approval procedure:
+
+- `rework`: record the exact instruction with `rework-start` and run the same
+  background Goal + Exec path again.
+- `complete`: record `transition ... done --review-decision complete`.
+
+For `worktree` mode, `complete` automatically integrates the source branch into
+the recorded target. Target dirtiness ignores primary `.agent-factory/**`
+changes. Keep the completed worktree after merge and clean completed clean
+worktrees later in a batch. For `specification-direct`, completion has no Git
+integration or cleanup.
+
+Push, deployment, branch deletion, and PR promotion occur only on a separate
+explicit Human request.
+
+## Skill routing
+
+- `fact-only` for all lifecycle work.
+- `agent-rule` before edits, design, code, review, or workflow claims.
+- `intake` for canonical Intake.
+- `analysis`, `web-search`, and `user-research` for evidence collected into
+  Intake.
+- `specification` for canonical Specification.
+- `work-unit-planner` for Work Unit creation and state.
+- `work-unit-execution` for Goal launcher and Git worktree operations.
+- `workflow-agent` for launched execution.
+- `human-review` for Korean review and rework/complete material.

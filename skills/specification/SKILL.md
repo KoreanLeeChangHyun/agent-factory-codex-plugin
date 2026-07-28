@@ -105,9 +105,8 @@ without an exception.
   with `create --profile <profile-id>`, then use the manager's title, metadata,
   section, and block commands for mutations and run `validate` afterward.
 - Specification packages currently have the deterministic lifecycle state
-  `draft`. The manager intentionally exposes no transition command until an
-  approved Specification lifecycle and transition policy is added; do not
-  infer approval states from Intake or Work Unit lifecycles.
+  `draft`. The manager intentionally exposes no transition command. Do not
+  infer lifecycle states from Intake or Work Unit lifecycles.
 - Store Design Document packages under
   `<project-root>/.agent-factory/specifications/<specification-id>/`.
 - Register source material that explains the Specification under
@@ -148,13 +147,13 @@ Project Core must define only:
 - Project purpose.
 - Core principles.
 - Scope.
-- Human approval boundaries.
+- Human decision boundaries.
 - What remains unresolved.
 
 During Work Unit Execution, when a new requirement changes design artifacts:
 
 1. Check whether it changes Project Core.
-2. If it changes project purpose, core principles, scope, approval boundaries,
+2. If it changes project purpose, core principles, scope, decision boundaries,
    or unresolved items, update Project Core first.
 3. Then update the detailed Design Document JSON.
 4. If it does not change Project Core, update only the relevant Design Document
@@ -199,9 +198,10 @@ handoff, verification, and unresolved decisions.
 
 For maintenance or operations adoption, collect operations baseline material
 first: runtime, deployment, incidents, logs, monitoring, known risks, current
-behavior, maintenance request, and approval boundaries. Use a `ready` Intake to
+behavior, maintenance request, and Human decision boundaries. Use a `ready`
+Intake to
 create the Work Unit, then during its Execution update Project Core only when the
-request changes purpose, principles, scope, approval boundaries, or unresolved
+request changes purpose, principles, scope, decision boundaries, or unresolved
 items and update the Design Document within the scoped operational impact.
 
 Do not treat any baseline as a replacement for Project Core, Design Document,

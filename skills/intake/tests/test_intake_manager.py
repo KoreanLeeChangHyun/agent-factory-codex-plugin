@@ -1180,9 +1180,13 @@ class IntakeManagerTests(unittest.TestCase):
         execution_skill = (skills_root / "work-unit-execution" / "SKILL.md").read_text()
         normalized_execution_skill = " ".join(execution_skill.split())
         self.assertIn(
-            "codex --ask-for-approval <policy> exec", normalized_execution_skill
+            "sparse checkout to exclude the entire `.agent-factory`",
+            normalized_execution_skill,
         )
-        self.assertIn("reported changed-path set", normalized_execution_skill)
+        self.assertIn(
+            "ignores primary `.agent-factory/**` changes",
+            normalized_execution_skill,
+        )
 
     def test_intake_capability_routing_is_bidirectional(self) -> None:
         skills_root = SKILL_ROOT.parent

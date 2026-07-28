@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
 import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -24,6 +26,17 @@ def load_planner_test_helpers():
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load Work Unit test helpers")
     module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_worktree_module():
+    module_name = "worktree_script"
+    spec = importlib.util.spec_from_file_location(module_name, SCRIPT)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("cannot load worktree script")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -75,7 +88,7 @@ class WorktreeCliTest(unittest.TestCase):
         helpers.run_cli("transition", str(package), "ready")
         shutil.rmtree(cls.template_repo / ".agent-factory" / "worktree")
         run("git", "add", ".agent-factory", cwd=cls.template_repo)
-        run("git", "commit", "-m", "checkpoint ready work unit", cwd=cls.template_repo)
+        run("git", "commit", "-m", "ready work unit fixture", cwd=cls.template_repo)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -114,6 +127,10 @@ class WorktreeCliTest(unittest.TestCase):
             if item["kind"] == "execution-context"
         )["content"]
         context["repository"] = str(self.repo)
+        context["execInvocation"] = (
+            "python3 skills/work-unit-execution/scripts/app_server_goal.py "
+            f"--repository {self.repo} --work-unit-id wu-001"
+        )
         context["worktreePath"] = str(
             self.repo / ".agent-factory" / "worktree" / "wu-001"
         )
@@ -305,10 +322,11 @@ class WorktreeCliTest(unittest.TestCase):
         listing = git(self.repo, "worktree", "list", "--porcelain").stdout
         self.assertIn(f"worktree {self.worktree.resolve()}", listing)
         self.assertIn("locked", listing)
+        self.assertFalse((self.worktree / ".agent-factory").exists())
         self.assertEqual(git(self.repo, "status", "--short").stdout, "")
 
-    def test_prepare_accepts_exact_checkpoint_base_after_main_advances(self) -> None:
-        checkpoint = self.base_commit
+    def test_prepare_accepts_explicit_source_commit_after_main_advances(self) -> None:
+        source_commit = self.base_commit
         (self.repo / "unrelated.txt").write_text("later\n", encoding="utf-8")
         self.assertEqual(git(self.repo, "add", "unrelated.txt").returncode, 0)
         self.assertEqual(
@@ -316,16 +334,16 @@ class WorktreeCliTest(unittest.TestCase):
             0,
         )
 
-        result, payload = self.cli("prepare", "--base", checkpoint)
+        result, payload = self.cli("prepare", "--base", source_commit)
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(payload["context"]["baseCommit"], checkpoint)
+        self.assertEqual(payload["context"]["baseCommit"], source_commit)
         self.assertEqual(payload["context"]["admission"]["baseRef"], "main")
         self.assertEqual(
-            payload["context"]["admission"]["checkpointCommit"], checkpoint
+            payload["context"]["admission"]["executionCommit"], source_commit
         )
 
-    def test_prepare_refuses_advanced_symbolic_base_before_git_mutation(self) -> None:
+    def test_prepare_accepts_current_symbolic_base_without_artifact_checkpoint(self) -> None:
         (self.repo / "unrelated.txt").write_text("later\n", encoding="utf-8")
         self.assertEqual(git(self.repo, "add", "unrelated.txt").returncode, 0)
         self.assertEqual(
@@ -335,17 +353,11 @@ class WorktreeCliTest(unittest.TestCase):
 
         result, payload = self.prepare()
 
-        self.assert_error(result, payload, "work_unit_admission_refused")
-        self.assertFalse(self.worktree.exists())
-        self.assertNotEqual(
-            git(
-                self.repo,
-                "show-ref",
-                "--verify",
-                "--quiet",
-                "refs/heads/work-unit/wu-001",
-            ).returncode,
-            0,
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(
+            payload["context"]["admission"]["executionCommit"],
+            git(self.repo, "rev-parse", "main").stdout.strip(),
         )
 
     def test_prepare_refuses_missing_work_unit_before_git_mutation(self) -> None:
@@ -574,22 +586,23 @@ class WorktreeCliTest(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assert_error(result, payload, "repository_mismatch")
 
-    def test_cleanup_requires_explicit_human_decision(self) -> None:
+    def test_cleanup_requires_no_approval_argument(self) -> None:
         self.prepare()
         result, payload = self.cli("cleanup")
-        self.assert_error(result, payload, "missing_human_decision")
-        self.assertTrue(self.worktree.exists())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["state"], "cleaned")
+        self.assertFalse(self.worktree.exists())
 
     def test_cleanup_refuses_dirty_worktree(self) -> None:
         self.prepare()
         (self.worktree / "dirty.txt").write_text("dirty\n", encoding="utf-8")
-        result, payload = self.cli("cleanup", "--human-decision", "approved")
+        result, payload = self.cli("cleanup")
         self.assert_error(result, payload, "dirty_worktree")
         self.assertTrue(self.worktree.exists())
 
     def test_cleanup_removes_clean_worktree_without_deleting_branch(self) -> None:
         self.prepare()
-        result, payload = self.cli("cleanup", "--human-decision", "approved")
+        result, payload = self.cli("cleanup")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["state"], "cleaned")
@@ -606,25 +619,72 @@ class WorktreeCliTest(unittest.TestCase):
         )
         self.assertTrue(payload["context"]["branchRetained"])
 
-    def test_integrate_requires_human_approval_before_mutation(self) -> None:
+    def test_batch_cleanup_preflights_done_units_and_removes_clean_worktrees(
+        self,
+    ) -> None:
+        self.prepare()
+        module = load_worktree_module()
+        manager = self.root / "fake-completed-manager"
+        manager.write_text(
+            textwrap.dedent(
+                f"""\
+                #!/usr/bin/env python3
+                import json
+                import sys
+
+                if sys.argv[1] == "validate":
+                    print(json.dumps({{"valid": True, "status": "done"}}))
+                else:
+                    print(json.dumps({{
+                        "content": [{{
+                            "kind": "execution-context",
+                            "content": {{
+                                "executionMode": "worktree",
+                                "repository": {str(self.repo)!r},
+                                "branch": "work-unit/wu-001",
+                                "worktreePath": {str(self.worktree)!r}
+                            }}
+                        }}]
+                    }}))
+                """
+            ),
+            encoding="utf-8",
+        )
+        manager.chmod(0o755)
+        module.WORK_UNIT_MANAGER = manager
+        execution = module.Execution("cleanup-completed")
+
+        payload = module.cleanup_completed(
+            execution,
+            argparse.Namespace(
+                repository=str(self.repo),
+                work_unit_id=["wu-001"],
+            ),
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["state"], "cleaned")
+        self.assertFalse(self.worktree.exists())
+        self.assertEqual(
+            payload["context"]["results"][0]["workUnitId"], "wu-001"
+        )
+
+    def test_integrate_requires_no_approval_argument(self) -> None:
         self.prepare()
         self.commit_source()
         target_before = git(self.repo, "rev-parse", "main").stdout.strip()
 
         result, payload = self.integrate()
 
-        self.assert_error(result, payload, "missing_human_decision")
-        self.assertEqual(
-            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
-        )
-        self.assertEqual(payload["operations"], [])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["context"]["targetBeforeCommit"], target_before)
 
     def test_integrate_fast_forwards_and_returns_complete_receipt(self) -> None:
         self.prepare()
         source_commit = self.commit_source()
         target_before = git(self.repo, "rev-parse", "main").stdout.strip()
 
-        result, payload = self.integrate("--human-decision", "approved")
+        result, payload = self.integrate()
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(payload["state"], "integrated")
@@ -634,7 +694,6 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertEqual(context["sourceBranch"], "work-unit/wu-001")
         self.assertEqual(context["targetBranch"], "main")
         self.assertEqual(context["worktreePath"], str(self.worktree.resolve()))
-        self.assertEqual(context["humanDecision"], "approved")
         self.assertEqual(context["sourceCommit"], source_commit)
         self.assertEqual(context["targetBeforeCommit"], target_before)
         self.assertEqual(context["targetAfterCommit"], source_commit)
@@ -657,15 +716,13 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertEqual(git(self.repo, "commit", "-m", "target change").returncode, 0)
         target_before = git(self.repo, "rev-parse", "main").stdout.strip()
 
-        refused, refused_payload = self.integrate("--human-decision", "approved")
+        refused, refused_payload = self.integrate()
         self.assert_error(refused, refused_payload, "diverged_strategy_required")
         self.assertEqual(
             git(self.repo, "rev-parse", "main").stdout.strip(), target_before
         )
 
-        result, payload = self.integrate(
-            "--human-decision", "approved", "--strategy", "no-ff"
-        )
+        result, payload = self.integrate("--strategy", "no-ff")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(payload["context"]["relationship"], "diverged")
         self.assertEqual(payload["context"]["strategy"], "no-ff")
@@ -690,9 +747,7 @@ class WorktreeCliTest(unittest.TestCase):
         )
         target_before = git(self.repo, "rev-parse", "main").stdout.strip()
 
-        result, payload = self.integrate(
-            "--human-decision", "approved", "--strategy", "no-ff"
-        )
+        result, payload = self.integrate("--strategy", "no-ff")
 
         self.assert_error(result, payload, "integration_failed")
         self.assertEqual(
@@ -706,10 +761,10 @@ class WorktreeCliTest(unittest.TestCase):
     def test_integrate_recovers_already_merged_without_duplicate_mutation(self) -> None:
         self.prepare()
         source_commit = self.commit_source()
-        first, _ = self.integrate("--human-decision", "approved")
+        first, _ = self.integrate()
         self.assertEqual(first.returncode, 0)
 
-        second, payload = self.integrate("--human-decision", "approved")
+        second, payload = self.integrate()
 
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertEqual(payload["state"], "already-merged")
@@ -726,15 +781,11 @@ class WorktreeCliTest(unittest.TestCase):
         (self.repo / "target.txt").write_text("target\n", encoding="utf-8")
         self.assertEqual(git(self.repo, "add", "target.txt").returncode, 0)
         self.assertEqual(git(self.repo, "commit", "-m", "target change").returncode, 0)
-        first, first_payload = self.integrate(
-            "--human-decision", "approved", "--strategy", "no-ff"
-        )
+        first, first_payload = self.integrate("--strategy", "no-ff")
         self.assertEqual(first.returncode, 0, first.stderr)
         target_after = first_payload["context"]["targetAfterCommit"]
 
-        second, payload = self.integrate(
-            "--human-decision", "approved", "--strategy", "no-ff"
-        )
+        second, payload = self.integrate("--strategy", "no-ff")
 
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertEqual(payload["state"], "already-merged")
@@ -748,7 +799,7 @@ class WorktreeCliTest(unittest.TestCase):
     def test_integrate_refuses_dirty_source_and_unresolved_target(self) -> None:
         self.prepare()
         (self.worktree / "dirty.txt").write_text("dirty\n", encoding="utf-8")
-        dirty, dirty_payload = self.integrate("--human-decision", "approved")
+        dirty, dirty_payload = self.integrate()
         self.assert_error(dirty, dirty_payload, "dirty_worktree")
         (self.worktree / "dirty.txt").unlink()
         self.assertEqual(git(self.repo, "branch", "release").returncode, 0)
@@ -757,8 +808,6 @@ class WorktreeCliTest(unittest.TestCase):
             "integrate",
             "--target-branch",
             "release",
-            "--human-decision",
-            "approved",
         )
         self.assert_error(unresolved, unresolved_payload, "target_worktree_unresolved")
 
@@ -768,13 +817,25 @@ class WorktreeCliTest(unittest.TestCase):
         (self.repo / "dirty-target.txt").write_text("dirty\n", encoding="utf-8")
         target_before = git(self.repo, "rev-parse", "main").stdout.strip()
 
-        result, payload = self.integrate("--human-decision", "approved")
+        result, payload = self.integrate()
 
         self.assert_error(result, payload, "dirty_target_worktree")
         self.assertEqual(
             git(self.repo, "rev-parse", "main").stdout.strip(), target_before
         )
         self.assertEqual(payload["operations"], [])
+
+    def test_integrate_ignores_primary_agent_factory_changes(self) -> None:
+        self.prepare()
+        source_commit = self.commit_source()
+        runtime_file = self.repo / ".agent-factory" / "runtime-local.txt"
+        runtime_file.write_text("local control-plane state\n", encoding="utf-8")
+
+        result, payload = self.integrate()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["context"]["sourceCommit"], source_commit)
+        self.assertTrue(runtime_file.exists())
 
     def test_integrate_does_not_execute_target_branch_metacharacters(self) -> None:
         self.prepare()
@@ -783,8 +844,6 @@ class WorktreeCliTest(unittest.TestCase):
             "integrate",
             "--target-branch",
             f"main;touch {marker}",
-            "--human-decision",
-            "approved",
         )
         self.assert_error(result, payload, "invalid_target_branch")
         self.assertFalse(marker.exists())

@@ -1,13 +1,76 @@
 from __future__ import annotations
 
+import importlib.util
+import os
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[3]
+SECTIONED_DOCUMENT = (
+    PLUGIN_ROOT / "skills" / "lifecycle" / "assets" / "scripts"
+    / "sectioned_document.py"
+)
 
 
 class ArtifactManagerScriptContractTests(unittest.TestCase):
+    def test_linked_worktree_canonical_paths_route_to_primary_repository(
+        self,
+    ) -> None:
+        spec = importlib.util.spec_from_file_location(
+            "sectioned_document_primary_route_test",
+            SECTIONED_DOCUMENT,
+        )
+        assert spec is not None and spec.loader is not None
+        manager = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(manager)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            primary = root / "primary"
+            linked = root / "linked"
+            primary.mkdir()
+            subprocess.run(
+                ["git", "init", "-q", "-b", "main"],
+                cwd=primary,
+                check=True,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-c",
+                    "user.name=Agent Factory Test",
+                    "-c",
+                    "user.email=agent-factory@example.invalid",
+                    "commit",
+                    "--allow-empty",
+                    "-q",
+                    "-m",
+                    "baseline",
+                ],
+                cwd=primary,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "worktree", "add", "-q", "-b", "work-unit/test", linked],
+                cwd=primary,
+                check=True,
+            )
+            requested = linked / ".agent-factory" / "intakes" / "sample"
+            prior = Path.cwd()
+            try:
+                os.chdir(linked)
+                selected = manager.canonical_primary_package(requested)
+            finally:
+                os.chdir(prior)
+
+            self.assertEqual(
+                selected,
+                primary / ".agent-factory" / "intakes" / "sample",
+            )
+
     def test_canonical_artifact_skills_require_their_owning_scripts(self) -> None:
         contracts = {
             "intake": "scripts/intake.py",

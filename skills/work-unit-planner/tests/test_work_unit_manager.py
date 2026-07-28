@@ -243,7 +243,11 @@ def ready_items(
                 {
                     "goalId": work_unit_id,
                     "objective": "Implement the scoped Work Unit",
-                    "execInvocation": f"/goal {work_unit_id}",
+                    "execInvocation": (
+                        "python3 "
+                        "skills/work-unit-execution/scripts/app_server_goal.py "
+                        f"--repository {root} --work-unit-id {work_unit_id}"
+                    ),
                     "executionAgent": "Codex",
                     "repository": str(root),
                     "baseRef": "main",
@@ -388,7 +392,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     "id": "a-running-unit",
                     "lifecycleStatus": "working",
                     "executionState": "running",
-                    "humanApprovalStatus": "pending",
+                    "reviewStatus": "pending",
                     "integrationResult": "fast-forwarded",
                     "validationStatus": "valid",
                 },
@@ -399,7 +403,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     "id": "z-backlog-unit",
                     "lifecycleStatus": "backlog",
                     "executionState": "not-initialized",
-                    "humanApprovalStatus": "not-recorded",
+                    "reviewStatus": "not-recorded",
                     "integrationResult": "not-integrated",
                     "validationStatus": "valid",
                 },
@@ -429,7 +433,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(invalid["validationStatus"], "invalid")
             self.assertIsNone(invalid["lifecycleStatus"])
             self.assertIsNone(invalid["executionState"])
-            self.assertIsNone(invalid["humanApprovalStatus"])
+            self.assertIsNone(invalid["reviewStatus"])
             self.assertIsNone(invalid["integrationResult"])
             self.assertIn("validationError", invalid)
 
@@ -701,23 +705,14 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
         package: Path,
         *,
         invocation_id: str = "session-1",
-        head_commit: str | None = None,
     ) -> dict[str, object]:
-        head_commit = head_commit or self.prepared_worktree_head(package)
-        run_cli(
-            "execution-init",
-            str(package),
-            "--head-commit",
-            head_commit,
-        )
+        run_cli("execution-init", str(package))
         return json.loads(
             run_cli(
                 "attempt-start",
                 str(package),
                 "--invocation-id",
                 invocation_id,
-                "--head-commit",
-                head_commit,
             ).stdout
         )
 
@@ -765,7 +760,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             "revision": state["currentRevision"],
             "attempt": state["currentAttempt"],
             "invocationId": state["invocationId"],
-            "headCommit": state["subject"]["digest"],
         }
 
     def integration_receipt(self, package: Path) -> dict[str, object]:
@@ -782,7 +776,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "sourceBranch": context["branch"],
                 "targetBranch": "main",
                 "worktreePath": context["worktreePath"],
-                "humanDecision": "approved",
                 "sourceCommit": "a" * 40,
                 "targetBeforeCommit": "b" * 40,
                 "targetAfterCommit": "a" * 40,
@@ -840,7 +833,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(result["status"], "backlog")
             self.assertEqual(result["schemaVersion"], "4.0.0")
 
-    def test_admission_accepts_exact_latest_package_checkpoint_after_base_ref_advances(
+    def test_admission_accepts_explicit_execution_commit_after_base_ref_advances(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -858,9 +851,9 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
 
             self.assertTrue(payload["admitted"])
             self.assertEqual(payload["baseRef"], "main")
-            self.assertEqual(payload["checkpointCommit"], checkpoint)
+            self.assertEqual(payload["executionCommit"], checkpoint)
 
-    def test_admission_refuses_advanced_symbolic_base_instead_of_substituting_it(
+    def test_admission_accepts_advanced_symbolic_base_without_checkpoint(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -874,33 +867,32 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 check=True,
             )
 
-            result = self.admit(root, package, worktree, "main", check=False)
-
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn(
-                "requested base is not the latest Work Unit package checkpoint",
-                result.stderr,
+            result = self.admit(root, package, worktree, "main")
+            payload = json.loads(result.stdout)
+            self.assertTrue(payload["admitted"])
+            self.assertEqual(
+                payload["executionCommit"],
+                subprocess.run(
+                    ["git", "rev-parse", "main"],
+                    cwd=root,
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                ).stdout.strip(),
             )
 
-    def test_admission_refuses_stale_unreachable_missing_and_drifted_bases(
+    def test_admission_accepts_any_resolvable_base_and_refuses_missing_base(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            package, worktree, first_checkpoint = self.create_admission_repository(root)
-            missing_package_commit = subprocess.run(
-                ["git", "rev-parse", f"{first_checkpoint}^"],
-                cwd=root,
-                text=True,
-                capture_output=True,
-                check=True,
-            ).stdout.strip()
+            package, worktree, source_commit = self.create_admission_repository(root)
             unreachable_commit = subprocess.run(
                 [
                     "git",
                     "commit-tree",
                     subprocess.run(
-                        ["git", "rev-parse", f"{first_checkpoint}^{{tree}}"],
+                        ["git", "rev-parse", f"{source_commit}^{{tree}}"],
                         cwd=root,
                         text=True,
                         capture_output=True,
@@ -914,46 +906,17 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 capture_output=True,
                 check=True,
             ).stdout.strip()
-            run_cli("title-set", str(package), "Updated Work Unit")
-            subprocess.run(["git", "add", str(package)], cwd=root, check=True)
-            subprocess.run(
-                ["git", "commit", "-q", "-m", "new package checkpoint"],
-                cwd=root,
-                check=True,
-            )
-            latest_checkpoint = subprocess.run(
-                ["git", "rev-parse", "HEAD"],
-                cwd=root,
-                text=True,
-                capture_output=True,
-                check=True,
-            ).stdout.strip()
-
-            for refused_base in (
-                first_checkpoint,
-                missing_package_commit,
-                unreachable_commit,
-            ):
-                result = self.admit(root, package, worktree, refused_base, check=False)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn(
-                    "requested base is not the latest Work Unit package checkpoint",
-                    result.stderr,
+            for accepted_base in (source_commit, unreachable_commit):
+                payload = json.loads(
+                    self.admit(root, package, worktree, accepted_base).stdout
                 )
+                self.assertEqual(payload["executionCommit"], accepted_base)
 
-            title_path = package / "data" / "title.json"
-            title_path.write_text(
-                json.dumps({"title": "Drifted Work Unit"}, indent=2) + "\n",
-                encoding="utf-8",
+            missing = self.admit(
+                root, package, worktree, "missing-execution-base", check=False
             )
-            drifted = self.admit(
-                root, package, worktree, latest_checkpoint, check=False
-            )
-            self.assertNotEqual(drifted.returncode, 0)
-            self.assertIn(
-                "execution admission package differs from the requested base",
-                drifted.stderr,
-            )
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertIn("requested base is unresolved", missing.stderr)
 
     def test_batch_update_increments_one_document_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -1170,19 +1133,18 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("execution context branch must equal", result.stderr)
 
-    def test_ready_rejects_codex_global_option_after_exec_subcommand(self) -> None:
+    def test_ready_rejects_direct_codex_exec_and_requires_goal_launcher(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             intake = create_ready_intake(root)
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             context = ready_items(root, intake, package.name)["execution-context"][0]
-            worktree_path = context["content"]["worktreePath"]
             context["content"]["execInvocation"] = (
-                "codex exec --sandbox danger-full-access --ask-for-approval never "
-                f"-C {worktree_path} 'Execute the Work Unit'"
+                f"codex exec -C {context['content']['worktreePath']} "
+                "'Execute the Work Unit'"
             )
-            source = data_value(root, "invalid-exec-context.json", context)
+            source = data_value(root, "direct-codex-exec-context.json", context)
             run_cli(
                 "section-item-put",
                 str(package),
@@ -1192,11 +1154,11 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
 
             rejected = run_cli("transition", str(package), "ready", check=False)
             self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("must appear before the exec subcommand", rejected.stderr)
+            self.assertIn("must call app_server_goal.py", rejected.stderr)
 
             context["content"]["execInvocation"] = (
-                "codex --ask-for-approval never exec --sandbox danger-full-access "
-                f"-C {worktree_path} 'Execute the Work Unit'"
+                "python3 skills/work-unit-execution/scripts/app_server_goal.py "
+                f"--repository {root} --work-unit-id {package.name}"
             )
             source = data_value(root, "valid-exec-context.json", context)
             run_cli(
@@ -1239,7 +1201,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
 
-            initial_head = self.prepared_worktree_head(package)
             started = self.initialize_and_start_execution(package)
             self.assertEqual(started["status"], "working")
             shown = json.loads(
@@ -1250,12 +1211,12 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 for entry in shown["content"]
                 if entry["kind"] == "execution-state"
             )["content"]
-            self.assertEqual(state["contractVersion"], "1.0.0")
+            self.assertEqual(state["contractVersion"], "2.0.0")
             self.assertEqual(state["currentRevision"], 1)
             self.assertEqual(state["currentAttempt"], 1)
             self.assertEqual(state["invocationId"], "session-1")
             self.assertEqual(state["invocationChain"], ["session-1"])
-            self.assertEqual(state["subject"]["digest"], initial_head)
+            self.assertNotIn("subject", state)
             self.assertEqual(state["history"], [])
 
             run_cli(
@@ -1278,14 +1239,11 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 state["invocationChain"], ["session-1", "session-1-resume"]
             )
 
-            retry_head = self.advance_prepared_worktree(package, "retry head")
             run_cli(
                 "attempt-start",
                 str(package),
                 "--invocation-id",
                 "session-2",
-                "--head-commit",
-                retry_head,
             )
             retried = json.loads(
                 run_cli("show", str(package), "--section", "execution-context").stdout
@@ -1299,7 +1257,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(state["currentAttempt"], 2)
             self.assertEqual(state["invocationId"], "session-2")
             self.assertEqual(state["invocationChain"], ["session-2"])
-            self.assertEqual(state["subject"]["digest"], retry_head)
+            self.assertNotIn("subject", state)
             self.assertEqual(len(state["history"]), 1)
             self.assertEqual(state["history"][0]["revision"], 1)
             self.assertEqual(state["history"][0]["attempt"], 1)
@@ -1324,6 +1282,31 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 before,
             )
 
+    def test_specification_direct_execution_never_requires_a_worktree(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"]["executionMode"] = "specification-direct"
+            context["content"].pop("branch")
+            context["content"].pop("worktreePath")
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *data_value(root, "specification-direct.json", context),
+            )
+            shutil.rmtree(self.prepared_worktree_path(package))
+
+            ready = json.loads(run_cli("transition", str(package), "ready").stdout)
+            started = self.initialize_and_start_execution(package)
+
+            self.assertEqual(ready["status"], "ready")
+            self.assertEqual(started["status"], "working")
+            self.assertFalse(self.prepared_worktree_path(package).exists())
+
     def test_active_execution_requires_init_and_state_is_manager_owned(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -1333,17 +1316,15 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             run_cli("transition", str(package), "ready")
             metadata_path = package / "data" / "metadata.json"
             before = metadata_path.read_bytes()
-            actual_head = self.prepared_worktree_head(package)
-
-            mismatched = run_cli(
+            obsolete = run_cli(
                 "execution-init",
                 str(package),
                 "--head-commit",
                 "a" * 40,
                 check=False,
             )
-            self.assertNotEqual(mismatched.returncode, 0)
-            self.assertIn("must equal prepared worktree HEAD", mismatched.stderr)
+            self.assertNotEqual(obsolete.returncode, 0)
+            self.assertIn("unrecognized arguments", obsolete.stderr)
             self.assertEqual(metadata_path.read_bytes(), before)
 
             rejected = run_cli(
@@ -1351,8 +1332,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 str(package),
                 "--invocation-id",
                 "session-1",
-                "--head-commit",
-                actual_head,
                 check=False,
             )
             self.assertNotEqual(rejected.returncode, 0)
@@ -1363,9 +1342,8 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "EXECUTION-STATE-001",
                 "execution-state",
                 {
-                    "contractVersion": "1.0.0",
+                    "contractVersion": "2.0.0",
                     "state": "planned",
-                    "subject": {"algorithm": "gitCommit", "digest": actual_head},
                     "currentRevision": 1,
                     "currentAttempt": None,
                     "invocationId": None,
@@ -1459,8 +1437,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             missing = run_cli(
                 "rework-start",
                 str(package),
-                "--human-decision",
-                "approved",
                 check=False,
             )
             self.assertNotEqual(missing.returncode, 0)
@@ -1468,19 +1444,14 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             run_cli(
                 "rework-start",
                 str(package),
-                "--human-decision",
-                "approved",
                 "--instruction",
                 "Commit the implementation and rebind all evidence to that commit.",
             )
-            rework_head = self.advance_prepared_worktree(package, "rework head")
             run_cli(
                 "attempt-start",
                 str(package),
                 "--invocation-id",
                 "session-2",
-                "--head-commit",
-                rework_head,
             )
 
             shown = json.loads(
@@ -1592,7 +1563,13 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     *data_value(root, section_id, replacement),
                 )
             run_cli("transition", str(package), "review")
-            run_cli("transition", str(package), "done", "--human-review", "approved")
+            run_cli(
+                "transition",
+                str(package),
+                "done",
+                "--review-decision",
+                "complete",
+            )
 
             report_path = package / "data" / "sections" / "report.json"
             report_before = report_path.read_bytes()
@@ -1624,19 +1601,19 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
 
             human_review_path = package / "data" / "sections" / "human-review.json"
             human_review = json.loads(human_review_path.read_text(encoding="utf-8"))
-            approval = next(
+            decision = next(
                 entry
                 for entry in human_review["content"]
                 if entry["kind"] == "human-review-result"
             )
-            approval["attributes"]["executionTarget"]["headCommit"] = "b" * 40
+            decision["attributes"]["executionTarget"]["invocationId"] = "stale-session"
             human_review_path.write_text(
                 json.dumps(human_review, ensure_ascii=False, indent=2) + "\n",
                 encoding="utf-8",
             )
             stale = run_cli("validate", str(package), "--full", check=False)
             self.assertNotEqual(stale.returncode, 0)
-            self.assertIn("human-review-result approval", stale.stderr)
+            self.assertIn("human-review-result decision", stale.stderr)
 
             execution_context_path = (
                 package / "data" / "sections" / "execution-context.json"
@@ -1657,7 +1634,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 json.loads(run_cli("validate", str(package), "--full").stdout)["valid"]
             )
 
-    def test_review_and_done_transitions_enforce_results_and_atomic_human_approval(
+    def test_review_and_done_transitions_enforce_results_and_atomic_review_decision(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -1745,10 +1722,16 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             )
             denied = run_cli("transition", str(package), "done", check=False)
             self.assertNotEqual(denied.returncode, 0)
-            self.assertIn("requires --human-review approved", denied.stderr)
+            self.assertIn(
+                "requires --review-decision complete", denied.stderr
+            )
             done = json.loads(
                 run_cli(
-                    "transition", str(package), "done", "--human-review", "approved"
+                    "transition",
+                    str(package),
+                    "done",
+                    "--review-decision",
+                    "complete",
                 ).stdout
             )
             self.assertEqual(done["status"], "done")
@@ -1760,7 +1743,8 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 for entry in shown["content"]
                 if entry["kind"] == "human-review-result"
             )
-            self.assertEqual(status["attributes"]["status"], "approved")
+            self.assertEqual(status["attributes"]["status"], "complete")
+            self.assertIn("decidedAt", status["attributes"])
             receipt = root / "done-integration-receipt.json"
             receipt.write_text(
                 json.dumps(self.integration_receipt(package)), encoding="utf-8"
@@ -2052,8 +2036,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             populate_ready_candidate(root, package, intake)
             run_cli("transition", str(package), "ready")
             self.initialize_and_start_execution(package)
-            head = self.prepared_worktree_head(package)
-
             pending = run_cli(
                 "execution-progress",
                 str(package),
@@ -2061,8 +2043,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "work",
                 "--state",
                 "pending",
-                "--head-commit",
-                head,
                 "--idempotency-key",
                 "revision-1-attempt-1-work",
             )
@@ -2076,8 +2056,6 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "work",
                 "--state",
                 "pending",
-                "--head-commit",
-                head,
                 "--idempotency-key",
                 "revision-1-attempt-1-work",
             )

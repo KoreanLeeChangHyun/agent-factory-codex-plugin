@@ -484,6 +484,7 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         [
             "worktree",
             "add",
+            "--no-checkout",
             "--lock",
             "--reason",
             lock_reason,
@@ -499,6 +500,30 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             "prepare_failed",
             "git worktree add failed",
             {"returnCode": result.returncode},
+        )
+    sparse = execution.git(
+        worktree_path,
+        [
+            "sparse-checkout",
+            "set",
+            "--no-cone",
+            "/*",
+            "!/.agent-factory/",
+        ],
+        record=True,
+    )
+    if sparse.returncode != 0:
+        raise ContractError(
+            "prepare_failed",
+            "unable to configure code-only sparse checkout",
+            {"returnCode": sparse.returncode},
+        )
+    checkout = execution.git(worktree_path, ["checkout", branch], record=True)
+    if checkout.returncode != 0:
+        raise ContractError(
+            "prepare_failed",
+            "unable to checkout code-only worktree",
+            {"returnCode": checkout.returncode},
         )
     context = inspect_context(execution, repository, branch, worktree_path)
     context.update(
@@ -607,6 +632,12 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             "git_inspection_failed", "unable to inspect target worktree status"
         )
     target_changes = parse_status(target_status.stdout)
+    target_changes = [
+        change
+        for change in target_changes
+        if not change["path"].startswith(".agent-factory/")
+        and not change.get("originalPath", "").startswith(".agent-factory/")
+    ]
     if target_changes:
         raise ContractError(
             "dirty_target_worktree",
@@ -628,11 +659,6 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     else:
         relationship = "diverged"
 
-    if args.human_decision != "approved":
-        raise ContractError(
-            "missing_human_decision",
-            "integration requires --human-decision approved",
-        )
     if relationship == "diverged" and args.strategy != "no-ff":
         raise ContractError(
             "diverged_strategy_required",
@@ -693,7 +719,6 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             "target does not contain source commit after integration",
         )
     context = {
-        "humanDecision": args.human_decision,
         "operationResult": operation_result,
         "relationship": relationship,
         "repository": str(repository),
@@ -716,11 +741,6 @@ def cleanup(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     worktree_path, _ = resolve_worktree_path(repository, args.work_unit_id, args.path)
     context = inspect_context(execution, repository, branch, worktree_path)
     context["workUnitId"] = args.work_unit_id
-    if args.human_decision != "approved":
-        raise ContractError(
-            "missing_human_decision",
-            "cleanup requires --human-decision approved",
-        )
     if context["dirty"]:
         raise ContractError(
             "dirty_worktree",
@@ -754,13 +774,154 @@ def cleanup(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         {
             "branchRetained": True,
             "dirty": False,
-            "humanDecision": args.human_decision,
             "locked": False,
             "lockReason": None,
             "worktreeRemoved": True,
         }
     )
     return success_payload(execution, "cleaned", context)
+
+
+def completed_work_unit_context(
+    repository: Path, work_unit_id: str
+) -> dict[str, Any]:
+    package = repository / ".agent-factory" / "work-units" / work_unit_id
+    validation = subprocess.run(
+        [
+            sys.executable,
+            str(WORK_UNIT_MANAGER),
+            "validate",
+            str(package),
+            "--full",
+        ],
+        stdin=subprocess.DEVNULL,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+        shell=False,
+    )
+    if validation.returncode != 0:
+        raise ContractError(
+            "work_unit_validation_failed",
+            "completed Work Unit validation failed",
+            {"workUnitId": work_unit_id, "reason": validation.stderr.strip()},
+        )
+    try:
+        validated = json.loads(validation.stdout)
+    except json.JSONDecodeError as error:
+        raise ContractError(
+            "work_unit_validation_failed",
+            "Work Unit manager returned invalid validation JSON",
+            {"workUnitId": work_unit_id},
+        ) from error
+    if validated.get("status") != "done":
+        raise ContractError(
+            "work_unit_not_complete",
+            "batch cleanup requires a done Work Unit",
+            {"workUnitId": work_unit_id, "status": validated.get("status")},
+        )
+    shown = subprocess.run(
+        [
+            sys.executable,
+            str(WORK_UNIT_MANAGER),
+            "show",
+            str(package),
+            "--section",
+            "execution-context",
+        ],
+        stdin=subprocess.DEVNULL,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+        shell=False,
+    )
+    try:
+        section = json.loads(shown.stdout)
+        contexts = [
+            item["content"]
+            for item in section["content"]
+            if item.get("kind") == "execution-context"
+        ]
+    except (json.JSONDecodeError, KeyError, TypeError) as error:
+        raise ContractError(
+            "work_unit_validation_failed",
+            "Work Unit manager returned invalid execution context",
+            {"workUnitId": work_unit_id},
+        ) from error
+    if shown.returncode != 0 or len(contexts) != 1:
+        raise ContractError(
+            "work_unit_validation_failed",
+            "completed Work Unit has no unique execution context",
+            {"workUnitId": work_unit_id},
+        )
+    return contexts[0]
+
+
+def cleanup_completed(
+    execution: Execution, args: argparse.Namespace
+) -> dict[str, Any]:
+    repository = validate_repository(execution, args.repository)
+    work_unit_ids = list(dict.fromkeys(args.work_unit_id))
+    preflight: list[tuple[str, str, Path]] = []
+    results: list[dict[str, Any]] = []
+    records = list_worktrees(execution, repository)
+    for work_unit_id in work_unit_ids:
+        branch = validate_execution_identity(execution, work_unit_id, None)
+        context = completed_work_unit_context(repository, work_unit_id)
+        if context.get("executionMode", "worktree") == "specification-direct":
+            results.append(
+                {
+                    "state": "not-applicable",
+                    "workUnitId": work_unit_id,
+                }
+            )
+            continue
+        worktree_path, _ = resolve_worktree_path(repository, work_unit_id, None)
+        if find_worktree(records, worktree_path) is None:
+            results.append(
+                {
+                    "state": "already-cleaned",
+                    "workUnitId": work_unit_id,
+                }
+            )
+            continue
+        inspected = inspect_context(
+            execution, repository, branch, worktree_path
+        )
+        if inspected["dirty"]:
+            raise ContractError(
+                "dirty_worktree",
+                "batch cleanup refuses a dirty completed worktree",
+                {
+                    "changes": inspected["changes"],
+                    "workUnitId": work_unit_id,
+                },
+            )
+        preflight.append((work_unit_id, branch, worktree_path))
+    for work_unit_id, branch, worktree_path in preflight:
+        payload = cleanup(
+            execution,
+            argparse.Namespace(
+                repository=str(repository),
+                work_unit_id=work_unit_id,
+                branch=branch,
+                path=str(worktree_path),
+            ),
+        )
+        results.append(
+            {
+                "state": payload["state"],
+                "workUnitId": work_unit_id,
+                "worktreePath": str(worktree_path),
+            }
+        )
+    return success_payload(
+        execution,
+        "cleaned",
+        {"repository": str(repository), "results": results},
+    )
 
 
 def success_payload(
@@ -812,17 +973,22 @@ def build_parser() -> JsonArgumentParser:
     common("inspect")
     integrate_parser = common("integrate")
     integrate_parser.add_argument("--target-branch", required=True)
-    integrate_parser.add_argument("--human-decision")
     integrate_parser.add_argument("--strategy", choices=["no-ff"])
-    cleanup_parser = common("cleanup")
-    cleanup_parser.add_argument("--human-decision")
+    common("cleanup")
+    cleanup_many = subparsers.add_parser("cleanup-completed")
+    cleanup_many.add_argument("--repository", required=True)
+    cleanup_many.add_argument(
+        "--work-unit-id", action="append", required=True
+    )
     return parser
 
 
 def command_hint(argv: Sequence[str]) -> str:
     return (
         argv[0]
-        if argv and argv[0] in {"prepare", "inspect", "integrate", "cleanup"}
+        if argv
+        and argv[0]
+        in {"prepare", "inspect", "integrate", "cleanup", "cleanup-completed"}
         else "unknown"
     )
 
@@ -838,6 +1004,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "inspect": inspect,
             "integrate": integrate,
             "cleanup": cleanup,
+            "cleanup-completed": cleanup_completed,
         }
         payload = handlers[args.command](execution, args)
         return_code = 0

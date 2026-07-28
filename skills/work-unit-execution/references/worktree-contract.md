@@ -1,139 +1,68 @@
-# Worktree Command Contract
+# Worktree Contract
 
-## Purpose
+This contract applies only to Work Units whose `executionMode` is `worktree` or
+whose legacy package omits the mode. `specification-direct` Work Units must not
+invoke this script.
 
-`scripts/worktree.py` is the deterministic command boundary for Agent Factory
-linked worktree mutation and inspection. Each invocation writes exactly one
-JSON document to stdout and returns `0` only when `ok` is `true`.
+## Identity
 
-## Input Contract
+- Repository is the absolute primary Git root.
+- Branch is `work-unit/<work-unit-id>`.
+- New linked worktree path is
+  `<repository>/.agent-factory/worktree/<work-unit-id>`.
+- Repository ignore rules include only the runtime worktree root
+  `/.agent-factory/worktree/`; canonical artifacts remain tracked in primary
+  Git.
 
-All commands require explicitly resolved values:
+## Prepare
 
-| Argument | Commands | Contract |
-| --- | --- | --- |
-| `--repository` | all | Absolute canonical Git repository root. |
-| `--work-unit-id` | all | Work Unit id used to derive `work-unit/<work-unit-id>`. |
-| `--base` | `prepare` | Commit-ish that resolves to one commit. |
-| `--branch` | all | Optional resolved branch assertion; when present it must equal the derived branch. |
-| `--path` | all | Optional absolute path assertion. Omit it for the canonical `<repository>/.agent-factory/worktree/<work-unit-id>` path. A noncanonical value is accepted only for an already registered legacy worktree. |
-| `--target-branch` | `integrate` | Local target branch checked out in exactly one clean registered worktree. |
-| `--strategy no-ff` | `integrate` | Required only when source and target are diverged. |
-| `--human-decision approved` | `integrate`, `cleanup` | Explicit Human authorization for the requested mutation. |
+`prepare` full-validates the canonical Work Unit once before its first Git
+mutation and resolves the requested code base. It does not require an artifact
+commit, snapshot, hash, or checkpoint.
 
-New worktrees always use the repository-local canonical path. The repository
-must ignore `/.agent-factory/worktree/`. Existing registered external
-worktrees remain addressable through their explicitly recorded `--path` for
-reuse, inspection, and Human-approved cleanup.
-
-Before `prepare` mutates Git, it invokes the Work Unit manager's `admit`
-command for the canonical
-`<repository>/.agent-factory/work-units/<work-unit-id>` package. Admission
-requires full validation, ready semantics, the same repository, derived branch,
-and recorded worktree path. It resolves the requested base separately from the
-recorded symbolic `baseRef`, finds the latest package-changing commit reachable
-from that ref, requires the requested commit to equal that checkpoint, and
-requires current package content to match it. Therefore an exact inspected
-checkpoint remains valid after unrelated commits advance `baseRef`, while
-passing the advanced symbolic ref directly is refused. The successful
-admission evidence is returned in the prepare context.
-
-## Output Contract
-
-Every response uses schema version `1.0.0` and these top-level fields:
-
-```json
-{
-  "command": "prepare",
-  "context": {},
-  "error": null,
-  "ok": true,
-  "operations": [],
-  "schemaVersion": "1.0.0",
-  "state": "prepared"
-}
-```
-
-- `context` contains resolved execution state on success and is `null` on
-  refusal.
-- `error` contains `code`, `message`, and `details` on refusal and is `null` on
-  success.
-- `operations` records mutation commands as argument arrays with return code,
-  stdout, and stderr. Validation-only commands are not duplicated into the
-  mutation ledger.
-- `state` is `prepared`, `reused`, `clean`, `dirty`, `integrated`,
-  `already-merged`, `cleaned`, or `refused`.
-
-`prepare` context includes `workUnitId`, `repository`, `baseRef`, `baseCommit`, `branch`,
-`worktreePath`, `headCommit`, `locked`, `lockReason`, `dirty`, and `changes`.
-`inspect` reports the same current-state fields except `baseRef` and
-`baseCommit`. Its nested admission result reports the recorded `baseRef`, its
-resolved `baseRefCommit`, the `requestedBase`, and the admitted
-`checkpointCommit`. `integrate` reports `workUnitId`, `repository`, `sourceBranch`,
-`targetBranch`, `worktreePath`, `humanDecision`, `sourceCommit`,
-`targetBeforeCommit`, `targetAfterCommit`, `relationship`, `strategy`, and
-`operationResult`. `cleanup` also reports `humanDecision`, `worktreeRemoved`,
-and `branchRetained`.
-
-`headCommit` is the Git subject input to the Work Unit manager's versioned
-execution state. Inspect immediately before `execution-init` and each new
-`attempt-start`. A Codex session resume stays in the current attempt and does
-not consume a new worktree prepare result; append its session id through
-`attempt-resume`. Human-approved rework reuses the registered worktree but
-starts a new revision through `rework-start --instruction <exact-text>` before
-its first new attempt.
-
-`integrate` classifies ancestry before mutation. `fast-forwardable` uses
-`ff-only`; `diverged` requires explicit `--strategy no-ff`; `already-merged`
-returns success without a mutation operation and preserves an explicitly
-supplied `no-ff` strategy. This makes rerunning the same approved command after
-a merge but before receipt registration recoverable without duplicate merging.
-
-## Refusal Codes
-
-The script performs no requested mutation when preflight validation returns:
-
-- `path_not_absolute`
-- `noncanonical_worktree_path`
-- `invalid_repository`
-- `repository_root_mismatch`
-- `invalid_base_ref`
-- `invalid_branch`
-- `invalid_target_branch`
-- `branch_derivation_mismatch`
-- `work_unit_admission_refused`
-- `branch_collision`
-- `worktree_collision`
-- `path_collision`
-- `repository_mismatch`
-- `worktree_not_registered`
-- `branch_mismatch`
-- `missing_human_decision`
-- `dirty_worktree`
-- `dirty_target_worktree`
-- `unresolved_target`
-- `target_worktree_unresolved`
-- `diverged_strategy_required`
-- `strategy_mismatch`
-
-Git or I/O failures use a specific `*_failed` or `unexpected_io_error` code
-and preserve the nonzero process exit status.
-If a `no-ff` merge reports a conflict, `integrate` records the failed merge and
-`git merge --abort` operations, returns `integration_failed`, and reports
-whether the clean target state was restored.
-
-## Lifecycle States
+New worktrees use:
 
 ```text
-unresolved
-  -> prepare -> prepared and locked
-  -> repeated prepare for the same Work Unit -> reused and locked
-  -> inspect -> clean or dirty
-  -> Human Review decision
-  -> integrate approved -> integrated or already-merged, branch and worktree retained
-  -> cleanup approved and clean -> cleaned, branch retained
+git worktree add --no-checkout --lock ...
+git sparse-checkout set --no-cone /* !/.agent-factory/
+git checkout <derived-branch>
 ```
 
-Do not call `integrate` or `cleanup` automatically. Human approval of Work Unit
-results, integration strategy, cleanup, branch deletion, and PR promotion
-remain separate decisions.
+The resulting linked worktree must not contain `.agent-factory`.
+
+## Inspect and integration
+
+Source status is exact porcelain output from the linked worktree. Target dirty
+checks exclude `.agent-factory/**` because canonical package CRUD occurs in the
+primary root and must not block source integration. All other target changes
+still block integration.
+
+Ancestry determines the strategy:
+
+- `fast-forwardable`: `--ff-only`
+- `diverged`: explicit `--strategy no-ff`
+- `already-merged`: success without another mutation
+
+No approval argument exists. The main lifecycle invokes integration only after
+the Human chooses `complete`.
+
+## Cleanup
+
+Cleanup has no approval argument. Batch cleanup is invoked after completion,
+not inline with integration. It refuses dirty worktrees, never forces removal,
+and retains the branch. `cleanup-completed` preflights every named Work Unit as
+`done` and every registered worktree as clean before it removes any target.
+Specification-only and already-cleaned targets are non-mutating results.
+
+## Receipts
+
+Receipts do not contain `humanDecision`. They record repository, Work Unit id,
+source/target branches and commits, worktree path, relationship, strategy,
+operation result, operations, and final state.
+
+## Refusal
+
+Refuse invalid paths, repository or branch mismatch, collisions, unresolved
+bases or targets, dirty source code, dirty non-canonical target files, invalid
+strategy, and Git/I/O failures. A refusal is an explicit terminal result; do
+not leave an execution Goal waiting in `blocked`.

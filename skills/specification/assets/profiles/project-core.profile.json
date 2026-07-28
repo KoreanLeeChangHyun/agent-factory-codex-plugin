@@ -7,7 +7,7 @@
   "commonRequiredSections": [
     {"id": "purpose-and-scope", "contains": ["project purpose", "scope"]},
     {"id": "basis-and-relations", "contains": ["core principles", "governed specification relations"]},
-    {"id": "decisions-and-open-items", "contains": ["Human approval boundaries", "unresolved items"]},
+    {"id": "decisions-and-open-items", "contains": ["Human decision boundaries", "unresolved items"]},
     {"id": "verification-and-traceability", "contains": ["basis traceability", "review status"]}
   ],
   "profileRequiredSections": [],

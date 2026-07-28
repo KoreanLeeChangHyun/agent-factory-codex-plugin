@@ -9,6 +9,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPT = (
@@ -37,6 +38,7 @@ import time
 
 scenario = os.environ.get("FAKE_APP_SERVER_SCENARIO", "success")
 log_path = os.environ["FAKE_APP_SERVER_LOG"]
+turn_count = 0
 
 
 def emit(value):
@@ -132,18 +134,63 @@ for line in sys.stdin:
             selected = goal(status="paused")
         emit({"id": request_id, "result": {"goal": selected}})
     elif method == "turn/start":
+        turn_count += 1
+        turn_id = f"turn-{turn_count}"
         emit(
             {
                 "id": request_id,
                 "result": {
                     "turn": {
-                        "id": "turn-1",
+                        "id": turn_id,
                         "status": "inProgress",
                         "items": [],
                     }
                 },
             }
         )
+        if scenario == "interrupted_once" and turn_count == 1:
+            emit(
+                {
+                    "method": "turn/completed",
+                    "params": {
+                        "threadId": "thread-1",
+                        "turn": {
+                            "id": turn_id,
+                            "status": "interrupted",
+                            "items": [],
+                        },
+                    },
+                }
+            )
+            continue
+        if (
+            scenario == "blocked_forever"
+            or (scenario == "blocked_once" and turn_count == 1)
+        ):
+            emit(
+                {
+                    "method": "thread/goal/updated",
+                    "params": {
+                        "threadId": "thread-1",
+                        "goal": goal(status="blocked"),
+                        "turnId": turn_id,
+                    },
+                }
+            )
+            emit(
+                {
+                    "method": "turn/completed",
+                    "params": {
+                        "threadId": "thread-1",
+                        "turn": {
+                            "id": turn_id,
+                            "status": "completed",
+                            "items": [],
+                        },
+                    },
+                }
+            )
+            continue
         completed_goal = goal(status="complete")
         turn_status = "failed" if scenario == "turn_failed" else "completed"
         goal_message = {
@@ -151,7 +198,7 @@ for line in sys.stdin:
             "params": {
                 "threadId": "thread-1",
                 "goal": completed_goal,
-                "turnId": "turn-1",
+                "turnId": turn_id,
             },
         }
         turn_message = {
@@ -159,7 +206,7 @@ for line in sys.stdin:
             "params": {
                 "threadId": "thread-1",
                 "turn": {
-                    "id": "turn-1",
+                    "id": turn_id,
                     "status": turn_status,
                     "items": [],
                 },
@@ -203,6 +250,7 @@ class AppServerGoalTest(unittest.TestCase):
     def validator(repository: Path, work_unit_id: str) -> dict[str, str]:
         return {
             "mode": "execution",
+            "executionRoute": "worktree",
             "objective": work_unit_id,
             "package": str(
                 repository / ".agent-factory" / "work-units" / work_unit_id
@@ -231,6 +279,7 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["state"], "complete")
         self.assertEqual(payload["context"]["workUnitId"], "wu-001")
+        self.assertEqual(payload["context"]["executionRoute"], "worktree")
         self.assertEqual(payload["context"]["threadId"], "thread-1")
         self.assertEqual(payload["context"]["goal"]["status"], "complete")
         self.assertEqual(payload["context"]["turnIds"], ["turn-1"])
@@ -253,7 +302,11 @@ class AppServerGoalTest(unittest.TestCase):
         prompt = module.execution_prompt("wu-001", "execution", None)
 
         self.assertIn("$workflow-agent", prompt)
-        self.assertIn("Goal preflight", prompt)
+        self.assertIn("You are the Workflow Agent", prompt)
+        self.assertIn("You must execute", prompt)
+        self.assertIn("Specification-only", prompt)
+        self.assertIn("dedicated linked worktree", prompt)
+        self.assertIn("Do not reassess", prompt)
         self.assertIn("execute only that Work Unit", prompt)
 
     def test_rework_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
@@ -266,14 +319,26 @@ class AppServerGoalTest(unittest.TestCase):
         )
 
         self.assertIn("$workflow-agent", prompt)
-        self.assertIn("Human-approved rework", prompt)
+        self.assertIn("perform rework", prompt)
         self.assertIn(
             "Commit the implementation and rebind all evidence.",
             prompt,
         )
         self.assertIn("execute only that Work Unit", prompt)
 
-    def test_launch_mode_accepts_ready_execution_and_manager_approved_rework(
+    def test_recovery_prompt_requires_unconditional_workflow_continuation(
+        self,
+    ) -> None:
+        module = load_module()
+
+        prompt = module.recovery_prompt("wu-001", "interrupted")
+
+        self.assertIn("You are the Workflow Agent", prompt)
+        self.assertIn("You must continue", prompt)
+        self.assertIn("Do not reassess", prompt)
+        self.assertIn("Specification-only", prompt)
+
+    def test_launch_mode_accepts_ready_execution_and_planned_rework(
         self,
     ) -> None:
         module = load_module()
@@ -301,7 +366,7 @@ class AppServerGoalTest(unittest.TestCase):
             "rework",
         )
 
-    def test_launch_mode_refuses_unapproved_or_active_working_state(self) -> None:
+    def test_launch_mode_accepts_active_working_state_for_resume(self) -> None:
         module = load_module()
         validation = {"valid": True, "id": "wu-001", "status": "working"}
         active = {
@@ -313,16 +378,14 @@ class AppServerGoalTest(unittest.TestCase):
                         "state": "running",
                         "currentRevision": 1,
                         "currentAttempt": 1,
+                        "invocationId": "thread-prior",
                         "history": [],
                     },
                 }
             ]
         }
 
-        with self.assertRaises(module.ContractError) as raised:
-            module.launch_mode(validation, active, "wu-001")
-
-        self.assertEqual(raised.exception.code, "work_unit_not_launchable")
+        self.assertEqual(module.launch_mode(validation, active, "wu-001"), "resume")
 
         planned_without_instruction = {
             "content": [
@@ -347,7 +410,7 @@ class AppServerGoalTest(unittest.TestCase):
 
         self.assertEqual(missing.exception.code, "rework_instruction_missing")
 
-    def test_validate_work_unit_uses_planned_rework_from_canonical_worktree(
+    def test_validate_work_unit_uses_primary_package_not_worktree_copy(
         self,
     ) -> None:
         module = load_module()
@@ -476,11 +539,11 @@ class AppServerGoalTest(unittest.TestCase):
 
         selected = module.validate_work_unit(self.repository, "wu-001")
 
-        self.assertEqual(selected["mode"], "rework")
-        self.assertEqual(selected["instruction"], "Commit and rebind evidence.")
+        self.assertEqual(selected["mode"], "execution")
+        self.assertIsNone(selected["instruction"])
         self.assertEqual(
             selected["package"],
-            str(worktree / ".agent-factory" / "work-units" / "wu-001"),
+            str(package),
         )
         commands = [
             json.loads(line)
@@ -488,7 +551,7 @@ class AppServerGoalTest(unittest.TestCase):
         ]
         self.assertEqual(
             [command[0] for command in commands],
-            ["validate", "show", "validate", "show"],
+            ["validate", "show"],
         )
         self.assertTrue(
             all(
@@ -496,6 +559,53 @@ class AppServerGoalTest(unittest.TestCase):
                 for command in commands
                 if command[0] == "show"
             )
+        )
+
+    def test_validate_specification_direct_never_requires_a_worktree(self) -> None:
+        module = load_module()
+        subprocess.run(
+            ["git", "init", "-b", "main", str(self.repository)],
+            check=True,
+            stdout=subprocess.DEVNULL,
+        )
+        package = (
+            self.repository / ".agent-factory" / "work-units" / "wu-001"
+        )
+        package.mkdir(parents=True)
+        context = {
+            "id": "EXEC-CONTEXT-001",
+            "kind": "execution-context",
+            "content": {
+                "goalId": "wu-001",
+                "repository": str(self.repository),
+                "executionMode": "specification-direct",
+            },
+        }
+        section = {"content": [context]}
+
+        with (
+            mock.patch.object(
+                module,
+                "manager_validation",
+                return_value={"valid": True, "id": "wu-001", "status": "ready"},
+            ),
+            mock.patch.object(
+                module,
+                "execution_context_section",
+                return_value=(section, context["content"]),
+            ),
+        ):
+            selected = module.validate_work_unit(self.repository, "wu-001")
+
+        self.assertEqual(selected["mode"], "execution")
+        self.assertEqual(selected["executionRoute"], "specification-direct")
+        self.assertFalse(
+            (
+                self.repository
+                / ".agent-factory"
+                / "worktree"
+                / "wu-001"
+            ).exists()
         )
 
     def test_goal_preflight_failures_never_start_a_turn(self) -> None:
@@ -524,6 +634,33 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["error"]["code"], "turn_failed")
         self.assertEqual(self.methods()[-1], "turn/start")
+
+    def test_interrupted_turn_is_automatically_continued(self) -> None:
+        payload = self.execute("interrupted_once")
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["context"]["turnIds"], ["turn-1", "turn-2"])
+        self.assertEqual(payload["context"]["recoveryCount"], 1)
+        self.assertEqual(self.methods().count("turn/start"), 2)
+
+    def test_blocked_goal_is_reactivated_and_continued(self) -> None:
+        payload = self.execute("blocked_once")
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["context"]["goal"]["status"], "complete")
+        self.assertEqual(payload["context"]["turnIds"], ["turn-1", "turn-2"])
+        self.assertEqual(payload["context"]["recoveryCount"], 1)
+        self.assertEqual(self.methods().count("thread/goal/set"), 2)
+        self.assertEqual(self.methods().count("thread/goal/get"), 2)
+        self.assertEqual(self.methods().count("turn/start"), 2)
+
+    def test_blocked_goal_recovery_exhaustion_is_explicit(self) -> None:
+        payload = self.execute("blocked_forever")
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["code"], "goal_recovery_exhausted")
+        self.assertEqual(payload["error"]["details"]["recoveries"], 20)
+        self.assertEqual(self.methods().count("turn/start"), 21)
 
     def test_goal_completion_after_turn_completion_is_accepted(self) -> None:
         payload = self.execute("goal_after_turn")

@@ -162,8 +162,9 @@ python3 scripts/intake.py section-item-put <package> request-and-goal \
   full validation.
 - The LLM checks evidence quality, semantic completeness, conflicts,
   acceptance criteria, specification consistency, and hidden-context risk.
-- The Human owns business decisions, approvals, preferences, scope tradeoffs,
-  and risk acceptance.
+- The Human owns business decisions, explicit Work Unit execution requests,
+  result review (`rework` or `complete`), preferences, scope tradeoffs, and risk
+  acceptance.
 
 Transition to `ready` only when every readiness flag is true, `reviewedAt` is
 recorded, every profile-required content kind exists, no blocking open item or
@@ -196,10 +197,9 @@ After `ready` validation succeeds, hand the package to `work-unit-planner`.
 Report the Intake id, validation result, specification impact, remaining
 non-blocking items, and Work Unit basis items.
 
-For the Git handoff boundary, use the lifecycle-owned
-`artifact_handoff.py checkpoint` command. Show the exact ready Intake package
-path, full-validation result, and exact commit message and obtain a
-checkpoint-specific Human approval before the command mutates `main`. The
-later ready Work Unit checkpoint requires a separate disclosure and approval;
+There is no Git handoff, checkpoint, immutable snapshot, or approval boundary
+for canonical Intake data. The primary main agent performs one sufficiency
+check immediately before an explicitly requested Work Unit launch. Once
+launched, execution continues without repeating readiness or decision checks.
 Intake manager ownership remains limited to canonical JSON construction,
-mutation, and validation.
+mutation, and validation in the primary repository.

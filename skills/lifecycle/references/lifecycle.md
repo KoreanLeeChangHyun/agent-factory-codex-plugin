@@ -1,379 +1,81 @@
-# Agent Factory Lifecycle
+# Lifecycle Reference
 
-This reference summarizes the current Agent Factory lifecycle for Codex use.
-
-## Purpose
-
-Agent Factory manages the customer's SDLC through visible UI/UX. Codex uses
-Agent Factory skills and `<project-root>/.agent-factory/` artifacts
-to follow the intended lifecycle.
-
-`<project-root>` is the root directory opened in the current editor, IDE, or
-Codex workspace. Resolve Agent Factory artifacts from
-`<project-root>/.agent-factory/` and bundled Plugin resources from the installed
-Plugin's owning skill. Never derive either root from a machine-specific
-absolute path. When the shell is inside a project subdirectory, the opened
-workspace root remains `<project-root>`. If no root is open, or a multi-root
-workspace leaves the target ambiguous, require an explicit Human selection
-before writing.
-
-## Required Artifact And Approval Lifecycle
+## Flow
 
 ```text
-Intake
-  -> Work Unit
-  -> Execution
-  -> Review
+Human conversation
+  -> canonical Intake
+  -> executable Work Unit
+  -> one-time main-agent sufficiency decision
+  -> background Goal + Exec
+  -> Plan -> Work -> AI Review -> Report
+  -> Human review: rework | complete
+  -> complete integration
+  -> later batch cleanup
 ```
 
-During lifecycle adoption, Codex uses Intake, Work Unit, Execution, and Review
-to keep requests moving through the required artifact and approval lifecycle.
+Conversation and feedback are appended to Intake through `intake.py`. Intake,
+Specification, and Work Unit CRUD always uses the primary root and never creates
+a worktree. Canonical packages remain tracked in primary Git, but execution does
+not create artifact commits, immutable snapshots, hashes, or checkpoints.
+Every Work Unit basis is traceable from the ready Intake through its package
+root anchor. Specification impact may be recorded as not applicable.
 
-## Lifecycle Routing Phases
+Design Report is not a stored HTML, CSS, or JavaScript artifact. The external
+viewer must not create canonical `report/`, `report/index.html`,
+`report/styles.css`, or `report/script.js` files.
 
-```text
-Intake:
-  Customer explains goal, submits a requirement, asks for analysis or research, or requests rework/operation/maintenance
-    -> record Human requirements and feedback
-    -> perform external web research when needed
-    -> analyze internal code, databases, data, configuration, logs, tests, and runtime when needed
-    -> observe users, operators, workflows, and usage context when direct user evidence is needed and authorized
-    -> interview the Human when a Human-only decision is needed
-    -> record Specification impact and check or update a Specification only when required
-    -> repeat manager apply -> validation -> semantic review -> revision
-    -> transition the canonical Intake package to ready only when it can define one or more executable Work Units
+## Work Unit readiness
 
-Work Unit:
-  Create executable Work Unit packages from a validated ready Intake
-    -> each Work Unit is the minimum /goal <work-unit-id> execution unit for a fresh Codex Goal session
-    -> each Work Unit includes basis, goal, scope, expected output, verification, AI checklist, Human checklist, Human review method, and unresolved items
-    -> checkpoint the ready Intake and ready Work Unit separately on main after
-       exact-path, full-validation, exact-message disclosure and separate Human approvals
+Before the launcher starts, `main-agent` checks once that:
 
-Execution:
-  Execute one Work Unit through Plan -> Work -> AI Review -> Report
-    -> inspect the Work Unit checkpoint and use that exact commit as the worktree base
-    -> enforce full-ready admission before branch, worktree, attempt, or scoped mutation
-    -> persist step progress, retry state, recovery ownership, and blocking evidence
-    -> perform scoped artifact writing when it is an expected Work Unit output
-    -> apply checklist, TDD, and verification loop
-    -> perform AI review
-    -> prepare evidence and Human review checks
+- Intake and Work Unit are full-valid;
+- no unresolved blocking item exists;
+- scope, exclusions, output, test criteria, AI checklist, Human checklist, and
+  report evidence requirements are complete;
+- repository and Work Unit identity match;
+- `executionMode` is explicit.
 
-Review:
-  Human reviews Work Unit execution
-    -> approve, request rework, merge, or decide PR promotion when applicable
-    -> if implementation rework is needed, return to Work Unit or Execution
-    -> if requirement or design changes are needed, return to Intake
+After launch, the Workflow Agent does not repeat this decision or ask for
+approval. It follows recorded canonical decisions until execution completes.
 
-Promotion and operations:
-  Promoted work can create operation or maintenance requests
-    -> operation and maintenance requests return to Intake
-```
+## Background Goal + Exec
 
-All Agent Factory work follows Intake -> Work Unit -> Execution -> Review.
-This includes analysis, research, Design Document work, Design Report review
-through the external viewer, document work, code changes, verification,
-operation, maintenance, and other artifacts. Execution includes AI review.
-Review means Human review.
+`app_server_goal.py` creates and verifies the Goal before `turn/start`. Its
+prompt declares: `You are the Workflow Agent. You must execute this Work Unit.`
+This Goal preflight uses `thread/goal/set` and `thread/goal/get` before worktree
+preparation and fails closed on mismatched protocol evidence.
 
-Intake checks and updates relevant specification source so accepted
-requirements, feedback, and evidence remain aligned before Work Unit planning.
-Implementation and other delivery artifact writing belongs to Work Unit
-Execution. Execution may return changed requirements or design facts to a new
-Intake loop.
+The launcher accepts initial, rework, and active-resume states. It automatically
+continues interrupted turns and reactivates Goals blocked by removed workflow
+gates. Recovery is bounded; a real unrecoverable error returns a failed receipt
+instead of leaving a waiting process.
 
-## Adoption Scenarios
+## Execution mode
 
-Agent Factory lifecycle adoption can start at different project timings. The
-first task is to identify the timing, then route the work without bypassing the
-lifecycle.
+`specification-direct` updates the primary canonical Specification through
+`specification.py` and never creates a branch or worktree.
 
-### New Project Start
+`worktree` creates or reuses the derived branch and canonical linked path.
+Sparse checkout excludes all of `.agent-factory`. Canonical manager calls made
+from that worktree still resolve to the primary root.
 
-Use this route when the project is starting or has no meaningful existing
-baseline.
+Execution state is revision + attempt + invocation chain + idempotent step
+records. It contains no Git subject or head hash.
 
-- Ask for the explicit project purpose, scope, constraints, approval
-  boundaries, and unresolved items.
-- Collect and validate a canonical Intake package from explicit Human facts and
-  any approved interview, research, data investigation, code investigation, or
-  runtime analysis.
-- Check or update the relevant specification during Intake.
-- Create Work Units from the accepted Intake basis.
-- Use those Work Units during Execution to create a canonical Project Core
-  package when absent and the scoped Specification output. Governed
-  Specifications reference Project Core without copying its content; the
-  separate Chrome extension Design Report viewer may render the resolved
-  relation as a read-only top view.
-- Treat the baseline as minimal unless the Human provides more facts.
-- Expand the canonical Specification detail shown by the Design Report viewer
-  only from explicit facts and approved decisions.
-- When the canonical Specification covers later implementation, record it as a
-  specification input to a new Intake, transition that Intake to `ready`, and
-  create the implementation Work Units from its accepted basis.
+## Review and completion
 
-### In-Progress Project Adoption
+Human review has two outcomes:
 
-Use this route when code, documents, runtime behavior, or decisions already
-exist.
+- `rework`: exact instruction is stored and background Goal + Exec runs again.
+- `complete`: `--review-decision complete` is stored.
 
-- Collect baseline reference material in a canonical Intake package before
-  creating Work Units.
-- Record current structure, documents, commands, tests, runtime, deployment,
-  known constraints, open work, and unresolved decisions.
-- Check or update the relevant specification and use only a `ready` Intake as
-  explicit basis for Work Units.
-- Use those Work Units during Execution to update Project Core, Design Document,
-  implementation, review, or maintenance output within their scope.
-- During Execution, update Project Core only when purpose, principles, scope,
-  approval boundaries, or unresolved items change.
-- Record the updated canonical Specification package as a specification
-  reference in Intake when it covers the work. Work Unit basis always comes
-  from the validated `ready` Intake, which preserves that specification
-  reference and result.
+For `worktree` mode, complete triggers integration automatically. Primary
+`.agent-factory/**` dirtiness is ignored during target source-code integration.
+Completed worktrees remain until a later batch cleanup. Cleanup refuses dirty
+worktrees and never forces removal.
 
-### Ending Or Release-Handoff Adoption
+`specification-direct` completion has no merge or cleanup.
 
-Use this route when the project is being finalized, released, reviewed, or
-handed off.
-
-- Collect final-state baseline material: deliverables, completed work, pending
-  reviews, known defects, deployment state, release constraints, handoff needs,
-  and unresolved decisions.
-- Transition the final-state Intake to `ready`, then create Work Units only
-  from its approved finalization, verification, rework, deliverable, release,
-  or handoff basis entries.
-- Use those Work Units during Execution to update Project Core or Design
-  Document when the approved finalization, rework, release, or handoff scope
-  requires artifact changes.
-- Keep Work Unit Outputs separate from customer-facing Customer Deliverables.
-- Leave release, deployment, operation, and promotion decisions to the Human.
-
-### Maintenance Or Operations Adoption
-
-Use this route when a live or maintained project needs operation, bugfix,
-documentation, or maintenance work.
-
-- Collect operations baseline material: runtime, deployment, incidents, logs,
-  monitoring, known risks, current behavior, maintenance request, and approval
-  boundaries.
-- Create Work Units for scoped design changes, maintenance, bugfix,
-  verification, operation, or documentation tasks when the canonical Intake is
-  ready.
-- Use those Work Units during Execution to update Project Core, Design Document,
-  implementation, or operational documentation within their scope.
-- Return new operation or maintenance requests to Intake.
-
-## Named Work Unit Goal Execution
-
-When the Human starts a fresh session with `/goal <work-unit-id>`, requests
-execution of a named Work Unit through a fresh `codex exec` session, or invokes
-the programmatic Work Unit launcher, treat the request as execution of that
-exact Work Unit package and as authorization to create or reuse its mandatory
-Goal. `codex exec` is only a bootstrap route; it does not remove the Goal
-requirement. The programmatic route uses
-`work-unit-execution/scripts/app_server_goal.py` so Goal creation and
-verification are app-server protocol operations rather than prompt inference.
-
-Use this resolution flow:
-
-- Resolve `<work-unit-id>` to `<project-root>/.agent-factory/work-units/<work-unit-id>/`.
-- Run a Goal preflight before worktree preparation, planning, editing, or
-  verification. Inspect the current Goal, reuse it only when its unfinished
-  objective targets the same Work Unit, and create the matching Goal when none
-  exists. If Goal state cannot be inspected, Goal creation is unavailable or
-  fails, or another unfinished Goal conflicts, fail closed without starting
-  Execution. A `codex exec` process or prompt alone is not proof of an active
-  Goal.
-- For programmatic execution, require a successful `initialize` and
-  `initialized` handshake followed by `thread/start`, successful
-  `thread/goal/set` and `thread/goal/get` responses, and observation of the
-  matching asynchronous `thread/goal/updated` notification before
-  `turn/start`. The notification may arrive while either Goal request is in
-  flight, but the Goal thread id, objective, and active status must match at
-  every Goal boundary. Do not read private Codex SQLite state or accept a
-  model-authored receipt as Goal proof.
-- Keep the Human-facing `main-agent` in the primary lifecycle thread for
-  questions, Intake, Work Unit management, launcher delegation, and result
-  follow-up. Start the execution turn with the explicit `$workflow-agent`
-  role; do not perform the named Work Unit implementation in the primary
-  thread.
-- Use `workflow-agent` only for the Goal-matched Plan -> Work -> AI Review ->
-  Report sequence or manager-approved planned Rework. It does not own Intake,
-  Human approval, merge, cleanup, push, or PR promotion.
-- Work in Korean for planning, progress updates, review summaries, reports, and
-  other Human-readable communication during this project's named Work Unit Goal
-  execution. Keep commands, file paths, identifiers, code, API names, package
-  names, branch names, and exact log output unchanged.
-- Run the Work Unit manager's full validation, then read `data/metadata.json`,
-  `data/title.json`, the manager-owned table of contents, every canonical
-  section, `blocks/index.json`, and referenced blocks. Schema version `4.0.0`
-  is the sectioned execution contract.
-- Use the package as the execution source of truth for basis, goal, scope,
-  out-of-scope items, acceptance criteria, verification, AI checklist, Human
-  checklist, Human review method, unresolved items, and review boundaries.
-- Execute only that Work Unit unless the Human explicitly expands or changes
-  scope.
-- Route the Git execution boundary through `work-unit-execution`. Resolve the
-  repository root, base ref, dedicated branch, and absolute linked worktree path
-  from the package or an explicit Human decision, derive the branch as
-  `work-unit/<work-unit-id>`, then prepare or inspect the worktree and record its
-  canonical JSON result as execution evidence. Re-execution and rework reuse the
-  same registered pair.
-- A fresh execution session reconstructs the second checkpoint with
-  `lifecycle/assets/scripts/artifact_handoff.py inspect`. The initial
-  `worktree.py prepare` base is the returned exact checkpoint commit, not an
-  inferred branch tip or an uncommitted package.
-- `worktree.py prepare` mechanically invokes the Work Unit manager's full-ready
-  admission gate for the same id, repository, base, branch, and path before its
-  first Git mutation. A valid explicit execution request does not reopen
-  already settled Work Unit decisions.
-- Bind active execution to the inspected Git head through versioned
-  `execution-state/v1`. Start a new attempt for a first invocation or retry,
-  append a resumed Codex session to the same attempt, and require a
-  Human-approved revision increment for rework. Current passing evidence and
-  approval must match the revision, attempt, primary invocation, and Git head.
-- After attempt start, record durable pending and completed steps, the last
-  verified repository head, and stable idempotency identities. Bound transient
-  retries; convert permanent or exhausted failures into an evidence-backed
-  blocking item and `blocked` state. After recorded resolution,
-  `blocker-resolve` resumes the same revision and attempt with a new invocation
-  owner rather than creating an unapproved rework revision.
-- Never generate fallback worktree path names. Cleanup requires an explicit
-  Human cleanup decision and must refuse dirty worktrees and forced removal.
-- If the package is missing, ambiguous, already complete, blocked, or lacks
-  enough basis for a fresh session, stop and ask the Human before editing.
-- Preserve the separation between the defining session and the execution
-  session. Do not rely on hidden chat history from the defining session.
-
-### Two-Checkpoint Artifact Handoff
-
-Run the lifecycle-owned command twice on checked-out `main`, once for the ready
-Intake and once for the ready Work Unit:
-
-```text
-python3 skills/lifecycle/assets/scripts/artifact_handoff.py checkpoint \
-  --repository <absolute-repository-root> \
-  --artifact-type <intake|work-unit> \
-  --artifact-id <id> \
-  --package <absolute-canonical-package-path> \
-  --target-branch main \
-  --message <exact-approved-message> \
-  --human-decision approved
-```
-
-Before each command, show the exact package path, owning-manager full
-validation result, and exact commit message and obtain a separate Human
-approval. The command refuses unrelated staged state, stages only the
-manager-reported canonical file set, detects validation-to-stage byte changes,
-and returns a deterministic JSON receipt. Exact replay of the same approved
-artifact state and message returns `already-checkpointed`.
-
-A fresh execution session reconstructs the second commit without mutation:
-
-```text
-python3 skills/lifecycle/assets/scripts/artifact_handoff.py inspect \
-  --repository <absolute-repository-root> \
-  --artifact-type work-unit \
-  --artifact-id <work-unit-id> \
-  --package <absolute-canonical-package-path> \
-  --target-branch main
-```
-
-Use `context.checkpointCommit` as `worktree.py prepare --base`. Checkpoint
-approval never authorizes Work Unit result integration, cleanup, push,
-publication, or PR promotion.
-
-## Baseline Checklist
-
-For in-progress, ending, release-handoff, maintenance, or operations adoption,
-collect only explicit baseline facts that are relevant to the request:
-
-- Project purpose and current status.
-- Existing Specification packages, Project Core, Work Units, outputs, and
-  deliverables.
-- Current repository structure and important source paths.
-- Documents, diagrams, decisions, and known constraints.
-- Commands, tests, runtime, deployment, and verification status.
-- Open work, known defects, incidents, risks, and unresolved decisions.
-- Pending Human approvals, review requests, merge decisions, release decisions,
-  operation decisions, maintenance decisions, or PR promotion decisions.
-
-The baseline is reference material. It never replaces Project Core, Design
-Report, Work Units, Work Unit Outputs, or customer-facing Customer
-Deliverables.
-
-## Core Artifacts
-
-- Intake is the canonical basis package that combines Human input, external
-  research, internal analysis, user research, Human decision interviews,
-  specification alignment, synthesis,
-  and readiness.
-- A Work Unit is the minimum Codex Goal execution and review unit. It contains
-  basis, goal, scope, expected output, AI checklist, verification or test plan,
-  AI checklist result, Human checklist, Human review method, approval or rework
-  criteria, and unresolved items.
-- The Work Unit defining session and the Work Unit execution session are
-  separate. A Work Unit must be complete enough for a fresh execution session to
-  reconstruct the context without hidden assumptions from the defining session.
-- Work Unit execution is successful when the scoped work is complete,
-  verification evidence is recorded, AI review is complete, the AI checklist is
-  satisfied, and Human review material states what to inspect, how to inspect
-  it, and which approval, rework, merge, or PR promotion decision remains with
-  the Human.
-- Do not block AI Work Unit completion merely because Human Review,
-  approval, rework, merge, or PR promotion has not happened yet.
-- Project Core is the short single canonical
-  `<project-root>/.agent-factory/specifications/project-core/` package.
-- Project Core contains purpose, core principles, scope, Human approval
-  boundaries, and unresolved items.
-- Design Report is a Human-facing view rendered by a separate Chrome extension
-  from validated canonical Specification JSON.
-- Design Report is not a stored HTML, CSS, or JavaScript artifact. Specification
-  packages must not contain `report/`, `report/index.html`, `report/styles.css`,
-  or `report/script.js` derived viewer files.
-- The Chrome extension may render a resolved `governed-by` Project Core relation
-  without copying canonical content. Intake and Work Unit traceability reference
-  the canonical Specification package, not the derived Design Report view.
-- Work Units are stored under `<project-root>/.agent-factory/work-units/<id>/`.
-- Work Unit Outputs are internal and separate from customer-facing Customer
-  Deliverables.
-
-## Work Unit Package
-
-Schema version `4.0.0` Work Units use the common sectioned JSON package:
-
-```text
-<project-root>/.agent-factory/work-units/<id>/
-  data/
-    metadata.json
-    title.json
-    table-of-contents.json
-    sections/<section-id>.json
-  blocks/index.json
-  blocks/**
-```
-
-The required profile covers basis, definition, plan, execution context,
-acceptance and verification, execution, AI review, Human review, and report.
-The basis includes a typed reference to the ready Intake package root with an
-anchor to the selected `work-unit-basis` item. Markdown, HTML, CSS, and
-JavaScript are optional derived rendering and never replace canonical JSON.
-
-## Boundaries
-
-- The Human is the final approval authority.
-- The Human decides approval, rework, rejection, merge, PR promotion,
-  deployment, operation, and maintenance approval boundaries.
-- AI work must remain traceable from the ready Intake and selected Work Unit
-  basis through every applicable Project Core or Specification reference to the
-  Work Unit and review output. Do not invent a Specification link when Intake
-  records it as not applicable.
-- Work Unit traceability must point to its ready Intake package, the selected
-  Work Unit basis entry, and the source evidence or specification references
-  recorded there.
-- Agents must separate facts, assumptions, recommendations, and unresolved
-  items.
-- Agents must surface principle risks and provide evidence.
-- Agents must not bypass Human approval boundaries.
+Push, deployment, branch deletion, and PR promotion are separate explicit
+requests.
