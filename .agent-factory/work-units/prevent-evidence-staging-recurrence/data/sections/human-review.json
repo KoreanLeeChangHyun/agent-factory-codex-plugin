@@ -1,0 +1,39 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECK-001",
+      "kind": "human-checklist",
+      "content": [
+        "공통 block-put과 integration-put이 명시적인 stdin 입력을 지원하는지 확인합니다.",
+        "기존 일반 파일 입력과 no-follow 검증이 유지되는지 확인합니다.",
+        ".agent-factory/evidence-staging 금지와 대체 명령이 활성 스킬에 명확히 기록됐는지 확인합니다.",
+        "stdin 오류·호환성·디렉터리 부재 회귀 테스트 결과를 확인합니다.",
+        "관련 없는 미커밋 변경이 구현 diff에 포함되지 않았는지 확인합니다."
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "inspect": [
+          "manager와 active skill diff를 확인합니다.",
+          "focused test와 plugin validation 증거를 확인합니다.",
+          "승인 또는 rework를 결정합니다. integration과 cleanup은 별도 Human 결정입니다."
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-RESULT-001",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

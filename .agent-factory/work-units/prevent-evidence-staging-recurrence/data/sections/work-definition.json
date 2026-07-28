@@ -1,0 +1,38 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Add stdin evidence input to common block-put and Work Unit integration-put, prohibit repository-local evidence-staging, and verify the recurrence prevention contract."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "common sectioned document block-put stdin source support",
+        "Work Unit integration-put stdin receipt support",
+        "repository-local .agent-factory/evidence-staging prohibition",
+        "focused manager regression tests",
+        "active Agent Factory skill and reference updates"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "Git history rewrite",
+        "unrelated uncommitted artifacts",
+        "automatic integration, cleanup, push, publication, or PR promotion",
+        "canonical package ownership changes"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "A validated stdin-based evidence transfer contract that removes the need for repository-local evidence-staging and preserves manager ownership."
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,59 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "block-put accepts stdin through an explicit source token without requiring a repository-local temporary file.",
+        "integration-put accepts and validates a worktree integration receipt from stdin while retaining regular-file support and receipt validation.",
+        "active Agent Factory instructions prohibit .agent-factory/evidence-staging and provide a manager-owned stdin registration path.",
+        "focused tests prove stdin success, invalid input refusal, existing file-path compatibility, and absence of .agent-factory/evidence-staging.",
+        "no unrelated artifact, approval boundary, integration behavior, or canonical ownership changes."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "failing regression tests are written before implementation",
+        "common and Work Unit manager focused tests pass",
+        "existing file source behavior remains covered",
+        "plugin validation and git diff check pass",
+        "AI review evidence and Korean Human review material are recorded"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "commands": [
+          "python3 -m unittest skills.intake.tests.test_intake_manager",
+          "python3 -m unittest skills.work_unit_planner.tests.test_work_unit_manager",
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+          "git diff --check",
+          "test ! -e .agent-factory/evidence-staging"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "planned",
+        "requiredEvidence": [
+          "stdin block-put regression result",
+          "stdin integration-put regression result",
+          "existing file-input compatibility result",
+          "plugin validation and diff scope review",
+          "repository staging absence check"
+        ]
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}
