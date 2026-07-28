@@ -142,6 +142,28 @@
           "It supports reducing prompt burden but does not by itself choose between one standalone skill and one embedded lifecycle rule."
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "fact-only의 사실 판정 규칙을 어디에서 소유하도록 할까요?",
+        "recommendation": "A",
+        "recommendationRationale": "현재 라우팅과 참조 호환성을 유지하면서 중복 지시만 제거하는 것이 가장 낮은 위험과 비용으로 책임 경계를 명확히 한다.",
+        "answer": "A",
+        "state": "answered",
+        "decision": "fact-only와 agent-rule을 모두 유지하고, 사실 판정은 fact-only가 단일 소유하며 agent-rule의 중복 사실 판정 규칙을 제거한다.",
+        "choices": [
+          "A: fact-only와 agent-rule을 모두 유지하고 중복만 제거한다. 장점: 기존 참조·경로·이식성을 유지하고 영향이 가장 작다. 단점: 두 스킬 호출 구조가 유지된다.",
+          "B: fact-only를 agent-rule에 통합한다. 장점: 스킬 수가 줄어든다. 단점: agent-rule이 비대해지고 다수 참조를 수정해야 한다.",
+          "C: 사실 판정 규칙을 lifecycle 또는 AGENTS.md로 이동하고 fact-only를 제거한다. 장점: 전역 규칙화가 가능하다. 단점: 영향 범위가 크고 플러그인 이식성이 저하될 수 있다."
+        ],
+        "sourceRefs": [
+          "WEB-001",
+          "WEB-002",
+          "WEB-004"
+        ]
+      }
     }
   ],
   "subsections": []

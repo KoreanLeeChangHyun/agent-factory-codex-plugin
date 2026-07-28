@@ -15,15 +15,25 @@
     {
       "id": "OPEN-001",
       "kind": "open-items-status",
-      "content": "차단 미결정 1건: OPEN-002"
+      "content": "차단 미결정 0건."
     },
     {
       "id": "OPEN-002",
       "kind": "open-item",
-      "content": "External evidence supports retaining an explicit fact, evidence, uncertainty, and ambiguity boundary and supports removing duplicated instructions, but it does not establish that this boundary must remain a standalone fact-only skill. Human must decide whether to preserve the existing two-skill packaging decision or evaluate lifecycle or AGENTS.md placement as an alternative.",
+      "content": "Human이 선택 A를 승인하여 독립 fact-only 스킬과 agent-rule 스킬을 유지하고 중복 책임만 제거하는 것으로 해결되었다.",
       "attributes": {
-        "blocking": true,
-        "resolved": false
+        "resolvedBy": "INTERVIEW-001",
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": {
+        "decision": "fact-only와 agent-rule을 모두 유지하고, 사실 판정 규칙은 fact-only가 단일 소유하며 agent-rule은 비판적 검토·엔지니어링·변경 안전성·검증 규칙에 집중한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-001"
       }
     }
   ],
