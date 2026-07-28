@@ -7,10 +7,14 @@
       "kind": "accepted-decisions",
       "content": {
         "items": [
-          "Admission에서 미확정 Human 결정·권한·입력·의존성이 있으면 실행을 거부한다.",
-          "실행 후에는 단일 codexSessionId를 정확히 지정해 terminal state까지 resume한다.",
-          "실행 중 Human interview 또는 승인 질문을 열지 않는다.",
-          "SQLite, PostgreSQL, lease, fencing과 분산 queue는 초기 구현에서 제외한다."
+          "Work Unit 실행은 Human의 명시적 요청이 있을 때만 시작한다.",
+          "main agent는 Goal+Exec launch 직전에만 충분성을 판단한다.",
+          "launcher prompt는 You are the Workflow Agent와 반드시 실행하라는 지시를 명시한다.",
+          "launch 후에는 승인, checkpoint, immutable hash, readiness 판단을 반복하지 않는다.",
+          "Specification-only Work Unit은 기본 저장소의 specification.py로 직접 갱신하고 worktree를 만들지 않는다.",
+          "그 외 코드 변경은 .agent-factory가 완전히 제외된 전용 worktree에서 실행한다.",
+          "interrupted turn과 stale blocked Goal은 자동 continuation하며 복구 불가 오류만 명시적 실패로 종료한다.",
+          "Human 결과 검토는 rework 또는 complete이며 complete된 코드 변경은 자동 통합한다."
         ]
       }
     },
@@ -18,10 +22,10 @@
       "id": "SUPERSEDED-DESIGN-001",
       "kind": "resolved-open-item",
       "content": {
-        "resolution": "이전 SQLite durable supervisor 설계는 DECISION-007의 session-targeted controller로 대체됐다.",
-        "source": "HUMAN-FEEDBACK-003",
-        "evidenceRef": "INTERNAL-CODEX-SESSION-002",
-        "limitation": "호스트 또는 Codex 세션 저장소 손실은 보장하지 않는다."
+        "resolution": "이전 codex exec session-target resume와 Git HEAD 고정 설계는 app-server Goal+Exec continuation과 execution-state/v2로 대체됐다.",
+        "source": "Human statements and DECISION-013 through DECISION-017",
+        "evidenceRef": "app_server_goal.py recovery tests and work_unit.py execution-state/v2 tests",
+        "limitation": "호스트 또는 app-server 상태 저장소 손실은 보장하지 않는다."
       }
     },
     {

@@ -8,17 +8,19 @@
       "content": {
         "participants": [
           "Human",
-          "work-unit-execution controller",
-          "Codex exec session",
+          "main agent",
+          "Workflow Agent",
+          "app-server Goal+Exec launcher",
           "Work Unit manager",
-          "Git"
+          "Specification manager",
+          "Git worktree controller"
         ],
         "dependencies": [
-          "codex exec",
-          "codex exec resume",
-          "canonical Work Unit JSON",
+          "Codex app-server Goal and turn APIs",
+          "canonical Work Unit JSON in the primary repository",
           "persistent Goal",
-          "dedicated Git worktree"
+          "manager scripts",
+          "dedicated Git worktree for worktree mode only"
         ]
       }
     },
@@ -27,15 +29,17 @@
       "kind": "boundaries",
       "content": {
         "guaranteed": [
-          "불완전 Work Unit은 exec 시작 전에 거부",
-          "admitted execution은 중간 interview 없이 terminal state까지 controller가 구동",
-          "조기 exec 종료 시 정확한 동일 세션 ID로 resume"
+          "명시적 실행 요청 전에는 Work Unit을 실행하지 않는다.",
+          "launch 직전 충분성 판단은 한 번만 수행한다.",
+          "Workflow Agent launch 후 interrupted turn과 stale blocked Goal은 자동 continuation한다.",
+          "specification-direct 실행은 worktree 없이 기본 저장소 Specification을 갱신한다.",
+          "worktree 실행에는 .agent-factory 디렉터리가 존재하지 않는다."
         ],
         "notGuaranteed": [
-          "완전 무중단",
-          "호스트·디스크·세션 저장소 손실",
+          "호스트·디스크·app-server 상태 저장소 손실",
           "분산 failover",
-          "외부 side effect exactly-once"
+          "외부 side effect exactly-once",
+          "실행 범위를 넘어선 자동 권한 확대"
         ]
       }
     }

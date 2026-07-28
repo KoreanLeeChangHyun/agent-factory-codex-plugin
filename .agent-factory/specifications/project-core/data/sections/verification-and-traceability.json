@@ -8,22 +8,22 @@
       "sourceRefs": [
         {
           "artifactType": "intake",
-          "id": "work-unit-durable-control-plane",
-          "path": ".agent-factory/intakes/work-unit-durable-control-plane",
+          "id": "local-untracked-agent-factory-control-plane",
+          "path": ".agent-factory/intakes/local-untracked-agent-factory-control-plane",
           "anchor": {
             "sectionId": "work-unit-basis",
-            "itemId": "WORK-UNIT-BASIS-SPEC-001"
+            "itemId": "SPEC-001"
           }
         }
       ],
       "content": {
         "refs": [
-          "REQUEST-001",
-          "OUTCOME-001",
-          "SUCCESS-001",
-          "APPROVAL-001",
-          "DECISION-005",
-          "WORK-UNIT-BASIS-SPEC-001"
+          "DECISION-013",
+          "DECISION-014",
+          "DECISION-015",
+          "DECISION-016",
+          "DECISION-017",
+          "SPEC-001"
         ]
       }
     },

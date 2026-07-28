@@ -1,0 +1,82 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQUIREMENT-001",
+      "kind": "requirement",
+      "content": "Intake, Work Unit, Specification manager CRUD는 primary project root의 로컬 canonical store에서만 수행하며 CRUD 과정에서 worktree를 생성·요구하지 않는다."
+    },
+    {
+      "id": "REQUIREMENT-002",
+      "kind": "requirement",
+      "content": "새 실행 worktree에는 Intake, Work Unit, Specification package가 존재하지 않아야 한다."
+    },
+    {
+      "id": "REQUIREMENT-003",
+      "kind": "requirement",
+      "content": "intakes, specifications, work-units는 primary root에서 Git 추적하고 linked worktree에서는 .agent-factory 전체를 checkout하지 않는다."
+    },
+    {
+      "id": "REQUIREMENT-004",
+      "kind": "requirement",
+      "content": "Intake, Specification, Work Unit에는 Git, hash, immutable snapshot 또는 다른 대체 checkpoint를 두지 않는다."
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": "기존 더티 Intake 파일을 포함한 모든 .agent-factory working-tree bytes를 변경·유실·stash하지 않는다."
+    },
+    {
+      "id": "CONSTRAINT-002",
+      "kind": "constraint",
+      "content": "과거 Git history는 보존하며 force reset, history rewrite, 강제 worktree 삭제를 사용하지 않는다."
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": "primary git ls-files가 세 canonical root를 유지하고, 새 linked worktree에는 .agent-factory가 없으며 .agent-factory-only dirty target에서도 source integration이 거부되지 않는다."
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": "CRUD 테스트는 worktree 생성 호출 없이 통과하고 실행 worktree 준비 테스트는 artifact package 부재를 검증한다."
+    },
+    {
+      "id": "AC-003",
+      "kind": "acceptance-criterion",
+      "content": "Work Unit admission, 실행 기록, Human review, integration receipt가 Git-tracked package 없이 manager-owned canonical store에서 검증된다."
+    },
+    {
+      "id": "REQUIREMENT-005",
+      "kind": "requirement",
+      "content": "별도 approval 절차는 두지 않는다. 실행 결과는 사용자 검토에서 rework 또는 complete로 결정하며, complete 결정은 병합을 트리거한다."
+    },
+    {
+      "id": "REQUIREMENT-006",
+      "kind": "requirement",
+      "content": "Specification 갱신 Work Unit을 사용자가 명시적으로 실행해 Goal+exec가 시작된 경우에도 canonical Specification CRUD는 반드시 primary project root의 .agent-factory/specifications를 specification.py로 직접 갱신한다."
+    },
+    {
+      "id": "REQUIREMENT-007",
+      "kind": "requirement",
+      "content": "사용자 대화는 기본적으로 canonical Intake에 누적한다. 충분한 실행 정보가 모이거나 사용자가 Work Unit 생성을 요청한 경우에만 실행 가능한 Work Unit을 생성한다."
+    },
+    {
+      "id": "REQUIREMENT-008",
+      "kind": "requirement",
+      "content": "완료된 code Work Unit의 worktree는 즉시 개별 승인받아 정리하지 않고 완료 집합을 대상으로 일괄 정리한다."
+    },
+    {
+      "id": "REQUIREMENT-009",
+      "kind": "requirement",
+      "content": "Specification 갱신만 수행하는 Work Unit의 Goal+exec는 Git worktree를 생성하지 않고 primary root의 .agent-factory/specifications를 specification.py로 갱신한다."
+    },
+    {
+      "id": "REQUIREMENT-010",
+      "kind": "requirement",
+      "content": "모든 Work Unit Execution은 work-unit-execution/scripts/app_server_goal.py가 생성·검증하는 background Goal-bound exec 스레드로만 수행한다. primary Human-facing thread는 Intake와 Work Unit 계획, 상태 확인, 사용자 검토 routing만 담당한다."
+    }
+  ],
+  "subsections": []
+}

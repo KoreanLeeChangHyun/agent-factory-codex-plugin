@@ -1,0 +1,37 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "Intake, Work Unit, Specifications의 CRUD는 절대 Git worktree를 만들지 않는다."
+    },
+    {
+      "id": "REQUEST-002",
+      "kind": "human-request",
+      "content": "Git worktree를 만들 때 Intake, Work Unit, Specifications 데이터를 checkout하거나 복제하거나 저장하지 않는다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": "프로젝트 로컬 .agent-factory를 비-Git 제어면으로 운영하고 소스 실행 worktree와 완전히 분리한다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": "intakes, specifications, work-units는 primary root에서 Git 추적되고, linked worktree에는 .agent-factory 전체가 존재하지 않으며 artifact 변경이 source 병합을 막지 않는다."
+    },
+    {
+      "id": "REQUEST-003",
+      "kind": "human-request",
+      "content": "모든 승인 절차를 폐기한다."
+    },
+    {
+      "id": "REQUEST-004",
+      "kind": "human-request",
+      "content": "사용자 대화는 기본적으로 Intake에 기록하고, 정보가 충분하거나 Work Unit 생성 요청이 있을 때 Work Unit을 생성한다. 실행 가능한 Work Unit은 명시적 실행 요청 시 Goal+exec로 실행하고 사용자 검토 후 rework 또는 complete로 결정한다. complete이면 병합하며 완료된 worktree는 이후 일괄 정리한다. Specification 갱신 Work Unit은 worktree를 만들지 않는다."
+    }
+  ],
+  "subsections": []
+}

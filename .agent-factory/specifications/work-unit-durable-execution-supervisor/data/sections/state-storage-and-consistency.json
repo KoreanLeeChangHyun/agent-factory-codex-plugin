@@ -6,12 +6,13 @@
       "id": "SESSION-STATE-POLICY-001",
       "kind": "storage-policy",
       "content": {
-        "location": "canonical Work Unit execution-context and Codex persisted session store",
+        "location": "canonical Work Unit execution-context in the primary repository and Codex app-server Goal state",
         "items": [
-          "Work Unit JSON stores exact codexSessionId, revision, attempt, head, resume count and terminal status.",
-          "Codex session store owns conversation and tool execution history.",
-          "Git owns changed files and commits.",
-          "SQLite and external databases are not initial state owners."
+          "Work Unit JSON stores revision, attempt, invocationId, invocationChain, progress, recovery and terminal result.",
+          "Codex app-server owns Goal and turn history.",
+          "Git owns changed code and commits only for worktree mode.",
+          "Specification manager owns specification-direct mutations.",
+          "No Git HEAD, content hash, immutable snapshot or artifact checkpoint is an execution identity."
         ]
       }
     },
@@ -23,17 +24,20 @@
           "workUnitId",
           "revision",
           "attempt",
-          "headCommit",
-          "codexSessionId",
-          "resumeCount",
+          "invocationId",
+          "invocationChain",
+          "completedSteps",
+          "pendingStep",
+          "records",
+          "retry",
+          "recovery",
           "status",
           "terminalEvidence"
         ],
         "states": [
-          "admitted",
+          "planned",
           "running",
-          "resuming",
-          "review-ready",
+          "review",
           "terminal-failure",
           "done"
         ]
@@ -44,16 +48,18 @@
       "kind": "state-transitions",
       "content": {
         "transitions": [
-          "admitted -> running after session UUID capture",
-          "running -> resuming after nonterminal exec exit",
-          "resuming -> running after same-session resume starts",
-          "running|resuming -> review-ready|terminal-failure",
-          "review-ready -> done after Human approval"
+          "planned -> running after background Goal+Exec launch",
+          "running -> running after interrupted or stale blocked continuation",
+          "running -> review after Execution, AI Review and Report evidence",
+          "review -> planned after Human rework",
+          "review -> done after Human complete and automatic integration when applicable"
         ],
         "forbidden": [
-          "new parallel session for active attempt",
-          "--last target selection",
-          "mid-execution interview"
+          "approval or checkpoint gate",
+          "immutable snapshot or Git HEAD identity",
+          "repeated sufficiency judgment after launch",
+          "worktree creation for specification-direct",
+          "silent success after unrecoverable failure"
         ]
       }
     },
@@ -62,10 +68,12 @@
       "kind": "consistency",
       "content": {
         "items": [
-          "codexSessionId is recorded before monitoring.",
-          "Every resume uses the recorded exact ID.",
-          "Revision, attempt and Git head remain fixed through resume.",
-          "Terminal result references session and Git evidence."
+          "Canonical CRUD always targets the primary repository manager.",
+          "Every active continuation stays in the same Goal thread and appends a unique invocation ID when required.",
+          "Execution mode remains fixed for the Work Unit attempt.",
+          "Specification-direct never depends on a linked worktree.",
+          "Worktree mode never carries .agent-factory into the linked worktree.",
+          "Terminal result references registered verification evidence, not a Git snapshot hash."
         ]
       }
     },
@@ -74,9 +82,11 @@
       "kind": "migration-and-compatibility",
       "content": {
         "items": [
-          "Existing invocationChain history remains readable.",
-          "New active attempts use codexSessionId as the canonical resume target.",
-          "No migration to SQLite is required."
+          "Legacy invocationChain history remains readable.",
+          "execution-migrate converts v1 checkpoint progress into v2 records and removes Git subject fields.",
+          "Omitted legacy executionMode defaults to worktree.",
+          "New specification-direct contexts may omit branch and worktreePath.",
+          "No migration to SQLite or external databases is required."
         ]
       }
     }

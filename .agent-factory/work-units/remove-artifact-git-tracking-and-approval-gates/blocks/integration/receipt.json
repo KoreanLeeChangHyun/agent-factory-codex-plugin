@@ -1,0 +1,21 @@
+{
+  "command": "integrate",
+  "context": {
+    "operationResult": "already-merged",
+    "relationship": "already-merged",
+    "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+    "sourceBranch": "work-unit/remove-artifact-git-tracking-and-approval-gates",
+    "sourceCommit": "5a2c1c8a8e8f64803af69ece5ff52221a7e2d162",
+    "strategy": "none",
+    "targetAfterCommit": "5a2c1c8a8e8f64803af69ece5ff52221a7e2d162",
+    "targetBeforeCommit": "5a2c1c8a8e8f64803af69ece5ff52221a7e2d162",
+    "targetBranch": "main",
+    "workUnitId": "remove-artifact-git-tracking-and-approval-gates",
+    "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-artifact-git-tracking-and-approval-gates"
+  },
+  "error": null,
+  "ok": true,
+  "operations": [],
+  "schemaVersion": "1.0.0",
+  "state": "already-merged"
+}

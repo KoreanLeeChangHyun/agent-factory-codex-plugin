@@ -1,0 +1,53 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "요구사항 추적",
+        "checkpoint·approval 잔존 검색",
+        "worktree artifact 부재 검증",
+        "byte 보존 검증"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-RESULT-001",
+      "kind": "ai-review-result",
+      "content": "Acceptance criteria reviewed against implementation and tests; no blocking finding remains.",
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faa3d-2df7-7192-8396-e2f4e83c5941",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/verification/final-summary.md"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "Acceptance criteria reviewed against implementation and tests; no blocking finding remains.",
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faa3d-2df7-7192-8396-e2f4e83c5941",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/verification/final-summary.md"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

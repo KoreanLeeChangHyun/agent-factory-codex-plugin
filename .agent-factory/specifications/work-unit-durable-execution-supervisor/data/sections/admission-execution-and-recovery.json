@@ -7,32 +7,32 @@
       "kind": "admission",
       "content": {
         "checks": [
-          "Work Unit is full-valid and ready.",
+          "Human explicitly requested the named Work Unit execution.",
+          "Work Unit is full-valid and executable.",
           "Goal matches Work Unit.",
-          "Execution context, permissions, tools, verification and Human decisions are complete.",
-          "No active controller or session target conflicts."
+          "Execution context, executionMode, tools and verification plan are complete.",
+          "Main agent performs this sufficiency judgment once before launch.",
+          "No active execution target conflicts."
         ],
         "refusalEffects": [
-          "No branch or worktree creation.",
-          "No attempt start.",
-          "No codex exec session creation."
+          "No Goal or turn starts.",
+          "No worktree or attempt is created.",
+          "The missing executable input is reported before launch."
         ]
       }
     },
     {
       "id": "ADMISSION-ORDER-001",
-      "kind": "fail-closed-order",
+      "kind": "one-time-launch-order",
       "content": {
         "sequence": [
           "validate",
-          "resolve-decisions",
-          "verify-permissions",
-          "verify-tools",
-          "admit",
-          "create-goal",
-          "prepare",
+          "one-time-sufficiency-check",
+          "resolve-execution-mode",
+          "create-or-reactivate-goal",
+          "prepare-worktree-only-for-worktree-mode",
           "start-attempt",
-          "start-exec"
+          "start-workflow-agent-background-turn"
         ]
       }
     },
@@ -41,13 +41,14 @@
       "kind": "execution",
       "content": {
         "sequence": [
-          "start codex exec without --ephemeral",
-          "capture exact session UUID",
-          "record codexSessionId",
-          "monitor canonical terminal state",
-          "on nonterminal exit call codex exec resume <SESSION_ID>",
-          "repeat without Human interview",
-          "emit review-ready or terminal failure evidence"
+          "declare You are the Workflow Agent and require execution",
+          "start background Goal+Exec turn",
+          "execute recorded Plan and Work without approval or readiness questions",
+          "on interrupted turn start continuation in the same Goal",
+          "on stale blocked Goal reactivate and continue",
+          "perform verification and AI Review",
+          "write Report",
+          "emit review or explicit unrecoverable failure evidence"
         ]
       }
     },
@@ -56,16 +57,18 @@
       "kind": "recovery",
       "content": {
         "recoverySteps": [
-          "read active Work Unit execution-state",
-          "resolve exact codexSessionId",
-          "refuse missing or ambiguous session ID",
-          "resume the same session with continuation prompt",
-          "verify unchanged revision, attempt and head"
+          "read active Work Unit execution-state from the primary repository",
+          "inspect current Goal and turn state",
+          "reactivate blocked Goal when the block is a removed stale gate",
+          "start continuation turn after interrupted or stale blocked completion",
+          "preserve revision, attempt and executionMode",
+          "stop with explicit goal_recovery_exhausted after bounded automatic recoveries"
         ],
         "claimRules": [
-          "One controller per active attempt.",
-          "Never select --last.",
-          "Never replace the session silently."
+          "One launcher controls one active Work Unit Goal.",
+          "Do not create approval or checkpoint questions.",
+          "Do not silently create a new scope or execution mode.",
+          "Do not hang indefinitely on a blocked Goal."
         ]
       }
     },
@@ -74,10 +77,12 @@
       "kind": "retry-and-terminal",
       "content": {
         "items": [
-          "Retry recoverable exec exits by resuming the same session.",
+          "Retry interrupted and stale blocked turns automatically in the same Goal.",
           "Do not ask the Human during active execution.",
-          "If exact resume is impossible, record evidence-backed terminal failure.",
-          "Human review begins only after review-ready or terminal failure."
+          "Continue through Plan, Work, AI Review and Report.",
+          "If recovery is exhausted or a genuine unrecoverable error occurs, record explicit failure.",
+          "Human result review begins after review-ready or explicit failure.",
+          "Human chooses rework or complete; complete auto-integrates worktree mode."
         ]
       }
     }

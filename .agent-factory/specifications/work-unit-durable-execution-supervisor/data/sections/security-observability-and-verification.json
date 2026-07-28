@@ -7,13 +7,16 @@
       "kind": "security",
       "content": {
         "pathRules": [
-          "Use the exact session UUID returned by Codex.",
-          "Reject empty, ambiguous or --last targets.",
-          "Do not persist credentials, tokens or unnecessary prompt bodies."
+          "Resolve the primary repository explicitly.",
+          "Reject ambiguous Work Unit IDs and mismatched repositories.",
+          "Do not persist credentials, tokens or unnecessary prompt bodies.",
+          "Specification-direct writes only through specification.py.",
+          "Worktree mode excludes the entire .agent-factory directory."
         ],
         "permissions": [
-          "Reuse the approved execution context.",
-          "Do not broaden sandbox or approval policy during resume."
+          "Use the launch context established by the one-time sufficiency check.",
+          "Do not introduce approval prompts during continuation.",
+          "Do not broaden sandbox, repository scope or execution mode during recovery."
         ]
       }
     },
@@ -21,29 +24,33 @@
       "id": "EXECUTION-OBSERVABILITY-001",
       "kind": "observability",
       "content": {
-        "queryContract": "Canonical Work Unit JSON links the exact Codex session and Git evidence.",
+        "queryContract": "Canonical Work Unit JSON links Goal execution, progress, recovery and registered result evidence without Git snapshot identity.",
         "eventTypes": [
-          "admission-refused",
-          "session-started",
-          "session-recorded",
-          "resume-started",
-          "resume-failed",
+          "launch-refused",
+          "goal-created",
+          "turn-started",
+          "turn-interrupted",
+          "goal-reactivated",
+          "continuation-started",
+          "recovery-exhausted",
           "review-ready",
-          "terminal-failure"
+          "terminal-failure",
+          "integrated",
+          "cleanup-completed"
         ],
         "requiredFields": [
           "workUnitId",
           "revision",
           "attempt",
-          "headCommit",
-          "codexSessionId",
-          "resumeCount",
+          "invocationId",
+          "executionMode",
+          "recoveryCount",
           "status",
           "evidenceRef"
         ],
         "redactionRules": [
           "Redact credentials and tokens.",
-          "Store prompt hashes or bounded summaries only when required."
+          "Store bounded summaries and registered evidence only when required."
         ]
       }
     },
@@ -52,11 +59,14 @@
       "kind": "fault-injection-matrix",
       "content": {
         "cases": [
-          "admission input missing -> refuse before exec",
-          "exec exits before terminal -> resume same UUID",
-          "wrong or missing UUID -> terminal failure without --last",
-          "controller starts twice -> second controller refused",
-          "Work Unit requests interview during active execution -> controller continues from recorded decisions or terminal-fails"
+          "insufficient Work Unit before launch -> refuse without Goal or worktree",
+          "specification-direct launch -> no worktree and primary specification.py mutation",
+          "worktree launch -> sparse worktree without .agent-factory",
+          "turn interrupted -> automatic continuation in same Goal",
+          "Goal blocked by stale removed gate -> reactivate and continue",
+          "recovery limit exhausted -> explicit failure without hang",
+          "Human rework -> next planned revision",
+          "Human complete -> automatic integration and later batch cleanup"
         ]
       }
     },
@@ -64,18 +74,23 @@
       "id": "VERIFICATION-GATES-001",
       "kind": "verification",
       "content": {
-        "promotionRule": "AI review and Human review precede merge.",
+        "promotionRule": "AI review and Human result review precede complete; complete automatically integrates worktree mode.",
         "currentSpecificationGates": [
           "Specification manager full validation",
-          "No active SQLite, WAL, lease or fencing contract",
-          "Exact session-target resume contract present"
+          "No approval, artifact checkpoint, immutable hash or Git HEAD identity contract",
+          "Explicit specification-direct and worktree execution routes",
+          "Interrupted and stale blocked Goal continuation contract"
         ],
         "implementationGates": [
-          "CLI parser fixture captures session UUID",
-          "same-session resume process test",
-          "no --last or --ephemeral test",
-          "no mid-execution interview test",
-          "terminal convergence test"
+          "Workflow Agent declaration prompt test",
+          "one-time prelaunch sufficiency boundary test",
+          "specification-direct no-worktree test",
+          "worktree .agent-factory exclusion test",
+          "interrupted turn continuation test",
+          "stale blocked Goal reactivation test",
+          "bounded recovery exhaustion test",
+          "rework or complete result-review test",
+          "automatic integration and batch cleanup test"
         ]
       }
     }

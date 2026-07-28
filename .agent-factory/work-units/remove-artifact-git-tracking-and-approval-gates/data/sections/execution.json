@@ -1,0 +1,37 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-RESULT-001",
+      "kind": "execution-result",
+      "content": "Primary-root CRUD routing, no-artifact worktree, mandatory Goal+Exec launcher, v2 execution state, recovery, integration and cleanup contracts implemented.",
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faa3d-2df7-7192-8396-e2f4e83c5941",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    },
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "Primary-root CRUD routing, no-artifact worktree, mandatory Goal+Exec launcher, v2 execution state, recovery, integration and cleanup contracts implemented.",
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faa3d-2df7-7192-8396-e2f4e83c5941",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

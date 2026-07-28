@@ -6,7 +6,7 @@
       "id": "ARCH-PURPOSE-001",
       "kind": "purpose",
       "content": {
-        "statement": "Admitted Work Unit이 실행 중 Human 인터뷰로 멈추지 않고 저장된 정확한 Codex exec 세션을 terminal state까지 자동 재개하도록 하는 session-targeted execution controller를 정의한다."
+        "statement": "명시적으로 요청된 Work Unit을 백그라운드 Goal+Exec로 시작하고, Workflow Agent가 중단 또는 stale blocked 상태를 자동 복구하면서 review 또는 명시적 복구 불가 실패까지 연속 실행하는 controller를 정의한다."
       }
     },
     {
@@ -14,18 +14,19 @@
       "kind": "scope",
       "content": {
         "included": [
-          "Work Unit fail-closed admission",
-          "persistent Goal 연결",
-          "codexSessionId 캡처와 canonical 기록",
-          "codex exec resume <SESSION_ID> continuation loop",
-          "Plan, Work, AI Review, Report terminal 수렴"
+          "launch 직전 main agent의 1회 충분성 판단",
+          "Workflow Agent 역할을 명시한 백그라운드 Goal+Exec 실행",
+          "interrupted turn과 stale blocked Goal의 자동 재활성화·continuation",
+          "specification-direct와 worktree 실행 경로",
+          "Plan, Work, AI Review, Report와 Human 결과 검토 수렴",
+          "complete 시 코드 변경 자동 통합과 완료 worktree 일괄 정리"
         ],
         "excluded": [
-          "완전 무중단",
-          "호스트·디스크·Codex 세션 저장소 손실",
-          "SQLite·PostgreSQL 실행 원장",
-          "분산 queue·lease·fencing",
-          "실행 중 Human interview"
+          "artifact checkpoint, 불변 snapshot hash와 Git HEAD 고정",
+          "실행 중 승인·readiness 재판단·Human interview",
+          "Intake, Specification, Work Unit CRUD용 worktree",
+          "호스트·디스크·app-server 상태 저장소 손실에 대한 완전 무중단 보장",
+          "분산 queue·lease·fencing"
         ]
       }
     }

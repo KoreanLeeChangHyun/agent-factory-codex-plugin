@@ -7,16 +7,21 @@
       "kind": "verification-strategy",
       "content": {
         "commands": [
-          "codex exec resume --help",
+          "python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/project-core --full",
           "python3 skills/specification/scripts/specification.py validate .agent-factory/specifications/work-unit-durable-execution-supervisor --full",
-          "python3 skills/intake/scripts/intake.py validate .agent-factory/intakes/work-unit-durable-control-plane --full",
-          "rg -n \"codexSessionId|codex exec resume|--last|--ephemeral|terminal\" .agent-factory/intakes/work-unit-durable-control-plane .agent-factory/specifications/work-unit-durable-execution-supervisor"
+          "python3 -m unittest discover -s skills/work-unit-execution/tests",
+          "python3 -m unittest discover -s skills/work-unit-planner/tests",
+          "rg -n \"artifact_handoff|checkpointCommit|baseRefCommit|humanDecision|--head-commit\" skills"
         ],
         "semanticChecks": [
-          "Exact recorded session ID is the only resume target.",
-          "No active SQLite, WAL, lease or fencing dependency remains.",
-          "No Human interview occurs after admission.",
-          "Execution converges to review-ready or terminal failure."
+          "Main agent makes one sufficiency decision before launch.",
+          "Launcher prompt declares Workflow Agent and requires execution.",
+          "No approval or checkpoint decision occurs after launch.",
+          "Specification-direct creates no worktree and updates primary canonical Specification.",
+          "Worktree mode excludes .agent-factory.",
+          "Interrupted and stale blocked Goal states automatically continue.",
+          "Execution converges to review or explicit unrecoverable failure.",
+          "Human result decision is rework or complete."
         ]
       }
     },
@@ -24,12 +29,14 @@
       "id": "TRACEABILITY-001",
       "kind": "traceability",
       "content": {
-        "intakeAnchor": ".agent-factory/intakes/work-unit-durable-control-plane#work-unit-basis",
+        "intakeAnchor": ".agent-factory/intakes/local-untracked-agent-factory-control-plane#work-unit-basis",
         "mappings": [
-          "Admission -> REQUIREMENT-ADMISSION-001, ACCEPTANCE-ADMISSION-001",
-          "Session capture and resume -> REQUIREMENT-STATE-003, REQUIREMENT-RECOVERY-004, ACCEPTANCE-SESSION-010",
-          "No mid-execution interview -> REQUIREMENT-CONTINUATION-011, ACCEPTANCE-CONTINUATION-011",
-          "Terminal convergence -> REQUIREMENT-FAILURE-012, ACCEPTANCE-TERMINAL-006"
+          "Primary canonical CRUD -> DECISION-013, DECISION-015",
+          "One-time sufficiency check -> DECISION-016",
+          "Workflow Agent mandatory Goal+Exec launch -> DECISION-017",
+          "Interrupted and stale blocked recovery -> DECISION-014",
+          "Specification-direct vs worktree routing -> DECISION-015, DECISION-017",
+          "No approval, checkpoint or immutable hash -> accepted Human statements in active Intake"
         ]
       }
     },
@@ -38,9 +45,9 @@
       "kind": "review-status",
       "content": {
         "status": "aligned",
-        "aiVerification": "Specification manager validation and exact CLI parser evidence required.",
+        "aiVerification": "Specification manager full validation and implementation regression evidence required.",
         "humanStatus": "accepted",
-        "note": "Human accepted session-targeted resume controller instead of SQLite-centric durability."
+        "note": "Human replaced checkpoint and approval-gated execution with one-time prelaunch sufficiency judgment and mandatory background Goal+Exec continuation."
       }
     }
   ],

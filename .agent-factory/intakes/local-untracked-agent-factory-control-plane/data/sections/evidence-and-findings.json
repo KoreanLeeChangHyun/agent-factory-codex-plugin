@@ -1,0 +1,88 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": "git ls-files 집계 결과 .agent-factory canonical 파일 1001개가 추적 중이다: intakes 540, specifications 22, work-units 439."
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": ".gitignore는 현재 /.agent-factory/worktree/만 ignore하며 .agent-factory 전체는 ignore하지 않는다."
+    },
+    {
+      "id": "EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": "main worktree에는 fact-only-agent-rule-responsibility-refactor Intake의 metadata, decisions-and-open-items, evidence-and-findings 3개 tracked JSON 변경이 존재한다."
+    },
+    {
+      "id": "EVIDENCE-004",
+      "kind": "internal-evidence",
+      "content": "worktree.py prepare는 일반 git worktree add로 source commit을 checkout하므로 tracked .agent-factory 데이터가 새 worktree에 함께 복제된다."
+    },
+    {
+      "id": "EVIDENCE-005",
+      "kind": "internal-evidence",
+      "content": "artifact_handoff.py와 Work Unit admit 경로는 package path의 최신 Git commit/checkpoint와 ancestry/content 일치를 실행 전제조건으로 사용한다."
+    },
+    {
+      "id": "EVIDENCE-006",
+      "kind": "internal-evidence",
+      "content": "app_server_goal.py는 실행 worktree 내부 .agent-factory/work-units/<id> 패키지와 primary package의 linked execution context를 비교한다."
+    },
+    {
+      "id": "FINDING-001",
+      "kind": "finding",
+      "content": "단순 git rm --cached와 ignore 추가만 수행하면 현재 Git checkpoint/admission 계약이 깨지므로 저장 경계와 체크포인트 계약을 함께 바꿔야 한다."
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "Git commit 기반 artifact checkpoint를 무엇으로 대체할 것인가?",
+        "presentedChoices": [
+          "불변 스냅샷과 SHA-256 manifest",
+          "현재 package revision과 hash",
+          "로컬 별도 Git 저장소"
+        ],
+        "humanAnswer": [
+          "Git 사용 안함",
+          "불변 스냅샷 해시 사용안함",
+          "체크포인트 없음"
+        ],
+        "decision": "어떤 대체 checkpoint도 만들지 않는다."
+      },
+      "attributes": {
+        "status": "answered",
+        "selected": "none-no-checkpoint"
+      }
+    },
+    {
+      "id": "EVIDENCE-007",
+      "kind": "internal-evidence",
+      "content": "Project Core와 work-unit-durable-execution-supervisor Specification은 Human approval, artifact checkpoint/Git evidence, execution worktree 내부 Work Unit JSON을 현재 계약으로 기록해 새 Human 결정과 충돌한다."
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "worktree에서 .agent-factory 전체를 제외할 때 canonical 문서를 Git으로 추적할 것인가?",
+        "choices": {
+          "A": "intakes/specifications/work-units 추적",
+          "B": "전부 비추적",
+          "C": "Specification만 추적"
+        },
+        "recommendation": "A",
+        "answer": "A",
+        "decision": "세 canonical 문서 root를 primary Git에서 추적한다."
+      },
+      "attributes": {
+        "status": "answered",
+        "selected": "A"
+      }
+    }
+  ],
+  "subsections": []
+}

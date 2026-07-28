@@ -1,0 +1,78 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXECUTION-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "remove-artifact-git-tracking-and-approval-gates",
+        "objective": "산출물 CRUD를 primary root로 고정하고 Work Unit 실행을 background Goal + Exec 및 code-only worktree로 전환",
+        "execInvocation": "python3 skills/work-unit-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id remove-artifact-git-tracking-and-approval-gates",
+        "executionAgent": "workflow-agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "executionMode": "worktree",
+        "branch": "work-unit/remove-artifact-git-tracking-and-approval-gates",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-artifact-git-tracking-and-approval-gates",
+        "artifactRoot": "/home/deus/workspace/agent-factory/codex-plugins",
+        "worktreePolicy": "code-only; linked execution worktree checkout에서 .agent-factory 전체 제외"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019faa3d-2df7-7192-8396-e2f4e83c5941",
+        "invocationChain": [
+          "019faa3d-2df7-7192-8396-e2f4e83c5941",
+          "019fa8f7-334e-7bf0-88a0-c288a295b331"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "plan-complete-v2"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "work-complete-v2"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "verification-complete-v2"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "report-complete-v2"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fa8f7-334e-7bf0-88a0-c288a295b331",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -7,12 +7,16 @@
       "kind": "source-basis",
       "content": {
         "refs": [
-          "HUMAN-FEEDBACK-003",
-          "INTERNAL-CODEX-SESSION-002",
-          "DECISION-007",
-          "REQUIREMENT-ADMISSION-001",
-          "REQUIREMENT-RECOVERY-004",
-          "REQUIREMENT-CONTINUATION-011"
+          "DECISION-013",
+          "DECISION-014",
+          "DECISION-015",
+          "DECISION-016",
+          "DECISION-017",
+          "AC-005",
+          "AC-008",
+          "AC-009",
+          "AC-010",
+          "AC-011"
         ]
       }
     },
@@ -20,11 +24,12 @@
       "id": "CODEX-RESUME-EVIDENCE-001",
       "kind": "source-basis",
       "content": {
-        "source": "installed codex exec resume --help",
+        "source": "skills/work-unit-execution/scripts/app_server_goal.py and verified app-server Goal/turn runtime",
         "findings": [
-          "SESSION_ID accepts a conversation UUID or thread name.",
-          "--last selects the most recent session and is not an exact Work Unit target.",
-          "--ephemeral does not persist session files."
+          "Goal and turn APIs expose active, blocked, interrupted and complete states.",
+          "Interrupted turns can be continued in the same Goal thread.",
+          "A stale blocked Goal can be reactivated before starting a continuation turn.",
+          "Bounded automatic recovery avoids an indefinite blocked wait."
         ]
       }
     },
@@ -33,7 +38,7 @@
       "kind": "typed-artifact-relations",
       "content": {
         "governance": "governed-by project-core",
-        "intakeBasis": ".agent-factory/intakes/work-unit-durable-control-plane#work-unit-basis"
+        "intakeBasis": ".agent-factory/intakes/local-untracked-agent-factory-control-plane#work-unit-basis"
       }
     }
   ],
