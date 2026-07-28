@@ -17,12 +17,11 @@
       "id": "BASIS-001",
       "kind": "work-unit-basis",
       "content": {
-        "goal": "plugin-creator helper로 Agent Factory plugin cachebuster를 갱신하고 플러그인과 생성 산출물을 검증한다.",
-        "executionOrder": 1,
+        "goal": "plugin-creator helper로 Agent Factory plugin cachebuster를 갱신하고 플러그인 및 hook 비의존 계약을 검증한다.",
         "scope": [
           "plugin manifest cachebuster suffix 갱신",
           "plugin validation",
-          "generated hooks 및 관련 정적 검증",
+          "hook 비의존 계약 및 관련 정적 검증",
           "변경 범위와 diff 검토"
         ],
         "outOfScope": [
@@ -30,7 +29,8 @@
           "marketplace upgrade",
           "plugin reinstall",
           "원래 refactor Work Unit 삭제·재생성"
-        ]
+        ],
+        "executionOrder": 1
       }
     },
     {

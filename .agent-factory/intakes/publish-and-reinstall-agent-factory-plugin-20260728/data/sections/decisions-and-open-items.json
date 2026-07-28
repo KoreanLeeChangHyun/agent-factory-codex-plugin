@@ -14,7 +14,7 @@
     {
       "id": "OPEN-001",
       "kind": "open-items-status",
-      "content": "차단 미결정 0건."
+      "content": "차단 미결정 0건. 폐기된 hook 검증 기준은 INTERVIEW-004와 DECISION-004로 해결됐다."
     },
     {
       "id": "OPEN-002",
@@ -51,6 +51,15 @@
         "decision": "BASIS-001의 Work Unit ID는 bump-agent-factory-plugin-cachebuster-20260728로 한다.",
         "status": "accepted",
         "source": "INTERVIEW-003"
+      }
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": {
+        "decision": "폐기된 generated hooks 검증을 현행 no-hook 회귀검증으로 교체하고 bump-agent-factory-plugin-cachebuster-20260728 실행을 재개한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-004"
       }
     }
   ],

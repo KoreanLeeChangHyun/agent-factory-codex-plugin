@@ -80,6 +80,26 @@
           "BASIS-001"
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-004",
+      "kind": "interview",
+      "content": {
+        "question": "폐기된 hook 검증 기준을 어떻게 처리할까요?",
+        "recommendation": "A",
+        "recommendationRationale": "hook 생성기는 의도적으로 삭제됐고 현재 lifecycle 계약은 hook 비의존을 요구하므로 현행 no-hook 회귀검증으로 교체하는 것이 목표와 유지보수성에 부합한다.",
+        "answer": "A",
+        "state": "answered",
+        "decision": "폐기된 generated hooks 검증을 제거하고 현행 no-hook 회귀검증으로 교체하여 Work Unit 실행을 계속한다.",
+        "choices": [
+          "A: 폐기된 hook 검증을 현행 no-hook 회귀검증으로 교체 후 계속. 장점: 현재 계약과 일치하고 변경 보존. 단점: Work Unit 검증 기준 수정.",
+          "B: 현재 차단 상태 유지. 장점: 추가 변경 없음. 단점: 실행 완료 불가.",
+          "C: cachebuster 변경을 폐기하고 Work Unit 재작성. 장점: 처음부터 재검토 가능. 단점: 비용이 가장 큼."
+        ],
+        "sourceRefs": [
+          "BASIS-001"
+        ]
+      }
     }
   ],
   "subsections": []
