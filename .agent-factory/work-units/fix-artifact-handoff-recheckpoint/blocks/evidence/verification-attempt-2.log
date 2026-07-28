@@ -1,6 +1,0 @@
-$ pytest -q skills/lifecycle/tests/test_artifact_handoff.py
-....                                                                     [100%]
-4 passed in 136.68s (0:02:16)
-$ python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/lifecycle
-Skill is valid!
-$ git diff --check
