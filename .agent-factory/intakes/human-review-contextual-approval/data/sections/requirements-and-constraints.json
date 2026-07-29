@@ -5,45 +5,42 @@
     {
       "id": "REQ-001",
       "kind": "requirement",
-      "content": "승인 전용 프롬프트는 YES와 NO 두 가지 선택지만 제공해야 한다."
+      "content": "skills/human-review 디렉터리와 그 안의 두 파일을 제거해야 한다."
     },
     {
       "id": "REQ-002",
       "kind": "requirement",
-      "content": "승인 응답은 고정 문자열 목록이 아니라 현재 승인 요청과 사용자의 답변 문맥에서 명확한 승인 의도가 있는지 판별해야 한다."
+      "content": "main-agent는 결과 검토 자료를 한국어로 작성하고 전달 범위와 제외, 변경 경로 또는 Specification, 정확한 검증 결과, AI review, 남은 위험, Git integration 필요 여부를 제시해야 한다."
     },
     {
       "id": "REQ-003",
       "kind": "requirement",
-      "content": "YES, Y, 승인, 네, 진행, ㄱㄱ는 승인 표현의 예시이며 완전한 허용 목록으로 취급하지 않아야 한다."
+      "content": "lifecycle은 제거된 human-review 스킬로 라우팅하지 않아야 한다."
     },
     {
       "id": "REQ-004",
-      "kind": "constraint",
-      "content": "부정, 보류, 조건부 또는 문맥상 모호한 답변은 자동 승인으로 처리하지 않아야 한다."
+      "kind": "requirement",
+      "content": "전용 human-review 스킬 존재와 metadata를 검증하는 테스트를 제거된 구조에 맞게 정리해야 한다."
     },
     {
       "id": "REQ-005",
       "kind": "constraint",
-      "content": "승인 전용 프롬프트 규칙은 interview의 A/B/C 세 선택지 의사결정 규칙을 변경하거나 대체하지 않아야 한다."
+      "content": "Work Unit의 human-review 섹션, human-review-result 상태, rework/complete 결정 계약은 변경하지 않아야 한다."
     },
     {
       "id": "REQ-006",
       "kind": "constraint",
-      "content": "Human 최종 승인권과 별도 merge, cleanup, push, PR promotion 승인 경계를 유지해야 한다."
+      "content": "Project Core, plugin version과 marketplace, 역사적 artifact는 변경하지 않아야 한다."
     },
     {
       "id": "AC-001",
       "kind": "acceptance-criterion",
       "content": [
-        "human-review가 승인 전용 프롬프트와 interview의 차이를 명시한다.",
-        "승인 프롬프트는 YES와 NO 두 선택지만 제시한다.",
-        "명확한 승인 의도는 표현의 고정 목록이 아니라 대화 문맥으로 판별한다.",
-        "예시 표현이 비포괄적 예시임을 명시한다.",
-        "모호하거나 조건부인 답변을 자동 승인하지 않고 명확한 응답을 다시 요청한다.",
-        "human-review의 기존 한국어 Human-facing 자료 규칙을 보존한다.",
-        "interview, Work Unit manager와 lifecycle 승인 경계는 변경하지 않는다.",
-        "관련 스킬 메타데이터와 정적 검증이 통과한다."
+        "skills/human-review 디렉터리가 존재하지 않는다.",
+        "main-agent가 기존 human-review의 비자명 한국어 검토 체크리스트를 소유한다.",
+        "저장소에 독립 human-review 스킬 라우팅이나 $human-review prompt 참조가 남지 않는다.",
+        "Work Unit human-review profile과 manager 계약은 그대로 유지된다.",
+        "관련 스킬 metadata와 전체 테스트가 통과한다."
       ]
     }
   ],

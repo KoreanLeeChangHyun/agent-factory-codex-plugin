@@ -1,0 +1,27 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "Plan: Intake, Work Unit, repository references를 확인하고 변경 경계를 고정한다."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Work: main-agent에 비자명 검토 규칙을 통합하고 lifecycle 라우팅과 전용 테스트를 정리한 뒤 human-review 디렉터리를 제거한다."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "AI Review: 범위 준수, 남은 독립 skill 참조, Work Unit 계약 보존, 문서 중복 여부를 검토한다."
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": "Report: 변경 경로, 검증 명령과 결과, 남은 위험, integration 필요 여부를 한국어로 기록한다."
+    }
+  ],
+  "subsections": []
+}

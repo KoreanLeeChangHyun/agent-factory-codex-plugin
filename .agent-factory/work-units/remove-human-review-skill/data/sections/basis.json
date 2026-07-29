@@ -1,0 +1,23 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": "Ready Intake의 BASIS-001에서 승인된 독립 human-review 스킬 제거 범위",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "human-review-contextual-approval",
+          "path": ".agent-factory/intakes/human-review-contextual-approval",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

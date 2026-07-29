@@ -1,15 +1,15 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.10",
+  "documentVersion": "1.0.47",
   "id": "human-review-contextual-approval",
   "artifactType": "intake",
   "projectId": "agent-factory-codex-plugins",
   "lifecycle": {
     "phase": "intake",
-    "status": "ready"
+    "status": "draft"
   },
   "createdAt": "2026-07-27T13:56:36+00:00",
-  "updatedAt": "2026-07-27T13:57:47+00:00",
+  "updatedAt": "2026-07-29T12:23:33+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,12 +19,12 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-07-27T13:57:39Z",
+    "reviewedAt": null,
     "contractValid": true,
-    "evidenceComplete": true,
-    "requirementsComplete": true,
-    "specificationConsistent": true,
-    "executionReady": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
     "findings": []
   }
 }

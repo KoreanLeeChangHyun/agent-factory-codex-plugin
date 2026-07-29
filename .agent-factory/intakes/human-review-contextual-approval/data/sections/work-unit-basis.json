@@ -7,7 +7,7 @@
       "kind": "specification-impact",
       "content": {
         "status": "aligned",
-        "reason": "Project Core는 Human의 최종 승인권과 별도 승인 경계를 이미 정의한다. 이번 변경은 그 경계 안에서 human-review 승인 프롬프트의 선택지와 문맥 판별 규칙을 명확히 하며 Project Core의 목적, 원칙, 범위 또는 승인 권한을 변경하지 않는다."
+        "reason": "독립 표현 스킬 제거와 main-agent 책임 통합은 Project Core의 목적, lifecycle 범위 또는 Human rework/complete 결정 경계를 변경하지 않는다."
       },
       "attributes": {
         "status": "aligned"
@@ -24,21 +24,21 @@
       "id": "BASIS-001",
       "kind": "work-unit-basis",
       "content": {
-        "goal": "human-review에 승인 전용 YES 또는 NO 프롬프트와 문맥 기반 승인 의도 판별 규칙을 추가하고 관련 메타데이터와 검증을 정합화한다.",
+        "goal": "독립 human-review 스킬을 제거하고 필요한 Human-facing 결과 검토 규칙을 main-agent로 통합한다.",
         "executionOrder": 1,
         "scope": [
-          "skills/human-review/SKILL.md 승인 전용 규칙 추가",
-          "skills/human-review/agents/openai.yaml 설명 정합화",
-          "문맥 기반 명확한 승인 의도와 모호한 응답 fail-closed 경계",
-          "관련 스킬 메타데이터와 정적 검증"
+          "skills/human-review/SKILL.md와 agents/openai.yaml 제거",
+          "skills/main-agent/SKILL.md에 한국어 결과 검토 체크리스트 통합",
+          "skills/lifecycle/SKILL.md 라우팅 제거",
+          "skills/lifecycle/tests/test_skill_metadata.py 정합화",
+          "관련 정적 검증과 테스트"
         ],
         "outOfScope": [
-          "skills/interview/SKILL.md 형식 변경",
-          "Work Unit manager approved 상태와 transition 변경",
-          "lifecycle Human 승인 권한과 별도 승인 경계 변경",
-          "고정 문자열 파서 또는 별도 승인 런타임 구현",
+          "Work Unit human-review section 또는 manager 상태 계약 변경",
+          "Project Core 변경",
+          "plugin cachebuster 또는 reinstall",
           "역사적 artifact 변경",
-          "commit, merge, cleanup, push, PR promotion"
+          "commit, merge, push, PR promotion"
         ],
         "dependencies": []
       }

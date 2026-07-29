@@ -7,18 +7,18 @@
       "kind": "internal-evidence",
       "content": {
         "kind": "document",
-        "source": "skills/human-review/SKILL.md; skills/human-review/agents/openai.yaml",
+        "source": "skills/human-review/SKILL.md; skills/human-review/agents/openai.yaml; skills/lifecycle/SKILL.md; skills/main-agent/SKILL.md",
         "method": "document review",
         "findings": [
-          "human-review는 Human-facing 검토 자료, 승인 프롬프트, rework, merge와 promotion 검토 자료를 한국어로 작성하도록 정의한다.",
-          "human-review에는 승인 전용 프롬프트의 선택지 수, 승인 응답 해석, 모호한 응답 처리 규칙이 없다.",
-          "agents/openai.yaml은 현재 Human-facing 자료의 언어 선택만 기본 prompt로 정의한다."
+          "human-review 디렉터리에는 SKILL.md와 agents/openai.yaml만 있다.",
+          "lifecycle과 main-agent가 rework/complete 결과 검토 흐름을 이미 정의한다.",
+          "human-review에만 있는 비자명 규칙은 모든 Human-facing 검토 자료를 한국어로 작성하고 전달 범위, 검증, 위험, 통합 필요 여부를 제시하는 체크리스트이다."
         ],
         "interpretations": [
-          "승인 프롬프트 규칙은 승인 자료를 소유하는 human-review에 추가하는 것이 현재 책임 경계와 일치한다."
+          "비자명 체크리스트를 Human-facing lifecycle 소유자인 main-agent에 통합하면 독립 스킬을 제거하면서 동작 계약을 보존할 수 있다."
         ],
         "limitations": [
-          "정적 문서 검토이며 모델의 실제 자연어 판별 정확도는 측정하지 않았다."
+          "정적 문서 검토이며 설치된 캐시 사본이나 외부 소비자의 명시적 skill 호출은 이 Work Unit 범위에 포함하지 않는다."
         ]
       }
     },
@@ -75,6 +75,70 @@
         ],
         "limitations": [
           "저장소 검색은 저장소 밖 소비자의 동적 prompt 조합을 확인하지 못한다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-005",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/human-review/SKILL.md; skills/human-review/agents/openai.yaml; skills/lifecycle/SKILL.md; skills/main-agent/SKILL.md; skills/lifecycle/tests/test_skill_metadata.py; skills/work-unit-planner/assets/profiles/work-unit.profile.json; repository rg output",
+        "method": "document review and repository search",
+        "findings": [
+          "human-review skill directory contains only SKILL.md and agents/openai.yaml.",
+          "The lifecycle and main-agent skills already define the rework/complete result review flow, while lifecycle routes Korean review material to human-review.",
+          "skills/lifecycle/tests/test_skill_metadata.py explicitly validates the human-review skill metadata and default prompt.",
+          "The Work Unit profile and manager use a human-review document section and human-review-result state independently of the standalone skill directory."
+        ],
+        "interpretations": [
+          "The standalone human-review skill is a thin presentation policy and is a candidate for consolidation into lifecycle or main-agent.",
+          "Deleting the skill directory alone would break explicit routing and metadata tests; consolidation would need bounded updates to those references while preserving the Work Unit human-review section and state contract."
+        ],
+        "limitations": [
+          "Static repository inspection did not measure whether external consumers explicitly invoke the standalone skill."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-006",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "work_unit.py status/show; worktree.py inspect; git status --short --branch; git diff -- skills/lifecycle/tests/test_skill_metadata.py",
+        "method": "manager-backed state inspection and Git read-only inspection",
+        "findings": [
+          "remove-human-review-skill is full-valid in review with Human review pending.",
+          "The dedicated worktree contains exactly five scoped dirty paths and no source commit.",
+          "The Work Unit explicitly excludes commit and merge, while worktree integration refuses dirty source.",
+          "Primary main has unrelated uncommitted source changes, including a distinct edit to skills/lifecycle/tests/test_skill_metadata.py, so target integration is also currently unsafe."
+        ],
+        "interpretations": [
+          "A Human review decision is required because completing now cannot satisfy the automatic integration contract; rework can explicitly change the commit boundary, or review can remain pending."
+        ],
+        "limitations": [
+          "No commit, integration, overwrite, or cleanup was attempted because those actions cross recorded scope and Human decision boundaries."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "remove-human-review-skill 결과를 어떤 검토 결정으로 처리할까요?",
+        "recommendation": "A",
+        "recommendationRationale": "A는 구현 결과를 보존하면서 명시적으로 commit 경계를 열어 자동 integration 계약을 충족할 수 있고, primary의 별도 변경이 정리될 때까지 실제 통합을 보류해 충돌 위험을 낮춘다.",
+        "answer": "추가 승인 또는 checkpoint 결정을 요구하지 않고 같은 manager-owned revision과 attempt의 Workflow Agent 실행을 계속한다.",
+        "state": "answered",
+        "decision": "Workflow Agent는 완료된 Plan, Work, AI Review, Report를 보존하고 추가 승인·checkpoint 없이 같은 revision/attempt의 실행 Goal을 완료한다. commit, merge, cleanup, push, deploy, branch deletion, PR promotion은 수행하지 않는다.",
+        "choices": [
+          "A: rework로 전환하고 전용 branch commit을 명시적으로 허용한다. 장점: 구현을 보존하고 향후 자동 integration이 가능하다. 단점: 한 번의 재실행과 primary target 정리가 필요하다.",
+          "B: complete를 지금 선택한다. 장점: review 결정을 즉시 닫는다. 단점: dirty source와 dirty target 때문에 자동 integration이 거부될 근거가 현재 존재한다.",
+          "C: review를 pending으로 유지한다. 장점: 추가 변경이 없다. 단점: 목표가 완료되지 않고 결국 commit 경계 결정을 다시 해야 한다."
+        ],
+        "sourceRefs": [
+          "EVIDENCE-006",
+          "OUT-001"
         ]
       }
     }

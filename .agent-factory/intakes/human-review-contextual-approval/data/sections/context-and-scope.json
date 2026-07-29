@@ -5,28 +5,29 @@
     {
       "id": "CONTEXT-001",
       "kind": "context",
-      "content": "현재 human-review 스킬은 승인 프롬프트와 Human-facing 검토 자료를 다루지만 승인 전용 선택지 수와 응답 의미 판별 규칙은 정의하지 않는다."
+      "content": "human-review는 SKILL.md와 agents/openai.yaml만 가진 얇은 표현 계층이며 결과 검토 흐름은 lifecycle과 main-agent에도 정의되어 있다."
     },
     {
       "id": "SCOPE-001",
       "kind": "scope",
       "content": [
-        "skills/human-review/SKILL.md의 승인 전용 프롬프트 규칙",
-        "문맥상 명확한 승인 의도 판별과 모호한 응답의 fail-closed 처리",
-        "skills/human-review/agents/openai.yaml의 설명 정합화",
-        "관련 스킬 메타데이터 및 문서 검증"
+        "skills/human-review/SKILL.md 제거",
+        "skills/human-review/agents/openai.yaml 제거",
+        "필요한 한국어 결과 검토 자료 규칙을 skills/main-agent/SKILL.md로 통합",
+        "skills/lifecycle/SKILL.md의 human-review 스킬 라우팅 제거",
+        "skills/lifecycle/tests/test_skill_metadata.py의 전용 human-review 테스트 정합화"
       ]
     },
     {
       "id": "OUT-001",
       "kind": "out-of-scope",
       "content": [
-        "skills/interview/SKILL.md의 A/B/C 의사결정 인터뷰 형식 변경",
-        "Work Unit manager의 approved 상태 값 또는 transition 계약 변경",
-        "lifecycle의 Human 최종 승인 권한과 별도 승인 경계 변경",
-        "고정 문자열 파서 또는 별도 승인 런타임 구현",
-        "역사적 Intake와 Work Unit 재작성",
-        "커밋, 병합, push, PR promotion"
+        "Work Unit profile의 human-review 섹션 제거",
+        "Work Unit manager의 human-review-result 상태 계약 변경",
+        "Project Core 목적, 원칙, 범위 또는 Human 결정 경계 변경",
+        "plugin cachebuster 변경 또는 재설치",
+        "역사적 Work Unit 재작성",
+        "commit, merge, push, PR promotion"
       ]
     }
   ],

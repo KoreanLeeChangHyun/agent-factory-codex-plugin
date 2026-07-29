@@ -1,0 +1,46 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "독립 human-review 스킬 디렉터리와 starter prompt를 제거하고, 한국어 결과 검토 체크리스트를 main-agent에 통합했으며 lifecycle 라우팅과 전용 metadata 테스트를 정리했다. 변경은 승인된 다섯 경로에 한정되며 Work Unit human-review profile과 manager 계약은 변경하지 않았다. focused 7개와 직접 열거한 전체 150개 테스트, 정적 참조 검사, plugin 검증, diff 검사가 통과했다. canonical discovery 명령은 현재 저장소 구조에서 0개 테스트를 찾아 exit 5인 제한이 있으나 전체 모듈 직접 실행은 통과했다. 검증된 변경은 전용 브랜치 work-unit/remove-human-review-skill의 commit 04e741c33dd1a21c2ddda5ad64ca2da8d0d8917c에 기록되어 자동 integration 준비가 끝났다. merge, cleanup, push, deploy, branch deletion, cachebuster, reinstall, PR promotion은 수행하지 않았다.",
+      "attributes": {
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/remove-human-review-skill.txt"
+        ],
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faddc-1409-7802-b9ef-4fba6c8a47b3",
+          "revision": 2,
+          "attempt": 1
+        }
+      }
+    },
+    {
+      "id": "INTEGRATION-991FCCFE0A4FE78D",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/remove-human-review-skill",
+        "sourceCommit": "04e741c33dd1a21c2ddda5ad64ca2da8d0d8917c",
+        "strategy": "no-ff",
+        "targetAfterCommit": "e960c91b93f426ecb17deff7031e4ed6964714fd",
+        "targetBeforeCommit": "ece57bfc08059f9e2b8c42b036cfe79e104fdd29",
+        "targetBranch": "main",
+        "workUnitId": "remove-human-review-skill",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-human-review-skill",
+        "receiptSha256": "991fccfe0a4fe78d9e7a91107eb9b2022ddee67d9bae71e74773e91865ae05f6"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/remove-human-review-skill.json"
+    }
+  ],
+  "subsections": []
+}

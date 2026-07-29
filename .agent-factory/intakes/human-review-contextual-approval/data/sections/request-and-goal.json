@@ -5,28 +5,33 @@
     {
       "id": "REQUEST-001",
       "kind": "human-request",
-      "content": "승인 전용 프롬프트는 인터뷰와 구분하고 YES 또는 NO 두 가지 선택지만 제공한다."
+      "content": "독립 human-review 스킬을 제거한다."
     },
     {
       "id": "FEEDBACK-001",
       "kind": "human-feedback",
-      "content": "승인 응답은 YES, Y, 승인, 네, 진행, ㄱㄱ 같은 예시의 고정 목록이 아니라 대화 문맥을 보고 판단한다."
+      "content": "제거"
     },
     {
       "id": "OUTCOME-001",
       "kind": "desired-outcome",
-      "content": "human-review가 승인 전용 프롬프트와 문맥상 명확한 승인 의도 판별 규칙을 소유하고, 구조화된 인터뷰 규칙과 혼동되지 않도록 한다."
+      "content": "Human 결과 검토 규칙을 main-agent가 소유하고 별도 human-review 스킬은 제공하지 않는다."
     },
     {
       "id": "SUCCESS-001",
       "kind": "success-criterion",
       "content": [
-        "승인 전용 프롬프트가 YES와 NO 두 선택지만 제시한다.",
-        "승인 응답을 고정 문자열 화이트리스트가 아니라 대화 문맥의 명확한 승인 의도로 판단한다.",
-        "예시 표현은 비포괄적 예시로만 기록된다.",
-        "모호하거나 조건부인 응답은 자동 승인하지 않는다.",
-        "interview의 A/B/C 세 선택지 규칙은 변경하지 않는다."
+        "skills/human-review 디렉터리가 제거된다.",
+        "필요한 한국어 결과 검토 자료 규칙이 main-agent에 유지된다.",
+        "lifecycle이 제거된 스킬로 라우팅하지 않는다.",
+        "전용 메타데이터 테스트가 제거된 구조와 정합화된다.",
+        "Work Unit human-review 섹션과 rework/complete 상태 계약은 유지된다."
       ]
+    },
+    {
+      "id": "FEEDBACK-002",
+      "kind": "human-feedback",
+      "content": "/home/deus/workspace/agent-factory/codex-plugins/skills/human-review 해당 스킬은 불필요 해보 입니다."
     }
   ],
   "subsections": []

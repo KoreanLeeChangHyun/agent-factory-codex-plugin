@@ -6,9 +6,9 @@
       "id": "STAKEHOLDER-001",
       "kind": "stakeholder",
       "content": [
-        "Agent Factory 승인 요청을 받는 Human",
-        "Human-facing 승인 프롬프트를 작성하고 응답을 해석하는 Codex 에이전트",
-        "human-review 스킬 유지보수자"
+        "Agent Factory 결과 검토를 받는 Human",
+        "Human-facing 결과 검토 자료를 작성하는 main agent",
+        "Agent Factory 스킬 유지보수자"
       ]
     },
     {

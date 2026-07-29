@@ -5,27 +5,46 @@
     {
       "id": "DECISION-001",
       "kind": "decision-status",
-      "content": "Human은 승인 전용 프롬프트를 구조화된 interview와 구분하기로 결정했다."
+      "content": "Human은 이전 human-review 강화 방향을 변경하여 독립 human-review 스킬을 제거하기로 결정했다."
     },
     {
       "id": "DECISION-002",
       "kind": "decision-status",
-      "content": "Human은 승인 전용 선택지를 YES와 NO 두 가지로 정했다."
+      "content": "필요한 Human-facing 결과 검토 규칙은 main-agent로 통합한다."
     },
     {
       "id": "DECISION-003",
       "kind": "decision-status",
-      "content": "Human은 승인 여부를 고정 문자열 목록이 아니라 대화 문맥의 승인 의도로 판단하도록 정했다."
+      "content": "lifecycle의 독립 스킬 라우팅과 전용 metadata 테스트를 함께 정리한다."
     },
     {
       "id": "DECISION-004",
       "kind": "decision-status",
-      "content": "YES, Y, 승인, 네, 진행, ㄱㄱ는 승인 표현의 예시일 뿐 완전한 허용 목록이 아니다."
+      "content": "Work Unit human-review 섹션과 상태 계약은 유지한다."
     },
     {
       "id": "OPEN-STATUS-001",
       "kind": "open-items-status",
       "content": "차단 미결정 없음"
+    },
+    {
+      "id": "OPEN-REVIEW-001",
+      "kind": "open-item",
+      "content": "추가 승인 또는 checkpoint 없이 같은 revision/attempt의 Workflow Agent 실행을 계속하라는 Human 지시로 해소되었다.",
+      "attributes": {
+        "resolvedBy": "INTERVIEW-001",
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "DECISION-005",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Workflow Agent는 remove-human-review-skill의 같은 revision/attempt를 추가 승인·checkpoint 없이 계속하며 완료된 실행 단계를 보존한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-001"
+      }
     }
   ],
   "subsections": []
