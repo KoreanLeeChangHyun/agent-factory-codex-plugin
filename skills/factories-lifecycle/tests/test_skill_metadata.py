@@ -201,12 +201,13 @@ class SkillMetadataTests(unittest.TestCase):
                 )
                 for line in route_lines:
                     self.assertRegex(line, r"^- `[^`]+`: \S.+[.!]$")
-                for duplicated_logic in (
+                forbidden_logic = [
                     "Mandatory Manager Script Gate",
                     "Code Comment Convention",
-                    "python3 ",
-                    "scripts/",
-                ):
+                ]
+                if router != "syncs":
+                    forbidden_logic.extend(("python3 ", "scripts/"))
+                for duplicated_logic in forbidden_logic:
                     self.assertNotIn(duplicated_logic, text)
 
     def test_annotation_convention_has_single_skill_owner(self) -> None:

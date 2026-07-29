@@ -9,8 +9,9 @@ description: Sync Gmail messages and attachments visible to a user's Google acco
 
 Use this skill to bring Gmail messages and attachments visible to a real user
 account into a local workspace. Default the local destination to
-`source/google/mail` under the current project root unless the user gives a
-different path.
+`source/google/mail` under the Git project root unless
+`<git-project-root>/.agent-factory/sync.json` or the user gives a different
+path.
 
 Keep the workflow read-only by default. Do not send, delete, archive, label, or
 modify Gmail messages unless the user explicitly asks for write-back behavior.
@@ -22,12 +23,13 @@ Use the shared local Google API OAuth client outside the repository:
 - Config root: `${XDG_CONFIG_HOME:-$HOME/.config}`
 - OAuth client JSON: `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/oauth-client.json`
 - Gmail token JSON: `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/gmail-token.json`
-- Local mail destination: `source/google/mail` under the current project root
+- Local mail default: `source/google/mail` under the Git project root
 
 Keep credential and token files out of git. Set credential and token permissions
 to user-only read/write:
 
 ```bash
+python <syncs-skill-directory>/scripts/sync.py resolve --source google-gmail
 GOOGLE_API_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/google-api"
 chmod 600 "$GOOGLE_API_CONFIG_DIR/oauth-client.json"
 chmod 600 "$GOOGLE_API_CONFIG_DIR/gmail-token.json"
@@ -42,8 +44,8 @@ GOOGLE_API_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/google-api"
 test -f "$GOOGLE_API_CONFIG_DIR/oauth-client.json" && ls -l "$GOOGLE_API_CONFIG_DIR/oauth-client.json"
 python3 -m json.tool "$GOOGLE_API_CONFIG_DIR/oauth-client.json" >/dev/null
 test -f "$GOOGLE_API_CONFIG_DIR/gmail-token.json" && ls -l "$GOOGLE_API_CONFIG_DIR/gmail-token.json" || true
-test -d source/google/mail && find source/google/mail -type f | wc -l || true
-test -d source/google/mail && du -sh source/google/mail || true
+test -d "<resolved-mail-destination>" && find "<resolved-mail-destination>" -type f | wc -l || true
+test -d "<resolved-mail-destination>" && du -sh "<resolved-mail-destination>" || true
 ```
 
 ## OAuth Scope
@@ -92,8 +94,7 @@ Use the bundled script for repeatable imports:
 python -m pip install -r <this-skill-directory>/scripts/requirements.txt
 python <this-skill-directory>/scripts/sync_gmail.py \
   --query "project-name or search terms" \
-  --max-results 100 \
-  --destination source/google/mail
+  --max-results 100
 ```
 
 Resolve `<this-skill-directory>` from the directory containing this `SKILL.md`.
@@ -101,6 +102,11 @@ Do not assume a fixed plugin installation root.
 
 The script:
 
+- Loads the shared `syncs/scripts/sync.py` resolver.
+- Applies explicit `--destination`, then the `google-gmail` entry in
+  `.agent-factory/sync.json`, then `source/google/mail`.
+- Resolves relative paths from the Git top-level and prints the normalized
+  resolved destination before OAuth or filesystem writes.
 - Uses `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/oauth-client.json`.
 - Creates or refreshes `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/gmail-token.json`.
 - Opens a browser for OAuth consent when no valid token exists.
@@ -117,6 +123,8 @@ Useful query examples:
 
 ## Safety Rules
 
+- Use `syncs/scripts/sync.py` to inspect or set project overrides; do not edit
+  `.agent-factory/sync.json` directly.
 - Keep sync read-only unless the user explicitly asks for Gmail write actions.
 - Do not delete local mail snapshots unless the user explicitly asks.
 - Do not store OAuth client JSON or token JSON in the repository.
@@ -129,7 +137,8 @@ Useful query examples:
 After syncing, report:
 
 - credential path used,
-- local destination path,
+- normalized resolved destination and whether it came from explicit input,
+  `.agent-factory/sync.json`, or the default,
 - Gmail query used,
 - approximate message count,
 - attachment count and size if available,
@@ -139,8 +148,8 @@ After syncing, report:
 Useful checks:
 
 ```bash
-find source/google/mail -type f | wc -l
-du -sh source/google/mail
+find "<resolved-mail-destination>" -type f | wc -l
+du -sh "<resolved-mail-destination>"
 GOOGLE_API_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/google-api"
 test -f "$GOOGLE_API_CONFIG_DIR/gmail-token.json" && ls -l "$GOOGLE_API_CONFIG_DIR/gmail-token.json"
 ```
