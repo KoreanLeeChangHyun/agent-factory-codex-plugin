@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Agents"
+  short_description: "Route requests to Agent Factory role capabilities."
+  default_prompt: "Use $agents to choose the Agent Factory role capability for this request."

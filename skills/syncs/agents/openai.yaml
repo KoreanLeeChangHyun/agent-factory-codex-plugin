@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Syncs"
+  short_description: "Route requests to supported Google sync capabilities."
+  default_prompt: "Use $syncs to choose the supported Google synchronization capability."

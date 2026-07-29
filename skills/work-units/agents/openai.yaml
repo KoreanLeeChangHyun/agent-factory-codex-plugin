@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Work Units"
+  short_description: "Route requests to Work Unit management and execution."
+  default_prompt: "Use $work-units to choose the Work Unit management or execution capability."

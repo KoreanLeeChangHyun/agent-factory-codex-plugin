@@ -13,10 +13,14 @@ SKILLS = Path(__file__).resolve().parents[2]
 class SkillMetadataTests(unittest.TestCase):
     def test_skill_directories_match_the_approved_flat_naming_contract(self) -> None:
         expected = {
+            "agent-factory",
             "agent-main",
             "agent-workflow",
+            "agents",
             "convention-annotation",
             "convention-icon-svg",
+            "conventions",
+            "factories",
             "factory-lifecycle",
             "factory-rule",
             "intake-analysis",
@@ -26,8 +30,10 @@ class SkillMetadataTests(unittest.TestCase):
             "intakes",
             "specification-diagram",
             "specifications",
+            "syncs",
             "sync-google-drive",
             "sync-google-gmail",
+            "work-units",
             "work-unit-execution",
             "work-unit-manager",
         }
@@ -134,6 +140,46 @@ class SkillMetadataTests(unittest.TestCase):
                 _, frontmatter, _ = text.split("---", 2)
                 metadata = yaml.safe_load(frontmatter)
                 self.assertEqual(metadata["name"], path.parent.name)
+
+    def test_routing_entrypoints_expose_only_the_approved_capabilities(self) -> None:
+        routes = {
+            "agent-factory": [
+                "agents",
+                "factories",
+                "intakes",
+                "specifications",
+                "work-units",
+                "conventions",
+                "syncs",
+            ],
+            "agents": ["agent-main", "agent-workflow"],
+            "factories": ["factory-lifecycle", "factory-rule"],
+            "conventions": ["convention-annotation", "convention-icon-svg"],
+            "syncs": ["sync-google-drive", "sync-google-gmail"],
+            "work-units": ["work-unit-manager", "work-unit-execution"],
+        }
+
+        for router, capabilities in routes.items():
+            with self.subTest(router=router):
+                text = (SKILLS / router / "SKILL.md").read_text(encoding="utf-8")
+                route_lines = [
+                    line
+                    for line in text.splitlines()
+                    if line.startswith("- `")
+                ]
+                self.assertEqual(
+                    [line.split("`", 2)[1] for line in route_lines],
+                    capabilities,
+                )
+                for line in route_lines:
+                    self.assertRegex(line, r"^- `[^`]+`: \S.+[.!]$")
+                for duplicated_logic in (
+                    "Mandatory Manager Script Gate",
+                    "Code Comment Convention",
+                    "python3 ",
+                    "scripts/",
+                ):
+                    self.assertNotIn(duplicated_logic, text)
 
     def test_annotation_convention_has_single_skill_owner(self) -> None:
         owners = [

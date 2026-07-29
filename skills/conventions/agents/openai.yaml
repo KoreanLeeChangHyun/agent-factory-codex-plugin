@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Conventions"
+  short_description: "Route requests to shared convention capabilities."
+  default_prompt: "Use $conventions to choose the Agent Factory convention capability for this request."
