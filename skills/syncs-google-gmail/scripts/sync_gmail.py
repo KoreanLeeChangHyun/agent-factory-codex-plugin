@@ -2,19 +2,19 @@
 import argparse
 import base64
 import email
+import importlib.util
 import json
 import os
 import re
+import secrets
+import stat
 from datetime import datetime, timezone
 from pathlib import Path
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-
-
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+SYNC_MANAGER = (
+    Path(__file__).resolve().parents[2] / "syncs" / "scripts" / "sync.py"
+)
 
 
 def config_home():
@@ -25,7 +25,195 @@ def config_home():
 GOOGLE_API_CONFIG_DIR = config_home() / "google-api"
 DEFAULT_CLIENT = GOOGLE_API_CONFIG_DIR / "oauth-client.json"
 DEFAULT_TOKEN = GOOGLE_API_CONFIG_DIR / "gmail-token.json"
-DEFAULT_DESTINATION = Path("source/google/mail")
+
+
+def load_sync_manager():
+    spec = importlib.util.spec_from_file_location(
+        "agent_factory_sync_manager", SYNC_MANAGER
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load sync manager: {SYNC_MANAGER}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+sync_manager = load_sync_manager()
+resolve_sync_destination = sync_manager.resolve_sync_destination
+DIRECTORY_OPEN_FLAGS = sync_manager.DIRECTORY_OPEN_FLAGS
+FILE_NOFOLLOW = sync_manager.FILE_NOFOLLOW
+
+
+class DestinationStore:
+    """Keep destination traversal and writes anchored to directory descriptors."""
+
+    def __init__(self, root):
+        self.root = Path(root)
+        if not self.root.is_absolute():
+            raise ValueError("resolved destination must be absolute")
+        self.descriptor = -1
+
+    def __enter__(self):
+        descriptor = os.open(self.root.anchor, DIRECTORY_OPEN_FLAGS)
+        try:
+            for part in self.root.parts[1:]:
+                try:
+                    child = os.open(part, DIRECTORY_OPEN_FLAGS, dir_fd=descriptor)
+                except FileNotFoundError:
+                    try:
+                        os.mkdir(part, mode=0o755, dir_fd=descriptor)
+                    except FileExistsError:
+                        pass
+                    child = os.open(part, DIRECTORY_OPEN_FLAGS, dir_fd=descriptor)
+                os.close(descriptor)
+                descriptor = child
+        except BaseException:
+            os.close(descriptor)
+            raise
+        self.descriptor = descriptor
+        return self
+
+    def __exit__(self, *_):
+        if self.descriptor >= 0:
+            os.close(self.descriptor)
+            self.descriptor = -1
+
+    @staticmethod
+    def _parts(relative):
+        candidate = Path(relative)
+        if candidate.is_absolute() or not candidate.parts:
+            raise ValueError(f"destination-relative path required: {relative}")
+        if any(part in {"", ".", ".."} for part in candidate.parts):
+            raise ValueError(f"unsafe destination-relative path: {relative}")
+        return candidate.parts
+
+    def _open_directory(self, parts, *, create):
+        descriptor = os.dup(self.descriptor)
+        try:
+            for part in parts:
+                try:
+                    child = os.open(part, DIRECTORY_OPEN_FLAGS, dir_fd=descriptor)
+                except FileNotFoundError:
+                    if not create:
+                        raise
+                    try:
+                        os.mkdir(part, mode=0o755, dir_fd=descriptor)
+                    except FileExistsError:
+                        pass
+                    child = os.open(part, DIRECTORY_OPEN_FLAGS, dir_fd=descriptor)
+                os.close(descriptor)
+                descriptor = child
+            return descriptor
+        except BaseException:
+            os.close(descriptor)
+            raise
+
+    def write_bytes(self, relative, payload):
+        parts = self._parts(relative)
+        parent = self._open_directory(parts[:-1], create=True)
+        descriptor = -1
+        try:
+            try:
+                descriptor = os.open(
+                    parts[-1],
+                    os.O_WRONLY | os.O_NONBLOCK | FILE_NOFOLLOW,
+                    dir_fd=parent,
+                )
+            except FileNotFoundError:
+                descriptor = os.open(
+                    parts[-1],
+                    os.O_WRONLY
+                    | os.O_CREAT
+                    | os.O_EXCL
+                    | os.O_NONBLOCK
+                    | FILE_NOFOLLOW,
+                    0o600,
+                    dir_fd=parent,
+                )
+            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                raise RuntimeError(f"destination file must be regular: {relative}")
+            os.ftruncate(descriptor, 0)
+            with os.fdopen(descriptor, "wb") as stream:
+                descriptor = -1
+                stream.write(payload)
+                stream.flush()
+                os.fsync(stream.fileno())
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
+            os.close(parent)
+
+    def read_text(self, relative):
+        parts = self._parts(relative)
+        try:
+            parent = self._open_directory(parts[:-1], create=False)
+        except FileNotFoundError:
+            return None
+        descriptor = -1
+        try:
+            try:
+                descriptor = os.open(
+                    parts[-1],
+                    os.O_RDONLY | os.O_NONBLOCK | FILE_NOFOLLOW,
+                    dir_fd=parent,
+                )
+            except FileNotFoundError:
+                return None
+            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                raise RuntimeError(f"destination file must be regular: {relative}")
+            with os.fdopen(descriptor, "r", encoding="utf-8") as stream:
+                descriptor = -1
+                return stream.read()
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
+            os.close(parent)
+
+    def write_text_atomic(self, relative, text):
+        parts = self._parts(relative)
+        parent = self._open_directory(parts[:-1], create=True)
+        temporary_name = None
+        try:
+            for _ in range(32):
+                temporary_name = f".sync.{secrets.token_hex(12)}"
+                try:
+                    descriptor = os.open(
+                        temporary_name,
+                        os.O_WRONLY
+                        | os.O_CREAT
+                        | os.O_EXCL
+                        | os.O_NONBLOCK
+                        | FILE_NOFOLLOW,
+                        0o600,
+                        dir_fd=parent,
+                    )
+                    break
+                except FileExistsError:
+                    continue
+            else:
+                raise RuntimeError("cannot allocate destination temporary file")
+            with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                stream.write(text)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(
+                temporary_name,
+                parts[-1],
+                src_dir_fd=parent,
+                dst_dir_fd=parent,
+            )
+            temporary_name = None
+            os.fsync(parent)
+        finally:
+            if temporary_name is not None:
+                try:
+                    os.unlink(temporary_name, dir_fd=parent)
+                except FileNotFoundError:
+                    pass
+            os.close(parent)
+
+    def path(self, relative):
+        return self.root / Path(relative)
 
 
 def b64url_decode(value):
@@ -41,6 +229,10 @@ def safe_name(value, fallback):
 
 
 def load_credentials(client_path, token_path):
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import InstalledAppFlow
+
     creds = None
     if token_path.exists():
         creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)
@@ -84,9 +276,8 @@ def headers_by_name(payload):
     return headers
 
 
-def extract_attachments(raw_bytes, destination, message_id):
+def extract_attachments(raw_bytes, store, message_id):
     message = email.message_from_bytes(raw_bytes)
-    attachment_dir = destination / "attachments" / message_id
     attachments = []
     used = set()
     for idx, part in enumerate(message.walk(), start=1):
@@ -105,9 +296,9 @@ def extract_attachments(raw_bytes, destination, message_id):
             filename = f"{stem}-{counter}{suffix}"
             counter += 1
         used.add(filename)
-        attachment_dir.mkdir(parents=True, exist_ok=True)
-        path = attachment_dir / filename
-        path.write_bytes(payload)
+        relative = Path("attachments") / message_id / filename
+        store.write_bytes(relative, payload)
+        path = store.path(relative)
         attachments.append(
             {
                 "filename": filename,
@@ -119,11 +310,12 @@ def extract_attachments(raw_bytes, destination, message_id):
     return attachments
 
 
-def load_index(path):
+def load_index(store):
     entries = {}
-    if not path.exists():
+    text = store.read_text("index.jsonl")
+    if text is None:
         return entries
-    for line in path.read_text().splitlines():
+    for line in text.splitlines():
         if not line.strip():
             continue
         item = json.loads(line)
@@ -132,16 +324,17 @@ def load_index(path):
     return entries
 
 
-def write_index(path, entries):
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_index(store, entries):
     rows = [
         json.dumps(entries[key], ensure_ascii=False, sort_keys=True)
         for key in sorted(entries)
     ]
-    path.write_text("\n".join(rows) + ("\n" if rows else ""))
+    store.write_text_atomic(
+        "index.jsonl", "\n".join(rows) + ("\n" if rows else "")
+    )
 
 
-def sync_message(service, message_id, destination):
+def sync_message(service, message_id, store):
     metadata = (
         service.users()
         .messages()
@@ -161,13 +354,12 @@ def sync_message(service, message_id, destination):
     )
     raw_bytes = b64url_decode(raw["raw"])
 
-    message_dir = destination / "messages"
-    message_dir.mkdir(parents=True, exist_ok=True)
-    eml_path = message_dir / f"{message_id}.eml"
-    eml_path.write_bytes(raw_bytes)
+    relative = Path("messages") / f"{message_id}.eml"
+    store.write_bytes(relative, raw_bytes)
+    eml_path = store.path(relative)
 
     headers = headers_by_name(metadata.get("payload", {}))
-    attachments = extract_attachments(raw_bytes, destination, message_id)
+    attachments = extract_attachments(raw_bytes, store, message_id)
     return {
         "id": message_id,
         "thread_id": metadata.get("threadId"),
@@ -198,7 +390,8 @@ def main():
         help="Gmail search query, for example: project-name newer:2026/04/01",
     )
     parser.add_argument("--max-results", type=int, default=100)
-    parser.add_argument("--destination", type=Path, default=DEFAULT_DESTINATION)
+    parser.add_argument("--destination", type=Path)
+    parser.add_argument("--project-root", type=Path)
     parser.add_argument("--client", type=Path, default=DEFAULT_CLIENT)
     parser.add_argument("--token", type=Path, default=DEFAULT_TOKEN)
     parser.add_argument(
@@ -213,36 +406,50 @@ def main():
         )
     if args.max_results < 1:
         raise SystemExit("--max-results must be positive.")
+
+    resolved = resolve_sync_destination(
+        "google-gmail",
+        destination=args.destination,
+        project_root=args.project_root,
+    )
+    print(
+        json.dumps(
+            {"event": "destination-resolved", **resolved},
+            ensure_ascii=False,
+        )
+    )
+    destination = Path(resolved["destination"])
+
     if not args.client.exists():
         raise SystemExit(f"OAuth client file not found: {args.client}")
 
     creds = load_credentials(args.client, args.token)
+    from googleapiclient.discovery import build
+
     service = build("gmail", "v1", credentials=creds)
-    args.destination.mkdir(parents=True, exist_ok=True)
-
     message_ids = list_message_ids(service, args.query, args.max_results)
-    index_path = args.destination / "index.jsonl"
-    entries = load_index(index_path)
+    index_path = destination / "index.jsonl"
+    with DestinationStore(destination) as store:
+        entries = load_index(store)
+        imported = 0
+        skipped = 0
+        attachment_count = 0
+        attachment_bytes = 0
+        for message_id in message_ids:
+            if message_id in entries and not args.overwrite:
+                skipped += 1
+                continue
+            entry = sync_message(service, message_id, store)
+            entries[message_id] = entry
+            imported += 1
+            attachment_count += len(entry["attachments"])
+            attachment_bytes += sum(item["size"] for item in entry["attachments"])
 
-    imported = 0
-    skipped = 0
-    attachment_count = 0
-    attachment_bytes = 0
-    for message_id in message_ids:
-        if message_id in entries and not args.overwrite:
-            skipped += 1
-            continue
-        entry = sync_message(service, message_id, args.destination)
-        entries[message_id] = entry
-        imported += 1
-        attachment_count += len(entry["attachments"])
-        attachment_bytes += sum(item["size"] for item in entry["attachments"])
-
-    write_index(index_path, entries)
+        write_index(store, entries)
     print(
         json.dumps(
             {
-                "destination": str(args.destination),
+                "destination": str(destination),
                 "query": args.query,
                 "matched": len(message_ids),
                 "imported": imported,

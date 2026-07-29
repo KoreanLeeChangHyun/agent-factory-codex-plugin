@@ -9,8 +9,9 @@ description: Share, authorize, import, refresh, mirror, or troubleshoot Google D
 
 Use this skill to get Google Drive files into a local workspace or explain how
 to share Drive access for that purpose. Default the local destination to
-`source/google/drive` under the current project root unless the user gives a
-different path.
+`source/google/drive` under the Git project root unless
+`<git-project-root>/.agent-factory/sync.json` or the user gives a different
+path.
 
 Keep the workflow read-only by default. Do not upload, delete, or modify Drive
 files unless the user explicitly asks for write-back behavior.
@@ -22,8 +23,10 @@ it. Treat those as legacy or project-specific paths, not the default workflow.
 
 ## Workspace Convention
 
-- Put original Drive materials under `source/google/drive/` relative to the
-  current project root.
+- Resolve the destination through `syncs/scripts/sync.py` before any copy,
+  import, or mirror. It applies explicit input, the `google-drive` entry in
+  `.agent-factory/sync.json`, then the `source/google/drive` default.
+- Put original Drive materials under the normalized resolved destination.
 - Keep credentials and tokens private and outside the repository, for example:
   - `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/oauth-client.json`
   - `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/drive-token.json`
@@ -80,10 +83,11 @@ Prefer methods in this order:
 Start with non-destructive checks:
 
 ```bash
+python <syncs-skill-directory>/scripts/sync.py resolve --source google-drive
 find "$HOME/Library/CloudStorage" -maxdepth 3 -type d 2>/dev/null | sed -n '1,120p'
 command -v rclone && rclone version
-test -d source/google/drive && find source/google/drive -type f | wc -l || true
-test -d source/google/drive && du -sh source/google/drive || true
+test -d "<resolved-drive-destination>" && find "<resolved-drive-destination>" -type f | wc -l || true
+test -d "<resolved-drive-destination>" && du -sh "<resolved-drive-destination>" || true
 rg -n "google/drive|drive.readonly|Google Drive API|rclone|source/google/drive" .
 ```
 
@@ -101,8 +105,11 @@ Interpretation:
 
 ## Safety Rules
 
-- Store local Drive materials under `source/google/drive` in the current
-  project root by default.
+- Use `syncs/scripts/sync.py` to inspect or set project overrides; do not edit
+  `.agent-factory/sync.json` directly.
+- Check the printed normalized resolved destination before creating directories
+  or copying data.
+- Store local Drive materials under the resolved destination.
 - Keep credentials, tokens, and rclone config out of git.
 - Prefer read-only scopes and copy/sync from Drive to local only.
 - Before running a destructive local sync such as `rsync --delete` or
@@ -128,15 +135,15 @@ Use this path when the user's account is signed in to Google Drive for desktop.
 4. Copy into the workspace:
 
 ```bash
-mkdir -p source/google/drive
-rsync -a "<mounted-drive-path>/" source/google/drive/
+mkdir -p "<resolved-drive-destination>"
+rsync -a "<mounted-drive-path>/" "<resolved-drive-destination>/"
 ```
 
 5. For a mirror of the mounted source into the local destination, use delete
    only after verifying both paths:
 
 ```bash
-rsync -a --delete "<mounted-drive-path>/" source/google/drive/
+rsync -a --delete "<mounted-drive-path>/" "<resolved-drive-destination>/"
 ```
 
 Use this method for shared drives when they appear locally. If the target is
@@ -172,27 +179,27 @@ Recommended configuration choices for read-only import:
 Copy from a remote into the default workspace destination:
 
 ```bash
-mkdir -p source/google/drive
-rclone copy "<remote>:<path>" source/google/drive --progress
+mkdir -p "<resolved-drive-destination>"
+rclone copy "<remote>:<path>" "<resolved-drive-destination>" --progress
 ```
 
 For files shared directly with the user account, include:
 
 ```bash
-rclone copy "<remote>:" source/google/drive --drive-shared-with-me --progress
+rclone copy "<remote>:" "<resolved-drive-destination>" --drive-shared-with-me --progress
 ```
 
 For a local mirror, use `sync` only after verifying the remote and destination:
 
 ```bash
-rclone sync "<remote>:<path>" source/google/drive --progress
+rclone sync "<remote>:<path>" "<resolved-drive-destination>" --progress
 ```
 
 When Google Docs, Sheets, or Slides need local file formats, set export formats
 explicitly, for example:
 
 ```bash
-rclone copy "<remote>:<path>" source/google/drive \
+rclone copy "<remote>:<path>" "<resolved-drive-destination>" \
   --drive-export-formats docx,xlsx,pptx,pdf \
   --progress
 ```
@@ -207,12 +214,12 @@ Use this path only when existing project tooling is appropriate.
 2. Confirm the importer requests read-only Drive access for imports:
    - `https://www.googleapis.com/auth/drive.readonly`
 3. Keep OAuth client secrets and tokens outside the repository.
-4. Import to `source/google/drive`, for example:
+4. Import to the resolved destination, for example:
 
 ```bash
 python tools/google_drive_import.py \
   --folder-id FOLDER_ID \
-  --output-dir source/google/drive \
+  --output-dir "<resolved-drive-destination>" \
   --recursive
 ```
 
@@ -224,7 +231,7 @@ python tools/google_drive_import.py --list-shared-drives
 python tools/google_drive_import.py \
   --drive-id SHARED_DRIVE_ID \
   --folder-id FOLDER_ID \
-  --output-dir source/google/drive \
+  --output-dir "<resolved-drive-destination>" \
   --recursive
 ```
 
@@ -238,15 +245,16 @@ python tools/google_drive_import.py \
   `--drive-shared-with-me`.
 - If Google-native files download incorrectly, export Docs, Sheets, and Slides
   as PDF, DOCX, XLSX, or PPTX instead of binary media.
-- If a script writes to old `drive_downloads/`, change `--output-dir` to
-  `source/google/drive`.
+- If a script writes to old `drive_downloads/`, change `--output-dir` to the
+  resolved destination.
 
 ## Verification
 
 After syncing, report:
 
 - source method used,
-- local destination path,
+- normalized resolved destination and whether it came from explicit input,
+  `.agent-factory/sync.json`, or the default,
 - approximate file count and size,
 - any skipped Google-native files or export conversions,
 - whether credentials or tokens were created.
@@ -254,6 +262,6 @@ After syncing, report:
 Useful checks:
 
 ```bash
-find source/google/drive -type f | wc -l
-du -sh source/google/drive
+find "<resolved-drive-destination>" -type f | wc -l
+du -sh "<resolved-drive-destination>"
 ```

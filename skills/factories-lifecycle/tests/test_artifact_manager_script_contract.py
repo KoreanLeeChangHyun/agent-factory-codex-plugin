@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import subprocess
 import tempfile
@@ -13,9 +14,109 @@ SECTIONED_DOCUMENT = (
     PLUGIN_ROOT / "skills" / "factories-lifecycle" / "assets" / "scripts"
     / "sectioned_document.py"
 )
+MANAGERS = {
+    "intakes": (
+        PLUGIN_ROOT / "skills" / "intakes" / "scripts" / "intake.py",
+        [],
+    ),
+    "specifications": (
+        PLUGIN_ROOT / "skills" / "specifications" / "scripts" / "specification.py",
+        ["--profile", "project-core"],
+    ),
+    "work-units": (
+        PLUGIN_ROOT
+        / "skills"
+        / "work-units-manager"
+        / "assets"
+        / "scripts"
+        / "work_unit.py",
+        [],
+    ),
+}
 
 
 class ArtifactManagerScriptContractTests(unittest.TestCase):
+    def test_canonical_crud_and_validation_ignore_git_tracking_state(self) -> None:
+        for collection, (manager, create_extra) in MANAGERS.items():
+            for tracking_state in ("tracked", "untracked", "ignored"):
+                with self.subTest(
+                    collection=collection, tracking_state=tracking_state
+                ), tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary)
+                    subprocess.run(
+                        ["git", "init", "-q", "-b", "main"],
+                        cwd=root,
+                        check=True,
+                    )
+                    if tracking_state == "ignored":
+                        (root / ".gitignore").write_text(
+                            "/.agent-factory/\n", encoding="utf-8"
+                        )
+                    package = root / ".agent-factory" / collection / "sample"
+                    create = subprocess.run(
+                        [
+                            "python3",
+                            str(manager),
+                            "create",
+                            str(package),
+                            "--id",
+                            "sample",
+                            "--title",
+                            "Sample",
+                            "--project-id",
+                            "sample-project",
+                            "--theme",
+                            "default",
+                            *create_extra,
+                        ],
+                        cwd=root,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertTrue(json.loads(create.stdout)["valid"])
+                    if tracking_state == "tracked":
+                        subprocess.run(
+                            ["git", "add", ".agent-factory"],
+                            cwd=root,
+                            check=True,
+                        )
+                    status = subprocess.run(
+                        ["git", "status", "--short", "--ignored", ".agent-factory"],
+                        cwd=root,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    ).stdout
+                    expected_prefix = {
+                        "tracked": "A ",
+                        "untracked": "??",
+                        "ignored": "!!",
+                    }[tracking_state]
+                    self.assertIn(expected_prefix, status)
+
+                    subprocess.run(
+                        [
+                            "python3",
+                            str(manager),
+                            "title-set",
+                            str(package),
+                            "Updated",
+                        ],
+                        cwd=root,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    validated = subprocess.run(
+                        ["python3", str(manager), "validate", str(package), "--full"],
+                        cwd=root,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertTrue(json.loads(validated.stdout)["valid"])
+
     def test_linked_worktree_canonical_paths_route_to_primary_repository(
         self,
     ) -> None:
