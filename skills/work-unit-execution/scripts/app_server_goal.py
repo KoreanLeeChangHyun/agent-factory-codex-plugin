@@ -634,9 +634,10 @@ def execution_prompt(
         "Plan -> Work -> AI Review -> Report. For a Specification-only Work "
         "Unit, update the primary root canonical Specification only through "
         "specification.py and do not create a worktree. For every other Work "
-        "Unit, create or reuse its dedicated linked worktree, where "
-        ".agent-factory is excluded, and perform all scoped non-canonical "
-        f"changes there.{instruction_text}"
+        "Unit, create or reuse its dedicated linked worktree before "
+        "execution-init or attempt-start; .agent-factory is excluded from that "
+        "worktree, and all scoped non-canonical changes belong there."
+        f"{instruction_text}"
     )
 
 
@@ -650,6 +651,8 @@ def recovery_prompt(work_unit_id: str, reason: str) -> str:
         "Plan -> Work -> AI Review -> Report. For a Specification-only Work "
         "Unit, write only the primary canonical Specification through "
         "specification.py; otherwise continue in the dedicated linked worktree. "
+        "If that linked worktree is missing, prepare the missing linked worktree "
+        "before blocker-resolve or attempt-resume. "
         "Removed checkpoint or approval procedures must not block execution."
     )
 

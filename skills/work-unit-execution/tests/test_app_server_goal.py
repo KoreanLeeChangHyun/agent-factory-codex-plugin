@@ -306,6 +306,7 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("You must execute", prompt)
         self.assertIn("Specification-only", prompt)
         self.assertIn("dedicated linked worktree", prompt)
+        self.assertIn("before execution-init or attempt-start", prompt)
         self.assertIn("Do not reassess", prompt)
         self.assertIn("execute only that Work Unit", prompt)
 
@@ -337,6 +338,7 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("You must continue", prompt)
         self.assertIn("Do not reassess", prompt)
         self.assertIn("Specification-only", prompt)
+        self.assertIn("prepare the missing linked worktree", prompt)
 
     def test_launch_mode_accepts_ready_execution_and_planned_rework(
         self,
