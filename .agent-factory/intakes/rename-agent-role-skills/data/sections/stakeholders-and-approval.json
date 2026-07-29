@@ -1,0 +1,26 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": [
+        "Agent Factory를 사용하는 Human",
+        "agent-main 역할",
+        "agent-workflow 역할"
+      ]
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Human이 정확한 새 이름을 결정했다. 커밋, 푸시, 배포는 별도 명시 요청이 필요하다."
+    }
+  ],
+  "subsections": []
+}

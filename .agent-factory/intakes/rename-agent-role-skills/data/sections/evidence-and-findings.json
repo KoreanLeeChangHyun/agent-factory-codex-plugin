@@ -1,0 +1,22 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "repository-inspection",
+        "source": "skills/main-agent; skills/workflow-agent; skills/lifecycle; skills/work-unit-execution; repository rg output; git status",
+        "method": "read-only repository inspection",
+        "findings": [
+          "두 디렉터리의 SKILL.md frontmatter는 main-agent와 workflow-agent를 사용한다.",
+          "각 agents/openai.yaml default_prompt는 기존 달러 호출 이름을 사용한다.",
+          "lifecycle 문서, launcher prompt, 관련 tests에 활성 참조가 있다.",
+          "기존 .agent-factory 변경은 이번 범위와 무관하므로 보존해야 한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
