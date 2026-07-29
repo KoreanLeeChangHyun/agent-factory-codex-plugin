@@ -44,7 +44,7 @@ the primary root, even when a manager is invoked from a linked worktree.
 ## Execution admission
 
 Only an explicit Human request to execute a named Work Unit starts execution.
-The primary `main-agent` makes one sufficiency decision immediately before
+The primary `agent-main` makes one sufficiency decision immediately before
 launch:
 
 - full-valid Intake and Work Unit;
@@ -121,4 +121,4 @@ explicit Human request.
 - `specification` for canonical Specification.
 - `work-unit-planner` for Work Unit creation and state.
 - `work-unit-execution` for Goal launcher and Git worktree operations.
-- `workflow-agent` for launched execution.
+- `agent-workflow` for launched execution.

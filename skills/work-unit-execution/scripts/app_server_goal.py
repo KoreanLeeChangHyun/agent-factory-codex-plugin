@@ -627,7 +627,7 @@ def execution_prompt(
     return (
         "You are the Workflow Agent. You must execute the named Work Unit "
         "without asking for another approval, checkpoint, or readiness "
-        f"decision. Use $workflow-agent to {action}. The primary agent already "
+        f"decision. Use $agent-workflow to {action}. The primary agent already "
         "completed the one-time readiness admission and the launcher confirmed "
         "the active Goal. Do not reassess readiness after execution starts. "
         "Read the canonical package and execute only that Work Unit through "
@@ -643,7 +643,7 @@ def execution_prompt(
 
 def recovery_prompt(work_unit_id: str, reason: str) -> str:
     return (
-        "You are the Workflow Agent. You must continue $workflow-agent "
+        "You are the Workflow Agent. You must continue $agent-workflow "
         f"execution of Agent Factory Work Unit {work_unit_id}. The prior turn "
         f"ended as {reason}; resume the same manager-owned revision and attempt, "
         "preserve completed work, and do not repeat canonical decisions. Do not "

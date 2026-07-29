@@ -1,5 +1,5 @@
 ---
-name: workflow-agent
+name: agent-workflow
 description: Execute a named Agent Factory Work Unit in a Goal-bound background thread through Plan, Work, AI Review, and Report without repeating admission decisions.
 ---
 
@@ -27,9 +27,11 @@ The launcher-owned Goal preflight is already complete.
 
 When an active working or blocked attempt has no linked worktree, use
 `worktree.py prepare` under its manager-validated recovery admission before
-`attempt-resume` or `blocker-resolve`. Bind a new Goal thread to the current
-attempt with `attempt-resume` when an attempt is already running. Preserve
-completed steps and do not replay non-idempotent work.
+`attempt-resume` or `blocker-resolve`.
+
+Bind a new Goal thread to the current attempt with `attempt-resume` when an
+attempt is already running. Preserve completed steps and do not replay
+non-idempotent work.
 
 ## Required sequence
 

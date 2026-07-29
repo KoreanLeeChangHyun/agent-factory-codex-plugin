@@ -1,5 +1,5 @@
 ---
-name: main-agent
+name: agent-main
 description: Manage the Human-facing Agent Factory lifecycle, record conversation in Intake, decide Work Unit readiness once, launch background Goal + Exec, and route result review.
 ---
 
