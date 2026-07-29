@@ -68,7 +68,7 @@ class DocumentProfileTests(unittest.TestCase):
 
     def test_sectioned_document_manager_is_owned_by_lifecycle(self) -> None:
         common_manager = (
-            SKILLS / "factories-lifecycle" / "assets" / "scripts" / "sectioned_document.py"
+            SKILLS / "factories-lifecycle" / "scripts" / "sectioned_document.py"
         )
         common_schemas = (
             SKILLS / "factories-lifecycle" / "assets" / "schema" / "sectioned-document"
@@ -78,7 +78,7 @@ class DocumentProfileTests(unittest.TestCase):
             SKILLS / "specifications" / "scripts" / "specification.py"
         )
         work_unit_manager = (
-            SKILLS / "work-units-manager" / "assets" / "scripts" / "work_unit.py"
+            SKILLS / "work-units-manager" / "scripts" / "work_unit.py"
         )
 
         self.assertTrue(common_manager.is_file())
@@ -102,10 +102,7 @@ class DocumentProfileTests(unittest.TestCase):
             self.assertNotIn("def command_create(", source)
             self.assertNotIn("--value-file", source)
             self.assertNotIn("INTAKE_MANAGER", source)
-            if manager in (intake_manager, specification_manager):
-                artifact_schema_root = manager.parents[1] / "assets" / "schema"
-            else:
-                artifact_schema_root = manager.parents[1] / "schema"
+            artifact_schema_root = manager.parents[1] / "assets" / "schema"
             self.assertEqual(
                 {path.name for path in artifact_schema_root.glob("*.schema.json")},
                 {"metadata.schema.json"},

@@ -24,7 +24,6 @@ PROFILE_SCHEMA = (
 COMMON_MANAGER = (
     SKILL_ROOT.parent
     / "factories-lifecycle"
-    / "assets"
     / "scripts"
     / "sectioned_document.py"
 )

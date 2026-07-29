@@ -13,7 +13,6 @@ SKILL_ROOT = SCRIPT_ROOT.parent
 COMMON_MANAGER = (
     SKILL_ROOT.parent
     / "factories-lifecycle"
-    / "assets"
     / "scripts"
     / "sectioned_document.py"
 )

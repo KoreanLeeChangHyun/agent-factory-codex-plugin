@@ -317,7 +317,6 @@ class SkillMetadataTests(unittest.TestCase):
             "specifications": SKILLS / "specifications" / "scripts" / "requirements.txt",
             "work-units-manager": SKILLS
             / "work-units-manager"
-            / "assets"
             / "scripts"
             / "requirements.txt",
         }
@@ -330,6 +329,16 @@ class SkillMetadataTests(unittest.TestCase):
                     if line.strip() and not line.lstrip().startswith("#")
                 }
                 self.assertEqual(requirements, expected[skill])
+
+    def test_assets_contain_only_non_executable_resources(self) -> None:
+        forbidden = sorted(
+            path.relative_to(SKILLS)
+            for assets in SKILLS.glob("*/assets")
+            for path in assets.rglob("*")
+            if path.is_file()
+            and (path.suffix in {".py", ".pyc"} or path.name == "requirements.txt")
+        )
+        self.assertEqual(forbidden, [])
 
 
 if __name__ == "__main__":

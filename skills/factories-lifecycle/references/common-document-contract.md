@@ -70,7 +70,7 @@ The sectioned document package stores `data/metadata.json`, `data/title.json`,
 and optional `blocks/**`. Intake v2, the implemented Specification profiles,
 and Work Unit v4 implement this physical contract.
 
-The lifecycle-owned `assets/scripts/sectioned_document.py` implements the
+The lifecycle-owned `scripts/sectioned_document.py` implements the
 shared package I/O, table-of-contents, section, block, transaction, and
 validation mechanics. Artifact managers configure that engine with their own
 metadata schema, profile, package root, lifecycle, readiness, and semantic
@@ -87,7 +87,7 @@ Scalar metadata replacements use the corresponding `--value-*` option.
 LLM callers must resolve and invoke the artifact-owning script before every
 canonical package operation: `intakes/scripts/intake.py`,
 `specifications/scripts/specification.py`, or
-`work-units-manager/assets/scripts/work_unit.py`. This is a hard precondition,
+`work-units-manager/scripts/work_unit.py`. This is a hard precondition,
 not a preferred path. Use the script for creation, authoritative display,
 mutation, validation, transitions, block registration, and recovery.
 

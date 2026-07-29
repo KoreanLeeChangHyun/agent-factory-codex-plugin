@@ -10,7 +10,10 @@ from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[3]
 SECTIONED_DOCUMENT = (
-    PLUGIN_ROOT / "skills" / "factories-lifecycle" / "assets" / "scripts"
+    PLUGIN_ROOT
+    / "skills"
+    / "factories-lifecycle"
+    / "scripts"
     / "sectioned_document.py"
 )
 
@@ -75,7 +78,7 @@ class ArtifactManagerScriptContractTests(unittest.TestCase):
         contracts = {
             "intakes": "scripts/intake.py",
             "specifications": "scripts/specification.py",
-            "work-units-manager": "assets/scripts/work_unit.py",
+            "work-units-manager": "scripts/work_unit.py",
         }
 
         for skill_name, manager_path in contracts.items():
@@ -112,7 +115,7 @@ class ArtifactManagerScriptContractTests(unittest.TestCase):
                 self.assertIn("intakes/scripts/intake.py", text)
                 self.assertIn("specifications/scripts/specification.py", text)
                 self.assertIn(
-                    "work-units-manager/assets/scripts/work_unit.py",
+                    "work-units-manager/scripts/work_unit.py",
                     text,
                 )
                 self.assertIn("stop before mutation", text)

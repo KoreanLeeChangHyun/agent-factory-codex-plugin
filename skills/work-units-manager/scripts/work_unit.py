@@ -21,11 +21,10 @@ from typing import Any, Iterable
 
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
-SKILL_ROOT = SCRIPT_ROOT.parent.parent
+SKILL_ROOT = SCRIPT_ROOT.parent
 COMMON_MANAGER = (
     SKILL_ROOT.parent
     / "factories-lifecycle"
-    / "assets"
     / "scripts"
     / "sectioned_document.py"
 )

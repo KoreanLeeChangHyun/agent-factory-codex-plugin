@@ -25,7 +25,6 @@ MAX_AUTOMATIC_RECOVERIES = 20
 WORK_UNIT_MANAGER = (
     Path(__file__).resolve().parents[2]
     / "work-units-manager"
-    / "assets"
     / "scripts"
     / "work_unit.py"
 )
