@@ -1,5 +1,5 @@
 ---
-name: workflow-agent
+name: agent-workflow
 description: Execute a named Agent Factory Work Unit in a Goal-bound background thread through Plan, Work, AI Review, and Report without repeating admission decisions.
 ---
 

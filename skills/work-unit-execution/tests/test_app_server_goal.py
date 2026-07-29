@@ -301,7 +301,7 @@ class AppServerGoalTest(unittest.TestCase):
 
         prompt = module.execution_prompt("wu-001", "execution", None)
 
-        self.assertIn("$workflow-agent", prompt)
+        self.assertIn("$agent-workflow", prompt)
         self.assertIn("You are the Workflow Agent", prompt)
         self.assertIn("You must execute", prompt)
         self.assertIn("Specification-only", prompt)
@@ -318,7 +318,7 @@ class AppServerGoalTest(unittest.TestCase):
             "Commit the implementation and rebind all evidence.",
         )
 
-        self.assertIn("$workflow-agent", prompt)
+        self.assertIn("$agent-workflow", prompt)
         self.assertIn("perform rework", prompt)
         self.assertIn(
             "Commit the implementation and rebind all evidence.",

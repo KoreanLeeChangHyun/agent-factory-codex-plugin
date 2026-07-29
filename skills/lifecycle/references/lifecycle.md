@@ -6,7 +6,7 @@
 Human conversation
   -> canonical Intake
   -> executable Work Unit
-  -> one-time main-agent sufficiency decision
+  -> one-time agent-main sufficiency decision
   -> background Goal + Exec
   -> Plan -> Work -> AI Review -> Report
   -> Human review: rework | complete
@@ -27,7 +27,7 @@ viewer must not create canonical `report/`, `report/index.html`,
 
 ## Work Unit readiness
 
-Before the launcher starts, `main-agent` checks once that:
+Before the launcher starts, `agent-main` checks once that:
 
 - Intake and Work Unit are full-valid;
 - no unresolved blocking item exists;
