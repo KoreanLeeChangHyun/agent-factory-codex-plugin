@@ -17,7 +17,7 @@ SCHEMA_VERSION = "1.0.0"
 WORKTREE_ROOT = Path(".agent-factory/worktree")
 WORK_UNIT_MANAGER = (
     Path(__file__).resolve().parents[2]
-    / "work-unit-planner"
+    / "work-unit-manager"
     / "assets"
     / "scripts"
     / "work_unit.py"

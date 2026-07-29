@@ -5,7 +5,7 @@ description: Manage the Human-facing Agent Factory lifecycle, record conversatio
 
 # Main Agent
 
-Apply `fact-only`, `agent-rule`, and `lifecycle`. Record Human requests and
+Apply `factory-rule` and `factory-lifecycle`. Record Human requests and
 feedback in the active canonical Intake by default through `intake.py`.
 Own the Human-facing primary lifecycle.
 

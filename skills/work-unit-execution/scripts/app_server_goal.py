@@ -24,7 +24,7 @@ WORK_UNIT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 MAX_AUTOMATIC_RECOVERIES = 20
 WORK_UNIT_MANAGER = (
     Path(__file__).resolve().parents[2]
-    / "work-unit-planner"
+    / "work-unit-manager"
     / "assets"
     / "scripts"
     / "work_unit.py"

@@ -15,7 +15,7 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "worktree.py"
 PLANNER_TEST = (
     Path(__file__).resolve().parents[2]
-    / "work-unit-planner"
+    / "work-unit-manager"
     / "tests"
     / "test_work_unit_manager.py"
 )

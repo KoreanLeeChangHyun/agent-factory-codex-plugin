@@ -1,6 +1,0 @@
-interface:
-  display_name: "Agent Factory Specification"
-  short_description: "Align versioned Specification profiles and reports."
-  default_prompt: "Use $specification to manage and validate the Specification only through scripts/specification.py; fail closed instead of editing canonical JSON directly."
-policy:
-  allow_implicit_invocation: true
