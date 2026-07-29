@@ -1,0 +1,17 @@
+Work Unit: stabilize-project-root-and-sync-destinations
+Branch: work-unit/stabilize-project-root-and-sync-destinations
+Commit: e85d97b33d8ae40951a242b80c81734338c34209
+Subject: Stabilize project root sync destinations
+
+Final source state captured after the Human-facing Work Unit report recorded the source commit:
+- git status --short --branch: clean
+- git diff --check HEAD^ HEAD: pass
+- 12 source files changed
+- 1238 insertions
+- 86 deletions
+- 5 new files
+
+Evidence-registration audit:
+- The pre-registration and post-registration source changed-path captures were identical.
+- Repository evidence registration changed only the primary canonical Work Unit package, which is excluded from the linked worktree.
+- The final commit capture reports a clean dedicated source worktree.

@@ -1,0 +1,64 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        ".agent-factory가 tracked, untracked, ignored인 fixture에서 canonical manager 동작이 동일함",
+        "하위 디렉터리 실행에서도 기본 destination이 Git root 기준으로 해석됨",
+        "sync.json source별 override가 독립 적용되고 미설정 source는 기본값 유지",
+        "명시적 destination이 config와 default보다 우선함",
+        "정규화된 resolved destination이 쓰기 전에 표시됨",
+        "기존 사용자 파일과 sync 데이터가 이동 또는 삭제되지 않음"
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "승인 범위의 코드, schema, tests, skill 문서와 Project Core 갱신 완료",
+        "focused 및 전체 회귀 통과",
+        "Intake, Specification과 Work Unit manager validation 통과",
+        "AI Review pass와 실행 보고서 및 증거 등록",
+        "worktree source commit 생성, primary .agent-factory 외 사용자 변경 보존"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": [
+        "python3 -m unittest discover -s skills/factories-lifecycle/tests -p test_*.py",
+        "python3 -m unittest discover -s skills/syncs/tests -p test_*.py",
+        "python3 -m unittest discover -s skills/syncs-google-gmail/tests -p test_*.py",
+        "python3 -m unittest discover -s skills/intakes/tests -p test_*.py",
+        "python3 -m unittest discover -s skills/specifications/tests -p test_*.py",
+        "python3 -m unittest discover -s skills/work-units-manager/tests -p test_*.py",
+        "python3 -m unittest discover -s skills -p test_*.py",
+        "python3 skills/intakes/scripts/intake.py check-schemas",
+        "python3 skills/specifications/scripts/specification.py check-schemas",
+        "python3 skills/work-units-manager/assets/scripts/work_unit.py check-schemas",
+        "git diff --check"
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "Focused, full, schema, canonical validation, py_compile and diff checks passed.",
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faeaf-7f03-71c2-ba54-c2a018cac2a6",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

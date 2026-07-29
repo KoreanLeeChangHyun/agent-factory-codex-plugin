@@ -1,0 +1,63 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": "현재 Git은 .agent-factory 하위 파일 667개를 추적하며 .gitignore는 .agent-factory/worktree만 제외한다."
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": "Intake, Specification, Work Unit manager는 canonical package 경로에서 project root를 역산하고 linked worktree 호출은 primary package로 정규화한다."
+    },
+    {
+      "id": "EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": "Work Unit 실행기는 전달받은 repository가 Git 최상위인지 검증하지만 Gmail sync의 기본 destination은 현재 작업 디렉터리 기준 source/google/mail 상대경로이며 Drive 지침도 current project root 표현에 의존한다."
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "프로젝트 루트와 sync 위치의 소유 모델을 무엇으로 고정할까요?",
+        "choices": {
+          "A": "Git 최상위 고정",
+          "B": "전역 저장소 분리",
+          "C": "프로젝트별 설정 허용"
+        },
+        "recommendation": "A",
+        "answer": "거부: Git 추적을 사용할 수 없는 경우도 지원해야 한다."
+      },
+      "attributes": {
+        "status": "answered",
+        "selected": "rejected-git-required"
+      }
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "Git과 .agent-factory 추적 상태의 관계를 어떻게 정의할까요?",
+        "answer": "Git 저장소를 전제로 하되 .agent-factory가 tracked, untracked 또는 ignored인 경우를 모두 지원한다.",
+        "decision": "Git은 project root 식별과 source lifecycle에 사용하고 .agent-factory canonical CRUD는 Git 추적 상태와 결합하지 않는다."
+      },
+      "attributes": {
+        "status": "answered",
+        "selected": "git-root-tracking-optional"
+      }
+    },
+    {
+      "id": "EVIDENCE-004",
+      "kind": "internal-evidence",
+      "content": "현재 syncs에는 persistent project configuration이나 공통 destination resolver가 없고, Gmail만 --destination 인자를 제공한다."
+    },
+    {
+      "id": "EVIDENCE-005",
+      "kind": "finding",
+      "content": "canonical manager는 package path와 filesystem을 기준으로 CRUD하므로 Git tracking 상태를 기능 전제로 둘 필요가 없지만, ignored 또는 untracked 회귀를 직접 증명하는 공통 계약 테스트가 부족하다."
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,26 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "result": "Project Core에 .agent-factory Git tracking optional 원칙과 project-level sync configuration 범위가 없어 Work Unit 실행 중 specification manager로 정합화한다.",
+        "packages": [
+          "project-core"
+        ]
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": "Git project root를 기준으로 하되 .agent-factory tracking 상태와 분리된 canonical manager 회귀 계약을 추가하고, .agent-factory/sync.json 기반 source별 기본 destination 및 사용자 override resolver를 syncs가 소유하도록 구현한다. Gmail script와 Drive/Gmail skill 문서를 같은 계약으로 정렬하고 Project Core를 갱신한다."
+    }
+  ],
+  "subsections": []
+}

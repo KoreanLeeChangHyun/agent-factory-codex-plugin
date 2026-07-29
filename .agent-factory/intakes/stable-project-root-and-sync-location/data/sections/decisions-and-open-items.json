@@ -1,0 +1,58 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "OPEN-001",
+      "kind": "open-item",
+      "content": "해결됨: Git 비의존 프로젝트 설정이 canonical 위치와 사용자 지정 sync destination을 소유한다.",
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": "차단 open item 없음. sync는 기본 destination을 제공하고 사용자 설정으로 override한다."
+    },
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "확정: 프로젝트는 Git 저장소를 전제로 하고 Git 최상위를 기본 project root로 사용한다. 단 .agent-factory의 canonical 동작은 Git 추적 여부와 분리한다.",
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "확정: sync destination은 고정된 CWD 상대경로가 아니라 사용자가 프로젝트별로 조정 가능한 설정으로 관리한다.",
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": "확정: sync destination은 기본값을 가지며 사용자 지정값이 있을 때만 override한다.",
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": "확정: 프로젝트별 sync override의 canonical 설정 위치는 .agent-factory/sync.json이며 source별 기본값과 명시적 override 우선순위를 사용한다.",
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": "절대 destination 또는 잘못된 상대경로가 의도하지 않은 위치를 가리킬 수 있다. 정규화된 최종 경로 표시, 쓰기 전 검증, 자동 이동·삭제 금지로 제한한다."
+    }
+  ],
+  "subsections": []
+}

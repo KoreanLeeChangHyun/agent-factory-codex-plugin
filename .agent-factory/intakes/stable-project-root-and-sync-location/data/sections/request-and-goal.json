@@ -1,0 +1,42 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "프로젝트 진행 중 .agent-factory 디렉터리를 추적하지 못하거나 sync 위치가 바뀌는 상황을 방지해야 한다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": ".agent-factory canonical 위치와 sync 목적지가 실행 위치 변화에도 안정적으로 동일 프로젝트에 귀속된다."
+    },
+    {
+      "id": "REQUEST-002",
+      "kind": "human-feedback",
+      "content": "Git 추적을 사용할 수 없거나 .agent-factory를 Git으로 추적하지 못하는 프로젝트도 지원해야 한다."
+    },
+    {
+      "id": "REQUEST-003",
+      "kind": "human-feedback",
+      "content": "사용자가 프로젝트별 sync 위치를 조정할 수 있어야 한다."
+    },
+    {
+      "id": "REQUEST-004",
+      "kind": "human-feedback",
+      "content": "sync에는 디폴트 위치가 있어야 하며 사용자가 필요할 때 해당 위치를 조정할 수 있어야 한다."
+    },
+    {
+      "id": "REQUEST-005",
+      "kind": "human-feedback",
+      "content": "프로젝트는 Git 사용을 전제로 하지만 .agent-factory가 Git에서 추적되지 않는 경우도 정상 지원해야 한다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": ".agent-factory의 Git 추적 상태와 실행 CWD가 달라도 canonical package는 primary project에 유지되고, sync는 source별 기본 위치 또는 사용자 override의 최종 경로를 일관되게 사용한다."
+    }
+  ],
+  "subsections": []
+}

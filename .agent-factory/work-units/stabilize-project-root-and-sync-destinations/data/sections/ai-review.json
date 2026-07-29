@@ -1,0 +1,44 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Human 요구와 Intake traceability 일치",
+        "Git root와 .agent-factory tracking 상태 책임 분리",
+        "destination precedence 및 source별 독립 override",
+        "상대 및 절대경로 정규화와 fail-closed 검증",
+        "기존 sync 데이터와 사용자 변경 비변경",
+        "Project Core 및 skill 문서 정합성",
+        "focused 및 전체 검증 결과"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "Acceptance checklist 전 항목을 diff, tests, schema와 canonical package evidence로 검토했다.",
+        "findings": [
+          "explicit destination > source config > default precedence verified",
+          "Git top-level resolution and tracked, untracked, ignored canonical behavior verified",
+          "relative and absolute path normalization plus descriptor-anchored symlink-swap refusal verified",
+          "no existing sync data move, deletion or external API call performed",
+          "Drive, Gmail and Project Core contracts aligned"
+        ]
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faeaf-7f03-71c2-ba54-c2a018cac2a6",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

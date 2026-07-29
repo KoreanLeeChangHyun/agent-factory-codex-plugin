@@ -1,0 +1,95 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "stabilize-project-root-and-sync-destinations",
+        "objective": "Git tracking 상태와 분리된 canonical root 및 사용자 조정 가능한 sync destination 계약을 구현하고 검증한다.",
+        "execInvocation": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id stabilize-project-root-and-sync-destinations",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/stabilize-project-root-and-sync-destinations",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/stabilize-project-root-and-sync-destinations",
+        "executionMode": "worktree"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019faeaf-7f03-71c2-ba54-c2a018cac2a6",
+        "invocationChain": [
+          "019faeaf-7f03-71c2-ba54-c2a018cac2a6"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "plan",
+            "work",
+            "ai-review",
+            "report"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "plan",
+              "state": "pending",
+              "idempotencyKey": "revision-1-attempt-1-plan-pending"
+            },
+            {
+              "stepId": "plan",
+              "state": "completed",
+              "idempotencyKey": "revision-1-attempt-1-plan-completed"
+            },
+            {
+              "stepId": "work",
+              "state": "pending",
+              "idempotencyKey": "revision-1-attempt-1-work-pending"
+            },
+            {
+              "stepId": "work",
+              "state": "completed",
+              "idempotencyKey": "revision-1-attempt-1-work-completed"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "pending",
+              "idempotencyKey": "revision-1-attempt-1-ai-review-pending"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "completed",
+              "idempotencyKey": "revision-1-attempt-1-ai-review-completed"
+            },
+            {
+              "stepId": "report",
+              "state": "pending",
+              "idempotencyKey": "revision-1-attempt-1-report-pending"
+            },
+            {
+              "stepId": "report",
+              "state": "completed",
+              "idempotencyKey": "revision-1-attempt-1-report-completed"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019faeaf-7f03-71c2-ba54-c2a018cac2a6",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

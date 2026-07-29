@@ -14,6 +14,15 @@
             "sectionId": "work-unit-basis",
             "itemId": "SPEC-001"
           }
+        },
+        {
+          "artifactType": "intake",
+          "id": "stable-project-root-and-sync-location",
+          "path": ".agent-factory/intakes/stable-project-root-and-sync-location",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
         }
       ],
       "content": {
@@ -23,7 +32,8 @@
           "DECISION-015",
           "DECISION-016",
           "DECISION-017",
-          "SPEC-001"
+          "SPEC-001",
+          "BASIS-001"
         ]
       }
     },
@@ -34,7 +44,7 @@
         "status": "ai-verified",
         "aiVerification": "pass",
         "humanStatus": "pending",
-        "verification": "project-core profile full validation, section boundary assertion와 source trace review가 통과했다."
+        "verification": "sync resolver focused 검증, canonical tracking-state 회귀, adversarial symlink-swap 검증, 전체 168 tests, schema 검사와 full validation이 통과했다."
       }
     }
   ],

@@ -10,6 +10,8 @@
           "요구사항과 변경은 Human statement, canonical lifecycle artifact, repository/runtime evidence 또는 authoritative source에 근거한다.",
           "대화는 기본적으로 Intake에 기록하고 충분한 정보가 모이거나 요청되면 실행 가능한 Work Unit을 만든다.",
           "Intake, Specification, Work Unit CRUD는 worktree 없이 기본 저장소의 manager script로 처리한다.",
+          "Git 최상위를 project root로 사용하되 canonical .agent-factory CRUD는 tracked, untracked, ignored 상태와 분리한다.",
+          "sync destination은 명시적 인자, .agent-factory/sync.json의 source별 override, source 기본값 순서로 해석한다.",
           "main agent는 명시적 실행 요청 직전에 Work Unit 충분성을 한 번 판단한다.",
           "실행을 시작한 Workflow Agent는 승인·체크포인트·재판단 없이 Goal+Exec를 연속 수행해 review 또는 명시적 복구 불가 실패에 도달한다.",
           "Specification-only 실행은 기본 저장소를 직접 갱신하고, 그 외 코드 변경은 .agent-factory가 제외된 전용 worktree에서 수행한다.",

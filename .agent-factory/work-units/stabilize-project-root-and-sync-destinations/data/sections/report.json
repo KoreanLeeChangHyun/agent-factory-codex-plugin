@@ -1,0 +1,65 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "summary": "Git-root-stable sync configuration and destination resolution are implemented, committed and verified.",
+        "configExample": "{\"schemaVersion\":\"1.0.0\",\"sources\":{\"google-drive\":{\"destination\":\"source/customer-drive\"}}}",
+        "specificationResult": "Project Core full validation passed with accepted tracking-optional and sync resolver principles.",
+        "sourceCommit": "e85d97b33d8ae40951a242b80c81734338c34209",
+        "sourceState": "Dedicated worktree is clean at the recorded source commit; the post-registration capture matched.",
+        "outputs": [
+          "sync.json schema and syncs show/set/resolve manager",
+          "Drive and Gmail defaults with independent project overrides",
+          "Gmail resolved-destination pre-write output and descriptor-anchored storage",
+          "tracked, untracked and ignored canonical manager regression coverage",
+          "aligned primary Project Core"
+        ],
+        "remainingRisks": [
+          "Existing sync data was intentionally not migrated; users choose migration separately.",
+          "Actual Google Drive and Gmail API synchronization was intentionally not executed."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faeaf-7f03-71c2-ba54-c2a018cac2a6",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/verification.txt",
+          "blocks/logs/repository-state.txt",
+          "blocks/logs/final-state.txt"
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-1FFBEE2B4E79D443",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/stabilize-project-root-and-sync-destinations",
+        "sourceCommit": "e85d97b33d8ae40951a242b80c81734338c34209",
+        "strategy": "no-ff",
+        "targetAfterCommit": "3a792a94dac9e18820ab69f2acc8a60b0ce5e058",
+        "targetBeforeCommit": "9e3dde251c3670c591477a71d9cfcc0f68f9034b",
+        "targetBranch": "main",
+        "workUnitId": "stabilize-project-root-and-sync-destinations",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/stabilize-project-root-and-sync-destinations",
+        "receiptSha256": "1ffbee2b4e79d443a75062ba7b50a6f9f22cfafe6e4cf04056213ae021c22ea5"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/logs/integration-receipt.json"
+    }
+  ],
+  "subsections": []
+}

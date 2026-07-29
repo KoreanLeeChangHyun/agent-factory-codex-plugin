@@ -1,0 +1,51 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Git project root를 유지하면서 .agent-factory의 Git 추적 상태와 canonical 동작을 분리하고, sync destination을 기본값과 프로젝트별 사용자 override로 안정적으로 해석한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "공통 sync project-root 및 destination resolver와 .agent-factory/sync.json schema 및 관리 명령 구현",
+        "Drive source/google/drive와 Gmail source/google/mail 기본값 구현",
+        "명시적 인자 > 프로젝트 설정 > 기본값 precedence 구현",
+        "상대경로의 Git root 기준 해석과 명시적 절대경로 지원",
+        "Gmail sync script 통합과 Drive 및 Gmail skill 문서 정합화",
+        ".agent-factory tracked, untracked, ignored canonical manager 회귀 테스트",
+        "Project Core 정합화"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "기존 sync 데이터 자동 이동 또는 삭제",
+        "실제 Google Drive나 Gmail API 호출 및 데이터 import",
+        "OAuth와 인증 방식 변경",
+        "현재 .agent-factory 파일의 Git index 상태 변경",
+        "push, PR, 배포와 completed worktree cleanup"
+      ]
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "기존 사용자 .gitignore, feedback, uploads와 sync 데이터 보존",
+        "canonical Intake, Specification, Work Unit JSON은 각 owning manager로만 갱신",
+        "잘못된 root나 destination은 쓰기 전에 fail closed",
+        "설정 조회와 resolve는 파일 이동이나 삭제를 수행하지 않음"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "검증된 sync 설정 schema와 resolver, Gmail 통합, Drive 및 Gmail 사용 계약, tracking-state 회귀 테스트, 정합화된 Project Core와 실행 증거"
+    }
+  ],
+  "subsections": []
+}

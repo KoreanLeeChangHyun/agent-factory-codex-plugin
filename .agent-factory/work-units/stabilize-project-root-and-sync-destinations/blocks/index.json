@@ -1,0 +1,32 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/logs/final-state.txt",
+      "mediaType": "text/plain",
+      "description": "Final dedicated worktree commit and clean-state evidence",
+      "sha256": "d4581e38bd310cf5a7e5c4f3839d3a34769184576b8673e85e9650f7a1a77bdd",
+      "sizeBytes": 784
+    },
+    {
+      "path": "blocks/logs/integration-receipt.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "1ffbee2b4e79d443a75062ba7b50a6f9f22cfafe6e4cf04056213ae021c22ea5",
+      "sizeBytes": 2279
+    },
+    {
+      "path": "blocks/logs/repository-state.txt",
+      "mediaType": "text/plain",
+      "description": "Final source worktree changed-path and diff-integrity capture after preliminary report",
+      "sha256": "3a85eddcbafa64b33a650e5caafe1e63c63a9eec1e656f1cab46d67cb73fdff8",
+      "sizeBytes": 1378
+    },
+    {
+      "path": "blocks/logs/verification.txt",
+      "mediaType": "text/plain",
+      "description": "Work Unit focused, full, schema, canonical validation and safety verification evidence",
+      "sha256": "f3efd6524fe827488c5f2157e123dd8bd0d00539b0b7f0ace363945d7095705a",
+      "sizeBytes": 2403
+    }
+  ]
+}

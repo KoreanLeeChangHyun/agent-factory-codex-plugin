@@ -1,0 +1,33 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "현재 lifecycle은 열린 primary workspace를 project root로 정의하고 canonical 데이터를 그 루트의 .agent-factory 아래에 둔다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "Git 최상위 기반 project root 해석",
+        ".agent-factory tracked, untracked, ignored 상태 비의존 canonical CRUD 검증",
+        "프로젝트별 sync destination 기본값과 영구 override 설정",
+        "Gmail sync script와 Drive sync 지침의 동일 경로 계약"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "기존 sync 데이터의 자동 이동 또는 삭제",
+        "실제 Google Drive 또는 Gmail 동기화 실행",
+        "OAuth 권한과 인증 방식 변경",
+        "현재 .agent-factory 파일의 Git tracked 상태 변경",
+        "배포와 push"
+      ]
+    }
+  ],
+  "subsections": []
+}
