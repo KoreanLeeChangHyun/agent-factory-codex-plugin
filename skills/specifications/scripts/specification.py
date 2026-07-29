@@ -16,21 +16,21 @@ SKILL_ROOT = SCRIPT_ROOT.parent
 PROFILE_ROOT = SKILL_ROOT / "assets" / "profiles"
 PROFILE_SCHEMA = (
     SKILL_ROOT.parent
-    / "factory-lifecycle"
+    / "factories-lifecycle"
     / "assets"
     / "schema"
     / "document-profile.schema.json"
 )
 COMMON_MANAGER = (
     SKILL_ROOT.parent
-    / "factory-lifecycle"
+    / "factories-lifecycle"
     / "assets"
     / "scripts"
     / "sectioned_document.py"
 )
 COMMON_SCHEMA_ROOT = (
     SKILL_ROOT.parent
-    / "factory-lifecycle"
+    / "factories-lifecycle"
     / "assets"
     / "schema"
     / "sectioned-document"

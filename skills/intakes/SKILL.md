@@ -5,8 +5,8 @@ description: Use for every Agent Factory Intake that turns Human requests and fe
 
 # Agent Factory Intake
 
-Prepare the complete basis from which `work-unit-manager` can create a
-self-contained Work Unit for a fresh Execution session. Apply `factory-rule`
+Prepare the complete basis from which `work-units-manager` can create a
+self-contained Work Unit for a fresh Execution session. Apply `factories-rule`
 throughout Intake.
 
 ## Mandatory Manager Script Gate
@@ -34,12 +34,12 @@ blocks, or recovering an Intake package.
 
 Use five Intake-related skills:
 
-1. `intake-web-search` owns external web evidence.
-2. `intake-analysis` owns internal code, database, data, configuration, log, test,
+1. `intakes-web-search` owns external web evidence.
+2. `intakes-analysis` owns internal code, database, data, configuration, log, test,
    runtime, and document evidence.
-3. `intake-research` owns direct observation of users, operators, their context,
+3. `intakes-research` owns direct observation of users, operators, their context,
    workflows, usability, and consented research sessions.
-4. `intake-interview` owns Human clarification and Human-only decisions.
+4. `intakes-interview` owns Human clarification and Human-only decisions.
 5. `intakes` owns Human requirements and feedback, specification alignment,
    synthesis, the document profile, manager execution, validation, readiness,
    and Work Unit handoff.
@@ -59,7 +59,7 @@ Before readiness, ensure the Intake has addressed each applicable concern:
 - acquire evidence through the minimum applicable capability skills instead of
   requiring every capability on every Intake;
 - identify conflicts, compare viable alternatives, record decision rationale,
-  and route the final Human-only choice through `intake-interview`;
+  and route the final Human-only choice through `intakes-interview`;
 - identify technical, operational, security, privacy, legal, accessibility,
   migration, and delivery risks that are applicable to the recorded scope;
 - preserve requirement provenance, priority when explicitly decided, change
@@ -91,7 +91,7 @@ Read `references/intake-structure.md` before authoring or reviewing a package.
 The profile in `assets/profiles/intake.profile.json` owns required and optional
 sections. The Intake metadata schema remains under `assets/schema/`; shared
 title, table-of-contents, section, and block-index schemas come from
-`factory-lifecycle/assets/schema/sectioned-document/`. The Intake adapter configures the
+`factories-lifecycle/assets/schema/sectioned-document/`. The Intake adapter configures the
 lifecycle-owned Python engine, which owns all canonical writes,
 table-of-contents generation, block integrity, and transaction mechanics;
 Intake retains its transitions and semantic validation. Do not edit package
@@ -117,8 +117,8 @@ Repeat until readiness passes:
 4. Review completeness, consistency, traceability, and Execution sufficiency.
 5. Revise the failed section or return to the owning capability skill.
 
-Use `intake-research` instead of treating stated preference as observed behavior.
-Use `intake-interview` instead of inventing a Human-only answer. The LLM supplies only
+Use `intakes-research` instead of treating stated preference as observed behavior.
+Use `intakes-interview` instead of inventing a Human-only answer. The LLM supplies only
 typed semantic data arguments; the manager constructs and serializes JSON.
 Pass commands as an argument array so shell interpolation cannot reinterpret
 generated content. Never compose JSON strings or temporary JSON value files.
@@ -193,7 +193,7 @@ identifier.
 
 ## Handoff
 
-After `ready` validation succeeds, hand the package to `work-unit-manager`.
+After `ready` validation succeeds, hand the package to `work-units-manager`.
 Report the Intake id, validation result, specification impact, remaining
 non-blocking items, and Work Unit basis items.
 

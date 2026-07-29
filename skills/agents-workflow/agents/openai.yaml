@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Workflow Agent"
+  short_description: "Execute Goal-bound Work Units and rework continuously."
+  default_prompt: "Use $agents-workflow to execute or resume the active Goal-bound Work Unit through Report."

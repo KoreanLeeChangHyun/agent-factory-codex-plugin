@@ -7,5 +7,5 @@ description: Route requests to Agent Factory Work Unit capabilities.
 
 Choose the Work Unit capability that matches the request:
 
-- `work-unit-manager`: Create, validate, and manage canonical Work Unit packages and execution state.
-- `work-unit-execution`: Launch Goal-bound execution and manage dedicated linked worktrees.
+- `work-units-manager`: Create, validate, and manage canonical Work Unit packages and execution state.
+- `work-units-execution`: Launch Goal-bound execution and manage dedicated linked worktrees.

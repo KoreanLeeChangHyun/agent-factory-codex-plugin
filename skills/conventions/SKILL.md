@@ -7,5 +7,5 @@ description: Route requests to shared Agent Factory convention capabilities.
 
 Choose the convention capability that matches the request:
 
-- `convention-annotation`: Create or review code comments, documentation comments, and TODO annotations.
-- `convention-icon-svg`: Apply the SVG-only icon convention to UI and design-system work.
+- `conventions-annotation`: Create or review code comments, documentation comments, and TODO annotations.
+- `conventions-icon-svg`: Apply the SVG-only icon convention to UI and design-system work.

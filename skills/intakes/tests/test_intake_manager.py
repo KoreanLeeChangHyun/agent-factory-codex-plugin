@@ -1154,12 +1154,12 @@ class IntakeManagerTests(unittest.TestCase):
         skills_root = SKILL_ROOT.parent
         intake = (SKILL_ROOT / "SKILL.md").read_text()
         structure = (SKILL_ROOT / "references" / "intake-structure.md").read_text()
-        lifecycle = (skills_root / "factory-lifecycle" / "SKILL.md").read_text()
+        lifecycle = (skills_root / "factories-lifecycle" / "SKILL.md").read_text()
         for name in (
-            "intake-analysis",
-            "intake-interview",
-            "intake-research",
-            "intake-web-search",
+            "intakes-analysis",
+            "intakes-interview",
+            "intakes-research",
+            "intakes-web-search",
             "specifications",
         ):
             text = (skills_root / name / "SKILL.md").read_text()
@@ -1168,16 +1168,16 @@ class IntakeManagerTests(unittest.TestCase):
         self.assertIn("table-of-contents.json", intake)
         self.assertIn("request-and-goal", structure)
         self.assertIn("Use `intakes` for every Intake package", lifecycle)
-        self.assertIn("Use `intake-research`", lifecycle)
+        self.assertIn("Use `intakes-research`", lifecycle)
         self.assertIn(
             "kind `decision-status`",
-            (skills_root / "intake-interview" / "SKILL.md").read_text(),
+            (skills_root / "intakes-interview" / "SKILL.md").read_text(),
         )
         self.assertIn(
             "kind `open-items-status`",
-            (skills_root / "intake-interview" / "SKILL.md").read_text(),
+            (skills_root / "intakes-interview" / "SKILL.md").read_text(),
         )
-        execution_skill = (skills_root / "work-unit-execution" / "SKILL.md").read_text()
+        execution_skill = (skills_root / "work-units-execution" / "SKILL.md").read_text()
         normalized_execution_skill = " ".join(execution_skill.split())
         self.assertIn(
             "sparse checkout to exclude the entire `.agent-factory`",
@@ -1190,16 +1190,16 @@ class IntakeManagerTests(unittest.TestCase):
 
     def test_intake_capability_routing_is_bidirectional(self) -> None:
         skills_root = SKILL_ROOT.parent
-        web_search = (skills_root / "intake-web-search" / "SKILL.md").read_text()
-        analysis = (skills_root / "intake-analysis" / "SKILL.md").read_text()
-        interview = (skills_root / "intake-interview" / "SKILL.md").read_text()
+        web_search = (skills_root / "intakes-web-search" / "SKILL.md").read_text()
+        analysis = (skills_root / "intakes-analysis" / "SKILL.md").read_text()
+        interview = (skills_root / "intakes-interview" / "SKILL.md").read_text()
 
         self.assertIn("direct observation", web_search)
-        self.assertIn("`intake-research`", web_search)
+        self.assertIn("`intakes-research`", web_search)
         self.assertIn("direct observation", analysis)
-        self.assertIn("`intake-research`", analysis)
+        self.assertIn("`intakes-research`", analysis)
         self.assertIn("not participant-research interviews", interview)
-        self.assertIn("`intake-research`", interview)
+        self.assertIn("`intakes-research`", interview)
 
 
 if __name__ == "__main__":

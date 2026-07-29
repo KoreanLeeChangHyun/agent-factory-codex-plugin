@@ -1,6 +1,0 @@
-interface:
-  display_name: "Agent Factory Interview"
-  short_description: "Resolve one necessary Human decision at a time."
-  default_prompt: "Use $intake-interview to ask one structured Human decision question with three choices and a recommendation."
-policy:
-  allow_implicit_invocation: true

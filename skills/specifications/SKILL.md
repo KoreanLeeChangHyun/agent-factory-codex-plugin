@@ -34,11 +34,11 @@ removing blocks, or recovering Project Core or any other Specification package.
   operation, and failure or capability gap. Do not fall back to direct JSON
   editing and do not create an exception path.
 
-Treat `factory-lifecycle/references/lifecycle.md` as the canonical
+Treat `factories-lifecycle/references/lifecycle.md` as the canonical
 lifecycle sequence. The adoption summaries here apply that sequence only to
 Design Document work and Design Report review through the external viewer.
 
-Read `factory-lifecycle/references/common-document-contract.md` and resolve one
+Read `factories-lifecycle/references/common-document-contract.md` and resolve one
 versioned profile from `assets/profiles/*.profile.json` before claiming a
 Specification package is structurally valid. Use
 `scripts/specification.py` to create, mutate, and validate the common sectioned
@@ -63,8 +63,8 @@ without an exception.
   contents, requirements analysis records, repository evidence, runtime
   evidence, and review evidence as facts.
 - Use the active Agent Factory skills and bundled assets from this Plugin's
-  `skills/` directory according to `factory-lifecycle`.
-- Apply the Interview Decision Gate from `factory-rule` before asking for Project
+  `skills/` directory according to `factories-lifecycle`.
+- Apply the Interview Decision Gate from `factories-rule` before asking for Project
   Core or design decisions, or before declaring that no additional interview is
   needed.
 - Do not infer missing project requirements.
@@ -113,7 +113,7 @@ without an exception.
   `blocks/reference/**`.
 - Register canonical diagram source and diagram artifacts under
   `blocks/diagram/**` when diagrams are authored.
-- Use `specification-diagram` for diagram type choice, canonical source model, diagram review,
+- Use `specifications-diagram` for diagram type choice, canonical source model, diagram review,
   and diagram-specific storage or metadata rules. The separate Chrome extension
   owns viewer rendering behavior.
 - Diagram metadata belongs in Design Document source data or in the diagram
@@ -221,7 +221,7 @@ requirements sections on an unrelated Specification profile.
 
 Every Specification also satisfies the common metadata, hierarchy,
 traceability, style boundary, and block rules in
-`factory-lifecycle/references/common-document-contract.md`. Record applicable
+`factories-lifecycle/references/common-document-contract.md`. Record applicable
 cross-cutting concerns such as security, privacy, operations, migration,
 quality, diagrams, glossary, and Work Unit decomposition only when the resolved
 profile or accepted scope requires them. Record unresolved applicable content
