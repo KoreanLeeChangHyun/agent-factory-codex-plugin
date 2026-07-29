@@ -1,0 +1,37 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "스킬 디렉터리 구조를 통일했으면 좋겠음."
+    },
+    {
+      "id": "FEEDBACK-001",
+      "kind": "human-feedback",
+      "content": "구조 변경안을 선택하거나 구현하기 전에 현재 스킬 디렉터리 구조부터 분석한다."
+    },
+    {
+      "id": "FEEDBACK-002",
+      "kind": "human-feedback",
+      "content": "하위 디렉터리는 스킬 기능에 따라 선택적으로 존재해도 되지만, 디렉터리 구조와 같은 종류 파일의 상대 위치는 모든 스킬에서 통일한다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": "모든 스킬에서 같은 종류의 파일이 같은 상대 디렉터리에 위치하고, 선택 디렉터리는 필요한 경우에만 존재하는 일관된 구조를 만든다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "모든 bundled runtime, manager, tool Python 스크립트와 해당 requirements.txt가 각 스킬의 scripts/ 아래에 있다.",
+        "assets/에는 schema, profile, template 등 비실행 자산만 남는다.",
+        "기존 CLI 동작, canonical artifact 형식, lifecycle 의미와 스킬 식별자는 보존된다.",
+        "경로 계약과 전체 관련 테스트가 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

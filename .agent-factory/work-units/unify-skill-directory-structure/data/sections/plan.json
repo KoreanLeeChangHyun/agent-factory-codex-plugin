@@ -1,0 +1,32 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "Plan: 새 scripts/ 위치 계약과 assets/ 비실행 자산 계약을 테스트에 먼저 반영하고 현재 구조에서 예상대로 실패하는지 확인한다."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Work: sectioned_document.py, work_unit.py와 requirements.txt를 scripts/로 이동하고 모든 import, 상대 경로 계산, launcher, SKILL.md, references와 테스트 참조를 새 위치로 변경한다."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "Work verification: schema checks, manager CLI smoke checks, focused manager 및 execution suites, metadata 계약, 전체 skills suite, plugin validator와 legacy path scan을 실행한다."
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": "AI Review: Human 결정 A, 범위와 제외 범위, CLI 및 canonical 의미 보존, 경로 누락, 불필요한 디렉터리, 사용자 미커밋 작업 보존과 diff 범위를 검토한다."
+    },
+    {
+      "id": "PLAN-005",
+      "kind": "plan-step",
+      "content": "Report: 이동 및 수정 경로, 정확한 검증 명령과 결과, AI findings, 남은 위험과 Human review 자료를 canonical Work Unit에 기록한다."
+    }
+  ],
+  "subsections": []
+}

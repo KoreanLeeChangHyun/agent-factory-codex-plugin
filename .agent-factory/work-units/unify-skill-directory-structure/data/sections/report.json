@@ -1,0 +1,46 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "완료: factories-lifecycle 공통 엔진과 work-units-manager 구현 및 requirements를 scripts/로 이동하고 모든 활성 참조와 테스트를 갱신했다. Schema 3종, focused 16개, manager/execution 134개, 전체 skills 158개, CLI smoke, plugin validation, legacy path scan과 clean worktree 검사가 모두 통과했다. Specification 변경은 없고, 알려진 잔여 위험은 없다. Human complete 결정 전까지 integration은 수행하지 않는다.",
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faeb5-c459-7f03-a229-ed402cacd623",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/unify-skill-directory-structure-verification.txt"
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-1F5913CD0A86A804",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/unify-skill-directory-structure",
+        "sourceCommit": "521e3bd288bf5bfa1e8a79b3adb98a489c43b1e3",
+        "strategy": "no-ff",
+        "targetAfterCommit": "9e3dde251c3670c591477a71d9cfcc0f68f9034b",
+        "targetBeforeCommit": "249def0e911a137872992ea6163543720787ca99",
+        "targetBranch": "main",
+        "workUnitId": "unify-skill-directory-structure",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/unify-skill-directory-structure",
+        "receiptSha256": "1f5913cd0a86a8040cd9e1eafec01ed79077c753104dd80e39c0bf31a1577234"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/unify-skill-directory-structure.json"
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,44 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": "bundled runtime, manager, tool Python 구현 파일은 각 스킬의 scripts/ 아래에 배치한다."
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": "Python 도구의 requirements.txt는 해당 도구와 같은 scripts/ 아래에 배치한다."
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": "assets/에는 schema, profile, template 등 비실행 자산만 배치하며 assets/scripts/를 사용하지 않는다."
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "테스트 Python 파일은 tests/에 유지한다.",
+        "스킬마다 필요하지 않은 선택 디렉터리를 생성하지 않는다.",
+        "파일 이동 외 기존 manager와 공통 엔진의 동작을 보존한다.",
+        "기존 미커밋 .gitignore 변경과 다른 untracked canonical 작업을 보존한다."
+      ]
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "skills 아래 assets/scripts 경로가 존재하지 않는다.",
+        "factories-lifecycle/scripts/sectioned_document.py와 work-units-manager/scripts/work_unit.py 및 requirements.txt가 존재한다.",
+        "intakes와 specifications adapter, work-units execution launcher, 문서와 테스트의 활성 경로 참조가 새 위치와 일치한다.",
+        "manager CLI와 canonical package schema 및 lifecycle 동작이 변경되지 않는다.",
+        "집중 metadata, artifact manager, Intake, Specification, Work Unit manager와 execution 테스트 및 전체 skills 테스트가 통과한다.",
+        "플러그인 구조 검증과 legacy 경로 정적 검색이 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

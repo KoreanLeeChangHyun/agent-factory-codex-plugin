@@ -1,0 +1,62 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "skills 아래 assets/scripts 경로가 존재하지 않는다.",
+        "skills/factories-lifecycle/scripts/sectioned_document.py가 존재한다.",
+        "skills/work-units-manager/scripts/work_unit.py와 scripts/requirements.txt가 존재한다.",
+        "모든 활성 import, launcher, 문서와 테스트 경로가 새 위치를 사용한다.",
+        "assets/에는 Python 구현 파일과 requirements.txt가 남지 않는다.",
+        "manager CLI, schema와 canonical lifecycle 동작이 보존된다.",
+        "기존 사용자 미커밋 및 untracked 범위가 보존된다."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "승인된 이동과 직접 관련된 참조 및 테스트만 변경된다.",
+        "새 위치 계약 테스트, focused suites와 전체 skills suite가 통과한다.",
+        "schema check, manager CLI smoke check, plugin validation과 legacy path scan이 통과한다.",
+        "AI review와 한국어 Human review 자료가 현재 revision과 attempt에 기록된다."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": [
+        "python3 skills/intakes/scripts/intake.py check-schemas",
+        "python3 skills/specifications/scripts/specification.py check-schemas",
+        "python3 skills/work-units-manager/scripts/work_unit.py check-schemas",
+        "python3 -m unittest skills.factories-lifecycle.tests.test_skill_metadata skills.factories-lifecycle.tests.test_artifact_manager_script_contract",
+        "python3 -m unittest skills.intakes.tests.test_intake_manager skills.specifications.tests.test_specification_manager skills.work-units-manager.tests.test_work_unit_manager skills.work-units-execution.tests.test_worktree skills.work-units-execution.tests.test_app_server_goal",
+        "python3 -m unittest skills.test_all",
+        "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+        "find skills -path '*/assets/scripts/*' -print 는 결과가 없어야 한다.",
+        "rg -n --glob '!.agent-factory/**' 'assets/scripts/(sectioned_document.py|work_unit.py|requirements.txt)' skills README.md .codex-plugin AGENTS.md 는 결과가 없어야 한다."
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "Pass: schema, CLI, focused regression, full skills, plugin validation, diff, and legacy-path checks completed.",
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faeb5-c459-7f03-a229-ed402cacd623",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/unify-skill-directory-structure-verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

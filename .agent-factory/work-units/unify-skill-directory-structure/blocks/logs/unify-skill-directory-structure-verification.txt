@@ -1,0 +1,32 @@
+Work Unit: unify-skill-directory-structure
+Revision: 1
+Attempt: 1
+Invocation: 019faeb5-c459-7f03-a229-ed402cacd623
+Source commit: 521e3bd288bf5bfa1e8a79b3adb98a489c43b1e3
+
+Verification results:
+- python3 skills/intakes/scripts/intake.py check-schemas: PASS
+- python3 skills/specifications/scripts/specification.py check-schemas: PASS
+- python3 skills/work-units-manager/scripts/work_unit.py check-schemas: PASS
+- python3 -m unittest skills.factories-lifecycle.tests.test_skill_metadata skills.factories-lifecycle.tests.test_artifact_manager_script_contract: PASS (16 tests)
+- python3 -m unittest skills.intakes.tests.test_intake_manager skills.specifications.tests.test_specification_manager skills.work-units-manager.tests.test_work_unit_manager skills.work-units-execution.tests.test_worktree skills.work-units-execution.tests.test_app_server_goal: PASS (134 tests)
+- python3 -m unittest skills.test_all: PASS (158 tests)
+- manager CLI --help smoke checks for Intake, Specification, and Work Unit managers: PASS
+- python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .: PASS
+- find skills -path '*/assets/scripts/*' -print: PASS (no output)
+- rg -n --glob '!.agent-factory/**' 'assets/scripts/(sectioned_document.py|work_unit.py|requirements.txt)' skills README.md .codex-plugin AGENTS.md: PASS (no matches; rg exit 1)
+- git diff --cached --check: PASS
+- worktree.py inspect: PASS (clean, commit 521e3bd288bf5bfa1e8a79b3adb98a489c43b1e3)
+
+AI review:
+- Approved Human decision A and Work Unit scope only: PASS
+- Python implementations and requirements are under scripts/, tests remain under tests/: PASS
+- No executable Python or requirements remain under assets/: PASS
+- CLI, schema, canonical lifecycle behavior preserved by schema, focused, and full tests: PASS
+- Active path references and SCRIPT_ROOT/SKILL_ROOT calculations updated: PASS
+- Primary user changes and unrelated canonical work preserved: PASS
+- Diff and verification evidence agree: PASS
+
+Remaining risk:
+- No known implementation or verification failures.
+- Integration is intentionally deferred until the Human chooses complete.

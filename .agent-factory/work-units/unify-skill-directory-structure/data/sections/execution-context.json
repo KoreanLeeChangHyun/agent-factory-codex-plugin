@@ -1,0 +1,101 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "unify-skill-directory-structure",
+        "objective": "Agent Factory 스킬의 Python 구현과 비실행 자산 위치를 승인된 단일 디렉터리 규칙으로 통일한다.",
+        "execInvocation": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id unify-skill-directory-structure",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "executionMode": "worktree",
+        "branch": "work-unit/unify-skill-directory-structure",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/unify-skill-directory-structure"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019faeb5-c459-7f03-a229-ed402cacd623",
+        "invocationChain": [
+          "019faeb5-c459-7f03-a229-ed402cacd623"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004",
+            "PLAN-005"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "pending",
+              "idempotencyKey": "attempt-1-plan-001-pending"
+            },
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "attempt-1-plan-001-completed"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "attempt-1-plan-002-completed"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "pending",
+              "idempotencyKey": "attempt-1-plan-003-pending"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "attempt-1-plan-003-completed"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "pending",
+              "idempotencyKey": "attempt-1-plan-004-pending"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "attempt-1-plan-004-completed"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "pending",
+              "idempotencyKey": "attempt-1-plan-005-pending"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "completed",
+              "idempotencyKey": "attempt-1-plan-005-completed"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019faeb5-c459-7f03-a229-ed402cacd623",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

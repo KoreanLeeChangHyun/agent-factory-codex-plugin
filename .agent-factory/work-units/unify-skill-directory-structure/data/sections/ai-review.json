@@ -1,0 +1,35 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Human 결정 A와 Ready Intake 범위만 구현했는지 확인",
+        "모든 bundled Python 구현과 requirements가 scripts/에 있고 tests는 tests/에 유지되는지 확인",
+        "assets/에 실행 코드가 남지 않았는지 확인",
+        "manager CLI, canonical schema, lifecycle와 기능 동작이 보존되는지 확인",
+        "경로 참조와 SCRIPT_ROOT 또는 SKILL_ROOT 계산 누락이 없는지 확인",
+        "사용자 미커밋 및 무관한 canonical 작업을 변경하지 않았는지 확인",
+        "검증 증거와 diff가 결과 주장과 일치하는지 확인"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "Pass: scope, exclusions, script/assets placement, CLI and lifecycle preservation, root calculations, active references, primary user changes, diff, and evidence were reviewed with no findings.",
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faeb5-c459-7f03-a229-ed402cacd623",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

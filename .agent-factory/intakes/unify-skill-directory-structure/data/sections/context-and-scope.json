@@ -1,0 +1,36 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "현재 23개 스킬의 평면 배치와 SKILL.md 및 agents/openai.yaml 공통 구조는 일관되지만, Python manager와 공통 엔진 일부가 assets/scripts/에 있어 다른 scripts/ 배치와 비대칭이다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "skills/factories-lifecycle/assets/scripts/sectioned_document.py를 skills/factories-lifecycle/scripts/sectioned_document.py로 이동",
+        "skills/work-units-manager/assets/scripts/work_unit.py와 requirements.txt를 skills/work-units-manager/scripts/로 이동",
+        "이동된 경로를 참조하는 manager adapter, execution launcher, tests, SKILL.md와 reference 문서 갱신",
+        "동일 위치 규칙을 검증하는 metadata 및 artifact manager 계약 테스트 갱신",
+        "이동 후 assets/scripts/ 제거와 focused 및 전체 회귀 검증"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "스킬 이름 또는 최상위 평면 배치 변경",
+        "선택 디렉터리 강제 생성",
+        "canonical .agent-factory package 형식, artifactType, lifecycle 상태 또는 manager CLI 변경",
+        "schema, profile, reference, test 파일의 역할 변경",
+        "과거 canonical Intake, Specification, Work Unit 기록 재작성",
+        "플러그인 설치, 배포, push 또는 PR promotion",
+        "무관한 .gitignore 및 다른 untracked canonical 작업 변경"
+      ]
+    }
+  ],
+  "subsections": []
+}
