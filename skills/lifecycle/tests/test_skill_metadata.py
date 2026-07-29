@@ -98,23 +98,33 @@ class SkillMetadataTests(unittest.TestCase):
                 prompt = interface["default_prompt"]
                 self.assertIn(f"${path.parents[1].name}", prompt)
 
-    def test_human_review_uses_rework_or_complete_decision(self) -> None:
+    def test_main_agent_owns_human_result_review_without_a_standalone_skill(
+        self,
+    ) -> None:
         skill_path = SKILLS / "human-review" / "SKILL.md"
         metadata_path = SKILLS / "human-review" / "agents" / "openai.yaml"
-        skill = skill_path.read_text(encoding="utf-8")
-        normalized_skill = " ".join(skill.split())
-        metadata = yaml.safe_load(metadata_path.read_text(encoding="utf-8"))
-        interface = metadata["interface"]
+        main_agent = (SKILLS / "main-agent" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        normalized_main_agent = " ".join(main_agent.split())
 
-        self.assertIn("`rework`", skill)
-        self.assertIn("`complete`", skill)
-        self.assertIn("not an approval gate", normalized_skill)
-        self.assertIn("later batch cleanup", normalized_skill)
-
-        self.assertEqual(interface["display_name"], "Human Result Review")
-        self.assertNotIn("approval", interface["short_description"].lower())
-        self.assertIn("$human-review", interface["default_prompt"])
-        self.assertIn("rework or complete", interface["default_prompt"])
+        self.assertFalse(skill_path.exists())
+        self.assertFalse(metadata_path.exists())
+        self.assertIn("Korean", main_agent)
+        for expected in (
+            "delivered scope and exclusions",
+            "changed paths or updated canonical Specification",
+            "exact verification commands and results",
+            "AI review findings",
+            "remaining risks or failed checks",
+            "whether the execution mode requires Git integration",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, normalized_main_agent)
+        self.assertIn("`rework`", main_agent)
+        self.assertIn("`complete`", main_agent)
+        self.assertIn("not an approval gate", normalized_main_agent)
+        self.assertIn("later batch cleanup", normalized_main_agent)
 
     def test_main_and_workflow_agent_roles_are_separated(self) -> None:
         main_agent = (SKILLS / "main-agent" / "SKILL.md").read_text(
