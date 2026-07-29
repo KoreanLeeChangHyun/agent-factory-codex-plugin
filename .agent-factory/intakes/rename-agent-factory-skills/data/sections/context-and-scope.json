@@ -1,0 +1,45 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "현재 17개 평면 스킬 디렉터리와 lifecycle, manager import path, launcher, tests, UI metadata가 기존 이름을 참조한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "승인된 디렉터리 이름 변경 및 fact-only 제거",
+        "SKILL.md frontmatter와 agents/openai.yaml 호출 이름 변경",
+        "내부 Python 경로, lifecycle 라우팅, 참조 문서와 테스트 변경",
+        "convention-annotation 신규 생성과 기존 Code Comment Convention 이동",
+        "활성 이전 이름 참조 제거 및 집중 검증"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "과거 canonical Intake와 Work Unit 기록 재작성",
+        "canonical artifactType 또는 저장 컬렉션 이름 변경",
+        "플러그인 설치와 배포",
+        "푸시와 PR 생성",
+        "무관한 .gitignore 변경"
+      ]
+    },
+    {
+      "id": "SCOPE-ENTRYPOINTS-001",
+      "kind": "scope",
+      "content": [
+        "agent-factory 최상위 라우팅 스킬 신규 추가",
+        "agents, factories, conventions, syncs, work-units 도메인 라우팅 스킬 신규 추가",
+        "intakes와 specifications의 기존 manager 겸 진입점 역할 유지",
+        "모든 신규 진입점은 skills 바로 아래 평면 배치",
+        "기능 구현과 규칙은 기존 capability 스킬에 유지"
+      ]
+    }
+  ],
+  "subsections": []
+}

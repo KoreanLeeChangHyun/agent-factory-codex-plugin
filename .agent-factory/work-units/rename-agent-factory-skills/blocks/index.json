@@ -1,0 +1,25 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/logs/integration-receipt.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "567820bd1c85759713122be94ea00494ef72e8fd5eb371356dab596d21740048",
+      "sizeBytes": 912
+    },
+    {
+      "path": "blocks/logs/verification-revision-3.txt",
+      "mediaType": "text/plain",
+      "description": "Work Unit revision 3 verification commands, final Explorer order, and AI Review",
+      "sha256": "3091ff4b97e3024b6ae74fb3eba83bcdf089bc1812c16e36d8b90822efdf0bf1",
+      "sizeBytes": 3073
+    },
+    {
+      "path": "blocks/logs/verification.txt",
+      "mediaType": "text/plain",
+      "description": "Work Unit revision 2 verification commands and results",
+      "sha256": "40eabb234ae87e6ba1ad99e342203983278bc6b17c2a03e2ef527896406a8c98",
+      "sizeBytes": 2988
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "승인된 13개 rename, 3개 유지, 1개 삭제, 1개 신규 매핑 확인",
+        "frontmatter, default_prompt, cross-skill 상대 경로와 lifecycle 라우팅 확인",
+        "fact-only 제거 후 남은 hard gate 의미와 문서 정합성 확인",
+        "convention-annotation 단일 소유권과 중복 없음 확인",
+        "canonical 컬렉션과 artifactType 비변경 확인",
+        "과거 canonical 기록 및 무관한 .gitignore 변경 보존 확인",
+        "집중 및 전체 검증 결과 확인"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "Revision 3 diff와 승인 매핑을 대조했으며 15개 rename, 7개 유지 진입점, 경로·라우팅·metadata·테스트 정합성과 canonical 비변경을 확인했다.",
+        "checklist": [
+          "15개 capability 최종 rename이 정확함",
+          "23개 평면 스킬이 Explorer 오름차순에서 진입점별로 연속 그룹화됨",
+          "모든 frontmatter name과 default_prompt가 디렉터리 이름과 일치함",
+          "Python manager, launcher와 worktree 상대 경로가 새 이름을 해석함",
+          "7개 진입점 라우팅 문서가 새 capability만 가리킴",
+          "revision 2 capability 식별자의 활성 참조가 0건임",
+          "canonical .agent-factory와 artifactType 의미값이 source commit에서 변경되지 않음",
+          "focused, schema와 전체 157개 회귀가 통과함"
+        ],
+        "resolvedFindings": [],
+        "remainingRisks": []
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fae85-3f84-7da1-a461-13e69ad5e898",
+          "revision": 3,
+          "attempt": 1
+        }
+      }
+    },
+    {
+      "id": "AI-CHECKLIST-REWORK-001",
+      "kind": "ai-checklist",
+      "content": [
+        "최상위 agent-factory의 7개 진입점과 설명 완전성",
+        "5개 도메인 진입점의 정확한 capability 라우팅",
+        "중복 규칙 및 manager 로직 없음",
+        "평면 디렉터리와 UI metadata 계약",
+        "기존 17개 capability 검증 비회귀"
+      ]
+    },
+    {
+      "id": "AI-CHECKLIST-REWORK-002",
+      "kind": "ai-checklist",
+      "content": [
+        "15개 capability 최종 rename 정확성",
+        "7개 진입점과 capability 연속 정렬",
+        "frontmatter, default_prompt, Python 경로와 라우팅 정합성",
+        "canonical 의미값 과잉 치환 없음",
+        "전체 23개 평면 스킬 metadata 및 회귀 검증"
+      ]
+    }
+  ],
+  "subsections": []
+}

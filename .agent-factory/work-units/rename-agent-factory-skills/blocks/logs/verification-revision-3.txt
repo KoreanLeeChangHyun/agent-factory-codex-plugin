@@ -1,0 +1,85 @@
+Agent Factory Work Unit: rename-agent-factory-skills
+Revision: 3
+Attempt: 1
+Commit: 282c3c9a38c8c2ae0d2f83c360400e3abf7bedc1
+
+TDD RED
+python3 -m unittest skills/factory-lifecycle/tests/test_skill_metadata.py
+Result: expected failure before implementation; 9 failures and 4 errors showed the old directories, route names, metadata paths, and requirements paths did not satisfy the plural-prefix contract.
+
+Focused verification
+python3 -m unittest discover -s skills/factories-lifecycle/tests -p 'test_*.py'
+Result: PASS, 23 tests.
+
+python3 -m unittest discover -s skills/intakes/tests -p 'test_*.py'
+Result: PASS, 32 tests.
+
+python3 -m unittest discover -s skills/specifications/tests -p 'test_*.py'
+Result: PASS, 9 tests.
+
+python3 -m unittest discover -s skills/work-units-manager/tests -p 'test_*.py'
+Result: PASS, 36 tests.
+
+python3 -m unittest discover -s skills/work-units-execution/tests -p 'test_*.py'
+Result: PASS, 57 tests.
+
+Schema verification
+python3 skills/intakes/scripts/intake.py check-schemas
+Result: PASS, intake@2.0.0.
+
+python3 skills/specifications/scripts/specification.py check-schemas
+Result: PASS, six registered profiles.
+
+python3 skills/work-units-manager/assets/scripts/work_unit.py check-schemas
+Result: PASS, work-unit@4.0.0.
+
+Full regression
+python3 -m unittest discover -s skills -p 'test_*.py'
+Result: PASS, 157 tests in 220.644s.
+
+Static and repository checks
+git diff --check
+Result: PASS.
+
+rg -n --hidden --glob '!.git/**' 'agent-main|agent-workflow|factory-lifecycle|factory-rule|convention-annotation|convention-icon-svg|intake-analysis|intake-interview|intake-research|intake-web-search|specification-diagram|sync-google-drive|sync-google-gmail|work-unit-execution|work-unit-manager' .
+Result: PASS, zero active matches before commit.
+
+python3 skills/work-unit-execution/scripts/worktree.py inspect --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id rename-agent-factory-skills
+Result: PASS, dedicated worktree clean at commit 282c3c9a38c8c2ae0d2f83c360400e3abf7bedc1.
+
+git diff --check 668a477..282c3c9
+Result: PASS.
+
+git diff --quiet 668a477..282c3c9 -- .agent-factory
+Result: PASS, no canonical artifact changes in the source commit.
+
+git merge-base --is-ancestor 668a477 282c3c9
+Result: PASS, revision 2 is preserved as commit ancestry.
+
+Final Explorer order
+agent-factory
+agents
+agents-main
+agents-workflow
+conventions
+conventions-annotation
+conventions-icon-svg
+factories
+factories-lifecycle
+factories-rule
+intakes
+intakes-analysis
+intakes-interview
+intakes-research
+intakes-web-search
+specifications
+specifications-diagram
+syncs
+syncs-google-drive
+syncs-google-gmail
+work-units
+work-units-execution
+work-units-manager
+
+AI Review
+PASS. The 15 exact renames, seven retained entrypoints, frontmatter names, default prompts, Python relative paths, routing documents, and tests match the revision 3 instruction. The source diff contains no .agent-factory changes, semantic artifact names remain unchanged, all old revision 2 capability identifiers have zero active matches, and no unresolved findings remain.

@@ -1,0 +1,32 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "summary": "Revision 2 기능을 보존하면서 15개 capability를 복수형 진입점 접두사로 변경하고 전체 활성 참조를 갱신했다.",
+        "commit": "282c3c9a38c8c2ae0d2f83c360400e3abf7bedc1",
+        "deliveredScope": [
+          "15개 capability 디렉터리와 식별자를 승인된 복수형 접두사로 변경",
+          "agent-factory와 agents, factories, conventions, intakes, specifications, syncs, work-units 진입점 유지",
+          "모든 frontmatter name과 default_prompt를 새 호출 이름으로 갱신",
+          "Python 상대 경로, lifecycle 라우팅, 문서와 테스트 참조 갱신",
+          "Explorer 정렬 계약과 전체 157개 회귀 검증 추가"
+        ]
+      },
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fae85-3f84-7da1-a461-13e69ad5e898",
+          "revision": 3,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,62 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "Human은 모든 스킬을 skills 바로 아래에 평면 배치하기로 결정했다."
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "Human은 factory, specification, annotation 철자를 사용하기로 결정했다."
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": "Human은 fact-only를 제거하기로 결정했다."
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": "Human은 user-research를 intake-research로 변경하기로 결정했다."
+    },
+    {
+      "id": "DECISION-005",
+      "kind": "decision-status",
+      "content": "Human은 specification을 specifications로 변경하기로 결정했다."
+    },
+    {
+      "id": "DECISION-006",
+      "kind": "decision-status",
+      "content": "Human은 Code Comment Convention을 신규 convention-annotation으로 이동하기로 결정했다."
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": "차단 미결정 없음"
+    },
+    {
+      "id": "DECISION-007",
+      "kind": "decision-status",
+      "content": "Human은 기존 capability 스킬을 유지하고 agents, factories, conventions, syncs, work-units를 라우팅 전용 스킬로 추가하기로 결정했다."
+    },
+    {
+      "id": "DECISION-008",
+      "kind": "decision-status",
+      "content": "Human은 agent-factory를 최상위 라우팅 전용 스킬로 추가하기로 결정했다."
+    },
+    {
+      "id": "DECISION-009",
+      "kind": "decision-status",
+      "content": "Human은 최상위 agent-factory가 모든 하위 진입점과 간략 설명을 제공하도록 결정했다."
+    },
+    {
+      "id": "DECISION-010",
+      "kind": "decision-status",
+      "content": "Human은 정렬 가능한 최종 이름 체계로 복수형 진입점 접두사를 모든 capability에 적용하기로 결정했다."
+    }
+  ],
+  "subsections": []
+}

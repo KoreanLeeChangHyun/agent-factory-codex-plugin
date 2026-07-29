@@ -1,0 +1,61 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Agent Factory 스킬의 디렉터리, 식별자, 호출 이름과 내부 참조를 승인된 명명 및 책임 체계로 개편한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "13개 기존 스킬 디렉터리와 식별자 변경",
+        "agent-main, agent-workflow, work-unit-execution 이름 유지",
+        "fact-only 삭제와 활성 참조 제거",
+        "convention-annotation 신규 생성 및 Code Comment Convention 이동",
+        "Python 내부 경로, lifecycle 라우팅, 문서, UI metadata와 테스트 정합화",
+        "전체 활성 이전 이름 검사와 회귀 테스트"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "과거 canonical Intake와 Work Unit 내용 재작성",
+        "canonical .agent-factory 컬렉션명과 artifactType 변경",
+        "플러그인 설치와 배포",
+        "푸시와 PR",
+        "무관한 .gitignore 변경"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "승인된 평면 스킬 이름과 단일 주석 규칙 소유권을 사용하며 전체 검증을 통과하는 Agent Factory 플러그인 소스"
+    },
+    {
+      "id": "SCOPE-REWORK-001",
+      "kind": "scope",
+      "content": [
+        "agent-factory 최상위 라우팅 스킬 추가",
+        "agents, factories, conventions, syncs, work-units 도메인 라우팅 스킬 추가",
+        "agent-factory에 agents, factories, intakes, specifications, work-units, conventions, syncs와 한 줄 설명 제공",
+        "기존 capability 스킬과 평면 구조 유지",
+        "metadata 및 전체 discovery 검증"
+      ]
+    },
+    {
+      "id": "SCOPE-REWORK-002",
+      "kind": "scope",
+      "content": [
+        "15개 capability를 복수형 진입점 접두사로 최종 변경",
+        "agent-factory와 7개 진입점 유지",
+        "frontmatter, default_prompt, Python 상대 경로, 라우팅 문서와 테스트 갱신",
+        "Explorer 기본 오름차순 최종 목록 검증"
+      ]
+    }
+  ],
+  "subsections": []
+}

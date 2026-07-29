@@ -1,0 +1,88 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "플러그인 스킬 식별자와 내부 라우팅 개편이며 canonical 제품 Specification 변경은 아니다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Agent Factory 스킬의 명명과 책임 구조를 승인된 체계로 일관되게 개편한다.",
+        "executionOrder": 1,
+        "scope": [
+          "13개 기존 스킬 이름 변경",
+          "3개 이름 유지",
+          "fact-only 제거",
+          "convention-annotation 신규 생성과 주석 규칙 이동",
+          "활성 참조 및 테스트 정합화"
+        ],
+        "outOfScope": [
+          "과거 canonical 기록 변경",
+          "canonical 컬렉션과 artifactType 변경",
+          "플러그인 설치와 배포",
+          "푸시와 PR",
+          "무관한 .gitignore 변경"
+        ],
+        "dependencies": []
+      }
+    },
+    {
+      "id": "BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "승인된 명명 개편 결과에 최상위 및 도메인 라우팅 진입점 6개를 추가한다.",
+        "executionOrder": 2,
+        "scope": [
+          "agent-factory 최상위 진입점",
+          "agents, factories, conventions, syncs, work-units 도메인 진입점",
+          "intakes와 specifications 기존 진입점 유지",
+          "평면 배치, 라우팅 전용 책임, metadata 및 전체 회귀 검증"
+        ],
+        "outOfScope": [
+          "기존 capability 스킬 통합 또는 제거",
+          "중첩 디렉터리",
+          "manager 로직 복제",
+          "플러그인 설치와 배포"
+        ],
+        "dependencies": [
+          "BASIS-001"
+        ]
+      }
+    },
+    {
+      "id": "BASIS-003",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "평면 스킬 구조에서 진입점과 capability가 Explorer 기본 정렬로 연속 배치되도록 이름을 최종 조정한다.",
+        "executionOrder": 3,
+        "scope": [
+          "15개 capability를 복수형 진입점 접두사로 변경",
+          "진입점 7개와 agent-factory 유지",
+          "frontmatter, UI metadata, 내부 경로, 라우팅, 테스트 정합화",
+          "최종 디렉터리 순서와 전체 회귀 검증"
+        ],
+        "outOfScope": [
+          "중첩 디렉터리",
+          "숫자 또는 특수문자 정렬 접두사",
+          "VS Code 사용자 설정 변경",
+          "기능 역할 변경"
+        ],
+        "dependencies": [
+          "BASIS-001",
+          "BASIS-002"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

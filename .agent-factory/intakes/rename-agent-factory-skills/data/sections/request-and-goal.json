@@ -1,0 +1,42 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "Agent Factory 스킬을 승인된 평면 명명 체계로 변경하고 fact-only를 제거하며 convention-annotation을 신규 추가한다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": "스킬 디렉터리, frontmatter, 호출 이름, 내부 경로, 문서와 테스트가 승인된 이름 및 책임 구조로 일치한다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "승인된 새 스킬 디렉터리와 식별자가 존재한다.",
+        "fact-only 활성 스킬과 참조가 제거된다.",
+        "convention-annotation이 주석 규칙의 단일 소유자가 된다.",
+        "이전 이름의 활성 참조가 남지 않고 관련 테스트가 통과한다."
+      ]
+    },
+    {
+      "id": "FEEDBACK-001",
+      "kind": "human-feedback",
+      "content": "기존 기능 스킬을 유지하면서 agents, factories, conventions, syncs, work-units 도메인 진입점과 최상위 agent-factory 진입점을 라우팅 전용 스킬로 추가한다."
+    },
+    {
+      "id": "FEEDBACK-002",
+      "kind": "human-feedback",
+      "content": "최상위 agent-factory 진입점에는 각각의 하위 진입점과 간략한 역할 설명을 제공한다."
+    },
+    {
+      "id": "FEEDBACK-003",
+      "kind": "human-feedback",
+      "content": "VS Code Explorer의 기본 문자 정렬에서 진입점과 capability가 붙도록 복수형 진입점 이름을 capability 공통 접두사로 사용한다."
+    }
+  ],
+  "subsections": []
+}
