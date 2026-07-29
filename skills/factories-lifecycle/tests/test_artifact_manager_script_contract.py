@@ -30,7 +30,6 @@ MANAGERS = {
         PLUGIN_ROOT
         / "skills"
         / "work-units-manager"
-        / "assets"
         / "scripts"
         / "work_unit.py",
         [],
