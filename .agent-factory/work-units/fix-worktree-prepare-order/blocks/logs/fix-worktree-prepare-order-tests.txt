@@ -1,0 +1,27 @@
+fix-worktree-prepare-order verification
+
+Red:
+- running active-attempt prepare test failed with return code 2 before implementation.
+- blocked active-attempt prepare test failed with return code 2 before implementation.
+- execution, recovery prompt, and workflow ordering assertions failed before implementation.
+
+Green:
+- python3 -m unittest skills/work-unit-planner/tests/test_work_unit_manager.py
+  Ran 36 tests in 136.961s — OK
+- python3 -m unittest skills/work-unit-execution/tests/test_worktree.py
+  Ran 40 tests in 27.096s — OK
+- python3 -m unittest skills/work-unit-execution/tests/test_app_server_goal.py
+  Ran 17 tests in 1.549s — OK
+- python3 -m unittest skills/lifecycle/tests/test_skill_metadata.py
+  Ran 7 tests in 0.020s — OK
+- python3 -m py_compile skills/work-unit-planner/assets/scripts/work_unit.py skills/work-unit-execution/scripts/worktree.py skills/work-unit-execution/scripts/app_server_goal.py
+  Passed
+- git diff --check
+  Passed
+
+Runtime recovery:
+- worktree.py prepare accepted rename-agent-role-skills in blocked active-attempt recovery mode.
+- It created and locked the canonical work-unit/rename-agent-role-skills linked worktree.
+- blocker-resolve returned the same revision 1 / attempt 1 to working.
+- app_server_goal.py resumed the attempt with zero automatic recoveries.
+- The rename Goal completed and the canonical Work Unit reached review.

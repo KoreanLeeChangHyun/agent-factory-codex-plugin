@@ -1,0 +1,36 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Worktree prepare 순서와 active blocked attempt 복구 경로를 수정한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "workflow-agent and launcher prepare-before-attempt contract",
+        "manager-validated active working/blocked attempt admission for prepare",
+        "manager, worktree, launcher focused tests",
+        "rename-agent-role-skills recovery evidence"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "lifecycle redesign",
+        "generic Git or canonical JSON bypass",
+        "commit, push, deploy"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "검증된 prepare ordering/recovery 구현과 재개 가능한 rename Work Unit"
+    }
+  ],
+  "subsections": []
+}

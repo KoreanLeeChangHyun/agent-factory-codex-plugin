@@ -39,14 +39,26 @@ another approval, checkpoint, or decision request.
 
 ## Result review
 
-Present completed execution, verification, AI review, and report evidence to the
-Human. The Human chooses:
+Write all Human-facing review material in Korean. Present:
+
+- delivered scope and exclusions;
+- changed paths or updated canonical Specification;
+- exact verification commands and results;
+- AI review findings;
+- remaining risks or failed checks;
+- whether the execution mode requires Git integration.
+
+The Human chooses:
 
 - `rework`: record the exact instruction through `rework-start` and invoke the
   same background launcher again.
 - `complete`: record `--review-decision complete`, integrate the source branch
   automatically for `worktree` mode, and retain the completed worktree for
   later batch cleanup.
+
+This is result review, not an approval gate. Do not request a checkpoint,
+separate merge approval, or cleanup approval. Do not ask again about decisions
+already present in the canonical artifacts.
 
 `specification-direct` execution updates the primary canonical Specification and
 has no worktree or merge step. Push, deployment, branch deletion, and PR

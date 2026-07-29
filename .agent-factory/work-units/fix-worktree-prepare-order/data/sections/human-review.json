@@ -1,0 +1,36 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "정상 실행의 순서 재발 방지 확인",
+        "blocked attempt 복구 범위가 제한적인지 확인",
+        "rename Work Unit 재개 결과 확인"
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": "diff, focused tests, canonical recovery evidence를 확인하고 rework 또는 complete를 결정한다."
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "Pending",
+      "attributes": {
+        "status": "complete",
+        "decidedAt": "2026-07-29T12:37:35+00:00",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "81f5182f-3b28-484d-b49d-3ef02ffb32c9"
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -23,7 +23,7 @@ The launcher-owned Goal preflight is already complete.
   dedicated `work-unit/<id>` linked worktree through `worktree.py`. The entire
   `.agent-factory` directory is excluded from that worktree. Canonical artifact
   CRUD always targets the primary root through its owning manager. For a fresh
-  execution, prepare or reuse it before `execution-init` or `attempt-start`.
+  execution, prepare or reuse this worktree before `execution-init` or `attempt-start`.
 
 When an active working or blocked attempt has no linked worktree, use
 `worktree.py prepare` under its manager-validated recovery admission before

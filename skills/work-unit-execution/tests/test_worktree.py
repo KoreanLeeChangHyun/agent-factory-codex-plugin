@@ -419,6 +419,66 @@ class WorktreeCliTest(unittest.TestCase):
             0,
         )
 
+    def test_prepare_accepts_running_active_attempt_for_recovery(self) -> None:
+        package = (
+            self.repo / ".agent-factory" / "work-units" / "wu-001"
+        )
+        helpers.run_cli("execution-init", str(package))
+        helpers.run_cli(
+            "attempt-start",
+            str(package),
+            "--invocation-id",
+            "running-recovery-session",
+        )
+
+        result, payload = self.prepare()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["state"], "prepared")
+        self.assertEqual(
+            payload["context"]["admission"]["admissionMode"],
+            "active-attempt-recovery",
+        )
+        self.assertTrue(self.worktree.is_dir())
+
+    def test_prepare_accepts_blocked_active_attempt_for_recovery(self) -> None:
+        package = (
+            self.repo / ".agent-factory" / "work-units" / "wu-001"
+        )
+        helpers.run_cli("execution-init", str(package))
+        helpers.run_cli(
+            "attempt-start",
+            str(package),
+            "--invocation-id",
+            "blocked-recovery-session",
+        )
+        helpers.run_cli(
+            "execution-failure",
+            str(package),
+            "--step-id",
+            "plan",
+            "--classification",
+            "permanent",
+            "--max-retries",
+            "1",
+            "--evidence",
+            "worktree was not prepared before attempt-start",
+            "--idempotency-key",
+            "blocked-before-worktree-prepare",
+            "--blocker-id",
+            "BLOCKER-WORKTREE-PREPARE-ORDER",
+        )
+
+        result, payload = self.prepare()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["state"], "prepared")
+        self.assertEqual(
+            payload["context"]["admission"]["admissionMode"],
+            "active-attempt-recovery",
+        )
+        self.assertTrue(self.worktree.is_dir())
+
     def test_prepare_accepts_explicit_canonical_path_assertion(self) -> None:
         result, payload = self.cli("prepare", "--base", "main", path=self.worktree)
         self.assertEqual(result.returncode, 0, result.stderr)

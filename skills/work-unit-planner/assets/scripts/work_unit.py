@@ -1333,9 +1333,30 @@ def command_admit(args: argparse.Namespace) -> None:
     package = resolve_package(args.package)
     result = validate_package(package, full=True)
     metadata = base.load_metadata(package)
-    if metadata["lifecycle"]["status"] != "ready":
-        raise ManagerError("execution admission requires a ready Work Unit")
-    validate_ready_semantics(package)
+    status = metadata["lifecycle"]["status"]
+    if status == "ready":
+        validate_ready_semantics(package)
+        admission_mode = "ready"
+    elif status in {"working", "blocked"}:
+        validate_execution_state(package, required=True)
+        state = find_kind(package, "execution-state")
+        expected_state = "running" if status == "working" else "blocked"
+        if (
+            state is None
+            or state.get("content", {}).get("state") != expected_state
+            or not isinstance(state["content"].get("currentAttempt"), int)
+            or state["content"]["currentAttempt"] < 1
+        ):
+            raise ManagerError(
+                "active attempt recovery admission requires matching "
+                f"{status}/{expected_state} execution state"
+            )
+        admission_mode = "active-attempt-recovery"
+    else:
+        raise ManagerError(
+            "execution admission requires a ready Work Unit or an active "
+            "working/blocked attempt"
+        )
     context_item = find_kind(package, "execution-context")
     assert context_item is not None
     context = context_item["content"]
@@ -1383,6 +1404,7 @@ def command_admit(args: argparse.Namespace) -> None:
             {
                 **result,
                 "admitted": True,
+                "admissionMode": admission_mode,
                 "repository": str(repository),
                 "baseRef": context["baseRef"],
                 "requestedBase": args.base,

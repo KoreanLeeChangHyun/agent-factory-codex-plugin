@@ -1,0 +1,95 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "fix-worktree-prepare-order",
+        "objective": "Worktree prepare 순서와 active blocked attempt 복구 경로를 수정한다.",
+        "execInvocation": "python3 skills/work-unit-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id fix-worktree-prepare-order",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/fix-worktree-prepare-order",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/fix-worktree-prepare-order",
+        "executionMode": "worktree"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "81f5182f-3b28-484d-b49d-3ef02ffb32c9",
+        "invocationChain": [
+          "81f5182f-3b28-484d-b49d-3ef02ffb32c9"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "plan",
+            "work",
+            "ai-review",
+            "report"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "plan",
+              "state": "pending",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-plan-pending"
+            },
+            {
+              "stepId": "plan",
+              "state": "completed",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-plan-completed"
+            },
+            {
+              "stepId": "work",
+              "state": "pending",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-work-pending"
+            },
+            {
+              "stepId": "work",
+              "state": "completed",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-work-completed"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "pending",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-ai-review-pending"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "completed",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-ai-review-completed"
+            },
+            {
+              "stepId": "report",
+              "state": "pending",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-report-pending"
+            },
+            {
+              "stepId": "report",
+              "state": "completed",
+              "idempotencyKey": "fix-worktree-prepare-order-r1-a1-report-completed"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "81f5182f-3b28-484d-b49d-3ef02ffb32c9",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

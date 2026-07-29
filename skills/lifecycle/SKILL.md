@@ -122,4 +122,3 @@ explicit Human request.
 - `work-unit-planner` for Work Unit creation and state.
 - `work-unit-execution` for Goal launcher and Git worktree operations.
 - `agent-workflow` for launched execution.
-- `human-review` for Korean review and rework/complete material.

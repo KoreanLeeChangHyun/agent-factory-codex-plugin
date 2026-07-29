@@ -36,6 +36,10 @@ This is the Goal preflight: `thread/goal/set` and `thread/goal/get` must agree
 before `turn/start`. On mismatch, fail closed before worktree preparation.
 
 Once launched, do not repeat readiness, checkpoint, or approval decisions.
+For `worktree` execution, prepare or reuse the canonical linked worktree before
+`execution-init` or `attempt-start`. A manager-owned active working or blocked
+attempt may use recovery admission to prepare a missing worktree without
+reopening the one-time readiness decision.
 
 ## Execution modes
 

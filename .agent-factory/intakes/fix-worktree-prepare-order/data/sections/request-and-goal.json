@@ -1,0 +1,32 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": "rename-agent-role-skills 실행을 막은 worktree prepare 순서 문제를 수정하고 기존 Work Unit 실행을 계속한다."
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": "신규 실행은 worktree를 attempt 시작 전에 준비하며, 이미 blocked인 유효한 active attempt도 manager 검증 아래 worktree를 준비하고 재개할 수 있다."
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "정상 실행 순서가 skill과 launcher prompt에 명시된다.",
+        "유효한 blocked active attempt의 worktree prepare가 성공한다.",
+        "backlog, 잘못된 identity, invalid package는 Git mutation 전에 거부된다.",
+        "관련 manager/worktree/launcher 테스트가 통과한다."
+      ]
+    },
+    {
+      "id": "FEEDBACK-001",
+      "kind": "human-feedback",
+      "content": "Human은 fix-worktree-prepare-order Work Unit을 primary thread에서 예외적으로 직접 구현하도록 승인했다."
+    }
+  ],
+  "subsections": []
+}

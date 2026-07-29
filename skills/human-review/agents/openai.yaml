@@ -1,4 +1,0 @@
-interface:
-  display_name: "Human Result Review"
-  short_description: "Prepare Human rework or complete review decisions."
-  default_prompt: "Use $human-review to present Work Unit evidence and request a rework or complete decision."
