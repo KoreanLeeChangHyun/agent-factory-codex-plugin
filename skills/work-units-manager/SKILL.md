@@ -8,7 +8,7 @@ description: Create and manage executable Agent Factory Work Units from ready In
 ## Mandatory Manager Script Gate
 
 All canonical Work Unit operations must use
-`assets/scripts/work_unit.py` as a hard precondition. If the manager cannot
+`scripts/work_unit.py` as a hard precondition. If the manager cannot
 perform an operation, stop before mutation. Do not fall back to direct JSON
 editing and do not create an exception path.
 

@@ -14,7 +14,7 @@ from unittest import mock
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = SKILL_ROOT / "assets" / "scripts" / "work_unit.py"
+SCRIPT = SKILL_ROOT / "scripts" / "work_unit.py"
 INTAKE_SCRIPT = SKILL_ROOT.parent / "intakes" / "scripts" / "intake.py"
 SCHEMA_ROOT = SKILL_ROOT / "assets" / "schema"
 PROFILE = SKILL_ROOT / "assets" / "profiles" / "work-unit.profile.json"

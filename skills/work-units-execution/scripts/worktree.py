@@ -18,7 +18,6 @@ WORKTREE_ROOT = Path(".agent-factory/worktree")
 WORK_UNIT_MANAGER = (
     Path(__file__).resolve().parents[2]
     / "work-units-manager"
-    / "assets"
     / "scripts"
     / "work_unit.py"
 )

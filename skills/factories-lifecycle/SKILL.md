@@ -21,7 +21,7 @@ Every canonical operation uses its owning manager:
 
 - Intake: `intakes/scripts/intake.py`
 - Specification: `specifications/scripts/specification.py`
-- Work Unit: `work-units-manager/assets/scripts/work_unit.py`
+- Work Unit: `work-units-manager/scripts/work_unit.py`
 
 Never create, update, delete, copy, move, or repair canonical JSON through
 `apply_patch`, shell redirection, ad hoc scripts, generic filesystem tools, or a

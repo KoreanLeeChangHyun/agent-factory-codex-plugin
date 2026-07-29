@@ -31,9 +31,9 @@ except ImportError:
 
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
-SKILL_ROOT = SCRIPT_ROOT.parent.parent
-SCHEMA_ROOT = SKILL_ROOT / "schema"
-PROFILE_PATH = SKILL_ROOT / "profiles" / "unconfigured.profile.json"
+SKILL_ROOT = SCRIPT_ROOT.parent
+SCHEMA_ROOT = SKILL_ROOT / "assets" / "schema"
+PROFILE_PATH = SKILL_ROOT / "assets" / "profiles" / "unconfigured.profile.json"
 ARTIFACT_TYPE = "document"
 ARTIFACT_LABEL = "Document"
 PACKAGE_COLLECTION = "documents"
