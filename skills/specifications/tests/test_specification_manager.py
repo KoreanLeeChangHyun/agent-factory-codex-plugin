@@ -242,6 +242,47 @@ class SpecificationManagerTests(unittest.TestCase):
                 "project-core@1.0.0",
             )
 
+    def test_prune_missing_provenance_ref_recovers_full_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            metadata_path = package / "data" / "metadata.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["provenance"]["sourceRefs"] = [
+                {
+                    "artifactType": "work-unit",
+                    "id": "removed-unit",
+                    "path": ".agent-factory/work-units/removed-unit",
+                }
+            ]
+            metadata_path.write_text(
+                json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            self.assertNotEqual(
+                run_cli("validate", str(package), "--full", check=False).returncode,
+                0,
+            )
+            recovered = json.loads(
+                run_cli(
+                    "source-ref-prune",
+                    str(package),
+                    "--artifact-type",
+                    "work-unit",
+                    "--id",
+                    "removed-unit",
+                    "--path",
+                    ".agent-factory/work-units/removed-unit",
+                ).stdout
+            )
+            self.assertTrue(recovered["valid"])
+            self.assertEqual(
+                json.loads(metadata_path.read_text(encoding="utf-8"))["provenance"][
+                    "sourceRefs"
+                ],
+                [],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

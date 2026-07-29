@@ -50,11 +50,13 @@ style objects, or style-variable values. Renderers and themes own presentation.
   sections plus purpose-specific required sections.
 - `work-units-manager/assets/profiles/work-unit.profile.json` owns Work Unit
   sections.
+- `work-units-manager/assets/profiles/work-package.profile.json` owns Work
+  Package definition, durable execution, review, and report sections.
 - `factories-lifecycle/assets/schema/sectioned-document/` owns the shared title,
   table-of-contents, section, and block-index component schemas. Artifact
   skills own only artifact-specific metadata schemas and profiles.
 - `factories-lifecycle/assets/schema/document-profile.schema.json` validates the
-  Specification registry and Work Unit profile shape. The
+  Specification registry and Work Unit/Work Package profile shape. The
   Intake manager validates its operational profile and required content-kind
   extension directly.
 

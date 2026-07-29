@@ -72,6 +72,26 @@ main lifecycle; `specification-direct` has no integration.
 Completed outcome records are immutable. Completed clean worktrees are removed
 later through batch cleanup.
 
+## Work Packages
+
+Use `scripts/work_package.py` for every canonical
+`.agent-factory/work-packages/<package-id>` operation. Never edit Work Package
+JSON directly. A package owns its positive `maxParallel`, DAG nodes and
+prerequisites, repository and target/integration branches, durable lease and
+events, node idempotency keys, package review, member traceability, rework
+impact, and single integration receipt.
+
+Run `preflight` before execution. It full-validates every member, repository
+identity, readiness, execution mode, graph references and cycles, and
+branch/worktree collisions without mutation. `execution-start` converts a
+successful preflight into the ACK-bound running state. Use `state-put` for
+scheduler state, `review-put` for the package AI/Human review handoff,
+`rework-start` for affected nodes and descendants, and `complete` for the one
+target integration receipt.
+
+The lifecycle is `draft -> ready -> working <-> recovering -> review -> done`.
+After ACK it never uses terminal `blocked` or `failed`.
+
 ## Required output
 
 When creating Work Units, include:

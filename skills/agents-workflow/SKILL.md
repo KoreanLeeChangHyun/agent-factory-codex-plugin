@@ -51,3 +51,10 @@ error is reported as an explicit failure; do not leave a process waiting in
 Do not merge, clean up, push, deploy, delete a branch, or perform PR promotion. Those
 actions occur after the Human chooses `complete`, except that Specification-only
 execution has no merge or cleanup.
+
+When launched as a Work Package member, execute only the named member in its
+scheduler-prepared worktree or canonical Specification route. Finish Plan ->
+Work -> AI Review -> Report and commit code results, but do not ask for
+member-level Human review and do not integrate its branch. The deterministic
+package executor owns node order, concurrency, prerequisite bases, merge order,
+recovery Goals, package review, rework impact, and target integration.

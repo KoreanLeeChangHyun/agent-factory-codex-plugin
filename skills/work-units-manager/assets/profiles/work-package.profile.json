@@ -1,0 +1,43 @@
+{
+  "id": "work-package",
+  "version": "1.0.0",
+  "artifactType": "work-package",
+  "documentClass": "execution-package",
+  "maximumSectionDepth": 2,
+  "commonRequiredSections": [],
+  "profileRequiredSections": [
+    {
+      "id": "definition",
+      "title": "Definition",
+      "requiredKinds": ["package-definition"],
+      "contains": ["DAG nodes", "repository and branches", "execution policy"]
+    },
+    {
+      "id": "execution",
+      "title": "Execution",
+      "requiredKinds": ["execution-state"],
+      "contains": ["revision", "invocation", "lease", "node state", "event log"]
+    },
+    {
+      "id": "ai-review",
+      "title": "AI Review",
+      "requiredKinds": ["ai-review-result"],
+      "contains": ["package verification and AI review"]
+    },
+    {
+      "id": "human-review",
+      "title": "Human Review",
+      "requiredKinds": ["human-review-result"],
+      "contains": ["single package review decision"]
+    },
+    {
+      "id": "report",
+      "title": "Report",
+      "requiredKinds": ["report-result"],
+      "contains": ["member traceability and integration receipt"]
+    }
+  ],
+  "optionalSections": [],
+  "storageContract": "sectioned-document-package-v2",
+  "implementationStatus": "implemented"
+}

@@ -105,3 +105,37 @@ Execution state uses Work Unit revision, attempt, invocation chain, and
 idempotent step records. It does not bind artifact state to Git hashes,
 immutable snapshots, or checkpoints. `attempt-resume` appends the new Goal
 thread id to the current attempt.
+
+## Work Package execution
+
+Run a ready package through:
+
+```text
+python3 scripts/work_package_supervisor.py \
+  --repository <absolute-primary-root> \
+  --package-id <package-id>
+```
+
+The supervisor requires the executor's first JSONL event to be ACK, forwards
+heartbeat and state events, and reinvokes the same package after ACK-bound
+process death or heartbeat timeout. Admission refusal before ACK is
+non-mutating and is not retried.
+
+`work_package_exec.py` uses manager preflight, stable topological/id ready
+selection, `maxParallel`, a sparse package integration worktree, stable merge
+order, dependent-node bases from the integrated prerequisite result,
+specification-direct serialization and full validation, durable leases and
+idempotency keys, and `app_server_resolution_goal.py` recovery. It reaches one
+package review only after every node, verification, and AI review pass.
+
+After the Human chooses complete, run:
+
+```text
+python3 scripts/work_package_integrate.py \
+  --repository <absolute-primary-root> \
+  --package-id <package-id> \
+  --review-decision complete
+```
+
+This integrates the package branch into the recorded target once and registers
+the manager-owned receipt. Do not integrate before the Human decision.

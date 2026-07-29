@@ -68,3 +68,16 @@ them.
 The primary thread does not implement Work Unit scope except when the Human
 explicitly grants an exception for that named Work Unit.
 Without such an exception, it must not execute Work Unit implementation.
+
+## Work Package route
+
+For an explicit named Work Package execution request, perform the one-time
+admission through `work_package.py preflight`, then start
+`work_package_supervisor.py`. Parse the immediate ACK and monitor forwarded
+heartbeat/events. The supervisor, not the model, reinvokes the same package
+after process death or lease expiry and owns deterministic scheduling.
+
+Present one Human result review for the package. Record rework with
+`work_package.py rework-start`; the manager expands affected nodes to
+descendants. On complete, invoke `work_package_integrate.py` once. Do not
+perform member-level Human review or target integration.

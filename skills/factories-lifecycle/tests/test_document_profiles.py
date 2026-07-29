@@ -11,9 +11,20 @@ SKILLS = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = (
     SKILLS / "factories-lifecycle" / "assets" / "schema" / "document-profile.schema.json"
 )
-PROFILE_PATHS = sorted(
+SPECIFICATION_PROFILE_PATHS = sorted(
     (SKILLS / "specifications" / "assets" / "profiles").glob("*.profile.json")
-) + [SKILLS / "work-units-manager" / "assets" / "profiles" / "work-unit.profile.json"]
+)
+WORK_UNIT_PROFILE_PATH = (
+    SKILLS / "work-units-manager" / "assets" / "profiles" / "work-unit.profile.json"
+)
+WORK_PACKAGE_PROFILE_PATH = (
+    SKILLS / "work-units-manager" / "assets" / "profiles" / "work-package.profile.json"
+)
+PROFILE_PATHS = [
+    *SPECIFICATION_PROFILE_PATHS,
+    WORK_UNIT_PROFILE_PATH,
+    WORK_PACKAGE_PROFILE_PATH,
+]
 
 
 class DocumentProfileTests(unittest.TestCase):
@@ -39,7 +50,7 @@ class DocumentProfileTests(unittest.TestCase):
                 self.assertEqual(len(ids), len(set(ids)))
 
     def test_work_unit_v4_is_implemented_and_anchored(self) -> None:
-        profile = json.loads(PROFILE_PATHS[-1].read_text(encoding="utf-8"))
+        profile = json.loads(WORK_UNIT_PROFILE_PATH.read_text(encoding="utf-8"))
         self.assertEqual(profile["implementationStatus"], "implemented")
         self.assertEqual(profile["storageContract"], "sectioned-document-package-v2")
         self.assertEqual(
@@ -163,7 +174,7 @@ class DocumentProfileTests(unittest.TestCase):
             "decisions-and-open-items",
             "verification-and-traceability",
         ]
-        for path in PROFILE_PATHS[:-1]:
+        for path in SPECIFICATION_PROFILE_PATHS:
             with self.subTest(profile=path.name):
                 profile = json.loads(path.read_text(encoding="utf-8"))
                 self.assertEqual(profile["artifactType"], "specification")

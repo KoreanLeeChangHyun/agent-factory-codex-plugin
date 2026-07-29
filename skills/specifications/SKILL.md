@@ -33,6 +33,10 @@ removing blocks, or recovering Project Core or any other Specification package.
   required operation, stop before mutation. Report the exact command, package,
   operation, and failure or capability gap. Do not fall back to direct JSON
   editing and do not create an exception path.
+- When a previously valid Specification is unreadable only because repository
+  lifecycle cleanup removed one provenance target, use `source-ref-prune` with
+  the exact artifact type, id, and path. It refuses an existing target and
+  commits only when the remaining package passes full validation.
 
 Treat `factories-lifecycle/references/lifecycle.md` as the canonical
 lifecycle sequence. The adoption summaries here apply that sequence only to

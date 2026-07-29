@@ -234,6 +234,52 @@ base.validate_profile = validate_profile
 base.validate_package = validate_package
 
 
+def command_source_ref_prune(args: argparse.Namespace) -> None:
+    """Remove one provenance ref only after its canonical target has disappeared."""
+    package = base.resolve_package(args.package)
+    metadata = base.load_metadata(package)
+    base.validate_instance("metadata", metadata)
+    expected = {
+        "artifactType": args.artifact_type,
+        "id": args.id,
+        "path": args.path,
+    }
+    matches = [
+        reference
+        for reference in metadata["provenance"]["sourceRefs"]
+        if all(reference.get(key) == value for key, value in expected.items())
+    ]
+    if len(matches) != 1:
+        raise ManagerError(
+            "source-ref-prune requires exactly one matching provenance reference"
+        )
+    relative = base.safe_relative_path(args.path, "provenance reference path")
+    target = base.package_project_root(package) / relative
+    if target.exists() or target.is_symlink():
+        raise ManagerError(
+            "source-ref-prune refuses a provenance reference whose target exists"
+        )
+    metadata["provenance"]["sourceRefs"] = [
+        reference
+        for reference in metadata["provenance"]["sourceRefs"]
+        if reference is not matches[0]
+    ]
+    metadata["documentVersion"] = base.next_document_version(
+        metadata["documentVersion"]
+    )
+    metadata["updatedAt"] = base.now()
+    base.validate_instance("metadata", metadata)
+    summaries = base.summarize_sections(package, base.load_toc(package))
+    validate_profile(metadata, summaries)
+    base.validate_typed_paths(package, metadata, summaries)
+    base.commit_transaction(
+        package,
+        json_writes={package / base.METADATA_PATH: metadata},
+        full_validation=True,
+    )
+    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(
         description="Manage profile-driven Agent Factory Specification packages"
@@ -326,6 +372,16 @@ def parser() -> argparse.ArgumentParser:
     block_remove.add_argument("package")
     block_remove.add_argument("path")
     block_remove.set_defaults(handler=base.command_block_remove)
+
+    source_ref_prune = commands.add_parser(
+        "source-ref-prune",
+        help="remove one provenance source ref whose canonical target is missing",
+    )
+    source_ref_prune.add_argument("package")
+    source_ref_prune.add_argument("--artifact-type", required=True)
+    source_ref_prune.add_argument("--id", required=True)
+    source_ref_prune.add_argument("--path", required=True)
+    source_ref_prune.set_defaults(handler=command_source_ref_prune)
     return root
 
 

@@ -12,7 +12,7 @@
   "properties": {
     "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
     "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
-    "artifactType": {"enum": ["intake", "specification", "work-unit"]},
+    "artifactType": {"enum": ["intake", "specification", "work-unit", "work-package"]},
     "documentClass": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
     "maximumSectionDepth": {"const": 2},
     "commonRequiredSections": {"$ref": "#/$defs/sections"},
