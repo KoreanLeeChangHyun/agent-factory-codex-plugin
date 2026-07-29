@@ -461,6 +461,15 @@ def preflight(package: Path, repository_arg: str) -> dict[str, Any]:
             branch = f"work-unit/{node['workUnitId']}"
             path = repository / ".agent-factory" / "worktree" / node["workUnitId"]
             if (
+                git(
+                    repository,
+                    "show-ref",
+                    "--verify",
+                    "--quiet",
+                    f"refs/heads/{branch}",
+                ).returncode
+                == 0
+                or
                 f"branch refs/heads/{branch}" in listing.stdout
                 or f"worktree {path}" in listing.stdout
             ):

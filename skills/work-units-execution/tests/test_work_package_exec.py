@@ -30,6 +30,7 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         selected = modes or {}
         return {
             "maxParallel": 2,
+            "integrationBranch": "work-package/pkg",
             "nodes": [
                 {
                     "id": "a",
@@ -58,9 +59,11 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         peak = 0
         finished = set()
         merged = []
+        bases = {}
 
-        def run_node(node, _base, _key):
+        def run_node(node, base, _key):
             nonlocal running, peak
+            bases[node["id"]] = base
             with lock:
                 running += 1
                 peak = max(peak, running)
@@ -90,6 +93,14 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         self.assertEqual(peak, 2)
         self.assertEqual(merged, ["a", "b", "c"])
         self.assertEqual(tuple(state["completedOrder"]), ("a", "b", "c"))
+        self.assertEqual(
+            bases,
+            {
+                "a": "work-package/pkg",
+                "b": "work-package/pkg",
+                "c": "work-package/pkg",
+            },
+        )
         self.assertTrue(any(event["type"] == "heartbeat" for event in events))
 
     def test_resume_does_not_repeat_completed_nodes(self):
@@ -154,6 +165,50 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         self.assertEqual(len(resolutions), 1)
         self.assertEqual(attempts[0][1], attempts[1][1])
         self.assertIn("recovering", [event.get("state") for event in events])
+
+    def test_merge_conflict_enters_recovering_and_launches_resolution(self):
+        merges = 0
+        resolutions = []
+        events = []
+
+        def merge_node(_node, _result):
+            nonlocal merges
+            merges += 1
+            if merges == 1:
+                raise RuntimeError("merge conflict")
+            return {"result": "merged"}
+
+        definition = {
+            "maxParallel": 1,
+            "integrationBranch": "work-package/pkg",
+            "nodes": [
+                {
+                    "id": "a",
+                    "workUnitId": "wu-a",
+                    "prerequisites": [],
+                    "executionMode": "worktree",
+                }
+            ],
+        }
+        scheduler = self.module.DeterministicScheduler(
+            package_id="pkg",
+            revision=1,
+            definition=definition,
+            durable_state={"nodes": {}},
+            run_node=lambda *_: {},
+            merge_node=merge_node,
+            resolve_node=lambda node, error, key: resolutions.append(
+                (node["id"], str(error), key)
+            ),
+            emit=events.append,
+        )
+        state = scheduler.run()
+        self.assertEqual(merges, 2)
+        self.assertEqual(resolutions, [("a", "merge conflict", "pkg:1:a")])
+        self.assertEqual(state["nodes"]["a"]["state"], "completed")
+        self.assertTrue(
+            any(event.get("state") == "recovering" for event in events)
+        )
 
     def test_specification_direct_nodes_are_serialized(self):
         running = 0

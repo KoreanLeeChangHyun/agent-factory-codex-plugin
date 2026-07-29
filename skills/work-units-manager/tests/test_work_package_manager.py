@@ -280,6 +280,75 @@ class WorkPackageManagerCliTest(unittest.TestCase):
         self.helpers.populate_ready_candidate(self.root, work_unit, intake)
         self.helpers.run_cli("transition", str(work_unit), "ready")
         package = self.create_package("wu-a")
+        mismatch = run_cli(
+            "preflight",
+            str(package),
+            "--repository",
+            str(self.root.parent),
+            check=False,
+        )
+        self.assertNotEqual(mismatch.returncode, 0)
+
+        self.helpers.run_cli("transition", str(work_unit), "backlog")
+        unready = run_cli(
+            "preflight",
+            str(package),
+            "--repository",
+            str(self.root),
+            check=False,
+        )
+        self.assertNotEqual(unready.returncode, 0)
+        self.assertIn("not ready", unready.stderr)
+        self.helpers.run_cli("transition", str(work_unit), "ready")
+
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.root),
+                "branch",
+                "work-unit/wu-a",
+            ],
+            check=True,
+        )
+        collision = run_cli(
+            "preflight",
+            str(package),
+            "--repository",
+            str(self.root),
+            check=False,
+        )
+        self.assertNotEqual(collision.returncode, 0)
+        self.assertIn("collision", collision.stderr)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.root),
+                "branch",
+                "-D",
+                "work-unit/wu-a",
+            ],
+            check=True,
+            stdout=subprocess.PIPE,
+        )
+        shown = json.loads(run_cli("show", str(package)).stdout)
+        self.assertEqual(shown["metadata"]["lifecycle"]["status"], "ready")
+        self.assertNotEqual(
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(self.root),
+                    "show-ref",
+                    "--verify",
+                    "--quiet",
+                    "refs/heads/work-package/pkg",
+                ],
+                check=False,
+            ).returncode,
+            0,
+        )
         payload = json.loads(
             run_cli(
                 "execution-start",
