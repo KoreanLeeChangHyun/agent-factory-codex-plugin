@@ -129,6 +129,10 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("must not execute Work Unit implementation", main_agent)
         self.assertIn("Goal preflight", workflow_agent)
         self.assertIn("Plan -> Work -> AI Review -> Report", workflow_agent)
+        self.assertIn(
+            "before `execution-init` or `attempt-start`",
+            workflow_agent,
+        )
         for excluded in (
             "merge",
             "cleanup",

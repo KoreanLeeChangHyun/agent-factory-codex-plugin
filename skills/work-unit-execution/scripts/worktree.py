@@ -383,7 +383,7 @@ def admit_work_unit(
     if result.returncode != 0:
         raise ContractError(
             "work_unit_admission_refused",
-            "canonical Work Unit failed full-ready execution admission",
+            "canonical Work Unit failed execution admission",
             {
                 "package": str(package),
                 "reason": result.stderr.strip(),

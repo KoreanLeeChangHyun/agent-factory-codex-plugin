@@ -1,0 +1,38 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "기존 Goal-bound Work Unit lifecycle의 실행 순서와 복구 구현 결함을 수정하며 Project Core 범위를 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Worktree prepare 순서와 active blocked attempt 복구 경로를 수정한다.",
+        "scope": [
+          "prepare-before-attempt instruction and prompt",
+          "active attempt manager admission",
+          "focused regression tests",
+          "rename Work Unit recovery"
+        ],
+        "outOfScope": [
+          "lifecycle redesign",
+          "generic Git or JSON bypass",
+          "commit, push, deploy"
+        ],
+        "executionOrder": 1,
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

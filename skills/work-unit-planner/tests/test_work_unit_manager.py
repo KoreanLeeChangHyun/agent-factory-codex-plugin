@@ -918,6 +918,46 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(missing.returncode, 0)
             self.assertIn("requested base is unresolved", missing.stderr)
 
+    def test_admission_accepts_running_and_blocked_active_attempt_recovery(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package, worktree, checkpoint = self.create_admission_repository(root)
+            self.initialize_and_start_execution(package)
+
+            running = json.loads(
+                self.admit(root, package, worktree, checkpoint).stdout
+            )
+            self.assertEqual(running["status"], "working")
+            self.assertEqual(
+                running["admissionMode"], "active-attempt-recovery"
+            )
+
+            run_cli(
+                "execution-failure",
+                str(package),
+                "--step-id",
+                "plan",
+                "--classification",
+                "permanent",
+                "--max-retries",
+                "1",
+                "--evidence",
+                "worktree was not prepared before attempt-start",
+                "--idempotency-key",
+                "blocked-before-worktree-prepare",
+                "--blocker-id",
+                "BLOCKER-WORKTREE-PREPARE-ORDER",
+            )
+            blocked = json.loads(
+                self.admit(root, package, worktree, checkpoint).stdout
+            )
+            self.assertEqual(blocked["status"], "blocked")
+            self.assertEqual(
+                blocked["admissionMode"], "active-attempt-recovery"
+            )
+
     def test_batch_update_increments_one_document_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -1,0 +1,38 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": "Fresh worktree execution must prepare or reuse the canonical worktree before execution-init and attempt-start."
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": "A full-valid working or blocked Work Unit with a manager-owned active execution-state may pass worktree preparation identity validation for recovery."
+    },
+    {
+      "id": "REQ-003",
+      "kind": "constraint",
+      "content": "Backlog, review, done, malformed execution state, mismatched repository/branch/path/id, and unresolved base must remain refused before Git mutation."
+    },
+    {
+      "id": "REQ-004",
+      "kind": "constraint",
+      "content": "Canonical state changes use work_unit.py only; worktree creation uses worktree.py only."
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "fresh prepare remains ready-only admission.",
+        "valid blocked active attempt prepare succeeds and creates the canonical worktree.",
+        "invalid lifecycle and identity cases remain fail-closed.",
+        "workflow instructions prevent attempt-before-prepare recurrence.",
+        "focused tests pass."
+      ]
+    }
+  ],
+  "subsections": []
+}

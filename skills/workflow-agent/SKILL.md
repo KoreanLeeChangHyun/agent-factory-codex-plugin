@@ -22,11 +22,14 @@ The launcher-owned Goal preflight is already complete.
 - `executionMode: worktree` or an omitted legacy mode: create or reuse the
   dedicated `work-unit/<id>` linked worktree through `worktree.py`. The entire
   `.agent-factory` directory is excluded from that worktree. Canonical artifact
-  CRUD always targets the primary root through its owning manager.
+  CRUD always targets the primary root through its owning manager. For a fresh
+  execution, prepare or reuse this worktree before `execution-init` or `attempt-start`.
 
-Bind a new Goal thread to the current attempt with `attempt-resume` when an
-attempt is already running. Preserve completed steps and do not replay
-non-idempotent work.
+When an active working or blocked attempt has no linked worktree, use
+`worktree.py prepare` under its manager-validated recovery admission before
+`attempt-resume` or `blocker-resolve`. Bind a new Goal thread to the current
+attempt with `attempt-resume` when an attempt is already running. Preserve
+completed steps and do not replay non-idempotent work.
 
 ## Required sequence
 
