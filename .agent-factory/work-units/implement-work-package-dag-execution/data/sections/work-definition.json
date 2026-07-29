@@ -1,0 +1,61 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Canonical Work Package와 deterministic DAG scheduler를 구현해 독립 Work Unit은 제한된 병렬로, 의존 Work Unit은 선행 결과 합성 후 순차로 실행하고, ACK 이후 중단 없는 durable recovery와 package 단위 Human review·integration을 제공한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        ".agent-factory/work-packages/<package-id> canonical profile, schema와 manager 구현",
+        "node별 workUnitId와 prerequisites, positive maxParallel, target 및 package integration branch 계약과 graph validation",
+        "package preflight, JSONL ACK·heartbeat·node/package event protocol과 deterministic scheduler 구현",
+        "durable scheduler state, idempotency key, lease, backoff, process-death 감지와 동일 package 재호출 resume 구현",
+        "ready node 병렬 실행, dependency chain 순차 실행과 deterministic topological merge 구현",
+        "dependent node가 합성된 prerequisite 결과를 base로 사용하도록 package branch 실행 흐름 구현",
+        "merge conflict와 node 오류를 recovering으로 기록하고 script-launched resolution Goal로 자동 복구",
+        "specification-direct node resource lock, serialization과 후속 node 전 canonical validation",
+        "package 전체 한 번의 Human review, target integration receipt와 member Work Unit traceability 구현",
+        "rework 시 영향 node와 descendants만 새 revision으로 재실행",
+        "main-agent, workflow-agent, manager와 execution skill 계약 및 plugin metadata 정합화",
+        "Project Core와 work-unit-durable-execution-supervisor specification 정합화 및 회귀 테스트"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "외부 SaaS workflow engine 도입",
+        "원격 분산 worker cluster 구현",
+        "Work Package 생성과 동시에 자동 실행",
+        "Human complete 이전 target branch integration",
+        "기존 단일 Work Unit API와 lifecycle 제거",
+        "이 Work Unit 정의 직후 실제 package 실행"
+      ]
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "canonical Intake, Specification, Work Unit과 Work Package JSON은 각 owning manager script로만 생성·수정",
+        "preflight 실패는 ACK와 실행 side effect 없이 admission refusal로 처리",
+        "ACK 이후 terminal blocked 또는 failed를 만들지 않고 working, recovering, review, done으로 완료까지 감독",
+        "오류와 retry 증거는 숨기지 않고 durable event log에 보존",
+        "각 Work Unit은 ready canonical definition으로 유지하되 package가 중간 review와 integration을 소유",
+        "병렬 code node는 같은 eligible package branch snapshot에서 시작하고 merge는 topological order와 stable id로 결정",
+        "primary specification-direct 변경은 resource lock으로 직렬화",
+        "기존 single Work Unit behavior와 unrelated 사용자 변경 및 untracked package 보존"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "검증된 Work Package manager/schema, script-owned DAG executor, ACK·heartbeat protocol, supervised idempotent resume, package integration/review/rework 흐름, 정합화된 skills/specifications와 실행 증거"
+    }
+  ],
+  "subsections": []
+}

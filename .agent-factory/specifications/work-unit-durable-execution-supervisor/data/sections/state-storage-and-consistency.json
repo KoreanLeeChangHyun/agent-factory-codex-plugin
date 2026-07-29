@@ -89,6 +89,46 @@
           "No migration to SQLite or external databases is required."
         ]
       }
+    },
+    {
+      "id": "WORK-PACKAGE-STATE-001",
+      "kind": "state-model",
+      "content": {
+        "keys": [
+          "packageId",
+          "revision",
+          "invocationId",
+          "leaseOwner",
+          "leaseRenewedAt",
+          "maxParallel",
+          "nodeId",
+          "workUnitId",
+          "prerequisites",
+          "idempotencyKey",
+          "nodeState",
+          "completedOrder",
+          "mergedOrder",
+          "retryEvidence",
+          "eventSequence",
+          "reviewCount",
+          "integrationReceipt"
+        ],
+        "states": [
+          "ready",
+          "working",
+          "recovering",
+          "review",
+          "done"
+        ],
+        "invariants": [
+          "ACK 이후 blocked 또는 failed terminal state를 사용하지 않는다.",
+          "completed node는 동일 revision resume에서 재실행하지 않는다.",
+          "executed-but-unmerged node는 node 실행을 반복하지 않고 merge부터 재개한다.",
+          "병렬 code node는 같은 eligible package branch snapshot에서 시작한다.",
+          "merge와 ready selection은 topological order와 stable node id로 결정한다.",
+          "rework는 영향 node와 descendants만 새 revision으로 연다."
+        ]
+      }
     }
   ],
   "subsections": []

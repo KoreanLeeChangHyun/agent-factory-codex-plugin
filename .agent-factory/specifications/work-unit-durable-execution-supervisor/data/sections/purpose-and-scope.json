@@ -29,6 +29,13 @@
           "분산 queue·lease·fencing"
         ]
       }
+    },
+    {
+      "id": "WORK-PACKAGE-PURPOSE-001",
+      "kind": "purpose",
+      "content": {
+        "statement": "명시적으로 요청된 canonical Work Package를 preflight-before-ACK로 admission하고 deterministic DAG scheduler가 제한 병렬 node 실행, prerequisite 결과 합성, durable resume, recovery Goal과 package 단위 review·integration까지 감독하는 계약을 정의한다."
+      }
     }
   ],
   "subsections": []

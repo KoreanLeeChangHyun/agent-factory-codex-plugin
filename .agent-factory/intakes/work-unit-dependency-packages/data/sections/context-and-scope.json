@@ -1,0 +1,34 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "현재 Agent Factory는 Work Unit 하나를 background Goal launcher로 실행하고 Work Unit별 review와 integration을 수행한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "Work Unit dependency 표현과 validation",
+        "Work Package canonical artifact와 manager",
+        "병렬 및 순차 scheduler",
+        "package 실행 상태, 실패, 재개와 결과 집계",
+        "기존 단일 Work Unit lifecycle과의 호환"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "외부 SaaS workflow engine 도입",
+        "원격 분산 worker cluster",
+        "Work Package 생성과 동시에 자동 실행",
+        "Human complete 전 target branch integration",
+        "기존 단일 Work Unit 실행 API 제거"
+      ]
+    }
+  ],
+  "subsections": []
+}

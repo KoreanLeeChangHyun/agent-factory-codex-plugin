@@ -1,0 +1,22 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": "Human 결정권자, Agent Factory 운영자와 Workflow Agent"
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Work Package 실행은 Human의 명시적 요청으로 시작하고 ACK 이후 중간 승인이나 block 없이 완료까지 진행한다. Human은 package 전체 결과를 한 번 검토해 rework 또는 complete를 결정하며 complete가 target integration을 트리거한다."
+    }
+  ],
+  "subsections": []
+}

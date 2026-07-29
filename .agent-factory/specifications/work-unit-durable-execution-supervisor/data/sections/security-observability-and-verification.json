@@ -93,6 +93,47 @@
           "automatic integration and batch cleanup test"
         ]
       }
+    },
+    {
+      "id": "WORK-PACKAGE-OBSERVABILITY-001",
+      "kind": "observability",
+      "content": {
+        "queryContract": "Canonical Work Package execution-state와 JSONL stream이 ACK, heartbeat, node/package events, retry, recovery, review와 integration traceability를 제공한다.",
+        "eventTypes": [
+          "ack",
+          "heartbeat",
+          "node-running",
+          "node-executed",
+          "node-recovering",
+          "node-completed",
+          "package-review",
+          "supervisor-restart",
+          "integrated"
+        ],
+        "requiredFields": [
+          "packageId",
+          "revision",
+          "invocationId",
+          "nodeId",
+          "workUnitId",
+          "idempotencyKey",
+          "state",
+          "eventSequence",
+          "lease",
+          "errorEvidence"
+        ],
+        "verificationGates": [
+          "cycle, self, missing, readiness, repository와 collision preflight refusal",
+          "A/B parallel and C-after-merge fixture",
+          "positive maxParallel and deterministic order",
+          "ACK, heartbeat and process-death resume fixture",
+          "recovering resolution Goal fixture",
+          "specification-direct serialization and full validation",
+          "single review, integration receipt and member traceability",
+          "affected-descendants rework",
+          "single Work Unit regression"
+        ]
+      }
     }
   ],
   "subsections": []

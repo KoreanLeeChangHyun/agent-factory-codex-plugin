@@ -31,6 +31,20 @@
           "Git owns code branch and linked worktree state only."
         ]
       }
+    },
+    {
+      "id": "WORK-PACKAGE-COMPONENTS-001",
+      "kind": "components",
+      "content": {
+        "items": [
+          "Work Package manager: canonical profile, DAG validation, lifecycle, durable scheduler state, review, rework와 receipt owner",
+          "Work Package supervisor: 첫 JSONL ACK, heartbeat/process-death 감시와 동일 package 재호출 owner",
+          "Deterministic executor: stable ready selection, maxParallel, node launcher, specification lock와 topological merge owner",
+          "Package integration worktree: target snapshot과 prerequisite 결과를 합성하는 .agent-factory 제외 branch owner",
+          "Resolution Goal launcher: node 또는 merge 오류를 recovering으로 기록하고 같은 idempotency key 재시도를 준비",
+          "Package integrator: Human complete 후 integration branch를 target에 한 번 통합하고 receipt 등록"
+        ]
+      }
     }
   ],
   "subsections": []

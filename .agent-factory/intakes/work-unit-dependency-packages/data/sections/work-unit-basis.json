@@ -1,0 +1,27 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "result": "Project Core와 durable execution specification은 단일 Work Unit만 정의하며 Work Package, script-owned DAG scheduler, ACK/heartbeat, supervised resume와 package-level integration 계약이 없어 실행 Work Unit에서 정합화해야 한다.",
+        "packages": [
+          "project-core",
+          "work-unit-durable-execution-supervisor"
+        ]
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": "Work Package canonical profile, schema와 manager; Work Unit dependency reference; ACK/heartbeat JSONL exec protocol; deterministic DAG scheduler; maxParallel launch; durable lease, retry와 idempotent resume; package integration branch 합성; single Human review와 target integration; main agent supervision을 scripts, skills, specifications와 tests에 구현한다."
+    }
+  ],
+  "subsections": []
+}

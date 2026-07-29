@@ -34,6 +34,22 @@
       "content": {
         "items": []
       }
+    },
+    {
+      "id": "WORK-PACKAGE-DECISIONS-001",
+      "kind": "accepted-decisions",
+      "content": {
+        "items": [
+          "Work Package는 node별 prerequisites를 가진 directed acyclic graph다.",
+          "실행 순서와 병렬도는 LLM이 아니라 deterministic script가 소유한다.",
+          "전체 preflight와 Goal/launcher availability가 성공한 뒤에만 ACK한다.",
+          "ACK는 packageId, invocationId, acceptedAt, scheduler state와 initial ready nodes를 포함한다.",
+          "ACK 이후 heartbeat와 durable events를 출력하고 process death는 동일 package 재호출로 이어간다.",
+          "code node 결과는 package integration branch에 stable topological order로 합성하고 dependent node는 합성 결과를 base로 사용한다.",
+          "specification-direct node는 primary resource lock으로 직렬화하고 다음 node 전에 canonical full validation한다.",
+          "package 전체에 Human review와 target integration은 각각 한 번이며 rework는 영향 node와 descendants만 재실행한다."
+        ]
+      }
     }
   ],
   "subsections": []

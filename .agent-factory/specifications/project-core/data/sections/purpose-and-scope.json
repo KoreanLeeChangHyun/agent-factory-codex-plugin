@@ -6,7 +6,7 @@
       "id": "PROJECT-PURPOSE-001",
       "kind": "project-purpose",
       "content": {
-        "statement": "Agent Factory는 Intake, Work Unit, Execution, Human Review lifecycle을 통해 Codex의 구조화된 software delivery를 제공하는 plugin이다."
+        "statement": "Agent Factory는 Intake, Work Unit, deterministic Work Package DAG Execution, Human Review lifecycle을 통해 Codex의 구조화된 software delivery를 제공하는 plugin이다."
       }
     },
     {
@@ -14,18 +14,20 @@
       "kind": "scope",
       "content": {
         "included": [
-          "Agent Factory lifecycle routing과 canonical Intake, Specification, Work Unit artifact management",
-          "Intake, Specification, Work Unit CRUD의 기본 저장소 직접 처리",
-          "명시적으로 요청된 Work Unit의 백그라운드 Goal+Exec 실행·검증·AI Review·Human 결과 검토",
-          "코드 변경용 전용 worktree와 specification-direct 실행 경로",
+          "Agent Factory lifecycle routing과 canonical Intake, Specification, Work Unit, Work Package artifact management",
+          "Intake, Specification, Work Unit, Work Package CRUD의 owning manager 처리",
+          "명시적으로 요청된 단일 Work Unit의 백그라운드 Goal+Exec 실행·검증·AI Review·Human 결과 검토",
+          "명시적으로 요청된 Work Package의 script-owned DAG scheduling, 제한 병렬 실행, durable resume와 package 단위 Human review·integration",
+          "코드 변경용 전용 worktree, package integration worktree와 specification-direct 실행 경로",
           "Git 최상위 project root와 .agent-factory tracking 상태에 의존하지 않는 canonical artifact management",
           ".agent-factory/sync.json 기반 source별 sync destination 설정과 해석",
           "skills, scripts, profiles, tests와 plugin packaging"
         ],
         "excluded": [
-          "명시적으로 요청되지 않은 Work Unit 실행",
-          "Intake, Specification, Work Unit CRUD를 위한 worktree 생성",
-          "불변 스냅샷 해시, artifact checkpoint와 승인 절차",
+          "명시적으로 요청되지 않은 Work Unit 또는 Work Package 실행",
+          "Intake, Specification, Work Unit, Work Package CRUD를 위한 worktree 생성",
+          "불변 스냅샷 해시, artifact checkpoint와 실행 중 승인 절차",
+          "원격 분산 worker cluster와 외부 SaaS workflow engine",
           "명시적으로 기록된 Intake나 Work Unit 범위를 벗어난 product behavior"
         ]
       }

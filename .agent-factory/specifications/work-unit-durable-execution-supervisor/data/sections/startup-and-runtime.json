@@ -7,7 +7,7 @@
       "kind": "startup-trigger-fixture",
       "content": {
         "event": "main agent가 충분성을 한 번 확인한 뒤 처리하는 명시적 named Work Unit 실행 요청",
-        "command": "python3 skills/work-unit-execution/scripts/app_server_goal.py --repository <primary> --work-unit-id <id>",
+        "command": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository <primary> --work-unit-id <id>",
         "expectedResult": "Launcher가 Workflow Agent 역할과 반드시 실행하라는 지시를 포함한 background Goal+Exec turn을 시작한다.",
         "preconditions": [
           "Work Unit full validation passes.",
@@ -61,6 +61,26 @@
           "No repeated sufficiency judgment after launch.",
           "No worktree for specification-direct mode.",
           "Only unrecoverable errors or bounded recovery exhaustion produce explicit failure."
+        ]
+      }
+    },
+    {
+      "id": "WORK-PACKAGE-RUNTIME-001",
+      "kind": "runtime-lifecycle",
+      "content": {
+        "concurrency": "Ready node는 stable topological/id order로 선택하고 positive maxParallel 한도에서 실행하며 specification-direct node는 primary resource lock으로 직렬화한다.",
+        "steps": [
+          "explicit named Work Package request",
+          "non-mutating full package preflight",
+          "execution-start와 immediate ACK",
+          "heartbeat와 durable lease renewal",
+          "ready node limited-parallel launch",
+          "stable topological merge into package integration branch",
+          "dependent node launch from integrated prerequisite result",
+          "recovering resolution Goal and same-key retry",
+          "package verification and AI Review",
+          "single package Human review",
+          "affected node plus descendants rework or one target integration on complete"
         ]
       }
     }

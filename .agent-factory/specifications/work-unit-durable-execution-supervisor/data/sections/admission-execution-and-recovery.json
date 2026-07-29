@@ -85,6 +85,31 @@
           "Human chooses rework or complete; complete auto-integrates worktree mode."
         ]
       }
+    },
+    {
+      "id": "WORK-PACKAGE-ADMISSION-001",
+      "kind": "admission",
+      "content": {
+        "checks": [
+          "Work Package schema와 full canonical validity",
+          "DAG cycle, self-dependency, missing reference와 duplicate member 부재",
+          "모든 Work Unit full validity, ready status, executionMode와 repository 일치",
+          "positive maxParallel, lease와 retry backoff 계약",
+          "target/integration branch와 node/package worktree collision 부재",
+          "manager와 launcher availability"
+        ],
+        "refusalEffects": [
+          "ACK를 출력하지 않는다.",
+          "Work Unit, branch, worktree, attempt 또는 durable execution state를 시작하지 않는다.",
+          "machine-readable admission refusal을 반환한다."
+        ],
+        "recovery": [
+          "ACK 이후 node와 merge 오류는 durable recovering event로 보존한다.",
+          "script가 resolution Goal을 launch하고 같은 idempotency key로 재시도한다.",
+          "exec process death 또는 heartbeat timeout은 supervisor가 동일 package id를 재호출한다.",
+          "resume은 completed node를 건너뛰고 executed node의 merge 또는 미완료 node부터 계속한다."
+        ]
+      }
     }
   ],
   "subsections": []

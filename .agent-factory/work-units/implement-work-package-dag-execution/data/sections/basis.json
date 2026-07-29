@@ -1,0 +1,44 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": "Work Unit 의존성, Work Package DAG 실행, ACK, durable resume와 package 단위 검토·통합에 대한 승인된 실행 basis",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "work-unit-dependency-packages",
+          "path": ".agent-factory/intakes/work-unit-dependency-packages",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "SPEC-CHECK-001",
+      "kind": "specification-check",
+      "content": "Project Core와 durable execution supervisor specification을 Work Package 계약에 맞게 primary root에서 specification manager로 갱신하고 full validation한다.",
+      "sourceRefs": [
+        {
+          "artifactType": "specification",
+          "id": "project-core",
+          "path": ".agent-factory/specifications/project-core",
+          "anchor": {
+            "sectionId": "purpose-and-scope",
+            "itemId": "PROJECT-SCOPE-001"
+          }
+        },
+        {
+          "artifactType": "specification",
+          "id": "work-unit-durable-execution-supervisor",
+          "path": ".agent-factory/specifications/work-unit-durable-execution-supervisor"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

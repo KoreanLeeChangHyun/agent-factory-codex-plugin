@@ -1,0 +1,120 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "implement-work-package-dag-execution",
+        "objective": "Work Package DAG 실행, ACK·heartbeat, durable recovery, package branch 합성과 단일 Human review·integration을 구현하고 검증한다.",
+        "execInvocation": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id implement-work-package-dag-execution",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "branch": "work-unit/implement-work-package-dag-execution",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/implement-work-package-dag-execution",
+        "executionMode": "worktree"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019faee5-5030-7af2-ba9b-95f904615eae",
+        "invocationChain": [
+          "019faee5-5030-7af2-ba9b-95f904615eae"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004",
+            "PLAN-005",
+            "PLAN-006",
+            "PLAN-007",
+            "PLAN-008",
+            "PLAN-009"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-001"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "pending",
+              "idempotencyKey": "r1-a1-plan-002-pending"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-002"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-003"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-004"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-005"
+            },
+            {
+              "stepId": "PLAN-006",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-006"
+            },
+            {
+              "stepId": "PLAN-007",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-007"
+            },
+            {
+              "stepId": "PLAN-008",
+              "state": "pending",
+              "idempotencyKey": "r1-a1-plan-008-pending"
+            },
+            {
+              "stepId": "PLAN-008",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-008"
+            },
+            {
+              "stepId": "PLAN-009",
+              "state": "pending",
+              "idempotencyKey": "r1-a1-plan-009-pending"
+            },
+            {
+              "stepId": "PLAN-009",
+              "state": "completed",
+              "idempotencyKey": "r1-a1-plan-009"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019faee5-5030-7af2-ba9b-95f904615eae",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

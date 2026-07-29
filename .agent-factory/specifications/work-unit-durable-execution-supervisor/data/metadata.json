@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "documentVersion": "1.0.85",
+  "documentVersion": "1.0.97",
   "id": "work-unit-durable-execution-supervisor",
   "artifactType": "specification",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "draft"
   },
   "createdAt": "2026-07-25T10:28:02+00:00",
-  "updatedAt": "2026-07-28T20:13:46+00:00",
+  "updatedAt": "2026-07-29T18:04:58+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -23,15 +23,6 @@
         "anchor": {
           "sectionId": "work-unit-basis",
           "itemId": "WORK-UNIT-BASIS-SPEC-001"
-        }
-      },
-      {
-        "artifactType": "work-unit",
-        "id": "specify-work-unit-durable-supervisor",
-        "path": ".agent-factory/work-units/specify-work-unit-durable-supervisor",
-        "anchor": {
-          "sectionId": "work-definition",
-          "itemId": "GOAL-001"
         }
       }
     ]

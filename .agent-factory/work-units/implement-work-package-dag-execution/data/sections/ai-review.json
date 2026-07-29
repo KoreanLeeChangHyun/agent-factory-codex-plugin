@@ -1,0 +1,51 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Human 요구와 Intake traceability 일치",
+        "preflight-before-ACK 원자성과 side-effect 부재",
+        "DAG validation, scheduler 결정성과 maxParallel 강제",
+        "ACK·heartbeat·event 관측성과 durable idempotent resume",
+        "terminal blocked/failed 없는 recovery와 오류 증거 보존",
+        "package branch 합성, downstream base와 specification-direct serialization",
+        "package 단위 단일 Human review·integration 및 rework 영향 계산",
+        "single Work Unit 회귀, specifications와 plugin metadata 정합성"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "AI review passed after correcting Work Package profile registry ownership and unused imports.",
+        "checks": [
+          "Human requirement and Intake traceability matched.",
+          "Preflight occurs before ACK and refuses without execution side effects.",
+          "DAG selection, maxParallel and merge order are deterministic.",
+          "ACK, heartbeat, lease fencing, durable executed/completed resume and recovery evidence are present.",
+          "Package integration worktree provides prerequisite bases; specification-direct nodes are serialized and full-validated.",
+          "One package review/integration and affected-descendants rework are manager-owned.",
+          "Single Work Unit and full plugin regressions passed."
+        ],
+        "remainingRisks": [
+          "Persistent external faults can cause long retry/resource use until an operator policy is defined.",
+          "Resolution Goal quality depends on the recoverability of the underlying code or Git conflict."
+        ]
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019faee5-5030-7af2-ba9b-95f904615eae",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}
