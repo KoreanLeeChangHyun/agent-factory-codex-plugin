@@ -61,6 +61,21 @@ Use only `scripts/specification.py` with typed semantic arguments for canonical
 Specification package management. The Mandatory Manager Script Gate applies
 without an exception.
 
+The manager's complete CRUD core is:
+
+```text
+python3 scripts/specification.py create <package> --id <id> --title <title> --project-id <project> --profile <profile-id> --language <language> --theme <theme>
+python3 scripts/specification.py show <package> [--section <section-id>]
+python3 scripts/specification.py delete <package> --confirm-id <id> [--allow-invalid]
+python3 scripts/specification.py title-set <package> <title>
+python3 scripts/specification.py metadata-set <package> <field> <typed-data-arguments>
+python3 scripts/specification.py section-put <package> <typed-data-arguments>
+```
+
+Use `--allow-invalid` only as the explicit opt-in for deleting a package that
+fails full validation; the manager still requires exact confirmation and
+canonical identity.
+
 ## Rules
 
 - Treat only explicit user statements, Project Core contents, Design Document

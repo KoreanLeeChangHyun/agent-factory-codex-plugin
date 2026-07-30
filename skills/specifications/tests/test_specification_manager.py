@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -62,7 +66,226 @@ def create_package(
     return package
 
 
+def load_manager() -> object:
+    spec = importlib.util.spec_from_file_location(
+        "specification_manager_under_test", SCRIPT
+    )
+    if spec is None or spec.loader is None:
+        raise AssertionError(f"cannot load Specification manager: {SCRIPT}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 class SpecificationManagerTests(unittest.TestCase):
+    def test_help_exposes_complete_crud_surface(self) -> None:
+        help_text = run_cli("--help").stdout
+        for command in ("create", "show", "delete", "title-set", "section-put"):
+            self.assertIn(command, help_text)
+
+    def test_delete_valid_package_requires_exact_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            package = create_package(Path(temporary))
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                "different-specification",
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertIn("confirmation id must equal", denied.stderr)
+            self.assertTrue(package.is_dir())
+
+            deleted = json.loads(
+                run_cli(
+                    "delete",
+                    str(package),
+                    "--confirm-id",
+                    package.name,
+                ).stdout
+            )
+            self.assertEqual(deleted["id"], package.name)
+            self.assertEqual(deleted["path"], str(package))
+            self.assertEqual(deleted["validation"], "valid")
+            self.assertEqual(deleted["operationResult"], "deleted")
+            self.assertFalse(package.exists())
+
+    def test_delete_invalid_package_requires_opt_in_and_matching_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            metadata_path = package / "data" / "metadata.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["theme"] = 7
+            metadata_path.write_text(
+                json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                package.name,
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertIn("requires --allow-invalid", denied.stderr)
+            self.assertTrue(package.is_dir())
+
+            metadata["id"] = "different-specification"
+            metadata_path.write_text(
+                json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            mismatch = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                package.name,
+                "--allow-invalid",
+                check=False,
+            )
+            self.assertNotEqual(mismatch.returncode, 0)
+            self.assertIn("identity does not match", mismatch.stderr)
+            self.assertTrue(package.is_dir())
+
+            metadata["id"] = package.name
+            metadata_path.write_text(
+                json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            deleted = json.loads(
+                run_cli(
+                    "delete",
+                    str(package),
+                    "--confirm-id",
+                    package.name,
+                    "--allow-invalid",
+                ).stdout
+            )
+            self.assertEqual(deleted["validation"], "invalid")
+            self.assertFalse(package.exists())
+
+    def test_delete_profile_unresolved_package_with_explicit_allowance(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            package = create_package(Path(temporary))
+            metadata_path = package / "data" / "metadata.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["documentProfile"] = {
+                "id": "missing-profile",
+                "version": "1.0.0",
+            }
+            metadata_path.write_text(
+                json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                package.name,
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertTrue(package.is_dir())
+
+            deleted = json.loads(
+                run_cli(
+                    "delete",
+                    str(package),
+                    "--confirm-id",
+                    package.name,
+                    "--allow-invalid",
+                ).stdout
+            )
+            self.assertEqual(deleted["validation"], "invalid")
+            self.assertIn("profile-unresolved", deleted["validationError"])
+            self.assertFalse(package.exists())
+
+    def test_delete_rejects_symlink_package_without_touching_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            collection = root / ".agent-factory" / "specifications"
+            collection.mkdir(parents=True)
+            target = root / "outside"
+            target.mkdir()
+            marker = target / "marker.txt"
+            marker.write_text("preserve", encoding="utf-8")
+            package = collection / "linked-specification"
+            os.symlink(target, package)
+
+            denied = run_cli(
+                "delete",
+                str(package),
+                "--confirm-id",
+                package.name,
+                "--allow-invalid",
+                check=False,
+            )
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertIn("must not be a symlink", denied.stderr)
+            self.assertEqual(marker.read_text(encoding="utf-8"), "preserve")
+
+    def test_delete_rejects_package_swap_before_rename(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            package = create_package(root)
+            moved = package.parent / "moved-specification"
+            manager = load_manager()
+            original_rename = os.rename
+            swapped = False
+
+            def swapping_rename(
+                source: str,
+                target: str,
+                *,
+                src_dir_fd: int | None = None,
+                dst_dir_fd: int | None = None,
+            ) -> None:
+                nonlocal swapped
+                if source == package.name and not swapped:
+                    swapped = True
+                    original_rename(
+                        source,
+                        moved.name,
+                        src_dir_fd=src_dir_fd,
+                        dst_dir_fd=dst_dir_fd,
+                    )
+                    os.mkdir(package.name, dir_fd=src_dir_fd)
+                    (package / "marker.txt").write_text(
+                        "preserve replacement", encoding="utf-8"
+                    )
+                original_rename(
+                    source,
+                    target,
+                    src_dir_fd=src_dir_fd,
+                    dst_dir_fd=dst_dir_fd,
+                )
+
+            with mock.patch.object(
+                manager.base.os, "rename", side_effect=swapping_rename
+            ):
+                with self.assertRaisesRegex(
+                    manager.base.ManagerError, "changed during deletion"
+                ):
+                    manager.base.command_delete(
+                        SimpleNamespace(
+                            package=str(package),
+                            confirm_id=package.name,
+                            allow_invalid=False,
+                        )
+                    )
+
+            self.assertTrue(moved.is_dir())
+            self.assertEqual(
+                (package / "marker.txt").read_text(encoding="utf-8"),
+                "preserve replacement",
+            )
+
     def test_check_schemas_validates_every_implemented_profile(self) -> None:
         payload = json.loads(run_cli("check-schemas").stdout)
         self.assertTrue(payload["valid"])

@@ -93,6 +93,23 @@ canonical package operation: `intakes/scripts/intake.py`,
 not a preferred path. Use the script for creation, authoritative display,
 mutation, validation, transitions, block registration, and recovery.
 
+Every artifact-owning manager exposes the same complete CRUD core:
+
+```text
+create <package> --id <id> --title <title> --project-id <project> ...
+show <package> [--section <section-id>]
+title-set|metadata-set|section-*|block-* <package> ...
+delete <package> --confirm-id <id> [--allow-invalid]
+```
+
+Delete requires an exact package-id confirmation. A package that fails full
+validation is preserved unless the caller also supplies `--allow-invalid`;
+even then, deletion proceeds only when descriptor-read canonical identity
+matches the package directory. The lifecycle-owned engine performs
+descriptor-anchored traversal and mutation, rejects symlink packages, verifies
+the opened package identity before and after its atomic tombstone rename, and
+does not delete a path replacement introduced between validation and use.
+
 LLM callers must not use `apply_patch`, shell redirection, ad hoc interpreter
 programs, file copy or move, temporary JSON value files, or any generic
 filesystem or MCP write tool to author canonical Intake, Work Unit, or

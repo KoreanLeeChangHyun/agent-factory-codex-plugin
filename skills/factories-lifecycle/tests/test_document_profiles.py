@@ -95,6 +95,7 @@ class DocumentProfileTests(unittest.TestCase):
         self.assertTrue(common_manager.is_file())
         common_source = common_manager.read_text(encoding="utf-8")
         self.assertEqual(common_source.count("def command_create("), 1)
+        self.assertEqual(common_source.count("def command_delete("), 1)
         self.assertIn("def add_data_arguments(", common_source)
         self.assertNotIn("--value-file", common_source)
         self.assertEqual(
@@ -111,6 +112,7 @@ class DocumentProfileTests(unittest.TestCase):
             self.assertIn("sectioned_document.py", source)
             self.assertIn("configure_contract", source)
             self.assertNotIn("def command_create(", source)
+            self.assertNotIn("def command_delete(", source)
             self.assertNotIn("--value-file", source)
             self.assertNotIn("INTAKE_MANAGER", source)
             artifact_schema_root = manager.parents[1] / "assets" / "schema"
@@ -118,6 +120,23 @@ class DocumentProfileTests(unittest.TestCase):
                 {path.name for path in artifact_schema_root.glob("*.schema.json")},
                 {"metadata.schema.json"},
             )
+
+    def test_artifact_skills_document_complete_crud_contract(self) -> None:
+        contract = (
+            SKILLS
+            / "factories-lifecycle"
+            / "references"
+            / "common-document-contract.md"
+        ).read_text(encoding="utf-8")
+        for skill_name in ("intakes", "specifications", "work-units-manager"):
+            skill = (SKILLS / skill_name / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn(
+                "delete <package> --confirm-id <id> [--allow-invalid]", skill
+            )
+        self.assertIn(
+            "delete <package> --confirm-id <id> [--allow-invalid]", contract
+        )
+        self.assertIn("descriptor-anchored", contract)
 
     def test_project_core_policy_is_single_source_and_profile_driven(self) -> None:
         specification = (SKILLS / "specifications" / "SKILL.md").read_text(

@@ -12,6 +12,21 @@ All canonical Work Unit operations must use
 perform an operation, stop before mutation. Do not fall back to direct JSON
 editing and do not create an exception path.
 
+The manager's complete CRUD core is:
+
+```text
+python3 scripts/work_unit.py create <package> --id <id> --title <title> --project-id <project> --language <language> --theme <theme>
+python3 scripts/work_unit.py show <package> [--section <section-id>]
+python3 scripts/work_unit.py delete <package> --confirm-id <id> [--allow-invalid]
+python3 scripts/work_unit.py title-set <package> <title>
+python3 scripts/work_unit.py metadata-set <package> <field> <typed-data-arguments>
+python3 scripts/work_unit.py section-put <package> <typed-data-arguments>
+```
+
+Use `--allow-invalid` only as the explicit opt-in for deleting a package that
+fails full validation; the manager still requires exact confirmation and
+canonical identity.
+
 ## Creation
 
 Create a Work Unit only from a full-valid ready Intake basis. It must be

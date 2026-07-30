@@ -304,6 +304,12 @@ def parser() -> argparse.ArgumentParser:
     show.add_argument("--section")
     show.set_defaults(handler=base.command_show)
 
+    delete = commands.add_parser("delete")
+    delete.add_argument("package")
+    delete.add_argument("--confirm-id", required=True)
+    delete.add_argument("--allow-invalid", action="store_true")
+    delete.set_defaults(handler=base.command_delete)
+
     title = commands.add_parser("title-set")
     title.add_argument("package")
     title.add_argument("title")
@@ -394,7 +400,7 @@ def main() -> int:
         package = base.resolve_package(
             args.package, must_exist=args.command != "create"
         )
-        if package.exists():
+        if package.exists() and args.command != "delete":
             base.recover_transaction(package)
             select_package_profile(package)
         elif args.command == "create":

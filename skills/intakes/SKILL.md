@@ -129,6 +129,7 @@ generated content. Never compose JSON strings or temporary JSON value files.
 python3 scripts/intake.py check-schemas
 python3 scripts/intake.py create <package> --id <id> --title <title> --project-id <project> --language <language> --theme <theme>
 python3 scripts/intake.py show <package> [--section <section-id>]
+python3 scripts/intake.py delete <package> --confirm-id <id> [--allow-invalid]
 python3 scripts/intake.py title-set <package> <title>
 python3 scripts/intake.py metadata-set <package> <field> <typed-data-arguments>
 python3 scripts/intake.py section-put <package> <typed-data-arguments>

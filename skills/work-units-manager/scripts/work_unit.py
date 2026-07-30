@@ -13,8 +13,6 @@ import shlex
 import stat
 import subprocess
 import sys
-import uuid
-from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
@@ -73,6 +71,10 @@ base.configure_contract(
         "findings": [],
     },
     generated_by="Agent Factory work-unit manager",
+    delete_identity_candidates=(
+        (base.METADATA_PATH, "Work Unit metadata", True),
+        (Path("data/work-unit.json"), "legacy Work Unit metadata", False),
+    ),
 )
 
 
@@ -132,166 +134,6 @@ def resolve_package(value: str | Path, *, must_exist: bool = True) -> Path:
     if must_exist:
         base.assert_plain_path(package, "directory")
     return package
-
-
-@contextmanager
-def collection_package_descriptors(package: Path) -> Iterable[tuple[int, int]]:
-    project_root = package_project_root(package)
-    descriptor = -1
-    collection_fd = -1
-    package_fd = -1
-    try:
-        descriptor = os.open(project_root, base.DIRECTORY_OPEN_FLAGS)
-        for component in (".agent-factory", "work-units"):
-            child = os.open(component, base.DIRECTORY_OPEN_FLAGS, dir_fd=descriptor)
-            os.close(descriptor)
-            descriptor = child
-        collection_fd = descriptor
-        descriptor = -1
-        package_fd = os.open(
-            package.name, base.DIRECTORY_OPEN_FLAGS, dir_fd=collection_fd
-        )
-        yield collection_fd, package_fd
-    except OSError as error:
-        raise ManagerError(
-            f"cannot securely open Work Unit package for deletion: {package}: {error}"
-        ) from error
-    finally:
-        if package_fd >= 0:
-            os.close(package_fd)
-        if collection_fd >= 0:
-            os.close(collection_fd)
-        if descriptor >= 0:
-            os.close(descriptor)
-
-
-def delete_package_identity(package_fd: int, package: Path) -> str:
-    candidates = (
-        (base.METADATA_PATH, "Work Unit metadata", True),
-        (Path("data/work-unit.json"), "legacy Work Unit metadata", False),
-    )
-    for relative, label, require_artifact_type in candidates:
-        if not base.relative_file_exists(package_fd, relative):
-            continue
-        value = base.load_object_relative(package_fd, relative, label)
-        identity = value.get("id")
-        if not isinstance(identity, str) or not identity:
-            raise ManagerError(f"{label} requires a non-empty id")
-        if require_artifact_type and value.get("artifactType") != "work-unit":
-            raise ManagerError("package artifactType must be work-unit")
-        if identity != package.name:
-            raise ManagerError(
-                f"package identity does not match directory name: {identity} != {package.name}"
-            )
-        return identity
-    raise ManagerError(
-        "package identity cannot be verified from canonical or legacy data"
-    )
-
-
-def remove_directory_contents(directory_fd: int) -> None:
-    with os.scandir(directory_fd) as entries:
-        names = sorted(entry.name for entry in entries)
-    for name in names:
-        try:
-            details = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
-        except OSError as error:
-            raise ManagerError(
-                f"cannot inspect package entry during deletion: {name}"
-            ) from error
-        if stat.S_ISDIR(details.st_mode):
-            try:
-                child_fd = os.open(name, base.DIRECTORY_OPEN_FLAGS, dir_fd=directory_fd)
-            except OSError as error:
-                raise ManagerError(
-                    f"cannot securely open package directory during deletion: {name}"
-                ) from error
-            try:
-                opened = os.fstat(child_fd)
-                if (opened.st_dev, opened.st_ino) != (details.st_dev, details.st_ino):
-                    raise ManagerError(
-                        f"package directory changed during deletion: {name}"
-                    )
-                remove_directory_contents(child_fd)
-            finally:
-                os.close(child_fd)
-            os.rmdir(name, dir_fd=directory_fd)
-        else:
-            try:
-                os.unlink(name, dir_fd=directory_fd)
-            except OSError as error:
-                raise ManagerError(
-                    f"cannot remove package entry during deletion: {name}"
-                ) from error
-
-
-def command_delete(args: argparse.Namespace) -> None:
-    package = resolve_package(args.package)
-    if args.confirm_id != package.name:
-        raise ManagerError(f"confirmation id must equal Work Unit id: {package.name}")
-
-    validation = "valid"
-    validation_error: str | None = None
-    try:
-        validate_package(package, full=True)
-    except ManagerError as error:
-        validation = "invalid"
-        validation_error = str(error)
-        if not args.allow_invalid:
-            raise ManagerError(
-                "deleting an invalid Work Unit package requires --allow-invalid: "
-                f"{error}"
-            ) from error
-
-    tombstone = f".delete-{package.name}-{uuid.uuid4().hex}"
-    with collection_package_descriptors(package) as (collection_fd, package_fd):
-        identity = delete_package_identity(package_fd, package)
-        opened = os.fstat(package_fd)
-        current = os.stat(package.name, dir_fd=collection_fd, follow_symlinks=False)
-        if not stat.S_ISDIR(current.st_mode) or (
-            current.st_dev,
-            current.st_ino,
-        ) != (opened.st_dev, opened.st_ino):
-            raise ManagerError("Work Unit package changed before deletion")
-        os.rename(
-            package.name,
-            tombstone,
-            src_dir_fd=collection_fd,
-            dst_dir_fd=collection_fd,
-        )
-        renamed = os.stat(tombstone, dir_fd=collection_fd, follow_symlinks=False)
-        if (renamed.st_dev, renamed.st_ino) != (opened.st_dev, opened.st_ino):
-            os.rename(
-                tombstone,
-                package.name,
-                src_dir_fd=collection_fd,
-                dst_dir_fd=collection_fd,
-            )
-            raise ManagerError("Work Unit package changed during deletion")
-        try:
-            remove_directory_contents(package_fd)
-            os.rmdir(tombstone, dir_fd=collection_fd)
-        except Exception:
-            try:
-                os.rename(
-                    tombstone,
-                    package.name,
-                    src_dir_fd=collection_fd,
-                    dst_dir_fd=collection_fd,
-                )
-            except OSError:
-                pass
-            raise
-
-    result: dict[str, Any] = {
-        "id": identity,
-        "operationResult": "deleted",
-        "path": str(package),
-        "validation": validation,
-    }
-    if validation_error is not None:
-        result["validationError"] = validation_error
-    print(json.dumps(result, ensure_ascii=False))
 
 
 def resolve_collection(value: str | Path) -> Path:
@@ -2075,7 +1917,7 @@ def parser() -> argparse.ArgumentParser:
     delete.add_argument("package")
     delete.add_argument("--confirm-id", required=True)
     delete.add_argument("--allow-invalid", action="store_true")
-    delete.set_defaults(handler=command_delete)
+    delete.set_defaults(handler=base.command_delete)
     status = commands.add_parser("status")
     status.add_argument("--all", action="store_true", required=True)
     status.add_argument("--root", default=".agent-factory/work-units")
@@ -2211,7 +2053,7 @@ def main() -> int:
             args.handler(args)
             return 0
         package = resolve_package(args.package, must_exist=args.command != "create")
-        if package.exists():
+        if package.exists() and args.command != "delete":
             base.recover_transaction(package)
         args.handler(args)
         return 0

@@ -349,6 +349,11 @@ def populate_ready_candidate(root: Path, package: Path, intake: Path) -> None:
 
 
 class WorkUnitV4ManagerTests(unittest.TestCase):
+    def test_help_exposes_complete_crud_surface(self) -> None:
+        help_text = run_cli("--help").stdout
+        for command in ("create", "show", "delete", "title-set", "section-put"):
+            self.assertIn(command, help_text)
+
     def test_status_all_reports_sorted_aggregate_fields(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -619,11 +624,13 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     dst_dir_fd=dst_dir_fd,
                 )
 
-            with mock.patch.object(manager.os, "rename", side_effect=swapping_rename):
+            with mock.patch.object(
+                manager.base.os, "rename", side_effect=swapping_rename
+            ):
                 with self.assertRaisesRegex(
                     manager.ManagerError, "changed during deletion"
                 ):
-                    manager.command_delete(
+                    manager.base.command_delete(
                         SimpleNamespace(
                             package=str(package),
                             confirm_id=package.name,
