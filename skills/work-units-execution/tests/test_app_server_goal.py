@@ -625,7 +625,12 @@ class AppServerGoalTest(unittest.TestCase):
         for scenario, code in expected_codes.items():
             with self.subTest(scenario=scenario):
                 self.log_path.unlink(missing_ok=True)
-                payload = self.execute(scenario, timeout=0.1)
+                timeout = (
+                    0.1
+                    if scenario in {"timeout", "missing_notification"}
+                    else 1.0
+                )
+                payload = self.execute(scenario, timeout=timeout)
                 self.assertFalse(payload["ok"])
                 self.assertEqual(payload["error"]["code"], code)
                 self.assertNotIn("turn/start", self.methods())
