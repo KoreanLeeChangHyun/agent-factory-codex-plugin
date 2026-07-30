@@ -15,6 +15,20 @@
       "content": {
         "criterion": "전체 테스트와 정적 검증 결과, 발견된 충돌, 실행하지 못한 통합 범위를 구분해 보고한다."
       }
+    },
+    {
+      "id": "REQUIREMENT-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "skills/work-units-execution/scripts/app_server_goal.py의 사용되지 않는 os import 한 줄만 제거하고 동작은 변경하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-002",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criterion": "ruff check skills와 app_server_goal 관련 테스트가 통과한다."
+      }
     }
   ],
   "subsections": []

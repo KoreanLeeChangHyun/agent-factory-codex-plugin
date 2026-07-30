@@ -164,6 +164,29 @@
           "The installed CLI does not expose a plugin validate command."
         ]
       }
+    },
+    {
+      "id": "INTERNAL-VALIDATION-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "validate_plugin.py; quick_validate.py skills/*; pytest -q -p no:cacheprovider; ruff check skills; compileall -q skills; intake.py/specification.py/work_unit.py check-schemas",
+        "method": "command",
+        "findings": [
+          "Plugin validation passed.",
+          "All 22 skill quick-validation checks passed.",
+          "Pytest passed: 186 tests and 135 subtests.",
+          "All three canonical manager schema checks passed.",
+          "Python compileall passed.",
+          "Ruff found one F401 error: unused os import at skills/work-units-execution/scripts/app_server_goal.py:8."
+        ],
+        "interpretations": [
+          "Deterministic tests, plugin structure, skill frontmatter, schemas, and Python syntax are consistent; the repository is not fully lint-clean because of one unused import."
+        ],
+        "limitations": [
+          "No live Gmail, Google Drive, external service, server restart, or Work Unit execution integration was attempted."
+        ]
+      }
     }
   ],
   "subsections": []

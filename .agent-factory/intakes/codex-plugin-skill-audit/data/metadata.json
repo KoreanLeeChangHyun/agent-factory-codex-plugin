@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.34",
+  "documentVersion": "1.0.44",
   "id": "codex-plugin-skill-audit",
   "artifactType": "intake",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "ready"
   },
   "createdAt": "2026-07-20T13:21:45+00:00",
-  "updatedAt": "2026-07-20T13:45:51+00:00",
+  "updatedAt": "2026-07-30T13:46:17+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,7 +19,7 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-07-20T22:45:00+09:00",
+    "reviewedAt": "2026-07-30T22:46:09+09:00",
     "contractValid": true,
     "evidenceComplete": true,
     "requirementsComplete": true,

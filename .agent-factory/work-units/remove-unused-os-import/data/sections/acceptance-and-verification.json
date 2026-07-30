@@ -1,0 +1,49 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "app_server_goal.py에서 import os가 제거된다.",
+        "ruff check skills가 통과한다.",
+        "관련 app_server_goal 테스트가 통과한다."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "승인된 파일 한 곳만 구현 변경된다.",
+        "AI review와 실행 보고가 기록된다."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": [
+        "ruff check skills",
+        "python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_app_server_goal.py"
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "Ruff and related tests passed",
+      "attributes": {
+        "status": "pass",
+        "evidence": [
+          "blocks/logs/remove-unused-os-import-verification.txt"
+        ],
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb35a-1299-7d21-864f-29d102ba46b4",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

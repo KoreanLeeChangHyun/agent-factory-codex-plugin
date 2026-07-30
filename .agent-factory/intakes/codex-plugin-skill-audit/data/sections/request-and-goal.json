@@ -29,6 +29,20 @@
       "content": {
         "request": "존재하지 않는 현재 Specification 패키지 문구를 제거하고 README의 검증 안내를 실제 명령으로 교체한다."
       }
+    },
+    {
+      "id": "HUMAN-REQUEST-003",
+      "kind": "human-request",
+      "content": {
+        "request": "스킬 정합성 테스트 해주세요"
+      }
+    },
+    {
+      "id": "HUMAN-REQUEST-004",
+      "kind": "human-request",
+      "content": {
+        "request": "미사용 os import를 제거한다."
+      }
     }
   ],
   "subsections": []

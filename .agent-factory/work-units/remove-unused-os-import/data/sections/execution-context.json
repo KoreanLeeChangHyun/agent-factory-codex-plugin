@@ -1,0 +1,75 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "remove-unused-os-import",
+        "objective": "미사용 os import 제거",
+        "execInvocation": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id remove-unused-os-import",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "executionMode": "worktree",
+        "branch": "work-unit/remove-unused-os-import",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-unused-os-import"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "review",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fb35a-1299-7d21-864f-29d102ba46b4",
+        "invocationChain": [
+          "019fb35a-1299-7d21-864f-29d102ba46b4"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "remove-unused-os-import-plan-001"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "remove-unused-os-import-plan-002"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "remove-unused-os-import-plan-003"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "remove-unused-os-import-plan-004"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fb35a-1299-7d21-864f-29d102ba46b4",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

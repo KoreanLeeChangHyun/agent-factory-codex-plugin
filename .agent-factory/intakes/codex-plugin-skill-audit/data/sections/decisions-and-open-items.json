@@ -29,6 +29,15 @@
         "status": "accepted",
         "source": "HUMAN-REQUEST-002"
       }
+    },
+    {
+      "id": "DECISION-STATUS-003",
+      "kind": "decision-status",
+      "content": {
+        "decision": "app_server_goal.py의 미사용 os import만 제거한다.",
+        "status": "accepted",
+        "source": "HUMAN-REQUEST-004"
+      }
     }
   ],
   "subsections": []

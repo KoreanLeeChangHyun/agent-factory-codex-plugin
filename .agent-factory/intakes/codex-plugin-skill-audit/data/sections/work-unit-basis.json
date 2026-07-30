@@ -34,6 +34,27 @@
           "skill-creator quick_validate.py for changed skills"
         ]
       }
+    },
+    {
+      "id": "WORK-UNIT-BASIS-002",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "app_server_goal.py의 미사용 os import를 제거해 Ruff F401을 해소한다.",
+        "status": "accepted",
+        "scope": [
+          "skills/work-units-execution/scripts/app_server_goal.py"
+        ],
+        "exclusions": [
+          "실행 동작 변경",
+          "다른 파일 수정",
+          "서버 재시작",
+          "커밋 및 푸시"
+        ],
+        "verification": [
+          "ruff check skills",
+          "python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_app_server_goal.py"
+        ]
+      }
     }
   ],
   "subsections": []

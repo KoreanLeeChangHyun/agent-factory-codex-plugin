@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/logs/remove-unused-os-import-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Ruff, pytest, diff, and AI review evidence",
+      "sha256": "8741763f1a8db1c936483c76a206a6b55b74ef024757f124690d2f0d43f95697",
+      "sizeBytes": 974
+    }
+  ]
+}
