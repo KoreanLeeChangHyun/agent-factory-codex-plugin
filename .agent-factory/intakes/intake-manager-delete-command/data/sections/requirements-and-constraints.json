@@ -1,0 +1,54 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQUIREMENT-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Intake manager는 canonical Intake package를 삭제하는 delete 명령을 제공해야 한다."
+      }
+    },
+    {
+      "id": "REQUIREMENT-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "delete는 --confirm-id가 package id와 정확히 일치해야 하며 invalid package 삭제에는 --allow-invalid를 요구해야 한다."
+      }
+    },
+    {
+      "id": "REQUIREMENT-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "삭제는 canonical root와 artifact identity를 검증하고 symlink 및 check-use directory swap에 대해 outside/replacement bytes를 보존해야 한다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "canonical JSON과 package 삭제는 owning manager만 수행하며 직접 filesystem 삭제 fallback을 만들지 않는다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-002",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Specification manager에는 delete를 노출하지 않고 Work Unit manager의 외부 동작을 변경하지 않는다."
+      }
+    },
+    {
+      "id": "ACCEPTANCE-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "intake.py delete <package> --confirm-id <id>가 valid package를 삭제하고 structured receipt를 출력한다.",
+          "invalid package는 --allow-invalid 없이는 보존되고 거부되며, 옵션이 있으면 검증 오류를 receipt에 기록하고 삭제된다.",
+          "identity mismatch, symlink package, package swap은 삭제를 거부하고 외부 또는 교체 데이터를 보존한다.",
+          "Intake manager tests, shared lifecycle tests, Ruff 및 full skill tests가 통과한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

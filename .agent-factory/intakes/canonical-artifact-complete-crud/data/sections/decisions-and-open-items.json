@@ -1,0 +1,17 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "Human은 완전한 script-owned CRUD를 Intake, Specification, Work Unit 모두에 요구했고, 누락된 안전 삭제 기능을 Work Unit으로 구현하는 A안을 선택했다."
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": "구현 전 차단 결정 없음. 실제 invalid package 삭제는 구현 완료 후 정확한 대상 목록과 명령에 대한 별도 확인이 필요하다."
+    }
+  ],
+  "subsections": []
+}

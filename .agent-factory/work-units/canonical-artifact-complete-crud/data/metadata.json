@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.37",
-  "id": "remove-unused-os-import",
+  "documentVersion": "1.0.27",
+  "id": "canonical-artifact-complete-crud",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "done"
+    "status": "review"
   },
-  "createdAt": "2026-07-30T13:47:17+00:00",
-  "updatedAt": "2026-07-30T14:17:48+00:00",
+  "createdAt": "2026-07-30T17:44:38+00:00",
+  "updatedAt": "2026-07-30T18:08:56+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,7 +19,7 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-07-30T22:48:32+09:00",
+    "reviewedAt": "2026-07-30T17:44:44Z",
     "contractValid": true,
     "intakeTraceabilityValid": true,
     "definitionComplete": true,

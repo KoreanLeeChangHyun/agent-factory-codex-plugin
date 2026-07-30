@@ -1,0 +1,38 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": "Intake, Specification, Work Unit owning manager script는 각각 Create, Read, Update, Delete 명령을 제공해야 한다."
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": "세 delete 명령은 exact --confirm-id를 요구하고 invalid package 삭제는 --allow-invalid 없이는 거부해야 한다."
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": "삭제는 canonical collection과 package를 directory descriptor에 고정하고 symlink 및 check-use directory swap을 거부하며 부분 실패 시 가능한 범위에서 package 이름을 복원해야 한다."
+    },
+    {
+      "id": "REQ-004",
+      "kind": "constraint",
+      "content": "기존 Work Unit CRUD와 lifecycle-specific 명령, schema, 상태 전이는 호환성을 유지해야 하며 canonical JSON 직접 쓰기 또는 generic filesystem 우회를 추가하지 않는다."
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "세 manager --help에서 create, show, delete와 기존 update 명령을 확인할 수 있다.",
+        "valid package는 exact confirmation으로 삭제되고 잘못된 confirmation은 보존 상태로 거부된다.",
+        "invalid package는 --allow-invalid 없이 거부되고 exact identity와 함께 명시 허용된 경우에만 삭제된다.",
+        "symlink target과 swap replacement는 삭제되지 않는다.",
+        "세 manager 집중 테스트, schema checks, skill validation과 full test suite가 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

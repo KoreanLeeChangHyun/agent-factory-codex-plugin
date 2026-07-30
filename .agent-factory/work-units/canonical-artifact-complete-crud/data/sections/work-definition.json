@@ -1,0 +1,39 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "Intake, Specification, Work Unit manager에 완전하고 동일한 script-owned CRUD 계약을 구현한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "lifecycle-owned common sectioned-document layer의 재사용 가능한 안전 package delete primitive",
+        "skills/intakes/scripts/intake.py의 delete command",
+        "skills/specifications/scripts/specification.py의 delete command",
+        "skills/work-units-manager/scripts/work_unit.py의 기존 delete를 공통 primitive에 정합화",
+        "세 manager의 valid, invalid opt-in, confirmation, identity, symlink, swap-race 회귀 테스트",
+        "관련 SKILL.md와 lifecycle common document contract의 CRUD command 문서화"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "현재 canonical Intake, Specification, Work Unit package의 실제 삭제",
+        "artifact schema 또는 lifecycle 상태 모델 변경",
+        "remove-unused-os-import canonical 완료 기록 변경",
+        "서버 재시작, 푸시, 배포, 브랜치 삭제"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "세 canonical artifact manager가 동일한 안전 계약으로 Create, Read, Update, Delete를 제공하고 검증이 통과한 코드·테스트·스킬 문서 변경"
+    }
+  ],
+  "subsections": []
+}

@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/integration/remove-unused-os-import.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "a16043d165d353919f25b83bc08b5a4c41b64c8b05c8af266fd4feb570de6561",
+      "sizeBytes": 993
+    },
+    {
       "path": "blocks/logs/remove-unused-os-import-verification.txt",
       "mediaType": "text/plain",
       "description": "Ruff, pytest, diff, and AI review evidence",

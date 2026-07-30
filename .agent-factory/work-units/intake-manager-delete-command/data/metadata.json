@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.37",
-  "id": "remove-unused-os-import",
+  "documentVersion": "1.0.11",
+  "id": "intake-manager-delete-command",
   "artifactType": "work-unit",
   "projectId": "agent-factory",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "done"
+    "status": "ready"
   },
-  "createdAt": "2026-07-30T13:47:17+00:00",
-  "updatedAt": "2026-07-30T14:17:48+00:00",
+  "createdAt": "2026-07-30T17:50:48+00:00",
+  "updatedAt": "2026-07-30T17:51:05+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,7 +19,7 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-07-30T22:48:32+09:00",
+    "reviewedAt": "2026-07-30T17:50:55+00:00",
     "contractValid": true,
     "intakeTraceabilityValid": true,
     "definitionComplete": true,

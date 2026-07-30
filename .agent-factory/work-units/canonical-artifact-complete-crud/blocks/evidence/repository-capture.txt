@@ -1,0 +1,15 @@
+repository=/home/deus/workspace/agent-factory/codex-plugins
+branch=work-unit/canonical-artifact-complete-crud
+head=242d0fa9285ad776eaa81ab060f3a80131c04dd4
+worktree_status=clean
+changed_path=skills/factories-lifecycle/references/common-document-contract.md
+changed_path=skills/factories-lifecycle/scripts/sectioned_document.py
+changed_path=skills/factories-lifecycle/tests/test_document_profiles.py
+changed_path=skills/intakes/SKILL.md
+changed_path=skills/intakes/tests/test_intake_manager.py
+changed_path=skills/specifications/SKILL.md
+changed_path=skills/specifications/scripts/specification.py
+changed_path=skills/specifications/tests/test_specification_manager.py
+changed_path=skills/work-units-manager/SKILL.md
+changed_path=skills/work-units-manager/scripts/work_unit.py
+changed_path=skills/work-units-manager/tests/test_work_unit_manager.py

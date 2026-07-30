@@ -1,0 +1,73 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": "Intake, Specification, Work Unit manager --help가 create, show, delete와 기존 update 명령을 제공한다."
+    },
+    {
+      "id": "AC-002",
+      "kind": "acceptance-criterion",
+      "content": "세 manager에서 valid package 삭제는 exact confirmation으로만 성공하고 confirmation mismatch는 package를 보존한다."
+    },
+    {
+      "id": "AC-003",
+      "kind": "acceptance-criterion",
+      "content": "세 manager에서 invalid package는 --allow-invalid 없이 거부되고 canonical identity가 확인된 경우에만 명시적으로 삭제된다."
+    },
+    {
+      "id": "AC-004",
+      "kind": "acceptance-criterion",
+      "content": "세 manager의 delete는 symlink target과 validation-to-use package swap replacement를 삭제하지 않는다."
+    },
+    {
+      "id": "AC-005",
+      "kind": "acceptance-criterion",
+      "content": "기존 create, show, update, validate, lifecycle-specific 명령과 canonical package validation이 회귀하지 않는다."
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "세 manager CRUD command surface와 안전 삭제 테스트가 통과한다.",
+        "공통 삭제 책임이 중복 없이 lifecycle-owned 계층에 위치하거나 더 작은 근거 기반 구조가 선택되고 AI review에 이유가 기록된다.",
+        "관련 스킬과 common document contract가 실제 command surface와 일치한다.",
+        "실제 canonical package는 삭제하지 않는다."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": [
+        "python3 -m pytest -q -p no:cacheprovider skills/intakes/tests/test_intake_manager.py",
+        "python3 -m pytest -q -p no:cacheprovider skills/specifications/tests/test_specification_manager.py",
+        "python3 -m pytest -q -p no:cacheprovider skills/work-units-manager/tests/test_work_unit_manager.py",
+        "ruff check skills",
+        "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/intakes",
+        "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/specifications",
+        "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/work-units-manager"
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "104 tests and 48 subtests, ruff, and three skill validations passed.",
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb423-763c-7f71-af71-6b921ed67473",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/canonical-artifact-complete-crud.md",
+          "blocks/evidence/repository-capture.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

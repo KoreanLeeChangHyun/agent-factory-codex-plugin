@@ -1,0 +1,30 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "변경 파일과 delete CLI 계약 확인",
+        "valid/invalid/identity/symlink/swap 테스트 결과 확인",
+        "Specification 비노출과 기존 Work Unit delete 회귀 확인",
+        "실제 Intake 삭제가 수행되지 않았음을 확인"
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": "diff, manager --help, focused/related tests와 AI review를 확인하고 rework 또는 complete를 결정한다. complete 시 코드가 자동 통합되며 실제 25개 삭제는 별도 최종 확인 후 수행한다."
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "Pending",
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

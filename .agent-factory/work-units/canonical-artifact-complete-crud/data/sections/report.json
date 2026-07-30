@@ -1,0 +1,25 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "Implementation, verification, AI review, changed paths, and preservation evidence are registered for Human review.",
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb423-763c-7f71-af71-6b921ed67473",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/canonical-artifact-complete-crud.md",
+          "blocks/evidence/repository-capture.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

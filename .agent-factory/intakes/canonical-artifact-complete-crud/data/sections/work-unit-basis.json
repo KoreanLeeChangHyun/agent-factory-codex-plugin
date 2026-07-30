@@ -1,0 +1,47 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "reason": "Project Core는 이미 canonical CRUD의 owning manager 처리를 원칙으로 기록하지만 Intake와 Specification delete가 없어 구현이 명세에 미달한다. Work Unit이 이 gap을 해소한다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Intake, Specification, Work Unit manager에 완전하고 동일한 script-owned CRUD 계약을 구현한다.",
+        "scope": [
+          "shared safe package deletion primitive where repository evidence supports extraction",
+          "intake.py, specification.py, work_unit.py CRUD command consistency",
+          "valid/invalid/identity/symlink/swap-race regression tests",
+          "relevant Agent Factory skill and lifecycle documentation"
+        ],
+        "outOfScope": [
+          "actual canonical package deletion",
+          "artifact schema and lifecycle redesign",
+          "server restart, push, deploy, branch deletion",
+          "unrelated remove-unused-os-import canonical changes"
+        ],
+        "executionMode": "worktree",
+        "verification": [
+          "python3 -m pytest -q -p no:cacheprovider skills/intakes/tests/test_intake_manager.py",
+          "python3 -m pytest -q -p no:cacheprovider skills/specifications/tests/test_specification_manager.py",
+          "python3 -m pytest -q -p no:cacheprovider skills/work-units-manager/tests/test_work_unit_manager.py",
+          "ruff check skills",
+          "Agent Factory skill quick validation and canonical full validation"
+        ],
+        "executionOrder": 1,
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,51 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "intake.py delete <package> --confirm-id <id>가 valid Intake package를 삭제하고 id, path, validation, operationResult receipt를 출력한다.",
+        "invalid Intake는 --allow-invalid 없이는 보존하고 거부하며, 옵션이 있으면 validationError를 receipt에 기록하고 삭제한다.",
+        "directory name과 metadata id 또는 artifactType 불일치를 거부한다.",
+        "symlink package와 check-use directory swap을 거부하고 outside 또는 replacement bytes를 보존한다.",
+        "Specification manager CLI에는 delete가 노출되지 않는다.",
+        "기존 Work Unit manager delete 외부 계약이 유지된다."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "승인된 파일과 필요한 직접 회귀 테스트만 변경된다.",
+        "manager-only canonical deletion 계약이 문서와 테스트에 반영된다.",
+        "AI review와 실행 보고가 current revision/attempt에 기록된다.",
+        "실제 25개 Intake 삭제는 수행하지 않는다."
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": [
+        "python3 -m pytest -q -p no:cacheprovider skills/intakes/tests/test_intake_manager.py",
+        "python3 -m pytest -q -p no:cacheprovider skills/factories-lifecycle/tests",
+        "python3 -m pytest -q -p no:cacheprovider skills/work-units-manager/tests/test_work_unit_manager.py -k delete",
+        "ruff check skills",
+        "python3 /home/deus/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/intakes",
+        "python3 skills/intakes/scripts/intake.py --help",
+        "python3 skills/specifications/scripts/specification.py --help"
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "Pending",
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

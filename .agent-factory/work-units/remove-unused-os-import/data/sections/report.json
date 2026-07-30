@@ -18,6 +18,28 @@
           "attempt": 1
         }
       }
+    },
+    {
+      "id": "INTEGRATION-A16043D165D35391",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/remove-unused-os-import",
+        "sourceCommit": "d6143cadea64ba6a6e3f7b695221bb3e73ff8b93",
+        "strategy": "no-ff",
+        "targetAfterCommit": "f01c0af848414f2f8b5cba3e3b019e32b4910e42",
+        "targetBeforeCommit": "2bad2a2e033a3b906257a0839683bdd2b25c48c8",
+        "targetBranch": "main",
+        "workUnitId": "remove-unused-os-import",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-unused-os-import",
+        "receiptSha256": "a16043d165d353919f25b83bc08b5a4c41b64c8b05c8af266fd4feb570de6561"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/remove-unused-os-import.json"
     }
   ],
   "subsections": []

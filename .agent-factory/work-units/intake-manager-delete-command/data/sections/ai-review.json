@@ -1,0 +1,28 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "Human 승인 범위와 Work Unit exclusions 준수",
+        "shared engine ownership과 adapter opt-in의 SoC/DRY 검토",
+        "exact confirmation, invalid allowance와 identity 검증",
+        "trusted directory descriptor 기반 traversal과 symlink/swap adversarial regression",
+        "Specification delete 비노출과 Work Unit delete 회귀 없음",
+        "검증 명령 및 evidence 정확성"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "Pending",
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

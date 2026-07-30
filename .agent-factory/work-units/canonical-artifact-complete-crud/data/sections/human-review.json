@@ -1,0 +1,30 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "세 manager --help의 CRUD 명령 확인",
+        "안전 삭제 negative/positive 테스트 결과 확인",
+        "변경 경로가 manager, shared lifecycle, tests, skill docs 범위인지 확인",
+        "실제 canonical package가 삭제되지 않았는지 확인"
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": "diff, manager CLI 출력, 집중·전체 테스트와 AI review evidence를 확인하고 rework 또는 complete를 결정한다."
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "Pending",
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}
