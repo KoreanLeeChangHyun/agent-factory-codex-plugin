@@ -53,6 +53,29 @@ class WorkPackageSchedulerTest(unittest.TestCase):
             ],
         }
 
+    def test_json_command_uses_final_document_after_work_unit_ack(self):
+        acknowledgement = {
+            "type": "ack",
+            "workUnitId": "wu-a",
+        }
+        terminal = {
+            "command": "execute",
+            "ok": True,
+            "state": "complete",
+        }
+        script = (
+            "import json;"
+            f"print(json.dumps({acknowledgement!r}));"
+            f"print(json.dumps({terminal!r}))"
+        )
+
+        result = self.module.run_json_command(
+            [sys.executable, "-c", script],
+            "launch Work Unit wu-a",
+        )
+
+        self.assertEqual(result, terminal)
+
     def test_independent_nodes_run_in_parallel_and_dependent_runs_after_merges(self):
         lock = threading.Lock()
         running = 0

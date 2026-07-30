@@ -45,6 +45,9 @@ approval. It follows recorded canonical decisions until execution completes.
 prompt declares: `You are the Workflow Agent. You must execute this Work Unit.`
 This Goal preflight uses `thread/goal/set` and `thread/goal/get` before worktree
 preparation and fails closed on mismatched protocol evidence.
+After the verified initial `turn/start`, the launcher emits one immediate JSONL
+ACK and later emits its final execution document. A refusal before the initial
+turn emits no ACK.
 
 The launcher accepts initial, rework, and active-resume states. It automatically
 continues interrupted turns and reactivates Goals blocked by removed workflow

@@ -65,6 +65,9 @@ the Workflow Agent and must execute the Work Unit.
 This launcher is the Goal preflight. It confirms `thread/goal/set` and
 `thread/goal/get` before `turn/start` and fails closed before worktree
 preparation when Goal evidence is inconsistent.
+After a valid initial `turn/start`, it emits one immediate JSONL ACK and keeps
+running until it emits the final execution document. Admission refusal before
+the initial turn emits no ACK.
 
 ## Execution routes
 

@@ -29,6 +29,7 @@ WORK_UNIT_MANAGER = (
     / "work_unit.py"
 )
 Validator = Callable[[Path, str], dict[str, Any]]
+AckEmitter = Callable[[dict[str, Any]], Any]
 
 
 class ContractError(Exception):
@@ -712,6 +713,7 @@ def run_protocol(
     work_unit_id: str,
     mode: str,
     instruction: str | None,
+    emit_ack: Callable[[str, str], Any] | None = None,
 ) -> dict[str, Any]:
     client.request(
         "initialize",
@@ -814,7 +816,9 @@ def run_protocol(
         validate_goal(fetched, thread_id, objective, required_status="active")
         start_turn(recovery_prompt(work_unit_id, reason))
 
-    start_turn(execution_prompt(work_unit_id, mode, instruction))
+    initial_turn_id = start_turn(execution_prompt(work_unit_id, mode, instruction))
+    if emit_ack is not None:
+        emit_ack(thread_id, initial_turn_id)
     completed_goal: dict[str, Any] | None = None
     completed_goal_turn_id: str | None = None
     completed_turns: set[str] = set()
@@ -970,6 +974,26 @@ def error_payload(
     }
 
 
+def ack_payload(
+    repository: Path,
+    work_unit_id: str,
+    package: dict[str, Any],
+    thread_id: str,
+    turn_id: str,
+) -> dict[str, Any]:
+    return {
+        "executionMode": package["mode"],
+        "executionRoute": package["executionRoute"],
+        "package": package["package"],
+        "repository": str(repository),
+        "schemaVersion": SCHEMA_VERSION,
+        "threadId": thread_id,
+        "turnId": turn_id,
+        "type": "ack",
+        "workUnitId": work_unit_id,
+    }
+
+
 def execute(
     *,
     repository: Path,
@@ -977,6 +1001,7 @@ def execute(
     codex_executable: str,
     timeout_seconds: float,
     validator: Validator = validate_work_unit,
+    emit_ack: AckEmitter | None = None,
 ) -> dict[str, Any]:
     operations: list[dict[str, Any]] = []
     client: AppServerClient | None = None
@@ -996,6 +1021,19 @@ def execute(
             work_unit_id,
             package["mode"],
             package.get("instruction"),
+            (
+                None
+                if emit_ack is None
+                else lambda thread_id, turn_id: emit_ack(
+                    ack_payload(
+                        resolved_repository,
+                        work_unit_id,
+                        package,
+                        thread_id,
+                        turn_id,
+                    )
+                )
+            ),
         )
         process_evidence = client.close()
         client = None
@@ -1034,6 +1072,19 @@ def build_parser() -> JsonArgumentParser:
     return parser
 
 
+def emit_json(value: dict[str, Any]) -> None:
+    sys.stdout.write(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n"
+    )
+    sys.stdout.flush()
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = build_parser().parse_args(
@@ -1044,12 +1095,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             work_unit_id=args.work_unit_id,
             codex_executable=args.codex,
             timeout_seconds=args.timeout_seconds,
+            emit_ack=emit_json,
         )
     except ContractError as error:
         payload = error_payload(error, [], None)
-    print(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    )
+    emit_json(payload)
     return 0 if payload["ok"] else 2
 
 

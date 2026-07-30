@@ -26,6 +26,7 @@ The launcher:
 - creates and verifies the matching active Goal;
 - starts a background turn whose prompt begins by declaring the Workflow Agent
   role and requiring execution;
+- emits one immediate JSONL ACK after the verified initial `turn/start`;
 - automatically continues a turn that ends as `interrupted`;
 - reactivates a Goal that was blocked by a removed checkpoint or approval
   procedure;
@@ -34,6 +35,9 @@ The launcher:
 
 This is the Goal preflight: `thread/goal/set` and `thread/goal/get` must agree
 before `turn/start`. On mismatch, fail closed before worktree preparation.
+Admission refusal before a valid initial turn emits no ACK. After ACK, the
+launcher keeps running and emits its existing final success or failure JSON
+document when execution terminates.
 
 Once launched, do not repeat readiness, checkpoint, or approval decisions.
 For `worktree` execution, prepare or reuse the canonical linked worktree before

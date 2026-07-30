@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -136,6 +138,9 @@ for line in sys.stdin:
     elif method == "turn/start":
         turn_count += 1
         turn_id = f"turn-{turn_count}"
+        if scenario == "invalid_turn_response":
+            emit({"id": request_id, "result": {"turn": None}})
+            continue
         emit(
             {
                 "id": request_id,
@@ -257,7 +262,12 @@ class AppServerGoalTest(unittest.TestCase):
             ),
         }
 
-    def execute(self, scenario: str = "success", timeout: float = 1.0):
+    def execute(
+        self,
+        scenario: str = "success",
+        timeout: float = 1.0,
+        emit_ack=None,
+    ):
         os.environ["FAKE_APP_SERVER_SCENARIO"] = scenario
         module = load_module()
         return module.execute(
@@ -266,6 +276,7 @@ class AppServerGoalTest(unittest.TestCase):
             codex_executable=str(self.server),
             timeout_seconds=timeout,
             validator=self.validator,
+            emit_ack=emit_ack,
         )
 
     def methods(self) -> list[str]:
@@ -274,7 +285,8 @@ class AppServerGoalTest(unittest.TestCase):
         return self.log_path.read_text(encoding="utf-8").splitlines()
 
     def test_goal_is_verified_before_turn_starts(self) -> None:
-        payload = self.execute()
+        acknowledgements = []
+        payload = self.execute(emit_ack=acknowledgements.append)
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["state"], "complete")
@@ -284,6 +296,27 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertEqual(payload["context"]["goal"]["status"], "complete")
         self.assertEqual(payload["context"]["turnIds"], ["turn-1"])
         self.assertEqual(payload["process"]["returnCode"], 0)
+        self.assertEqual(
+            acknowledgements,
+            [
+                {
+                    "executionMode": "execution",
+                    "executionRoute": "worktree",
+                    "package": str(
+                        self.repository
+                        / ".agent-factory"
+                        / "work-units"
+                        / "wu-001"
+                    ),
+                    "repository": str(self.repository),
+                    "schemaVersion": "1.0.0",
+                    "threadId": "thread-1",
+                    "turnId": "turn-1",
+                    "type": "ack",
+                    "workUnitId": "wu-001",
+                }
+            ],
+        )
         self.assertEqual(
             self.methods(),
             [
@@ -625,15 +658,33 @@ class AppServerGoalTest(unittest.TestCase):
         for scenario, code in expected_codes.items():
             with self.subTest(scenario=scenario):
                 self.log_path.unlink(missing_ok=True)
+                acknowledgements = []
                 timeout = (
                     0.1
                     if scenario in {"timeout", "missing_notification"}
                     else 1.0
                 )
-                payload = self.execute(scenario, timeout=timeout)
+                payload = self.execute(
+                    scenario,
+                    timeout=timeout,
+                    emit_ack=acknowledgements.append,
+                )
                 self.assertFalse(payload["ok"])
                 self.assertEqual(payload["error"]["code"], code)
+                self.assertEqual(acknowledgements, [])
                 self.assertNotIn("turn/start", self.methods())
+
+    def test_invalid_initial_turn_response_emits_no_ack(self) -> None:
+        acknowledgements = []
+        payload = self.execute(
+            "invalid_turn_response",
+            emit_ack=acknowledgements.append,
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["code"], "invalid_turn_response")
+        self.assertEqual(acknowledgements, [])
+        self.assertEqual(self.methods()[-1], "turn/start")
 
     def test_failed_turn_is_not_reported_as_success(self) -> None:
         payload = self.execute("turn_failed")
@@ -643,11 +694,17 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertEqual(self.methods()[-1], "turn/start")
 
     def test_interrupted_turn_is_automatically_continued(self) -> None:
-        payload = self.execute("interrupted_once")
+        acknowledgements = []
+        payload = self.execute(
+            "interrupted_once",
+            emit_ack=acknowledgements.append,
+        )
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["context"]["turnIds"], ["turn-1", "turn-2"])
         self.assertEqual(payload["context"]["recoveryCount"], 1)
+        self.assertEqual(len(acknowledgements), 1)
+        self.assertEqual(acknowledgements[0]["turnId"], "turn-1")
         self.assertEqual(self.methods().count("turn/start"), 2)
 
     def test_blocked_goal_is_reactivated_and_continued(self) -> None:
@@ -698,6 +755,46 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertEqual(json.loads(encoded), payload)
         self.assertEqual(payload["schemaVersion"], "1.0.0")
         self.assertEqual(payload["command"], "execute")
+
+    def test_cli_emits_ack_before_final_document(self) -> None:
+        module = load_module()
+        acknowledgement = {
+            "schemaVersion": "1.0.0",
+            "threadId": "thread-1",
+            "turnId": "turn-1",
+            "type": "ack",
+            "workUnitId": "wu-001",
+        }
+        terminal = {
+            "command": "execute",
+            "ok": True,
+            "schemaVersion": "1.0.0",
+            "state": "complete",
+        }
+
+        def execute(**arguments):
+            arguments["emit_ack"](acknowledgement)
+            return terminal
+
+        output = io.StringIO()
+        with (
+            mock.patch.object(module, "execute", side_effect=execute),
+            contextlib.redirect_stdout(output),
+        ):
+            status = module.main(
+                [
+                    "--repository",
+                    str(self.repository),
+                    "--work-unit-id",
+                    "wu-001",
+                ]
+            )
+
+        self.assertEqual(status, 0)
+        self.assertEqual(
+            [json.loads(line) for line in output.getvalue().splitlines()],
+            [acknowledgement, terminal],
+        )
 
     def test_cli_emits_one_json_error_document_and_nonzero_status(self) -> None:
         result = subprocess.run(

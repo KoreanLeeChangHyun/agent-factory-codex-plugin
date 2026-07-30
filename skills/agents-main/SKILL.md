@@ -33,6 +33,9 @@ repeat decisions already recorded in canonical artifacts. If admission passes,
 start `skills/work-units-execution/scripts/app_server_goal.py` as a background
 process. The launcher establishes the Goal and tells the started agent:
 `You are the Workflow Agent. You must execute this Work Unit.`
+Parse the launcher's first JSONL document as either the immediate ACK for the
+verified initial turn or an admission refusal. After ACK, monitor the same
+process for its final success or failure document.
 
 After launch, do not reassess readiness and do not interrupt implementation with
 another approval, checkpoint, or decision request.
