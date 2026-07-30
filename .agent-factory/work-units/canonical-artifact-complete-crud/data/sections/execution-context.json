@@ -22,7 +22,7 @@
       "kind": "execution-state",
       "content": {
         "contractVersion": "2.0.0",
-        "state": "review",
+        "state": "done",
         "currentRevision": 1,
         "currentAttempt": 1,
         "invocationId": "019fb423-763c-7f71-af71-6b921ed67473",

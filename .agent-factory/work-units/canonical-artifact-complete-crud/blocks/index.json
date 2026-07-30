@@ -13,6 +13,13 @@
       "description": "Post-report source repository commit, clean status, and changed-path capture",
       "sha256": "0370d08e4a2d6427622e80b02ac17cfeab009192ff56406397e4c813fadf825d",
       "sizeBytes": 847
+    },
+    {
+      "path": "blocks/integration/canonical-artifact-complete-crud.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "e6e878e248ae525405d1b0536a88b5bc73b216294206794a17edca63a69ab3b4",
+      "sizeBytes": 1724
     }
   ]
 }

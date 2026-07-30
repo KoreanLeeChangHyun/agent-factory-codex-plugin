@@ -22,7 +22,14 @@
       "kind": "human-review-result",
       "content": "Pending",
       "attributes": {
-        "status": "pending"
+        "status": "complete",
+        "decidedAt": "2026-07-30T18:45:25+00:00",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "019fb423-763c-7f71-af71-6b921ed67473"
+        }
       }
     }
   ],

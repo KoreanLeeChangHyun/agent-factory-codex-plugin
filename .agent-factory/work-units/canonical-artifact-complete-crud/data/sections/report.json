@@ -19,6 +19,28 @@
           "blocks/evidence/repository-capture.txt"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-E6E878E248AE5254",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/canonical-artifact-complete-crud",
+        "sourceCommit": "242d0fa9285ad776eaa81ab060f3a80131c04dd4",
+        "strategy": "ff-only",
+        "targetAfterCommit": "242d0fa9285ad776eaa81ab060f3a80131c04dd4",
+        "targetBeforeCommit": "f01c0af848414f2f8b5cba3e3b019e32b4910e42",
+        "targetBranch": "main",
+        "workUnitId": "canonical-artifact-complete-crud",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/canonical-artifact-complete-crud",
+        "receiptSha256": "e6e878e248ae525405d1b0536a88b5bc73b216294206794a17edca63a69ab3b4"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/canonical-artifact-complete-crud.json"
     }
   ],
   "subsections": []
