@@ -110,6 +110,24 @@
           "resume은 completed node를 건너뛰고 executed node의 merge 또는 미완료 node부터 계속한다."
         ]
       }
+    },
+    {
+      "id": "PROCESS-SUPERVISION-001",
+      "kind": "recovery",
+      "content": {
+        "recoverySteps": [
+          "validate and start the worker before emitting compact ACK",
+          "consume worker heartbeat and app-server notifications inside the Python supervisor",
+          "after ACK-bound process death or heartbeat timeout reinvoke the same Work Unit id",
+          "reuse canonical execution-state so completed durable steps are not repeated",
+          "stop after the bounded restart budget and emit one escalation document"
+        ],
+        "claimRules": [
+          "Admission refusal before ACK is not retried.",
+          "Routine heartbeat, notifications, logs and restart events are not main-facing output.",
+          "Main-facing stdout contains compact ACK and terminal or escalation only."
+        ]
+      }
     }
   ],
   "subsections": []

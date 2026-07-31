@@ -1,0 +1,28 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-units-execution/scripts/app_server_goal.py; skills/work-units-execution/scripts/work_package_supervisor.py; skills/agents-main/SKILL.md; related tests",
+        "method": "repository inspection and focused tests",
+        "findings": [
+          "app_server_goal.py emits ACK only after verified initial turn/start and directly waits for Goal/turn notifications",
+          "single Work Unit route has no heartbeat-based supervisor or process-death reinvocation owner",
+          "Work Package supervisor consumes ACK and heartbeat but forwards intermediate events to stdout",
+          "agents-main currently directs the model to monitor forwarded heartbeat/events for Work Packages",
+          "focused app_server_goal and main contract tests passed before this change"
+        ],
+        "interpretations": [
+          "ACK alone does not prove continuing progress",
+          "forwarding routine heartbeat and logs into the main LLM context conflicts with the Human token-minimization requirement"
+        ],
+        "limitations": []
+      }
+    }
+  ],
+  "subsections": []
+}

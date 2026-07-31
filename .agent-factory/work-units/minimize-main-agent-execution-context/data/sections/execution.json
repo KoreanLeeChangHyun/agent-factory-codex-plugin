@@ -1,0 +1,22 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "전용 worktree에서 단일 Work Unit과 Work Package supervisor의 compact main-facing JSONL, bounded same-id recovery, descendant process cleanup, aligned skill 계약을 구현하고 commit 7a745cdf71f0295e8a1c326df596195e1c81801f에 기록했다.",
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

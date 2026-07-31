@@ -8,7 +8,8 @@
       "content": {
         "items": [
           "Main-agent sufficiency check: 명시적 launch 직전 한 번만 실행 가능성 판단",
-          "Goal+Exec launcher: Workflow Agent 선언, background turn 시작, interrupted·blocked recovery",
+          "Goal+Exec launcher worker: Workflow Agent 선언, background turn 시작, interrupted·blocked recovery",
+          "Work Unit Python supervisor: worker heartbeat·process liveness 감시, bounded same-id 재호출, compact ACK와 terminal/escalation 외부 경계",
           "Workflow Agent: recorded decisions를 재질문하지 않고 Plan, Work, AI Review, Report 수행",
           "Work Unit manager: revision·attempt·invocation chain·progress·result의 canonical owner",
           "Specification manager: specification-direct 실행의 기본 저장소 canonical owner",
@@ -38,7 +39,7 @@
       "content": {
         "items": [
           "Work Package manager: canonical profile, DAG validation, lifecycle, durable scheduler state, review, rework와 receipt owner",
-          "Work Package supervisor: 첫 JSONL ACK, heartbeat/process-death 감시와 동일 package 재호출 owner",
+          "Work Package supervisor: 첫 compact JSONL ACK와 terminal/escalation 외부 경계, 내부 heartbeat/process-death 감시와 동일 package 재호출 owner",
           "Deterministic executor: stable ready selection, maxParallel, node launcher, specification lock와 topological merge owner",
           "Package integration worktree: target snapshot과 prerequisite 결과를 합성하는 .agent-factory 제외 branch owner",
           "Resolution Goal launcher: node 또는 merge 오류를 recovering으로 기록하고 같은 idempotency key 재시도를 준비",

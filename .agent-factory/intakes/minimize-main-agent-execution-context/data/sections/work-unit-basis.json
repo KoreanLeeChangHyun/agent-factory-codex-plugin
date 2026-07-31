@@ -1,0 +1,26 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "result": "Project Core의 deterministic script ownership 원칙은 유지되지만 work-unit-durable-execution-supervisor Specification과 기존 Intake 결정에는 메인 에이전트가 heartbeat/events를 소비하고 재호출한다는 계약이 있어 supervisor-only 감시와 compact main output으로 정렬해야 한다.",
+        "packages": [
+          "work-unit-durable-execution-supervisor"
+        ]
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": "단일 Work Unit과 Work Package에 script-owned liveness supervision과 compact ACK/terminal 경계를 구현하고 main/workflow/execution skill 계약, durable execution Specification, 테스트를 정렬한다."
+    }
+  ],
+  "subsections": []
+}

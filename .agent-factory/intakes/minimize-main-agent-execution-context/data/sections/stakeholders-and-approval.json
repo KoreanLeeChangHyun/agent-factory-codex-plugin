@@ -1,0 +1,22 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": "Human 결정권자, 메인 에이전트, Workflow Agent, Agent Factory 운영자"
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Human은 실행 시작과 최종 rework 또는 complete를 결정한다. supervisor의 heartbeat 소비, bounded retry와 동일 작업 재실행은 중간 Human 승인이나 메인 LLM 판단 없이 결정론적으로 수행한다."
+    }
+  ],
+  "subsections": []
+}

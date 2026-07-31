@@ -1,0 +1,23 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": "Ready Intake에서 확정된 supervisor-only 감시와 compact main-agent output 요구",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "minimize-main-agent-execution-context",
+          "path": ".agent-factory/intakes/minimize-main-agent-execution-context",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

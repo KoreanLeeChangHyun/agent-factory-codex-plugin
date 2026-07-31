@@ -1,0 +1,33 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "main LLM이 routine progress를 소비하지 않는지 확인",
+        "supervisor가 감시와 bounded recovery를 소유하는지 확인",
+        "admission refusal과 ACK 경계가 보존되는지 확인",
+        "durable resume와 completed work 비반복을 확인",
+        "skill 문구와 Specification이 코드에 일치하는지 확인"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "Pass. 상세 operations/turnIds 노출과 orphan descendant 중복 실행 위험을 발견해 compact terminal projection과 process-group cleanup으로 수정했다. 재검증 후 scoped finding은 없다.",
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

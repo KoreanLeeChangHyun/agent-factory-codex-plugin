@@ -1,0 +1,34 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "현재 단일 Work Unit launcher는 최초 ACK 후 app-server 알림을 직접 처리하지만 heartbeat 정체 재호출 supervisor가 없고, Work Package supervisor는 존재하나 main-agent 스킬이 forwarded heartbeat/events 모니터링을 지시한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "단일 Work Unit supervisor와 compact JSONL 경계",
+        "Work Package supervisor의 메인 컨텍스트 출력 최소화",
+        "main, workflow, execution skill 계약",
+        "관련 Specification 정렬",
+        "회귀 테스트"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "Workflow Agent가 수행하는 Work Unit 구현 범위 변경",
+        "Human result review 경계 변경",
+        "외부 queue 또는 SaaS scheduler 도입",
+        "UI 변경",
+        "배포와 플러그인 재설치"
+      ]
+    }
+  ],
+  "subsections": []
+}

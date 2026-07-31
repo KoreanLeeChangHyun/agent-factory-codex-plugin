@@ -1,0 +1,38 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "단일 Work Unit과 Work Package 실행에서 결정론적 supervisor가 liveness와 재실행을 소유하고 메인 LLM 컨텍스트에는 compact ACK와 terminal 또는 escalation만 전달되도록 구현한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "skills/work-units-execution의 단일 Work Unit 및 Work Package supervisor/launcher",
+        "skills/agents-main, skills/agents-workflow, skills/work-units-execution 계약",
+        "work-unit-durable-execution-supervisor Specification",
+        "관련 manager/launcher/supervisor/skill 테스트"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "Human result review 경계 변경",
+        "Workflow Agent의 Work Unit 구현 책임 변경",
+        "외부 queue 또는 SaaS 도입",
+        "UI, 배포, 플러그인 재설치",
+        "Human complete 전 integration"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": "script-owned liveness supervision, compact main-facing JSONL protocol, durable recovery, 정렬된 skills/Specification과 회귀 테스트"
+    }
+  ],
+  "subsections": []
+}

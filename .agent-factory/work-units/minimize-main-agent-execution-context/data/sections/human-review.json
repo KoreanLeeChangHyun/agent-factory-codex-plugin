@@ -1,0 +1,30 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "메인 컨텍스트에 ACK와 terminal/escalation만 전달되는지 확인",
+        "supervisor의 자동 감시·재실행 테스트 확인",
+        "변경된 skill 계약과 Specification 확인",
+        "남은 위험과 retry 경계 확인"
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": "구현 diff와 검증 증거를 확인하고 rework 또는 complete를 결정한다."
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "Human result review ready: inspect source commit 7a745cdf71f0295e8a1c326df596195e1c81801f, canonical Specification alignment, verification evidence, AI review fixes, and choose rework or complete.",
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

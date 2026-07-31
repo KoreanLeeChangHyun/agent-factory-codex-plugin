@@ -1,0 +1,24 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "Delivered: shared JSONL supervisor, single Work Unit worker supervision, compact Work Package output, bounded retry/escalation, aligned agents-main/agents-workflow/work-units-execution skills and canonical durable-execution Specification. Source commit: 7a745cdf71f0295e8a1c326df596195e1c81801f. Execution mode remains worktree and requires Human complete before integration. No scoped verification failures remain.",
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

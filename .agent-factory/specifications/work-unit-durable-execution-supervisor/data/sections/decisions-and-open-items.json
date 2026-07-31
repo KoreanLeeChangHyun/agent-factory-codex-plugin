@@ -13,6 +13,8 @@
           "launch 후에는 승인, checkpoint, immutable hash, readiness 판단을 반복하지 않는다.",
           "Specification-only Work Unit은 기본 저장소의 specification.py로 직접 갱신하고 worktree를 만들지 않는다.",
           "그 외 코드 변경은 .agent-factory가 완전히 제외된 전용 worktree에서 실행한다.",
+          "단일 Work Unit Python supervisor는 ACK 이후 app-server heartbeat와 process liveness를 내부 감시하고 동일 Work Unit id를 bounded retry로 재호출한다.",
+          "main-facing stdout은 compact ACK와 terminal 또는 escalation만 포함하며 routine heartbeat, app-server 알림과 실행 로그를 포함하지 않는다.",
           "interrupted turn과 stale blocked Goal은 자동 continuation하며 복구 불가 오류만 명시적 실패로 종료한다.",
           "Human 결과 검토는 rework 또는 complete이며 complete된 코드 변경은 자동 통합한다."
         ]
@@ -44,7 +46,8 @@
           "실행 순서와 병렬도는 LLM이 아니라 deterministic script가 소유한다.",
           "전체 preflight와 Goal/launcher availability가 성공한 뒤에만 ACK한다.",
           "ACK는 packageId, invocationId, acceptedAt, scheduler state와 initial ready nodes를 포함한다.",
-          "ACK 이후 heartbeat와 durable events를 출력하고 process death는 동일 package 재호출로 이어간다.",
+          "ACK 이후 heartbeat와 durable events는 Python supervisor가 내부 소비하고 main-facing stdout에는 compact ACK와 terminal 또는 escalation만 출력한다.",
+          "heartbeat timeout 또는 process death는 동일 package id 재호출로 이어지며 bounded retry 소진은 escalation으로 종료한다.",
           "code node 결과는 package integration branch에 stable topological order로 합성하고 dependent node는 합성 결과를 base로 사용한다.",
           "specification-direct node는 primary resource lock으로 직렬화하고 다음 node 전에 canonical full validation한다.",
           "package 전체에 Human review와 target integration은 각각 한 번이며 rework는 영향 node와 descendants만 재실행한다."

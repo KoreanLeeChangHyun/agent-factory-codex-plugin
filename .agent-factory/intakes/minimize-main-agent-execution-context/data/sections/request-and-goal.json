@@ -1,0 +1,26 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Workflow Agent 실행 감시를 수정하되 메인 에이전트가 실제 Work Unit 작업이나 반복 감시를 수행하지 않고 토큰과 컨텍스트 사용을 매우 작게 유지한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "결정론적 Python supervisor가 heartbeat, 진행 정체, process death와 재실행을 소유하고 메인 에이전트에는 compact ACK와 terminal 또는 escalation 결과만 전달한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": "단일 Work Unit과 Work Package 모두에서 중간 heartbeat, 상태 event와 실행 로그가 메인 LLM 컨텍스트로 전달되지 않고 supervisor가 무토큰으로 복구를 수행하며 메인은 시작 확인과 최종 Human review만 담당한다."
+    }
+  ],
+  "subsections": []
+}

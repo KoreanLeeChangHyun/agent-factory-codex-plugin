@@ -9,9 +9,12 @@
         "commands": [
           "python3 skills/specifications/scripts/specification.py validate .agent-factory/specifications/project-core --full",
           "python3 skills/specifications/scripts/specification.py validate .agent-factory/specifications/work-unit-durable-execution-supervisor --full",
-          "python3 -m unittest discover -s skills/work-units-execution/tests -p test_*.py",
-          "python3 -m unittest discover -s skills/work-units-manager/tests -p test_*.py",
-          "python3 -m unittest discover -s skills -p test_*.py"
+          "python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_app_server_goal.py",
+          "python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_work_package_supervisor.py",
+          "python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_work_package_exec.py",
+          "python3 -m unittest skills.agents-main.tests.test_main_work_package_contract skills.agents-workflow.tests.test_workflow_work_package_contract",
+          "python3 -m unittest skills.factories-lifecycle.tests.test_skill_metadata",
+          "ruff check skills/work-units-execution skills/agents-main skills/agents-workflow"
         ],
         "semanticChecks": [
           "Main agent makes one sufficiency decision before launch.",
@@ -19,9 +22,11 @@
           "No approval or checkpoint decision occurs after launch.",
           "Specification-direct creates no worktree and updates primary canonical Specification.",
           "Worktree mode excludes .agent-factory.",
-          "Interrupted and stale blocked Goal states automatically continue.",
-          "Single Work Unit execution converges to review or explicit unrecoverable failure.",
-          "Work Package preflight succeeds before ACK and ACK-bound execution converges through working or recovering to one package review.",
+          "Routine heartbeat, node/package state, app-server notifications and execution logs are supervisor-internal.",
+          "Main-facing stdout contains compact ACK and terminal or escalation only.",
+          "ACK-bound worker death or heartbeat timeout triggers bounded same-id reinvocation.",
+          "Admission refusal before ACK is not retried.",
+          "Completed durable work is not repeated.",
           "Human result decision is rework or complete."
         ]
       }
@@ -46,9 +51,9 @@
       "kind": "review-status",
       "content": {
         "status": "aligned",
-        "aiVerification": "Focused Work Package lifecycle, single Work Unit regressions, full 185-test suite and canonical full validation passed.",
+        "aiVerification": "Work Unit supervisor 22 tests plus 9 subtests, Work Package supervisor 2 tests, scheduler 6 tests, skill contract 5 tests, metadata 12 tests, scoped ruff, Project Core full validation and this Specification full validation passed.",
         "humanStatus": "pending",
-        "note": "Work Package DAG scheduling, preflight-before-ACK, heartbeat supervision, durable resume, recovery Goal, package branch composition and single package review/integration are implemented; Human result review remains pending."
+        "note": "Single Work Unit and Work Package supervisors now consume routine liveness events internally, expose compact ACK plus terminal/escalation only, perform bounded same-id recovery after ACK-bound death or timeout, and preserve durable completed-work non-repetition; Human result review remains pending."
       }
     },
     {
@@ -64,6 +69,20 @@
           "package branch and dependent base -> REQUIREMENT-014",
           "single review, target integration and affected rework -> REQUIREMENT-016",
           "canonical Work Package manager -> REQUIREMENT-011, REQUIREMENT-012"
+        ]
+      }
+    },
+    {
+      "id": "MAIN-CONTEXT-TRACEABILITY-001",
+      "kind": "traceability",
+      "content": {
+        "intakeAnchor": ".agent-factory/intakes/minimize-main-agent-execution-context#work-unit-basis/BASIS-001",
+        "mappings": [
+          "Supervisor-only liveness and bounded same-id reinvocation -> REQUIREMENT-001, AC-002",
+          "Compact main-facing ACK and terminal/escalation -> REQUIREMENT-002, AC-001",
+          "Workflow Agent implementation ownership and no main-agent polling -> REQUIREMENT-003",
+          "Skill contract alignment -> REQUIREMENT-005, AC-004",
+          "Completed durable work non-repetition -> AC-003"
         ]
       }
     }

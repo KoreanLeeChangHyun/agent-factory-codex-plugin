@@ -1,0 +1,32 @@
+Work Unit: minimize-main-agent-execution-context
+Branch: work-unit/minimize-main-agent-execution-context
+Commit: 7a745cdf71f0295e8a1c326df596195e1c81801f
+
+python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_app_server_goal.py
+PASS: 22 passed, 9 subtests passed
+
+python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_work_package_supervisor.py
+PASS: 2 passed
+
+python3 -m pytest -q -p no:cacheprovider skills/work-units-execution/tests/test_work_package_exec.py
+PASS: 6 passed
+
+python3 -m unittest skills.agents-main.tests.test_main_work_package_contract skills.agents-workflow.tests.test_workflow_work_package_contract
+PASS: 5 tests
+
+python3 -m unittest skills.factories-lifecycle.tests.test_skill_metadata
+PASS: 12 tests
+
+ruff check skills/work-units-execution skills/agents-main skills/agents-workflow
+PASS: All checks passed
+
+python3 skills/specifications/scripts/specification.py validate .agent-factory/specifications/project-core --full
+PASS: project-core@1.0.0 full validation
+
+python3 skills/specifications/scripts/specification.py validate .agent-factory/specifications/work-unit-durable-execution-supervisor --full
+PASS: system-architecture@1.0.0 full validation
+
+AI review:
+- Compact terminal output now excludes detailed operations and turn history.
+- Supervised process groups are terminated before same-id retry to avoid orphan app-server or executor descendants.
+- No remaining scoped AI review findings after focused re-verification.

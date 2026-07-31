@@ -1,0 +1,81 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "minimize-main-agent-execution-context",
+        "objective": "메인 에이전트 실행 감시 컨텍스트 최소화",
+        "execInvocation": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id minimize-main-agent-execution-context",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "executionMode": "worktree",
+        "branch": "work-unit/minimize-main-agent-execution-context",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/minimize-main-agent-execution-context"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "review",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+        "invocationChain": [
+          "019fb46a-224a-7c50-849c-1507818574b0"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004",
+            "PLAN-005"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-001:completed"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-002:completed"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-003:completed"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-004:completed"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "completed",
+              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-005:completed"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

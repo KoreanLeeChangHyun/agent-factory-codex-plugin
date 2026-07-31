@@ -24,17 +24,18 @@
       "id": "EXECUTION-OBSERVABILITY-001",
       "kind": "observability",
       "content": {
-        "queryContract": "Canonical Work Unit JSON links Goal execution, progress, recovery and registered result evidence without Git snapshot identity.",
+        "queryContract": "Canonical Work Unit JSON stores durable progress and recovery evidence; supervisor-internal heartbeat and app-server notifications do not cross the main-facing compact JSONL boundary.",
         "eventTypes": [
-          "launch-refused",
-          "goal-created",
-          "turn-started",
+          "compact-ack",
+          "worker-heartbeat-internal",
+          "worker-process-death-internal",
+          "worker-heartbeat-timeout-internal",
+          "worker-restart-internal",
           "turn-interrupted",
           "goal-reactivated",
           "continuation-started",
-          "recovery-exhausted",
-          "review-ready",
-          "terminal-failure",
+          "review-ready-terminal",
+          "retry-exhausted-escalation",
           "integrated",
           "cleanup-completed"
         ],
@@ -50,7 +51,8 @@
         ],
         "redactionRules": [
           "Redact credentials and tokens.",
-          "Store bounded summaries and registered evidence only when required."
+          "Store bounded summaries and registered evidence only when required.",
+          "Do not forward routine heartbeat, app-server notifications or execution logs to the main agent."
         ]
       }
     },
@@ -59,12 +61,16 @@
       "kind": "fault-injection-matrix",
       "content": {
         "cases": [
-          "insufficient Work Unit before launch -> refuse without Goal or worktree",
+          "insufficient Work Unit before launch -> refuse without ACK, Goal or worktree and do not retry",
           "specification-direct launch -> no worktree and primary specification.py mutation",
           "worktree launch -> sparse worktree without .agent-factory",
           "turn interrupted -> automatic continuation in same Goal",
           "Goal blocked by stale removed gate -> reactivate and continue",
-          "recovery limit exhausted -> explicit failure without hang",
+          "ACK-bound Work Unit worker death -> same Work Unit id reinvocation",
+          "Work Unit heartbeat timeout -> same Work Unit id reinvocation",
+          "Work Package worker death or heartbeat timeout -> same package id reinvocation",
+          "routine heartbeat and state events -> supervisor-internal only",
+          "restart budget exhausted -> compact escalation without hang",
           "Human rework -> next planned revision",
           "Human complete -> automatic integration and later batch cleanup"
         ]
@@ -79,7 +85,9 @@
           "Specification manager full validation",
           "No approval, artifact checkpoint, immutable hash or Git HEAD identity contract",
           "Explicit specification-direct and worktree execution routes",
-          "Interrupted and stale blocked Goal continuation contract"
+          "Interrupted and stale blocked Goal continuation contract",
+          "Python supervisor ownership of liveness and bounded same-id reinvocation",
+          "Compact ACK and terminal/escalation main-facing JSONL boundary"
         ],
         "implementationGates": [
           "Workflow Agent declaration prompt test",
@@ -88,7 +96,12 @@
           "worktree .agent-factory exclusion test",
           "interrupted turn continuation test",
           "stale blocked Goal reactivation test",
-          "bounded recovery exhaustion test",
+          "ACK-bound process-death reinvocation test",
+          "heartbeat-timeout reinvocation test",
+          "admission refusal before ACK non-retry test",
+          "routine heartbeat/event output filtering test",
+          "bounded process restart exhaustion test",
+          "completed durable work non-repetition test",
           "rework or complete result-review test",
           "automatic integration and batch cleanup test"
         ]
@@ -98,16 +111,17 @@
       "id": "WORK-PACKAGE-OBSERVABILITY-001",
       "kind": "observability",
       "content": {
-        "queryContract": "Canonical Work Package execution-state와 JSONL stream이 ACK, heartbeat, node/package events, retry, recovery, review와 integration traceability를 제공한다.",
+        "queryContract": "Canonical Work Package execution-state records heartbeat, node/package events, retry and recovery traceability while main-facing JSONL exposes only compact ACK and terminal or escalation.",
         "eventTypes": [
-          "ack",
-          "heartbeat",
-          "node-running",
-          "node-executed",
-          "node-recovering",
-          "node-completed",
-          "package-review",
-          "supervisor-restart",
+          "compact-ack",
+          "heartbeat-internal",
+          "node-running-internal",
+          "node-executed-internal",
+          "node-recovering-internal",
+          "node-completed-internal",
+          "supervisor-restart-internal",
+          "package-review-terminal",
+          "retry-exhausted-escalation",
           "integrated"
         ],
         "requiredFields": [
@@ -126,7 +140,8 @@
           "cycle, self, missing, readiness, repository와 collision preflight refusal",
           "A/B parallel and C-after-merge fixture",
           "positive maxParallel and deterministic order",
-          "ACK, heartbeat and process-death resume fixture",
+          "compact ACK와 terminal/escalation main-facing boundary",
+          "heartbeat timeout과 process-death same-id resume fixture",
           "recovering resolution Goal fixture",
           "specification-direct serialization and full validation",
           "single review, integration receipt and member traceability",

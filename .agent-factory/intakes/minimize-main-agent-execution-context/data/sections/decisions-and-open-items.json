@@ -1,0 +1,28 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "확정: 메인 에이전트가 직접 heartbeat와 실행 로그를 소비하거나 재실행 판단을 반복하지 않고 결정론적 supervisor가 감시와 복구를 소유한다.",
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "확정: 메인 에이전트 컨텍스트에는 compact ACK와 terminal 또는 escalation만 전달한다.",
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": "차단 open item 없음."
+    }
+  ],
+  "subsections": []
+}
