@@ -1,0 +1,22 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "13개 대상 script의 transaction, filesystem safety, recovery, lease, DAG, worktree integration 경계를 문맥별로 감사한다."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "코드만으로 드러나지 않는 의도와 제약에만 주석 또는 docstring을 추가하고 부정확한 기존 주석을 바로잡는다."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "실행 가능한 토큰 변화가 없는지 diff를 검토하고 compile, 203개 테스트, plugin validation과 diff 검사를 수행한다."
+    }
+  ],
+  "subsections": []
+}

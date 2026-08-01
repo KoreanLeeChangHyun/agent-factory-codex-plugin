@@ -1,0 +1,23 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "전체 13개 Python 도구를 감사하고 필요한 위치에만 의도 중심 주석을 추가한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-001"
+      }
+    },
+    {
+      "id": "OPEN-ITEMS-STATUS",
+      "kind": "open-items-status",
+      "content": {
+        "status": "주석 대상 범위가 A안으로 확정되었으며 추가 Human 결정은 없다."
+      }
+    }
+  ],
+  "subsections": []
+}

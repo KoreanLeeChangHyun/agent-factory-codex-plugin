@@ -1,0 +1,36 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "주석이 이해를 돕는 비자명한 맥락만 설명하는지 확인",
+        "검증 결과와 AI Review findings 확인",
+        "complete 또는 rework 결정"
+      ]
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "pending",
+      "attributes": {
+        "status": "complete",
+        "decidedAt": "2026-08-01T14:26:25+00:00",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "019fbd6c-abc9-7303-a703-6956b3b97ad6"
+        }
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-METHOD-001",
+      "kind": "human-review-method",
+      "content": "변경 파일, 대표 주석 의도, annotation-only 검토, 검증 결과와 AI findings를 한국어로 제시하고 Human이 complete 또는 rework를 결정한다."
+    }
+  ],
+  "subsections": []
+}

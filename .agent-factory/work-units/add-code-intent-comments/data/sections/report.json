@@ -1,0 +1,57 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-REQUIREMENTS-001",
+      "kind": "report-requirements",
+      "content": [
+        "감사 및 변경된 script 목록",
+        "대표적인 의도·제약 설명",
+        "annotation-only diff 검토 결과",
+        "정확한 검증 명령과 결과",
+        "AI review findings와 remaining risks"
+      ]
+    },
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "13개 script 감사, 12개 script 주석 76줄 추가, 전체 203개 테스트와 모든 검증 통과; Human review 준비 완료",
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fbd6c-abc9-7303-a703-6956b3b97ad6",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/add-code-intent-comments-verification.md"
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-076162967982A8CD",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/add-code-intent-comments",
+        "sourceCommit": "2b8670f3ce42c15acf207cba352a09330b1e2ac1",
+        "strategy": "ff-only",
+        "targetAfterCommit": "2b8670f3ce42c15acf207cba352a09330b1e2ac1",
+        "targetBeforeCommit": "df42a0e145d09d1eca3d505971db47a3b9632369",
+        "targetBranch": "main",
+        "workUnitId": "add-code-intent-comments",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/add-code-intent-comments",
+        "receiptSha256": "076162967982a8cd2198211352640121b902fd3c11882c8e9d1054065c3fc1db"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/add-code-intent-comments.json"
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/integration/add-code-intent-comments.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "076162967982a8cd2198211352640121b902fd3c11882c8e9d1054065c3fc1db",
+      "sizeBytes": 1782
+    },
+    {
+      "path": "blocks/logs/add-code-intent-comments-verification.md",
+      "mediaType": "text/markdown",
+      "description": "감사, annotation-only 검사, 전체 검증 및 AI Review 증거",
+      "sha256": "d02e4938b8325ea55221bca19c29e71974700843c5b669312e388eef1bc5ef2a",
+      "sizeBytes": 2731
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "코드에 주석을 추가한다."
+      }
+    },
+    {
+      "id": "GOAL-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "전체 13개 Python 도구의 비자명한 의도, 제약, 부작용과 예외적 결정을 정확한 주석 및 docstring으로 보강한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "주석 변경만 존재하고 실행 동작은 변하지 않는다.",
+        "동작을 반복 설명하는 주석과 근거 없는 주석이 없다.",
+        "전체 기존 테스트와 plugin validation이 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

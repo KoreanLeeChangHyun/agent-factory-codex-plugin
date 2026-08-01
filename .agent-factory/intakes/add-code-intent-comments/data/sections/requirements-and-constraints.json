@@ -1,0 +1,34 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": [
+        "주석은 의도, 제약, 부작용 또는 예외 결정만 설명한다.",
+        "public API에 문서화가 필요한 경우 Python docstring을 사용한다.",
+        "기존 주석이 코드와 충돌하면 수정한다."
+      ]
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "실행 가능한 토큰은 변경하지 않고 주석과 docstring만 변경한다.",
+        "TODO는 이유와 완료 조건 또는 추적 이슈 없이는 추가하지 않는다.",
+        "테스트 파일은 검증에만 사용하고 변경하지 않는다."
+      ]
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "변경 파일은 13개 대상 Python script의 부분집합이다.",
+        "diff에서 주석 및 docstring 외 코드 동작 변경이 없다.",
+        "python compile, 전체 203개 테스트, plugin validation과 git diff check가 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

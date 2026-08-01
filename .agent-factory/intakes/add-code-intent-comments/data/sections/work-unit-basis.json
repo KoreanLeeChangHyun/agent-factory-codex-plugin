@@ -1,0 +1,37 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "동작과 계약을 바꾸지 않는 annotation-only 유지보수 작업이다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "13개 Python 도구의 비자명한 계약을 의도 중심 주석으로 보강한다.",
+        "executionOrder": 1,
+        "scope": [
+          "13개 script 감사",
+          "필요한 주석 및 docstring 보강",
+          "전체 회귀 검증"
+        ],
+        "outOfScope": [
+          "동작 변경",
+          "테스트 변경",
+          "push, deploy"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}
