@@ -689,8 +689,8 @@ def archive_current_attempt(package: Path, state: dict[str, Any]) -> None:
     content = state["content"]
     if content["currentAttempt"] is None:
         return
-    # Freeze outcomes with their invocation chain before reuse of the live result
-    # slots, preserving which attempt produced each Human-reviewed claim.
+    # Preserve the invocation chain and current outcomes before retry or rework
+    # reuses the live result slots, regardless of their review status.
     record = {
         "revision": content["currentRevision"],
         "attempt": content["currentAttempt"],

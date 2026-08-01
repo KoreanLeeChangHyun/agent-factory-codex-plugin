@@ -636,8 +636,8 @@ def recover_transaction_with_descriptor(package_fd: int) -> None:
     if not relative_file_exists(package_fd, JOURNAL_PATH):
         remove_tree_relative(package_fd, MANAGER_PATH / "transactions")
         return
-    # Journal presence is the rollback marker: publication happens only after
-    # every original and replacement has been staged, never midway through it.
+    # Journal presence marks a publication that may need rollback; target
+    # replacements are published sequentially only after staging completes.
     journal = load_object_relative(package_fd, JOURNAL_PATH, "transaction journal")
     if set(journal) != {"version", "id", "entries"} or journal["version"] != 1:
         raise ManagerError("transaction journal has an unsupported shape or version")

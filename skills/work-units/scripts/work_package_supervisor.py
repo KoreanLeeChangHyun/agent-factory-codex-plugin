@@ -86,8 +86,8 @@ def supervise(
                 raise SupervisorError("Work Package executor event identity mismatch")
             event_type = event.get("type")
             if event_type == "ack":
-                # ACK transfers durable lease ownership to this process; before
-                # it, a restart could duplicate an execution never admitted.
+                # ACK confirms that this executor acquired the durable lease;
+                # only an acknowledged invocation can anchor a later resume.
                 current_ack = True
                 accepted = True
             elif not current_ack:
@@ -114,8 +114,8 @@ def supervise(
             stderr = process.stderr.read().strip()
             process.stderr.close()
         if not accepted:
-            # Pre-ACK failure is terminal admission failure, not recoverable
-            # process death, because no durable resume owner exists yet.
+            # Before the first ACK, the supervisor has no acknowledged resume
+            # owner, so this invocation chain cannot enter the restart path.
             raise SupervisorError(
                 "Work Package admission ended before ACK"
                 + (f": {stderr}" if stderr else "")
