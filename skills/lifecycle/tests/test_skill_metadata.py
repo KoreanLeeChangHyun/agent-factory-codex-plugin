@@ -173,7 +173,11 @@ class SkillMetadataTests(unittest.TestCase):
                 "references/common-document-contract.md",
             ],
             "rules": [
-                "references/engineering-rules.md",
+                "references/fact-and-evidence-control.md",
+                "references/engineering-principles.md",
+                "references/change-safety.md",
+                "references/runtime-safety.md",
+                "references/session-state-model.md",
                 "references/interview-decision-gate.md",
             ],
             "specifications": [
@@ -226,9 +230,88 @@ class SkillMetadataTests(unittest.TestCase):
             [SKILLS / "conventions" / "references" / "annotation.md"],
         )
         factory_rule = (
-            SKILLS / "rules" / "references" / "engineering-rules.md"
+            SKILLS / "rules" / "references" / "engineering-principles.md"
         ).read_text(encoding="utf-8")
         self.assertIn("Use `conventions`", factory_rule)
+
+    def test_rules_references_are_split_by_responsibility(self) -> None:
+        rules = SKILLS / "rules"
+        references = rules / "references"
+        expected_references = {
+            "fact-and-evidence-control.md",
+            "engineering-principles.md",
+            "change-safety.md",
+            "runtime-safety.md",
+            "session-state-model.md",
+            "interview-decision-gate.md",
+        }
+        self.assertEqual(
+            {path.name for path in references.glob("*.md")},
+            expected_references,
+        )
+
+        entrypoint = (rules / "SKILL.md").read_text(encoding="utf-8")
+        normalized_entrypoint = " ".join(entrypoint.split())
+        self.assertNotIn("engineering-rules.md", entrypoint)
+        self.assertIn("Always read `references/fact-and-evidence-control.md`", entrypoint)
+        for condition in (
+            "engineering, design, code, refactoring, or review work",
+            "changes, mutations, or intent confirmation",
+            "runtime restart or frontend cache work",
+            "Agent Factory session UI state work",
+            "before asking the Human a question",
+        ):
+            with self.subTest(condition=condition):
+                self.assertIn(condition, normalized_entrypoint)
+        self.assertIn("`lifecycle` owns the lifecycle sequence", normalized_entrypoint)
+
+        owners = {
+            "fact-and-evidence-control.md": {
+                "# Factory Rule",
+                "## Core Rule",
+                "## Fact Control",
+                "## Critical Thinking Rule",
+                "## Evidence-First Workflow",
+                "## Reporting",
+            },
+            "engineering-principles.md": {
+                "## Agent Factory Engineering Principles",
+            },
+            "change-safety.md": {
+                "## Intent Confirmation",
+                "## Change Safety",
+                "## Hard Stops",
+            },
+            "runtime-safety.md": {
+                "## Runtime Restart Safety",
+                "## Frontend Cache And Verification",
+            },
+            "session-state-model.md": {
+                "## Agent Factory State Model Rule",
+            },
+        }
+        reference_texts = {
+            path.name: path.read_text(encoding="utf-8")
+            for path in references.glob("*.md")
+        }
+        for owner, headings in owners.items():
+            for heading in headings:
+                with self.subTest(owner=owner, heading=heading):
+                    containing = [
+                        name for name, text in reference_texts.items() if heading in text
+                    ]
+                    self.assertEqual(containing, [owner])
+        self.assertFalse(
+            any("## Lifecycle Rule" in text for text in reference_texts.values())
+        )
+        self.assertIn(
+            "Session -> DOM -> State",
+            reference_texts["session-state-model.md"],
+        )
+        self.assertIn(
+            "ask for one more explicit confirmation",
+            reference_texts["runtime-safety.md"],
+        )
 
     def test_main_agent_owns_human_result_review_without_a_standalone_skill(
         self,

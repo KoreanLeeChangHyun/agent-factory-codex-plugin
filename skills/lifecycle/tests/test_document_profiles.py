@@ -229,7 +229,7 @@ class DocumentProfileTests(unittest.TestCase):
             encoding="utf-8"
         )
         factory_rule = (
-            SKILLS / "rules" / "references" / "engineering-rules.md"
+            SKILLS / "rules" / "references" / "fact-and-evidence-control.md"
         ).read_text(encoding="utf-8")
         self.assertNotIn(
             "traceable from Project Core to Design Report to Work Unit",
