@@ -1,0 +1,109 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "remove-agent-factory-routing-skills",
+        "objective": "기능을 소유하지 않는 라우팅 전용 스킬 5개를 제거하고 기능 스킬 16개와 agent role 스킬 2개, 총 18개를 직접 관리하는 구조로 정합화한다.",
+        "execInvocation": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id remove-agent-factory-routing-skills",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "main",
+        "executionMode": "worktree",
+        "branch": "work-unit/remove-agent-factory-routing-skills",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/remove-agent-factory-routing-skills"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "review",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fb845-693b-7473-9c03-247b6c8331bd",
+        "invocationChain": [
+          "019fb845-693b-7473-9c03-247b6c8331bd",
+          "019fb8a2-24f7-7971-8108-79b3132562dd"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004",
+            "PLAN-005"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-plan"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-work"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-verification"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-ai-review"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-report"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-resume-verification"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-resume-ai-review"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "completed",
+              "idempotencyKey": "remove-routing-r1a1-resume-report"
+            }
+          ],
+          "retry": {
+            "PLAN-003": {
+              "count": 1,
+              "maxRetries": 1,
+              "events": [
+                {
+                  "idempotencyKey": "remove-routing-r1a1-criteria-contract-failure",
+                  "classification": "permanent",
+                  "evidence": "Canonical criteria incorrectly required 16 total SKILL.md files and a nonexistent skills.test_all module; the admitted repository has 23 skills and exact removal of five approved routers leaves 18 total: 16 functional skills plus 2 agent role skills."
+                }
+              ]
+            }
+          }
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fb8a2-24f7-7971-8108-79b3132562dd",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

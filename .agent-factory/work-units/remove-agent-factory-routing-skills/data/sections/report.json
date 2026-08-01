@@ -1,0 +1,25 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "전용 branch의 8276530 및 7a25666 커밋에서 agent-factory, agents, conventions, factories, work-units 라우팅 전용 스킬을 제거하고 metadata 계약을 기능 스킬 16개와 agent role 스킬 2개 기준으로 정합화했다. focused 12개 테스트와 저장소의 실제 test module 16개(총 203개 테스트), plugin validation, 총수, 제거 경로, exact capability 참조, syncs 및 plugin identity 보존, diff 검사가 모두 통과했다. AI Review의 blocking finding은 없다. 기존 소비자가 제거된 라우터 capability 이름을 직접 호출하면 남아 있는 직접 기능 스킬 이름으로 전환해야 한다. merge, cleanup, push, deploy, branch deletion, PR promotion은 수행하지 않았다.",
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb845-693b-7473-9c03-247b6c8331bd",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/remove-agent-factory-routing-skills-r1a1-resume.txt",
+          "blocks/evidence/remove-agent-factory-routing-skills-r1a1-capture-verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

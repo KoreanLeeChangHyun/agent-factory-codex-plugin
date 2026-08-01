@@ -1,0 +1,23 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": "Ready Intake BASIS-001의 8개 모듈형 스킬 통합 범위",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "consolidate-agent-factory-skills-into-eight",
+          "path": ".agent-factory/intakes/consolidate-agent-factory-skills-into-eight",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

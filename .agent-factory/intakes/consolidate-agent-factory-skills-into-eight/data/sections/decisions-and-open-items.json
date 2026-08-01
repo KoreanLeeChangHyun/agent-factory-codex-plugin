@@ -1,0 +1,55 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "CONFLICT-001",
+      "kind": "conflict",
+      "content": {
+        "conflict": "review 상태인 remove-agent-factory-routing-skills Work Unit은 agents, conventions, work-units를 삭제하지만 최신 Human 요청은 이 세 이름을 8개 유지 대상에 포함한다.",
+        "impact": "기존 branch를 main에 그대로 병합하면 최신 목표와 충돌한다."
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risks": [
+          "등록 capability 이름 변경으로 외부 호출자는 새 8개 이름으로 전환해야 한다.",
+          "Python 동적 로드 경로와 테스트의 하드코딩된 디렉터리 이름을 일부라도 놓치면 manager 실행이 중단된다.",
+          "모든 세부 지침을 단일 SKILL.md에 합치면 특히 intakes와 synchronization의 호출 컨텍스트가 커진다.",
+          "synchronization requirements 병합에서 의존성 집합을 누락하면 Gmail 또는 schema validation 실행이 실패한다."
+        ]
+      }
+    },
+    {
+      "id": "OPEN-STRUCTURE-001",
+      "kind": "open-item",
+      "content": {
+        "question": "8개 등록 SKILL.md를 내부 reference 문서로 모듈화할지, 모든 세부 지침을 각 SKILL.md 본문에 직접 합칠지 결정이 필요하다.",
+        "resolution": "A안으로 결정: 모든 8개 스킬에 동일한 모듈형 SKILL.md 및 references 구조를 적용한다."
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": true
+      }
+    },
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "8개 등록 스킬 모두 모듈형 구조를 사용한다. 각 SKILL.md에는 진입 계약과 reference routing만 두고 세부 capability 지침은 references/*.md에 둔다.",
+        "status": "accepted",
+        "source": "INTERVIEW-001"
+      }
+    },
+    {
+      "id": "OPEN-ITEMS-STATUS",
+      "kind": "open-items-status",
+      "content": {
+        "status": "구조 방식 관련 blocking open item이 해소되었다. 구현 전에는 Intake synthesis, specification impact와 Work Unit basis 정리가 남아 있다."
+      }
+    }
+  ],
+  "subsections": []
+}

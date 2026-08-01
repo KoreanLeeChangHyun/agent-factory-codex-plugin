@@ -1,0 +1,64 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "정확히 8개 승인 스킬만 SKILL.md를 가진다.",
+        "각 스킬은 모듈형 SKILL.md와 agents/openai.yaml 및 필요 자산 구조를 따른다.",
+        "기존 manager, schema, scripts와 203개 테스트 동작을 보존한다.",
+        "legacy 하위 capability 이름과 경로의 활성 내부 참조가 없다."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "전체 테스트와 plugin validation 통과",
+        "skill metadata, path migration, requirements와 diff 검사 통과",
+        "AI Review blocking finding 없음",
+        "Human review 자료 기록"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": [
+        "for test_file in skills/*/tests/test_*.py; do python3 \"$test_file\" || exit 1; done",
+        "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+        "find skills -mindepth 2 -maxdepth 2 -name SKILL.md 결과가 승인된 8개와 정확히 일치",
+        "rg로 legacy capability 이름과 경로의 활성 참조가 없는지 검사",
+        "git diff --check 통과"
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "summary": "승인된 8개 모듈 구조, 기능 자산 보존, 전체 203개 테스트, plugin validation, stale reference 및 diff 검사가 모두 통과했다.",
+        "results": [
+          "203 tests passed",
+          "plugin validation passed",
+          "exactly 8 SKILL.md directories",
+          "0 active legacy capability references",
+          "git diff --check passed"
+        ]
+      },
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fbcb8-bf8a-7652-8891-5bd7b7d818f9",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/consolidate-eight-verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

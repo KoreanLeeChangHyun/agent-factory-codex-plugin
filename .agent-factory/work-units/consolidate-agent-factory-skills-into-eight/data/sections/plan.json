@@ -1,0 +1,22 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": "현재 파일과 참조를 8개 소유권 매핑으로 이동하고 모듈형 SKILL.md 및 reference 문서를 구성한다."
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": "Python 동적 경로, requirements, metadata, prompts와 테스트를 새 경로로 정합화한다."
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": "전체 회귀 테스트, plugin validation, skill count, stale reference와 diff 검사를 수행한다."
+    }
+  ],
+  "subsections": []
+}

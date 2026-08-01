@@ -1,0 +1,88 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/*/SKILL.md, skills/*/agents/openai.yaml, skills/factories-lifecycle/tests/test_skill_metadata.py, .codex-plugin/plugin.json, Work Unit execution evidence for revision 1 attempt 1",
+        "method": "read-only repository inspection and recorded execution verification",
+        "findings": [
+          "실행 admission 기준 SKILL.md가 있는 디렉터리는 23개다.",
+          "승인된 라우터 5개 제거 후 SKILL.md 디렉터리는 총 18개다.",
+          "남은 18개는 기능 스킬 16개와 agents-main, agents-workflow agent role 스킬 2개다.",
+          "syncs는 SKILL.md와 agents metadata 외에 scripts/sync.py, schema와 tests를 소유한다.",
+          "라우터 목록과 라우팅 관계는 test_skill_metadata.py에 고정되어 있었다.",
+          "plugin manifest의 agent-factory는 plugin identity이며 스킬 라우터 디렉터리와 별도다.",
+          "skills.test_all 모듈은 admission 기준 저장소에 존재하지 않는다."
+        ],
+        "interpretations": [
+          "관리 지점 감소 목표에는 기능을 소유하지 않는 5개 라우터 제거가 직접 대응한다.",
+          "기능 스킬 16개와 agent role 스킬 2개를 구분하면 승인 범위와 실제 총 18개가 함께 검증된다.",
+          "syncs 제거는 설정 manager 소유권을 없애므로 승인 범위 밖이다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "스킬을 어느 수준까지 통합할까요?",
+        "recommendation": "B",
+        "rationale": "도메인별 통합은 관리 포인트를 크게 줄이면서 역할 격리를 유지할 수 있다.",
+        "answer": "A에 해당하는 기능 스킬 직접 관리 방향",
+        "decisionState": "accepted",
+        "choices": [
+          "A: 순수 라우터 5개만 제거해 21개에서 16개로 축소",
+          "B: 도메인별로 통합해 약 8개로 축소",
+          "C: agent-factory 단일 스킬로 통합"
+        ]
+      },
+      "attributes": {
+        "status": "answered"
+      }
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "최상위 agent-factory 라우터도 제거할까요?",
+        "recommendation": "A",
+        "rationale": "기능 스킬을 하나씩 직접 관리한다는 결정과 일치하고 라우팅 전용 관리 지점을 완전히 제거한다.",
+        "answer": "A: 최상위와 중간 라우터 5개를 모두 제거",
+        "decisionState": "accepted",
+        "choices": [
+          "A: 라우터 5개를 모두 제거",
+          "B: agent-factory만 유지하고 중간 라우터 4개 제거",
+          "C: 라우터를 deprecated 상태로 한동안 유지"
+        ]
+      },
+      "attributes": {
+        "status": "answered"
+      }
+    },
+    {
+      "id": "INTERVIEW-003",
+      "kind": "interview",
+      "content": {
+        "question": "실제 18개 기준으로 정정해 라우터 5개 제거를 계속할지, 두 스킬을 추가 제거할지, 중단할지 결정",
+        "recommendation": "A",
+        "rationale": "18개는 admission 기준 23개에서 승인된 라우터 5개만 제거한 실제 결과이며 추가 삭제는 Human 범위를 벗어난다.",
+        "answer": "A: 추가 삭제 없이 라우터 5개 제거를 계속하고 기준을 실제 18개로 정정",
+        "decisionState": "accepted",
+        "choices": [
+          "A: 총 18개로 기준을 정정하고 실제 존재하는 테스트로 재검증",
+          "B: 스킬 2개를 추가 제거해 총 16개 충족",
+          "C: 통합하지 않고 중단"
+        ]
+      },
+      "attributes": {
+        "status": "answered"
+      }
+    }
+  ],
+  "subsections": []
+}

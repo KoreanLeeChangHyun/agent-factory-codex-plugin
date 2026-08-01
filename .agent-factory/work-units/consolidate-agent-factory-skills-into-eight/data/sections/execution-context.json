@@ -1,0 +1,76 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "objective": "consolidate-agent-factory-skills-into-eight",
+        "goalId": "consolidate-agent-factory-skills-into-eight",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "a1a9b3d",
+        "targetBranch": "main",
+        "branch": "work-unit/consolidate-agent-factory-skills-into-eight",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/consolidate-agent-factory-skills-into-eight",
+        "executionMode": "worktree",
+        "execInvocation": "python3 skills/work-units-execution/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id consolidate-agent-factory-skills-into-eight"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fbcb8-bf8a-7652-8891-5bd7b7d818f9",
+        "invocationChain": [
+          "019fbcb8-bf8a-7652-8891-5bd7b7d818f9"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "plan",
+            "work",
+            "ai-review",
+            "report"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "plan",
+              "state": "completed",
+              "idempotencyKey": "consolidate-eight-plan-v1"
+            },
+            {
+              "stepId": "work",
+              "state": "completed",
+              "idempotencyKey": "consolidate-eight-work-v1"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "completed",
+              "idempotencyKey": "consolidate-eight-ai-review-v1"
+            },
+            {
+              "stepId": "report",
+              "state": "completed",
+              "idempotencyKey": "consolidate-eight-report-v1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fbcb8-bf8a-7652-8891-5bd7b7d818f9",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

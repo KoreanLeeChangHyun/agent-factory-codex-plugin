@@ -1,0 +1,116 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "INTERNAL-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "git ls-files skills; find skills/*/SKILL.md; skills/factories-lifecycle/tests/test_skill_metadata.py",
+        "method": "repository structure and contract inspection",
+        "findings": [
+          "현재 등록 스킬은 23개이고 skills 아래 tracked file은 105개이며 test module은 16개다.",
+          "모든 등록 스킬은 최상위 SKILL.md와 agents/openai.yaml을 갖는 계약이다.",
+          "agent-factory, agents, conventions, factories, work-units는 각각 SKILL.md와 openai.yaml만 가진 순수 라우팅 디렉터리다.",
+          "syncs는 라우팅 설명뿐 아니라 manager, schema, tests를 직접 소유하므로 순수 라우터가 아니다."
+        ],
+        "interpretations": [
+          "8개 등록 스킬로 줄이려면 5개 순수 라우터 삭제만으로는 부족하며 기능 스킬의 문서와 자산을 새 소유 디렉터리로 이동해야 한다."
+        ],
+        "limitations": [
+          "분석 시점에는 파일 이동이나 테스트 수정 및 실행을 수행하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "rg path/name references across skills; manager script headers; requirements files",
+        "method": "static dependency and collision inspection",
+        "findings": [
+          "intakes, specifications, work-units manager는 factories-lifecycle의 shared document engine과 schema 경로를 동적으로 로드한다.",
+          "work-units manager와 execution은 서로의 script 경로를 사용하고, Gmail sync는 syncs/scripts/sync.py를 동적으로 로드한다.",
+          "기존 하위 스킬 이름이나 경로를 언급하는 tracked file은 50개다.",
+          "synchronization 통합 대상에는 syncs/scripts/requirements.txt와 syncs-google-gmail/scripts/requirements.txt가 함께 있어 동일 상대 경로 충돌이 발생한다.",
+          "현재 플러그인 검증은 통과한다."
+        ],
+        "interpretations": [
+          "통합은 문서 합치기만으로 끝나지 않고 Python 경로 상수, 테스트 fixture, metadata 계약, default prompt와 requirements 구성을 함께 이전해야 한다."
+        ],
+        "limitations": [
+          "정적 참조 조사는 런타임에서 외부 소비자가 사용하는 제거 예정 capability 이름을 확인하지 못한다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "wc -l skills/*/SKILL.md and current optional asset directories",
+        "method": "documentation size and layout inspection",
+        "findings": [
+          "현재 SKILL.md 전체는 2529줄이며 순수 라우터 60줄을 제외한 기능 및 역할 지침은 2469줄이다.",
+          "기능 내용을 그대로 병합하면 lifecycle 126줄, agents 146줄, rules 306줄, intakes 625줄, work-units 261줄, specifications 435줄, conventions 84줄, synchronization 486줄 규모다.",
+          "현재 모든 기능 자산은 SKILL.md와 agents/openai.yaml 외에 필요에 따라 assets, references, scripts, tests 디렉터리를 사용하는 공통 형태다."
+        ],
+        "interpretations": [
+          "8개의 거대한 단일 SKILL.md보다 각 등록 스킬의 SKILL.md에는 trigger, ownership, hard gate와 reference routing만 두고 세부 절차는 references에 일반 문서로 분리하는 편이 등록 스킬 수를 8개로 유지하면서 컨텍스트 로드를 제한한다."
+        ],
+        "limitations": [
+          "reference 분리 후 실제 Codex 호출 컨텍스트 크기와 선택 정확도는 구현 후 검증이 필요하다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "8개 등록 스킬의 세부 capability 지침을 어떤 문서 구조로 통일할까요?",
+        "choices": {
+          "A": {
+            "decision": "모듈형: SKILL.md는 진입 계약만 두고 세부 지침은 references/*.md로 분리",
+            "pros": "등록 스킬은 8개로 유지하면서 호출별 컨텍스트와 장기 관리 부담을 줄인다.",
+            "cons": "문서 간 참조 계약과 누락 방지 테스트가 필요하다."
+          },
+          "B": {
+            "decision": "단일형: 각 도메인의 모든 지침을 하나의 SKILL.md에 병합",
+            "pros": "파일 탐색과 문서 소유권이 가장 단순하다.",
+            "cons": "intakes 약 625줄, synchronization 약 486줄을 매 호출마다 읽게 되어 컨텍스트가 커진다."
+          },
+          "C": {
+            "decision": "혼합형: 작은 도메인은 단일형, 큰 도메인만 references로 분리",
+            "pros": "초기 이동량을 일부 줄일 수 있다.",
+            "cons": "스킬마다 구조가 달라져 구조 통일 목표와 장기 관리 규칙이 약해진다."
+          }
+        },
+        "recommendation": "A",
+        "rationale": "정확히 8개 등록 스킬과 구조 통일을 만족하면서 대형 도메인의 불필요한 전체 컨텍스트 로드를 피하고 기존 세부 책임을 일반 reference 문서로 보존한다.",
+        "answer": "A",
+        "state": "answered"
+      }
+    },
+    {
+      "id": "INTERNAL-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "for test_file in skills/*/tests/test_*.py; do python3 \"$test_file\" || exit 1; done",
+        "method": "baseline test execution",
+        "findings": [
+          "현재 16개 test module의 총 203개 테스트가 exit code 0으로 통과했다."
+        ],
+        "interpretations": [
+          "통합 후 동일한 203개 behavior test와 새 8개 metadata 및 path migration 검사를 모두 통과해야 기능 보존을 주장할 수 있다."
+        ],
+        "limitations": [
+          "현재 기준선은 통합 전 상태만 검증한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

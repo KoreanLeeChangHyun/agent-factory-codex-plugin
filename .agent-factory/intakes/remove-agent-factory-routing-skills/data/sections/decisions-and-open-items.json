@@ -1,0 +1,35 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": "Human은 중간 라우터 없이 각 기능 스킬을 하나씩 직접 관리하기로 결정했다."
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": "Human은 최상위 agent-factory 라우터를 포함한 라우팅 전용 스킬 5개를 제거하기로 결정했다."
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risk": "기존 사용자가 제거된 라우터 skill 이름을 직접 호출하면 더 이상 해석되지 않는다.",
+        "mitigation": "기능 스킬 이름은 유지하고 내부 활성 참조와 metadata 계약을 직접 기능 스킬 기준으로 정합화한다. deprecated alias는 Human 결정에 따라 만들지 않는다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": "차단 미결정 없음"
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": "Human은 추가 스킬 삭제 없이 승인된 라우터 5개 제거를 계속하고, 잘못된 총 16개 기준을 기능 스킬 16개와 agent role 스킬 2개를 합한 총 18개로 정정하기로 결정했다."
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,30 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "제거된 5개 skill 경로 확인",
+        "남은 기능 스킬 16개와 agent role 스킬 2개 및 syncs 소유 자산 확인",
+        "metadata, 실제 test module과 plugin validation 결과 확인",
+        "AI Review findings와 기존 router 직접 호출 호환성 위험 확인"
+      ]
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": "한국어 실행 결과와 diff 및 검증 증거를 검토하고 rework 또는 complete를 결정한다. complete는 worktree source branch를 자동 통합하며 push, 배포와 PR promotion은 별도 요청이다."
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "Revision 1 attempt 1 is ready for Human review. The recorded recovery decision was applied without additional skill deletion; all execution, quality, and AI review checks pass.",
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,41 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "Commits 8276530 and 7a25666 remove exactly the five scoped routing-only skills and update the metadata contract to verify 16 functional skills plus agents-main and agents-workflow. All recorded verification passes.",
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fb845-693b-7473-9c03-247b6c8331bd",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/remove-agent-factory-routing-skills-r1a1-resume.txt"
+        ]
+      }
+    },
+    {
+      "id": "BLOCKER-CRITERIA-001",
+      "kind": "open-item",
+      "content": {
+        "stepId": "PLAN-003",
+        "classification": "permanent",
+        "retryCount": 1,
+        "maxRetries": 1,
+        "evidence": "Canonical criteria incorrectly required 16 total SKILL.md files and a nonexistent skills.test_all module; the admitted repository has 23 skills and exact removal of five approved routers leaves 18 total: 16 functional skills plus 2 agent role skills.",
+        "resolutionEvidence": "Canonical AC-001, DOD-001, and TEST-001 now require 18 total skills (16 functional plus agents-main and agents-workflow), enumerate the repository-existing test modules, and use a non-diagnostic removed-path check; HUMAN-REVIEW-STATUS records the decision to continue without deleting additional skills."
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": true
+      }
+    }
+  ],
+  "subsections": []
+}

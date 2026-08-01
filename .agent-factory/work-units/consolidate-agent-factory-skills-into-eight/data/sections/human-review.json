@@ -1,0 +1,44 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "8개 스킬 구조와 이름 확인",
+        "검증 결과와 AI Review 확인",
+        "remaining compatibility risk 확인",
+        "complete 또는 rework 결정"
+      ]
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "summary": "8개 스킬 구조, exact verification, AI Review, remaining risk와 integration 필요 여부를 검토할 자료가 준비되었다.",
+        "integrationRequired": true,
+        "decisionOptions": [
+          "rework: exact rework instruction을 제공",
+          "complete: 결과를 수락하고 worktree 결과를 자동 integration"
+        ]
+      },
+      "attributes": {
+        "status": "complete",
+        "decidedAt": "2026-08-01T12:33:40+00:00",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "019fbcb8-bf8a-7652-8891-5bd7b7d818f9"
+        }
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-METHOD-001",
+      "kind": "human-review-method",
+      "content": "실행 결과, exact verification, AI findings, remaining risks와 Git integration 필요 여부를 한국어로 제시하고 Human이 complete 또는 rework를 결정한다."
+    }
+  ],
+  "subsections": []
+}

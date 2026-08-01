@@ -1,0 +1,42 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirements": [
+          "등록 스킬은 lifecycle, agents, rules, intakes, work-units, specifications, conventions, synchronization의 정확히 8개다.",
+          "각 등록 스킬은 SKILL.md와 agents/openai.yaml을 갖는다.",
+          "필요한 실행 자산은 references, scripts, assets, tests의 공통 위치 규칙을 사용한다.",
+          "기존 manager, schema, test, Agent role, evidence, synchronization capability를 기능 손실 없이 보존한다.",
+          "제거되거나 변경되는 capability 이름과 경로의 내부 참조를 모두 갱신한다."
+        ]
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "SKILL.md가 존재하는 디렉터리는 정확히 승인된 8개뿐이다.",
+        "8개 모두 SKILL.md와 agents/openai.yaml을 가진다.",
+        "세부 capability 지침은 references/*.md에 보존되고 추가 SKILL.md는 없다.",
+        "모든 manager, schema, script와 기존 203개 behavior test가 새 경로에서 동작한다.",
+        "synchronization requirements는 jsonschema와 Google API 의존성을 모두 보존한다.",
+        "기존 하위 capability 및 디렉터리 이름의 활성 내부 참조가 남지 않는다.",
+        "plugin validation과 git diff check가 통과한다."
+      ]
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "기존 manager와 runtime behavior를 보존한다.",
+        "추가 등록 SKILL.md 또는 compatibility alias를 만들지 않는다.",
+        "canonical artifact manager 계약을 유지한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

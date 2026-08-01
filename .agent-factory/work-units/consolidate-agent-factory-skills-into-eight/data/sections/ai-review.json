@@ -1,0 +1,44 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "8개 이름과 A형 구조만 구현했는지 확인",
+        "기존 기능 지침과 실행 자산이 누락 없이 이전됐는지 확인",
+        "동적 로드 경로와 requirements가 정확한지 확인",
+        "legacy alias 또는 추가 SKILL.md가 없는지 확인",
+        "승인 밖 변경과 사용자 작업 손상이 없는지 확인"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "승인된 8개 이름과 A형 모듈 구조, 세부 지침 및 실행 자산 보존, 동적 경로와 requirements, alias 및 stale reference 부재, 승인 범위 준수를 검토했다.",
+        "checks": [
+          "8 approved skill names and modular entry contracts",
+          "24 reference documents preserve 6 existing references plus 18 former functional skill documents",
+          "13 Python tools, 19 assets, 16 test modules, and 203 tests preserved",
+          "synchronization requirements combine jsonschema and Google API dependencies",
+          "no legacy alias or active legacy capability reference",
+          "worktree contains only scoped migration changes"
+        ],
+        "findings": []
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fbcb8-bf8a-7652-8891-5bd7b7d818f9",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

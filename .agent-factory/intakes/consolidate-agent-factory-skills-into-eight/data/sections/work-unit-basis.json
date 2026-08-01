@@ -1,0 +1,38 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "reference": ".agent-factory/specifications/project-core",
+        "reason": "Project Core의 기능 목적은 유지되지만 등록 스킬 이름, 소유권과 구조 계약이 변경되므로 구현 Work Unit에서 코드 및 계약 migration으로 정합화한다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Agent Factory 플러그인의 23개 스킬을 정확히 8개의 모듈형 스킬로 기능 손실 없이 통합한다.",
+        "executionOrder": 1,
+        "scope": [
+          "승인된 8개 디렉터리 구성",
+          "세부 지침 reference 모듈화",
+          "실행 자산 및 내부 경로 migration",
+          "metadata와 전체 회귀 테스트 갱신"
+        ],
+        "outOfScope": [
+          "호환 alias",
+          "push, deploy, branch deletion, cleanup"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

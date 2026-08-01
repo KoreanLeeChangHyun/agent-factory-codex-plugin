@@ -1,0 +1,40 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "aligned",
+        "reference": ".agent-factory/specifications/project-core",
+        "reason": "Project Core는 skills, scripts, profiles, tests와 plugin packaging을 범위로 두지만 라우팅 전용 스킬의 존재를 요구하지 않으며 이번 변경은 project purpose, scope 또는 Human decision boundary를 바꾸지 않는다."
+      },
+      "attributes": {
+        "status": "aligned"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "기능을 소유하지 않는 라우팅 전용 스킬 5개를 제거하고 총 18개 스킬을 직접 관리하는 구조로 정합화한다.",
+        "executionOrder": 1,
+        "scope": [
+          "5개 라우터 디렉터리 제거",
+          "기능 스킬 16개와 agent role 스킬 2개의 직접 관리 metadata 계약 정합화",
+          "활성 참조 정적 검증",
+          "focused 및 저장소에 실제 존재하는 전체 관련 테스트"
+        ],
+        "outOfScope": [
+          "남은 기능 스킬 16개와 agent role 스킬 2개 변경",
+          "syncs manager와 provider routing 변경",
+          "plugin identity 변경",
+          "설치, 배포, push, PR promotion"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}
