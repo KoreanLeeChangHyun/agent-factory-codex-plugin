@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Annotation Convention"
-  short_description: "Apply the Agent Factory source annotation convention."
-  default_prompt: "Use $conventions-annotation to create or review code comments, documentation comments, and TODO annotations."

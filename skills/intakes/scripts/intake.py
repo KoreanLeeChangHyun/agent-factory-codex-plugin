@@ -12,13 +12,13 @@ SCRIPT_ROOT = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_ROOT.parent
 COMMON_MANAGER = (
     SKILL_ROOT.parent
-    / "factories-lifecycle"
+    / "lifecycle"
     / "scripts"
     / "sectioned_document.py"
 )
 COMMON_SCHEMA_ROOT = (
     SKILL_ROOT.parent
-    / "factories-lifecycle"
+    / "lifecycle"
     / "assets"
     / "schema"
     / "sectioned-document"

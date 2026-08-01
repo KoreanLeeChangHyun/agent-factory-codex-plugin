@@ -1,6 +1,0 @@
-interface:
-  display_name: "Diagram Convention"
-  short_description: "Choose React Flow, ECharts, Cytoscape, or D3 diagrams."
-  default_prompt: "Use $specifications-diagram to choose the right Agent Factory diagram type, source model, and JavaScript renderer."
-policy:
-  allow_implicit_invocation: true

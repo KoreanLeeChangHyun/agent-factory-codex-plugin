@@ -1326,32 +1326,44 @@ class IntakeManagerTests(unittest.TestCase):
 
     def test_related_skills_use_section_item_manager_contract(self) -> None:
         skills_root = SKILL_ROOT.parent
-        intake = (SKILL_ROOT / "SKILL.md").read_text()
+        intake = (
+            SKILL_ROOT / "references" / "intake-management.md"
+        ).read_text()
         structure = (SKILL_ROOT / "references" / "intake-structure.md").read_text()
-        lifecycle = (skills_root / "factories-lifecycle" / "SKILL.md").read_text()
-        for name in (
-            "intakes-analysis",
-            "intakes-interview",
-            "intakes-research",
-            "intakes-web-search",
-            "specifications",
+        lifecycle = (
+            skills_root / "lifecycle" / "references" / "lifecycle-entry.md"
+        ).read_text()
+        for path in (
+            SKILL_ROOT / "references" / "analysis.md",
+            SKILL_ROOT / "references" / "interview.md",
+            SKILL_ROOT / "references" / "user-research.md",
+            SKILL_ROOT / "references" / "web-search.md",
+            skills_root
+            / "specifications"
+            / "references"
+            / "specification-management.md",
         ):
-            text = (skills_root / name / "SKILL.md").read_text()
+            text = path.read_text()
             self.assertIn("section-item-put", text)
         self.assertIn("metadata.json", intake)
         self.assertIn("table-of-contents.json", intake)
         self.assertIn("request-and-goal", structure)
         self.assertIn("Use `intakes` for every Intake package", lifecycle)
-        self.assertIn("Use `intakes-research`", lifecycle)
+        self.assertIn("Use `intakes`", lifecycle)
         self.assertIn(
             "kind `decision-status`",
-            (skills_root / "intakes-interview" / "SKILL.md").read_text(),
+            (SKILL_ROOT / "references" / "interview.md").read_text(),
         )
         self.assertIn(
             "kind `open-items-status`",
-            (skills_root / "intakes-interview" / "SKILL.md").read_text(),
+            (SKILL_ROOT / "references" / "interview.md").read_text(),
         )
-        execution_skill = (skills_root / "work-units-execution" / "SKILL.md").read_text()
+        execution_skill = (
+            skills_root
+            / "work-units"
+            / "references"
+            / "work-unit-execution.md"
+        ).read_text()
         normalized_execution_skill = " ".join(execution_skill.split())
         self.assertIn(
             "sparse checkout to exclude the entire `.agent-factory`",
@@ -1364,16 +1376,16 @@ class IntakeManagerTests(unittest.TestCase):
 
     def test_intake_capability_routing_is_bidirectional(self) -> None:
         skills_root = SKILL_ROOT.parent
-        web_search = (skills_root / "intakes-web-search" / "SKILL.md").read_text()
-        analysis = (skills_root / "intakes-analysis" / "SKILL.md").read_text()
-        interview = (skills_root / "intakes-interview" / "SKILL.md").read_text()
+        web_search = (SKILL_ROOT / "references" / "web-search.md").read_text()
+        analysis = (SKILL_ROOT / "references" / "analysis.md").read_text()
+        interview = (SKILL_ROOT / "references" / "interview.md").read_text()
 
         self.assertIn("direct observation", web_search)
-        self.assertIn("`intakes-research`", web_search)
+        self.assertIn("`intakes`", web_search)
         self.assertIn("direct observation", analysis)
-        self.assertIn("`intakes-research`", analysis)
-        self.assertIn("not participant-research interviews", interview)
-        self.assertIn("`intakes-research`", interview)
+        self.assertIn("`intakes`", analysis)
+        self.assertIn("participant-session interpretation", interview)
+        self.assertIn("`intakes`", interview)
 
 
 if __name__ == "__main__":

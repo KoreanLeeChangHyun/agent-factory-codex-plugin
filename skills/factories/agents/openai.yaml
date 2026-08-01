@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Factories"
-  short_description: "Route requests to factory lifecycle and rule capabilities."
-  default_prompt: "Use $factories to choose the Agent Factory lifecycle or rule capability."

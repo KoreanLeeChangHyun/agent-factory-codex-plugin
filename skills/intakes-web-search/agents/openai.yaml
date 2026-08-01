@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Web Search"
-  short_description: "Research external evidence for Intake."
-  default_prompt: "Use $intakes-web-search to search authoritative external sources and record evidence in the active Agent Factory Intake."

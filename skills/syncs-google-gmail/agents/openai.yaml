@@ -1,7 +1,0 @@
-interface:
-  display_name: "Sync Google Mail"
-  short_description: "Import Gmail messages and attachments locally"
-  default_prompt: "Use $syncs-google-gmail to import Gmail messages and attachments into source/google/mail."
-
-policy:
-  allow_implicit_invocation: true

@@ -11,11 +11,21 @@ Intake, Work Unit, Execution, and Human Review lifecycle.
 
 ## Included skills
 
-- Lifecycle routing and evidence-first project analysis
-- Intake and specification artifact management
-- Work Unit planning and execution
-- Human review preparation
-- Research, interview, diagram, and integration support
+The plugin exposes exactly eight modular skills:
+
+- `lifecycle`
+- `agents`
+- `rules`
+- `intakes`
+- `work-units`
+- `specifications`
+- `conventions`
+- `synchronization`
+
+Each skill keeps its entry contract in `SKILL.md`, UI metadata in
+`agents/openai.yaml`, and detailed capability guidance in `references/`.
+Executable managers, schemas, assets, and tests remain inside the owning skill
+when that domain needs them.
 
 ## Local installation
 

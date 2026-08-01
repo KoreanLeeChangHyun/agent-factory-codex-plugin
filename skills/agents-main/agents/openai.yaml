@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Main Agent"
-  short_description: "Manage lifecycle intake, planning, and execution delegation."
-  default_prompt: "Use $agents-main to manage this Agent Factory request through the primary lifecycle."

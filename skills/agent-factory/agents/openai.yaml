@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory"
-  short_description: "Route Agent Factory work to the right domain entrypoint."
-  default_prompt: "Use $agent-factory to route this request to the appropriate Agent Factory domain."
