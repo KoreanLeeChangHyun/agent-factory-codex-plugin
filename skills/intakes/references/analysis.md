@@ -17,13 +17,14 @@ Analyze only internal evidence relevant to the active Intake:
 - tests, fixtures, coverage, and verification output;
 - existing specifications and other project documents.
 
-Use `intakes` instead when the evidence comes from external web sources. Use
+Use `references/web-search.md` instead when the evidence comes from external
+web sources. Use
 `specifications` when accepted findings require a specification update. Route
 direct observation, contextual inquiry, workflow shadowing, usability sessions,
 and interpretation of consented participant research sessions to
-`intakes`. Aggregate analytics, telemetry, logs, and runtime measurements
-remain internal analysis when they do not require observing or interviewing a
-person.
+`references/user-research.md`. Aggregate analytics, telemetry, logs, and
+runtime measurements remain internal analysis when they do not require
+observing or interviewing a person.
 
 ## Workflow
 

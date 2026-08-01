@@ -27,17 +27,17 @@ blocks, or recovering an Intake package.
 
 ## Domain Boundary
 
-Use five Intake-related skills:
+Use five capability references under the `intakes` skill:
 
-1. `intakes` owns external web evidence.
-2. `intakes` owns internal code, database, data, configuration, log, test,
-   runtime, and document evidence.
-3. `intakes` owns direct observation of users, operators, their context,
-   workflows, usability, and consented research sessions.
-4. `intakes` owns Human clarification and Human-only decisions.
-5. `intakes` owns Human requirements and feedback, specification alignment,
-   synthesis, the document profile, manager execution, validation, readiness,
-   and Work Unit handoff.
+1. `references/web-search.md` owns external web evidence.
+2. `references/analysis.md` owns internal code, database, data, configuration,
+   log, test, runtime, and document evidence.
+3. `references/user-research.md` owns direct observation of users, operators,
+   their context, workflows, usability, and consented research sessions.
+4. `references/interview.md` owns Human clarification and Human-only decisions.
+5. `references/intake-management.md` owns Human requirements and feedback,
+   specification alignment, synthesis, the document profile, manager execution,
+   validation, readiness, and Work Unit handoff.
 
 The six Intake actions are Human input, web search, internal analysis, user
 research, Human decision interview, and specification check or update. Apply
@@ -54,7 +54,7 @@ Before readiness, ensure the Intake has addressed each applicable concern:
 - acquire evidence through the minimum applicable capability skills instead of
   requiring every capability on every Intake;
 - identify conflicts, compare viable alternatives, record decision rationale,
-  and route the final Human-only choice through `intakes`;
+  and route the final Human-only choice through `references/interview.md`;
 - identify technical, operational, security, privacy, legal, accessibility,
   migration, and delivery risks that are applicable to the recorded scope;
 - preserve requirement provenance, priority when explicitly decided, change
@@ -110,10 +110,11 @@ Repeat until readiness passes:
    `section-items-put` batch for a large same-section update.
 3. Run `validate` immediately.
 4. Review completeness, consistency, traceability, and Execution sufficiency.
-5. Revise the failed section or return to the owning capability skill.
+5. Revise the failed section or return to the owning capability reference.
 
-Use `intakes` instead of treating stated preference as observed behavior.
-Use `intakes` instead of inventing a Human-only answer. The LLM supplies only
+Use `references/user-research.md` instead of treating stated preference as
+observed behavior. Use `references/interview.md` instead of inventing a
+Human-only answer. The LLM supplies only
 typed semantic data arguments; the manager constructs and serializes JSON.
 Pass commands as an argument array so shell interpolation cannot reinterpret
 generated content. Never compose JSON strings or temporary JSON value files.

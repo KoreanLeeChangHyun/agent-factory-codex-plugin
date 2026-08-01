@@ -2,10 +2,11 @@
 
 Use this skill for external web search and source verification within an active
 Intake. Route internal code, database, data, configuration, log, test, and
-runtime investigation to `intakes`. Route direct observation, contextual
-inquiry, workflow shadowing, usability sessions, and consented participant
-session review to `intakes`. A published user research report found on the
-web remains web evidence; conducting or reviewing a participant study does not.
+runtime investigation to `references/analysis.md`. Route direct observation,
+contextual inquiry, workflow shadowing, usability sessions, and consented
+participant session review to `references/user-research.md`. A published user
+research report found on the web remains web evidence; conducting or reviewing
+a participant study does not.
 
 ## Storage
 

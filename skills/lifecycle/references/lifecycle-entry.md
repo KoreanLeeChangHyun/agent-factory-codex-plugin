@@ -113,8 +113,12 @@ explicit Human request.
 
 - `rules` before edits, design, code, review, or workflow claims.
 - `intakes` for canonical Intake.
-- `intakes`, `intakes`, and `intakes` for evidence collected into
-  Intake.
+- `intakes/references/analysis.md` for internal evidence collected into Intake.
+- `intakes/references/web-search.md` for external published evidence collected
+  into Intake.
+- `intakes/references/user-research.md` for direct user and operator evidence
+  collected into Intake.
+- `intakes/references/interview.md` for Human-only decisions recorded in Intake.
 - `specifications` for canonical Specification.
 - `work-units` for Work Unit creation and state.
 - `work-units` for Goal launcher and Git worktree operations.

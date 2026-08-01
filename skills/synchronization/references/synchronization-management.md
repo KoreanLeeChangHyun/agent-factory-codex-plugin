@@ -2,8 +2,10 @@
 
 Choose the synchronization capability that matches the source:
 
-- `synchronization`: Import or refresh Google Drive materials in the local workspace.
-- `synchronization`: Import or refresh Gmail messages and attachments in the local workspace.
+- `references/google-drive.md`: Import or refresh Google Drive materials in the
+  local workspace.
+- `references/google-mail.md`: Import or refresh Gmail messages and attachments
+  in the local workspace.
 
 ## Project And Destination Contract
 

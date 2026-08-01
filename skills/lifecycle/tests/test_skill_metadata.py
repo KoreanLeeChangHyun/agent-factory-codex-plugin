@@ -367,6 +367,86 @@ class SkillMetadataTests(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertIn(excluded, agent_workflow)
 
+    def test_consolidated_skill_documents_preserve_reference_level_routing(self) -> None:
+        references = SKILLS / "intakes" / "references"
+        intake_management = (references / "intake-management.md").read_text(
+            encoding="utf-8"
+        )
+        analysis = (references / "analysis.md").read_text(encoding="utf-8")
+        web_search = (references / "web-search.md").read_text(encoding="utf-8")
+        user_research = (references / "user-research.md").read_text(
+            encoding="utf-8"
+        )
+        interview = (references / "interview.md").read_text(encoding="utf-8")
+        lifecycle = (
+            SKILLS / "lifecycle" / "references" / "lifecycle-entry.md"
+        ).read_text(encoding="utf-8")
+        synchronization = (
+            SKILLS
+            / "synchronization"
+            / "references"
+            / "synchronization-management.md"
+        ).read_text(encoding="utf-8")
+
+        intake_routes = {
+            "references/intake-management.md": intake_management,
+            "references/analysis.md": analysis,
+            "references/web-search.md": web_search,
+            "references/user-research.md": user_research,
+            "references/interview.md": interview,
+        }
+        for route in intake_routes:
+            with self.subTest(intake_route=route):
+                self.assertIn(f"`{route}`", intake_management)
+
+        for route in (
+            "intakes/references/analysis.md",
+            "intakes/references/web-search.md",
+            "intakes/references/user-research.md",
+            "intakes/references/interview.md",
+        ):
+            with self.subTest(lifecycle_route=route):
+                self.assertIn(f"`{route}`", lifecycle)
+
+        cross_routes = {
+            "analysis": (
+                analysis,
+                "references/web-search.md",
+                "references/user-research.md",
+            ),
+            "web-search": (
+                web_search,
+                "references/analysis.md",
+                "references/user-research.md",
+            ),
+            "user-research": (
+                user_research,
+                "references/analysis.md",
+                "references/web-search.md",
+                "references/interview.md",
+            ),
+            "interview": (interview, "references/user-research.md"),
+        }
+        for capability, (document, *routes) in cross_routes.items():
+            for route in routes:
+                with self.subTest(capability=capability, route=route):
+                    self.assertIn(f"`{route}`", document)
+
+        self.assertIn("`references/google-drive.md`", synchronization)
+        self.assertIn("`references/google-mail.md`", synchronization)
+
+    def test_interview_preserves_execution_and_result_review_boundaries(self) -> None:
+        interview = (
+            SKILLS / "intakes" / "references" / "interview.md"
+        ).read_text(encoding="utf-8")
+        normalized = " ".join(interview.split())
+
+        self.assertNotIn("Work Unit approval", interview)
+        self.assertNotIn("merge approval", interview)
+        self.assertIn("explicit Work Unit execution requests", normalized)
+        self.assertIn("result review (`rework` or `complete`)", normalized)
+        self.assertIn("`complete` automatically integrates", normalized)
+
     def test_plugin_manifest_routes_to_all_skills_with_valid_starter_prompts(
         self,
     ) -> None:
@@ -375,6 +455,8 @@ class SkillMetadataTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "agent-factory")
         self.assertEqual(manifest["skills"], "./skills/")
+        self.assertEqual(manifest["version"].count("+"), 1)
+        self.assertEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual((plugin_root / manifest["skills"]).resolve(), SKILLS.resolve())
         prompts = manifest["interface"]["defaultPrompt"]
         self.assertIsInstance(prompts, list)

@@ -6,10 +6,10 @@ observed behavior or generalize beyond the sampled people and situations.
 
 ## Boundary
 
-- Use `intakes` for Human-only project and lifecycle decisions.
-- Use `intakes` for repository, database, analytics, log, test, runtime, and
-  document evidence that does not require observing a person.
-- Use `intakes` for public or external published evidence.
+- Use `references/interview.md` for Human-only project and lifecycle decisions.
+- Use `references/analysis.md` for repository, database, analytics, log, test,
+  runtime, and document evidence that does not require observing a person.
+- Use `references/web-search.md` for public or external published evidence.
 - Use a Work Unit during Execution for prototype construction, experiment
   implementation, recruitment, external contact, or other scoped mutations.
 - Record a research need as an open item when access, consent, participants, or
@@ -35,7 +35,7 @@ observed behavior or generalize beyond the sampled people and situations.
 7. Run the Intake manager's separate `validate` command immediately.
 8. Feed accepted evidence into its owning requirement, constraint, decision,
    success criterion, or Work Unit basis item. Route Human-only choices to
-   `intakes`.
+   `references/interview.md`.
 
 ## Evidence Contract
 

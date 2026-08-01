@@ -6,9 +6,9 @@ decision should be made through a structured interview flow.
 This skill interviews a Human decision owner to obtain an explicit project or
 lifecycle decision. Route questions asked to research participants, direct
 observation, contextual inquiry, workflow shadowing, usability sessions, and
-participant-session interpretation to `intakes`. Do not store research
-participant evidence as kind `interview` or force a research session into the
-three-choice decision format.
+participant-session interpretation to `references/user-research.md`. Do not
+store research participant evidence as kind `interview` or force a research
+session into the three-choice decision format.
 
 ## Core Rules
 
@@ -19,8 +19,12 @@ three-choice decision format.
 - Use this skill only when a human decision is actually needed before
   proceeding.
 - Use this skill for Human-only decisions such as scope, priority,
-  requirements, approval boundaries, risk tolerance, Work Unit approval, rework,
-  merge, deployment, operation, maintenance, or PR promotion.
+  requirements, approval boundaries, risk tolerance, explicit Work Unit
+  execution requests, result review (`rework` or `complete`), deployment,
+  operation, maintenance, or PR promotion.
+- Treat result review as a decision, not an approval procedure. In worktree
+  mode, `complete` automatically integrates the Work Unit branch; do not ask
+  for a separate merge decision.
 - Treat a recorded decision as active unless the user explicitly changes it or
   a later recorded decision supersedes it.
 - Do not re-ask settled decisions or rehash settled options.
