@@ -75,6 +75,8 @@ def run_protocol(
             "invalid_thread_response", "thread/start returned no thread id"
         )
     thread_id = thread["id"]
+    # Recovery Goals receive the same pre-turn Goal agreement as primary Work
+    # Unit Goals; otherwise a resolver could run under stale objective state.
     selected = goal.goal_value(
         client.request(
             "thread/goal/set",
@@ -132,6 +134,8 @@ def run_protocol(
                         "recoveryCount": recoveries,
                     }
             elif candidate.get("status") == "blocked":
+                # A blocked recovery is retried in the same thread so the retry
+                # preserves context and the node's idempotency key.
                 if recoveries >= goal.MAX_AUTOMATIC_RECOVERIES:
                     raise ContractError(
                         "resolution_recovery_exhausted",

@@ -689,6 +689,8 @@ def archive_current_attempt(package: Path, state: dict[str, Any]) -> None:
     content = state["content"]
     if content["currentAttempt"] is None:
         return
+    # Freeze outcomes with their invocation chain before reuse of the live result
+    # slots, preserving which attempt produced each Human-reviewed claim.
     record = {
         "revision": content["currentRevision"],
         "attempt": content["currentAttempt"],
@@ -916,6 +918,8 @@ def command_attempt_resume(args: argparse.Namespace) -> None:
         raise ManagerError(
             "attempt-resume invocationId must be unique in execution history"
         )
+    # Resume extends the invocation chain without resetting progress; a new
+    # attempt is reserved for retry or rework that invalidates prior outcomes.
     chain.append(args.invocation_id)
     state["content"]["recovery"] = running_recovery(args.invocation_id)
     commit_execution_state(package, section)
@@ -990,6 +994,8 @@ def command_execution_progress(args: argparse.Namespace) -> None:
         None,
     )
     if existing is not None:
+        # Exact replay is a no-op, while reuse of an idempotency key for different
+        # progress would corrupt the durable execution history.
         if existing != record:
             raise ManagerError(
                 "execution progress idempotency identity conflicts with prior record"
@@ -1290,6 +1296,8 @@ def item_kinds(value: Any) -> set[str]:
 
 
 def reject_protected_result_mutation(package: Path, value: Any) -> None:
+    # Generic section CRUD must not bypass lifecycle commands that atomically
+    # couple execution state, outcome ownership, and metadata transitions.
     kinds = item_kinds(value)
     if "execution-state" in kinds:
         raise ManagerError(
@@ -1589,6 +1597,8 @@ def validate_integration_receipt(
         raise ManagerError(
             "integration receipt commits must be lowercase Git object IDs"
         )
+    # Receipt fields are cross-validated as one state machine so individually
+    # plausible Git facts cannot certify an impossible integration outcome.
     valid_results = {
         "fast-forwardable": ({"ff-only"}, "fast-forwarded", "integrated"),
         "diverged": ({"no-ff"}, "merge-commit-created", "integrated"),

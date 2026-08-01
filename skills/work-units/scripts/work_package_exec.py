@@ -126,6 +126,8 @@ class DeterministicScheduler:
         return node_id in self.state["mergedOrder"]
 
     def ready(self) -> list[str]:
+        # A prerequisite is usable only after execution and ordered integration;
+        # completion alone does not make its code visible to downstream nodes.
         return [
             node_id
             for node_id in self.graph.order
@@ -156,6 +158,8 @@ class DeterministicScheduler:
             try:
                 base = self.definition.get("integrationBranch")
                 if node.get("executionMode") == "specification-direct":
+                    # Canonical Specification mutations share the primary root,
+                    # so they must be serialized even when the DAG allows parallelism.
                     with self.specification_lock:
                         result = self.run_node(node, base, key)
                 else:
@@ -235,6 +239,8 @@ class DeterministicScheduler:
                     }
                     for node_id in batch:
                         results[node_id] = future_by_id[node_id].result()
+                # Parallel execution may finish arbitrarily; integration follows
+                # graph order to keep branch history and receipts reproducible.
                 for node_id in self.graph.order:
                     if node_id not in results:
                         continue
@@ -350,6 +356,8 @@ class PackageRuntime:
         if self.integration_worktree.exists():
             raise ExecutionError("package integration branch/worktree collision")
         self.integration_worktree.parent.mkdir(parents=True, exist_ok=True)
+        # Delay checkout until sparse rules exclude .agent-factory, keeping the
+        # canonical control plane out of this code-only integration worktree.
         arguments = [
             "worktree",
             "add",

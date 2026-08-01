@@ -259,6 +259,8 @@ def require_registered_worktree(
     records = list_worktrees(execution, repository)
     record = find_worktree(records, worktree_path)
     if record is None:
+        # Distinguish an unregistered path from a worktree owned by another
+        # repository before reporting the safer generic registration failure.
         actual_common = common_git_dir(execution, worktree_path)
         expected_common = expected_common_git_dir(execution, repository)
         if actual_common is not None and actual_common != expected_common:
@@ -478,6 +480,8 @@ def prepare(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         )
 
     lock_reason = f"Agent Factory Work Unit execution: {branch}"
+    # Create without checkout so sparse exclusion is installed before any
+    # canonical .agent-factory content can enter the linked worktree.
     result = execution.git(
         repository,
         [
@@ -631,6 +635,8 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             "git_inspection_failed", "unable to inspect target worktree status"
         )
     target_changes = parse_status(target_status.stdout)
+    # Primary-root canonical CRUD is expected during execution and must not make
+    # an otherwise clean source integration appear dirty.
     target_changes = [
         change
         for change in target_changes
@@ -651,6 +657,8 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         f"refs/heads/{args.target_branch}",
         "unresolved_target",
     )
+    # Classify ancestry before mutation; retries become no-ops and divergence
+    # cannot silently select a history-changing merge strategy.
     if is_ancestor(execution, repository, source_commit, target_before):
         relationship = "already-merged"
     elif is_ancestor(execution, repository, target_before, source_commit):

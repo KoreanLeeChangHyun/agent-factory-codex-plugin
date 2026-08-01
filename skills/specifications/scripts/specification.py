@@ -98,6 +98,8 @@ def select_profile(
             f"profile-unresolved: Specification profile version mismatch: "
             f"requested={profile_id}@{expected_version}, registered={profile_id}@{raw.get('version')}"
         )
+    # The shared manager resolves its hooks through module globals. Selecting
+    # here binds one CLI process to the profile recorded by the package.
     base.PROFILE_PATH = path
     return raw
 
@@ -259,6 +261,8 @@ def command_source_ref_prune(args: argparse.Namespace) -> None:
         raise ManagerError(
             "source-ref-prune refuses a provenance reference whose target exists"
         )
+    # Remove by object identity after proving uniqueness so equal-looking refs
+    # cannot be pruned as an unintended group.
     metadata["provenance"]["sourceRefs"] = [
         reference
         for reference in metadata["provenance"]["sourceRefs"]

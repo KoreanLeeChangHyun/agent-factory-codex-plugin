@@ -137,6 +137,8 @@ def validate_graph(nodes: Any) -> Graph:
         raise ManagerError(
             f"Work Package prerequisites reference missing nodes: {', '.join(missing)}"
         )
+    # Sorted Kahn traversal makes both scheduling order and persisted evidence
+    # deterministic for equivalent package definitions.
     remaining = {node_id: set(required) for node_id, required in prerequisites.items()}
     order: list[str] = []
     while remaining:
@@ -232,6 +234,8 @@ def affected_descendants(nodes: list[dict[str, Any]], affected: set[str]) -> tup
     unknown = affected - set(graph.order)
     if unknown:
         raise ManagerError(f"unknown affected nodes: {', '.join(sorted(unknown))}")
+    # Rework invalidates every downstream consumer of an affected node, while
+    # independent branches retain their completed evidence.
     selected = set(affected)
     for node_id in affected:
         selected.update(graph.descendants[node_id])
@@ -440,6 +444,8 @@ def preflight(package: Path, repository_arg: str) -> dict[str, Any]:
         if not executable.is_file():
             raise ManagerError(f"required launcher is unavailable: {executable}")
     if initial:
+        # Collision checks are admission-only. A resumed package must reuse the
+        # durable branches and worktrees created by its accepted first run.
         if git(repository, "show-ref", "--verify", "--quiet", f"refs/heads/{definition['integrationBranch']}").returncode == 0:
             raise ManagerError("package integration branch collision")
         listing = git(repository, "worktree", "list", "--porcelain")

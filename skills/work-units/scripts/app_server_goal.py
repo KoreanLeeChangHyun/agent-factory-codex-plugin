@@ -219,6 +219,8 @@ class AppServerClient:
                         {"method": method},
                     )
                 return result
+            # Notifications may interleave an RPC response; preserve their
+            # arrival order for the protocol state machine instead of dropping them.
             if isinstance(message.get("method"), str) and "id" not in message:
                 self.notifications.append(message)
                 continue
@@ -741,6 +743,8 @@ def run_protocol(
     thread_id = thread["id"]
     objective = work_unit_id
 
+    # Set, fetch, and observe the Goal before turn/start. This three-way check is
+    # the fail-closed boundary that prevents execution under mismatched state.
     set_goal = goal_value(
         client.request(
             "thread/goal/set",
@@ -794,6 +798,8 @@ def run_protocol(
                 {"reason": reason, "recoveries": recovery_count},
             )
         recovery_count += 1
+        # Continuation keeps the same thread and objective; only the turn is
+        # replaced so completed idempotent steps remain available to the agent.
         reactivated = goal_value(
             client.request(
                 "thread/goal/set",
@@ -840,6 +846,8 @@ def run_protocol(
                     "Goal notification objective changed",
                 )
             if candidate.get("status") == "complete":
+                # Goal and turn completion are independent notifications. Do not
+                # return until both refer to a completed execution boundary.
                 completed_goal = candidate
                 if isinstance(params, dict) and isinstance(params.get("turnId"), str):
                     completed_goal_turn_id = params["turnId"]

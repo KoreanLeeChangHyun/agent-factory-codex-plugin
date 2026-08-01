@@ -285,6 +285,8 @@ def resolve_package(value: str | Path, *, must_exist: bool = True) -> Path:
 
 
 def canonical_primary_package(requested: Path) -> Path:
+    # Canonical CRUD follows a linked-worktree path back to the primary root;
+    # code-only worktrees must never acquire a second artifact control plane.
     candidate = Path(os.path.abspath(requested))
     probe = subprocess.run(
         ["git", "-C", str(Path.cwd()), "worktree", "list", "--porcelain"],
@@ -361,6 +363,8 @@ def relative_parent_descriptor(
     *,
     create: bool = False,
 ) -> Iterable[tuple[int, str]]:
+    # Keep every traversal anchored to the already-open package descriptor so
+    # a concurrent parent-path swap cannot redirect a later mutation.
     safe = safe_relative_path(relative.as_posix(), "package-relative file")
     descriptor = os.dup(package_fd)
     try:
@@ -632,6 +636,8 @@ def recover_transaction_with_descriptor(package_fd: int) -> None:
     if not relative_file_exists(package_fd, JOURNAL_PATH):
         remove_tree_relative(package_fd, MANAGER_PATH / "transactions")
         return
+    # Journal presence is the rollback marker: publication happens only after
+    # every original and replacement has been staged, never midway through it.
     journal = load_object_relative(package_fd, JOURNAL_PATH, "transaction journal")
     if set(journal) != {"version", "id", "entries"} or journal["version"] != 1:
         raise ManagerError("transaction journal has an unsupported shape or version")

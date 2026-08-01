@@ -54,6 +54,8 @@ class DestinationStore:
         self.descriptor = -1
 
     def __enter__(self):
+        # Walk from the filesystem anchor one descriptor at a time; later calls
+        # never re-resolve the user-selected destination through mutable paths.
         descriptor = os.open(self.root.anchor, DIRECTORY_OPEN_FLAGS)
         try:
             for part in self.root.parts[1:]:
@@ -196,6 +198,8 @@ class DestinationStore:
                 stream.write(text)
                 stream.flush()
                 os.fsync(stream.fileno())
+            # The index is the synchronization boundary: readers see either the
+            # previous complete index or the newly fsynced replacement.
             os.replace(
                 temporary_name,
                 parts[-1],
@@ -436,6 +440,8 @@ def main():
         attachment_count = 0
         attachment_bytes = 0
         for message_id in message_ids:
+            # Existing index membership is the durable idempotency signal; an
+            # explicit overwrite is required to rewrite message side effects.
             if message_id in entries and not args.overwrite:
                 skipped += 1
                 continue

@@ -100,6 +100,8 @@ def validate_config(value: Any, path: Path) -> dict[str, Any]:
 
 
 def open_agent_factory(root_descriptor: int, *, create: bool) -> int | None:
+    # Reopen after a create race and require a real directory without following
+    # symlinks; the project-root descriptor remains the trust anchor.
     try:
         return os.open(".agent-factory", DIRECTORY_OPEN_FLAGS, dir_fd=root_descriptor)
     except FileNotFoundError:
@@ -169,6 +171,8 @@ def validate_destination_text(value: str) -> Path:
 
 
 def reject_relative_symlink_escape(project_root: Path, candidate: Path) -> None:
+    # Relative destinations promise project ownership, so even an intermediate
+    # symlink would silently change that ownership boundary.
     current = project_root
     for part in candidate.parts:
         current = current / part
@@ -264,6 +268,8 @@ def write_config(project_root: Path, value: dict[str, Any]) -> None:
             stream.write("\n")
             stream.flush()
             os.fsync(stream.fileno())
+        # Replace and then sync the containing directory so a successful return
+        # means the selected filename, not only its bytes, reached stable state.
         os.replace(
             temporary_name,
             "sync.json",

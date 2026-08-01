@@ -57,6 +57,8 @@ def noncanonical_changes(repository: Path) -> list[str]:
     changed = []
     for entry in entries:
         path = entry[3:].split(" -> ")[-1]
+        # Canonical manager writes are expected on the primary root and are
+        # orthogonal to the reviewed code branch being integrated.
         if not path.startswith(".agent-factory/"):
             changed.append(path)
     return changed
@@ -84,6 +86,8 @@ def integrate(
     source_commit = resolve_commit(repository, source_branch)
     target_before = resolve_commit(repository, target_branch)
     operations: list[list[str]] = []
+    # Ancestry, not branch names or timestamps, selects the only permitted
+    # integration strategy and makes an already-integrated retry idempotent.
     if is_ancestor(repository, source_commit, target_before):
         relationship = "already-integrated"
         strategy = "none"
