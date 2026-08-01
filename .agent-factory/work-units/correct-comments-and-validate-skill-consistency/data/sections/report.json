@@ -1,0 +1,94 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-REQUIREMENTS-001",
+      "kind": "report-requirements",
+      "content": [
+        "교정된 파일과 문구 의미",
+        "8개 스킬별 구조 및 교차 참조 정합성 결과",
+        "발견된 충돌 또는 remaining risk",
+        "정확한 검증 명령과 결과",
+        "AI Review findings"
+      ]
+    },
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "summary": "Four inaccurate comment blocks were corrected without executable changes, and all eight Agent Factory skills passed structural and semantic consistency review.",
+        "sourceCommit": "1ae14e9ab91c88e7f3de100d3031babeb241c66a",
+        "remainingRisk": "Human review is pending; no integration, cleanup, push, deployment, branch deletion, or PR promotion was performed.",
+        "changedPaths": [
+          "skills/lifecycle/scripts/sectioned_document.py: transaction comment narrowed to sequential publication after staging and rollback-capable journal.",
+          "skills/work-units/scripts/work_package_supervisor.py: ACK comment corrected to executor lease acquisition and resume anchoring.",
+          "skills/work-units/scripts/work_package_supervisor.py: pre-ACK comment corrected to absence of an acknowledged resume owner.",
+          "skills/work-units/scripts/work_unit.py: archive comment corrected to retry or rework regardless of Human review status."
+        ],
+        "skillResults": [
+          "agents: pass (name, metadata, 2 routes, tests).",
+          "conventions: pass (name, metadata, 2 routes, single annotation owner).",
+          "intakes: pass (name, metadata, 6 routes, scripts/assets/tests).",
+          "lifecycle: pass (name, metadata, 3 routes, scripts/assets/tests).",
+          "rules: pass (name, metadata, 2 routes, fact/lifecycle semantics).",
+          "specifications: pass (name, metadata, 2 routes, scripts/assets/tests).",
+          "synchronization: pass (name, metadata, 3 routes, scripts/assets/tests).",
+          "work-units: pass (name, metadata, 4 routes, scripts/assets/tests)."
+        ],
+        "findings": [
+          "Blocking findings: none.",
+          "Non-blocking findings: none.",
+          "Removed sub-skill active references: none.",
+          "Common rule semantic conflicts: none."
+        ],
+        "verification": [
+          "Python AST comparison against 03baba8: PASS, 3/3 identical.",
+          "for test_file in skills/*/tests/test_*.py; do python3 \"$test_file\" || exit 1; done: PASS, 203 tests.",
+          "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .: PASS.",
+          "python3 skills/lifecycle/tests/test_skill_metadata.py: PASS, 12 tests.",
+          "find skills -mindepth 2 -maxdepth 2 -name SKILL.md: PASS, exact eight.",
+          "Removed sub-skill rg audit: PASS, 0 active references.",
+          "git diff --check: PASS.",
+          "worktree.py inspect: PASS, clean at 1ae14e9."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fbde3-ab26-7833-8c37-c444b3736ce4",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/execution-report.txt",
+          "blocks/evidence/final-repository-state.txt"
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-DE25B92119210FA9",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/correct-comments-and-validate-skill-consistency",
+        "sourceCommit": "1ae14e9ab91c88e7f3de100d3031babeb241c66a",
+        "strategy": "ff-only",
+        "targetAfterCommit": "1ae14e9ab91c88e7f3de100d3031babeb241c66a",
+        "targetBeforeCommit": "03baba8143d9ee32e6fea1d71403bab61adc304a",
+        "targetBranch": "main",
+        "workUnitId": "correct-comments-and-validate-skill-consistency",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/correct-comments-and-validate-skill-consistency",
+        "receiptSha256": "de25b92119210fa9718321804ffef17c6a6b6f4d6cf69a91f6f2a10f55e281b0"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/correct-comments-and-validate-skill-consistency.json"
+    }
+  ],
+  "subsections": []
+}

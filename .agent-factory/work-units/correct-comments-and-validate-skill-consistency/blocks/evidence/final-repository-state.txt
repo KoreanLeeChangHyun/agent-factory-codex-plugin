@@ -1,0 +1,10 @@
+Final repository capture after Human-facing report update
+Branch: work-unit/correct-comments-and-validate-skill-consistency
+HEAD: 1ae14e9ab91c88e7f3de100d3031babeb241c66a
+Worktree porcelain status: clean (no records)
+Changed paths versus base 03baba8:
+- skills/lifecycle/scripts/sectioned_document.py
+- skills/work-units/scripts/work_package_supervisor.py
+- skills/work-units/scripts/work_unit.py
+Changed path count: 3
+Scope result: exactly the three approved Python files; four comment blocks only.

@@ -1,0 +1,37 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "실행 계약을 바꾸지 않는 annotation correction과 read-only consistency validation이다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "4개 주석을 정확히 교정하고 8개 스킬 정합성 검증 증거를 생성한다.",
+        "executionOrder": 1,
+        "scope": [
+          "3개 파일의 4개 주석 교정",
+          "8개 스킬 정합성 검증",
+          "회귀 및 AST 검증"
+        ],
+        "outOfScope": [
+          "실행 동작 변경",
+          "추가 문제 자동 수정",
+          "push, deploy, cleanup"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

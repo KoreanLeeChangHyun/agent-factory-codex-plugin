@@ -1,0 +1,44 @@
+Work Unit: correct-comments-and-validate-skill-consistency
+Revision/attempt/invocation: 1/1/019fbde3-ab26-7833-8c37-c444b3736ce4
+Resume invocation: 019fbde7-2bbe-71d2-9525-5e5ebdea5af5
+Source commit: 1ae14e9ab91c88e7f3de100d3031babeb241c66a
+
+Changed paths (exactly three):
+- skills/lifecycle/scripts/sectioned_document.py (one comment block)
+- skills/work-units/scripts/work_package_supervisor.py (two comment blocks)
+- skills/work-units/scripts/work_unit.py (one comment block)
+
+Comment-to-implementation review:
+- Transaction publication is sequential after complete staging; journal presence permits rollback.
+- ACK reports the executor's durable lease acquisition; an acknowledged invocation anchors resume.
+- Before the first ACK the supervisor has no acknowledged resume owner and cannot enter restart.
+- Attempt archiving preserves invocation chain and outcomes for retry or rework regardless of review status.
+
+Skill consistency results:
+- agents: name, metadata, 2 routed references, tests path consistent.
+- conventions: name, metadata, 2 routed references, annotation ownership consistent.
+- intakes: name, metadata, 6 routed references, scripts/assets/tests ownership consistent.
+- lifecycle: name, metadata, 3 routed references, scripts/assets/tests ownership consistent.
+- rules: name, metadata, 2 routed references, evidence/lifecycle rules consistent.
+- specifications: name, metadata, 2 routed references, scripts/assets/tests ownership consistent.
+- synchronization: name, metadata, 3 routed references, scripts/assets/tests ownership consistent.
+- work-units: name, metadata, 4 routed references, scripts/assets/tests ownership consistent.
+- Exactly 8 SKILL.md entrypoints exist.
+- Removed sub-skill $name and skills/<name> active references: 0.
+- Common ownership, lifecycle, manager, worktree, and annotation rules have no semantic conflict.
+
+Verification:
+- Python AST comparison against 03baba8: 3/3 identical.
+- for test_file in skills/*/tests/test_*.py; do python3 "$test_file" || exit 1; done: PASS, 203 tests.
+- python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .: PASS.
+- python3 skills/lifecycle/tests/test_skill_metadata.py: PASS, 12 tests.
+- find skills -mindepth 2 -maxdepth 2 -name SKILL.md: PASS, exact approved eight.
+- Routed reference and owned asset existence audit: PASS.
+- Removed sub-skill active-reference rg audit: PASS, 0 matches.
+- git diff --check: PASS.
+- Worktree status after commit: clean.
+
+Findings:
+- Blocking findings: none.
+- Non-blocking consistency findings: none.
+- Remaining risk: Human review is pending; integration has not been performed.

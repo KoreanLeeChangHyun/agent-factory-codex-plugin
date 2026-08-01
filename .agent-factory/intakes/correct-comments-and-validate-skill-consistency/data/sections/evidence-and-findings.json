@@ -1,0 +1,48 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "INTERNAL-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "2b8670f diff와 현재 구현",
+        "method": "comment-to-implementation comparison",
+        "findings": [
+          "transaction publication 문구가 다중 파일 원자성을 암시하지만 실제 구현은 journal 기록 후 대상별 순차 게시와 실패 시 롤백이다.",
+          "ACK는 supervisor로 lease ownership을 이전하지 않고 executor invocationId의 durable lease 취득을 supervisor에 알린다.",
+          "pre-ACK 종료 시 durable lease 부재를 단정할 수 없고 supervisor가 acknowledged resume owner를 확보하지 못한 상태다.",
+          "attempt archive 결과는 working retry에서도 생성될 수 있어 항상 Human-reviewed claim은 아니다."
+        ],
+        "interpretations": [
+          "각 문구는 실제 보장 범위로 좁혀야 한다."
+        ],
+        "limitations": [
+          "이번 변경은 문구 교정만 하며 관련 실행 계약 변경은 포함하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "repository",
+        "source": "skills, README.md, .codex-plugin and plugin validator",
+        "method": "structure, stale-reference and validation inspection",
+        "findings": [
+          "현재 SKILL.md는 승인된 8개 디렉터리에 정확히 존재한다.",
+          "제거된 하위 스킬 경로의 활성 참조 검색 결과는 0건이다.",
+          "plugin validation이 통과한다."
+        ],
+        "interpretations": [
+          "전체 검증에서 entry-reference 존재, 내부 상호 참조, 실행 자산 소유권, 중복 규칙의 의미 일치를 추가 확인해야 한다."
+        ],
+        "limitations": [
+          "사전 검사 결과이며 최종 정합성 판정은 Work Unit 실행 증거에 기록한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

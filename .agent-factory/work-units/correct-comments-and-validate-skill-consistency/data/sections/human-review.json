@@ -1,0 +1,37 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "교정된 4개 문구 확인",
+        "8개 스킬 정합성 결과와 finding 확인",
+        "검증 및 AI Review 결과 확인",
+        "complete 또는 rework 결정"
+      ]
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "pending",
+      "attributes": {
+        "status": "complete",
+        "decidedAt": "2026-08-01T19:48:44+00:00",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "019fbde3-ab26-7833-8c37-c444b3736ce4"
+        }
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-METHOD-001",
+      "kind": "human-review-method",
+      "content": "교정 전후 의미, 스킬 정합성 검사 결과, 정확한 검증과 AI findings를 한국어로 제시하고 Human이 complete 또는 rework를 결정한다."
+    }
+  ],
+  "subsections": []
+}

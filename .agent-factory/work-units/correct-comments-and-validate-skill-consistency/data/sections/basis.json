@@ -1,0 +1,23 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-001",
+      "kind": "intake-basis-ref",
+      "content": "Ready Intake BASIS-001의 4개 주석 교정 및 8개 스킬 정합성 검증 범위",
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "correct-comments-and-validate-skill-consistency",
+          "path": ".agent-factory/intakes/correct-comments-and-validate-skill-consistency",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

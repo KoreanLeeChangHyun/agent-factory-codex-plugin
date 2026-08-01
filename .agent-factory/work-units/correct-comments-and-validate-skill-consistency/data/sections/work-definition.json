@@ -1,0 +1,41 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "4개 부정확한 주석을 실제 구현 보장과 일치하도록 교정하고 현재 8개 Agent Factory 스킬의 정합성을 검증한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "skills/lifecycle/scripts/sectioned_document.py 주석 1개",
+        "skills/work-units/scripts/work_package_supervisor.py 주석 2개",
+        "skills/work-units/scripts/work_unit.py 주석 1개",
+        "8개 SKILL.md와 references, scripts, assets, tests, metadata의 정합성 검증"
+      ]
+    },
+    {
+      "id": "EXCLUSIONS-001",
+      "kind": "out-of-scope",
+      "content": [
+        "실행 코드와 테스트 변경",
+        "지정된 4개 외 주석 변경",
+        "정합성 finding 자동 수정",
+        "push, deploy, branch deletion, cleanup"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": [
+        "정확히 교정된 4개 주석 블록",
+        "8개 스킬 정합성 검증 결과와 finding",
+        "AST 및 전체 회귀 검증 증거"
+      ]
+    }
+  ],
+  "subsections": []
+}
