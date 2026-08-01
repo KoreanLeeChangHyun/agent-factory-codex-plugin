@@ -1,0 +1,23 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "rules를 승인된 6개 reference 구조로 분해하고 lifecycle 본문 중복을 제거하며 engineering-rules.md stub은 만들지 않는다.",
+        "status": "accepted",
+        "source": "Human approval of recommended structure"
+      }
+    },
+    {
+      "id": "OPEN-ITEMS-STATUS",
+      "kind": "open-items-status",
+      "content": {
+        "status": "파일명, 책임 매핑, compatibility 정책과 검증 기준이 확정되어 추가 Human 결정은 없다."
+      }
+    }
+  ],
+  "subsections": []
+}

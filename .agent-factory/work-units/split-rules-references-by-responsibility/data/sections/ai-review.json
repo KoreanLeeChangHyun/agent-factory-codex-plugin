@@ -1,0 +1,44 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "승인된 6개 파일명과 책임 매핑인지 확인",
+        "기존 고유 규칙 의미와 안전 경계가 손실 또는 변형되지 않았는지 확인",
+        "Lifecycle Rule 중복이 제거되고 lifecycle 소유권이 명확한지 확인",
+        "조건부 라우팅이 적용 조건을 빠짐없이 포함하는지 확인",
+        "compatibility stub, 추가 SKILL.md 또는 범위 밖 변경이 없는지 확인"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "승인된 6개 파일명과 책임 매핑, 12개 비-lifecycle 원본 섹션의 단일 소유 보존, lifecycle 중복 제거, 조건부 라우팅, 범위 제한을 검토했다.",
+        "checks": [
+          "6 approved reference names and exact set",
+          "12 original non-lifecycle sections preserved under exactly one owner",
+          "Lifecycle Rule removed from rules references and routed to lifecycle",
+          "always-load fact/evidence plus five conditional routing boundaries",
+          "8 registered skills preserved",
+          "no compatibility stub or out-of-scope changes"
+        ],
+        "findings": []
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fbee7-41e6-7b61-801b-462a64095040",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

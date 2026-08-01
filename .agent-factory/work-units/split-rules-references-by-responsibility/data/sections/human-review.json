@@ -1,0 +1,37 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": [
+        "6개 rules reference 구조 확인",
+        "progressive routing과 lifecycle ownership 확인",
+        "검증 및 AI Review findings 확인",
+        "complete 또는 rework 결정"
+      ]
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": "Human 결과 검토 준비 완료: source commit 22bb5de의 6개 reference 구조, progressive routing, 의미 보존 및 검증 증거, AI Review findings를 확인하고 rework 또는 complete를 결정한다.",
+      "attributes": {
+        "status": "complete",
+        "decidedAt": "2026-08-01T20:34:50+00:00",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "019fbee7-41e6-7b61-801b-462a64095040"
+        }
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-METHOD-001",
+      "kind": "human-review-method",
+      "content": "변경된 구조, 책임 매핑, 의미 보존, exact 검증과 AI findings를 한국어로 제시하고 Human이 complete 또는 rework를 결정한다."
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/integration/split-rules-references-by-responsibility.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "85dc13b3ef9d06d7011c064c5176b1b6d2e6da286b295c14252d3235a526175d",
+      "sizeBytes": 2001
+    },
+    {
+      "path": "blocks/logs/split-rules-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Revision 1 attempt 1 verification, AI review, and final repository evidence",
+      "sha256": "7b164c663b44d92e034c52f7c44c33cb896918a5d6286d16d0f3f078f2aa1b5c",
+      "sizeBytes": 1985
+    }
+  ]
+}

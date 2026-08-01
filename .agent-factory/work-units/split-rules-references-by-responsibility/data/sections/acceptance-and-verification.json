@@ -1,0 +1,72 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "rules/references가 fact-and-evidence-control.md, engineering-principles.md, change-safety.md, runtime-safety.md, session-state-model.md, interview-decision-gate.md와 정확히 일치한다.",
+        "engineering-rules.md 및 활성 참조가 없다.",
+        "기존 고유 규칙 내용이 새 소유 파일에 보존되고 Lifecycle Rule은 lifecycle로 라우팅된다.",
+        "rules/SKILL.md가 always-load 및 조건부 reference 적용 경계를 명확히 선언한다.",
+        "정확히 8개 등록 스킬과 전체 실행 자산이 유지된다."
+      ]
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": [
+        "6-reference 구조와 progressive routing 구현",
+        "경로 및 의미 보존 테스트 갱신",
+        "전체 203개 테스트와 plugin validation 통과",
+        "AI Review blocking finding 없음",
+        "Human review 자료 기록"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": [
+        "for test_file in skills/*/tests/test_*.py; do python3 \"$test_file\" || exit 1; done",
+        "python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .",
+        "python3 skills/lifecycle/tests/test_skill_metadata.py",
+        "python3 skills/lifecycle/tests/test_document_profiles.py",
+        "rules/references exact six files 검사",
+        "find skills -mindepth 2 -maxdepth 2 -name SKILL.md exact eight 검사",
+        "rg engineering-rules.md와 제거된 경로 active reference 0건 검사",
+        "기존 heading 및 safety statement의 새 단일 소유 위치 검사",
+        "git diff --check"
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "summary": "승인된 6개 rules reference 구조, progressive routing, 기존 규칙 의미 보존, 8개 등록 스킬 보존 검증이 모두 통과했다.",
+        "results": [
+          "204 current tests passed (203 baseline plus 1 new regression test)",
+          "plugin validation passed",
+          "exactly 6 rules references",
+          "exactly 8 SKILL.md directories",
+          "0 active engineering-rules.md references",
+          "all 12 non-lifecycle source sections preserved in one owner",
+          "git diff and whitespace checks passed"
+        ]
+      },
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fbee7-41e6-7b61-801b-462a64095040",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/logs/split-rules-verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

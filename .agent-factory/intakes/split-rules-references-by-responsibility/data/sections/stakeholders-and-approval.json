@@ -1,0 +1,22 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": "Human decision owner and Agent Factory maintainers"
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Human은 제안된 6-reference 구조와 책임 매핑을 승인했다. 결과는 Human review에서 complete 또는 rework로 결정한다."
+    }
+  ],
+  "subsections": []
+}

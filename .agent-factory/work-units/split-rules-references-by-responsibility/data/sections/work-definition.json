@@ -1,0 +1,48 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": "rules monolith를 승인된 6개 reference 구조로 분해하고 기존 의미와 8개 스킬 등록 구조를 보존한다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "skills/rules/SKILL.md",
+        "skills/rules/references/fact-and-evidence-control.md",
+        "skills/rules/references/engineering-principles.md",
+        "skills/rules/references/change-safety.md",
+        "skills/rules/references/runtime-safety.md",
+        "skills/rules/references/session-state-model.md",
+        "skills/rules/references/interview-decision-gate.md 유지",
+        "skills/rules/references/engineering-rules.md 제거",
+        "skills/lifecycle/tests/test_document_profiles.py",
+        "skills/lifecycle/tests/test_skill_metadata.py"
+      ]
+    },
+    {
+      "id": "EXCLUSIONS-001",
+      "kind": "out-of-scope",
+      "content": [
+        "등록 스킬 이름 또는 수 변경",
+        "규칙 의미와 lifecycle 경계 변경",
+        "compatibility stub",
+        "다른 스킬 구조 변경",
+        "push, deploy, branch deletion, cleanup"
+      ]
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": [
+        "조건부 progressive routing을 가진 rules/SKILL.md",
+        "정확히 6개의 책임별 rules references",
+        "monolith 제거와 의미 보존 테스트"
+      ]
+    }
+  ],
+  "subsections": []
+}

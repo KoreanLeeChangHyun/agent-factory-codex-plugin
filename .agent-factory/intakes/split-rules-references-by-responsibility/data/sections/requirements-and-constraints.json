@@ -1,0 +1,41 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": [
+        "fact-and-evidence-control.md는 Core Rule, Fact Control, Critical Thinking, Evidence-First Workflow와 Reporting을 소유한다.",
+        "engineering-principles.md는 Agent Factory Engineering Principles와 conventions 라우팅을 소유한다.",
+        "change-safety.md는 Intent Confirmation, Change Safety와 Hard Stops를 소유한다.",
+        "runtime-safety.md는 Runtime Restart Safety와 Frontend Cache And Verification을 소유한다.",
+        "session-state-model.md는 Session-DOM-State 규칙을 소유한다.",
+        "interview-decision-gate.md는 그대로 유지한다.",
+        "rules/SKILL.md는 fact/evidence always-load와 나머지 조건부 로드를 명시하고 lifecycle 소유권으로 라우팅한다."
+      ]
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "기존 규칙의 의미와 안전 경계를 바꾸지 않는다.",
+        "engineering-rules.md compatibility stub을 만들지 않는다.",
+        "SKILL.md 등록 수는 정확히 8개로 유지한다.",
+        "테스트 변경은 새 reference 경로와 의미 보존 검증에만 제한한다."
+      ]
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "rules/references의 파일 집합이 승인된 6개와 정확히 일치한다.",
+        "engineering-rules.md와 그 활성 참조가 없다.",
+        "모든 기존 고유 규칙 섹션이 정확히 한 새 소유 위치에 존재하거나 lifecycle로 명시적으로 라우팅된다.",
+        "rules/SKILL.md의 모든 reference 경로가 존재하고 적용 조건이 명확하다.",
+        "전체 203개 테스트, plugin validation, exact 8 skills와 diff check가 통과한다."
+      ]
+    }
+  ],
+  "subsections": []
+}
