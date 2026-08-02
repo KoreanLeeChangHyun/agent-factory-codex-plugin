@@ -1,6 +1,6 @@
 # Agent Factory Internal Analysis
 
-Use this skill to establish what the current project actually contains or does.
+Use this capability to establish what the current project actually contains or does.
 Apply `rules`, and work read-only unless the Human has
 explicitly authorized a separate mutation task.
 

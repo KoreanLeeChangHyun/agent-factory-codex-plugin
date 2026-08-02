@@ -58,5 +58,5 @@ Stop and ask before editing when:
 - The change would replace a domain model with an invented fallback, sentinel,
   pseudo-scope, cache key, or hidden global state.
 - The implementation requires a broad architecture or workflow decision not
-  recorded in the Design Document, Work Unit, or Human instruction.
+  recorded in the Specification, Work Unit, or Human instruction.
 - The change can remove, overwrite, reset, or replace uncommitted work.

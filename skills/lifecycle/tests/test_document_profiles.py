@@ -172,7 +172,7 @@ class DocumentProfileTests(unittest.TestCase):
             "Project Core is represented as the fixed top section",
             "Project Core is the short fixed top section",
             "Produce or update Project Core inside",
-            "The Design Document and Design Report must define at minimum",
+            "The Specification and Design Report must define at minimum",
         ):
             self.assertNotIn(obsolete, combined)
         self.assertIn("single canonical", specification)

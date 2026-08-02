@@ -7,7 +7,7 @@ throughout Intake.
 ## Mandatory Manager Script Gate
 
 Treat `scripts/intake.py` as a hard precondition for every canonical Intake
-package operation. Resolve it from this skill directory and invoke it before
+package operation. Resolve it from the parent `intakes` skill root and invoke it before
 creating, showing, mutating, validating, transitioning, registering or removing
 blocks, or recovering an Intake package.
 

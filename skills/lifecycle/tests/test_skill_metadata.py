@@ -464,7 +464,9 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertNotIn("Work Unit approval", interview)
         self.assertNotIn("merge approval", interview)
         self.assertIn("explicit Work Unit execution requests", normalized)
-        self.assertIn("result review (`rework` or `complete`)", normalized)
+        self.assertNotIn("result review (`rework` or `complete`)", normalized)
+        self.assertIn("Result review is outside the Interview capability", normalized)
+        self.assertIn("Main Agent directly presents only `rework` and `complete`", normalized)
         self.assertIn("`complete` automatically integrates", normalized)
 
     def test_plugin_manifest_routes_to_all_skills_with_valid_starter_prompts(

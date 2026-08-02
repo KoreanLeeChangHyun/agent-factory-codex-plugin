@@ -1,6 +1,6 @@
 # Annotation Convention
 
-Use this skill whenever code comments, documentation comments, or TODO
+Use this capability whenever code comments, documentation comments, or TODO
 annotations are created, changed, or reviewed.
 
 ## Code Comment Convention

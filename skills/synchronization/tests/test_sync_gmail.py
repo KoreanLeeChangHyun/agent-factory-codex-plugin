@@ -42,7 +42,7 @@ class GmailDestinationTests(unittest.TestCase):
                     module,
                     "resolve_sync_destination",
                     return_value={
-                        "source": "google-gmail",
+                        "source": "google-mail",
                         "projectRoot": str(root),
                         "destination": str(destination),
                         "origin": "config",

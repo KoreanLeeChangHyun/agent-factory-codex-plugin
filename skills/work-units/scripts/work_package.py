@@ -17,6 +17,7 @@ from typing import Any, Iterable
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_ROOT.parent
+FACTORY_BRANCH = "factory"
 COMMON_MANAGER = (
     SKILL_ROOT.parent / "lifecycle" / "scripts" / "sectioned_document.py"
 )
@@ -199,6 +200,8 @@ def validate_definition(definition: Any) -> Graph:
     if not Path(repository).is_absolute():
         raise ManagerError("package repository must be absolute")
     target = non_empty_string(definition["targetBranch"], "package targetBranch")
+    if target != FACTORY_BRANCH:
+        raise ManagerError(f"targetBranch must equal {FACTORY_BRANCH}")
     integration = non_empty_string(
         definition["integrationBranch"], "package integrationBranch"
     )

@@ -1,6 +1,6 @@
 # Factory Rule
 
-Use this skill as the general Agent Factory rule gate before edits, design,
+Use this capability as the general Agent Factory rule gate before edits, design,
 code, review, refactoring, artifact changes, skill changes, or workflow changes.
 
 ## Core Rule
@@ -13,7 +13,7 @@ Before editing, make sure the change is grounded in:
 
 - Explicit Human instruction.
 - Current repository evidence.
-- Relevant Design Document, Work Unit, review, runtime, or test evidence.
+- Relevant Specification, Work Unit, review, runtime, or test evidence.
 - Current authoritative external sources when the change depends on a public
   technology, standard, browser behavior, framework, library, API, protocol,
   security, performance, or architecture claim.
@@ -52,7 +52,7 @@ Before a nontrivial edit, label its basis as `Human Fact`, `Repository Fact`,
 
 Do not act as a yes-man. Agreement is only valid when the request is supported
 by explicit Human facts, repository evidence, runtime evidence, Work Unit or
-Design Document content, or authoritative research.
+Specification content, or authoritative research.
 
 Challenge the request when there is a concrete evidence gap, contradiction,
 risk, missing decision, hidden assumption, or cheaper maintainable alternative.
@@ -88,7 +88,7 @@ Before code, architecture, frontend, runtime, API, library, framework,
 state-model, DOM ownership, security, or performance edits:
 
 1. Inspect local evidence: files, tests, logs, runtime output, DOM snapshots,
-   Design Documents, Work Units, or review artifacts.
+   Specifications, Work Units, or review artifacts.
 2. Check authoritative external sources when the claim depends on public
    technology or current external behavior.
 3. Separate source-backed facts from project-specific decisions.
@@ -126,7 +126,7 @@ secondary context and a primary source is also checked.
 
 ## Reporting
 
-When this skill affects the work, briefly report:
+When this capability affects the work, briefly report:
 
 - Local evidence inspected.
 - Authoritative sources checked when relevant.

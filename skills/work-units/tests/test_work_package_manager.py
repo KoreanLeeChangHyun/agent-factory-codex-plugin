@@ -132,6 +132,21 @@ class WorkPackageGraphTest(unittest.TestCase):
         }
         with self.assertRaises(self.module.ManagerError):
             self.module.validate_definition(definition)
+
+    def test_target_branch_must_be_local_factory(self) -> None:
+        definition = {
+            "nodes": self.nodes(),
+            "maxParallel": 2,
+            "repository": "/repo",
+            "targetBranch": "main",
+            "integrationBranch": "work-package/pkg",
+            "executionPolicy": {"retryBackoffSeconds": [0], "leaseSeconds": 30},
+        }
+
+        with self.assertRaisesRegex(
+            self.module.ManagerError, "targetBranch must equal factory"
+        ):
+            self.module.validate_definition(definition)
         definition["maxParallel"] = 2
         with self.assertRaises(self.module.ManagerError):
             self.module.validate_definition(definition)
@@ -208,7 +223,7 @@ class WorkPackageManagerCliTest(unittest.TestCase):
                 ],
                 "maxParallel": 1,
                 "repository": str(self.root),
-                "targetBranch": "main",
+                "targetBranch": "factory",
                 "integrationBranch": "work-package/pkg",
                 "executionPolicy": {
                     "leaseSeconds": 30,
@@ -434,7 +449,7 @@ class WorkPackageManagerCliTest(unittest.TestCase):
                 {
                     "packageId": "pkg",
                     "sourceBranch": "work-package/pkg",
-                    "targetBranch": "main",
+                    "targetBranch": "factory",
                     "operationResult": "integrated",
                 }
             ),

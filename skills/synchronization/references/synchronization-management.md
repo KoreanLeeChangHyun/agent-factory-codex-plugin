@@ -13,7 +13,7 @@ The Git top-level is the project root. The `.agent-factory` directory may be
 tracked, untracked, or ignored; its Git index state does not change canonical
 configuration behavior.
 
-This skill owns the project sync configuration and resolver:
+This capability owns the project sync configuration and resolver:
 
 - Manager: `scripts/sync.py`, resolved from this `SKILL.md` directory.
 - Schema: `assets/schema/sync.schema.json`.
@@ -30,7 +30,7 @@ normalized resolved destination:
 
 ```bash
 python <synchronization-skill-directory>/scripts/sync.py resolve --source google-drive
-python <synchronization-skill-directory>/scripts/sync.py resolve --source google-gmail
+python <synchronization-skill-directory>/scripts/sync.py resolve --source google-mail
 ```
 
 Set or inspect a persistent source-specific override without moving or deleting

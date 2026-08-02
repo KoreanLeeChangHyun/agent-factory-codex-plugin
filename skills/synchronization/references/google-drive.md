@@ -2,7 +2,7 @@
 
 ## Overview
 
-Use this skill to get Google Drive files into a local workspace or explain how
+Use this capability to get Google Drive files into a local workspace or explain how
 to share Drive access for that purpose. Default the local destination to
 `source/google/drive` under the Git project root unless
 `<git-project-root>/.agent-factory/sync.json` or the user gives a different
@@ -107,10 +107,13 @@ Interpretation:
 - Store local Drive materials under the resolved destination.
 - Keep credentials, tokens, and rclone config out of git.
 - Prefer read-only scopes and copy/sync from Drive to local only.
-- Before running a destructive local sync such as `rsync --delete` or
-  `rclone sync`, confirm the source and destination paths are correct.
-- Do not delete cloud files. For local cleanup, only remove files under the
-  confirmed destination directory.
+- Before running a destructive local sync such as `rsync --delete`,
+  `rclone sync`, or local cleanup, follow `rules/references/change-safety.md`:
+  show the exact source, destination, affected files, and exact command, obtain
+  Human approval, then obtain one additional explicit confirmation immediately
+  before execution.
+- Do not delete cloud files. Local cleanup remains limited to the confirmed
+  destination directory and still requires both confirmations above.
 - If the Drive contains confidential client data, avoid third-party hosted
   connector services unless the user explicitly approves them.
 - For Google Workspace domain-wide delegation, require admin approval and use
@@ -135,7 +138,7 @@ rsync -a "<mounted-drive-path>/" "<resolved-drive-destination>/"
 ```
 
 5. For a mirror of the mounted source into the local destination, use delete
-   only after verifying both paths:
+   only after satisfying the two-confirmation safety rule above:
 
 ```bash
 rsync -a --delete "<mounted-drive-path>/" "<resolved-drive-destination>/"
@@ -184,7 +187,8 @@ For files shared directly with the user account, include:
 rclone copy "<remote>:" "<resolved-drive-destination>" --drive-shared-with-me --progress
 ```
 
-For a local mirror, use `sync` only after verifying the remote and destination:
+For a local mirror, use `sync` only after satisfying the two-confirmation
+safety rule above:
 
 ```bash
 rclone sync "<remote>:<path>" "<resolved-drive-destination>" --progress

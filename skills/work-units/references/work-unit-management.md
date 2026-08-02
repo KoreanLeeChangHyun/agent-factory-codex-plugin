@@ -7,7 +7,7 @@ All canonical Work Unit operations must use
 perform an operation, stop before mutation. Do not fall back to direct JSON
 editing and do not create an exception path.
 
-The manager's complete CRUD core is:
+The manager's canonical package command examples are:
 
 ```text
 python3 scripts/work_unit.py create <package> --id <id> --title <title> --project-id <project> --language <language> --theme <theme>

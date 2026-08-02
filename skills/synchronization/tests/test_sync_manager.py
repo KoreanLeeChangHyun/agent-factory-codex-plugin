@@ -62,7 +62,7 @@ class SyncManagerTests(unittest.TestCase):
         nested = self.root / "nested" / "child"
 
         drive = self.resolve("google-drive", cwd=nested)
-        gmail = self.resolve("google-gmail", cwd=nested)
+        gmail = self.resolve("google-mail", cwd=nested)
 
         self.assertEqual(drive["projectRoot"], str(self.root.resolve()))
         self.assertEqual(
@@ -85,7 +85,7 @@ class SyncManagerTests(unittest.TestCase):
         )
 
         drive = self.resolve("google-drive")
-        gmail = self.resolve("google-gmail")
+        gmail = self.resolve("google-mail")
 
         self.assertEqual(
             drive["destination"], str((self.root / "snapshots/drive").resolve())
@@ -103,14 +103,14 @@ class SyncManagerTests(unittest.TestCase):
             self.root,
             "set",
             "--source",
-            "google-gmail",
+            "google-mail",
             "--destination",
             "configured/mail",
         )
         absolute = self.root.parent / "absolute-mail"
 
         resolved = self.resolve(
-            "google-gmail", "--destination", str(absolute)
+            "google-mail", "--destination", str(absolute)
         )
 
         self.assertEqual(resolved["destination"], str(absolute.resolve()))
@@ -127,7 +127,7 @@ class SyncManagerTests(unittest.TestCase):
             self.root,
             "resolve",
             "--source",
-            "google-gmail",
+            "google-mail",
             "--destination",
             "../outside",
             check=False,
@@ -145,7 +145,7 @@ class SyncManagerTests(unittest.TestCase):
             self.root,
             "set",
             "--source",
-            "google-gmail",
+            "google-mail",
             "--destination",
             "archive/mail",
         )
@@ -157,7 +157,7 @@ class SyncManagerTests(unittest.TestCase):
         self.assertFalse((self.root / "archive/mail").exists())
         checked = run_manager(self.root, "show")
         self.assertEqual(
-            json.loads(checked.stdout)["sources"]["google-gmail"]["destination"],
+            json.loads(checked.stdout)["sources"]["google-mail"]["destination"],
             "archive/mail",
         )
 
@@ -217,7 +217,7 @@ class SyncManagerTests(unittest.TestCase):
                 SKILL_ROOT / "references" / "synchronization-management.md"
             ),
             "google-drive": SKILL_ROOT / "references" / "google-drive.md",
-            "google-gmail": SKILL_ROOT / "references" / "google-mail.md",
+            "google-mail": SKILL_ROOT / "references" / "google-mail.md",
         }
         for name, path in documents.items():
             text = path.read_text(encoding="utf-8")

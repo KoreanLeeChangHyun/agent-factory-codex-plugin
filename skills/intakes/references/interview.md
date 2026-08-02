@@ -1,9 +1,9 @@
 # Interview Guide
 
-Use this skill when work needs a human decision before proceeding and the
+Use this capability when work needs a human decision before proceeding and the
 decision should be made through a structured interview flow.
 
-This skill interviews a Human decision owner to obtain an explicit project or
+This capability interviews a Human decision owner to obtain an explicit project or
 lifecycle decision. Route questions asked to research participants, direct
 observation, contextual inquiry, workflow shadowing, usability sessions, and
 participant-session interpretation to `references/user-research.md`. Do not
@@ -13,18 +13,17 @@ session into the three-choice decision format.
 ## Core Rules
 
 - Apply the Interview Decision Gate from the bundled `rules` skill's
-  `references/interview-decision-gate.md` before using this skill. Resolve it
-  under `../rules/` relative to this skill according to
+  `references/interview-decision-gate.md` before using this capability. Resolve it
+  under `../rules/` relative to the parent `intakes` skill root according to
   `lifecycle`.
-- Use this skill only when a human decision is actually needed before
+- Use this capability only when a human decision is actually needed before
   proceeding.
-- Use this skill for Human-only decisions such as scope, priority,
+- Use this capability for Human-only decisions such as scope, priority,
   requirements, approval boundaries, risk tolerance, explicit Work Unit
-  execution requests, result review (`rework` or `complete`), deployment,
-  operation, maintenance, or PR promotion.
-- Treat result review as a decision, not an approval procedure. In worktree
-  mode, `complete` automatically integrates the Work Unit branch; do not ask
-  for a separate merge decision.
+  execution requests, deployment, operation, maintenance, or PR promotion.
+- Result review is outside the Interview capability. The Main Agent directly
+  presents only `rework` and `complete`; in worktree mode, `complete`
+  automatically integrates the Work Unit branch without another merge decision.
 - Treat a recorded decision as active unless the user explicitly changes it or
   a later recorded decision supersedes it.
 - Do not re-ask settled decisions or rehash settled options.

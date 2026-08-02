@@ -61,6 +61,9 @@ reopening the one-time readiness decision.
 ## Worktree commands
 
 ```text
+python3 scripts/worktree.py factory-init \
+  --repository <absolute-primary-root>
+
 python3 scripts/worktree.py prepare \
   --repository <absolute-primary-root> \
   --work-unit-id <id>
@@ -127,10 +130,15 @@ non-mutating and is not retried.
 
 `work_package_exec.py` uses manager preflight, stable topological/id ready
 selection, `maxParallel`, a sparse package integration worktree, stable merge
-order, dependent-node bases from the integrated prerequisite result,
+order, member worktrees based on the package integration branch so dependent
+nodes see integrated prerequisite results,
 specification-direct serialization and full validation, durable leases and
 idempotency keys, and `app_server_resolution_goal.py` recovery. It reaches one
 package review only after every node, verification, and AI review pass.
+
+Every Work Package records local `factory` as its only target. Its
+`work-package/<package-id>` branch is an internal aggregation branch, never a
+promotion target.
 
 After the Human chooses complete, run:
 

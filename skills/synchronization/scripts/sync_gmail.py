@@ -412,7 +412,7 @@ def main():
         raise SystemExit("--max-results must be positive.")
 
     resolved = resolve_sync_destination(
-        "google-gmail",
+        "google-mail",
         destination=args.destination,
         project_root=args.project_root,
     )

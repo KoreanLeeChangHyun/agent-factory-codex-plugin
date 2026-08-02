@@ -1,6 +1,6 @@
 # Agent Factory Web Search
 
-Use this skill for external web search and source verification within an active
+Use this capability for external web search and source verification within an active
 Intake. Route internal code, database, data, configuration, log, test, and
 runtime investigation to `references/analysis.md`. Route direct observation,
 contextual inquiry, workflow shadowing, usability sessions, and consented

@@ -15,9 +15,16 @@ invoke this script.
   `/.agent-factory/worktree/`; canonical artifacts remain tracked in primary
   Git.
 
+## Factory initialization
+
+`factory-init --repository <absolute-primary-root>` creates the local
+`factory` branch at the current `HEAD` only when that local branch is absent.
+It does not change the current checkout or any remote. When `factory` already
+exists, it reports the resolved existing commit without Git mutation.
+
 ## Prepare
 
-`prepare` full-validates the canonical Work Unit once before its first Git
+Standalone `prepare` full-validates the canonical Work Unit once before its first Git
 mutation and resolves the current local `factory` commit. `--base` defaults to
 `factory` and refuses every other value for fresh execution. It does not require
 an artifact commit, snapshot, hash, or checkpoint.
@@ -31,6 +38,11 @@ git checkout <derived-branch>
 ```
 
 The resulting linked worktree must not contain `.agent-factory`.
+
+Work Package member worktrees instead start from the package's local
+`work-package/<package-id>` integration branch so completed prerequisites are
+visible. The package target remains local `factory`; member execution cannot
+select or promote to another target.
 
 ## Inspect and integration
 

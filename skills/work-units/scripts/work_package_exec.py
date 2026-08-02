@@ -24,7 +24,6 @@ SKILL_ROOT = SCRIPT_ROOT.parent
 WORK_PACKAGE_MANAGER = (
     SKILL_ROOT.parent / "work-units" / "scripts" / "work_package.py"
 )
-WORKTREE_SCRIPT = SCRIPT_ROOT / "worktree.py"
 WORK_UNIT_LAUNCHER = SCRIPT_ROOT / "app_server_goal.py"
 SPECIFICATION_MANAGER = (
     SKILL_ROOT.parent / "specifications" / "scripts" / "specification.py"
@@ -403,25 +402,91 @@ class PackageRuntime:
                 f"cannot checkout package integration branch: {checkout.stderr.strip()}"
             )
 
+    def prepare_member_worktree(self, work_unit_id: str) -> dict[str, Any]:
+        branch = f"work-unit/{work_unit_id}"
+        worktree = self.repository / ".agent-factory" / "worktree" / work_unit_id
+        listing = git(self.repository, "worktree", "list", "--porcelain")
+        if listing.returncode != 0:
+            raise ExecutionError("cannot inspect registered worktrees")
+        registered = f"worktree {worktree}" in listing.stdout
+        if registered:
+            if f"branch refs/heads/{branch}" not in listing.stdout:
+                raise ExecutionError("member worktree is registered to another branch")
+            return {
+                "baseRef": self.integration_branch,
+                "branch": branch,
+                "reused": True,
+                "worktreePath": str(worktree),
+            }
+        if worktree.exists():
+            raise ExecutionError("member worktree path collision")
+        branch_exists = git(
+            self.repository,
+            "show-ref",
+            "--verify",
+            "--quiet",
+            f"refs/heads/{branch}",
+        )
+        if branch_exists.returncode == 0:
+            raise ExecutionError("member branch exists without its worktree")
+        if branch_exists.returncode != 1:
+            raise ExecutionError("cannot inspect member branch")
+        base = git(
+            self.repository,
+            "rev-parse",
+            "--verify",
+            f"{self.integration_branch}^{{commit}}",
+        )
+        if base.returncode != 0:
+            raise ExecutionError("cannot resolve package integration branch")
+        worktree.parent.mkdir(parents=True, exist_ok=True)
+        # The package integration branch carries prerequisite results; sparse
+        # checkout still keeps canonical control-plane data in the primary root.
+        created = git(
+            self.repository,
+            "worktree",
+            "add",
+            "--no-checkout",
+            "--lock",
+            "--reason",
+            f"Agent Factory Work Package member: {self.package_id}/{work_unit_id}",
+            "-b",
+            branch,
+            str(worktree),
+            base.stdout.strip(),
+        )
+        if created.returncode != 0:
+            raise ExecutionError(
+                f"cannot create member worktree: {created.stderr.strip()}"
+            )
+        sparse = git(
+            worktree,
+            "sparse-checkout",
+            "set",
+            "--no-cone",
+            "/*",
+            "!/.agent-factory/",
+        )
+        if sparse.returncode != 0:
+            raise ExecutionError("cannot configure member sparse checkout")
+        checkout = git(worktree, "checkout", branch)
+        if checkout.returncode != 0:
+            raise ExecutionError("cannot checkout member branch")
+        return {
+            "baseRef": self.integration_branch,
+            "branch": branch,
+            "reused": False,
+            "worktreePath": str(worktree),
+        }
+
     def run_node(
         self, node: dict[str, Any], base: str | None, _key: str
     ) -> dict[str, Any]:
         work_unit_id = node["workUnitId"]
         if node.get("executionMode") == "worktree":
-            run_json_command(
-                [
-                    sys.executable,
-                    str(WORKTREE_SCRIPT),
-                    "prepare",
-                    "--repository",
-                    str(self.repository),
-                    "--work-unit-id",
-                    work_unit_id,
-                    "--base",
-                    base or self.integration_branch,
-                ],
-                f"prepare Work Unit {work_unit_id}",
-            )
+            if base not in {None, self.integration_branch}:
+                raise ExecutionError("member base must equal package integration branch")
+            self.prepare_member_worktree(work_unit_id)
         launch = run_json_command(
             [
                 sys.executable,

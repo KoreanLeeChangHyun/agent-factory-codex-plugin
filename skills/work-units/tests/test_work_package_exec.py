@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
+import tempfile
 import threading
 import time
 import unittest
@@ -277,6 +279,114 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         )
         scheduler.run()
         self.assertEqual(peak, 1)
+
+    def test_scheduler_prepares_member_from_package_integration_branch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            subprocess.run(
+                ["git", "init", "-q", "-b", "main", str(repository)], check=True
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "config", "user.name", "Test"],
+                check=True,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "config",
+                    "user.email",
+                    "test@example.invalid",
+                ],
+                check=True,
+            )
+            (repository / "tracked.txt").write_text("base\n", encoding="utf-8")
+            (repository / ".agent-factory").mkdir()
+            (repository / ".agent-factory" / "canonical.txt").write_text(
+                "control\n", encoding="utf-8"
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "add", "."], check=True
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "commit", "-q", "-m", "base"],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "branch", "factory"], check=True
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "branch",
+                    "work-package/pkg",
+                    "factory",
+                ],
+                check=True,
+            )
+            package_commit = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "commit-tree",
+                    "factory^{tree}",
+                    "-p",
+                    "factory",
+                    "-m",
+                    "package aggregate",
+                ],
+                text=True,
+                capture_output=True,
+                check=True,
+            ).stdout.strip()
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "branch",
+                    "-f",
+                    "work-package/pkg",
+                    package_commit,
+                ],
+                check=True,
+            )
+            runtime = self.module.PackageRuntime(
+                repository=repository,
+                package_id="pkg",
+                definition={
+                    "targetBranch": "factory",
+                    "integrationBranch": "work-package/pkg",
+                },
+            )
+
+            context = runtime.prepare_member_worktree("wu-a")
+            member = repository / ".agent-factory" / "worktree" / "wu-a"
+
+            self.assertEqual(context["baseRef"], "work-package/pkg")
+            self.assertEqual(
+                subprocess.run(
+                    ["git", "-C", str(member), "rev-parse", "HEAD"],
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                ).stdout.strip(),
+                package_commit,
+            )
+            self.assertEqual(
+                subprocess.run(
+                    ["git", "-C", str(member), "branch", "--show-current"],
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                ).stdout.strip(),
+                "work-unit/wu-a",
+            )
+            self.assertFalse((member / ".agent-factory").exists())
 
 
 if __name__ == "__main__":

@@ -93,7 +93,7 @@ canonical package operation: `intakes/scripts/intake.py`,
 not a preferred path. Use the script for creation, authoritative display,
 mutation, validation, transitions, block registration, and recovery.
 
-Every artifact-owning manager exposes the same complete CRUD core:
+Artifact-owning managers share these canonical package command forms:
 
 ```text
 create <package> --id <id> --title <title> --project-id <project> ...

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Use this skill to bring Gmail messages and attachments visible to a real user
+Use this capability to bring Gmail messages and attachments visible to a real user
 account into a local workspace. Default the local destination to
 `source/google/mail` under the Git project root unless
 `<git-project-root>/.agent-factory/sync.json` or the user gives a different
@@ -24,7 +24,7 @@ Keep credential and token files out of git. Set credential and token permissions
 to user-only read/write:
 
 ```bash
-python <synchronization-skill-directory>/scripts/sync.py resolve --source google-gmail
+python <synchronization-skill-directory>/scripts/sync.py resolve --source google-mail
 GOOGLE_API_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/google-api"
 chmod 600 "$GOOGLE_API_CONFIG_DIR/oauth-client.json"
 chmod 600 "$GOOGLE_API_CONFIG_DIR/gmail-token.json"
@@ -86,19 +86,20 @@ source/google/mail/
 Use the bundled script for repeatable imports:
 
 ```bash
-python -m pip install -r <this-skill-directory>/scripts/requirements.txt
-python <this-skill-directory>/scripts/sync_gmail.py \
+python -m pip install -r <synchronization-skill-directory>/scripts/requirements.txt
+python <synchronization-skill-directory>/scripts/sync_gmail.py \
   --query "project-name or search terms" \
   --max-results 100
 ```
 
-Resolve `<this-skill-directory>` from the directory containing this `SKILL.md`.
+Resolve `<synchronization-skill-directory>` as the parent `synchronization`
+skill root that owns this reference.
 Do not assume a fixed plugin installation root.
 
 The script:
 
 - Loads the shared `synchronization/scripts/sync.py` resolver.
-- Applies explicit `--destination`, then the `google-gmail` entry in
+- Applies explicit `--destination`, then the `google-mail` entry in
   `.agent-factory/sync.json`, then `source/google/mail`.
 - Resolves relative paths from the Git top-level and prints the normalized
   resolved destination before OAuth or filesystem writes.

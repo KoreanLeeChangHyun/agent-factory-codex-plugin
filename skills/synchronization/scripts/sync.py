@@ -24,7 +24,7 @@ CONFIG_RELATIVE_PATH = Path(".agent-factory/sync.json")
 SCHEMA_VERSION = "1.0.0"
 DEFAULT_DESTINATIONS = {
     "google-drive": Path("source/google/drive"),
-    "google-gmail": Path("source/google/mail"),
+    "google-mail": Path("source/google/mail"),
 }
 DIRECTORY_OPEN_FLAGS = (
     os.O_RDONLY

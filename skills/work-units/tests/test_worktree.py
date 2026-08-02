@@ -237,6 +237,45 @@ class WorktreeCliTest(unittest.TestCase):
         )
         self.assertFalse(self.worktree.exists())
 
+    def test_factory_init_creates_local_factory_at_head_without_checkout(self) -> None:
+        self.assertEqual(git(self.repo, "branch", "-D", "factory").returncode, 0)
+        head = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        branch_before = git(self.repo, "branch", "--show-current").stdout.strip()
+        remote_before = git(self.repo, "ls-remote", "origin").stdout
+
+        result = run(
+            sys.executable,
+            str(SCRIPT),
+            "factory-init",
+            "--repository",
+            str(self.repo),
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["state"], "created")
+        self.assertEqual(payload["context"]["factoryCommit"], head)
+        self.assertEqual(
+            git(self.repo, "rev-parse", "factory").stdout.strip(), head
+        )
+        self.assertEqual(
+            git(self.repo, "branch", "--show-current").stdout.strip(), branch_before
+        )
+        self.assertEqual(payload["context"]["remoteMutation"], False)
+        self.assertEqual(git(self.repo, "ls-remote", "origin").stdout, remote_before)
+
+        second = run(
+            sys.executable,
+            str(SCRIPT),
+            "factory-init",
+            "--repository",
+            str(self.repo),
+        )
+        second_payload = json.loads(second.stdout)
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertEqual(second_payload["state"], "existing")
+        self.assertEqual(second_payload["operations"], [])
+
     def test_integrate_refuses_non_factory_target(self) -> None:
         self.prepare()
         self.commit_source()

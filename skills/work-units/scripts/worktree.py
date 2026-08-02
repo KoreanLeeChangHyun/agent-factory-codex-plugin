@@ -120,6 +120,39 @@ def validate_repository(execution: Execution, value: str) -> Path:
     return repository
 
 
+def factory_init(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
+    repository = validate_repository(execution, args.repository)
+    head = resolve_base(execution, repository, "HEAD")
+    current = execution.git(repository, ["branch", "--show-current"])
+    if current.returncode != 0:
+        raise ContractError("git_validation_failed", "unable to inspect current branch")
+    existing = execution.git(
+        repository,
+        ["show-ref", "--verify", "--quiet", f"refs/heads/{FACTORY_BRANCH}"],
+    )
+    context = {
+        "currentBranch": current.stdout.decode("utf-8", errors="strict").strip(),
+        "factoryCommit": head,
+        "remoteMutation": False,
+        "repository": str(repository),
+    }
+    if existing.returncode == 0:
+        context["factoryCommit"] = resolve_base(execution, repository, FACTORY_BRANCH)
+        return success_payload(execution, "existing", context)
+    if existing.returncode != 1:
+        raise ContractError("git_validation_failed", "unable to inspect local factory")
+    created = execution.git(
+        repository, ["branch", FACTORY_BRANCH, head], record=True
+    )
+    if created.returncode != 0:
+        raise ContractError(
+            "factory_init_failed",
+            "unable to create local factory at the current HEAD",
+            {"returnCode": created.returncode},
+        )
+    return success_payload(execution, "created", context)
+
+
 def resolve_base(execution: Execution, repository: Path, base_ref: str) -> str:
     result = execution.git(
         repository,
@@ -1085,6 +1118,9 @@ def build_parser() -> JsonArgumentParser:
         subparser.add_argument("--path")
         return subparser
 
+    factory_init_parser = subparsers.add_parser("factory-init")
+    factory_init_parser.add_argument("--repository", required=True)
+
     prepare_parser = common("prepare")
     prepare_parser.add_argument("--base", default=FACTORY_BRANCH)
     common("inspect")
@@ -1105,7 +1141,14 @@ def command_hint(argv: Sequence[str]) -> str:
         argv[0]
         if argv
         and argv[0]
-        in {"prepare", "inspect", "integrate", "cleanup", "cleanup-completed"}
+        in {
+            "factory-init",
+            "prepare",
+            "inspect",
+            "integrate",
+            "cleanup",
+            "cleanup-completed",
+        }
         else "unknown"
     )
 
@@ -1117,6 +1160,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         args = build_parser().parse_args(actual_argv)
         execution.command = args.command
         handlers = {
+            "factory-init": factory_init,
             "prepare": prepare,
             "inspect": inspect,
             "integrate": integrate,

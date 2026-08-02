@@ -1,8 +1,8 @@
 # Diagram Convention
 
-Use this skill for Agent Factory diagram work.
+Use this capability for Agent Factory diagram work.
 
-This skill owns diagram-specific conventions. Critical thinking and yes-man
+This capability owns diagram-specific conventions. Critical thinking and yes-man
 prevention belong to `rules`; apply that skill when the requested diagram is
 misleading, underspecified, or contradicted by evidence.
 
@@ -114,13 +114,13 @@ artifacts, not as the primary AI-readable source.
 
 ## Storage Rules
 
-For Design Documents:
+For Specifications:
 
 - Store diagram source and diagram artifacts under
   `<project-root>/.agent-factory/specifications/<specification-id>/blocks/diagram/`
   and register each canonical block in the Specification block index.
 - Do not create `INDEX.md` files for diagrams.
-- Store diagram metadata in Design Document source data or in the diagram
+- Store diagram metadata in Specification source data or in the diagram
   artifact's own metadata.
 - Keep diagrams traceable to related design sections, Work Units, and customer
   deliverables when those relationships exist.
@@ -150,4 +150,4 @@ Before reporting diagram work as complete, verify:
 - The selected source model and JavaScript renderer match the diagram type.
 - Missing or uncertain relationships are recorded instead of guessed.
 - The source is inspectable and versionable.
-- The storage path follows this skill's storage rules.
+- The storage path follows the parent `specifications` skill's storage rules.
