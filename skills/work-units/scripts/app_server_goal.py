@@ -17,6 +17,7 @@ from typing import Any, Callable, IO, Sequence
 
 SCHEMA_VERSION = "1.0.0"
 CLIENT_NAME = "agent_factory_work_unit_runner"
+FACTORY_BRANCH = "factory"
 CLIENT_TITLE = "Agent Factory Work Unit Runner"
 CLIENT_VERSION = "1.0.0"
 WORK_UNIT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -459,7 +460,21 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
             "invalid_execution_context",
             "executionMode must be worktree or specification-direct",
         )
+    mode = launch_mode(validation_payload, context_section, work_unit_id)
     if execution_route == "worktree":
+        # A new attempt must start from current factory. Resume and rework keep
+        # the existing linked branch so completed work is never replayed or
+        # silently rebased under a different source commit.
+        if mode == "execution" and context.get("baseRef") != FACTORY_BRANCH:
+            raise ContractError(
+                "execution_base_mismatch",
+                f"worktree execution baseRef must equal {FACTORY_BRANCH}",
+            )
+        if context.get("targetBranch") != FACTORY_BRANCH:
+            raise ContractError(
+                "execution_target_mismatch",
+                f"worktree execution targetBranch must equal {FACTORY_BRANCH}",
+            )
         worktree = repository / ".agent-factory" / "worktree" / work_unit_id
         if Path(context.get("worktreePath", "")).resolve(strict=False) != worktree:
             raise ContractError(
@@ -510,7 +525,6 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
                         "expected": expected_branch,
                     },
                 )
-    mode = launch_mode(validation_payload, context_section, work_unit_id)
     return {
         "mode": mode,
         "executionRoute": execution_route,

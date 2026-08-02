@@ -51,6 +51,7 @@ reopening the one-time readiness decision.
 
 `worktree` (and omitted legacy mode):
 
+- resolves the current local `factory` commit as the execution base;
 - derives branch `work-unit/<work-unit-id>`;
 - derives path `<repository>/.agent-factory/worktree/<work-unit-id>`;
 - creates it with no checkout, configures sparse checkout to exclude the entire
@@ -62,8 +63,7 @@ reopening the one-time readiness decision.
 ```text
 python3 scripts/worktree.py prepare \
   --repository <absolute-primary-root> \
-  --work-unit-id <id> \
-  --base <commit-ish>
+  --work-unit-id <id>
 
 python3 scripts/worktree.py inspect \
   --repository <absolute-primary-root> \
@@ -72,7 +72,6 @@ python3 scripts/worktree.py inspect \
 python3 scripts/worktree.py integrate \
   --repository <absolute-primary-root> \
   --work-unit-id <id> \
-  --target-branch <branch> \
   [--strategy no-ff]
 
 python3 scripts/worktree.py cleanup \
@@ -85,18 +84,24 @@ python3 scripts/worktree.py cleanup-completed \
   [--work-unit-id <done-id> ...]
 ```
 
-`prepare` uses the requested code base commit directly; it does not inspect or
-create artifact checkpoints. `integrate` ignores primary
+`prepare` resolves local `factory` at invocation time; explicit `--base` accepts
+only `factory` for fresh execution. It does not inspect or create artifact
+checkpoints. `integrate` targets only local `factory`; explicit
+`--target-branch` accepts only `factory`. When `factory` is not checked out,
+integration uses a temporary detached worktree and atomically advances the
+local ref without displacing the Human's current checkout. `integrate` ignores primary
 `.agent-factory/**` changes when checking target dirtiness, so canonical CRUD
 does not block source integration. It still refuses dirty source code, dirty
 non-canonical target files, repository/branch mismatches, and unresolved merge
 strategies.
 
-After the Human chooses `complete`, integrate `worktree` mode automatically and
-register the receipt through `integration-put`. Do not clean the worktree
-immediately. Batch cleanup later removes only clean completed worktrees without
-force and retains branches. Push, deployment, branch deletion, and PR promotion
-require separate explicit requests.
+After the Human chooses `complete`, integrate `worktree` mode automatically into
+local `factory` and register the receipt through `integration-put`. Do not clean
+the Work Unit worktree immediately. Batch cleanup later removes only clean
+completed worktrees without force and retains branches. The Work Unit lifecycle
+never pushes `factory`; promotion from `factory` into `dev`, `main`, `master`,
+or another real branch, PR creation, deployment, and branch deletion require a
+separate explicit request.
 
 ## Execution state
 

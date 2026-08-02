@@ -250,7 +250,8 @@ def ready_items(
                     ),
                     "executionAgent": "Codex",
                     "repository": str(root),
-                    "baseRef": "main",
+                    "baseRef": "factory",
+                    "targetBranch": "factory",
                     "branch": f"work-unit/{work_unit_id}",
                     "worktreePath": str(
                         root / ".agent-factory" / "worktree" / work_unit_id
@@ -661,6 +662,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             cwd=root,
             check=True,
         )
+        subprocess.run(["git", "branch", "factory"], cwd=root, check=True)
         intake = create_ready_intake(root)
         package = create_package(root)
         populate_ready_candidate(root, package, intake)
@@ -781,7 +783,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "workUnitId": package.name,
                 "repository": context["repository"],
                 "sourceBranch": context["branch"],
-                "targetBranch": "main",
+                "targetBranch": "factory",
                 "worktreePath": context["worktreePath"],
                 "sourceCommit": "a" * 40,
                 "targetBeforeCommit": "b" * 40,
@@ -840,12 +842,12 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(result["status"], "backlog")
             self.assertEqual(result["schemaVersion"], "4.0.0")
 
-    def test_admission_accepts_explicit_execution_commit_after_base_ref_advances(
+    def test_admission_uses_current_factory_commit_after_main_advances(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            package, worktree, checkpoint = self.create_admission_repository(root)
+            package, worktree, _ = self.create_admission_repository(root)
             (root / "unrelated.txt").write_text("later\n", encoding="utf-8")
             subprocess.run(["git", "add", "unrelated.txt"], cwd=root, check=True)
             subprocess.run(
@@ -854,11 +856,22 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 check=True,
             )
 
-            payload = json.loads(self.admit(root, package, worktree, checkpoint).stdout)
+            payload = json.loads(
+                self.admit(root, package, worktree, "factory").stdout
+            )
 
             self.assertTrue(payload["admitted"])
-            self.assertEqual(payload["baseRef"], "main")
-            self.assertEqual(payload["executionCommit"], checkpoint)
+            self.assertEqual(payload["baseRef"], "factory")
+            self.assertEqual(
+                payload["executionCommit"],
+                subprocess.run(
+                    ["git", "rev-parse", "factory"],
+                    cwd=root,
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                ).stdout.strip(),
+            )
 
     def test_admission_accepts_advanced_symbolic_base_without_checkpoint(
         self,
@@ -874,13 +887,13 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 check=True,
             )
 
-            result = self.admit(root, package, worktree, "main")
+            result = self.admit(root, package, worktree, "factory")
             payload = json.loads(result.stdout)
             self.assertTrue(payload["admitted"])
             self.assertEqual(
                 payload["executionCommit"],
                 subprocess.run(
-                    ["git", "rev-parse", "main"],
+                    ["git", "rev-parse", "factory"],
                     cwd=root,
                     text=True,
                     capture_output=True,
@@ -888,7 +901,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 ).stdout.strip(),
             )
 
-    def test_admission_accepts_any_resolvable_base_and_refuses_missing_base(
+    def test_admission_requires_factory_and_refuses_missing_base(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -913,17 +926,52 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 capture_output=True,
                 check=True,
             ).stdout.strip()
-            for accepted_base in (source_commit, unreachable_commit):
-                payload = json.loads(
-                    self.admit(root, package, worktree, accepted_base).stdout
+            for rejected_base in (source_commit, unreachable_commit, "main"):
+                result = self.admit(
+                    root, package, worktree, rejected_base, check=False
                 )
-                self.assertEqual(payload["executionCommit"], accepted_base)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("requested base must equal factory", result.stderr)
 
             missing = self.admit(
                 root, package, worktree, "missing-execution-base", check=False
             )
             self.assertNotEqual(missing.returncode, 0)
             self.assertIn("requested base is unresolved", missing.stderr)
+
+    def test_ready_rejects_non_factory_worktree_base_or_target(self) -> None:
+        for field, value, expected in (
+            ("baseRef", "main", "baseRef must equal factory"),
+            ("targetBranch", "main", "targetBranch must equal factory"),
+        ):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                intake = create_ready_intake(root)
+                package = create_package(root)
+                content = ready_items(root, intake, package.name)
+                content["execution-context"][0]["content"][field] = value
+                for section_id, items in content.items():
+                    source = data_value(root, f"{field}-{section_id}.json", items)
+                    run_cli("section-items-put", str(package), section_id, *source)
+                readiness = data_value(
+                    root,
+                    f"{field}-readiness.json",
+                    {
+                        "contractValid": True,
+                        "intakeTraceabilityValid": True,
+                        "definitionComplete": True,
+                        "executionContextComplete": True,
+                        "verificationPlanComplete": True,
+                        "reviewedAt": "2026-07-16T00:00:00+00:00",
+                        "findings": [],
+                    },
+                )
+                run_cli("metadata-set", str(package), "readiness", *readiness)
+
+                result = run_cli("transition", str(package), "ready", check=False)
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected, result.stderr)
 
     def test_admission_accepts_running_and_blocked_active_attempt_recovery(
         self,
@@ -2001,6 +2049,88 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 if path.is_file()
             }
             self.assertEqual(after, before)
+
+    def test_integration_put_accepts_temporary_factory_worktree_receipt(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            run_cli("transition", str(package), "ready")
+            self.initialize_and_start_execution(package)
+            receipt_value = self.integration_receipt(package)
+            context = receipt_value["context"]
+            temporary_target = "/tmp/agent-factory-target-receipt"
+            context["targetBranch"] = "factory"
+            receipt_value["operations"] = [
+                {
+                    "args": [
+                        "git",
+                        "-C",
+                        context["repository"],
+                        "worktree",
+                        "add",
+                        "--detach",
+                        temporary_target,
+                        context["targetBeforeCommit"],
+                    ],
+                    "returnCode": 0,
+                    "stderr": "",
+                    "stdout": "",
+                },
+                {
+                    "args": [
+                        "git",
+                        "-C",
+                        temporary_target,
+                        "merge",
+                        "--ff-only",
+                        context["sourceCommit"],
+                    ],
+                    "returnCode": 0,
+                    "stderr": "",
+                    "stdout": "",
+                },
+                {
+                    "args": [
+                        "git",
+                        "-C",
+                        context["repository"],
+                        "update-ref",
+                        "refs/heads/factory",
+                        context["targetAfterCommit"],
+                        context["targetBeforeCommit"],
+                    ],
+                    "returnCode": 0,
+                    "stderr": "",
+                    "stdout": "",
+                },
+                {
+                    "args": [
+                        "git",
+                        "-C",
+                        context["repository"],
+                        "worktree",
+                        "remove",
+                        temporary_target,
+                    ],
+                    "returnCode": 0,
+                    "stderr": "",
+                    "stdout": "",
+                },
+            ]
+            receipt = root / "temporary-target-receipt.json"
+            receipt.write_text(json.dumps(receipt_value), encoding="utf-8")
+
+            result = run_cli(
+                "integration-put",
+                str(package),
+                str(receipt),
+                "--path",
+                "blocks/integration/temporary-target.json",
+            )
+
+            self.assertTrue(json.loads(result.stdout)["valid"])
 
     def test_integration_put_rejects_symlink_receipt_without_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

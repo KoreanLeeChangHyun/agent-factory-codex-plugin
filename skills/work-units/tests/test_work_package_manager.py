@@ -173,6 +173,9 @@ class WorkPackageManagerCliTest(unittest.TestCase):
             ["git", "-C", str(self.root), "commit", "-q", "-m", "baseline"],
             check=True,
         )
+        subprocess.run(
+            ["git", "-C", str(self.root), "branch", "factory"], check=True
+        )
 
     def tearDown(self) -> None:
         self.temp.cleanup()

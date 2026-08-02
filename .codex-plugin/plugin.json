@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "0.1.0+codex.20260801211519",
+  "version": "0.1.0+codex.20260802042046",
   "description": "Agent Factory lifecycle, specification, Work Unit and DAG Work Package execution, review, and workspace integration skills.",
   "author": {
     "name": "Agent Factory",

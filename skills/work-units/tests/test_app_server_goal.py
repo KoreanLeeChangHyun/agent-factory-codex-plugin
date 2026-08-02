@@ -485,7 +485,9 @@ class AppServerGoalTest(unittest.TestCase):
                     "content": {
                         "goalId": "wu-001",
                         "repository": str(self.repository),
+                        "baseRef": "factory",
                         "branch": "work-unit/wu-001",
+                        "targetBranch": "factory",
                         "worktreePath": str(worktree),
                     },
                 }
@@ -642,6 +644,91 @@ class AppServerGoalTest(unittest.TestCase):
                 / "wu-001"
             ).exists()
         )
+
+    def test_validate_worktree_requires_factory_base_and_target(self) -> None:
+        module = load_module()
+        subprocess.run(
+            ["git", "init", "-b", "main", str(self.repository)],
+            check=True,
+            stdout=subprocess.DEVNULL,
+        )
+        worktree = self.repository / ".agent-factory" / "worktree" / "wu-001"
+        baseline = {
+            "goalId": "wu-001",
+            "repository": str(self.repository),
+            "baseRef": "factory",
+            "branch": "work-unit/wu-001",
+            "targetBranch": "factory",
+            "worktreePath": str(worktree),
+            "executionMode": "worktree",
+        }
+        for field, code in (
+            ("baseRef", "execution_base_mismatch"),
+            ("targetBranch", "execution_target_mismatch"),
+        ):
+            context = {**baseline, field: "main"}
+            section = {
+                "content": [
+                    {
+                        "id": "EXEC-CONTEXT-001",
+                        "kind": "execution-context",
+                        "content": context,
+                    }
+                ]
+            }
+            with (
+                mock.patch.object(
+                    module,
+                    "manager_validation",
+                    return_value={"valid": True, "id": "wu-001", "status": "ready"},
+                ),
+                mock.patch.object(
+                    module,
+                    "execution_context_section",
+                    return_value=(section, context),
+                ),
+                self.assertRaises(module.ContractError) as raised,
+            ):
+                module.validate_work_unit(self.repository, "wu-001")
+
+            self.assertEqual(raised.exception.code, code)
+
+        resumed_context = {**baseline, "baseRef": "legacy-commit"}
+        resumed_section = {
+            "content": [
+                {
+                    "id": "EXEC-CONTEXT-001",
+                    "kind": "execution-context",
+                    "content": resumed_context,
+                },
+                {
+                    "id": "EXECUTION-STATE-001",
+                    "kind": "execution-state",
+                    "content": {
+                        "state": "running",
+                        "currentRevision": 2,
+                        "currentAttempt": 1,
+                        "invocationId": "thread-prior",
+                        "history": [],
+                    },
+                },
+            ]
+        }
+        with (
+            mock.patch.object(
+                module,
+                "manager_validation",
+                return_value={"valid": True, "id": "wu-001", "status": "working"},
+            ),
+            mock.patch.object(
+                module,
+                "execution_context_section",
+                return_value=(resumed_section, resumed_context),
+            ),
+        ):
+            selected = module.validate_work_unit(self.repository, "wu-001")
+
+        self.assertEqual(selected["mode"], "resume")
 
     def test_goal_preflight_failures_never_start_a_turn(self) -> None:
         expected_codes = {

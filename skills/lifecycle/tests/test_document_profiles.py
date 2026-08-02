@@ -67,6 +67,15 @@ class DocumentProfileTests(unittest.TestCase):
                 "report",
             ],
         )
+        execution_context = next(
+            section
+            for section in profile["profileRequiredSections"]
+            if section["id"] == "execution-context"
+        )
+        self.assertIn(
+            "repository and local factory base and target",
+            execution_context["contains"],
+        )
         planner = (
             SKILLS
             / "work-units"

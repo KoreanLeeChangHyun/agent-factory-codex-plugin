@@ -7,6 +7,7 @@ invoke this script.
 ## Identity
 
 - Repository is the absolute primary Git root.
+- Execution base and automatic integration target are local-only `factory`.
 - Branch is `work-unit/<work-unit-id>`.
 - New linked worktree path is
   `<repository>/.agent-factory/worktree/<work-unit-id>`.
@@ -17,8 +18,9 @@ invoke this script.
 ## Prepare
 
 `prepare` full-validates the canonical Work Unit once before its first Git
-mutation and resolves the requested code base. It does not require an artifact
-commit, snapshot, hash, or checkpoint.
+mutation and resolves the current local `factory` commit. `--base` defaults to
+`factory` and refuses every other value for fresh execution. It does not require
+an artifact commit, snapshot, hash, or checkpoint.
 
 New worktrees use:
 
@@ -44,7 +46,10 @@ Ancestry determines the strategy:
 - `already-merged`: success without another mutation
 
 No approval argument exists. The main lifecycle invokes integration only after
-the Human chooses `complete`.
+the Human chooses `complete`. `--target-branch` defaults to `factory` and
+refuses every other value. If `factory` is not checked out, integration uses a
+temporary detached worktree, advances `refs/heads/factory` with an expected-old
+update, and removes only that temporary target worktree.
 
 ## Cleanup
 
@@ -59,6 +64,8 @@ Specification-only and already-cleaned targets are non-mutating results.
 Receipts do not contain `humanDecision`. They record repository, Work Unit id,
 source/target branches and commits, worktree path, relationship, strategy,
 operation result, operations, and final state.
+Temporary-target receipts include worktree add, merge, atomic local ref update,
+and temporary worktree removal operations.
 
 ## Refusal
 

@@ -41,7 +41,8 @@ and item anchor.
 - `specification-direct` when the complete scope is canonical Specification
   CRUD. It uses `specification.py` in the primary root and has no worktree.
 - `worktree` for every other implementation. It uses the derived branch and
-  linked worktree, with `.agent-factory` excluded.
+  linked worktree, with `.agent-factory` excluded. Its execution context records
+  local-only `factory` as both `baseRef` and `targetBranch`.
 
 The primary main agent checks sufficiency once before launch. No checkpoint,
 artifact commit, hash snapshot, or approval step exists.
@@ -76,8 +77,11 @@ The Human chooses:
   `transition <package> done --review-decision complete`.
 
 This is not an approval gate. Integration receipts contain no
-`humanDecision`. Completion of `worktree` mode triggers integration in the
-main lifecycle; `specification-direct` has no integration.
+`humanDecision`. Completion of `worktree` mode triggers integration into local
+`factory` in the main lifecycle; `specification-direct` has no integration.
+Pushing `factory`, merging it into `dev`, `main`, `master`, or another real
+branch, and creating a PR are separate promotion operations that require an
+explicit Human request.
 
 Completed outcome records are immutable. Completed clean worktrees are removed
 later through batch cleanup.

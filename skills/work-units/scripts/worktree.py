@@ -8,6 +8,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Sequence
@@ -15,6 +16,7 @@ from typing import Any, Sequence
 
 SCHEMA_VERSION = "1.0.0"
 WORKTREE_ROOT = Path(".agent-factory/worktree")
+FACTORY_BRANCH = "factory"
 WORK_UNIT_MANAGER = (
     Path(__file__).resolve().parents[2]
     / "work-units"
@@ -552,7 +554,7 @@ def inspect(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
 
 def resolve_target_worktree(
     execution: Execution, repository: Path, target_branch: str
-) -> Path:
+) -> Path | None:
     validate_target_branch(execution, target_branch)
     target_ref = f"refs/heads/{target_branch}"
     branch = execution.git(repository, ["show-ref", "--verify", "--quiet", target_ref])
@@ -567,6 +569,8 @@ def resolve_target_worktree(
         for record in list_worktrees(execution, repository)
         if record.get("branch") == target_ref
     ]
+    if not matches:
+        return None
     if len(matches) != 1 or not isinstance(matches[0].get("worktree"), str):
         raise ContractError(
             "target_worktree_unresolved",
@@ -581,6 +585,62 @@ def resolve_target_worktree(
             "repository_mismatch", "target worktree belongs to a different repository"
         )
     return target_path
+
+
+def prepare_temporary_target_worktree(
+    execution: Execution,
+    repository: Path,
+    target_commit: str,
+) -> Path:
+    temporary_root = Path(tempfile.mkdtemp(prefix="agent-factory-target-"))
+    target_path = temporary_root / "factory"
+    added = execution.git(
+        repository,
+        ["worktree", "add", "--detach", str(target_path), target_commit],
+        record=True,
+    )
+    if added.returncode != 0:
+        cleanup_error = None
+        try:
+            os.rmdir(temporary_root)
+        except OSError as error:
+            cleanup_error = str(error)
+        raise ContractError(
+            "target_worktree_prepare_failed",
+            "unable to prepare a temporary local factory worktree",
+            {
+                "cleanupError": cleanup_error,
+                "returnCode": added.returncode,
+                "temporaryRoot": str(temporary_root),
+            },
+        )
+    return target_path.resolve(strict=False)
+
+
+def remove_temporary_target_worktree(
+    execution: Execution,
+    repository: Path,
+    target_path: Path,
+) -> None:
+    removed = execution.git(
+        repository,
+        ["worktree", "remove", str(target_path)],
+        record=True,
+    )
+    if removed.returncode != 0:
+        raise ContractError(
+            "target_worktree_cleanup_failed",
+            "unable to remove the temporary local factory worktree",
+            {"returnCode": removed.returncode, "worktreePath": str(target_path)},
+        )
+    try:
+        os.rmdir(target_path.parent)
+    except OSError as error:
+        raise ContractError(
+            "target_worktree_cleanup_failed",
+            "temporary local factory worktree parent is not empty",
+            {"worktreePath": str(target_path.parent)},
+        ) from error
 
 
 def resolve_commit(
@@ -613,6 +673,11 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
     source_branch = validate_execution_identity(
         execution, args.work_unit_id, args.branch
     )
+    if args.target_branch != FACTORY_BRANCH:
+        raise ContractError(
+            "invalid_target_branch",
+            f"Work Unit integration target must equal {FACTORY_BRANCH}",
+        )
     if args.target_branch == source_branch:
         raise ContractError(
             "branch_mismatch", "source and target branches must be different"
@@ -625,31 +690,6 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             "integration refuses a dirty source worktree",
             {"changes": source["changes"]},
         )
-    target_path = resolve_target_worktree(execution, repository, args.target_branch)
-    target_status = execution.git(
-        target_path,
-        ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
-    )
-    if target_status.returncode != 0:
-        raise ContractError(
-            "git_inspection_failed", "unable to inspect target worktree status"
-        )
-    target_changes = parse_status(target_status.stdout)
-    # Primary-root canonical CRUD is expected during execution and must not make
-    # an otherwise clean source integration appear dirty.
-    target_changes = [
-        change
-        for change in target_changes
-        if not change["path"].startswith(".agent-factory/")
-        and not change.get("originalPath", "").startswith(".agent-factory/")
-    ]
-    if target_changes:
-        raise ContractError(
-            "dirty_target_worktree",
-            "integration refuses a dirty target worktree",
-            {"changes": target_changes},
-        )
-
     source_commit = source["headCommit"]
     target_before = resolve_commit(
         execution,
@@ -683,11 +723,52 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         "none" if relationship == "already-merged" else "ff-only"
     )
     operation_result = "already-merged"
+    target_path = resolve_target_worktree(
+        execution, repository, args.target_branch
+    )
+    temporary_target = target_path is None and relationship != "already-merged"
+    if target_path is not None:
+        target_status = execution.git(
+            target_path,
+            ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        )
+        if target_status.returncode != 0:
+            raise ContractError(
+                "git_inspection_failed", "unable to inspect target worktree status"
+            )
+        target_changes = parse_status(target_status.stdout)
+        # Primary-root canonical CRUD is expected during execution and must not
+        # make an otherwise clean source integration appear dirty.
+        target_changes = [
+            change
+            for change in target_changes
+            if not change["path"].startswith(".agent-factory/")
+            and not change.get("originalPath", "").startswith(".agent-factory/")
+        ]
+        if target_changes:
+            raise ContractError(
+                "dirty_target_worktree",
+                "integration refuses a dirty target worktree",
+                {"changes": target_changes},
+            )
+    elif temporary_target:
+        # The local-only factory branch need not displace the Human's current
+        # checkout. A detached temporary worktree provides normal Git merge
+        # semantics, then update-ref advances only the local factory ref.
+        target_path = prepare_temporary_target_worktree(
+            execution, repository, target_before
+        )
+
     if relationship == "fast-forwardable":
+        assert target_path is not None
         merge = execution.git(
             target_path, ["merge", "--ff-only", source_commit], record=True
         )
         if merge.returncode != 0:
+            if temporary_target:
+                remove_temporary_target_worktree(
+                    execution, repository, target_path
+                )
             raise ContractError(
                 "integration_failed",
                 "fast-forward integration failed",
@@ -695,6 +776,7 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
             )
         operation_result = "fast-forwarded"
     elif relationship == "diverged":
+        assert target_path is not None
         strategy = "no-ff"
         merge = execution.git(
             target_path,
@@ -703,6 +785,10 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
         )
         if merge.returncode != 0:
             abort = execution.git(target_path, ["merge", "--abort"], record=True)
+            if temporary_target:
+                remove_temporary_target_worktree(
+                    execution, repository, target_path
+                )
             raise ContractError(
                 "integration_failed",
                 "no-ff integration failed",
@@ -713,6 +799,30 @@ def integrate(execution: Execution, args: argparse.Namespace) -> dict[str, Any]:
                 },
             )
         operation_result = "merge-commit-created"
+
+    if temporary_target:
+        assert target_path is not None
+        detached_after = resolve_commit(
+            execution, target_path, "HEAD", "integration_failed"
+        )
+        updated = execution.git(
+            repository,
+            [
+                "update-ref",
+                f"refs/heads/{FACTORY_BRANCH}",
+                detached_after,
+                target_before,
+            ],
+            record=True,
+        )
+        if updated.returncode != 0:
+            remove_temporary_target_worktree(execution, repository, target_path)
+            raise ContractError(
+                "integration_failed",
+                "unable to advance the local factory branch",
+                {"returnCode": updated.returncode},
+            )
+        remove_temporary_target_worktree(execution, repository, target_path)
 
     target_after = resolve_commit(
         execution,
@@ -976,10 +1086,10 @@ def build_parser() -> JsonArgumentParser:
         return subparser
 
     prepare_parser = common("prepare")
-    prepare_parser.add_argument("--base", required=True)
+    prepare_parser.add_argument("--base", default=FACTORY_BRANCH)
     common("inspect")
     integrate_parser = common("integrate")
-    integrate_parser.add_argument("--target-branch", required=True)
+    integrate_parser.add_argument("--target-branch", default=FACTORY_BRANCH)
     integrate_parser.add_argument("--strategy", choices=["no-ff"])
     common("cleanup")
     cleanup_many = subparsers.add_parser("cleanup-completed")

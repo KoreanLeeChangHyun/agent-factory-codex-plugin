@@ -367,6 +367,26 @@ class SkillMetadataTests(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertIn(excluded, agent_workflow)
 
+    def test_worktree_lifecycle_uses_local_factory_control_branch(self) -> None:
+        documents = [
+            SKILLS / "agents" / "references" / "main-agent.md",
+            SKILLS / "agents" / "references" / "workflow-agent.md",
+            SKILLS / "lifecycle" / "references" / "lifecycle-entry.md",
+            SKILLS / "lifecycle" / "references" / "lifecycle.md",
+            SKILLS / "work-units" / "references" / "work-unit-management.md",
+            SKILLS / "work-units" / "references" / "work-unit-execution.md",
+            SKILLS / "work-units" / "references" / "worktree-contract.md",
+        ]
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in documents)
+
+        self.assertIn("local `factory`", combined)
+        self.assertIn("`baseRef`", combined)
+        self.assertIn("`targetBranch`", combined)
+        self.assertIn("never pushes `factory`", combined)
+        for promotion_target in ("`dev`", "`main`", "`master`", "PR"):
+            with self.subTest(promotion_target=promotion_target):
+                self.assertIn(promotion_target, combined)
+
     def test_consolidated_skill_documents_preserve_reference_level_routing(self) -> None:
         references = SKILLS / "intakes" / "references"
         intake_management = (references / "intake-management.md").read_text(

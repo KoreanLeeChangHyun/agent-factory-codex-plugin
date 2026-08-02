@@ -22,6 +22,8 @@ sufficient:
 - scope, exclusions, outputs, verification, and execution context are complete;
 - `executionMode` is `specification-direct` or `worktree`;
 - the requested Work Unit id and active repository match.
+- a `worktree` context records local-only `factory` as both `baseRef` and
+  `targetBranch`.
 
 Do not create a checkpoint, commit an artifact snapshot, request approval, or
 repeat decisions already recorded in canonical artifacts. If admission passes,
@@ -51,17 +53,18 @@ The Human chooses:
 - `rework`: record the exact instruction through `rework-start` and invoke the
   same background launcher again.
 - `complete`: record `--review-decision complete`, integrate the source branch
-  automatically for `worktree` mode, and retain the completed worktree for
-  later batch cleanup.
+  automatically into local `factory` for `worktree` mode, and retain the
+  completed worktree for later batch cleanup.
 
 This is result review, not an approval gate. Do not request a checkpoint,
 separate merge approval, or cleanup approval. Do not ask again about decisions
 already present in the canonical artifacts.
 
 `specification-direct` execution updates the primary canonical Specification and
-has no worktree or merge step. Push, deployment, branch deletion, and PR
-promotion remain outside this lifecycle unless the Human explicitly requests
-them.
+has no worktree or merge step. The Work Unit lifecycle never pushes `factory`.
+Promotion from `factory` into `dev`, `main`, `master`, or another real branch,
+PR creation, deployment, and branch deletion require a separate explicit Human
+request.
 
 The primary thread does not implement Work Unit scope except when the Human
 explicitly grants an exception for that named Work Unit.

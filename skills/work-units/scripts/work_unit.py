@@ -380,6 +380,7 @@ def find_kind(package: Path, kind: str) -> dict[str, Any] | None:
 
 
 EXECUTION_STATE_CONTRACT_VERSION = "2.0.0"
+FACTORY_BRANCH = "factory"
 EXECUTION_OUTCOME_KINDS = {
     "execution-result": "execution",
     "quality-check": "acceptance-and-verification",
@@ -1253,6 +1254,13 @@ def command_admit(args: argparse.Namespace) -> None:
     )
     if requested_base.returncode != 0:
         raise ManagerError("execution admission requested base is unresolved")
+    # Fresh execution is anchored to the local factory control branch. Active
+    # recovery keeps its recorded base so an interrupted attempt is not
+    # silently recreated from different history.
+    if admission_mode == "ready" and args.base != FACTORY_BRANCH:
+        raise ManagerError(
+            f"execution admission requested base must equal {FACTORY_BRANCH}"
+        )
     requested_commit = requested_base.stdout.strip()
     print(
         json.dumps(
@@ -1376,7 +1384,7 @@ def validate_ready_semantics(package: Path) -> None:
             "specification-direct"
         )
     if execution_mode == "worktree":
-        required.update({"branch", "worktreePath"})
+        required.update({"branch", "targetBranch", "worktreePath"})
     missing = sorted(required - set(context["content"]))
     if missing:
         raise ManagerError(f"execution context is missing fields: {', '.join(missing)}")
@@ -1384,6 +1392,14 @@ def validate_ready_semantics(package: Path) -> None:
     if not isinstance(repository, str) or not Path(repository).is_absolute():
         raise ManagerError("execution context repository must be an absolute path")
     if execution_mode == "worktree":
+        if context["content"]["baseRef"] != FACTORY_BRANCH:
+            raise ManagerError(
+                f"execution context baseRef must equal {FACTORY_BRANCH}"
+            )
+        if context["content"]["targetBranch"] != FACTORY_BRANCH:
+            raise ManagerError(
+                f"execution context targetBranch must equal {FACTORY_BRANCH}"
+            )
         expected_branch = f"work-unit/{package.name}"
         if context["content"]["branch"] != expected_branch:
             raise ManagerError(
@@ -1617,8 +1633,12 @@ def validate_integration_receipt(
     if context["relationship"] == "already-merged":
         if operations or context["targetAfterCommit"] != context["targetBeforeCommit"]:
             raise ManagerError("already-merged receipt must not contain a mutation")
-    elif len(operations) != 1 or operations[0]["returnCode"] != 0:
-        raise ManagerError("integrated receipt requires one successful Git operation")
+    elif len(operations) not in {1, 4} or any(
+        operation["returnCode"] != 0 for operation in operations
+    ):
+        raise ManagerError(
+            "integrated receipt requires a successful checked-out or temporary-target operation sequence"
+        )
     if context["relationship"] == "fast-forwardable":
         expected_tail = ["merge", "--ff-only", context["sourceCommit"]]
     elif context["relationship"] == "diverged":
@@ -1626,7 +1646,8 @@ def validate_integration_receipt(
     else:
         expected_tail = []
     if operations:
-        arguments = operations[0]["args"]
+        merge_index = 0 if len(operations) == 1 else 1
+        arguments = operations[merge_index]["args"]
         if (
             len(arguments) != len(expected_tail) + 3
             or arguments[:2] != ["git", "-C"]
@@ -1636,6 +1657,46 @@ def validate_integration_receipt(
             raise ManagerError(
                 "integration receipt Git operation does not match the result"
             )
+        if len(operations) == 4:
+            temporary_path = arguments[2]
+            expected_temporary_operations = [
+                [
+                    "git",
+                    "-C",
+                    context["repository"],
+                    "worktree",
+                    "add",
+                    "--detach",
+                    temporary_path,
+                    context["targetBeforeCommit"],
+                ],
+                [
+                    "git",
+                    "-C",
+                    context["repository"],
+                    "update-ref",
+                    f"refs/heads/{FACTORY_BRANCH}",
+                    context["targetAfterCommit"],
+                    context["targetBeforeCommit"],
+                ],
+                [
+                    "git",
+                    "-C",
+                    context["repository"],
+                    "worktree",
+                    "remove",
+                    temporary_path,
+                ],
+            ]
+            actual_temporary_operations = [
+                operations[0]["args"],
+                operations[2]["args"],
+                operations[3]["args"],
+            ]
+            if actual_temporary_operations != expected_temporary_operations:
+                raise ManagerError(
+                    "integration receipt temporary factory operations do not match the result"
+                )
     if (
         context["relationship"] == "fast-forwardable"
         and context["targetAfterCommit"] != context["sourceCommit"]

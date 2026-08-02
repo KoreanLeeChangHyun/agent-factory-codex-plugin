@@ -75,11 +75,13 @@ the initial turn emits no ACK.
 
 `executionMode: worktree` (or omitted legacy mode):
 
+- base is the current commit of local `factory`;
 - branch is `work-unit/<work-unit-id>`;
 - path is `<project-root>/.agent-factory/worktree/<work-unit-id>`;
 - sparse checkout excludes the entire `.agent-factory`;
 - implementation and non-canonical verification run in that worktree;
 - canonical manager writes still route to the primary root.
+- complete integration target is local `factory`.
 
 Execution runs `Plan -> Work -> AI Review -> Report`. Once started, the
 Workflow Agent does not repeat admission, request approval, or reconstruct a
@@ -101,13 +103,15 @@ decision, not an approval procedure:
 - `complete`: record `transition ... done --review-decision complete`.
 
 For `worktree` mode, `complete` automatically integrates the source branch into
-the recorded target. Target dirtiness ignores primary `.agent-factory/**`
+local `factory`. Target dirtiness ignores primary `.agent-factory/**`
 changes. Keep the completed worktree after merge and clean completed clean
 worktrees later in a batch. For `specification-direct`, completion has no Git
 integration or cleanup.
 
-Push, deployment, branch deletion, and PR promotion occur only on a separate
-explicit Human request.
+The Work Unit lifecycle never pushes `factory`. Merging `factory` into `dev`,
+`main`, `master`, or another real branch, PR creation, deployment, branch
+deletion, and any push occur only on a separate explicit Human promotion
+request.
 
 ## Skill routing
 

@@ -82,6 +82,7 @@ class WorktreeCliTest(unittest.TestCase):
         )
         run("git", "add", "tracked.txt", ".gitignore", cwd=cls.template_repo)
         run("git", "commit", "-m", "baseline", cwd=cls.template_repo)
+        run("git", "branch", "factory", cwd=cls.template_repo)
         intake = helpers.create_ready_intake(cls.template_repo)
         package = helpers.create_package(cls.template_repo, "wu-001")
         helpers.populate_ready_candidate(cls.template_repo, package, intake)
@@ -143,6 +144,7 @@ class WorktreeCliTest(unittest.TestCase):
             git(self.repo, "commit", "-m", "bind test execution context").returncode,
             0,
         )
+        self.assertEqual(git(self.repo, "branch", "-f", "factory").returncode, 0)
         self.base_commit = git(self.repo, "rev-parse", "HEAD").stdout.strip()
         self.worktree = self.repo / ".agent-factory" / "worktree" / "wu-001"
         self.legacy_worktree = self.root / "worktrees" / "wu-001"
@@ -181,7 +183,7 @@ class WorktreeCliTest(unittest.TestCase):
         return result, payload
 
     def prepare(self, *extra: str) -> tuple[subprocess.CompletedProcess[str], dict]:
-        return self.cli("prepare", "--base", "main", *extra)
+        return self.cli("prepare", "--base", "factory", *extra)
 
     def commit_source(self, content: str = "source\n") -> str:
         (self.worktree / "source.txt").write_text(content, encoding="utf-8")
@@ -191,8 +193,57 @@ class WorktreeCliTest(unittest.TestCase):
         )
         return git(self.worktree, "rev-parse", "HEAD").stdout.strip()
 
+    def commit_factory(
+        self,
+        filename: str = "target.txt",
+        content: str = "target\n",
+        message: str = "target change",
+    ) -> str:
+        target = self.root / "factory-update"
+        before = git(self.repo, "rev-parse", "factory").stdout.strip()
+        self.assertEqual(
+            git(self.repo, "worktree", "add", "--detach", str(target), before).returncode,
+            0,
+        )
+        (target / filename).write_text(content, encoding="utf-8")
+        self.assertEqual(git(target, "add", filename).returncode, 0)
+        self.assertEqual(git(target, "commit", "-m", message).returncode, 0)
+        after = git(target, "rev-parse", "HEAD").stdout.strip()
+        self.assertEqual(
+            git(
+                self.repo,
+                "update-ref",
+                "refs/heads/factory",
+                after,
+                before,
+            ).returncode,
+            0,
+        )
+        self.assertEqual(
+            git(self.repo, "worktree", "remove", str(target)).returncode,
+            0,
+        )
+        return after
+
     def integrate(self, *extra: str) -> tuple[subprocess.CompletedProcess[str], dict]:
-        return self.cli("integrate", "--target-branch", "main", *extra)
+        return self.cli("integrate", "--target-branch", "factory", *extra)
+
+    def test_prepare_refuses_non_factory_base(self) -> None:
+        result, payload = self.cli("prepare", "--base", "main")
+
+        self.assert_error(result, payload, "work_unit_admission_refused")
+        self.assertIn(
+            "requested base must equal factory", payload["error"]["details"]["reason"]
+        )
+        self.assertFalse(self.worktree.exists())
+
+    def test_integrate_refuses_non_factory_target(self) -> None:
+        self.prepare()
+        self.commit_source()
+
+        result, payload = self.cli("integrate", "--target-branch", "main")
+
+        self.assert_error(result, payload, "invalid_target_branch")
 
     def assert_error(
         self, result: subprocess.CompletedProcess[str], payload: dict, code: str
@@ -325,25 +376,7 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertFalse((self.worktree / ".agent-factory").exists())
         self.assertEqual(git(self.repo, "status", "--short").stdout, "")
 
-    def test_prepare_accepts_explicit_source_commit_after_main_advances(self) -> None:
-        source_commit = self.base_commit
-        (self.repo / "unrelated.txt").write_text("later\n", encoding="utf-8")
-        self.assertEqual(git(self.repo, "add", "unrelated.txt").returncode, 0)
-        self.assertEqual(
-            git(self.repo, "commit", "-m", "advance main without package").returncode,
-            0,
-        )
-
-        result, payload = self.cli("prepare", "--base", source_commit)
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(payload["context"]["baseCommit"], source_commit)
-        self.assertEqual(payload["context"]["admission"]["baseRef"], "main")
-        self.assertEqual(
-            payload["context"]["admission"]["executionCommit"], source_commit
-        )
-
-    def test_prepare_accepts_current_symbolic_base_without_artifact_checkpoint(self) -> None:
+    def test_prepare_keeps_factory_base_after_main_advances(self) -> None:
         (self.repo / "unrelated.txt").write_text("later\n", encoding="utf-8")
         self.assertEqual(git(self.repo, "add", "unrelated.txt").returncode, 0)
         self.assertEqual(
@@ -354,10 +387,22 @@ class WorktreeCliTest(unittest.TestCase):
         result, payload = self.prepare()
 
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["context"]["baseCommit"], self.base_commit)
+        self.assertEqual(payload["context"]["admission"]["baseRef"], "factory")
+        self.assertEqual(
+            payload["context"]["admission"]["executionCommit"], self.base_commit
+        )
+
+    def test_prepare_accepts_current_symbolic_base_without_artifact_checkpoint(self) -> None:
+        factory_commit = self.commit_factory()
+
+        result, payload = self.prepare()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(payload["ok"])
         self.assertEqual(
             payload["context"]["admission"]["executionCommit"],
-            git(self.repo, "rev-parse", "main").stdout.strip(),
+            factory_commit,
         )
 
     def test_prepare_refuses_missing_work_unit_before_git_mutation(self) -> None:
@@ -480,7 +525,9 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertTrue(self.worktree.is_dir())
 
     def test_prepare_accepts_explicit_canonical_path_assertion(self) -> None:
-        result, payload = self.cli("prepare", "--base", "main", path=self.worktree)
+        result, payload = self.cli(
+            "prepare", "--base", "factory", path=self.worktree
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
             payload["context"]["worktreePath"], str(self.worktree.resolve())
@@ -488,7 +535,7 @@ class WorktreeCliTest(unittest.TestCase):
 
     def test_prepare_rejects_new_noncanonical_path(self) -> None:
         result, payload = self.cli(
-            "prepare", "--base", "main", path=self.legacy_worktree
+            "prepare", "--base", "factory", path=self.legacy_worktree
         )
         self.assert_error(result, payload, "noncanonical_worktree_path")
         self.assertFalse(self.legacy_worktree.exists())
@@ -530,7 +577,7 @@ class WorktreeCliTest(unittest.TestCase):
         )
 
         result, payload = self.cli(
-            "prepare", "--base", "main", path=self.legacy_worktree
+            "prepare", "--base", "factory", path=self.legacy_worktree
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -582,7 +629,7 @@ class WorktreeCliTest(unittest.TestCase):
             "--work-unit-id",
             "wu-001",
             "--base",
-            "main",
+            "factory",
             "--branch",
             "topic/wu-001",
             "--path",
@@ -601,8 +648,6 @@ class WorktreeCliTest(unittest.TestCase):
             str(self.repo),
             "--work-unit-id",
             "wu-001",
-            "--base",
-            "main",
         )
         payload = json.loads(result.stdout)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -732,9 +777,9 @@ class WorktreeCliTest(unittest.TestCase):
     def test_integrate_requires_no_approval_argument(self) -> None:
         self.prepare()
         self.commit_source()
-        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+        target_before = git(self.repo, "rev-parse", "factory").stdout.strip()
 
-        result, payload = self.integrate()
+        result, payload = self.cli("integrate")
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(payload["context"]["targetBeforeCommit"], target_before)
@@ -742,7 +787,7 @@ class WorktreeCliTest(unittest.TestCase):
     def test_integrate_fast_forwards_and_returns_complete_receipt(self) -> None:
         self.prepare()
         source_commit = self.commit_source()
-        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+        target_before = git(self.repo, "rev-parse", "factory").stdout.strip()
 
         result, payload = self.integrate()
 
@@ -752,7 +797,7 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertEqual(context["workUnitId"], "wu-001")
         self.assertEqual(context["repository"], str(self.repo.resolve()))
         self.assertEqual(context["sourceBranch"], "work-unit/wu-001")
-        self.assertEqual(context["targetBranch"], "main")
+        self.assertEqual(context["targetBranch"], "factory")
         self.assertEqual(context["worktreePath"], str(self.worktree.resolve()))
         self.assertEqual(context["sourceCommit"], source_commit)
         self.assertEqual(context["targetBeforeCommit"], target_before)
@@ -761,7 +806,7 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertEqual(context["strategy"], "ff-only")
         self.assertEqual(context["operationResult"], "fast-forwarded")
         self.assertEqual(
-            git(self.repo, "rev-parse", "main").stdout.strip(), source_commit
+            git(self.repo, "rev-parse", "factory").stdout.strip(), source_commit
         )
         self.assertTrue(self.worktree.exists())
         self.assertIn(
@@ -771,15 +816,12 @@ class WorktreeCliTest(unittest.TestCase):
     def test_integrate_diverged_requires_explicit_no_ff_strategy(self) -> None:
         self.prepare()
         source_commit = self.commit_source()
-        (self.repo / "target.txt").write_text("target\n", encoding="utf-8")
-        self.assertEqual(git(self.repo, "add", "target.txt").returncode, 0)
-        self.assertEqual(git(self.repo, "commit", "-m", "target change").returncode, 0)
-        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+        target_before = self.commit_factory()
 
         refused, refused_payload = self.integrate()
         self.assert_error(refused, refused_payload, "diverged_strategy_required")
         self.assertEqual(
-            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
+            git(self.repo, "rev-parse", "factory").stdout.strip(), target_before
         )
 
         result, payload = self.integrate("--strategy", "no-ff")
@@ -800,23 +842,21 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertEqual(
             git(self.worktree, "commit", "-m", "source conflict").returncode, 0
         )
-        (self.repo / "tracked.txt").write_text("target\n", encoding="utf-8")
-        self.assertEqual(git(self.repo, "add", "tracked.txt").returncode, 0)
-        self.assertEqual(
-            git(self.repo, "commit", "-m", "target conflict").returncode, 0
+        target_before = self.commit_factory(
+            "tracked.txt", "target\n", "target conflict"
         )
-        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
 
         result, payload = self.integrate("--strategy", "no-ff")
 
         self.assert_error(result, payload, "integration_failed")
         self.assertEqual(
-            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
+            git(self.repo, "rev-parse", "factory").stdout.strip(), target_before
         )
         self.assertEqual(git(self.repo, "status", "--short").stdout, "")
-        self.assertEqual(len(payload["operations"]), 2)
-        self.assertEqual(payload["operations"][1]["args"][-2:], ["merge", "--abort"])
-        self.assertEqual(payload["operations"][1]["returnCode"], 0)
+        self.assertEqual(len(payload["operations"]), 4)
+        self.assertEqual(payload["operations"][2]["args"][-2:], ["merge", "--abort"])
+        self.assertEqual(payload["operations"][2]["returnCode"], 0)
+        self.assertEqual(payload["operations"][3]["args"][3:5], ["worktree", "remove"])
 
     def test_integrate_recovers_already_merged_without_duplicate_mutation(self) -> None:
         self.prepare()
@@ -838,9 +878,7 @@ class WorktreeCliTest(unittest.TestCase):
     def test_integrate_recovers_diverged_no_ff_with_the_same_command(self) -> None:
         self.prepare()
         source_commit = self.commit_source()
-        (self.repo / "target.txt").write_text("target\n", encoding="utf-8")
-        self.assertEqual(git(self.repo, "add", "target.txt").returncode, 0)
-        self.assertEqual(git(self.repo, "commit", "-m", "target change").returncode, 0)
+        self.commit_factory()
         first, first_payload = self.integrate("--strategy", "no-ff")
         self.assertEqual(first.returncode, 0, first.stderr)
         target_after = first_payload["context"]["targetAfterCommit"]
@@ -856,7 +894,7 @@ class WorktreeCliTest(unittest.TestCase):
         self.assertEqual(payload["context"]["targetAfterCommit"], target_after)
         self.assertEqual(payload["operations"], [])
 
-    def test_integrate_refuses_dirty_source_and_unresolved_target(self) -> None:
+    def test_integrate_refuses_dirty_source_and_non_factory_target(self) -> None:
         self.prepare()
         (self.worktree / "dirty.txt").write_text("dirty\n", encoding="utf-8")
         dirty, dirty_payload = self.integrate()
@@ -869,21 +907,33 @@ class WorktreeCliTest(unittest.TestCase):
             "--target-branch",
             "release",
         )
-        self.assert_error(unresolved, unresolved_payload, "target_worktree_unresolved")
+        self.assert_error(unresolved, unresolved_payload, "invalid_target_branch")
 
     def test_integrate_refuses_dirty_target_before_mutation(self) -> None:
         self.prepare()
         self.commit_source()
-        (self.repo / "dirty-target.txt").write_text("dirty\n", encoding="utf-8")
-        target_before = git(self.repo, "rev-parse", "main").stdout.strip()
+        factory_worktree = self.root / "factory-checkout"
+        self.assertEqual(
+            git(self.repo, "worktree", "add", str(factory_worktree), "factory").returncode,
+            0,
+        )
+        (factory_worktree / "dirty-target.txt").write_text(
+            "dirty\n", encoding="utf-8"
+        )
+        target_before = git(self.repo, "rev-parse", "factory").stdout.strip()
 
         result, payload = self.integrate()
 
         self.assert_error(result, payload, "dirty_target_worktree")
         self.assertEqual(
-            git(self.repo, "rev-parse", "main").stdout.strip(), target_before
+            git(self.repo, "rev-parse", "factory").stdout.strip(), target_before
         )
         self.assertEqual(payload["operations"], [])
+        (factory_worktree / "dirty-target.txt").unlink()
+        self.assertEqual(
+            git(self.repo, "worktree", "remove", str(factory_worktree)).returncode,
+            0,
+        )
 
     def test_integrate_ignores_primary_agent_factory_changes(self) -> None:
         self.prepare()

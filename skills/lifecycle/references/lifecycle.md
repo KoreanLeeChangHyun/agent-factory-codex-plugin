@@ -59,9 +59,11 @@ instead of leaving a waiting process.
 `specification-direct` updates the primary canonical Specification through
 `specification.py` and never creates a branch or worktree.
 
-`worktree` creates or reuses the derived branch and canonical linked path.
-Sparse checkout excludes all of `.agent-factory`. Canonical manager calls made
-from that worktree still resolve to the primary root.
+`worktree` creates or reuses the derived branch and canonical linked path. It
+resolves the current local `factory` commit as its base and records local
+`factory` as its complete integration target. Sparse checkout excludes all of
+`.agent-factory`. Canonical manager calls made from that worktree still resolve
+to the primary root.
 
 Execution state is revision + attempt + invocation chain + idempotent step
 records. It contains no Git subject or head hash.
@@ -73,12 +75,14 @@ Human review has two outcomes:
 - `rework`: exact instruction is stored and background Goal + Exec runs again.
 - `complete`: `--review-decision complete` is stored.
 
-For `worktree` mode, complete triggers integration automatically. Primary
+For `worktree` mode, complete triggers integration into local `factory`
+automatically. Primary
 `.agent-factory/**` dirtiness is ignored during target source-code integration.
 Completed worktrees remain until a later batch cleanup. Cleanup refuses dirty
 worktrees and never forces removal.
 
 `specification-direct` completion has no merge or cleanup.
 
-Push, deployment, branch deletion, and PR promotion are separate explicit
-requests.
+The Work Unit lifecycle never pushes `factory`. Promotion from `factory` into
+`dev`, `main`, `master`, or another real branch, PR creation, deployment,
+branch deletion, and any push are separate explicit requests.
