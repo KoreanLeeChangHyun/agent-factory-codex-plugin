@@ -1,0 +1,22 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "전용 worktree에서 local factory base/target 계약을 manager, runtime, 문서, profile과 테스트에 반영하고 source commit 1196c96be43e4b168b261141988ddb27ebf5df1f를 생성했다. 전체 212개 테스트와 지정 검증이 통과했다.",
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fc09b-37fe-7960-bdd4-0f4a5d63d966",
+          "revision": 2,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

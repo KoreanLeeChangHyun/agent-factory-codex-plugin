@@ -1,0 +1,47 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "스킬 문서에서 충돌 나는 부분이 있는지 확인",
+        "desiredOutcome": "8개 스킬 문서의 상호 충돌, 중복 소유권, 오래된 경로와 명칭, 실행 규칙 불일치를 근거와 함께 식별"
+      }
+    },
+    {
+      "id": "FEEDBACK-001",
+      "kind": "human-feedback",
+      "content": {
+        "feedback": "확인된 스킬 문서 충돌을 해소해야 한다."
+      }
+    },
+    {
+      "id": "FEEDBACK-002",
+      "kind": "human-feedback",
+      "content": {
+        "feedback": "Work Unit approval이라는 단계는 없다."
+      }
+    },
+    {
+      "id": "GOAL-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "8개 소스 스킬 문서의 라우팅과 실행 경계를 일관되게 만들고, 배포된 Agent Factory 플러그인도 같은 8개 구조를 사용하게 한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "Intake capability 라우팅이 reference 단위로 식별된다.",
+        "Work Unit approval 및 별도 merge approval 문구가 제거되고 실행 요청과 결과 리뷰 경계가 일치한다.",
+        "Drive와 Gmail provider routing이 서로 구분된다.",
+        "전체 테스트와 plugin validation이 통과한다.",
+        "병합된 source version이 GitHub main과 설치 캐시에 동일하게 반영된다."
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,32 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/evidence/final-repository-state.txt",
+      "mediaType": "text/plain",
+      "description": "Source commit, changed paths, verification, and AI Review evidence",
+      "sha256": "0f7d852caf51f574d142214703cf8481318f7b040bf1afb420cb151a5d4dc1e6",
+      "sizeBytes": 1406
+    },
+    {
+      "path": "blocks/evidence/revision-2-final-state.txt",
+      "mediaType": "text/plain",
+      "description": "Revision 2 source commit, full verification, AI review, and remaining lifecycle boundaries",
+      "sha256": "f26d2b31de8bce6a05a85caf14bbb44abe9075eb09df7face286831c145fcd9d",
+      "sizeBytes": 4030
+    },
+    {
+      "path": "blocks/evidence/revision-2-integration-preview.txt",
+      "mediaType": "text/plain",
+      "description": "Read-only factory ancestry and merge-tree preview for Human result review",
+      "sha256": "4d99b0d4b54505412abba48b6664c79fc29f411cd9658634118dca10cf3de873",
+      "sizeBytes": 1197
+    },
+    {
+      "path": "blocks/integration/factory-58c32b5.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "d3ba6da21d7aac323fbc5d318284288fc2f019d66d4ff9887ec5556872e7ebd0",
+      "sizeBytes": 714
+    }
+  ]
+}

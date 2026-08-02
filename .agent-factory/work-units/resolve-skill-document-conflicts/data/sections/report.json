@@ -1,0 +1,106 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-REQUIREMENTS-001",
+      "kind": "report-requirements",
+      "content": [
+        "수정된 capability와 provider routing 매핑",
+        "Work Unit approval 및 merge approval 충돌 해소 방식",
+        "변경 경로, source commit, cachebuster version",
+        "전체 테스트와 plugin validation 결과",
+        "AI Review findings와 remaining risks",
+        "Human complete 후 main integration, push, marketplace upgrade와 reinstall 필요 여부"
+      ]
+    },
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "summary": "모든 worktree Work Unit의 새 실행을 local factory 현재 commit에서 시작하고 complete 결과를 local factory에 자동 통합하는 계약을 구현했다.",
+        "sourceCommit": "1196c96be43e4b168b261141988ddb27ebf5df1f",
+        "cachebusterVersion": "0.1.0+codex.20260802042046",
+        "delivered": [
+          "Work Unit ready context와 admission의 factory base/target 강제.",
+          "worktree prepare/integrate의 factory 기본값과 non-factory 거부.",
+          "factory 미-checkout 상태의 temporary detached merge와 CAS local ref 갱신.",
+          "active attempt의 기존 base 보존.",
+          "factory local-only 및 실제 브랜치/PR 별도 승격 문서 계약."
+        ],
+        "changedPaths": [
+          ".codex-plugin/plugin.json",
+          "skills/agents/references/main-agent.md",
+          "skills/agents/references/workflow-agent.md",
+          "skills/lifecycle/references/lifecycle-entry.md",
+          "skills/lifecycle/references/lifecycle.md",
+          "skills/lifecycle/tests/test_document_profiles.py",
+          "skills/lifecycle/tests/test_skill_metadata.py",
+          "skills/work-units/assets/profiles/work-unit.profile.json",
+          "skills/work-units/references/work-unit-execution.md",
+          "skills/work-units/references/work-unit-management.md",
+          "skills/work-units/references/worktree-contract.md",
+          "skills/work-units/scripts/app_server_goal.py",
+          "skills/work-units/scripts/work_unit.py",
+          "skills/work-units/scripts/worktree.py",
+          "skills/work-units/tests/test_app_server_goal.py",
+          "skills/work-units/tests/test_work_package_manager.py",
+          "skills/work-units/tests/test_work_unit_manager.py",
+          "skills/work-units/tests/test_worktree.py"
+        ],
+        "verification": [
+          "work_unit manager: PASS, 39 tests.",
+          "worktree runtime: PASS, 42 tests.",
+          "app_server_goal: PASS, 20 tests.",
+          "all skills/*/tests/test_*.py: PASS, 16 files and 212 tests.",
+          "plugin validation: PASS.",
+          "exact SKILL.md count: PASS, 8.",
+          "single cachebuster and base version: PASS.",
+          "py_compile, stale positive phrase audit, git diff check, clean worktree inspect: PASS.",
+          "factory ancestry and read-only merge-tree preview: source and factory are diverged; post-review conflict risk recorded."
+        ],
+        "remainingRisk": "Human 결과 리뷰가 pending이다. complete 전 factory 통합은 수행하지 않았다. 현재 factory와 source가 diverged이고 read-only merge-tree에 기존 skill 경로의 modify/delete 및 content conflict가 나타나므로 complete 자동 통합에서 no-ff와 충돌 해소가 필요할 수 있다. factory push, dev/main/master 등 실제 브랜치 승격, PR, marketplace upgrade, reinstall, branch deletion과 cleanup은 수행하지 않았다.",
+        "findings": [
+          "AI Review blocking findings: none.",
+          "AI Review non-blocking finding: post-review factory integration is diverged and may require conflict resolution."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pass",
+        "evidence": [
+          "blocks/evidence/revision-2-final-state.txt",
+          "blocks/evidence/revision-2-integration-preview.txt"
+        ],
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fc09b-37fe-7960-bdd4-0f4a5d63d966",
+          "revision": 2,
+          "attempt": 1
+        }
+      }
+    },
+    {
+      "id": "INTEGRATION-D3BA6DA21D7AAC32",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "already-merged",
+        "relationship": "already-merged",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "sourceBranch": "work-unit/resolve-skill-document-conflicts",
+        "sourceCommit": "58c32b58588a503d80861043843ba1865b58fb53",
+        "strategy": "none",
+        "targetAfterCommit": "58c32b58588a503d80861043843ba1865b58fb53",
+        "targetBeforeCommit": "58c32b58588a503d80861043843ba1865b58fb53",
+        "targetBranch": "factory",
+        "workUnitId": "resolve-skill-document-conflicts",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/resolve-skill-document-conflicts",
+        "receiptSha256": "d3ba6da21d7aac323fbc5d318284288fc2f019d66d4ff9887ec5556872e7ebd0"
+      },
+      "attributes": {
+        "status": "already-merged"
+      },
+      "blockRef": "blocks/integration/factory-58c32b5.json"
+    }
+  ],
+  "subsections": []
+}

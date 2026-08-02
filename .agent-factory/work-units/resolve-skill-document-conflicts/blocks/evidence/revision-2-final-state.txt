@@ -1,0 +1,66 @@
+Work Unit: resolve-skill-document-conflicts
+Revision: 2
+Attempt: 1
+Invocation: 019fc09b-37fe-7960-bdd4-0f4a5d63d966
+Resume Goal thread: 019fc0a0-6194-72f1-bd3e-35d0c44e5bd1
+
+Source commit
+1196c96be43e4b168b261141988ddb27ebf5df1f Route Work Units through local factory
+
+Delivered contract
+- Fresh worktree Work Units require baseRef=factory and targetBranch=factory.
+- worktree.py prepare defaults to current local factory and rejects another fresh base through manager admission.
+- worktree.py integrate defaults to local factory and rejects every other target.
+- If factory is not checked out, integration uses a protected temporary detached worktree, CAS update-ref, and cleanup without changing the Human checkout.
+- Active attempt resume preserves its existing linked branch/base; the complete target remains factory.
+- The Work Unit lifecycle never pushes factory. dev/main/master merge and PR creation require a separate explicit promotion request.
+- Work Package target/integration semantics were not changed; its fixture now supplies the required local factory Work Unit base.
+
+Changed paths
+.codex-plugin/plugin.json
+skills/agents/references/main-agent.md
+skills/agents/references/workflow-agent.md
+skills/lifecycle/references/lifecycle-entry.md
+skills/lifecycle/references/lifecycle.md
+skills/lifecycle/tests/test_document_profiles.py
+skills/lifecycle/tests/test_skill_metadata.py
+skills/work-units/assets/profiles/work-unit.profile.json
+skills/work-units/references/work-unit-execution.md
+skills/work-units/references/work-unit-management.md
+skills/work-units/references/worktree-contract.md
+skills/work-units/scripts/app_server_goal.py
+skills/work-units/scripts/work_unit.py
+skills/work-units/scripts/worktree.py
+skills/work-units/tests/test_app_server_goal.py
+skills/work-units/tests/test_work_package_manager.py
+skills/work-units/tests/test_work_unit_manager.py
+skills/work-units/tests/test_worktree.py
+
+Verification
+- python3 skills/work-units/tests/test_work_unit_manager.py: PASS, 39 tests.
+- python3 skills/work-units/tests/test_worktree.py: PASS, 42 tests.
+- python3 skills/work-units/tests/test_app_server_goal.py: PASS, 20 tests.
+- python3 skills/lifecycle/tests/test_skill_metadata.py: PASS, 16 tests.
+- python3 skills/lifecycle/tests/test_document_profiles.py: PASS, 9 tests.
+- for test_file in skills/*/tests/test_*.py; do python3 "$test_file" || exit 1; done: PASS, 16 files and 212 tests.
+- python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .: PASS.
+- find skills -mindepth 2 -maxdepth 2 -name SKILL.md: PASS, exactly 8.
+- manifest version assertion: PASS, 0.1.0+codex.20260802042046 with one +codex suffix.
+- stale positive approval/base/target phrase audit: PASS; no active rule requires Work Unit approval or separate merge approval, non-factory base, or non-factory Work Unit integration target.
+- python3 -m py_compile for the three changed runtime/manager scripts: PASS.
+- git diff --check HEAD^ HEAD: PASS.
+- worktree.py inspect: PASS, clean at 1196c96be43e4b168b261141988ddb27ebf5df1f.
+
+AI Review
+- Scope: PASS. Changes are limited to Work Unit manager/runtime, related lifecycle/agent documents and profile, regression tests, and the single source cachebuster.
+- Fresh/resume boundary: PASS. Fresh execution is factory-based; active recovery does not silently rebase completed work.
+- Integration safety: PASS. Non-factory targets are refused, factory update uses expected-old-value CAS, and the Human checkout is preserved when factory is not checked out.
+- Promotion boundary: PASS. No push, merge into a real branch, PR, reinstall, branch deletion, or Work Unit worktree cleanup was performed.
+- Regression and validation: PASS.
+- Blocking findings: none.
+- Non-blocking findings: none.
+
+Remaining state
+- Human result review is pending.
+- Source is not integrated into factory until Human chooses complete.
+- Push, real-branch promotion, PR creation, marketplace upgrade, reinstall, branch deletion, and cleanup remain outside this Workflow Agent execution.

@@ -1,0 +1,42 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": [
+        "intake-management.md는 하나의 intakes 스킬 안에 있는 five capability references의 소유권을 설명해야 한다.",
+        "analysis, web-search, user-research, interview 문서는 다른 capability로 라우팅할 때 reference 이름을 명시해야 한다.",
+        "lifecycle-entry.md는 intakes의 analysis, web-search, user-research, interview reference를 구분해 라우팅해야 한다.",
+        "synchronization-management.md는 google-drive.md와 google-mail.md를 provider route로 구분해야 한다.",
+        "interview.md는 Work Unit approval 또는 별도 merge approval을 Human-only decision으로 만들지 않아야 한다.",
+        "Work Unit은 명시적 실행 요청으로 시작하고 결과 리뷰 complete 후 자동 통합되는 기존 계약을 유지해야 한다.",
+        "source manifest cachebuster는 helper script로 한 번만 갱신해야 한다."
+      ]
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "등록 스킬은 정확히 8개로 유지한다.",
+        "기존 manager, schema, runtime 동작은 변경하지 않는다.",
+        "marketplace 파일을 수동 편집하지 않는다.",
+        "push와 reinstall은 Human complete 후 main에 통합된 결과에만 수행한다.",
+        "새 승인, checkpoint 또는 호환 stub을 추가하지 않는다."
+      ]
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "통합 이전 이름을 동일한 상위 스킬명으로 반복해 capability를 구분하지 못하는 문장이 없다.",
+        "Work Unit approval와 separate merge approval을 요구하는 활성 문장이 없다.",
+        "8개 SKILL.md와 모든 reference 경로가 유효하다.",
+        "전체 테스트, plugin validation, stale phrase 검색과 git diff check가 통과한다.",
+        "Human complete 후 source commit과 GitHub main 및 설치된 plugin version이 일치한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

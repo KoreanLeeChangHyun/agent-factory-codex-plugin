@@ -1,0 +1,48 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "capability와 provider routing이 reference 단위로 결정적인지 확인",
+        "Work Unit approval 또는 별도 merge approval이 다시 도입되지 않았는지 확인",
+        "기존 explicit execution request와 result review 계약이 변형되지 않았는지 확인",
+        "8개 스킬 집합과 manager/runtime 동작이 보존됐는지 확인",
+        "cachebuster가 단일 suffix이며 marketplace 또는 설치 캐시를 Work Unit이 변경하지 않았는지 확인"
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "Revision 2 source commit을 AC-002와 rework instruction에 대조했다. manager/runtime/docs/profile/test가 동일한 factory 계약을 표현하며 실행 범위의 blocking finding은 없다.",
+        "checks": [
+          "Fresh worktree context와 admission은 baseRef=factory, targetBranch=factory를 요구한다.",
+          "Active attempt resume는 기존 linked branch와 base를 보존하여 완료 작업을 replay 또는 rebase하지 않는다.",
+          "factory가 checkout되지 않았을 때 protected temporary detached worktree와 expected-old update-ref로 local factory만 전진한다.",
+          "non-factory integration target은 runtime에서 거부된다.",
+          "Work Unit lifecycle은 factory를 push하지 않고 dev, main, master 병합과 PR을 별도 명시적 승격 요청으로 남긴다.",
+          "Work Package target/integration semantics는 변경하지 않았고 fixture에 필요한 factory Work Unit base만 추가했다.",
+          "Manifest는 base 0.1.0과 단일 codex cachebuster suffix를 유지한다."
+        ],
+        "findings": [
+          "Blocking findings: none.",
+          "Non-blocking finding: 현재 factory와 source commit은 diverged이며 read-only merge-tree에 기존 skill 경로의 modify/delete 및 content conflict가 나타나므로 complete 후 자동 통합에서 no-ff 및 충돌 해소가 필요할 수 있다."
+        ]
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fc09b-37fe-7960-bdd4-0f4a5d63d966",
+          "revision": 2,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

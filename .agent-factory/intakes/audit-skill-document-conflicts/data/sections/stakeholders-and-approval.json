@@ -1,0 +1,22 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": "Human decision owner, Agent Factory maintainers, and Codex plugin users"
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": "Work Unit approval 단계는 없다. Human은 실행 범위와 push·재설치 경로를 결정했고, 실행 결과는 rework 또는 complete로 리뷰한다."
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,39 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "reason": "등록 capability, runtime 또는 제품 Specification을 변경하지 않는 instruction 정합성 및 배포 캐시 갱신이다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "통합 후 남은 스킬 문서 라우팅과 Work Unit 실행 경계 충돌을 제거하고 소스 plugin version을 cachebust한다.",
+        "executionOrder": 1,
+        "scope": [
+          "intakes, lifecycle, synchronization, interview 문서 정합성 수정",
+          "문서 정합성 회귀 테스트 갱신",
+          "plugin manifest cachebuster helper 실행",
+          "전체 회귀 검증과 source commit"
+        ],
+        "outOfScope": [
+          "Work Unit 승인 단계 추가",
+          "Workflow Agent의 merge, push 또는 reinstall",
+          "marketplace 파일 수동 편집",
+          "runtime restart와 worktree cleanup"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}
