@@ -1,0 +1,35 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": [
+        "모든 변경이 REQ-001..REQ-010과 Human decision에 근거하는지 확인한다.",
+        "standalone Work Unit과 Work Package가 모두 local factory 승격 경계를 유지하는지 확인한다.",
+        "factory-init이 remote mutation, checkout 전환, 기존 factory 덮어쓰기를 수행하지 않는지 확인한다.",
+        "Design Document, google-gmail, reference의 this skill 표현과 이중 rendering ownership이 남지 않는지 확인한다.",
+        "Drive destructive command가 이중 확인 경계를 우회하지 않는지 확인한다.",
+        "주석이 코드 반복이 아니며 비자명한 계약을 정확히 설명하는지 확인한다.",
+        "기존 미커밋 canonical artifact와 설치 cache가 변경되지 않았는지 확인한다."
+      ]
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "factory 승격 우회, remote mutation, legacy alias, reference 소유권, rendering 소유권, Drive safety, CRUD 문구, 주석, 범위 밖 변경을 검토했다. 줄바꿈 사이 잔존 용어와 package-base 검증 강도를 보완한 뒤 전 검증을 재통과했다.",
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fc203-65e2-7522-a7e5-ef015f767856",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

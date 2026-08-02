@@ -1,0 +1,99 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "OPEN-001",
+      "kind": "open-item",
+      "content": {
+        "item": "확인된 직접 충돌, bootstrap gap과 용어·surface ambiguity의 해소 정책"
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    },
+    {
+      "id": "OPEN-ITEMS-STATUS",
+      "kind": "open-items-status",
+      "content": {
+        "status": "정책 인터뷰 5건이 모두 완료되어 blocking 미결정은 없다. 스킬 문서와 코드 수정은 아직 시작하지 않았다."
+      }
+    },
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Work Package도 factory 전용으로 통합한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-001",
+        "rationale": "단일 Work Unit과 동일한 factory 승격 경계를 유지하고 묶음 실행 기능은 보존한다."
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "로컬 factory 브랜치가 없을 때 명시적인 factory-init 명령으로 기준 브랜치에서 생성한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-002",
+        "rationale": "신규 저장소의 bootstrap gap을 해소하되 암묵적인 브랜치 생성을 피한다."
+      }
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": {
+        "decision": "결과 검토는 Interview 적용 대상에서 제외하고 Main Agent가 rework 또는 complete를 직접 처리한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-003",
+        "rationale": "정책 결정 인터뷰와 고정된 두 결과의 작업 검토를 분리한다."
+      }
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": {
+        "decision": "모든 정식·설명용 artifact 명칭은 Specification만 사용하고 Design Document 표현은 제거한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-004",
+        "rationale": "Human이 단일 용어 사용을 명시적으로 결정했다."
+      }
+    },
+    {
+      "id": "DECISION-005",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Google Mail 연동의 문서·provider·설정 key는 google-mail로 통일하고 Gmail은 제품 표시명으로만 사용한다.",
+        "status": "accepted",
+        "source": "INTERVIEW-005",
+        "rationale": "동일 provider의 문서와 runtime 식별자를 하나로 통일한다."
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risk": "google-gmail key 제거는 기존 로컬 설정 사용자를 깨뜨릴 수 있다.",
+        "mitigation": "Human이 alias 없는 google-mail 단일 key를 선택했으므로 문서·코드·테스트를 원자적으로 변경하고 실패 메시지와 검증을 일치시킨다."
+      }
+    },
+    {
+      "id": "RISK-002",
+      "kind": "risk",
+      "content": {
+        "risk": "Work Package의 base와 target 변경이 병렬 DAG 실행 또는 integration receipt를 회귀시킬 수 있다.",
+        "mitigation": "standalone과 package 경로를 분리한 회귀 테스트, arbitrary target 거부, 실제 Git repository 기반 integration test로 검증한다."
+      }
+    },
+    {
+      "id": "RISK-003",
+      "kind": "risk",
+      "content": {
+        "risk": "factory-init을 잘못된 HEAD에서 실행하면 의도하지 않은 기준 commit을 가리킬 수 있다.",
+        "mitigation": "명령은 생성 전후의 resolved HEAD와 branch 결과를 명확히 보고하고 existing factory에는 숨은 변경을 하지 않는다."
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.66",
+  "id": "audit-skill-language-conflicts",
+  "artifactType": "intake",
+  "projectId": "agent-factory-codex-plugins",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "ready"
+  },
+  "createdAt": "2026-08-02T09:38:14+00:00",
+  "updatedAt": "2026-08-02T10:21:05+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-08-02T19:20:26+09:00",
+    "contractValid": true,
+    "evidenceComplete": true,
+    "requirementsComplete": true,
+    "specificationConsistent": true,
+    "executionReady": true,
+    "findings": []
+  }
+}

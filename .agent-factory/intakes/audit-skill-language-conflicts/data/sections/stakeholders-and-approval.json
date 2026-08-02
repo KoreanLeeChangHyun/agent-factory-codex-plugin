@@ -1,0 +1,26 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": "Human"
+    },
+    {
+      "id": "BOUNDARY-001",
+      "kind": "approval-boundary",
+      "content": "Intake와 Work Unit 준비는 현재 요청으로 진행한다. 생성된 이름의 Work Unit 실행은 해당 Work Unit을 지정한 명시적 Human 요청 후 시작하며 완료 결과는 Main Agent가 rework 또는 complete로 직접 검토받는다."
+    },
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": [
+        "Agent Factory plugin을 유지보수하는 Human",
+        "8개 스킬 문서와 manager를 사용하는 Main Agent 및 Workflow Agent",
+        "local factory 기반 Work Unit과 Work Package 사용자"
+      ]
+    }
+  ],
+  "subsections": []
+}

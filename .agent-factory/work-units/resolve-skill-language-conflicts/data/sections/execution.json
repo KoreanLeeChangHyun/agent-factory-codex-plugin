@@ -1,0 +1,22 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "30개 skills/** 파일에 확정 정책을 구현하고 source commit 5168345로 기록했다.",
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fc203-65e2-7522-a7e5-ef015f767856",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,35 @@
+Work Unit: resolve-skill-language-conflicts
+Revision/attempt: 1/1
+Source commit: 5168345
+
+Verification results
+- python3 -m pytest -q -p no:cacheprovider skills/work-units/tests
+  PASS: 119 passed, 14 subtests passed in 178.88s
+- python3 -m pytest -q -p no:cacheprovider skills/synchronization/tests skills/intakes/tests skills/specifications/tests skills/lifecycle/tests skills/agents/tests
+  PASS: 96 passed, 134 subtests passed in 107.09s
+- python3 skills/intakes/scripts/intake.py check-schemas
+  PASS: intake@2.0.0 schemas valid
+- python3 skills/specifications/scripts/specification.py check-schemas
+  PASS: six Specification profiles and schemas valid
+- python3 skills/work-units/scripts/work_unit.py check-schemas
+  PASS: work-unit@4.0.0 schemas valid
+- python3 /home/deus/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+  PASS: Plugin validation passed
+- find skills -name SKILL.md -type f | sort
+  PASS: exactly 8 registered SKILL.md files
+- multiline prohibited-term checks for Design Document, google-gmail, reference self-identification as this skill, and complete CRUD core
+  PASS: no matches in the scoped source corpus
+- git diff --check
+  PASS
+
+AI review
+- Work Package definitions reject every target except local factory.
+- Package members start from work-package/<package-id> so prerequisite results are visible, while final promotion remains local factory.
+- factory-init creates only refs/heads/factory at current HEAD, preserves checkout, reports existing factory without mutation, and leaves the remote unchanged in regression coverage.
+- Result review belongs to Main Agent with only rework or complete; Interview keeps its three-choice policy-decision contract.
+- Specification, google-mail, reference ownership, external rendering ownership, Drive two-confirmation safety, and manager command-surface language are consistent.
+- Changed code comments explain the non-obvious package-base and sparse control-plane constraints.
+- No installed plugin cache, remote, canonical Specification, or source path outside skills/** was changed.
+
+Residual risk
+- google-mail intentionally has no google-gmail compatibility alias, so existing local configuration using the removed key must be migrated by its owner.

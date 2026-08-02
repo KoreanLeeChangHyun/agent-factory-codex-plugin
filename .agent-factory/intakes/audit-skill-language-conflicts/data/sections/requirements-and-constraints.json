@@ -1,0 +1,83 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": "Work Package는 local factory를 최종 target으로만 사용하고 package integration branch와 member execution이 standalone Work Unit의 factory-only 승격 경계를 우회하지 않아야 한다."
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": "명시적인 factory-init 명령은 local factory가 없을 때 현재 HEAD를 기준으로 생성하고 원격 push를 수행하지 않아야 하며, 이미 존재할 때는 숨은 변경 없이 명확히 거부하거나 기존 상태를 보고해야 한다."
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": "결과 검토는 Interview 적용 범위에서 제외하고 Main Agent가 rework 또는 complete 두 결과를 직접 처리해야 한다."
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": "소스 스킬 문서와 사용자용 artifact 설명에서 Design Document 표현을 제거하고 Specification만 사용해야 한다. Design Report처럼 별도로 정의된 파생 viewer 명칭은 변경 대상이 아니다."
+    },
+    {
+      "id": "REQ-005",
+      "kind": "requirement",
+      "content": "Google Mail 연동의 문서·provider·설정 key는 google-mail로 통일하고 Gmail은 제품 표시명으로만 사용하며 google-gmail 별칭은 남기지 않아야 한다."
+    },
+    {
+      "id": "REQ-006",
+      "kind": "requirement",
+      "content": "reference 문서는 자신을 독립 skill로 지칭하지 않고 소속 reference 또는 capability로 지칭하며 상대 경로 기준을 parent skill root로 명시해야 한다."
+    },
+    {
+      "id": "REQ-007",
+      "kind": "requirement",
+      "content": "Specification package rendering과 Human-facing Design Report rendering의 소유자는 외부 viewer임을 일관되게 명시하고 specifications assets가 rendering resource를 소유한다는 문구를 제거해야 한다."
+    },
+    {
+      "id": "REQ-008",
+      "kind": "requirement",
+      "content": "Google Drive의 rsync --delete, rclone sync, cleanup 같은 제거·대체 가능 작업은 rules change-safety의 exact target·command 제시와 추가 Human 확인을 명시적으로 따라야 한다."
+    },
+    {
+      "id": "REQ-009",
+      "kind": "requirement",
+      "content": "complete CRUD core라는 표현은 실제 manager command surface 전체를 열거하거나 complete라는 단정을 제거해 지원 범위와 문서가 일치해야 한다."
+    },
+    {
+      "id": "REQ-010",
+      "kind": "requirement",
+      "content": "추가 또는 변경되는 코드 주석은 의도·제약·비자명한 결정만 설명하고 코드를 그대로 반복하지 않는 rules의 주석 convention을 따라야 한다."
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "등록 SKILL.md는 lifecycle, agents, rules, intakes, work-units, specifications, conventions, synchronization의 8개만 유지한다.",
+        "Work Unit 구현은 local factory 기반 worktree에서 수행하고 원격 push·승격·PR을 수행하지 않는다.",
+        "기존 미커밋 canonical artifact와 설치 cache는 수정하지 않는다.",
+        "canonical Intake와 Work Unit JSON은 각 manager로만 변경한다."
+      ]
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "Work Package가 factory 이외 target을 사용하지 못하고 member 실행과 package 완료가 local factory 승격 경계를 우회하지 않으며 회귀 테스트가 이를 증명한다.",
+        "factory-init이 local factory 부재 시 현재 HEAD에서 branch를 생성하고 원격을 변경하지 않으며 existing factory 동작이 테스트된다.",
+        "결과 검토 문서는 Interview가 아닌 Main Agent 소유와 rework 또는 complete 두 결과만 명시한다.",
+        "skills source에서 artifact 명칭 Design Document가 제거되고 Specification만 사용된다.",
+        "skills source의 문서·provider·설정 식별자 google-gmail이 제거되고 google-mail로 통일되며 Gmail은 제품 표시명으로만 쓰인다.",
+        "reference 자기지칭 this skill이 제거되고 parent skill root 기준이 명시된다.",
+        "Specification rendering 소유권, Drive 파괴적 동기화 확인, CRUD command surface 문구가 상위 계약과 일치한다.",
+        "변경 코드 주석은 의도와 제약을 설명하고 코드 동작을 반복하지 않는다.",
+        "등록 SKILL.md 수가 정확히 8개이고 plugin validator, metadata/profile tests, 세 manager schema 검사와 관련 Work Package·worktree·synchronization tests가 통과한다.",
+        "최종 diff가 이번 Intake와 Work Unit에 기록된 경계 밖의 기존 미커밋 파일을 변경하지 않는다."
+      ]
+    }
+  ],
+  "subsections": []
+}

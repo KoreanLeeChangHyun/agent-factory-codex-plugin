@@ -1,0 +1,455 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/*/SKILL.md 8개와 skills/*/references/*.md 31개",
+        "method": "전체 문서 전독, 고위험 용어 검색, reference routing 및 자산 존재 확인",
+        "findings": [
+          "조사 대상은 총 39개 문서다.",
+          "모든 reference 파일은 소속 SKILL.md routing에서 발견됐다.",
+          "등록 SKILL.md는 정확히 8개다."
+        ],
+        "interpretations": [
+          "구조적 누락과 의미 충돌을 별도 분류할 수 있다."
+        ],
+        "limitations": [
+          "설치 캐시와 원격 branch 문서는 이번 source corpus에서 제외했다."
+        ]
+      }
+    },
+    {
+      "id": "CONFLICT-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/work-units/references/work-unit-execution.md:87-103,113-145; skills/work-units/references/work-unit-management.md:89-104; skills/work-units/scripts/work_package_exec.py:159,331-374,400-430; skills/work-units/scripts/worktree.py; skills/work-units/scripts/work_package_integrate.py:165-173",
+        "method": "문서 계약과 실행 인자 흐름 정적 대조",
+        "findings": [
+          "fresh worktree Work Unit은 base factory만 허용한다.",
+          "Work Package executor는 member prepare의 base로 work-package integrationBranch를 전달한다.",
+          "Work Package completion은 package targetBranch로 직접 통합한다.",
+          "Work Package targetBranch는 factory로 제한되지 않는다."
+        ],
+        "interpretations": [
+          "fresh Work Package member 실행은 factory-only prepare에서 거부될 수 있다.",
+          "package target이 main 등일 경우 factory promotion 분리 계약을 우회한다."
+        ],
+        "limitations": [
+          "실제 Work Package 실행은 mutation을 수반하므로 이번 분석에서는 수행하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "CONFLICT-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/intakes/references/interview.md:21-27,37-43; skills/lifecycle/references/lifecycle-entry.md:96-109; skills/work-units/references/work-unit-management.md:71-83",
+        "method": "Human result review 선택지 계약 대조",
+        "findings": [
+          "result review의 유효 결과는 rework 또는 complete 두 개다.",
+          "interview reference는 result review를 자신의 사용 범위로 지정한다.",
+          "interview reference는 모든 질문에 정확히 A, B, C 세 선택지를 요구한다."
+        ],
+        "interpretations": [
+          "result review에서 세 번째 무효 선택지를 발명하거나 interview 형식을 위반해야 하는 충돌이다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "CONFLICT-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "reference corpus의 this skill 및 capability skill 용례 30건/19문서",
+        "method": "reference 자기지칭 용어 전수 검색",
+        "findings": [
+          "현재 등록 단위는 SKILL.md 8개뿐이다.",
+          "analysis, interview, web-search, diagram, specification-management, google-drive, google-mail, annotation 등 reference 문서가 자신을 this skill로 지칭한다.",
+          "interview reference는 relative to this skill이라는 경로 표현도 사용한다."
+        ],
+        "interpretations": [
+          "reference와 등록 skill의 경계를 흐려 통합 전 스킬 수와 소유권 모델을 다시 도입한다.",
+          "상대 경로 기준도 reference 파일인지 parent skill인지 모호해진다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "CONFLICT-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/specifications/SKILL.md:17,22-24; skills/specifications/references/specification-management.md:135-142,244-267; skills/specifications/assets/",
+        "method": "상위 routing·asset 소유권 문장과 reference·실제 파일 대조",
+        "findings": [
+          "Specifications SKILL은 canonical package render와 report rendering resources를 소유한다고 말한다.",
+          "specification-management는 별도 Chrome extension이 Design Report rendering을 소유하고 이 skill 밖이라고 말한다.",
+          "실제 specifications/assets에는 profiles와 schema만 있고 report rendering resource는 없다."
+        ],
+        "interpretations": [
+          "rendering 소유자가 plugin skill인지 외부 viewer인지 충돌한다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "CONFLICT-005",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/rules/references/change-safety.md:36-49; skills/synchronization/references/google-drive.md:104-116,123-156,171-181",
+        "method": "파괴적 로컬 동기화 허용 조건 대조",
+        "findings": [
+          "change-safety는 제거·대체 작업 전에 exact file/command 제시와 Human 승인을 요구하고 승인 후에도 추가 확인을 요구한다.",
+          "google-drive reference는 경로 확인만으로 rsync --delete 또는 rclone sync 사용을 허용하는 문장을 제공한다.",
+          "Drive local cleanup 문장은 confirmed destination 내부 삭제만 조건으로 둔다."
+        ],
+        "interpretations": [
+          "provider reference를 따르면 일반 change-safety의 명시적 확인 경계를 건너뛸 수 있다."
+        ],
+        "limitations": [
+          "실제 동기화 명령은 실행하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "GAP-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/lifecycle/references/lifecycle-entry.md:3-5,76-84; skills/work-units/references/worktree-contract.md:8-23; skills/work-units/tests/test_work_unit_manager.py:904-940",
+        "method": "fresh repository lifecycle과 factory prerequisite 대조",
+        "findings": [
+          "lifecycle은 별도 initialization phase가 없다고 명시한다.",
+          "fresh worktree execution은 local factory ref가 반드시 존재해야 한다.",
+          "manager tests는 missing factory base를 거부하도록 고정한다.",
+          "문서 corpus에는 factory branch 생성 또는 bootstrap 절차가 없다."
+        ],
+        "interpretations": [
+          "factory가 없는 신규 repository는 Intake 이후 실행으로 진입할 수 없는 bootstrap gap이 있다."
+        ],
+        "limitations": [
+          "현재 repository에는 factory가 존재하므로 현재 프로젝트 실행은 영향받지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "AMBIGUITY-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/synchronization/SKILL.md:14-18; skills/synchronization/references/google-mail.md:1,89-103; skills/synchronization/references/synchronization-management.md:28-29",
+        "method": "provider 이름, source key와 경로 placeholder 대조",
+        "findings": [
+          "provider 문서명은 google-mail이고 본문 제품명은 Gmail이며 manager source key는 google-gmail이다.",
+          "google-mail reference는 this-skill-directory를 directory containing this SKILL.md로 설명하지만 명령은 reference 문서 안에 있다."
+        ],
+        "interpretations": [
+          "runtime key는 일관되지만 사용자 용어와 파일 용어가 세 갈래다.",
+          "placeholder의 parent skill root 해석이 명시적이지 않다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "AMBIGUITY-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/lifecycle/references/common-document-contract.md:90-101; skills/specifications/references/specification-management.md:59-70; skills/work-units/references/work-unit-management.md:8-20",
+        "method": "complete CRUD core라는 문구와 열거된 command surface 대조",
+        "findings": [
+          "common contract는 section-*와 block-*를 포함한 공통 CRUD core를 명시한다.",
+          "Specification과 Work Unit 문서는 complete CRUD core라고 부르면서 section-put까지만 열거한다.",
+          "실제 manager help에는 추가 section, block, validate 및 lifecycle 명령이 존재한다."
+        ],
+        "interpretations": [
+          "complete라는 단어가 실제 전체 command surface와 맞지 않아 독자가 지원 범위를 축소 해석할 수 있다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "AMBIGUITY-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/specifications/SKILL.md; skills/specifications/references/specification-management.md; skills/lifecycle/references/common-document-contract.md",
+        "method": "canonical artifact 명칭 대조",
+        "findings": [
+          "동일 계층에서 Specification package, Design Document JSON, Design Document package라는 표현이 교차 사용된다.",
+          "Project Core는 Specification profile로 설명되지만 Design Document와 병렬 명칭처럼 쓰이는 문장도 있다.",
+          "Design Report는 derived view로 명확히 정의되어 있다."
+        ],
+        "interpretations": [
+          "Design Report는 구분되지만 Specification과 Design Document의 동의어·포함관계 glossary가 없어 단어 수준 소유권이 흔들린다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "test_skill_metadata.py; test_document_profiles.py; validate_plugin.py; manager check-schemas; rg tests for Work Package factory coverage",
+        "method": "기존 구조 검증 실행과 회귀 coverage 검색",
+        "findings": [
+          "skill metadata 16 tests, document profiles 9 tests, plugin validation과 세 manager schema 검사가 통과했다.",
+          "기존 테스트는 factory-only Work Unit을 검증하지만 Work Package executor의 integrationBranch base와 factory-only prepare 조합을 검증하지 않는다."
+        ],
+        "interpretations": [
+          "구조 테스트 통과는 문장 의미 정합성을 보장하지 않으며 Work Package 충돌은 현재 regression blind spot이다."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "39개 문서의 ownership, lifecycle, manager, safety, naming matrix",
+        "method": "도메인별 교차 검토",
+        "findings": [
+          "single Work Unit의 factory base, two-outcome review, automatic local integration, no-push promotion 경계는 agents, lifecycle, work-units 사이에서 일치한다.",
+          "canonical Intake, Specification, Work Unit JSON manager ownership은 intakes, specifications, lifecycle, work-units 사이에서 일치한다.",
+          "annotation과 SVG icon convention은 서로 다른 대상이라 충돌하지 않는다.",
+          "analysis, web search, user research evidence ownership은 intakes 내부에서 구분된다."
+        ],
+        "interpretations": [
+          "확인된 충돌은 전체 계약이 아니라 특정 경계와 용어에 집중되어 있다."
+        ],
+        "limitations": [
+          "외부 기술 주장의 최신성은 이번 내부 문서 충돌 조사 범위가 아니다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "Work Package를 factory 중심 통합 계약에 어떻게 맞출까요?",
+        "choices": {
+          "A": {
+            "decision": "Work Package도 factory 전용으로 통합한다",
+            "pros": [
+              "단일 Work Unit과 동일한 승격 경계를 유지한다",
+              "main·dev·master 직접 통합 우회를 제거한다"
+            ],
+            "cons": [
+              "Work Package 실행기와 회귀 테스트를 함께 수정해야 한다"
+            ]
+          },
+          "B": {
+            "decision": "Work Package에는 임의 targetBranch 예외를 유지한다",
+            "pros": [
+              "기존 package target 기능을 유지한다",
+              "수정 범위가 비교적 작다"
+            ],
+            "cons": [
+              "factory 단일 통합 원칙에 예외가 남는다",
+              "승격 경로가 두 개로 유지된다"
+            ]
+          },
+          "C": {
+            "decision": "Work Package 기능을 제거한다",
+            "pros": [
+              "중복 실행·통합 경로를 없앤다",
+              "계약이 가장 단순해진다"
+            ],
+            "cons": [
+              "묶음 실행 기능과 기존 사용 경로를 잃는다",
+              "삭제 범위와 전환 비용이 가장 크다"
+            ]
+          }
+        },
+        "recommendation": "A",
+        "rationale": "사용자가 정한 factory 중심 통합 원칙을 Work Package에도 동일하게 적용하면 예외와 우회 경로를 제거하면서 묶음 실행 기능은 유지할 수 있다.",
+        "answer": "A",
+        "decisionState": "answered"
+      }
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "로컬 factory 브랜치가 없는 저장소의 초기 진입 방식을 어떻게 정할까요?",
+        "choices": {
+          "A": {
+            "decision": "명시적인 factory-init 명령으로 현재 기준 브랜치에서 생성한다",
+            "pros": [
+              "브랜치 생성 시점과 기준이 명확하다",
+              "숨은 Git 변경 없이 자동화할 수 있다"
+            ],
+            "cons": [
+              "최초 한 번 별도 명령이 필요하다"
+            ]
+          },
+          "B": {
+            "decision": "첫 Work Unit 실행 시 현재 HEAD에서 자동 생성한다",
+            "pros": [
+              "별도 초기화 절차가 없다",
+              "첫 실행이 간편하다"
+            ],
+            "cons": [
+              "실행 명령이 암묵적으로 브랜치를 생성한다",
+              "잘못된 HEAD를 기준으로 삼을 위험이 있다"
+            ]
+          },
+          "C": {
+            "decision": "factory가 미리 존재해야 하며 없으면 오류로 중단한다",
+            "pros": [
+              "구현 변경이 가장 작다",
+              "브랜치 생성 책임을 외부에 둔다"
+            ],
+            "cons": [
+              "신규 저장소의 공식 진입 절차가 계속 비어 있다",
+              "사용자가 수동 Git 절차를 알아야 한다"
+            ]
+          }
+        },
+        "recommendation": "A",
+        "rationale": "명시적인 초기화 명령은 생성 기준과 부작용을 드러내며 신규 저장소의 bootstrap gap을 닫는다. 자동 생성보다 오작동을 되돌리기 쉽고 기존 저장소에는 영향을 주지 않는다.",
+        "answer": "A",
+        "decisionState": "answered"
+      }
+    },
+    {
+      "id": "INTERVIEW-003",
+      "kind": "interview",
+      "content": {
+        "question": "작업 결과를 보여준 뒤 수정할까요, 완료할까요라고 묻는 2지선다를 Interview 스킬이 담당해야 할까요?",
+        "choices": {
+          "A": {
+            "decision": "아니요. 결과 검토는 Main Agent가 rework 또는 complete 두 가지만 직접 묻는다",
+            "pros": [
+              "현재 두 결과 계약을 그대로 유지한다",
+              "정책 결정 인터뷰와 작업 결과 확인을 구분한다"
+            ],
+            "cons": [
+              "Interview 문서에서 결과 검토 항목을 빼야 한다"
+            ]
+          },
+          "B": {
+            "decision": "네. 선택지 하나를 추가해 Interview의 A/B/C 형식으로 바꾼다",
+            "pros": [
+              "Interview 형식을 그대로 적용할 수 있다"
+            ],
+            "cons": [
+              "필요하지 않은 세 번째 결과와 처리 규칙이 생긴다"
+            ]
+          },
+          "C": {
+            "decision": "네. 다만 결과 검토에만 Interview의 두 선택지 예외를 허용한다",
+            "pros": [
+              "결과 검토를 Interview 범위에 유지한다"
+            ],
+            "cons": [
+              "Interview의 항상 A/B/C 규칙에 예외가 생긴다"
+            ]
+          }
+        },
+        "recommendation": "A",
+        "rationale": "정책을 정하는 Interview와 이미 끝난 작업을 수정 또는 완료로 판정하는 결과 검토는 목적이 다르다. 결과 검토를 Main Agent가 직접 처리하면 불필요한 세 번째 선택지나 예외 규칙이 필요 없다.",
+        "answer": "A",
+        "decisionState": "answered"
+      }
+    },
+    {
+      "id": "INTERVIEW-004",
+      "kind": "interview",
+      "content": {
+        "question": "Specification과 Design Document의 표준 관계를 어떻게 정할까요?",
+        "choices": {
+          "A": {
+            "decision": "정식 artifact 이름은 Specification으로 통일하고 Design Document는 Human-facing 목적 설명으로만 사용한다",
+            "pros": [
+              "canonical package 이름과 manager 이름이 일치한다",
+              "Design Report와의 관계를 명확하게 설명할 수 있다"
+            ],
+            "cons": [
+              "기존 Design Document 표현을 문맥에 맞게 교정해야 한다"
+            ]
+          },
+          "B": {
+            "decision": "정식 artifact 이름을 Design Document로 통일하고 Specification은 내부 profile 또는 데이터 형식 이름으로만 사용한다",
+            "pros": [
+              "사람이 읽는 설계 문서라는 목적이 직접 드러난다"
+            ],
+            "cons": [
+              "현재 specifications skill과 specification.py 명칭이 artifact 이름과 어긋난다",
+              "코드 명칭 변경 범위가 커질 수 있다"
+            ]
+          },
+          "C": {
+            "decision": "두 이름을 계속 동의어로 허용하되 glossary에서 같은 artifact라고 정의한다",
+            "pros": [
+              "기존 문구 수정량이 가장 작다"
+            ],
+            "cons": [
+              "문서마다 명칭이 계속 달라질 수 있다",
+              "검색과 소유권 설명이 덜 명확하다"
+            ]
+          }
+        },
+        "recommendation": "A",
+        "rationale": "현재 skill, manager, package가 이미 Specification을 정식 식별자로 사용한다. Human은 A 방향을 더 엄격하게 지정해 Design Document 표현을 사용하지 않고 Specification만 사용하기로 했다.",
+        "answer": "A",
+        "answerDetail": "Specification만 사용한다. Design Document 표현은 설명용으로도 사용하지 않는다.",
+        "decisionState": "answered"
+      }
+    },
+    {
+      "id": "INTERVIEW-005",
+      "kind": "interview",
+      "content": {
+        "question": "Google Mail 연동의 문서·설정 식별자를 어떤 이름으로 통일할까요?",
+        "choices": {
+          "A": {
+            "decision": "문서·provider·설정 key는 google-mail로 통일하고 제품을 설명할 때만 Gmail을 사용한다",
+            "pros": [
+              "reference 파일명과 provider 용어가 일치한다",
+              "google-gmail이라는 세 번째 이름을 제거한다"
+            ],
+            "cons": [
+              "기존 google-gmail 설정 key와 테스트를 변경해야 한다"
+            ]
+          },
+          "B": {
+            "decision": "문서·provider·설정 key를 google-gmail로 통일하고 제품을 설명할 때만 Gmail을 사용한다",
+            "pros": [
+              "현재 runtime key를 유지할 수 있다"
+            ],
+            "cons": [
+              "google-mail reference 파일명과 용어를 변경해야 한다",
+              "식별자가 길고 중복적으로 보일 수 있다"
+            ]
+          },
+          "C": {
+            "decision": "reference는 google-mail, 설정 key는 google-gmail로 유지하고 둘의 mapping만 명시한다",
+            "pros": [
+              "코드 변경 범위가 가장 작다"
+            ],
+            "cons": [
+              "동일 provider에 두 식별자가 계속 존재한다",
+              "검색과 사용 시 변환 규칙을 기억해야 한다"
+            ]
+          }
+        },
+        "recommendation": "A",
+        "rationale": "google-mail은 현재 reference 이름과 일반 provider naming 형식에 맞는다. 설정 key도 동일하게 바꾸면 문서와 runtime 사이의 변환 규칙을 제거할 수 있으며 Gmail은 제품 표시명으로만 분리할 수 있다.",
+        "answer": "A",
+        "decisionState": "answered"
+      }
+    }
+  ],
+  "subsections": []
+}

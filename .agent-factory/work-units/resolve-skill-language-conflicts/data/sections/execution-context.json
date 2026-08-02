@@ -1,0 +1,82 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "resolve-skill-language-conflicts",
+        "objective": "8개 스킬 언어·lifecycle 충돌 해소",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/codex-plugins --work-unit-id resolve-skill-language-conflicts",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/codex-plugins",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/resolve-skill-language-conflicts",
+        "worktreePath": "/home/deus/workspace/agent-factory/codex-plugins/.agent-factory/worktree/resolve-skill-language-conflicts"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fc203-65e2-7522-a7e5-ef015f767856",
+        "invocationChain": [
+          "019fc203-65e2-7522-a7e5-ef015f767856",
+          "019fc208-724f-7b10-8dea-692cdf4beaa0"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "plan",
+            "work",
+            "ai-review",
+            "report"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "plan",
+              "state": "completed",
+              "idempotencyKey": "resolve-skill-language-conflicts:r1:a1:plan"
+            },
+            {
+              "stepId": "work",
+              "state": "completed",
+              "idempotencyKey": "resolve-skill-language-conflicts:r1:a1:work"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "pending",
+              "idempotencyKey": "resolve-skill-language-conflicts:r1:a1:ai-review"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "completed",
+              "idempotencyKey": "resolve-skill-language-conflicts:r1:a1:ai-review-complete"
+            },
+            {
+              "stepId": "report",
+              "state": "completed",
+              "idempotencyKey": "resolve-skill-language-conflicts:r1:a1:report-complete"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fc208-724f-7b10-8dea-692cdf4beaa0",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,40 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "factory 브랜치의 skills/**/SKILL.md 8개",
+        "factory 브랜치의 skills/**/references/*.md 31개",
+        "문서 계약을 확인하는 데 필요한 manager/runtime/test의 read-only 대조"
+      ]
+    },
+    {
+      "id": "EXCLUSION-001",
+      "kind": "out-of-scope",
+      "content": [
+        "설치된 plugin cache 수정",
+        "기존 8개 스킬의 추가 통합·이름 변경·삭제",
+        "이번 Intake와 새 Work Unit 밖의 canonical artifact 수정",
+        "원격 push, 배포, factory의 실제 branch 승격 또는 PR 생성"
+      ]
+    },
+    {
+      "id": "SCOPE-002",
+      "kind": "scope",
+      "content": [
+        "확정된 5개 Human 결정을 반영하는 skills/** 문서·스크립트·schema·테스트 수정",
+        "확인된 this skill 자기지칭, rendering 소유권, Drive 파괴적 동기화 안전성, CRUD surface 문구의 직접 정합화",
+        "추가·변경 동작의 회귀 테스트와 전체 스킬 문서 재감사"
+      ]
+    },
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "최상위 router 제거와 스킬 통합 후 factory 브랜치에는 8개 스킬과 39개 핵심 문서가 존재하며, 전수 조사에서 특정 lifecycle·Work Package·synchronization·Specification 경계의 충돌이 확인됐다."
+    }
+  ],
+  "subsections": []
+}
