@@ -53,6 +53,17 @@
           "package 전체에 Human review와 target integration은 각각 한 번이며 rework는 영향 node와 descendants만 재실행한다."
         ]
       }
+    },
+    {
+      "id": "STATUS-DECISION-001",
+      "kind": "accepted-decisions",
+      "content": {
+        "items": [
+          "DECISION-003과 Human 선택 A에 따라 요청 시 Goal, launcher process, canonical Work Unit과 최근 heartbeat를 종합 조회한다.",
+          "재접속 시 통합 조회가 canonical 상태와 실제 실행 상태의 불일치를 reconciliation하고 effective state를 반환한다.",
+          "기존 main-facing stdout은 compact ACK와 terminal 또는 escalation만 유지하며 status는 별도 on-demand 단일 문서다."
+        ]
+      }
     }
   ],
   "subsections": []

@@ -5,17 +5,17 @@
     {
       "id": "REPORT-STATUS",
       "kind": "report-result",
-      "content": "Delivered: shared JSONL supervisor, single Work Unit worker supervision, compact Work Package output, bounded retry/escalation, aligned agents-main/agents-workflow/work-units-execution skills and canonical durable-execution Specification. Source commit: 7a745cdf71f0295e8a1c326df596195e1c81801f. Execution mode remains worktree and requires Human complete before integration. No scoped verification failures remain.",
+      "content": "통합 status는 Goal, launcher process, canonical Work Unit, 최근 heartbeat를 한 문서로 종합해 running, stalled, complete, process-absent, stale-canonical을 구분하고 effective state와 reconciliation을 반환한다. Source commit bc50db8. Specification과 main/workflow/execution skills가 정렬됐으며 UI, 배포, 재설치, push, branch 삭제, integration은 수행하지 않았다.",
       "attributes": {
         "verificationResult": "pass",
         "executionTarget": {
           "contractVersion": "2.0.0",
-          "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
-          "revision": 1,
+          "invocationId": "019fc1eb-81a7-7622-865d-940759a3fa30",
+          "revision": 2,
           "attempt": 1
         },
         "evidence": [
-          "blocks/logs/verification.txt"
+          "blocks/logs/rework-2-verification.txt"
         ]
       }
     }

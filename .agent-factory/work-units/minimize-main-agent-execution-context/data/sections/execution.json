@@ -5,14 +5,14 @@
     {
       "id": "EXECUTION-STATUS",
       "kind": "execution-result",
-      "content": "전용 worktree에서 단일 Work Unit과 Work Package supervisor의 compact main-facing JSONL, bounded same-id recovery, descendant process cleanup, aligned skill 계약을 구현하고 commit 7a745cdf71f0295e8a1c326df596195e1c81801f에 기록했다.",
+      "content": "DECISION-003과 Human 선택 A를 반영해 on-demand 통합 status, runtime heartbeat sidecar, 재접속 reconciliation, 5개 상태 분류와 skill 계약을 전용 worktree commit bc50db8에 구현했다.",
       "attributes": {
         "status": "complete",
         "verificationResult": "pass",
         "executionTarget": {
           "contractVersion": "2.0.0",
-          "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
-          "revision": 1,
+          "invocationId": "019fc1eb-81a7-7622-865d-940759a3fa30",
+          "revision": 2,
           "attempt": 1
         }
       }

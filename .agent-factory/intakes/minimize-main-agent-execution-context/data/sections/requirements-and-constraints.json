@@ -46,6 +46,22 @@
       "id": "AC-004",
       "kind": "acceptance-criterion",
       "content": "스킬 계약 테스트가 메인 에이전트의 routine heartbeat/event 모니터링 지시 부재와 supervisor ownership을 검증한다."
+    },
+    {
+      "id": "REQ-006",
+      "kind": "requirement",
+      "content": "통합 status 조회는 Goal 상태, supervisor 또는 launcher 프로세스 상태, canonical Work Unit 상태와 최근 heartbeat를 종합하고 재접속 시 불일치를 reconciliation해야 한다.",
+      "attributes": {
+        "sourceDecision": "DECISION-003"
+      }
+    },
+    {
+      "id": "AC-005",
+      "kind": "acceptance-criterion",
+      "content": "실행 중, 정체, 완료, 프로세스 부재와 stale canonical 상태 fixture에서 통합 status가 실제 상태를 구분하며 재접속 reconciliation 결과를 반환한다.",
+      "attributes": {
+        "sourceRequirement": "REQ-006"
+      }
     }
   ],
   "subsections": []
