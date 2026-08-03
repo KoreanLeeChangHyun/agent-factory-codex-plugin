@@ -20,7 +20,7 @@
     {
       "id": "HUMAN-REVIEW-STATUS",
       "kind": "human-review-result",
-      "content": "Human result review ready: inspect source commit 7a745cdf71f0295e8a1c326df596195e1c81801f, canonical Specification alignment, verification evidence, AI review fixes, and choose rework or complete.",
+      "content": "Human 결과 검토 준비 완료: commit bc50db8의 on-demand status/reconciliation 구현, 5개 분류 회귀 테스트, Specification/skill 정렬과 blocks/logs/rework-2-verification.txt 증거를 확인하고 rework 또는 complete를 선택한다.",
       "attributes": {
         "status": "pending"
       }

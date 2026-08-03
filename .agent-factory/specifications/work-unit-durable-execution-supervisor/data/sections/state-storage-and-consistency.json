@@ -129,6 +129,19 @@
           "rework는 영향 node와 descendants만 새 revision으로 연다."
         ]
       }
+    },
+    {
+      "id": "STATUS-STATE-001",
+      "kind": "storage-policy",
+      "content": {
+        "location": ".agent-factory/runtime/work-units/<work-unit-id>.json",
+        "items": [
+          "The supervisor writes a bounded non-canonical runtime sidecar containing launcher pid, thread id, state and latest heartbeat timestamp.",
+          "Canonical Work Unit lifecycle and execution state remain owned exclusively by work_unit.py.",
+          "Reconciliation does not mutate canonical JSON; it reports stale-canonical and an evidence-derived effective state.",
+          "Runtime sidecars are excluded from Git and do not cross the compact execution stdout boundary."
+        ]
+      }
     }
   ],
   "subsections": []

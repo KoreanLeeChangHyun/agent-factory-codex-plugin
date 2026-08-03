@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "documentVersion": "1.0.113",
+  "documentVersion": "1.0.118",
   "id": "work-unit-durable-execution-supervisor",
   "artifactType": "specification",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "draft"
   },
   "createdAt": "2026-07-25T10:28:02+00:00",
-  "updatedAt": "2026-07-30T19:17:24+00:00",
+  "updatedAt": "2026-08-02T10:09:45+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

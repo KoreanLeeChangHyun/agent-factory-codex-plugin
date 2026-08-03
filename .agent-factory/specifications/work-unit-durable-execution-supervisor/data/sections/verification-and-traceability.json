@@ -85,6 +85,18 @@
           "Completed durable work non-repetition -> AC-003"
         ]
       }
+    },
+    {
+      "id": "STATUS-TRACEABILITY-001",
+      "kind": "traceability",
+      "content": {
+        "intakeAnchor": ".agent-factory/intakes/minimize-main-agent-execution-context#work-unit-basis/BASIS-002",
+        "mappings": [
+          "Integrated Goal/process/Work Unit/heartbeat status -> REQUIREMENT-006, DECISION-003",
+          "Reconnect reconciliation and stale canonical effective state -> AC-005",
+          "On-demand status with preserved compact execution stream -> REQUIREMENT-002, REQUIREMENT-004"
+        ]
+      }
     }
   ],
   "subsections": []

@@ -7,7 +7,7 @@
       "kind": "specification-impact",
       "content": {
         "status": "gap-accepted-for-work-unit",
-        "result": "Project Core의 deterministic script ownership 원칙은 유지되지만 work-unit-durable-execution-supervisor Specification과 기존 Intake 결정에는 메인 에이전트가 heartbeat/events를 소비하고 재호출한다는 계약이 있어 supervisor-only 감시와 compact main output으로 정렬해야 한다.",
+        "result": "기존 supervisor-only 감시와 compact main output Specification은 구현됐지만, DECISION-003의 Goal·프로세스·Work Unit·최근 heartbeat 통합 status 조회와 재접속 reconciliation 계약은 아직 Specification과 구현에 반영되지 않아 동일 Work Unit rework가 이를 정렬해야 한다.",
         "packages": [
           "work-unit-durable-execution-supervisor"
         ]
@@ -20,6 +20,14 @@
       "id": "BASIS-001",
       "kind": "work-unit-basis",
       "content": "단일 Work Unit과 Work Package에 script-owned liveness supervision과 compact ACK/terminal 경계를 구현하고 main/workflow/execution skill 계약, durable execution Specification, 테스트를 정렬한다."
+    },
+    {
+      "id": "BASIS-002",
+      "kind": "work-unit-basis",
+      "content": "기존 supervisor 구현에 Goal·프로세스·Work Unit·최근 heartbeat 통합 status 조회와 재접속 reconciliation을 추가하고 stale 상태 구분 회귀 테스트를 제공한다.",
+      "attributes": {
+        "sourceDecision": "DECISION-003"
+      }
     }
   ],
   "subsections": []

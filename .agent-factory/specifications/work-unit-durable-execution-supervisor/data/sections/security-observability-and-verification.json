@@ -149,6 +149,51 @@
           "single Work Unit regression"
         ]
       }
+    },
+    {
+      "id": "STATUS-OBSERVABILITY-001",
+      "kind": "observability",
+      "content": {
+        "queryContract": "app_server_goal.py --status returns one on-demand document combining Goal state, launcher process liveness, canonical Work Unit lifecycle and execution state, and recent heartbeat evidence.",
+        "classifications": [
+          "running",
+          "stalled",
+          "complete",
+          "process-absent",
+          "stale-canonical"
+        ],
+        "reconciliationFields": [
+          "classification",
+          "effectiveState",
+          "reconciliation",
+          "goal",
+          "process",
+          "canonical",
+          "heartbeat"
+        ],
+        "boundaries": [
+          "No ACK is emitted for status.",
+          "No routine polling or progress forwarding is introduced.",
+          "Unavailable Goal evidence is explicit and process/canonical/heartbeat evidence remains visible."
+        ]
+      }
+    },
+    {
+      "id": "STATUS-VERIFICATION-001",
+      "kind": "verification",
+      "content": {
+        "promotionRule": "Integrated status and reconnect reconciliation tests pass while the supervisor-only compact ACK/terminal boundary remains green.",
+        "implementationGates": [
+          "running fixture",
+          "stalled heartbeat fixture",
+          "completed fixture",
+          "missing launcher process fixture",
+          "stale canonical with completed actual state fixture",
+          "runtime heartbeat sidecar update fixture",
+          "status CLI emits one document without ACK",
+          "main and workflow reconnect contract tests"
+        ]
+      }
     }
   ],
   "subsections": []

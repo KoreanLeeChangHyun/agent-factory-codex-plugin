@@ -22,6 +22,22 @@
         ],
         "limitations": []
       }
+    },
+    {
+      "id": "INTERVIEW-TRACKING-001",
+      "kind": "interview",
+      "content": {
+        "question": "Goal + Exec의 진행 추적 기준을 어디까지 요구합니까?",
+        "recommendation": "A",
+        "rationale": "메인 에이전트의 반복 감시 없이 낮은 컨텍스트 사용량과 신뢰성 있는 실행 추적을 함께 달성한다.",
+        "answer": "A",
+        "decisionState": "answered",
+        "choices": [
+          "A: 요청 시 Goal·프로세스·Work Unit·최근 heartbeat를 종합 조회하고 재접속 시 reconciliation 지원",
+          "B: 현재 ACK·canonical 진행 기록·terminal만으로 완료",
+          "C: 실시간 진행 UI와 지속 알림 제공"
+        ]
+      }
     }
   ],
   "subsections": []

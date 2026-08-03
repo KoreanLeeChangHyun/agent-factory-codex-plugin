@@ -21,7 +21,16 @@
     {
       "id": "OPEN-STATUS-001",
       "kind": "open-items-status",
-      "content": "차단 open item 없음."
+      "content": "차단 open item 없음. Human이 DECISION-003 반영과 Goal + Exec 진행을 명시적으로 요청했다."
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": "확정: 요청 시 Goal·프로세스·Work Unit·최근 heartbeat를 종합한 status를 조회하고, 재접속 시 canonical 상태와 실제 실행 상태를 reconciliation한다.",
+      "attributes": {
+        "status": "accepted",
+        "sourceInterview": "INTERVIEW-TRACKING-001"
+      }
     }
   ],
   "subsections": []

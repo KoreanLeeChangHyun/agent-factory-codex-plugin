@@ -23,57 +23,155 @@
       "content": {
         "contractVersion": "2.0.0",
         "state": "review",
-        "currentRevision": 1,
+        "currentRevision": 2,
         "currentAttempt": 1,
-        "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+        "invocationId": "019fc1eb-81a7-7622-865d-940759a3fa30",
         "invocationChain": [
-          "019fb46a-224a-7c50-849c-1507818574b0"
+          "019fc1eb-81a7-7622-865d-940759a3fa30"
         ],
-        "history": [],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+            "invocationChain": [
+              "019fb46a-224a-7c50-849c-1507818574b0"
+            ],
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-STATUS",
+                "kind": "execution-result",
+                "content": "전용 worktree에서 단일 Work Unit과 Work Package supervisor의 compact main-facing JSONL, bounded same-id recovery, descendant process cleanup, aligned skill 계약을 구현하고 commit 7a745cdf71f0295e8a1c326df596195e1c81801f에 기록했다.",
+                "attributes": {
+                  "status": "complete",
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "2.0.0",
+                    "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+                    "revision": 1,
+                    "attempt": 1
+                  }
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": "Work Unit에 명시된 6개 검증 명령과 두 canonical Specification full validation이 모두 통과했다.",
+                "attributes": {
+                  "status": "pass",
+                  "executionTarget": {
+                    "contractVersion": "2.0.0",
+                    "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+                    "revision": 1,
+                    "attempt": 1
+                  },
+                  "evidence": [
+                    "blocks/logs/verification.txt"
+                  ]
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-REVIEW-STATUS",
+                "kind": "ai-review-result",
+                "content": "Pass. 상세 operations/turnIds 노출과 orphan descendant 중복 실행 위험을 발견해 compact terminal projection과 process-group cleanup으로 수정했다. 재검증 후 scoped finding은 없다.",
+                "attributes": {
+                  "result": "pass",
+                  "checklistResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "2.0.0",
+                    "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+                    "revision": 1,
+                    "attempt": 1
+                  }
+                }
+              },
+              "report-result": {
+                "id": "REPORT-STATUS",
+                "kind": "report-result",
+                "content": "Delivered: shared JSONL supervisor, single Work Unit worker supervision, compact Work Package output, bounded retry/escalation, aligned agents-main/agents-workflow/work-units-execution skills and canonical durable-execution Specification. Source commit: 7a745cdf71f0295e8a1c326df596195e1c81801f. Execution mode remains worktree and requires Human complete before integration. No scoped verification failures remain.",
+                "attributes": {
+                  "verificationResult": "pass",
+                  "executionTarget": {
+                    "contractVersion": "2.0.0",
+                    "invocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+                    "revision": 1,
+                    "attempt": 1
+                  },
+                  "evidence": [
+                    "blocks/logs/verification.txt"
+                  ]
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-REVIEW-STATUS",
+                "kind": "human-review-result",
+                "content": "Human result review ready: inspect source commit 7a745cdf71f0295e8a1c326df596195e1c81801f, canonical Specification alignment, verification evidence, AI review fixes, and choose rework or complete.",
+                "attributes": {
+                  "status": "pending"
+                }
+              }
+            }
+          }
+        ],
         "progress": {
           "completedSteps": [
-            "PLAN-001",
-            "PLAN-002",
-            "PLAN-003",
-            "PLAN-004",
-            "PLAN-005"
+            "PLAN",
+            "WORK",
+            "AI_REVIEW",
+            "REPORT"
           ],
           "pendingStep": null,
           "records": [
             {
-              "stepId": "PLAN-001",
-              "state": "completed",
-              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-001:completed"
+              "stepId": "PLAN",
+              "state": "pending",
+              "idempotencyKey": "revision-2-attempt-2-plan"
             },
             {
-              "stepId": "PLAN-002",
-              "state": "completed",
-              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-002:completed"
+              "stepId": "WORK",
+              "state": "pending",
+              "idempotencyKey": "revision-2-attempt-1-work"
             },
             {
-              "stepId": "PLAN-003",
-              "state": "completed",
-              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-003:completed"
+              "stepId": "AI_REVIEW",
+              "state": "pending",
+              "idempotencyKey": "revision-2-attempt-1-ai-review"
             },
             {
-              "stepId": "PLAN-004",
-              "state": "completed",
-              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-004:completed"
+              "stepId": "REPORT",
+              "state": "pending",
+              "idempotencyKey": "revision-2-attempt-1-report"
             },
             {
-              "stepId": "PLAN-005",
+              "stepId": "PLAN",
               "state": "completed",
-              "idempotencyKey": "minimize-main-agent-execution-context:attempt-1:plan-005:completed"
+              "idempotencyKey": "revision-2-attempt-1-plan-complete"
+            },
+            {
+              "stepId": "WORK",
+              "state": "completed",
+              "idempotencyKey": "revision-2-attempt-1-work-complete"
+            },
+            {
+              "stepId": "AI_REVIEW",
+              "state": "completed",
+              "idempotencyKey": "revision-2-attempt-1-ai-review-complete"
+            },
+            {
+              "stepId": "REPORT",
+              "state": "completed",
+              "idempotencyKey": "revision-2-attempt-1-report-complete"
             }
           ],
           "retry": {}
         },
         "recovery": {
           "status": "running",
-          "ownerInvocationId": "019fb46a-224a-7c50-849c-1507818574b0",
+          "ownerInvocationId": "019fc1eb-81a7-7622-865d-940759a3fa30",
           "blockerId": null,
           "evidence": null
-        }
+        },
+        "reworkInstruction": "DECISION-003과 Human 선택 A를 반영한다. 기존 supervisor-only compact ACK/terminal 경계를 보존하면서, 요청 시 Goal 상태·supervisor 또는 launcher 프로세스 상태·canonical Work Unit 상태·최근 heartbeat를 종합하는 통합 status 조회를 제공하고, 메인 에이전트 또는 실행 세션 재접속 시 canonical 상태와 실제 실행 상태의 불일치를 reconciliation한다. 실행 중·정체·완료·프로세스 부재·stale canonical 상태를 구분하는 회귀 테스트를 추가하고 work-unit-durable-execution-supervisor Specification 및 관련 skills를 정렬한다. UI·배포·플러그인 재설치·push·branch 삭제는 범위 밖이다."
       }
     }
   ],

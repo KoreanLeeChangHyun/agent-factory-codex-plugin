@@ -1,6 +1,13 @@
 {
   "blocks": [
     {
+      "path": "blocks/logs/rework-2-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Revision 2 integrated status, reconciliation, verification, and AI review evidence",
+      "sha256": "737742d3ba2811207c160c9316f3fe851efbe64029ca7fb517f4cd442b59acf7",
+      "sizeBytes": 3064
+    },
+    {
       "path": "blocks/logs/verification.txt",
       "mediaType": "text/plain",
       "description": "Work Unit scoped verification and AI review evidence",
