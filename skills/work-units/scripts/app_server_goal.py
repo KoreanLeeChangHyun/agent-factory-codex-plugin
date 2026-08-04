@@ -728,8 +728,15 @@ def run_protocol(
     work_unit_id: str,
     mode: str,
     instruction: str | None,
-    emit_ack: Callable[[str, str], Any] | None = None,
+    process_started: float,
+    existing_thread_id: str | None = None,
+    emit_ack: Callable[[str, str, str, dict[str, int]], Any] | None = None,
 ) -> dict[str, Any]:
+    timing = {"processStart": 0}
+
+    def mark(stage: str) -> None:
+        timing[stage] = max(0, int((time.monotonic() - process_started) * 1000))
+
     client.request(
         "initialize",
         {
@@ -741,46 +748,64 @@ def run_protocol(
         },
     )
     client.notify("initialized")
-    thread_result = client.request(
-        "thread/start",
-        {
-            "approvalPolicy": "never",
-            "cwd": str(repository),
-            "sandbox": "danger-full-access",
-        },
-    )
-    thread = thread_result.get("thread")
-    if not isinstance(thread, dict) or not isinstance(thread.get("id"), str):
-        raise ContractError(
-            "invalid_thread_response", "thread/start returned no thread id"
+    mark("appServerReady")
+    if existing_thread_id is None:
+        thread_result = client.request(
+            "thread/start",
+            {
+                "approvalPolicy": "never",
+                "cwd": str(repository),
+                "sandbox": "danger-full-access",
+            },
         )
-    thread_id = thread["id"]
+        thread = thread_result.get("thread")
+        if not isinstance(thread, dict) or not isinstance(thread.get("id"), str):
+            raise ContractError(
+                "invalid_thread_response", "thread/start returned no thread id"
+            )
+        thread_id = thread["id"]
+        thread_disposition = "created"
+    else:
+        if not existing_thread_id.strip():
+            raise ContractError(
+                "invalid_thread_id", "thread-id must not be empty"
+            )
+        thread_id = existing_thread_id
+        thread_disposition = "reused"
+    mark("threadReady")
     objective = work_unit_id
 
-    # Set, fetch, and observe the Goal before turn/start. This three-way check is
-    # the fail-closed boundary that prevents execution under mismatched state.
-    set_goal = goal_value(
-        client.request(
-            "thread/goal/set",
-            {
-                "threadId": thread_id,
-                "objective": objective,
-                "status": "active",
-            },
-        ),
-        required=True,
-    )
-    validate_goal(set_goal, thread_id, objective, required_status="active")
-
-    fetched_goal = goal_value(
-        client.request("thread/goal/get", {"threadId": thread_id}),
-        required=True,
-    )
-    validate_goal(fetched_goal, thread_id, objective, required_status="active")
-
-    updated_message = client.wait_notification("thread/goal/updated")
-    updated_goal = notification_goal(updated_message)
-    validate_goal(updated_goal, thread_id, objective, required_status="active")
+    if thread_disposition == "created":
+        # New threads retain the three-way fail-closed Goal preflight.
+        set_goal = goal_value(
+            client.request(
+                "thread/goal/set",
+                {
+                    "threadId": thread_id,
+                    "objective": objective,
+                    "status": "active",
+                },
+            ),
+            required=True,
+        )
+        validate_goal(set_goal, thread_id, objective, required_status="active")
+        fetched_goal = goal_value(
+            client.request("thread/goal/get", {"threadId": thread_id}),
+            required=True,
+        )
+        validate_goal(fetched_goal, thread_id, objective, required_status="active")
+        updated_message = client.wait_notification("thread/goal/updated")
+        updated_goal = notification_goal(updated_message)
+        validate_goal(updated_goal, thread_id, objective, required_status="active")
+    else:
+        # Reuse is admitted only when the existing thread already owns the
+        # matching active Goal; never overwrite an unrelated thread's Goal.
+        fetched_goal = goal_value(
+            client.request("thread/goal/get", {"threadId": thread_id}),
+            required=True,
+        )
+        validate_goal(fetched_goal, thread_id, objective, required_status="active")
+    mark("goalReady")
 
     turn_ids: list[str] = []
     recovery_count = 0
@@ -836,8 +861,10 @@ def run_protocol(
         start_turn(recovery_prompt(work_unit_id, reason))
 
     initial_turn_id = start_turn(execution_prompt(work_unit_id, mode, instruction))
+    mark("turnAccepted")
+    mark("ackEmitted")
     if emit_ack is not None:
-        emit_ack(thread_id, initial_turn_id)
+        emit_ack(thread_id, initial_turn_id, thread_disposition, dict(timing))
     completed_goal: dict[str, Any] | None = None
     completed_goal_turn_id: str | None = None
     completed_turns: set[str] = set()
@@ -873,6 +900,8 @@ def run_protocol(
                         "goal": completed_goal,
                         "recoveryCount": recovery_count,
                         "threadId": thread_id,
+                        "threadDisposition": thread_disposition,
+                        "initializationTimingMs": timing,
                         "turnIds": turn_ids,
                     }
             elif candidate.get("status") == "blocked":
@@ -940,6 +969,8 @@ def run_protocol(
                     "goal": completed_goal,
                     "recoveryCount": recovery_count,
                     "threadId": thread_id,
+                    "threadDisposition": thread_disposition,
+                    "initializationTimingMs": timing,
                     "turnIds": turn_ids,
                 }
 
@@ -961,6 +992,8 @@ def success_payload(
             "package": package["package"],
             "repository": str(repository),
             "threadId": protocol["threadId"],
+            "threadDisposition": protocol["threadDisposition"],
+            "initializationTimingMs": protocol["initializationTimingMs"],
             "turnIds": protocol["turnIds"],
             "recoveryCount": protocol["recoveryCount"],
             "workUnitId": work_unit_id,
@@ -1001,6 +1034,8 @@ def ack_payload(
     package: dict[str, Any],
     thread_id: str,
     turn_id: str,
+    thread_disposition: str,
+    initialization_timing_ms: dict[str, int],
 ) -> dict[str, Any]:
     return {
         "executionMode": package["mode"],
@@ -1009,7 +1044,9 @@ def ack_payload(
         "repository": str(repository),
         "schemaVersion": SCHEMA_VERSION,
         "threadId": thread_id,
+        "threadDisposition": thread_disposition,
         "turnId": turn_id,
+        "initializationTimingMs": initialization_timing_ms,
         "type": "ack",
         "workUnitId": work_unit_id,
     }
@@ -1023,7 +1060,9 @@ def execute(
     timeout_seconds: float,
     validator: Validator = validate_work_unit,
     emit_ack: AckEmitter | None = None,
+    thread_id: str | None = None,
 ) -> dict[str, Any]:
+    process_started = time.monotonic()
     operations: list[dict[str, Any]] = []
     client: AppServerClient | None = None
     process_evidence: dict[str, Any] | None = None
@@ -1042,16 +1081,20 @@ def execute(
             work_unit_id,
             package["mode"],
             package.get("instruction"),
+            process_started,
+            thread_id,
             (
                 None
                 if emit_ack is None
-                else lambda thread_id, turn_id: emit_ack(
+                else lambda active_thread_id, turn_id, disposition, timing: emit_ack(
                     ack_payload(
                         resolved_repository,
                         work_unit_id,
                         package,
-                        thread_id,
+                        active_thread_id,
                         turn_id,
+                        disposition,
+                        timing,
                     )
                 )
             ),
@@ -1089,6 +1132,7 @@ def build_parser() -> JsonArgumentParser:
     parser.add_argument("--repository", required=True)
     parser.add_argument("--work-unit-id", required=True)
     parser.add_argument("--codex", default="codex")
+    parser.add_argument("--thread-id")
     parser.add_argument("--timeout-seconds", type=float, default=3600.0)
     return parser
 
@@ -1117,6 +1161,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             codex_executable=args.codex,
             timeout_seconds=args.timeout_seconds,
             emit_ack=emit_json,
+            thread_id=args.thread_id,
         )
     except ContractError as error:
         payload = error_payload(error, [], None)

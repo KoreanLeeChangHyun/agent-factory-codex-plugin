@@ -10,7 +10,8 @@ before execution. Then run:
 ```text
 python3 scripts/app_server_goal.py \
   --repository <absolute-primary-root> \
-  --work-unit-id <work-unit-id>
+  --work-unit-id <work-unit-id> \
+  [--thread-id <existing-goal-thread-id>]
 ```
 
 The launcher:
@@ -28,8 +29,17 @@ The launcher:
 - returns an explicit error after bounded recovery instead of leaving a live
   process waiting forever.
 
-This is the Goal preflight: `thread/goal/set` and `thread/goal/get` must agree
-before `turn/start`. On mismatch, fail closed before worktree preparation.
+When `--thread-id` is supplied, the launcher verifies that the existing thread
+already owns the matching active Goal and starts the new turn without calling
+`thread/start`. A missing or mismatched thread or Goal fails closed before
+`turn/start`. Without `--thread-id`, the launcher retains the new-thread path.
+The immediate ACK identifies the thread as `created` or `reused` and includes
+monotonic elapsed milliseconds for `processStart`, `appServerReady`,
+`threadReady`, `goalReady`, `turnAccepted`, and `ackEmitted`.
+
+For a new thread, `thread/goal/set` and `thread/goal/get` must agree before
+`turn/start`; for a reused thread, `thread/goal/get` must return the matching
+active Goal. On mismatch, fail closed before worktree preparation.
 Admission refusal before a valid initial turn emits no ACK. After ACK, the
 launcher keeps running and emits its existing final success or failure JSON
 document when execution terminates.

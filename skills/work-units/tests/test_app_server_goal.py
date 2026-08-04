@@ -267,6 +267,7 @@ class AppServerGoalTest(unittest.TestCase):
         scenario: str = "success",
         timeout: float = 1.0,
         emit_ack=None,
+        thread_id: str | None = None,
     ):
         os.environ["FAKE_APP_SERVER_SCENARIO"] = scenario
         module = load_module()
@@ -277,6 +278,7 @@ class AppServerGoalTest(unittest.TestCase):
             timeout_seconds=timeout,
             validator=self.validator,
             emit_ack=emit_ack,
+            thread_id=thread_id,
         )
 
     def methods(self) -> list[str]:
@@ -297,7 +299,14 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertEqual(payload["context"]["turnIds"], ["turn-1"])
         self.assertEqual(payload["process"]["returnCode"], 0)
         self.assertEqual(
-            acknowledgements,
+            [
+                {
+                    key: value
+                    for key, value in acknowledgement.items()
+                    if key != "initializationTimingMs"
+                }
+                for acknowledgement in acknowledgements
+            ],
             [
                 {
                     "executionMode": "execution",
@@ -311,12 +320,27 @@ class AppServerGoalTest(unittest.TestCase):
                     "repository": str(self.repository),
                     "schemaVersion": "1.0.0",
                     "threadId": "thread-1",
+                    "threadDisposition": "created",
                     "turnId": "turn-1",
                     "type": "ack",
                     "workUnitId": "wu-001",
                 }
             ],
         )
+        timing = acknowledgements[0]["initializationTimingMs"]
+        self.assertEqual(
+            list(timing),
+            [
+                "processStart",
+                "appServerReady",
+                "threadReady",
+                "goalReady",
+                "turnAccepted",
+                "ackEmitted",
+            ],
+        )
+        self.assertEqual(list(timing.values()), sorted(timing.values()))
+        self.assertEqual(acknowledgements[0]["threadDisposition"], "created")
         self.assertEqual(
             self.methods(),
             [
@@ -328,6 +352,39 @@ class AppServerGoalTest(unittest.TestCase):
                 "turn/start",
             ],
         )
+
+    def test_existing_thread_is_reused_without_thread_start(self) -> None:
+        acknowledgements = []
+
+        payload = self.execute(
+            emit_ack=acknowledgements.append,
+            thread_id="thread-1",
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["context"]["threadId"], "thread-1")
+        self.assertEqual(payload["context"]["threadDisposition"], "reused")
+        self.assertEqual(acknowledgements[0]["threadDisposition"], "reused")
+        self.assertNotIn("thread/start", self.methods())
+        self.assertEqual(
+            self.methods(),
+            ["initialize", "initialized", "thread/goal/get", "turn/start"],
+        )
+
+    def test_existing_thread_with_mismatched_goal_is_refused(self) -> None:
+        acknowledgements = []
+
+        payload = self.execute(
+            "objective_mismatch",
+            emit_ack=acknowledgements.append,
+            thread_id="thread-1",
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["code"], "goal_objective_mismatch")
+        self.assertEqual(acknowledgements, [])
+        self.assertNotIn("thread/start", self.methods())
+        self.assertNotIn("turn/start", self.methods())
 
     def test_execution_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
         module = load_module()

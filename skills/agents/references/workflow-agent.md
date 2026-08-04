@@ -9,6 +9,10 @@ reassess readiness, reconstruct a checkpoint, ask for approval, or ask again
 about a decision recorded in Intake, Specification, or Work Unit data.
 The launcher-owned Goal preflight is already complete.
 
+The launcher may bind this turn to a verified existing Goal thread. Treat the
+ACK's thread disposition and initialization timing as launcher evidence; do
+not create another execution thread from inside the Workflow Agent.
+
 ## Execution route
 
 - `executionMode: specification-direct`: do not create or prepare a Git
