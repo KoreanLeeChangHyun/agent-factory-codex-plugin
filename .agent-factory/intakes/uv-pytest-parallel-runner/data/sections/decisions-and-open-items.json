@@ -1,0 +1,26 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "Use uv with pytest and pytest-xdist; preserve unittest tests; separate parallel and serial groups; expose a repository-level command; do not require global pytest."
+      }
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "none"
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    }
+  ],
+  "subsections": []
+}

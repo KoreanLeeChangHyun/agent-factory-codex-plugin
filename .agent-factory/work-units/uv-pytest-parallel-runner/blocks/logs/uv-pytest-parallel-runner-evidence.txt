@@ -1,0 +1,22 @@
+Work Unit: uv-pytest-parallel-runner
+Branch: work-unit/uv-pytest-parallel-runner
+Commit: 3cd41f238702037ec1cc44e9cd8ee3ffbd865ae6
+
+Authorized verification results:
+- uv run pytest tests/test_intake_agent_exec.py: 12 passed in 2.94s; elapsed 3.10s.
+- uv run pytest tests: 231 passed in 163.94s; elapsed 164.11s.
+- uv run pytest -n auto -m 'not serial' tests: 219 passed in 30.84s; elapsed 31.04s.
+- uv run pytest -m serial tests: 12 passed, 219 deselected in 2.84s; elapsed 3.03s.
+- scripts/test: 219 parallel passed in 30.73s and 12 serial passed in 2.88s; elapsed 33.96s.
+
+Coverage and timing:
+- Sequential collection: 231 tests.
+- Split collection: 219 parallel + 12 serial = 231 tests, exactly once.
+- Repository entrypoint improvement: 130.15s faster, approximately 79.3% lower wall time than sequential.
+
+AI review:
+- PASS: bounded uv test dependencies and committed lockfile.
+- PASS: Intake Agent subprocess, timeout, lock, and manager-session tests isolated under serial marker.
+- PASS: existing unittest-style tests remain collected by pytest.
+- PASS: seven pre-existing Intake Agent failures repaired with canonical Intake fixtures and a behavior-preserving process-start seam.
+- PASS: no global pytest installation, product behavior change, deployment, push, merge, or cleanup.

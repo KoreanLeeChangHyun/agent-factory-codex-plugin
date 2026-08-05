@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/logs/uv-pytest-parallel-runner-evidence.txt",
+      "mediaType": "text/plain",
+      "description": "Authorized pytest commands, counts, timing, commit, and AI review evidence",
+      "sha256": "1579d983d55114fb0ba598a066664669d6c4f3a639a167da8c3d9834e4651826",
+      "sizeBytes": 1288
+    }
+  ]
+}

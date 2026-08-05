@@ -1,0 +1,37 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "uv dependency reproducibility",
+          "parallel safety classification",
+          "complete collection exactly once",
+          "current failure repair",
+          "user-facing command",
+          "timing evidence and scope compliance"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "PASS: bounded dependencies, lockfile reproducibility, safe serial isolation, complete collection, repaired seven failures, user command, timing, and scope all satisfy the checklist.",
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd31b-e1a7-79d1-af38-f411d91635c1",
+          "revision": 1,
+          "attempt": 1
+        },
+        "testsRun": true
+      }
+    }
+  ],
+  "subsections": []
+}

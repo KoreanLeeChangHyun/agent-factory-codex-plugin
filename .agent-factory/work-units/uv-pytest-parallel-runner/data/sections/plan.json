@@ -1,0 +1,35 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "step": "Classify tests by filesystem, Git, process, network, fixed-path, and shared-state behavior."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "step": "Add uv project configuration, bounded pytest/xdist dependencies, markers, and lockfile."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "step": "Repair Intake Agent tests for manager-routed session binding and add repository-level test entrypoint."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "step": "Run authorized focused, sequential, and parallel suites; compare counts and wall times; review and commit."
+      }
+    }
+  ],
+  "subsections": []
+}

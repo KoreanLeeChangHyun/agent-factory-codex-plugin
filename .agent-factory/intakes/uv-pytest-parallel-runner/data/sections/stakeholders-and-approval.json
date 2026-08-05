@@ -1,0 +1,33 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "stakeholders": [
+          "Human",
+          "Main Agent",
+          "Workflow Agent",
+          "repository contributors"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "BOUNDARY-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "Human selected uv and authorized proceeding with the proposed pytest/xdist configuration, failure fixes, lock generation, and execution."
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,37 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "uv-only dependency management",
+          "parallel and serial command usability",
+          "green suite and timing improvement",
+          "no global pytest requirement"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "Review diff, lockfile, exact commands, counts, timing, and remaining risks; choose rework or complete."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "Awaiting Human review."
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

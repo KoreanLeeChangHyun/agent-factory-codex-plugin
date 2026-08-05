@@ -1,0 +1,53 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Implement uv-managed pytest/xdist testing with safe parallel/serial grouping, repair the current seven failures, and measure the full suite."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "pyproject.toml and uv.lock",
+          "pytest and pytest-xdist dependency group",
+          "pytest markers and parallel/serial classification",
+          "repository-level user test command",
+          "test_intake_agent_exec.py compatibility fixes",
+          "sequential and parallel test timing"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "global pytest installation",
+          "rewriting all unittest tests",
+          "product behavior changes",
+          "deployment and push"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "reproducible uv test environment",
+          "green complete suite",
+          "parallel-safe and serial test routes",
+          "timing comparison report",
+          "committed source and lockfile"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
