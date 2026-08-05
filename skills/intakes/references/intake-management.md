@@ -54,9 +54,14 @@ python3 skills/intakes/scripts/intake_agent_exec.py \
   --intake-id <id> \
   --capability <analysis|web-search|user-research> \
   --request <delegated-request> \
+  [--sandbox <read-only|workspace-write|danger-full-access>] \
   [--session-id <previously-bound-session>]
 ```
 
+`--sandbox` defaults to `workspace-write`. The Main Agent may explicitly select
+`danger-full-access` only when the enclosing execution environment already
+provides the required isolation and cannot initialize a nested Codex sandbox.
+The selected mode is passed to both new and resumed `codex exec` sessions.
 Omit `--session-id` only when the Main Agent selects a new session. Supply the
 exact session previously bound to the same Intake when the Main Agent selects
 resume. The launcher rejects a mismatched session and a concurrent delegated

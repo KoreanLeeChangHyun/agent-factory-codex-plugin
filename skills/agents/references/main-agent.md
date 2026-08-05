@@ -13,6 +13,12 @@ exec` session or resumes the session already bound to that Intake. It consumes
 only the compact ACK and terminal result, retains all Human-facing decisions,
 and records or asks any returned Human question itself.
 
+The launcher sandbox defaults to `workspace-write`. Select the explicit
+`danger-full-access` compatibility mode only when the enclosing environment is
+already isolated and cannot initialize a nested Codex sandbox; pass the same
+selection when resuming the bound session. Capability-owned network settings
+remain unchanged.
+
 ## Work Unit creation
 
 Create a Work Unit through `work_unit.py` when the Intake contains enough

@@ -27,4 +27,8 @@ The Intake Agent must not decide readiness, conduct a Human decision interview
 directly, create or execute a Work Unit, launch or own a Goal, perform Human
 result review, integrate Git, push, deploy, or restart a runtime. The Main Agent
 selects either a new session or the exact previously bound session to resume.
+The launcher applies the Main Agent's explicit sandbox selection to both routes;
+`workspace-write` remains the default, and `danger-full-access` is reserved for
+an enclosing environment that already provides isolation but cannot initialize
+a nested Codex sandbox.
 The launcher rejects a mismatched resume or concurrent writer before mutation.

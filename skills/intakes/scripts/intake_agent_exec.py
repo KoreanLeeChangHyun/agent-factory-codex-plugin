@@ -22,6 +22,7 @@ SCHEMA_VERSION = "1.0.0"
 INTAKE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 SESSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 CAPABILITIES = ("analysis", "web-search", "user-research")
+SANDBOXES = ("read-only", "workspace-write", "danger-full-access")
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 RESULT_SCHEMA = SKILL_ROOT / "assets" / "intake-agent-result.schema.json"
 
@@ -92,11 +93,26 @@ def intake_lock(repository: Path, intake_id: str) -> Iterator[None]:
         stream.close()
 
 
-def build_command(*, codex: str, repository: Path, session_id: str | None, capability: str) -> list[str]:
+def build_command(
+    *,
+    codex: str,
+    repository: Path,
+    session_id: str | None,
+    capability: str,
+    sandbox: str = "workspace-write",
+) -> list[str]:
     network = "true" if capability == "web-search" else "false"
-    common = ["-c", f"sandbox_workspace_write.network_access={network}", "--json", "--output-schema", str(RESULT_SCHEMA)]
+    common = [
+        "--sandbox",
+        sandbox,
+        "-c",
+        f"sandbox_workspace_write.network_access={network}",
+        "--json",
+        "--output-schema",
+        str(RESULT_SCHEMA),
+    ]
     if session_id is None:
-        return [codex, "exec", "-C", str(repository), "--sandbox", "workspace-write", *common, "-"]
+        return [codex, "exec", "-C", str(repository), *common, "-"]
     return [codex, "exec", "resume", *common, session_id, "-"]
 
 
@@ -191,7 +207,18 @@ def read_terminal_result(events: list[dict[str, Any]]) -> dict[str, Any]:
     return value
 
 
-def run(*, repository: Path, intake_id: str, capability: str, request: str, session_id: str | None, codex: str, timeout: float, output: IO[str]) -> int:
+def run(
+    *,
+    repository: Path,
+    intake_id: str,
+    capability: str,
+    request: str,
+    session_id: str | None,
+    codex: str,
+    sandbox: str = "workspace-write",
+    timeout: float,
+    output: IO[str],
+) -> int:
     process: subprocess.Popen[str] | None = None
     try:
         repository = repository.resolve()
@@ -201,6 +228,8 @@ def run(*, repository: Path, intake_id: str, capability: str, request: str, sess
             raise ContractError("invalid_session_id", "session id is invalid")
         if capability not in CAPABILITIES:
             raise ContractError("invalid_capability", "capability is invalid")
+        if sandbox not in SANDBOXES:
+            raise ContractError("invalid_sandbox", "sandbox is invalid")
         if timeout <= 0:
             raise ContractError("invalid_timeout", "timeout must be positive")
         if not (repository / ".agent-factory" / "intakes" / intake_id).is_dir():
@@ -209,7 +238,13 @@ def run(*, repository: Path, intake_id: str, capability: str, request: str, sess
             bound_session = load_binding(repository, intake_id)
             if session_id is not None and bound_session != session_id:
                 raise ContractError("session_mismatch", "selected session is not bound to this Intake")
-            command = build_command(codex=codex, repository=repository, session_id=session_id, capability=capability)
+            command = build_command(
+                codex=codex,
+                repository=repository,
+                session_id=session_id,
+                capability=capability,
+                sandbox=sandbox,
+            )
             try:
                 process = subprocess.Popen(command, cwd=repository, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="strict", shell=False)
             except OSError as error:
@@ -266,7 +301,18 @@ def run(*, repository: Path, intake_id: str, capability: str, request: str, sess
             with contextlib.suppress(OSError):
                 process.kill()
         emit(output, error_document(intake_id, error.code, error.message))
-        refusal = {"invalid_arguments", "invalid_intake_id", "invalid_session_id", "invalid_capability", "invalid_timeout", "intake_not_found", "intake_writer_busy", "session_binding_invalid", "session_mismatch"}
+        refusal = {
+            "invalid_arguments",
+            "invalid_intake_id",
+            "invalid_session_id",
+            "invalid_capability",
+            "invalid_sandbox",
+            "invalid_timeout",
+            "intake_not_found",
+            "intake_writer_busy",
+            "session_binding_invalid",
+            "session_mismatch",
+        }
         return 2 if error.code in refusal else 1
 
 
@@ -278,6 +324,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--request", required=True)
     parser.add_argument("--session-id")
     parser.add_argument("--codex", default="codex")
+    parser.add_argument("--sandbox", choices=SANDBOXES, default="workspace-write")
     parser.add_argument("--timeout", type=float, default=1800.0)
     return parser.parse_args(argv)
 
@@ -285,7 +332,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = parse_args(argv)
-        return run(repository=args.repository, intake_id=args.intake_id, capability=args.capability, request=args.request, session_id=args.session_id, codex=args.codex, timeout=args.timeout, output=sys.stdout)
+        return run(
+            repository=args.repository,
+            intake_id=args.intake_id,
+            capability=args.capability,
+            request=args.request,
+            session_id=args.session_id,
+            codex=args.codex,
+            sandbox=args.sandbox,
+            timeout=args.timeout,
+            output=sys.stdout,
+        )
     except ContractError as error:
         emit(sys.stdout, error_document("unknown", error.code, error.message))
         return 2
