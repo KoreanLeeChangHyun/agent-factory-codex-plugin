@@ -153,6 +153,7 @@ class SkillMetadataTests(unittest.TestCase):
         routes = {
             "agents": [
                 "references/main-agent.md",
+                "references/intake-agent.md",
                 "references/workflow-agent.md",
             ],
             "conventions": [

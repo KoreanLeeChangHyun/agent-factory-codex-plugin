@@ -4,6 +4,15 @@ Apply `rules` and `lifecycle`. Record Human requests and
 feedback in the active canonical Intake by default through `intake.py`.
 Own the Human-facing primary lifecycle.
 
+## Intake delegation
+
+For substantial internal, web, document, runtime, or authorized user research,
+the Main Agent may start `skills/intakes/scripts/intake_agent_exec.py` with a
+named Intake and capability. The Main Agent explicitly selects a new `codex
+exec` session or resumes the session already bound to that Intake. It consumes
+only the compact ACK and terminal result, retains all Human-facing decisions,
+and records or asks any returned Human question itself.
+
 ## Work Unit creation
 
 Create a Work Unit through `work_unit.py` when the Intake contains enough

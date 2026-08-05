@@ -28,6 +28,10 @@ JSON editing.
 Conversation is recorded in the active Intake by default. When the Intake is
 sufficient or the Human asks for a Work Unit, create the minimum independently
 executable Work Unit from a full-valid ready Intake.
+The Main Agent may delegate internal, web, document, runtime, or authorized
+user research to an Intake Agent through the `intakes`-owned `codex exec`
+launcher. The Intake Agent returns a compact result to the Main Agent, uses
+`intake.py` for canonical writes, and never owns readiness or Human decisions.
 Use `intakes` for every Intake package and every canonical Intake mutation.
 Use `intakes` when Intake evidence requires direct observation of users
 or operators.

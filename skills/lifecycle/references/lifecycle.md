@@ -18,6 +18,11 @@ Conversation and feedback are appended to Intake through `intake.py`. Intake,
 Specification, and Work Unit CRUD always uses the primary root and never creates
 a worktree. Canonical packages remain tracked in primary Git, but execution does
 not create artifact commits, immutable snapshots, hashes, or checkpoints.
+The Main Agent may delegate research to an Intake Agent through the
+`intakes`-owned `codex exec` launcher. A new or explicitly selected resume
+session is isolated behind a compact ACK and terminal result; the Main Agent
+retains Human decisions and readiness, while `intake.py` remains the only
+canonical writer.
 Every Work Unit basis is traceable from the ready Intake through its package
 root anchor. Specification impact may be recorded as not applicable.
 

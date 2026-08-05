@@ -24,5 +24,7 @@ Intake writes must use `scripts/intake.py`.
 ## Assets and tools
 
 `scripts/intake.py` is the only canonical Intake manager.
+`scripts/intake_agent_exec.py` delegates evidence acquisition to an isolated
+Intake Agent session and emits only a compact ACK and terminal result.
 `scripts/requirements.txt` declares its dependencies; `assets/` owns its
 profile and schema, and `tests/` owns regression coverage.

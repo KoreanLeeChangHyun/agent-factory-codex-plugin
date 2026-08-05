@@ -14,7 +14,7 @@ python3 scripts/app_server_goal.py \
   [--thread-id <existing-goal-thread-id>]
 ```
 
-The launcher:
+The launcher is the Goal preflight. It:
 
 - validates the canonical primary-root Work Unit;
 - accepts `ready` initial execution, planned rework, or a manager-owned active

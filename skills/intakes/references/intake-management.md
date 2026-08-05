@@ -44,6 +44,32 @@ research, Human decision interview, and specification check or update. Apply
 `specifications` when editing specification files; it remains an adjacent
 lifecycle skill rather than an evidence-acquisition domain.
 
+## Delegated Intake Agent
+
+The Main Agent may isolate a substantial evidence-acquisition task with:
+
+```text
+python3 skills/intakes/scripts/intake_agent_exec.py \
+  --repository <absolute-primary-root> \
+  --intake-id <id> \
+  --capability <analysis|web-search|user-research> \
+  --request <delegated-request> \
+  [--session-id <previously-bound-session>]
+```
+
+Omit `--session-id` only when the Main Agent selects a new session. Supply the
+exact session previously bound to the same Intake when the Main Agent selects
+resume. The launcher rejects a mismatched session and a concurrent delegated
+writer before starting `codex exec`. It sends the generated role prompt through
+stdin, uses argv execution with `shell=False`, and enables network access only
+for `web-search`.
+
+The launcher emits one compact ACK after the Codex session id is known and one
+terminal result. It does not forward raw JSONL events, research logs, stderr,
+or token usage. The Intake Agent may return one Human-owned question, but the
+Main Agent owns asking it, readiness, Work Unit creation, execution admission,
+and Human result review. All canonical mutations still use `intake.py`.
+
 ## Methodological Gates
 
 Before readiness, ensure the Intake has addressed each applicable concern:
