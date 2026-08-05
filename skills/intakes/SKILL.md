@@ -26,5 +26,9 @@ Intake writes must use `scripts/intake.py`.
 `scripts/intake.py` is the only canonical Intake manager.
 `scripts/intake_agent_exec.py` delegates evidence acquisition to an isolated
 Intake Agent session and emits only a compact ACK and terminal result.
+`intake.py session-bind`, `session-show`, and `session-clear` own the Intake's
+operational Codex session association without changing semantic document
+version or readiness. Delegated-writer locks live under the OS temporary
+directory rather than the repository.
 `scripts/requirements.txt` declares its dependencies; `assets/` owns its
 profile and schema, and `tests/` owns regression coverage.

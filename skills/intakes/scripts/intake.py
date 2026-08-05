@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
+import json
 from pathlib import Path
+import sys
 from typing import Any
 
 
@@ -77,8 +80,110 @@ for name in dir(base):
         globals()[name] = getattr(base, name)
 
 
+def session_binding(metadata: dict[str, Any]) -> str | None:
+    operational = metadata.get("operational")
+    if not isinstance(operational, dict):
+        return None
+    binding = operational.get("agentSessionBinding")
+    return binding.get("sessionId") if isinstance(binding, dict) else None
+
+
+def require_operational_mutation(metadata: dict[str, Any]) -> None:
+    status = metadata["lifecycle"]["status"]
+    if status in {"closed", "superseded"}:
+        raise base.ManagerError(
+            f"terminal Intake does not allow operational mutation: {status}"
+        )
+
+
+def command_session_show(args: argparse.Namespace) -> None:
+    base.validate_package(args.package)
+    metadata = base.load_metadata(args.package)
+    print(
+        json.dumps(
+            {"intakeId": metadata["id"], "sessionId": session_binding(metadata)}
+        )
+    )
+
+
+def command_session_bind(args: argparse.Namespace) -> None:
+    base.validate_package(args.package)
+    metadata = base.load_metadata(args.package)
+    require_operational_mutation(metadata)
+    operational = metadata.setdefault("operational", {})
+    operational["agentSessionBinding"] = {"sessionId": args.session_id}
+    base.validate_instance("metadata", metadata)
+    base.commit_transaction(
+        args.package,
+        json_writes={args.package / "data" / "metadata.json": metadata},
+    )
+    print(json.dumps({"intakeId": metadata["id"], "sessionId": args.session_id}))
+
+
+def command_session_clear(args: argparse.Namespace) -> None:
+    base.validate_package(args.package)
+    metadata = base.load_metadata(args.package)
+    require_operational_mutation(metadata)
+    operational = metadata.get("operational")
+    if isinstance(operational, dict):
+        operational.pop("agentSessionBinding", None)
+        if not operational:
+            metadata.pop("operational")
+    base.validate_instance("metadata", metadata)
+    base.commit_transaction(
+        args.package,
+        json_writes={args.package / "data" / "metadata.json": metadata},
+    )
+    print(json.dumps({"intakeId": metadata["id"], "sessionId": None}))
+
+
+def parser() -> argparse.ArgumentParser:
+    root = base.parser()
+    subparsers = next(
+        action
+        for action in root._actions
+        if isinstance(action, argparse._SubParsersAction)
+    )
+
+    bind = subparsers.add_parser(
+        "session-bind",
+        help="bind one Codex session without semantic Intake mutation",
+    )
+    bind.add_argument("package")
+    bind.add_argument("session_id")
+    bind.set_defaults(handler=command_session_bind)
+
+    show = subparsers.add_parser(
+        "session-show", help="show the Codex session bound to an Intake"
+    )
+    show.add_argument("package")
+    show.set_defaults(handler=command_session_show)
+
+    clear = subparsers.add_parser(
+        "session-clear", help="clear an Intake's Codex session association"
+    )
+    clear.add_argument("package")
+    clear.set_defaults(handler=command_session_clear)
+    return root
+
+
 def main() -> int:
-    return base.main()
+    try:
+        args = parser().parse_args()
+        if not hasattr(args, "package"):
+            args.handler(args)
+            return 0
+        package = base.resolve_package(
+            args.package, must_exist=args.command != "create"
+        )
+        if package.exists() and args.command != "delete":
+            base.recover_transaction(package)
+        args.package = package
+        args.handler(args)
+        return 0
+    except base.ManagerError as error:
+        sys.stderr.write(f"error: {error}\n")
+        return 1
 
 
 if __name__ == "__main__":

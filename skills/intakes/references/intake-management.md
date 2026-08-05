@@ -75,6 +75,14 @@ or token usage. The Intake Agent may return one Human-owned question, but the
 Main Agent owns asking it, readiness, Work Unit creation, execution admission,
 and Human result review. All canonical mutations still use `intake.py`.
 
+The launcher reads and binds the session association only through
+`intake.py session-show` and `intake.py session-bind`. The association is
+operational metadata: these commands do not increment `documentVersion`, alter
+`updatedAt`, or invalidate readiness. `session-clear` removes only the
+association and never deletes Codex-owned session data. The single-writer lock
+is keyed by repository and Intake under the OS temporary directory; the
+launcher creates no `.agent-factory/runtime` files.
+
 ## Methodological Gates
 
 Before readiness, ensure the Intake has addressed each applicable concern:
@@ -167,6 +175,9 @@ python3 scripts/intake.py section-move <package> <section-id> (--before <id>|--a
 python3 scripts/intake.py section-remove <package> <optional-section-id>
 python3 scripts/intake.py validate <package> [--full]
 python3 scripts/intake.py transition <package> <draft|validating|ready|blocked|closed|superseded>
+python3 scripts/intake.py session-bind <package> <session-id>
+python3 scripts/intake.py session-show <package>
+python3 scripts/intake.py session-clear <package>
 python3 scripts/intake.py block-put <package> <source> --path blocks/<path> --media-type <type> --description <text>
 python3 scripts/intake.py block-remove <package> blocks/<path>
 ```
@@ -205,12 +216,17 @@ decision, Specification, or contract replaces it. Record disposition evidence
 before either transition. Do not use these states to hide unresolved active
 work.
 
-Every successful mutation increments `documentVersion` once. A mutation of a
+Every successful semantic mutation increments `documentVersion` once. A mutation of a
 `ready` Intake atomically returns it to `draft`, sets semantic readiness flags
 to `false`, and clears `readiness.reviewedAt`; `closed` and `superseded` Intake
 packages reject mutation. This Intake lifecycle rule is conditional on
 `artifactType: intake` because the Work Unit manager reuses the common
 sectioned-package mechanics.
+
+Session bind and clear are operational metadata mutations and are the sole
+exception: they preserve `documentVersion`, `updatedAt`, lifecycle, and
+readiness while remaining transactional manager-owned canonical writes.
+Terminal `closed` and `superseded` Intakes still reject these mutations.
 
 The manager commits multi-file changes through a recovery journal. On the next
 manager invocation, an

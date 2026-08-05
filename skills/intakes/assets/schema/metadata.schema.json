@@ -50,6 +50,20 @@
         }
       }
     },
+    "operational": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "agentSessionBinding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sessionId"],
+          "properties": {
+            "sessionId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"}
+          }
+        }
+      }
+    },
     "readiness": {
       "type": "object",
       "additionalProperties": false,

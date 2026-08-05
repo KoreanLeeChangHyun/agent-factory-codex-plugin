@@ -27,7 +27,8 @@ nesting owns depth. Do not store separate `order` or `depth` values.
 ## Package Files
 
 - `data/metadata.json`: identity, type, versions, project, lifecycle, time,
-  language, theme name, provenance, typed relations, and readiness.
+  language, theme name, provenance, typed relations, readiness, and an optional
+  manager-owned operational Agent session association.
 - `data/title.json`: the single canonical document title.
 - `data/table-of-contents.json`: manager-owned ordered section and subsection
   index with an integrity digest.
@@ -127,6 +128,12 @@ Both require an evidence-backed disposition item and must not be reopened.
 A canonical mutation reopens `ready` as `draft` and invalidates semantic
 readiness in the same transaction. Canonical mutation is rejected for terminal
 `closed` and `superseded` packages.
+
+The operational Agent session association is managed only by the `intake.py`
+commands `session-bind`, `session-show`, and `session-clear`. Binding or
+clearing it is transactional but does not change `documentVersion`,
+`updatedAt`, lifecycle, or readiness. Clearing the association does not remove
+Codex-owned session data. Terminal Intakes reject bind and clear operations.
 
 ## Scale Boundary
 

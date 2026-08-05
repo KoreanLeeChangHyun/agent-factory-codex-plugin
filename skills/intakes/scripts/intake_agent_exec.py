@@ -6,12 +6,14 @@ from __future__ import annotations
 import argparse
 import contextlib
 import fcntl
+import hashlib
 import json
 import os
 import queue
 import re
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -25,6 +27,7 @@ CAPABILITIES = ("analysis", "web-search", "user-research")
 SANDBOXES = ("read-only", "workspace-write", "danger-full-access")
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 RESULT_SCHEMA = SKILL_ROOT / "assets" / "intake-agent-result.schema.json"
+INTAKE_MANAGER = SKILL_ROOT / "scripts" / "intake.py"
 
 
 class ContractError(Exception):
@@ -39,50 +42,64 @@ class JsonArgumentParser(argparse.ArgumentParser):
         raise ContractError("invalid_arguments", message)
 
 
-def runtime_root(repository: Path) -> Path:
-    return repository / ".agent-factory" / "runtime" / "intake-agent"
-
-
-def binding_path(repository: Path, intake_id: str) -> Path:
-    return runtime_root(repository) / "sessions" / f"{intake_id}.json"
-
-
 def load_binding(repository: Path, intake_id: str) -> str | None:
-    path = binding_path(repository, intake_id)
-    if not path.exists():
-        return None
+    package = repository / ".agent-factory" / "intakes" / intake_id
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        result = subprocess.run(
+            [sys.executable, str(INTAKE_MANAGER), "session-show", str(package)],
+            cwd=repository,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        value = json.loads(result.stdout) if result.returncode == 0 else None
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         raise ContractError("session_binding_invalid", "saved session binding is invalid") from error
     session_id = value.get("sessionId") if isinstance(value, dict) else None
-    if not isinstance(session_id, str) or not SESSION_ID.fullmatch(session_id):
+    if result.returncode != 0 or (
+        session_id is not None
+        and (not isinstance(session_id, str) or not SESSION_ID.fullmatch(session_id))
+    ):
         raise ContractError("session_binding_invalid", "saved session binding is invalid")
     return session_id
 
 
 def save_binding(repository: Path, intake_id: str, session_id: str) -> None:
-    directory = binding_path(repository, intake_id).parent
-    directory.mkdir(parents=True, exist_ok=True)
-    target = directory / f"{intake_id}.json"
-    temporary = directory / f".{intake_id}.{os.getpid()}.tmp"
-    payload = {"schemaVersion": SCHEMA_VERSION, "intakeId": intake_id, "sessionId": session_id}
+    package = repository / ".agent-factory" / "intakes" / intake_id
     try:
-        temporary.write_text(
-            json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n",
-            encoding="utf-8",
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(INTAKE_MANAGER),
+                "session-bind",
+                str(package),
+                session_id,
+            ],
+            cwd=repository,
+            text=True,
+            capture_output=True,
+            check=False,
         )
-        os.replace(temporary, target)
-    finally:
-        with contextlib.suppress(FileNotFoundError):
-            temporary.unlink()
+    except OSError as error:
+        raise ContractError(
+            "session_binding_invalid", "unable to bind the Intake session"
+        ) from error
+    if result.returncode != 0:
+        raise ContractError("session_binding_invalid", "unable to bind the Intake session")
 
 
 @contextlib.contextmanager
 def intake_lock(repository: Path, intake_id: str) -> Iterator[None]:
-    directory = runtime_root(repository) / "locks"
-    directory.mkdir(parents=True, exist_ok=True)
-    stream = (directory / f"{intake_id}.lock").open("a+", encoding="utf-8")
+    identity = hashlib.sha256(
+        f"{repository.resolve()}\0{intake_id}".encode()
+    ).hexdigest()
+    directory = (
+        Path(tempfile.gettempdir())
+        / f"agent-factory-{os.getuid()}"
+        / "intake-agent-locks"
+    )
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    stream = (directory / f"{identity}.lock").open("a+", encoding="utf-8")
     try:
         try:
             fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)

@@ -13,7 +13,9 @@ It is not a Goal-bound Workflow Agent.
 - Handle authorized direct user or operator evidence through the Intake
   user-research capability.
 - Read and mutate only the named canonical Intake through `intake.py`. The
-  launcher enforces one delegated single writer per Intake.
+  launcher enforces one delegated single writer per Intake. Intake-owned Codex
+  session associations are read and changed only through the Intake manager;
+  its concurrency lock lives under the OS temporary directory.
 - Return compact evidence, limitations, and at most one Human-owned question to
   the Main Agent. Raw JSONL events and research logs remain isolated.
 - Inspecting existing test code or previously recorded test output is allowed,
@@ -32,3 +34,4 @@ The launcher applies the Main Agent's explicit sandbox selection to both routes;
 an enclosing environment that already provides isolation but cannot initialize
 a nested Codex sandbox.
 The launcher rejects a mismatched resume or concurrent writer before mutation.
+It creates no session-binding or lock sidecar under `.agent-factory/runtime`.
