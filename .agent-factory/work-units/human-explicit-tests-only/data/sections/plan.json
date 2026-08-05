@@ -1,0 +1,35 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "step": "현재 test, TDD와 verification 실행 지시를 역할과 lifecycle별로 분류한다."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "step": "Human-explicit execution gate를 단일 원칙으로 정의하고 역할, lifecycle과 work-units 문서를 정렬한다."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "step": "Project Core를 owning manager로 갱신한다."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "step": "테스트는 실행하지 않고 변경 경로와 사용자 검토 방법만 보고한다."
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,35 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human은 사용자가 명시하지 않은 테스트를 Agent가 실행하지 않도록 결정했다."
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human은 smoke test도 명시 요청이 없으면 실행하지 않도록 결정했다."
+      }
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human은 테스트를 worktree에서 직접 수행하고 Agent는 코드 수정과 실행 방법 제공에 집중하도록 결정했다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "차단 open item 없음"
+      }
+    }
+  ],
+  "subsections": []
+}

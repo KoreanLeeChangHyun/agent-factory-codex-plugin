@@ -10,6 +10,7 @@
           "Work Unit 또는 Work Package 실행은 Human의 명시적 요청으로 시작한다.",
           "main agent는 launch 직전에만 실행 충분성을 판단하며 launch 후 같은 판단을 반복하지 않는다.",
           "Intake, Specification, Work Unit, Work Package CRUD와 실행 중간에는 승인 절차가 없다.",
+          "테스트, smoke check, lint, typecheck와 build verification은 Human이 명시적으로 요청한 항목만 실행하며 test criterion 자체는 실행 권한이 아니다.",
           "Human 결과 검토의 결정은 rework 또는 complete이며 Work Package는 package 전체에 한 번만 검토한다.",
           "complete된 worktree 또는 package integration branch는 기록된 target에 자동 통합하고 완료 worktree 정리는 이후 일괄 수행한다.",
           "PR promotion, deployment와 runtime restart는 요청 범위가 있을 때만 별도 Human 결정으로 수행한다."
@@ -34,6 +35,7 @@
           "Work Unit 또는 Work Package 실행은 Human의 명시적 요청으로 시작한다.",
           "main agent는 launch 직전에만 실행 충분성을 판단하며 launch 후 같은 판단을 반복하지 않는다.",
           "Intake, Specification, Work Unit, Work Package CRUD와 실행 중간에는 승인 절차가 없다.",
+          "테스트, smoke check, lint, typecheck와 build verification은 Human이 명시적으로 요청한 항목만 실행하며 test criterion 자체는 실행 권한이 아니다.",
           "Human 결과 검토의 결정은 rework 또는 complete이며 Work Package는 package 전체에 한 번만 검토한다.",
           "complete된 worktree 또는 package integration branch는 기록된 target에 자동 통합하고 완료 worktree 정리는 이후 일괄 수행한다.",
           "PR promotion, deployment와 runtime restart는 요청 범위가 있을 때만 별도 Human 결정으로 수행한다."

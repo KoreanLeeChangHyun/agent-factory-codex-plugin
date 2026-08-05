@@ -1,0 +1,29 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/agents/references/*.md; skills/lifecycle/references/*.md; skills/work-units/references/*.md; work-unit.profile.json; Project Core",
+        "method": "repository inspection",
+        "findings": [
+          "workflow-agent.md가 code change에 TDD 사용을 지시한다.",
+          "Work Unit readiness는 test criteria와 verification plan을 필수로 요구한다.",
+          "Work Unit profile은 test-criterion, quality-check와 verification result content를 요구한다.",
+          "Project Core는 Work Unit execution에 verification을 포함한다."
+        ],
+        "interpretations": [
+          "test planning과 test execution 권한을 분리하고 test-criterion을 Human이 요청할 경우에만 실행하는 조건부 계획으로 재정의해야 한다.",
+          "acceptance criteria와 사용자 검증 방법은 유지하되 Agent 실행 증거로 테스트 통과를 요구하지 않아야 한다."
+        ],
+        "limitations": [
+          "이번 작업에서는 테스트를 실행하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

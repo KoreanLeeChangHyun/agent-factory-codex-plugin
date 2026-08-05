@@ -1,0 +1,51 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Human이 명시한 테스트만 Agent가 실행하도록 Agent Factory 역할, lifecycle, Work Unit profile과 Project Core를 정렬한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "Main, Intake, Workflow Agent 테스트 실행 경계",
+          "lifecycle admission과 execution 계약",
+          "work-units management, execution, structure와 profile",
+          "Project Core Human decision boundary",
+          "미실행 보고 계약"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "테스트 실행",
+          "테스트 코드 수정",
+          "제품 기능 변경",
+          "배포와 push"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "Human-explicit test gate가 반영된 skill references",
+          "조건부 test criterion profile",
+          "갱신된 Project Core",
+          "사용자 검토용 diff와 미실행 보고"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

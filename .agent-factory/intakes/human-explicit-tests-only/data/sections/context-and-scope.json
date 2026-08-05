@@ -1,0 +1,41 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 Workflow Agent는 TDD와 verification evidence를 요구하고 Work Unit profile은 test-criterion과 quality-check를 필수로 하여 Human 미요청 테스트가 반복 실행될 수 있다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "agents 역할 계약",
+          "lifecycle 실행 및 admission 계약",
+          "work-units management, execution, structure 계약",
+          "Work Unit profile의 test criterion 의미",
+          "Project Core Human decision boundary",
+          "관련 문서와 schema 정합성"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "테스트 실행",
+          "기존 테스트 코드 삭제",
+          "사용자 명시 테스트 명령의 변경",
+          "제품 기능 변경",
+          "배포와 push"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

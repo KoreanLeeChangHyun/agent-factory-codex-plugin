@@ -1,0 +1,35 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "Human test authority 보존",
+          "임의 테스트 실행 지시 제거",
+          "test planning과 execution authority 분리",
+          "테스트 미실행 준수"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "Pass. Main, Intake, Workflow 역할과 lifecycle, Work Unit 계약, profile, README, Project Core가 Human-explicit test authority로 정렬됐다. test planning과 실행 권한이 분리됐고 testsRun=false를 확인했다.",
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd249-c750-7513-82b3-a73fa47fb93a",
+          "revision": 1,
+          "attempt": 1
+        },
+        "testsRun": false
+      }
+    }
+  ],
+  "subsections": []
+}

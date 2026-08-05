@@ -1,0 +1,81 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "human-explicit-tests-only",
+        "objective": "Human이 명시한 테스트만 Agent가 실행하도록 Agent Factory 역할, lifecycle, Work Unit profile과 Project Core를 정렬한다.",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id human-explicit-tests-only",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/human-explicit-tests-only",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/human-explicit-tests-only"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fd249-c750-7513-82b3-a73fa47fb93a",
+        "invocationChain": [
+          "019fd249-c750-7513-82b3-a73fa47fb93a"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "plan",
+            "work",
+            "ai-review",
+            "report"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "plan",
+              "state": "completed",
+              "idempotencyKey": "human-explicit-tests-only-r1a1-plan"
+            },
+            {
+              "stepId": "work",
+              "state": "pending",
+              "idempotencyKey": "human-explicit-tests-only-r1a1-work-pending"
+            },
+            {
+              "stepId": "work",
+              "state": "completed",
+              "idempotencyKey": "human-explicit-tests-only-r1a1-work-complete"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "completed",
+              "idempotencyKey": "human-explicit-tests-only-r1a1-ai-review"
+            },
+            {
+              "stepId": "report",
+              "state": "completed",
+              "idempotencyKey": "human-explicit-tests-only-r1a1-report"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fd249-c750-7513-82b3-a73fa47fb93a",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

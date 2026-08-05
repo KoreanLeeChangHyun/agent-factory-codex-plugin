@@ -1,0 +1,33 @@
+Work Unit: human-explicit-tests-only
+Execution target: revision 1, attempt 1, invocation 019fd249-c750-7513-82b3-a73fa47fb93a
+Worktree: /home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/human-explicit-tests-only
+Source commit: b3b447e
+
+Changed source paths:
+- README.md
+- skills/agents/references/intake-agent.md
+- skills/agents/references/main-agent.md
+- skills/agents/references/workflow-agent.md
+- skills/lifecycle/references/lifecycle-entry.md
+- skills/lifecycle/references/lifecycle.md
+- skills/work-units/assets/profiles/work-unit.profile.json
+- skills/work-units/references/work-unit-execution.md
+- skills/work-units/references/work-unit-management.md
+- skills/work-units/references/work-unit-structure.md
+
+Canonical Specification change:
+- .agent-factory/specifications/project-core/data/metadata.json
+- .agent-factory/specifications/project-core/data/sections/decisions-and-open-items.json
+- specification.py validate: valid, project-core@1.0.0
+
+AI review:
+- Human test execution authority is explicit in Main, Intake, and Workflow Agent contracts.
+- Test criteria are conditional plans in lifecycle and Work Unit contracts.
+- Smoke, lint, typecheck, and build verification share the same Human-explicit gate.
+- Reports must state when tests were not run.
+- Project Core records the Human decision boundary.
+
+Tests run: false
+Test commands: none
+Reason: the Human explicitly requested no tests for this Work Unit.
+Remaining risk: source/profile behavior has not been exercised by automated tests; Human diff review is required.

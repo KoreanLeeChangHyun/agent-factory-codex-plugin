@@ -1,0 +1,61 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "전용 worktree에서 source/profile 10개 경로를 변경하고 commit b3b447e를 생성했다. Project Core는 specification.py로 갱신하고 manager validation을 통과했다. 테스트는 실행하지 않았다. 자동화 검증 미실행 위험은 Human diff review에 남는다.",
+      "attributes": {
+        "verificationResult": "pass",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/human-explicit-tests-only",
+        "sourceCommit": "b3b447e",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd249-c750-7513-82b3-a73fa47fb93a",
+          "revision": 1,
+          "attempt": 1
+        },
+        "testsRun": false,
+        "changedPaths": [
+          "README.md",
+          "skills/agents/references/intake-agent.md",
+          "skills/agents/references/main-agent.md",
+          "skills/agents/references/workflow-agent.md",
+          "skills/lifecycle/references/lifecycle-entry.md",
+          "skills/lifecycle/references/lifecycle.md",
+          "skills/work-units/assets/profiles/work-unit.profile.json",
+          "skills/work-units/references/work-unit-execution.md",
+          "skills/work-units/references/work-unit-management.md",
+          "skills/work-units/references/work-unit-structure.md"
+        ],
+        "evidence": [
+          "blocks/evidence/human-explicit-tests-only-r1a1-review.txt"
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-CCDFD8C86F86667B",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "sourceBranch": "work-unit/human-explicit-tests-only",
+        "sourceCommit": "b3b447e5b7ec485e005fdceb8b7bfecac539fcf4",
+        "strategy": "ff-only",
+        "targetAfterCommit": "b3b447e5b7ec485e005fdceb8b7bfecac539fcf4",
+        "targetBeforeCommit": "8fccb91a567cd203e23b7cedbc38f89dffe3eb27",
+        "targetBranch": "factory",
+        "workUnitId": "human-explicit-tests-only",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/human-explicit-tests-only",
+        "receiptSha256": "ccdfd8c86f86667b5d8aefe85b2fcadfd471d9c65f2a4b5e41366fdb89f68e3e"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/human-explicit-tests-only.json"
+    }
+  ],
+  "subsections": []
+}
