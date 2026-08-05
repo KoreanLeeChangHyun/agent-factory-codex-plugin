@@ -1,0 +1,28 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human은 모든 테스트 코드를 plugin 루트 tests 디렉터리 바로 아래로 평탄화하기로 결정했다."
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human은 Workflow Agent가 테스트를 실행하지 않고 사용자가 worktree에서 직접 테스트하도록 결정했다."
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "차단 open item 없음"
+      }
+    }
+  ],
+  "subsections": []
+}

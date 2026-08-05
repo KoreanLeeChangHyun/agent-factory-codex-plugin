@@ -1,0 +1,37 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "18개 파일 이동 범위 준수",
+          "assertion 및 제품 동작 변경 부재",
+          "새 위치의 path resolution 정렬",
+          "테스트 미실행 원칙 준수"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "status": "pass",
+        "summary": "18개 이동 범위, assertion 및 제품 코드 변경 부재, 새 위치 경로 해석, 테스트 미실행 준수를 정적 diff로 확인했다."
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd20b-87a7-7b73-a2d6-b6e83347e5d2",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

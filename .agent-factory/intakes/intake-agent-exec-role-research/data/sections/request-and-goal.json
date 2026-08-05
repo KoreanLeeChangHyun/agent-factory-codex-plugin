@@ -26,6 +26,13 @@
           "필요한 변경면과 검증 전략을 식별한다."
         ]
       }
+    },
+    {
+      "id": "FEEDBACK-001",
+      "kind": "human-feedback",
+      "content": {
+        "feedback": "Human이 Intake Agent 연구 결과를 바탕으로 Work Unit 생성을 요청했다."
+      }
     }
   ],
   "subsections": []

@@ -128,6 +128,56 @@
           "codex exec의 final schema는 canonical Intake manager 사용과 동시성 안전성을 자체 보장하지 않는다."
         ]
       }
+    },
+    {
+      "id": "INTERVIEW-EXEC-001",
+      "kind": "interview",
+      "content": {
+        "question": "Intake Agent의 실행 방식을 무엇으로 확정할 것인가?",
+        "recommendation": "A",
+        "rationale": "App Server가 thread와 protocol 통제를 가장 명확히 제공한다고 분석했다.",
+        "answer": "B",
+        "answerDetail": "intakes 스킬 안의 스크립트 + codex exec",
+        "decisionState": "accepted",
+        "choices": [
+          "A: App Server 전용 launcher",
+          "B: intakes 스킬 안의 스크립트가 codex exec 호출",
+          "C: native subagent 위임"
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-THREAD-001",
+      "kind": "interview",
+      "content": {
+        "question": "동일 Intake의 후속 조사에서 Exec 세션을 어떻게 관리할 것인가?",
+        "recommendation": "A",
+        "rationale": "Intake별 조사 연속성과 Main Agent 컨텍스트 절감을 함께 달성한다.",
+        "answer": "C",
+        "answerDetail": "호출마다 Main Agent가 기존 세션 재사용 또는 새 세션 시작을 결정한다.",
+        "decisionState": "accepted",
+        "choices": [
+          "A: Intake별 세션 재사용",
+          "B: 매번 새 세션",
+          "C: 조건에 따라 재사용 또는 새 세션"
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-SCOPE-001",
+      "kind": "interview",
+      "content": {
+        "question": "Intake Agent가 담당할 증거 수집 범위를 어디까지로 할 것인가?",
+        "recommendation": "B",
+        "rationale": "긴 조사 로그를 별도 Exec에 격리하면서 Human 대화와 결정권은 Main Agent에 유지한다.",
+        "answer": "B",
+        "decisionState": "accepted",
+        "choices": [
+          "A: 저장소 내부 분석만",
+          "B: 내부, 웹, 문서, 런타임 분석",
+          "C: 전체 Intake와 Human 인터뷰"
+        ]
+      }
     }
   ],
   "subsections": []

@@ -1,0 +1,86 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "flatten-test-code-root",
+        "objective": "18개 Python 테스트를 plugin 루트 tests로 평탄 이동하고 위치 의존 경로와 활성 참조를 정렬한다.",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id flatten-test-code-root",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/flatten-test-code-root",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/flatten-test-code-root"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "done",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fd20b-87a7-7b73-a2d6-b6e83347e5d2",
+        "invocationChain": [
+          "019fd20b-87a7-7b73-a2d6-b6e83347e5d2"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "plan",
+            "work",
+            "ai-review",
+            "report"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "plan",
+              "state": "completed",
+              "idempotencyKey": "flatten-test-code-root-plan-v1"
+            },
+            {
+              "stepId": "work",
+              "state": "completed",
+              "idempotencyKey": "flatten-test-code-root-work-v1"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "pending",
+              "idempotencyKey": "flatten-test-code-root-ai-review-pending-v1"
+            },
+            {
+              "stepId": "ai-review",
+              "state": "completed",
+              "idempotencyKey": "flatten-test-code-root-ai-review-complete-v1"
+            },
+            {
+              "stepId": "report",
+              "state": "pending",
+              "idempotencyKey": "flatten-test-code-root-report-pending-v1"
+            },
+            {
+              "stepId": "report",
+              "state": "completed",
+              "idempotencyKey": "flatten-test-code-root-report-complete-v1"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fd20b-87a7-7b73-a2d6-b6e83347e5d2",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

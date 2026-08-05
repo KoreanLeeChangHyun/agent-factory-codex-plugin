@@ -1,0 +1,11 @@
+Work Unit: flatten-test-code-root
+Commit: 186ed73fe3d2aaf6c3141ad6d1007eb7ae55a5eb
+root_tests=18
+nested_skill_tests=0
+duplicate_names=0
+remaining_skill_test_dirs=0
+old_path_refs=0
+git diff --cached --check passed before commit
+all inspected referenced path targets exist
+worktree inspect state=clean
+Tests were intentionally not run under the Work Unit exclusion.

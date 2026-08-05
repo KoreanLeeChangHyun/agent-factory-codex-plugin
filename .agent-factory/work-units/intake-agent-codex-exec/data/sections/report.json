@@ -1,0 +1,53 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "status": "complete",
+        "summary": "Work Unit 범위를 구현, 검증, AI review하고 commit 550fbf6에 기록했다. Human review 후 complete 시 local factory 통합이 필요하다.",
+        "ackExample": "{\"kind\":\"ack\",\"status\":\"accepted\",\"intakeId\":\"<id>\",\"sessionId\":\"<session>\",\"mode\":\"new|resume\",\"capability\":\"analysis|web-search|user-research\"}",
+        "terminalExample": "{\"kind\":\"result\",\"status\":\"completed\",\"intakeId\":\"<id>\",\"sessionId\":\"<session>\",\"summary\":\"...\",\"question\":null,\"evidence\":[],\"limitations\":[]}",
+        "delivered": [
+          "세 번째 Intake Agent 역할 reference와 agents 라우팅",
+          "intakes 소유 codex exec 신규/resume launcher",
+          "Intake별 single-writer lock과 persisted session binding",
+          "compact ACK/terminal result schema와 fail-closed 오류",
+          "Project Core와 lifecycle 정렬",
+          "Goal preflight 기준선 문구 수정"
+        ],
+        "exclusions": [
+          "Human 직접 interview와 readiness 결정",
+          "Work Unit 자동 실행과 Workflow Goal protocol 변경",
+          "push, deploy, plugin reinstall, PR promotion"
+        ],
+        "verification": [
+          "focused: 30 tests, OK",
+          "agents: 5 tests, OK",
+          "intakes/lifecycle: 79 tests, OK",
+          "specifications/synchronization: 26 tests, OK",
+          "work-units: 121 tests, OK",
+          "plugin validator, skill validators, four schema checks, Project Core full validation, git diff --check: pass"
+        ],
+        "remainingRisks": [
+          "advisory lock의 보호 범위는 delegated launcher 사용자로 제한된다."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd1e3-64ea-7bc0-a757-6165641ad9ba",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/intake-agent-codex-exec-r1a1-verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

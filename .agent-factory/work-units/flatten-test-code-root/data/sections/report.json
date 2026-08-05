@@ -1,0 +1,77 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": {
+        "status": "complete",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/flatten-test-code-root",
+        "commit": "186ed73fe3d2aaf6c3141ad6d1007eb7ae55a5eb",
+        "summary": "18개 테스트를 plugin 루트 tests로 평탄 이동했다. 위치 의존 Path(__file__) 상수와 test_work_unit_manager.py sibling 참조를 수정했고 활성 이전 경로 참조는 없다.",
+        "userTestCommand": "python3 -m unittest discover -s tests -p 'test_*.py'",
+        "testsRun": false,
+        "movedFiles": [
+          "test_app_server_goal.py",
+          "test_artifact_manager_script_contract.py",
+          "test_document_profiles.py",
+          "test_intake_agent_contract.py",
+          "test_intake_agent_exec.py",
+          "test_intake_manager.py",
+          "test_main_work_package_contract.py",
+          "test_skill_metadata.py",
+          "test_specification_manager.py",
+          "test_sync_gmail.py",
+          "test_sync_manager.py",
+          "test_work_package_exec.py",
+          "test_work_package_integrate.py",
+          "test_work_package_manager.py",
+          "test_work_package_supervisor.py",
+          "test_work_unit_manager.py",
+          "test_workflow_work_package_contract.py",
+          "test_worktree.py"
+        ],
+        "remainingRisks": [
+          "Workflow Agent did not run the test suite by explicit Work Unit exclusion; runtime behavior awaits Human execution."
+        ]
+      },
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd20b-87a7-7b73-a2d6-b6e83347e5d2",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/static-verification.txt",
+          "blocks/evidence/report.txt"
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-137249FED6F24899",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "already-merged",
+        "relationship": "already-merged",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "sourceBranch": "work-unit/flatten-test-code-root",
+        "sourceCommit": "186ed73fe3d2aaf6c3141ad6d1007eb7ae55a5eb",
+        "strategy": "none",
+        "targetAfterCommit": "186ed73fe3d2aaf6c3141ad6d1007eb7ae55a5eb",
+        "targetBeforeCommit": "186ed73fe3d2aaf6c3141ad6d1007eb7ae55a5eb",
+        "targetBranch": "factory",
+        "workUnitId": "flatten-test-code-root",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/flatten-test-code-root",
+        "receiptSha256": "137249fed6f24899a13dd96a6e7f3f3ba0d9d7c4558ed828c616e46dad8a9fe2"
+      },
+      "attributes": {
+        "status": "already-merged"
+      },
+      "blockRef": "blocks/evidence/integration-receipt.json"
+    }
+  ],
+  "subsections": []
+}

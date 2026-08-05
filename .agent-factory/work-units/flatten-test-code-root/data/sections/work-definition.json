@@ -1,0 +1,52 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "18개 Python 테스트를 plugin 루트 tests로 평탄 이동하고 위치 의존 경로와 활성 참조를 정렬한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/*/tests/test_*.py 18개를 tests/로 평탄 이동",
+          "Path(__file__) 기반 skill 및 plugin root 해석 수정",
+          "sibling test reference 수정",
+          "활성 테스트 실행 명령과 문서 참조 정렬",
+          "빈 skills/*/tests 디렉터리 제거",
+          "사용자 직접 테스트 명령 제공"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Workflow Agent의 테스트 실행",
+          "테스트 추가, 삭제 또는 assertion 의미 변경",
+          "제품 코드 변경",
+          "배포, push와 PR promotion"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "루트 tests 아래 평탄화된 18개 테스트 파일",
+          "새 위치에서 올바른 repository path 해석",
+          "사용자가 worktree에서 실행할 명령",
+          "변경 파일과 미검증 상태 보고"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

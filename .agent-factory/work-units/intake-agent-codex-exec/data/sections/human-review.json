@@ -1,0 +1,45 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "Main Agent가 새 Intake Exec와 기존 session resume을 선택할 수 있는지 확인",
+          "Intake Agent 결과가 요약만 반환하고 Main 대화에 원시 로그를 싣지 않는지 확인",
+          "Human 질문과 readiness 판단이 Main Agent에 남아 있는지 확인",
+          "내부, 웹, 문서와 런타임 분석이 Intake Agent로 라우팅되는지 확인",
+          "검증 결과, AI finding과 남은 위험 확인"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "한국어 결과 보고, 변경 diff, 테스트 증거와 예시 Intake Exec 결과를 검토하고 rework 또는 complete를 결정한다. complete는 local factory에 자동 통합하며 push, 배포와 PR promotion은 별도 요청이다."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "한국어 결과, diff, 검증 증거, ACK/terminal 예시를 검토한 뒤 rework 또는 complete 결정을 기다린다."
+      },
+      "attributes": {
+        "status": "complete",
+        "decidedAt": "2026-08-05T12:52:36+00:00",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "revision": 1,
+          "attempt": 1,
+          "invocationId": "019fd1e3-64ea-7bc0-a757-6165641ad9ba"
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

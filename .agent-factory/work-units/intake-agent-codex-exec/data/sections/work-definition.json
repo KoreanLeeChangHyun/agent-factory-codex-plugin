@@ -1,0 +1,70 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Main Agent의 조사 컨텍스트 부담을 줄이는 Intake Agent 역할과 intakes 스킬 소유 codex exec 실행 경로를 구현한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/agents에 Intake Agent 역할 계약 추가",
+          "skills/intakes/scripts에 codex exec 기반 Intake Agent 실행기 추가",
+          "Main Agent가 새 세션 또는 기존 세션 resume을 선택하는 명시적 호출 계약",
+          "내부, 웹, 문서와 런타임 분석 capability 라우팅",
+          "intake.py 전용 canonical 쓰기와 동일 Intake 단일 writer 보호",
+          "compact ACK 및 terminal result schema와 오류 계약",
+          "Project Core, lifecycle, agents와 intakes 문서 정렬",
+          "관련 단위, 통합, 역할 계약 및 전체 회귀 테스트"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Intake Agent의 Human 직접 인터뷰 또는 Human 결정",
+          "Intake readiness 최종 판단, Work Unit 생성과 실행 admission",
+          "Workflow Agent Goal launcher의 프로토콜 변경",
+          "자동 Work Unit 실행",
+          "배포, plugin 재설치, push, branch 삭제와 PR promotion"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "세 번째 Intake Agent 역할 reference와 라우팅",
+          "intakes 소유 codex exec 실행 스크립트",
+          "구조화 ACK 및 terminal result contract",
+          "세션 선택과 동일 Intake writer 보호",
+          "Project Core 및 lifecycle 정렬",
+          "TDD 회귀 테스트와 한국어 Human review 보고"
+        ]
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "items": [
+          "canonical Intake 변경은 intake.py만 사용한다.",
+          "Main Agent가 세션 선택권과 Human-facing 결정권을 유지한다.",
+          "Intake Agent는 Goal-bound Work Unit 실행 의미를 사용하지 않는다.",
+          "기존 Workflow Agent와 Work Unit 실행 계약을 보존한다.",
+          "기준선에 존재하는 Goal preflight 문구 계약 실패를 수정하고 전체 테스트를 녹색으로 만든다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

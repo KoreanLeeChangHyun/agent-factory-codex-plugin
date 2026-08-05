@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "Ready Intake의 테스트 코드 루트 평탄화 결정"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "flatten-test-code-root",
+          "path": ".agent-factory/intakes/flatten-test-code-root",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

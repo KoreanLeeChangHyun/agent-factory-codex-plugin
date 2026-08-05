@@ -1,15 +1,15 @@
 {
   "schemaVersion": "2.0.0",
-  "documentVersion": "1.0.27",
-  "id": "intake-agent-exec-role-research",
+  "documentVersion": "1.0.10",
+  "id": "flatten-test-code-root",
   "artifactType": "intake",
   "projectId": "agent-factory-codex-plugins",
   "lifecycle": {
     "phase": "intake",
     "status": "ready"
   },
-  "createdAt": "2026-08-05T11:38:54+00:00",
-  "updatedAt": "2026-08-05T12:22:24+00:00",
+  "createdAt": "2026-08-05T12:57:38+00:00",
+  "updatedAt": "2026-08-05T12:58:10+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {
@@ -19,7 +19,7 @@
   },
   "relations": [],
   "readiness": {
-    "reviewedAt": "2026-08-05T12:00:00+09:00",
+    "reviewedAt": "2026-08-05T22:00:00+09:00",
     "contractValid": true,
     "evidenceComplete": true,
     "requirementsComplete": true,

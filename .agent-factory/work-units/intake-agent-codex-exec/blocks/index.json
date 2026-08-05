@@ -1,0 +1,11 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/evidence/intake-agent-codex-exec-r1a1-verification.txt",
+      "mediaType": "text/plain",
+      "description": "Revision 1 attempt 1 TDD, verification, AI review, and remaining-risk evidence",
+      "sha256": "5b0994046ab9219466082cd25d2b2eb6374cf3a69eb25abb8bdbcfc68552d779",
+      "sizeBytes": 2582
+    }
+  ]
+}

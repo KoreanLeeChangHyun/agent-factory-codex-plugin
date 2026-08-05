@@ -1,0 +1,69 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "tests/test_*.py가 정확히 18개다.",
+          "skills 아래 tests/test_*.py가 없다.",
+          "파일명 충돌이 없고 기존 18개 파일이 모두 대응된다.",
+          "위치 의존 경로와 활성 test file 참조가 루트 tests 기준이다.",
+          "사용자 직접 실행 명령이 제공된다."
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "Worktree에 이동과 경로 수정이 커밋된다.",
+          "Workflow Agent는 테스트를 실행하지 않는다.",
+          "사용자가 직접 테스트할 worktree와 명령이 보고된다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Workflow Agent 자동 테스트 없음",
+          "Human이 worktree에서 python3 -m unittest discover -s tests -p test_*.py를 직접 실행"
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "status": "user-verification-required",
+        "checks": [
+          "루트 test_*.py 18개",
+          "skills 아래 test_*.py 0개",
+          "중복 파일명 0개",
+          "빈 skills/*/tests 디렉터리 0개",
+          "이전 skills test path 활성 참조 0개",
+          "git diff --check 통과",
+          "worktree clean"
+        ]
+      },
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd20b-87a7-7b73-a2d6-b6e83347e5d2",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/evidence/static-verification.txt"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,34 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "모든 테스트 코드를 /home/deus/workspace/agent-factory/plugin/tests 아래로 이동하고 평탄화한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "스킬별 tests 디렉터리 없이 루트 tests에서 테스트 파일을 한눈에 찾고 사용자가 직접 실행할 수 있다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "현재 18개 test_*.py 파일이 루트 tests 바로 아래에 존재한다.",
+          "기존 skills/*/tests 아래 테스트 코드는 남지 않는다.",
+          "이동된 파일의 repository와 skill 경로 해석이 새 위치에서 유효하다.",
+          "사용자용 직접 실행 명령이 제공된다.",
+          "Workflow Agent는 테스트를 실행하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

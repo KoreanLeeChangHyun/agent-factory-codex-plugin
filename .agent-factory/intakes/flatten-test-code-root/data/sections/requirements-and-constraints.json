@@ -1,0 +1,54 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "모든 skills/*/tests/test_*.py를 plugin/tests 바로 아래로 평탄 이동한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "이동된 테스트의 경로 계산은 root tests 위치에서 동일한 scripts, assets, references와 plugin manifest를 찾도록 수정한다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "저장소의 활성 테스트 실행 명령과 test file 참조를 루트 tests 기준으로 정렬한다."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "constraint",
+      "content": {
+        "constraint": "테스트 내용과 제품 동작은 변경하지 않고 위치 및 위치 의존 경로만 수정한다."
+      }
+    },
+    {
+      "id": "REQ-005",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Workflow Agent는 테스트를 실행하지 않으며 사용자가 전용 worktree에서 직접 테스트한다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "tests/test_*.py가 정확히 18개다.",
+          "skills 아래 tests/test_*.py가 없다.",
+          "모든 이동 파일이 기존 대응 파일과 명확히 추적된다.",
+          "사용자 실행 명령이 report에 기록된다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

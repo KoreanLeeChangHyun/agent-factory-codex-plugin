@@ -1,0 +1,39 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 18개 Python 테스트가 agents, intakes, lifecycle, specifications, synchronization, work-units의 tests 디렉터리에 분산돼 있으며 다수 파일이 __file__ 상대 경로로 skill root를 계산한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "18개 test_*.py 파일을 루트 tests로 평탄 이동",
+          "이동된 테스트의 path constant와 sibling test reference 수정",
+          "문서와 canonical 실행 명령의 기존 test module path 정렬",
+          "빈 skills/*/tests 디렉터리 제거",
+          "사용자 직접 테스트 명령 제공"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "테스트 실행",
+          "테스트 케이스 추가 또는 삭제",
+          "제품 코드 동작 변경",
+          "배포, plugin 재설치, push와 PR promotion"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

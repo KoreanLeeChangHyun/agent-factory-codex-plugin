@@ -1,0 +1,40 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "result": "테스트 파일 저장 위치 변경은 Project Core의 목적, scope와 Human decision boundary를 변경하지 않는다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "분산된 18개 Python 테스트를 plugin 루트 tests로 평탄 이동하고 위치 의존 경로와 활성 실행 참조를 정렬한다.",
+        "executionOrder": 1,
+        "scope": [
+          "18개 테스트 파일 평탄 이동",
+          "path resolution 수정",
+          "활성 실행 명령 및 참조 정렬",
+          "빈 skill tests 디렉터리 제거",
+          "사용자 직접 실행 안내"
+        ],
+        "outOfScope": [
+          "테스트 실행",
+          "테스트 추가, 삭제 또는 동작 변경",
+          "제품 코드 변경",
+          "배포와 push"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

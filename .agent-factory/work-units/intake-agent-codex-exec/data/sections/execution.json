@@ -1,0 +1,33 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "status": "완료",
+        "summary": "Intake Agent 역할, codex exec 신규/resume 실행기, 단일 writer/session 보호, compact schema, 문서 정렬과 기준선 수정을 구현했다.",
+        "commit": "550fbf6",
+        "changedPaths": [
+          "skills/agents/**",
+          "skills/intakes/**",
+          "skills/lifecycle/references/**",
+          "skills/lifecycle/tests/test_skill_metadata.py",
+          "skills/work-units/references/work-unit-execution.md"
+        ]
+      },
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd1e3-64ea-7bc0-a757-6165641ad9ba",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

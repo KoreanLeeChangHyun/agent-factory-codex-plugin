@@ -1,0 +1,25 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "status": "complete",
+        "summary": "18개 테스트 파일을 루트 tests로 평탄 이동하고 위치 의존 경로 및 sibling 참조를 새 위치에 맞게 수정했다. 테스트는 Work Unit 지시에 따라 실행하지 않았다."
+      },
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd20b-87a7-7b73-a2d6-b6e83347e5d2",
+          "revision": 1,
+          "attempt": 1
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

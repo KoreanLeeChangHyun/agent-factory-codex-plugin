@@ -1,0 +1,35 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "step": "현재 18개 테스트 파일과 경로 의존성을 매핑한다."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "step": "파일을 tests/로 평탄 이동하고 위치 의존 path constant와 활성 참조만 수정한다."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "step": "테스트는 실행하지 않고 파일 수, 중복 이름, 남은 skills tests 경로와 diff만 정적으로 확인한다."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "step": "사용자용 worktree 경로, 실행 명령, 변경사항과 미검증 상태를 보고한다."
+      }
+    }
+  ],
+  "subsections": []
+}

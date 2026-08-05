@@ -20,7 +20,10 @@
       "id": "REQ-EXEC-001",
       "kind": "requirement",
       "content": {
-        "requirement": "전용 Intake launcher는 App Server의 thread와 turn을 사용하되 Workflow Agent 전용 Goal preflight와 Work Unit recovery 상태를 생성하지 않는다."
+        "requirement": "intakes 스킬 소유 실행 스크립트는 codex exec를 사용해 별도 Intake Agent 세션을 시작하거나 Main Agent가 선택한 기존 세션을 resume한다."
+      },
+      "attributes": {
+        "sourceDecision": "DECISION-EXEC-001"
       }
     },
     {
@@ -72,6 +75,16 @@
           "동일 Intake 중복 실행과 동시 writer가 fail closed 된다.",
           "기존 Main과 Workflow Agent 역할 및 App Server Goal tests가 유지된다."
         ]
+      }
+    },
+    {
+      "id": "REQ-SCOPE-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Intake Agent는 내부 저장소, 웹, 문서와 런타임 증거를 분석한다. Human 인터뷰, Human 결정, readiness 최종 판단은 Main Agent가 소유한다."
+      },
+      "attributes": {
+        "sourceDecision": "DECISION-SCOPE-001"
       }
     }
   ],
