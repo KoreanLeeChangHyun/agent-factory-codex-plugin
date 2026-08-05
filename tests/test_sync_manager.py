@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 
-SKILL_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "synchronization"
 MANAGER = SKILL_ROOT / "scripts" / "sync.py"
 
 

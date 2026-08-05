@@ -15,7 +15,11 @@ from unittest import mock
 
 
 SCRIPT = (
-    Path(__file__).resolve().parents[1] / "scripts" / "app_server_goal.py"
+    Path(__file__).resolve().parents[1]
+    / "skills"
+    / "work-units"
+    / "scripts"
+    / "app_server_goal.py"
 )
 
 

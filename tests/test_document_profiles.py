@@ -7,7 +7,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 
 
-SKILLS = Path(__file__).resolve().parents[2]
+SKILLS = Path(__file__).resolve().parents[1] / "skills"
 SCHEMA_PATH = (
     SKILLS / "lifecycle" / "assets" / "schema" / "document-profile.schema.json"
 )

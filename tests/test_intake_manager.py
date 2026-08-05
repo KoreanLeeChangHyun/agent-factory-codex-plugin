@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 
-SKILL_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "intakes"
 SCRIPT = SKILL_ROOT / "scripts" / "intake.py"
 SCHEMA_ROOT = SKILL_ROOT / "assets" / "schema"
 PROFILE = SKILL_ROOT / "assets" / "profiles" / "intake.profile.json"

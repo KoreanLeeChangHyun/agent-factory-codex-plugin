@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 
-SKILLS = Path(__file__).resolve().parents[2]
+SKILLS = Path(__file__).resolve().parents[1] / "skills"
 
 
 class IntakeAgentContractTests(unittest.TestCase):

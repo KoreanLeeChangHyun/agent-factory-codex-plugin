@@ -7,7 +7,11 @@ from pathlib import Path
 class MainAgentWorkPackageContractTest(unittest.TestCase):
     def test_main_monitors_work_unit_ack_and_final_document(self) -> None:
         content = (
-            Path(__file__).resolve().parents[1] / "references" / "main-agent.md"
+            Path(__file__).resolve().parents[1]
+            / "skills"
+            / "agents"
+            / "references"
+            / "main-agent.md"
         ).read_text(encoding="utf-8")
         self.assertIn("first JSONL document", content)
         self.assertIn("immediate ACK", content)
@@ -15,7 +19,11 @@ class MainAgentWorkPackageContractTest(unittest.TestCase):
 
     def test_main_routes_package_execution_and_single_review(self) -> None:
         content = (
-            Path(__file__).resolve().parents[1] / "references" / "main-agent.md"
+            Path(__file__).resolve().parents[1]
+            / "skills"
+            / "agents"
+            / "references"
+            / "main-agent.md"
         ).read_text(encoding="utf-8")
         self.assertIn("work_package.py preflight", content)
         self.assertIn("work_package_supervisor.py", content)

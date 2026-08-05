@@ -9,7 +9,13 @@ import unittest
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "work_package.py"
+SCRIPT = (
+    Path(__file__).resolve().parents[1]
+    / "skills"
+    / "work-units"
+    / "scripts"
+    / "work_package.py"
+)
 WORK_UNIT_TEST = Path(__file__).with_name("test_work_unit_manager.py")
 
 

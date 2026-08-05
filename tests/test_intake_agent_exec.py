@@ -15,7 +15,13 @@ from unittest import mock
 import jsonschema
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "intake_agent_exec.py"
+SCRIPT = (
+    Path(__file__).resolve().parents[1]
+    / "skills"
+    / "intakes"
+    / "scripts"
+    / "intake_agent_exec.py"
+)
 
 
 def load_module():

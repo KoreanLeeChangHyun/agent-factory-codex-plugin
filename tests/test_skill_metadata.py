@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 
 
-SKILLS = Path(__file__).resolve().parents[2]
+SKILLS = Path(__file__).resolve().parents[1] / "skills"
 
 
 class SkillMetadataTests(unittest.TestCase):

@@ -12,13 +12,14 @@ import unittest
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "worktree.py"
-PLANNER_TEST = (
-    Path(__file__).resolve().parents[2]
+SCRIPT = (
+    Path(__file__).resolve().parents[1]
+    / "skills"
     / "work-units"
-    / "tests"
-    / "test_work_unit_manager.py"
+    / "scripts"
+    / "worktree.py"
 )
+PLANNER_TEST = Path(__file__).with_name("test_work_unit_manager.py")
 
 
 def load_planner_test_helpers():

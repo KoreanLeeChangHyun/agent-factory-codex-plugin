@@ -8,7 +8,13 @@ import unittest
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "work_package_integrate.py"
+SCRIPT = (
+    Path(__file__).resolve().parents[1]
+    / "skills"
+    / "work-units"
+    / "scripts"
+    / "work_package_integrate.py"
+)
 
 
 def load_module():
