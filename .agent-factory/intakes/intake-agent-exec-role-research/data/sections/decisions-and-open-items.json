@@ -1,0 +1,71 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "RECOMMENDATION-001",
+      "kind": "recommendation",
+      "content": {
+        "recommendation": "MVP는 agents 스킬의 세 번째 Intake Agent 역할과 App Server 기반 app_server_intake.py launcher로 구성한다. launcher는 Goal 없이 단일 Intake-bound turn을 실행하고 compact ACK 및 terminal result만 출력한다."
+      }
+    },
+    {
+      "id": "ALTERNATIVES-001",
+      "kind": "alternatives",
+      "content": {
+        "items": [
+          "A 권장: App Server 전용 launcher. thread 재사용과 notification filtering을 제어할 수 있고 현행 launcher 패턴과 정렬된다.",
+          "B: codex exec와 output schema. 구현은 단순하지만 canonical 상태, thread 재사용, ACK와 세밀한 protocol 검증을 별도 보강해야 한다.",
+          "C: native subagent delegation. 컨텍스트 격리는 좋지만 plugin 배포 역할과 deterministic launcher 계약이 약하고 canonical write 조정이 필요하다."
+        ]
+      }
+    },
+    {
+      "id": "OPEN-TRANSPORT-001",
+      "kind": "open-item",
+      "content": {
+        "item": "Human은 구현 단계 전에 App Server 전용 launcher를 채택할지 최종 결정해야 한다."
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": false
+      }
+    },
+    {
+      "id": "OPEN-THREAD-001",
+      "kind": "open-item",
+      "content": {
+        "item": "한 Intake의 후속 조사에서 동일 thread를 재사용할지 매 호출 새 thread를 만들지 결정이 필요하다. 연구 권고는 intake-id별 thread 재사용이다."
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": false
+      }
+    },
+    {
+      "id": "OPEN-SCOPE-001",
+      "kind": "open-item",
+      "content": {
+        "item": "MVP가 internal analysis만 지원할지 web search, user research, interview 준비까지 포함할지 범위 결정이 필요하다."
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": false
+      }
+    },
+    {
+      "id": "RISK-001",
+      "kind": "risk",
+      "content": {
+        "risks": [
+          "동일 Intake 동시 쓰기 시 semantic lost update 가능성",
+          "Intake Agent가 Human decision을 암묵적으로 확정할 위험",
+          "상세 event를 Main Agent에 전달하면 컨텍스트 절감 목적 상실",
+          "Goal 계약 재사용 시 Intake와 Work Unit lifecycle 의미 혼합",
+          "새 launcher와 supervisor가 조기 추상화되어 유지보수 비용 증가"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

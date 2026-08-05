@@ -1,0 +1,34 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "items": [
+          "Human 결정권자",
+          "Main Agent",
+          "Intake Agent",
+          "Workflow Agent",
+          "Agent Factory 운영자"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "Intake Agent는 증거 수집과 canonical Intake 기록만 수행한다. Human 질문, readiness 최종 판단, Work Unit 생성과 실행 시작은 Main Agent 경계를 유지한다."
+      }
+    }
+  ],
+  "subsections": []
+}

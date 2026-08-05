@@ -1,0 +1,79 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-ROLE-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Intake Agent는 repository, document, runtime 및 필요 시 external evidence를 수집하고 canonical Intake를 오직 intake.py로 갱신한다."
+      }
+    },
+    {
+      "id": "REQ-BOUNDARY-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Intake Agent는 Human 결정을 추정하거나 readiness 최종 판단, Work Unit 생성, 실행 admission, rework, integration을 수행하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-EXEC-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "전용 Intake launcher는 App Server의 thread와 turn을 사용하되 Workflow Agent 전용 Goal preflight와 Work Unit recovery 상태를 생성하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-OUTPUT-001",
+      "kind": "requirement",
+      "content": {
+        "fields": [
+          "intakeId",
+          "validationStatus",
+          "changedSections",
+          "evidenceSummary",
+          "limitations",
+          "humanDecisionRequired",
+          "question",
+          "recommendedNextAction"
+        ]
+      }
+    },
+    {
+      "id": "REQ-CONTEXT-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Main Agent에는 initial ACK와 bounded terminal result만 전달하고 raw command output, test log, browsing trace와 intermediate item event는 전달하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-WRITE-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "동일 Intake에는 동시에 하나의 delegated writer만 허용하고 Main Agent는 delegate terminal 이전에 그 Intake를 수정하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-SAFETY-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "sandbox와 네트워크 권한은 선택된 분석 capability에 필요한 최소 범위로 설정하고 canonical manager gate를 우회하지 않는다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "별도 thread에서 Intake Agent prompt가 시작되고 Goal RPC가 호출되지 않는다.",
+          "Intake Agent는 manager-only canonical write를 수행한다.",
+          "Human 결정 필요 시 canonical open item과 질문 하나를 terminal result로 반환한다.",
+          "raw intermediate events가 Main Agent-facing stdout에 포함되지 않는다.",
+          "동일 Intake 중복 실행과 동시 writer가 fail closed 된다.",
+          "기존 Main과 Workflow Agent 역할 및 App Server Goal tests가 유지된다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

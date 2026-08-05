@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.7",
+  "id": "intake-agent-exec-role-research",
+  "artifactType": "intake",
+  "projectId": "agent-factory-codex-plugins",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "draft"
+  },
+  "createdAt": "2026-08-05T11:38:54+00:00",
+  "updatedAt": "2026-08-05T11:41:50+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "contractValid": true,
+    "evidenceComplete": false,
+    "requirementsComplete": false,
+    "specificationConsistent": false,
+    "executionReady": false,
+    "reviewedAt": null,
+    "findings": []
+  }
+}
