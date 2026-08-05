@@ -1,0 +1,27 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/intakes/scripts/intake_agent_exec.py and .agent-factory/runtime/intake-agent",
+        "method": "source and runtime artifact inspection",
+        "findings": [
+          "Launcher stores a small Intake ID to Codex session ID mapping under .agent-factory/runtime.",
+          "The actual Codex session is external to this mapping.",
+          "Lock files persist in the repository runtime path after process completion.",
+          "Intake canonical writes are already exclusively owned by intake.py."
+        ],
+        "interpretations": [
+          "Session binding belongs with the named Intake but must be operational metadata that does not reopen readiness.",
+          "Locks should use an OS temporary runtime location."
+        ],
+        "limitations": []
+      }
+    }
+  ],
+  "subsections": []
+}

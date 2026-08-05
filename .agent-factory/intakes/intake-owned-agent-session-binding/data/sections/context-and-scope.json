@@ -1,0 +1,39 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 launcher는 .agent-factory/runtime/intake-agent/sessions와 locks 아래에 추가 매핑과 lock 파일을 생성한다. 실제 Codex 세션은 이미 .codex가 소유한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "Intake metadata/schema와 intake.py session binding CRUD",
+          "intake_agent_exec.py binding lookup 및 OS temp lock",
+          "관련 Intake Agent 계약 문서",
+          ".agent-factory/runtime 의존성 제거"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          ".codex 실제 세션 저장 방식 변경",
+          "Git worktree 계약 변경",
+          "기존 canonical 의미 내용 변경",
+          "테스트 실행",
+          "배포와 push"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

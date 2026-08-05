@@ -1,0 +1,46 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "manager-only canonical mutation",
+          "readiness and documentVersion preservation",
+          "no repository runtime sidecar",
+          "OS-temp lock",
+          "session mismatch and sandbox preservation",
+          "no-test compliance"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "Static AI review passed the current checklist; runtime directory deletion and absence were confirmed, and tests were not run.",
+        "findings": [
+          "Manager-only canonical mutation and transaction ownership remain preserved.",
+          "Semantic documentVersion, updatedAt, lifecycle, and readiness preservation remain represented in the committed implementation.",
+          "Launcher contains no repository runtime sidecar path and uses an OS temporary lock.",
+          "The exact repository runtime directory is absent after the requested deletion action.",
+          "No tests, lint, build, typecheck, or smoke checks were run."
+        ]
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd2f7-a07c-70b0-8d69-370ac9ae977e",
+          "revision": 2,
+          "attempt": 1
+        },
+        "testsRun": false
+      }
+    }
+  ],
+  "subsections": []
+}

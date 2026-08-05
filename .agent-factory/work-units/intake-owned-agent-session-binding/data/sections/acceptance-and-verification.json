@@ -1,0 +1,62 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "intake.py provides session bind/show/clear.",
+          "Binding stores only session association in named Intake.",
+          "Binding operations do not reopen ready Intake or increment semantic documentVersion.",
+          "Launcher creates no .agent-factory/runtime files.",
+          "Lock is outside repository.",
+          "Existing sandbox, network and mismatch contracts remain."
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "Code and docs agree.",
+          "Source changes committed in worktree.",
+          "No tests run and remaining runtime risk reported."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Human requested no tests: do not run test, lint, build, typecheck or smoke commands."
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "check": "Static diff review passed for manager ownership, semantic metadata invariants, launcher routing, OS-temp locking, and documentation consistency; the repository runtime path was confirmed absent."
+      },
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd2f7-a07c-70b0-8d69-370ac9ae977e",
+          "revision": 2,
+          "attempt": 1
+        },
+        "testsRun": false,
+        "evidence": [
+          "blocks/evidence/intake-manager.py",
+          "blocks/evidence/intake-agent-launcher.py"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

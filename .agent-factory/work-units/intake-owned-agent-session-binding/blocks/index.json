@@ -1,0 +1,25 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/evidence/intake-agent-launcher.py",
+      "mediaType": "text/x-python",
+      "description": "Committed Intake Agent launcher implementation for static Human and AI review",
+      "sha256": "c58fdae11fab221c7d09a7aa8440a4559463427c673542142e8795f1facad2b6",
+      "sizeBytes": 15447
+    },
+    {
+      "path": "blocks/evidence/intake-manager.py",
+      "mediaType": "text/x-python",
+      "description": "Committed Intake manager implementation for static Human and AI review",
+      "sha256": "a9b13399a0787e2c406fbe59b47d1fdcaecbe1171aa55afb2b515bc5ce98801f",
+      "sizeBytes": 5894
+    },
+    {
+      "path": "blocks/integration/intake-owned-agent-session-binding.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "5777e530e9742daeb5bdebe042c777be8274bb6238eb0a63dac2a28a7c31987e",
+      "sizeBytes": 915
+    }
+  ]
+}

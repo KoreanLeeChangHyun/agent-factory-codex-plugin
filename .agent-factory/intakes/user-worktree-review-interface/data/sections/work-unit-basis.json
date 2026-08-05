@@ -1,6 +1,54 @@
 {
   "id": "work-unit-basis",
   "title": "Work Unit Basis",
-  "content": [],
+  "content": [
+    {
+      "id": "SPEC-IMPACT-001",
+      "kind": "specification-impact",
+      "content": {
+        "impact": "현재 저장소에서 대응하는 canonical Specification을 확인하지 못했으므로 후속 Work Unit에서 review facade의 상태 및 표시 계약을 Specification으로 정렬해야 한다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "WU-MINIMAL-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "title": "Sanitized conversational review facade",
+        "scope": [
+          "Add a Main-Agent-facing review projection keyed by Work Unit id.",
+          "Read canonical Work Unit status and report evidence through owning managers.",
+          "Render Human-safe summary and map rework or complete to existing lifecycle operations.",
+          "Redact internal script names, absolute paths, raw protocol payloads, branches, and commits from default output."
+        ],
+        "dependencies": [
+          "Define atomic ordering for complete plus integration so failure cannot produce a false done state."
+        ],
+        "verification": [
+          "Manager-level contract tests should cover sanitization, rework revision, complete success, and integration failure; execution requires separate explicit Human test authorization."
+        ]
+      }
+    },
+    {
+      "id": "WU-EXTENDED-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "title": "Dedicated local review viewer and split integration state",
+        "scope": [
+          "Add a local viewer using opaque Work Unit review tokens or ids.",
+          "Provide changed-file navigation, rendered artifact previews, verification evidence, accessibility, expiry, and explicit diagnostic disclosure.",
+          "Introduce accepted, integrating, integrated, and integration-failed orchestration states if Human needs approval separated from integration."
+        ],
+        "dependencies": [
+          "Requires threat model, local server lifecycle, artifact renderer policy, stale-review handling, and rollback/new-Work-Unit rules."
+        ],
+        "tradeoffs": [
+          "Better discoverability and rich inspection at substantially higher implementation and security cost."
+        ]
+      }
+    }
+  ],
   "subsections": []
 }

@@ -1,0 +1,34 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirements": [
+          "Add manager-owned session binding CRUD to intake.py.",
+          "Store only the Codex session ID association in the Intake package.",
+          "Do not increment semantic documentVersion or invalidate readiness for session binding changes.",
+          "Move concurrency locks outside the repository.",
+          "Remove launcher reads and writes to .agent-factory/runtime.",
+          "Preserve sandbox, capability network policy, shell=False and session mismatch enforcement."
+        ]
+      }
+    },
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "New session ACK is bound through intake.py.",
+          "Resume obtains or verifies the Intake-owned session binding.",
+          "Session clear removes only the association, not .codex data.",
+          "No repository runtime directory is created by launcher.",
+          "No tests run without Human request."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

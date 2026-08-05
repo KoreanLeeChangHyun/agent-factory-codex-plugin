@@ -9,6 +9,32 @@
         "constraint": ".agent-factory/** canonical 파일의 생성·수정·검증은 primary repository에서 owning manager로만 수행하며, 이를 위해 Git worktree를 만들거나 linked worktree 안에서 직접 수정하지 않는다.",
         "rationale": "Human이 확인한 Agent Factory 규칙이며 Intake, Work Unit, Specification canonical artifact의 single-writer 및 primary-root 경계를 보존한다."
       }
+    },
+    {
+      "id": "REQUIREMENT-REVIEW-001",
+      "kind": "requirement",
+      "content": {
+        "requirements": [
+          "Expose one stable Human-facing review action keyed by Work Unit id, not filesystem path.",
+          "Present scope, changed-file summary, AI review findings, verification evidence, tests-not-run disclosure, limitations, and the two actions request rework or complete.",
+          "Translate Human action through work_unit.py and integration orchestration without showing scripts, branches, commits, raw JSON, or absolute paths by default.",
+          "Keep a disclosure path for troubleshooting details only when explicitly requested.",
+          "Make complete fail closed: integration failure must remain visible and must not be reported as completed."
+        ]
+      }
+    },
+    {
+      "id": "ACCEPTANCE-REVIEW-001",
+      "kind": "acceptance-criteria",
+      "content": {
+        "criteria": [
+          "Given a Work Unit in review, the Human can inspect a sanitized result without receiving an internal skill path or absolute worktree path.",
+          "A rework instruction is recorded exactly, starts a new revision on the same Work Unit, and returns to review after execution.",
+          "A complete choice either records completion and integrates to factory successfully, or surfaces a distinct integration failure without claiming success.",
+          "The review summary clearly distinguishes verification performed from verification not run.",
+          "Internal diagnostic evidence remains available to the Main Agent without becoming the default Human view."
+        ]
+      }
     }
   ],
   "subsections": []
