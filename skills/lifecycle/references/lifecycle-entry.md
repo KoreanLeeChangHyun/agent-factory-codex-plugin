@@ -56,6 +56,12 @@ There are no artifact commits, immutable snapshot hashes, checkpoints, or
 approval procedures. Do not ask again about decisions recorded in canonical
 artifacts.
 
+Verification criteria describe what to run if the Human explicitly requests
+it; they do not authorize test execution. Admission records the exact
+Human-requested tests, if any. Without such a request, execution runs no tests,
+including smoke checks, lint, type checks, or build verification, and reports
+that fact for Human review.
+
 After admission, the main agent starts
 `work-units/scripts/app_server_goal.py` as a background process. The
 launcher establishes the Goal and explicitly tells the started agent that it is
@@ -83,7 +89,8 @@ the initial turn emits no ACK.
 - branch is `work-unit/<work-unit-id>`;
 - path is `<project-root>/.agent-factory/worktree/<work-unit-id>`;
 - sparse checkout excludes the entire `.agent-factory`;
-- implementation and non-canonical verification run in that worktree;
+- implementation and any Human-explicit non-canonical verification run in that
+  worktree;
 - canonical manager writes still route to the primary root.
 - complete integration target is local `factory`.
 

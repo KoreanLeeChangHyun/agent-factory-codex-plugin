@@ -20,6 +20,12 @@ information for independent execution or the Human explicitly requests Work
 Unit creation. A Work Unit must define scope, exclusions, expected output,
 execution mode, verification, AI review, and Human review material.
 
+Test criteria are conditional plans, not execution authority. Record the exact
+tests the Human explicitly requests and treat every other test as not
+authorized. Smoke checks, lint, type checks, build verification, and any other
+command run to verify a change are tests for this boundary. When the Human does
+not name a test, require the execution report to state that tests were not run.
+
 ## One-time execution admission
 
 Only an explicit Human request to execute a named Work Unit authorizes launch.
@@ -46,6 +52,10 @@ process for its final success or failure document.
 After launch, do not reassess readiness and do not interrupt implementation with
 another approval, checkpoint, or decision request.
 
+The launch authorizes Work Unit execution, but it does not independently
+authorize tests. The Workflow Agent may run only the tests explicitly named by
+the Human and recorded for the Work Unit.
+
 ## Result review
 
 Write all Human-facing review material in Korean. Present:
@@ -53,6 +63,8 @@ Write all Human-facing review material in Korean. Present:
 - delivered scope and exclusions;
 - changed paths or updated canonical Specification;
 - exact verification commands and results;
+- the explicitly requested tests that ran, or an explicit statement that no
+  tests ran;
 - AI review findings;
 - remaining risks or failed checks;
 - whether the execution mode requires Git integration.

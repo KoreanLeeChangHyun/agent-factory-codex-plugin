@@ -43,6 +43,11 @@ Before the launcher starts, `agents` checks once that:
 
 After launch, the Workflow Agent does not repeat this decision or ask for
 approval. It follows recorded canonical decisions until execution completes.
+Test criteria remain conditional plans: only tests explicitly requested by the
+Human may run. Smoke checks, lint, type checks, build verification, and other
+verification commands are included in this gate. If no test was explicitly
+requested, the Workflow Agent runs none and records `tests not run` in the
+result evidence.
 
 ## Background Goal + Exec
 

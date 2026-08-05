@@ -16,6 +16,10 @@ It is not a Goal-bound Workflow Agent.
   launcher enforces one delegated single writer per Intake.
 - Return compact evidence, limitations, and at most one Human-owned question to
   the Main Agent. Raw JSONL events and research logs remain isolated.
+- Inspecting existing test code or previously recorded test output is allowed,
+  but executing a test requires an explicit Human request relayed by the Main
+  Agent. Treat smoke checks, lint, type checks, build verification, and other
+  verification commands as tests under this boundary.
 
 ## Boundaries
 

@@ -33,6 +33,12 @@ self-contained for a new Workflow Agent session and include:
 - execution context and `executionMode`;
 - report and evidence requirements.
 
+Every test criterion is a conditional plan, not execution authority. Record
+the exact Human-requested test commands when they exist. When none exist, the
+criterion must say that no tests are authorized and the report must record that
+tests were not run. This gate includes smoke checks, lint, type checks, build
+verification, and other commands whose purpose is change verification.
+
 The basis reference records the canonical Intake package root and exact section
 and item anchor.
 

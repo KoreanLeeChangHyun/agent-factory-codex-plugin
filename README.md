@@ -57,8 +57,11 @@ Validate the plugin structure with the bundled Plugin Creator validator:
 python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/plugin-creator/scripts/validate_plugin.py" .
 ```
 
-Then run the focused Python test suites under each changed skill before
-publishing an update.
+Run only the test commands the Human explicitly names. This authority boundary
+also applies to smoke checks, lint, type checks, build verification, and other
+commands whose purpose is to verify a change. When no test is explicitly
+requested, report that tests were not run and leave verification to Human
+review.
 
 ## Status
 

@@ -41,12 +41,17 @@ Run:
 Plan -> Work -> AI Review -> Report
 ```
 
-Use TDD for code changes. Record verification evidence and Human-facing review
-material through the Work Unit manager. A turn ending as `interrupted` is
-continued by the launcher in the same Goal. Removed checkpoint or approval
-procedures must never create a blocker. A genuinely unrecoverable execution
-error is reported as an explicit failure; do not leave a process waiting in
-`blocked`.
+Use TDD for code changes only when the Human explicitly authorizes the tests it
+requires. Test criteria in the Work Unit are conditional plans and do not grant
+execution authority. Run only tests explicitly named by the Human; otherwise
+run none. Smoke checks, lint, type checks, build verification, and any other
+command whose purpose is change verification are tests for this boundary.
+Record each authorized command and result, or explicitly record that tests were
+not run, together with Human-facing review material through the Work Unit
+manager. A turn ending as `interrupted` is continued by the launcher in the
+same Goal. Removed checkpoint or approval procedures must never create a
+blocker. A genuinely unrecoverable execution error is reported as an explicit
+failure; do not leave a process waiting in `blocked`.
 
 Do not merge, clean up, push, deploy, delete a branch, or perform PR promotion. Those
 actions occur after the Human chooses `complete`, except that Specification-only

@@ -50,6 +50,12 @@ For `worktree` execution, prepare or reuse the canonical linked worktree before
 attempt may use recovery admission to prepare a missing worktree without
 reopening the one-time readiness decision.
 
+Launch and admission do not authorize tests. Execute only test commands the
+Human explicitly requested and the Work Unit records. Treat smoke checks, lint,
+type checks, build verification, and other verification commands as tests. If
+the Human requested none, execute none and report `tests not run` as the
+verification result.
+
 ## Execution modes
 
 `specification-direct`:

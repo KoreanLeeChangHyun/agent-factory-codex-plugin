@@ -16,6 +16,13 @@ Required sections:
 8. `human-review`
 9. `report`
 
+The `test-criterion` in `acceptance-and-verification` is a conditional plan. It
+must distinguish the exact tests explicitly requested by the Human from a
+no-tests-authorized state. The `execution-result`, `ai-review-result`, and
+`report-result` must record the commands and results for authorized tests or
+state that tests were not run. Smoke, lint, typecheck, and build verification
+are governed by the same rule.
+
 ## Execution context
 
 Record Goal id, objective, exact `app_server_goal.py` invocation, Workflow Agent
