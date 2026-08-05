@@ -1,0 +1,28 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-INTAKE-AGENT-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": "skills/intakes/scripts/intake_agent_exec.py and delegated session 019fd29c-0557-7100-aa6f-4a23d2a55bda",
+        "method": "launcher execution and source inspection",
+        "findings": [
+          "Launcher started codex exec with workspace-write sandbox and emitted an ACK.",
+          "The delegated session failed before repository inspection with bwrap loopback RTM_NEWADDR Operation not permitted.",
+          "No tests, lint, build, or smoke commands ran."
+        ],
+        "interpretations": [
+          "The nested workspace-write sandbox is incompatible with the current execution environment.",
+          "Retry requires a launcher-level sandbox compatibility change or an environment capability change."
+        ],
+        "limitations": [
+          "The Intake Agent collected no repository design evidence and produced no recommendation."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

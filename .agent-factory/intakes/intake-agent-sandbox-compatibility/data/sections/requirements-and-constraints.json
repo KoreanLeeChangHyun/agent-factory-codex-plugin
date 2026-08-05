@@ -1,0 +1,33 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirements": [
+          "Add an explicit sandbox selection supported by codex exec.",
+          "Keep workspace-write as the default.",
+          "Allow a caller-authorized compatibility mode for already-isolated environments.",
+          "Preserve capability-controlled network_access and shell=False argv execution.",
+          "Do not create a Git worktree for canonical Intake files."
+        ]
+      }
+    },
+    {
+      "id": "ACCEPT-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "CLI help documents the sandbox selection.",
+          "New-session command uses the selected supported sandbox value.",
+          "Resume behavior remains compatible with codex exec syntax.",
+          "Default behavior remains workspace-write.",
+          "No tests are run because Human did not request them."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

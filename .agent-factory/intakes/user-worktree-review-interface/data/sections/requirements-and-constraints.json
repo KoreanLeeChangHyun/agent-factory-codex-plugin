@@ -1,0 +1,15 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "CONSTRAINT-CANONICAL-PRIMARY-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": ".agent-factory/** canonical 파일의 생성·수정·검증은 primary repository에서 owning manager로만 수행하며, 이를 위해 Git worktree를 만들거나 linked worktree 안에서 직접 수정하지 않는다.",
+        "rationale": "Human이 확인한 Agent Factory 규칙이며 Intake, Work Unit, Specification canonical artifact의 single-writer 및 primary-root 경계를 보존한다."
+      }
+    }
+  ],
+  "subsections": []
+}

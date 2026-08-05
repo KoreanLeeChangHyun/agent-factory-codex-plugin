@@ -1,0 +1,26 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "status": "accepted",
+        "decision": "Expose an explicit opt-in sandbox mode on the Intake Agent launcher while retaining workspace-write as the default; the invoking Main Agent chooses compatibility mode only when the environment already supplies isolation."
+      }
+    },
+    {
+      "id": "OPEN-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "none"
+      },
+      "attributes": {
+        "blocking": false,
+        "resolved": true
+      }
+    }
+  ],
+  "subsections": []
+}

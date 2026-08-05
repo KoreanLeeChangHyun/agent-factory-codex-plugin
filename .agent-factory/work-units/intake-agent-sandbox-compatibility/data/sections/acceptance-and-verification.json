@@ -1,0 +1,59 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "런처 CLI가 지원되는 sandbox mode를 명시적으로 받는다.",
+          "기본값은 workspace-write다.",
+          "새 세션 command는 선택된 sandbox를 argv로 전달한다.",
+          "analysis capability의 network_access=false 계약을 유지한다.",
+          "Git worktree와 canonical artifact 규칙을 변경하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "코드와 문서가 동일한 option 계약을 설명한다.",
+          "변경이 전용 worktree에 커밋된다.",
+          "테스트를 실행하지 않았음을 보고한다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Human이 명시한 테스트 없음: Workflow Agent는 test, lint, build, typecheck, smoke를 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "check": "정적 diff에서 allowlist, 기본값, 신규·resume argv, network_access, shell=False, 문서 정합성, 범위 준수를 검토했다. 테스트는 실행하지 않았다."
+      },
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "goal-intake-agent-sandbox-compatibility-20260806",
+          "revision": 1,
+          "attempt": 1
+        },
+        "evidence": [
+          "blocks/execution/static-review.md"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

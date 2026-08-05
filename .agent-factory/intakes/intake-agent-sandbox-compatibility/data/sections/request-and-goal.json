@@ -1,0 +1,33 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "현재 실행 환경에서 Intake Agent가 중첩 workspace-write sandbox 초기화 오류 없이 저장소 분석을 수행하도록 런처를 수정한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "런처가 명시적이고 안전한 방식으로 Codex sandbox 모드를 선택할 수 있으며 기존 capability별 network 정책과 compact ACK/result 계약을 보존한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "현재 중첩 sandbox 환경에서 Intake Agent가 저장소 읽기 명령까지 진행할 수 있다.",
+          "기본 workspace-write 동작과 capability별 network_access 설정을 의도 없이 약화하지 않는다.",
+          "shell=False argv 실행, session binding, compact output 계약을 보존한다.",
+          "사용자가 요청하지 않은 테스트를 실행하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

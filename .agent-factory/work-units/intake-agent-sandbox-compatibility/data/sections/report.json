@@ -1,0 +1,47 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "df1f5d0 커밋으로 Intake Agent sandbox 선택 계약과 관련 문서를 갱신했다. 변경 경로 4개, 테스트 미실행, 정적 diff review 통과. runtime/CLI 실행 검증은 Human 미요청 테스트 경계 때문에 수행하지 않았으며 Human diff review 후 rework 또는 complete 결정이 필요하다.",
+      "attributes": {
+        "verificationResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "goal-intake-agent-sandbox-compatibility-20260806",
+          "revision": 1,
+          "attempt": 1
+        },
+        "testsRun": false,
+        "evidence": [
+          "blocks/execution/static-review.md"
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-7366A258D52F2ABD",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "fast-forwarded",
+        "relationship": "fast-forwardable",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "sourceBranch": "work-unit/intake-agent-sandbox-compatibility",
+        "sourceCommit": "df1f5d0dffaa6ce031eba24ac64a5297e4b61847",
+        "strategy": "ff-only",
+        "targetAfterCommit": "df1f5d0dffaa6ce031eba24ac64a5297e4b61847",
+        "targetBeforeCommit": "adcd288c744f67d5405108eff80385582c367a2c",
+        "targetBranch": "factory",
+        "workUnitId": "intake-agent-sandbox-compatibility",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/intake-agent-sandbox-compatibility",
+        "receiptSha256": "7366a258d52f2abdd11bd791a3eeb5bb667c6f073506a725da9baa1721ef7ac8"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/intake-agent-sandbox-compatibility.json"
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "Ready Intake의 Intake Agent nested sandbox compatibility 수정 근거"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "intake-agent-sandbox-compatibility",
+          "path": ".agent-factory/intakes/intake-agent-sandbox-compatibility",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "WU-BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

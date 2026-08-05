@@ -1,0 +1,53 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Intake Agent launcher에 명시적인 sandbox 호환 모드를 추가해 이미 격리된 환경에서도 분석 세션이 시작되도록 한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "intake_agent_exec.py CLI와 command builder",
+          "신규 세션 및 resume sandbox 전달",
+          "Intake Agent 관련 skill/reference 문서",
+          "필요한 최소 사용자·Main Agent 호출 계약"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Git worktree lifecycle 변경",
+          ".agent-factory canonical manager 경계 변경",
+          "테스트 코드 작성 또는 수정",
+          "테스트, lint, build, smoke 실행",
+          "Intake 분석 결과 구현",
+          "배포와 push"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "명시적 sandbox CLI option",
+          "기본 workspace-write 보존",
+          "선택된 sandbox가 반영된 argv command",
+          "갱신된 Intake Agent 실행 문서",
+          "커밋과 사용자 diff 검토 정보"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,21 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "내부 skills 스크립트나 긴 워크트리 경로를 사용자에게 노출하지 않으면서, 병합 전 사용자가 변경 결과를 검증하고 최종 승인할 수 있는 방식을 분석한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "사용자용 검증 진입점, 병합 및 최종 승인 순서, 실패 시 rework 경계를 비교하여 후속 Work Unit이 구현 가능한 권고안을 만든다."
+      }
+    }
+  ],
+  "subsections": []
+}

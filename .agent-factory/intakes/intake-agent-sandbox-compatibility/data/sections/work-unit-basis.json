@@ -1,0 +1,31 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "impact": "No canonical product Specification change is required; this is an Agent Factory launcher and skill contract change."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "WU-BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "id": "intake-agent-sandbox-compatibility",
+        "goal": "Add an explicit sandbox compatibility option to the Intake Agent launcher and update its contract documentation.",
+        "traceability": [
+          "REQUEST-001",
+          "EVIDENCE-001",
+          "REQ-001",
+          "DECISION-001"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

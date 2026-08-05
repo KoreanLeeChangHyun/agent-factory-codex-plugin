@@ -1,0 +1,39 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "intake_agent_exec.py는 새 세션에서 codex exec --sandbox workspace-write를 고정하며, 현재 환경에서 bwrap loopback RTM_NEWADDR Operation not permitted로 저장소 접근 전에 실패했다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/intakes/scripts/intake_agent_exec.py의 sandbox 선택 인터페이스",
+          "신규 세션 및 resume command 구성",
+          "Intake Agent 계약 문서의 실행 옵션 설명",
+          "오류가 발생한 환경에서 명시적으로 선택 가능한 호환 모드"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Git worktree 규칙 변경",
+          ".agent-factory canonical artifact를 linked worktree에서 수정",
+          "테스트 실행",
+          "Intake 분석 주제 구현",
+          "배포 또는 push"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}
