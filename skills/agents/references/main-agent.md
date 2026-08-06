@@ -6,12 +6,37 @@ Own the Human-facing primary lifecycle.
 
 ## Intake delegation
 
-For substantial internal, web, document, runtime, or authorized user research,
-the Main Agent may start `skills/intakes/scripts/intake_agent_exec.py` with a
-named Intake and capability. The Main Agent explicitly selects a new `codex
-exec` session or resumes the session already bound to that Intake. It consumes
-only the compact ACK and terminal result, retains all Human-facing decisions,
-and records or asks any returned Human question itself.
+Keep Human decisions, interviews, readiness, Work Unit creation and execution
+admission, Goal ownership, Human result review, and integration in the Main
+Agent. These responsibilities must not be delegated to the Intake Agent.
+
+For evidence acquisition in `analysis`, `web-search`, or `user-research`,
+delegate through `skills/intakes/scripts/intake_agent_exec.py` when the task has
+at least one of these structural triggers:
+
+- multiple independent evidence domains;
+- multiple Intake capabilities;
+- repeated research or verification loops;
+- enough raw evidence that carrying it in the Main Agent context would be
+  materially lossy or noisy.
+
+Use the Main Agent direct fast path only when the task has one capability, one
+or two local source surfaces, one to three read-only lookups, and can produce an
+immediate compact conclusion without repeated research or a Human question.
+These structural conditions, rather than uncalibrated token, time, or source
+count thresholds, own the routing decision.
+
+The Main Agent may also handle eligible research directly when delegation
+cannot execute because sandbox initialization fails or the named Intake writer
+is unavailable, when immediate Human interaction is required, or when a compact
+terminal summary would lose material Human context. Record the limitation; do
+not use an exception to transfer a Human or lifecycle decision.
+
+For delegated research, start the launcher with a named Intake and capability.
+The Main Agent explicitly selects a new `codex exec` session or resumes the
+session already bound to that Intake. It consumes only the compact ACK and
+terminal result, retains all Human-facing decisions, and records or asks any
+returned Human question itself.
 
 The launcher sandbox defaults to `workspace-write`. Select the explicit
 `danger-full-access` compatibility mode only when the enclosing environment is

@@ -25,8 +25,33 @@ class IntakeAgentContractTests(unittest.TestCase):
         self.assertIn("intake.py", intake)
         self.assertIn("single writer", intake)
         self.assertIn("Main Agent", intake)
-        self.assertIn("must not decide readiness", intake)
+        self.assertIn("must not make Human decisions", intake)
+        self.assertIn("decide readiness", intake)
+        self.assertIn("decide execution admission", intake)
+        self.assertIn("structural delegation triggers", intake)
         self.assertNotIn("Plan -> Work -> AI Review -> Report", intake)
+        for trigger in (
+            "multiple independent evidence domains",
+            "multiple Intake capabilities",
+            "repeated research or verification loops",
+            "materially lossy or noisy",
+        ):
+            self.assertIn(trigger, main)
+        for fast_path_condition in (
+            "one capability",
+            "one or two local source surfaces",
+            "one to three read-only lookups",
+            "without repeated research or a Human question",
+        ):
+            self.assertIn(fast_path_condition, main)
+        for exception in (
+            "sandbox initialization fails",
+            "named Intake writer is unavailable",
+            "immediate Human interaction is required",
+            "compact terminal summary would lose material Human context",
+        ):
+            self.assertIn(exception, main)
+        self.assertIn("uncalibrated token, time, or source count thresholds", main)
         self.assertIn("app_server_goal.py", workflow)
         self.assertIn("rework", main)
         self.assertIn("complete", main)

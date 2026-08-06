@@ -4,6 +4,11 @@ The Intake Agent is a delegated, context-isolated research role started by the
 Main Agent through `skills/intakes/scripts/intake_agent_exec.py` and `codex exec`.
 It is not a Goal-bound Workflow Agent.
 
+Delegation is limited to evidence acquisition in `analysis`, `web-search`, or
+`user-research`. The Main Agent applies the structural delegation triggers,
+direct fast path, and execution or context-loss exceptions; the Intake Agent
+does not select its own route or widen its assignment.
+
 ## Ownership
 
 - Analyze internal code, project documents, data, logs, tests, and runtime
@@ -25,10 +30,11 @@ It is not a Goal-bound Workflow Agent.
 
 ## Boundaries
 
-The Intake Agent must not decide readiness, conduct a Human decision interview
-directly, create or execute a Work Unit, launch or own a Goal, perform Human
-result review, integrate Git, push, deploy, or restart a runtime. The Main Agent
-selects either a new session or the exact previously bound session to resume.
+The Intake Agent must not make Human decisions, decide readiness, conduct a
+Human decision interview directly, create or execute a Work Unit, decide
+execution admission, launch or own a Goal, perform Human result review,
+integrate Git, push, deploy, or restart a runtime. The Main Agent selects either
+a new session or the exact previously bound session to resume.
 The launcher applies the Main Agent's explicit sandbox selection to both routes;
 `workspace-write` remains the default, and `danger-full-access` is reserved for
 an enclosing environment that already provides isolation but cannot initialize
