@@ -25,6 +25,8 @@ The launcher is the Goal preflight. It:
   records `tests not run`;
 - always starts a separate Documentation Agent Goal after implementation and
   limits it to directly affected documents;
+- always starts a separate static Review Agent Goal after documentation, with
+  file mutation and verification-command execution prohibited;
 - emits one immediate JSONL ACK after the verified initial `turn/start`;
 - automatically continues a turn that ends as `interrupted`;
 - reactivates a Goal that was blocked by a removed checkpoint or approval
@@ -58,7 +60,10 @@ tests. A separate Test Agent executes only commands the Human explicitly
 requested and the Work Unit records. Smoke checks, lint, type checks, build
 verification, and other verification commands are tests. With no authorized
 commands the launcher skips that Goal and reports `tests not run`. Documentation
-still runs in its mandatory separate Goal.
+still runs in its mandatory separate Goal, followed by the mandatory Review
+Agent Goal. The Review Agent consumes implementation, test, and documentation
+evidence and returns the structured `ai-review-result`; the launcher aggregates
+all role receipts as Report material.
 
 ## Execution modes
 

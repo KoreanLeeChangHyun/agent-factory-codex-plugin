@@ -10,4 +10,5 @@ lint, typecheck, build, or convenience commands. If no commands are authorized,
 the launcher must not create this Goal and must return `tests not run`.
 
 An interrupted turn may resume in the same role Goal. A role failure is terminal
-evidence for Main Agent review and must not be converted into code changes.
+evidence for the following Documentation and Review Agent handoffs and Main
+Agent Human review; it must not be converted into code changes.

@@ -39,8 +39,8 @@ Execute Plan and Work only. Implement the scoped code or Specification change,
 record implementation progress, and commit worktree results. Do not run test,
 smoke, lint, typecheck, build, or other verification commands. Do not perform
 the independent AI Review, documentation update, or final Report. The launcher
-owns the handoff to the optional Test Agent, mandatory Documentation Agent, and
-Main Agent review material.
+owns the handoff to the optional Test Agent, mandatory Documentation Agent,
+mandatory independent Review Agent, and Main Agent Human review material.
 
 A turn ending as `interrupted` is continued by the launcher in the same Goal.
 Removed checkpoint or approval procedures must never create a blocker. A

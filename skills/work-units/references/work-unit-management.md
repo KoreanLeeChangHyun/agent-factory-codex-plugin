@@ -75,6 +75,9 @@ the revision, invalidates stale outcome evidence, and prepares the next attempt.
 
 Execution may transition to `review` only with passing execution, quality,
 AI-review, and report evidence bound to the current revision/attempt/invocation.
+For review-separated Work Units, the AI review must be the independent Review
+Agent's structured result with evidence; only the bootstrap
+`add-independent-review-agent` Work Unit uses Main Agent as its source role.
 
 The Human chooses:
 

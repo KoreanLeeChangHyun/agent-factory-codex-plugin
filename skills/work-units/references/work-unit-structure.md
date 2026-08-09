@@ -23,8 +23,11 @@ no-tests-authorized state. The `execution-result`, `ai-review-result`, and
 state that tests were not run. Smoke, lint, typecheck, and build verification
 are governed by the same rule. Execution context also records the Workflow
 Agent as implementation-only, the optional code-read-only Test Agent, and the
-mandatory affected-document-only Documentation Agent. Review evidence keeps
-their outcomes separate.
+mandatory affected-document-only Documentation Agent, followed by the mandatory
+static Review Agent. The Review Agent modifies no files, runs no verification
+commands, and provides structured `ai-review-result` evidence. Execution and
+Report evidence keep every role's ACK, terminal receipt, result, and failure
+separate.
 
 ## Execution context
 
