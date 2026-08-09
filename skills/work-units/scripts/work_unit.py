@@ -1388,6 +1388,8 @@ def validate_ready_semantics(package: Path) -> None:
         "targetTestRole",
         "targetDocumentationRole",
         "documentationExecution",
+        "targetReviewRole",
+        "reviewExecution",
     }
     if role_fields.intersection(context["content"]):
         missing_roles = sorted(role_fields - set(context["content"]))
@@ -1407,6 +1409,12 @@ def validate_ready_semantics(package: Path) -> None:
         if "mandatory separate background Goal" not in context["content"]["documentationExecution"]:
             raise ManagerError(
                 "Documentation Agent execution must be a mandatory separate background Goal"
+            )
+        if "review-only" not in context["content"]["targetReviewRole"]:
+            raise ManagerError("Review Agent role must be review-only")
+        if "mandatory separate Goal" not in context["content"]["reviewExecution"]:
+            raise ManagerError(
+                "Review Agent execution must be a mandatory separate Goal"
             )
         authorized_tests = context["content"].get("authorizedTests", [])
         if not isinstance(authorized_tests, list) or not all(
@@ -1560,6 +1568,19 @@ def validate_review_semantics(package: Path) -> None:
         raise ManagerError(
             "review transition requires a passing AI review and checklist"
         )
+    context = find_kind(package, "execution-context")
+    context_content = {} if context is None else context.get("content", {})
+    if isinstance(context_content, dict) and "targetReviewRole" in context_content:
+        expected_role = (
+            "Main Agent"
+            if package.name == "add-independent-review-agent"
+            else "Review Agent"
+        )
+        if ai.get("sourceRole") != expected_role:
+            raise ManagerError(
+                f"review transition requires AI review sourceRole {expected_role}"
+            )
+        require_evidence(package, ai_review, "AI review")
     report = find_kind(package, "report-result")
     if (
         report is None

@@ -25,6 +25,9 @@ class IntakeAgentContractTests(unittest.TestCase):
         documentation = (
             SKILLS / "agents" / "references" / "documentation-agent.md"
         ).read_text(encoding="utf-8")
+        review = (
+            SKILLS / "agents" / "references" / "review-agent.md"
+        ).read_text(encoding="utf-8")
 
         self.assertIn("references/intake-agent.md", router)
         self.assertIn("codex exec", intake)
@@ -65,6 +68,10 @@ class IntakeAgentContractTests(unittest.TestCase):
         self.assertIn("separate background Goal", documentation)
         self.assertIn("directly affected", documentation)
         self.assertIn("owning manager", documentation)
+        self.assertIn("static review only", review)
+        self.assertIn("Do not modify", review)
+        self.assertIn("Do not execute tests", review)
+        self.assertIn("structured `ai-review-result`", review)
         self.assertIn("rework", main)
         self.assertIn("complete", main)
 

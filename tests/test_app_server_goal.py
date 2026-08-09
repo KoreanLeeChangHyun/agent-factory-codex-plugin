@@ -407,12 +407,15 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("Do not run tests", prompt)
         self.assertNotIn("Plan -> Work -> AI Review -> Report", prompt)
 
-    def test_role_prompts_preserve_test_and_documentation_boundaries(self) -> None:
+    def test_role_prompts_preserve_test_documentation_and_review_boundaries(self) -> None:
         module = load_module()
 
         test_prompt = module.test_agent_prompt("wu-001", ["python -m unittest x"])
         documentation_prompt = module.documentation_agent_prompt(
             "wu-001", "tests not run"
+        )
+        review_prompt = module.review_agent_prompt(
+            "wu-001", {"tests": {"state": "tests-not-run"}}
         )
 
         self.assertIn("You are the Test Agent", test_prompt)
@@ -421,6 +424,34 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("You are the Documentation Agent", documentation_prompt)
         self.assertIn("directly affected", documentation_prompt)
         self.assertIn("owning manager", documentation_prompt)
+        self.assertIn("You are the Review Agent", review_prompt)
+        self.assertIn("static review", review_prompt)
+        self.assertIn("Do not modify any file", review_prompt)
+        self.assertIn("Do not execute tests", review_prompt)
+        self.assertIn("blockingFindings", review_prompt)
+
+    def test_review_result_is_extracted_and_rejects_inconsistent_blockers(self) -> None:
+        module = load_module()
+        result = {
+            "result": "pass",
+            "checklistResult": "pass",
+            "findings": [],
+            "blockingFindings": [],
+            "remainingRisks": ["Human review remains"],
+            "inputs": ["implementation", "tests", "documentation"],
+        }
+        turn = {
+            "items": [
+                {"type": "agentMessage", "text": json.dumps(result)}
+            ]
+        }
+
+        self.assertEqual(
+            module.validate_review_result(module.agent_result(turn)), result
+        )
+        result["blockingFindings"] = ["role contract mismatch"]
+        with self.assertRaises(module.ContractError):
+            module.validate_review_result(result)
 
     def test_rework_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
         module = load_module()

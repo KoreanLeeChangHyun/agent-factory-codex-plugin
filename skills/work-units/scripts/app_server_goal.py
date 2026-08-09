@@ -708,12 +708,80 @@ def documentation_agent_prompt(work_unit_id: str, tests_result: str) -> str:
     )
 
 
+def review_agent_prompt(work_unit_id: str, stages: dict[str, Any]) -> str:
+    inputs = json.dumps(stages, ensure_ascii=False, sort_keys=True)
+    return (
+        "You are the Review Agent. Use $agents to perform an independent, "
+        f"static review of Agent Factory Work Unit {work_unit_id}. Review the "
+        "canonical Work Unit, the implementation diff, the test result or tests "
+        "not run evidence, and the Documentation Agent result. Do not modify any "
+        "file or canonical artifact. Do not execute tests, lint, build, smoke, or "
+        "any other verification command. Return only one JSON object with keys "
+        "result ('pass' or 'fail'), checklistResult ('pass' or 'fail'), findings "
+        "(array), blockingFindings (array), remainingRisks (array), and inputs "
+        "(array). A blocking finding must produce result 'fail'; never fix a "
+        "finding yourself. Launcher stage evidence follows: "
+        f"{inputs}"
+    )
+
+
+def agent_result(turn: dict[str, Any]) -> dict[str, Any]:
+    items = turn.get("items")
+    if not isinstance(items, list):
+        raise ContractError("role_result_missing", "completed turn has no items")
+    messages = [
+        item.get("text")
+        for item in items
+        if isinstance(item, dict)
+        and item.get("type") == "agentMessage"
+        and isinstance(item.get("text"), str)
+    ]
+    if not messages:
+        raise ContractError("role_result_missing", "completed turn has no agent result")
+    try:
+        result = json.loads(messages[-1])
+    except json.JSONDecodeError as error:
+        raise ContractError(
+            "role_result_invalid", "agent result must be one JSON object"
+        ) from error
+    if not isinstance(result, dict):
+        raise ContractError("role_result_invalid", "agent result must be an object")
+    return result
+
+
+def validate_review_result(result: dict[str, Any]) -> dict[str, Any]:
+    required_lists = {"findings", "blockingFindings", "remainingRisks", "inputs"}
+    if result.get("result") not in {"pass", "fail"} or result.get(
+        "checklistResult"
+    ) not in {"pass", "fail"}:
+        raise ContractError("review_result_invalid", "review status is invalid")
+    if any(
+        not isinstance(result.get(key), list)
+        or not all(isinstance(value, str) for value in result[key])
+        for key in required_lists
+    ):
+        raise ContractError("review_result_invalid", "review lists are invalid")
+    if result["blockingFindings"] and result["result"] != "fail":
+        raise ContractError(
+            "review_result_invalid", "blocking findings require a failed review"
+        )
+    return result
+
+
 def role_recovery_prompt(role: str, work_unit_id: str, reason: str) -> str:
+    review_boundary = (
+        " Do not modify files or canonical artifacts and do not execute tests, "
+        "lint, build, smoke, or other verification commands. Return the same "
+        "structured review result."
+        if role == "Review Agent"
+        else ""
+    )
     return (
         f"You are the {role}. Continue only the {role} responsibility for Agent "
         f"Factory Work Unit {work_unit_id}; the prior turn ended as {reason}. "
         "Preserve completed work, do not reassess admission, and do not cross the "
         "role's write or execution boundary."
+        f"{review_boundary}"
     )
 
 
@@ -923,6 +991,7 @@ def run_protocol(
     completed_goal: dict[str, Any] | None = None
     completed_goal_turn_id: str | None = None
     completed_turns: set[str] = set()
+    completed_turn: dict[str, Any] | None = None
     blocked_goal_turn_id: str | None = None
 
     while True:
@@ -953,6 +1022,7 @@ def run_protocol(
                 ):
                     return {
                         "goal": completed_goal,
+                        "completedTurn": completed_turn,
                         "recoveryCount": recovery_count,
                         "threadId": thread_id,
                         "threadDisposition": thread_disposition,
@@ -1004,6 +1074,7 @@ def run_protocol(
                     {"turnId": turn_id, "status": status},
                 )
             completed_turns.add(turn_id)
+            completed_turn = completed
             if (
                 blocked_goal_turn_id is None
                 and completed_goal is None
@@ -1022,6 +1093,7 @@ def run_protocol(
             ):
                 return {
                     "goal": completed_goal,
+                    "completedTurn": completed_turn,
                     "recoveryCount": recovery_count,
                     "threadId": thread_id,
                     "threadDisposition": thread_disposition,
@@ -1234,9 +1306,61 @@ def execute(
         documentation_process = client.close()
         stages["documentation"]["process"] = documentation_process
         client = None
+        active_role = "Review Agent"
+        client = AppServerClient(codex_executable, deadline, operations)
+        review_inputs = {
+            "implementation": {
+                "ack": stages["implementation"]["ack"],
+                "goal": stages["implementation"]["goal"],
+                "process": implementation_process,
+            },
+            "tests": stages["tests"],
+            "documentation": {
+                "ack": stages["documentation"]["ack"],
+                "goal": stages["documentation"]["goal"],
+                "process": documentation_process,
+            },
+        }
+        stages["review"] = run_protocol(
+            client,
+            resolved_repository,
+            work_unit_id,
+            package["mode"],
+            package.get("instruction"),
+            process_started,
+            objective_override=f"{work_unit_id}:review",
+            prompt_override=review_agent_prompt(work_unit_id, review_inputs),
+            recovery_role="Review Agent",
+        )
+        stages["review"]["ack"] = stage_ack_evidence(
+            "Review Agent", stages["review"]
+        )
+        review_process = client.close()
+        stages["review"]["process"] = review_process
+        client = None
+        completed_turn = stages["review"].get("completedTurn")
+        if not isinstance(completed_turn, dict):
+            raise ContractError(
+                "review_result_missing", "Review Agent completed without a result"
+            )
+        stages["review"]["aiReviewResult"] = validate_review_result(
+            agent_result(completed_turn)
+        )
+        stages["reportMaterial"] = {
+            "implementation": stages["implementation"],
+            "tests": stages["tests"],
+            "documentation": stages["documentation"],
+            "review": {
+                "ack": stages["review"]["ack"],
+                "goal": stages["review"]["goal"],
+                "process": review_process,
+                "aiReviewResult": stages["review"]["aiReviewResult"],
+            },
+        }
         process_evidence = {
             "implementation": implementation_process,
             "documentation": documentation_process,
+            "review": review_process,
         }
         return success_payload(
             resolved_repository,
