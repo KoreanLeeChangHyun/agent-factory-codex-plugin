@@ -94,12 +94,14 @@ the initial turn emits no ACK.
 - canonical manager writes still route to the primary root.
 - complete integration target is local `factory`.
 
-Execution runs `Plan -> Work -> AI Review -> Report`. Once started, the
-Workflow Agent does not repeat admission, request approval, or reconstruct a
-checkpoint. The launcher automatically continues interrupted turns and
-reactivates Goals blocked by removed workflow gates. A genuine unrecoverable
-error becomes an explicit failed receipt, never an indefinitely waiting blocked
-process.
+Execution runs `Plan -> implementation Work -> optional Test Agent -> mandatory
+Documentation Agent -> AI Review -> Report`. The Workflow Agent owns only Plan
+and implementation Work. The launcher skips the Test Agent and records `tests
+not run` unless exact Human-authorized commands exist, and always starts the
+Documentation Agent in a separate background Goal after implementation. Each
+role has an independent Goal, ACK/result evidence, and terminal failure in the
+launcher receipt. Once started, no role repeats admission, requests approval,
+or reconstructs a checkpoint.
 
 Execution state records revision, attempt, invocation chain, and idempotent
 step records. It does not bind state to Git commits or immutable hashes.

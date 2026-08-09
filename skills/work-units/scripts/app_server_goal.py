@@ -533,6 +533,16 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
         ),
         "objective": work_unit_id,
         "package": str(package),
+        "authorizedTests": (
+            context.get("authorizedTests", [])
+            if isinstance(context.get("authorizedTests", []), list)
+            and all(
+                isinstance(command, str) and command.strip()
+                for command in context.get("authorizedTests", [])
+            )
+            else []
+        ),
+        "orchestrateRoles": True,
     }
 
 
@@ -645,8 +655,9 @@ def execution_prompt(
         f"decision. Use $agents to {action}. The primary agent already "
         "completed the one-time readiness admission and the launcher confirmed "
         "the active Goal. Do not reassess readiness after execution starts. "
-        "Read the canonical package and execute only that Work Unit through "
-        "Plan -> Work -> AI Review -> Report. For a Specification-only Work "
+        "Read the canonical package and execute only its implementation Work "
+        "step. Do not run tests, perform AI Review, update documentation, or "
+        "write the final Report. For a Specification-only Work "
         "Unit, update the primary root canonical Specification only through "
         "specification.py and do not create a worktree. For every other Work "
         "Unit, create or reuse its dedicated linked worktree before "
@@ -663,12 +674,46 @@ def recovery_prompt(work_unit_id: str, reason: str) -> str:
         f"ended as {reason}; resume the same manager-owned revision and attempt, "
         "preserve completed work, and do not repeat canonical decisions. Do not "
         "reassess readiness or ask for approval/checkpoint decisions. Continue "
-        "Plan -> Work -> AI Review -> Report. For a Specification-only Work "
+        "the implementation Work step only. Do not run tests, perform AI "
+        "Review, update documentation, or write the final Report. For a Specification-only Work "
         "Unit, write only the primary canonical Specification through "
         "specification.py; otherwise continue in the dedicated linked worktree. "
         "If that linked worktree is missing, prepare the missing linked worktree "
         "before blocker-resolve or attempt-resume. "
         "Removed checkpoint or approval procedures must not block execution."
+    )
+
+
+def test_agent_prompt(work_unit_id: str, commands: list[str]) -> str:
+    rendered = json.dumps(commands, ensure_ascii=False)
+    return (
+        "You are the Test Agent. Use $agents to execute only the exact "
+        f"Human-authorized test commands for Agent Factory Work Unit {work_unit_id}: "
+        f"{rendered}. Inspect the implementation in its dedicated worktree, do "
+        "not modify product code, tests, configuration, canonical artifacts, or "
+        "any implementation output, and return a test-only terminal result."
+    )
+
+
+def documentation_agent_prompt(work_unit_id: str, tests_result: str) -> str:
+    return (
+        "You are the Documentation Agent. Use $agents to update only documents "
+        f"directly affected by Agent Factory Work Unit {work_unit_id} after "
+        f"implementation. Test handoff: {tests_result}. Inspect the Work Unit and "
+        "implementation diff before deciding impact. Do not modify product code, "
+        "test code, configuration, or unrelated documents. Non-canonical affected "
+        "documents belong in the dedicated worktree. Update canonical documents "
+        "only through their owning manager in the primary repository. Complete "
+        "the documentation Goal with an explicit affected-path result."
+    )
+
+
+def role_recovery_prompt(role: str, work_unit_id: str, reason: str) -> str:
+    return (
+        f"You are the {role}. Continue only the {role} responsibility for Agent "
+        f"Factory Work Unit {work_unit_id}; the prior turn ended as {reason}. "
+        "Preserve completed work, do not reassess admission, and do not cross the "
+        "role's write or execution boundary."
     )
 
 
@@ -731,6 +776,9 @@ def run_protocol(
     process_started: float,
     existing_thread_id: str | None = None,
     emit_ack: Callable[[str, str, str, dict[str, int]], Any] | None = None,
+    objective_override: str | None = None,
+    prompt_override: str | None = None,
+    recovery_role: str = "Workflow Agent",
 ) -> dict[str, Any]:
     timing = {"processStart": 0}
 
@@ -773,7 +821,7 @@ def run_protocol(
         thread_id = existing_thread_id
         thread_disposition = "reused"
     mark("threadReady")
-    objective = work_unit_id
+    objective = objective_override or work_unit_id
 
     if thread_disposition == "created":
         # New threads retain the three-way fail-closed Goal preflight.
@@ -858,9 +906,16 @@ def run_protocol(
             required=True,
         )
         validate_goal(fetched, thread_id, objective, required_status="active")
-        start_turn(recovery_prompt(work_unit_id, reason))
+        continuation = (
+            recovery_prompt(work_unit_id, reason)
+            if recovery_role == "Workflow Agent"
+            else role_recovery_prompt(recovery_role, work_unit_id, reason)
+        )
+        start_turn(continuation)
 
-    initial_turn_id = start_turn(execution_prompt(work_unit_id, mode, instruction))
+    initial_turn_id = start_turn(
+        prompt_override or execution_prompt(work_unit_id, mode, instruction)
+    )
     mark("turnAccepted")
     mark("ackEmitted")
     if emit_ack is not None:
@@ -982,6 +1037,7 @@ def success_payload(
     protocol: dict[str, Any],
     operations: list[dict[str, Any]],
     process: dict[str, Any],
+    stages: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "command": "execute",
@@ -997,6 +1053,7 @@ def success_payload(
             "turnIds": protocol["turnIds"],
             "recoveryCount": protocol["recoveryCount"],
             "workUnitId": work_unit_id,
+            "stages": stages or {"implementation": protocol},
         },
         "error": None,
         "ok": True,
@@ -1052,6 +1109,17 @@ def ack_payload(
     }
 
 
+def stage_ack_evidence(role: str, protocol: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "type": "stage-ack",
+        "role": role,
+        "threadId": protocol["threadId"],
+        "threadDisposition": protocol["threadDisposition"],
+        "turnId": protocol["turnIds"][0],
+        "initializationTimingMs": protocol["initializationTimingMs"],
+    }
+
+
 def execute(
     *,
     repository: Path,
@@ -1066,6 +1134,7 @@ def execute(
     operations: list[dict[str, Any]] = []
     client: AppServerClient | None = None
     process_evidence: dict[str, Any] | None = None
+    active_role = "Workflow Agent"
     try:
         if timeout_seconds <= 0:
             raise ContractError(
@@ -1099,8 +1168,76 @@ def execute(
                 )
             ),
         )
-        process_evidence = client.close()
+        implementation_process = client.close()
         client = None
+        if not package.get("orchestrateRoles", False):
+            process_evidence = implementation_process
+            return success_payload(
+                resolved_repository,
+                work_unit_id,
+                package,
+                protocol,
+                operations,
+                process_evidence,
+            )
+        stages: dict[str, Any] = {
+            "implementation": {
+                **protocol,
+                "ack": stage_ack_evidence("Workflow Agent", protocol),
+            },
+            "tests": {
+                "state": "tests-not-run",
+                "reason": "no Human-authorized test commands",
+            },
+        }
+        authorized_tests = package.get("authorizedTests", [])
+        if authorized_tests:
+            active_role = "Test Agent"
+            client = AppServerClient(codex_executable, deadline, operations)
+            stages["tests"] = run_protocol(
+                client,
+                resolved_repository,
+                work_unit_id,
+                package["mode"],
+                package.get("instruction"),
+                process_started,
+                objective_override=f"{work_unit_id}:tests",
+                prompt_override=test_agent_prompt(work_unit_id, authorized_tests),
+                recovery_role="Test Agent",
+            )
+            stages["tests"]["ack"] = stage_ack_evidence(
+                "Test Agent", stages["tests"]
+            )
+            stages["tests"]["process"] = client.close()
+            client = None
+        active_role = "Documentation Agent"
+        client = AppServerClient(codex_executable, deadline, operations)
+        tests_result = (
+            "tests not run"
+            if not authorized_tests
+            else "Human-authorized tests completed; inspect the test Goal receipt"
+        )
+        stages["documentation"] = run_protocol(
+            client,
+            resolved_repository,
+            work_unit_id,
+            package["mode"],
+            package.get("instruction"),
+            process_started,
+            objective_override=f"{work_unit_id}:documentation",
+            prompt_override=documentation_agent_prompt(work_unit_id, tests_result),
+            recovery_role="Documentation Agent",
+        )
+        stages["documentation"]["ack"] = stage_ack_evidence(
+            "Documentation Agent", stages["documentation"]
+        )
+        documentation_process = client.close()
+        stages["documentation"]["process"] = documentation_process
+        client = None
+        process_evidence = {
+            "implementation": implementation_process,
+            "documentation": documentation_process,
+        }
         return success_payload(
             resolved_repository,
             work_unit_id,
@@ -1108,10 +1245,12 @@ def execute(
             protocol,
             operations,
             process_evidence,
+            stages,
         )
     except ContractError as error:
         if client is not None:
             process_evidence = client.close()
+        error.details = {**error.details, "role": active_role}
         return error_payload(error, operations, process_evidence)
     except (OSError, UnicodeError) as error:
         if client is not None:

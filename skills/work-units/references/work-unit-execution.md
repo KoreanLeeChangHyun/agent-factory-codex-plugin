@@ -20,8 +20,11 @@ The launcher is the Goal preflight. It:
 - accepts `ready` initial execution, planned rework, or a manager-owned active
   attempt that must be resumed;
 - creates and verifies the matching active Goal;
-- starts a background turn whose prompt begins by declaring the Workflow Agent
-  role and requiring execution;
+- starts a background Workflow Agent Goal for implementation only;
+- starts a Test Agent Goal only for exact Human-authorized commands, otherwise
+  records `tests not run`;
+- always starts a separate Documentation Agent Goal after implementation and
+  limits it to directly affected documents;
 - emits one immediate JSONL ACK after the verified initial `turn/start`;
 - automatically continues a turn that ends as `interrupted`;
 - reactivates a Goal that was blocked by a removed checkpoint or approval
@@ -50,11 +53,12 @@ For `worktree` execution, prepare or reuse the canonical linked worktree before
 attempt may use recovery admission to prepare a missing worktree without
 reopening the one-time readiness decision.
 
-Launch and admission do not authorize tests. Execute only test commands the
-Human explicitly requested and the Work Unit records. Treat smoke checks, lint,
-type checks, build verification, and other verification commands as tests. If
-the Human requested none, execute none and report `tests not run` as the
-verification result.
+Launch and admission do not authorize tests. The Workflow Agent never executes
+tests. A separate Test Agent executes only commands the Human explicitly
+requested and the Work Unit records. Smoke checks, lint, type checks, build
+verification, and other verification commands are tests. With no authorized
+commands the launcher skips that Goal and reports `tests not run`. Documentation
+still runs in its mandatory separate Goal.
 
 ## Execution modes
 

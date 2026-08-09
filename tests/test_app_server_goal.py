@@ -402,7 +402,25 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("dedicated linked worktree", prompt)
         self.assertIn("before execution-init or attempt-start", prompt)
         self.assertIn("Do not reassess", prompt)
-        self.assertIn("execute only that Work Unit", prompt)
+        self.assertIn("execute only its implementation Work", prompt)
+        self.assertIn("implementation Work", prompt)
+        self.assertIn("Do not run tests", prompt)
+        self.assertNotIn("Plan -> Work -> AI Review -> Report", prompt)
+
+    def test_role_prompts_preserve_test_and_documentation_boundaries(self) -> None:
+        module = load_module()
+
+        test_prompt = module.test_agent_prompt("wu-001", ["python -m unittest x"])
+        documentation_prompt = module.documentation_agent_prompt(
+            "wu-001", "tests not run"
+        )
+
+        self.assertIn("You are the Test Agent", test_prompt)
+        self.assertIn("exact Human-authorized", test_prompt)
+        self.assertIn("do not modify product code", test_prompt)
+        self.assertIn("You are the Documentation Agent", documentation_prompt)
+        self.assertIn("directly affected", documentation_prompt)
+        self.assertIn("owning manager", documentation_prompt)
 
     def test_rework_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
         module = load_module()
@@ -419,7 +437,7 @@ class AppServerGoalTest(unittest.TestCase):
             "Commit the implementation and rebind all evidence.",
             prompt,
         )
-        self.assertIn("execute only that Work Unit", prompt)
+        self.assertIn("execute only its implementation Work", prompt)
 
     def test_recovery_prompt_requires_unconditional_workflow_continuation(
         self,

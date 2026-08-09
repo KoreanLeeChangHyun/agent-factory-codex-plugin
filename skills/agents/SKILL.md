@@ -1,6 +1,6 @@
 ---
 name: agents
-description: Run the Human-facing Main Agent, delegated Intake Agent, or Goal-bound Workflow Agent role.
+description: Run the Human-facing Main Agent or a bounded Intake, Workflow, Test, or Documentation Agent role.
 ---
 
 # Agent Factory Agents
@@ -15,7 +15,9 @@ Human-facing decision into the Intake Agent or Workflow Agent.
 
 - `references/main-agent.md`: Manage Intake recording, one-time execution admission, Goal launch, Korean result review, and post-review integration.
 - `references/intake-agent.md`: Run delegated Intake research through codex exec while preserving Main Agent decisions and single-writer canonical Intake ownership.
-- `references/workflow-agent.md`: Execute a named Goal-bound Work Unit through Plan, Work, AI Review, and Report without repeating admission.
+- `references/workflow-agent.md`: Execute only the Plan and implementation Work for a named Goal-bound Work Unit without repeating admission.
+- `references/test-agent.md`: Run only exact Human-authorized verification commands without modifying implementation artifacts.
+- `references/documentation-agent.md`: Update only directly affected documents after implementation through a mandatory separate Goal.
 
 ## Assets and tests
 

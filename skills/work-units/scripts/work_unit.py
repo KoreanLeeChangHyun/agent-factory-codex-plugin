@@ -1383,6 +1383,37 @@ def validate_ready_semantics(package: Path) -> None:
             "execution context executionMode must be worktree or "
             "specification-direct"
         )
+    role_fields = {
+        "targetWorkflowRole",
+        "targetTestRole",
+        "targetDocumentationRole",
+        "documentationExecution",
+    }
+    if role_fields.intersection(context["content"]):
+        missing_roles = sorted(role_fields - set(context["content"]))
+        if missing_roles:
+            raise ManagerError(
+                "role-separated execution context is missing fields: "
+                + ", ".join(missing_roles)
+            )
+        if "implementation-only" not in context["content"]["targetWorkflowRole"]:
+            raise ManagerError("Workflow Agent role must be implementation-only")
+        if "test-only" not in context["content"]["targetTestRole"]:
+            raise ManagerError("Test Agent role must be test-only")
+        if "affected-document-only" not in context["content"]["targetDocumentationRole"]:
+            raise ManagerError(
+                "Documentation Agent role must be affected-document-only"
+            )
+        if "mandatory separate background Goal" not in context["content"]["documentationExecution"]:
+            raise ManagerError(
+                "Documentation Agent execution must be a mandatory separate background Goal"
+            )
+        authorized_tests = context["content"].get("authorizedTests", [])
+        if not isinstance(authorized_tests, list) or not all(
+            isinstance(command, str) and command.strip()
+            for command in authorized_tests
+        ):
+            raise ManagerError("authorizedTests must be a list of exact commands")
     if execution_mode == "worktree":
         required.update({"branch", "targetBranch", "worktreePath"})
     missing = sorted(required - set(context["content"]))

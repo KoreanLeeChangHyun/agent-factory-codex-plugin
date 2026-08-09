@@ -8,7 +8,10 @@ Human conversation
   -> executable Work Unit
   -> one-time agents sufficiency decision
   -> background Goal + Exec
-  -> Plan -> Work -> AI Review -> Report
+  -> Plan -> implementation Work
+  -> optional Human-authorized Test Agent | tests not run
+  -> mandatory affected-document Documentation Agent
+  -> AI Review -> Report
   -> Human review: rework | complete
   -> complete integration
   -> later batch cleanup
@@ -41,13 +44,13 @@ Before the launcher starts, `agents` checks once that:
 - repository and Work Unit identity match;
 - `executionMode` is explicit.
 
-After launch, the Workflow Agent does not repeat this decision or ask for
-approval. It follows recorded canonical decisions until execution completes.
-Test criteria remain conditional plans: only tests explicitly requested by the
-Human may run. Smoke checks, lint, type checks, build verification, and other
-verification commands are included in this gate. If no test was explicitly
-requested, the Workflow Agent runs none and records `tests not run` in the
-result evidence.
+After launch, no execution role repeats this decision or asks for approval. The
+Workflow Agent implements only and never runs verification commands. Test
+criteria remain conditional plans: the launcher creates a code-read-only Test
+Agent Goal only for exact Human-requested commands. Otherwise it records `tests
+not run`. The launcher then always creates a separate Documentation Agent Goal,
+which may change only directly affected documents and must use owning managers
+for canonical writes. AI Review and Report consume the three separated results.
 
 ## Background Goal + Exec
 

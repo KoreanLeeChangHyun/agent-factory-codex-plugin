@@ -21,7 +21,10 @@ must distinguish the exact tests explicitly requested by the Human from a
 no-tests-authorized state. The `execution-result`, `ai-review-result`, and
 `report-result` must record the commands and results for authorized tests or
 state that tests were not run. Smoke, lint, typecheck, and build verification
-are governed by the same rule.
+are governed by the same rule. Execution context also records the Workflow
+Agent as implementation-only, the optional code-read-only Test Agent, and the
+mandatory affected-document-only Documentation Agent. Review evidence keeps
+their outcomes separate.
 
 ## Execution context
 

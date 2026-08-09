@@ -8,7 +8,7 @@ SKILLS = Path(__file__).resolve().parents[1] / "skills"
 
 
 class IntakeAgentContractTests(unittest.TestCase):
-    def test_agents_routes_three_non_overlapping_roles(self) -> None:
+    def test_agents_routes_bounded_non_overlapping_roles(self) -> None:
         router = (SKILLS / "agents" / "SKILL.md").read_text(encoding="utf-8")
         intake = (SKILLS / "agents" / "references" / "intake-agent.md").read_text(
             encoding="utf-8"
@@ -18,6 +18,12 @@ class IntakeAgentContractTests(unittest.TestCase):
         )
         workflow = (
             SKILLS / "agents" / "references" / "workflow-agent.md"
+        ).read_text(encoding="utf-8")
+        test_agent = (
+            SKILLS / "agents" / "references" / "test-agent.md"
+        ).read_text(encoding="utf-8")
+        documentation = (
+            SKILLS / "agents" / "references" / "documentation-agent.md"
         ).read_text(encoding="utf-8")
 
         self.assertIn("references/intake-agent.md", router)
@@ -53,6 +59,12 @@ class IntakeAgentContractTests(unittest.TestCase):
             self.assertIn(exception, main)
         self.assertIn("uncalibrated token, time, or source count thresholds", main)
         self.assertIn("app_server_goal.py", workflow)
+        self.assertIn("never runs verification commands", workflow)
+        self.assertIn("exact Human-authorized", test_agent)
+        self.assertIn("Do not modify product code", test_agent)
+        self.assertIn("separate background Goal", documentation)
+        self.assertIn("directly affected", documentation)
+        self.assertIn("owning manager", documentation)
         self.assertIn("rework", main)
         self.assertIn("complete", main)
 

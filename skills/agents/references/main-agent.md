@@ -74,8 +74,10 @@ sufficient:
 Do not create a checkpoint, commit an artifact snapshot, request approval, or
 repeat decisions already recorded in canonical artifacts. If admission passes,
 start `skills/work-units/scripts/app_server_goal.py` as a background
-process. The launcher establishes the Goal and tells the started agent:
-`You are the Workflow Agent. You must execute this Work Unit.`
+process. The launcher establishes the implementation Goal and tells the started
+agent: `You are the Workflow Agent.` It then creates a Test Agent Goal only for
+exact Human-authorized commands and always creates a separate affected-document
+Documentation Agent Goal.
 Parse the launcher's first JSONL document as either the immediate ACK for the
 verified initial turn or an admission refusal. After ACK, monitor the same
 process for its final success or failure document.
@@ -84,8 +86,9 @@ After launch, do not reassess readiness and do not interrupt implementation with
 another approval, checkpoint, or decision request.
 
 The launch authorizes Work Unit execution, but it does not independently
-authorize tests. The Workflow Agent may run only the tests explicitly named by
-the Human and recorded for the Work Unit.
+authorize tests. The Workflow Agent never runs tests. The Test Agent runs only
+the exact commands explicitly named by the Human and recorded for the Work Unit;
+without them the launcher returns `tests not run` and skips that Goal.
 
 ## Result review
 
@@ -93,6 +96,7 @@ Write all Human-facing review material in Korean. Present:
 
 - delivered scope and exclusions;
 - changed paths or updated canonical Specification;
+- separate implementation, optional test, and mandatory documentation results;
 - exact verification commands and results;
 - the explicitly requested tests that ran, or an explicit statement that no
   tests ran;

@@ -354,7 +354,8 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("app_server_goal.py", agent_main)
         self.assertIn("must not execute Work Unit implementation", agent_main)
         self.assertIn("Goal preflight", agent_workflow)
-        self.assertIn("Plan -> Work -> AI Review -> Report", agent_workflow)
+        self.assertIn("implementation Work", agent_workflow)
+        self.assertIn("never runs verification commands", agent_workflow)
         self.assertIn(
             "before `execution-init` or `attempt-start`",
             agent_workflow,
