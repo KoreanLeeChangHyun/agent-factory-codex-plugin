@@ -1140,10 +1140,11 @@ def error_payload(
     error: ContractError,
     operations: list[dict[str, Any]],
     process: dict[str, Any] | None,
+    stages: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "command": "execute",
-        "context": None,
+        "context": None if stages is None else {"stages": stages},
         "error": {
             "code": error.code,
             "details": error.details,
@@ -1206,6 +1207,7 @@ def execute(
     operations: list[dict[str, Any]] = []
     client: AppServerClient | None = None
     process_evidence: dict[str, Any] | None = None
+    stages: dict[str, Any] | None = None
     active_role = "Workflow Agent"
     try:
         if timeout_seconds <= 0:
@@ -1252,7 +1254,7 @@ def execute(
                 operations,
                 process_evidence,
             )
-        stages: dict[str, Any] = {
+        stages = {
             "implementation": {
                 **protocol,
                 "ack": stage_ack_evidence("Workflow Agent", protocol),
@@ -1262,6 +1264,7 @@ def execute(
                 "reason": "no Human-authorized test commands",
             },
         }
+        process_evidence = {"implementation": implementation_process}
         authorized_tests = package.get("authorizedTests", [])
         if authorized_tests:
             active_role = "Test Agent"
@@ -1281,6 +1284,7 @@ def execute(
                 "Test Agent", stages["tests"]
             )
             stages["tests"]["process"] = client.close()
+            process_evidence["tests"] = stages["tests"]["process"]
             client = None
         active_role = "Documentation Agent"
         client = AppServerClient(codex_executable, deadline, operations)
@@ -1305,6 +1309,7 @@ def execute(
         )
         documentation_process = client.close()
         stages["documentation"]["process"] = documentation_process
+        process_evidence["documentation"] = documentation_process
         client = None
         active_role = "Review Agent"
         client = AppServerClient(codex_executable, deadline, operations)
@@ -1337,6 +1342,7 @@ def execute(
         )
         review_process = client.close()
         stages["review"]["process"] = review_process
+        process_evidence["review"] = review_process
         client = None
         completed_turn = stages["review"].get("completedTurn")
         if not isinstance(completed_turn, dict):
@@ -1357,11 +1363,6 @@ def execute(
                 "aiReviewResult": stages["review"]["aiReviewResult"],
             },
         }
-        process_evidence = {
-            "implementation": implementation_process,
-            "documentation": documentation_process,
-            "review": review_process,
-        }
         return success_payload(
             resolved_repository,
             work_unit_id,
@@ -1373,12 +1374,46 @@ def execute(
         )
     except ContractError as error:
         if client is not None:
-            process_evidence = client.close()
+            failed_process = client.close()
+            process_evidence = (
+                failed_process
+                if process_evidence is None
+                else {
+                    **process_evidence,
+                    "failedRole": {
+                        "role": active_role,
+                        "process": failed_process,
+                    },
+                }
+            )
         error.details = {**error.details, "role": active_role}
-        return error_payload(error, operations, process_evidence)
+        if stages is not None:
+            stages["failure"] = {
+                "role": active_role,
+                "code": error.code,
+                "message": error.message,
+            }
+        return error_payload(error, operations, process_evidence, stages)
     except (OSError, UnicodeError) as error:
         if client is not None:
-            process_evidence = client.close()
+            failed_process = client.close()
+            process_evidence = (
+                failed_process
+                if process_evidence is None
+                else {
+                    **process_evidence,
+                    "failedRole": {
+                        "role": active_role,
+                        "process": failed_process,
+                    },
+                }
+            )
+        if stages is not None:
+            stages["failure"] = {
+                "role": active_role,
+                "code": "unexpected_io_error",
+                "message": "unable to execute Work Unit",
+            }
         return error_payload(
             ContractError(
                 "unexpected_io_error",
@@ -1387,6 +1422,7 @@ def execute(
             ),
             operations,
             process_evidence,
+            stages,
         )
 
 

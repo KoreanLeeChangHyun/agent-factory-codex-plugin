@@ -453,6 +453,29 @@ class AppServerGoalTest(unittest.TestCase):
         with self.assertRaises(module.ContractError):
             module.validate_review_result(result)
 
+    def test_role_failure_payload_preserves_completed_stage_evidence(self) -> None:
+        module = load_module()
+        stages = {
+            "implementation": {"ack": {"role": "Workflow Agent"}},
+            "tests": {"state": "tests-not-run"},
+            "documentation": {"ack": {"role": "Documentation Agent"}},
+            "failure": {"role": "Review Agent"},
+        }
+
+        payload = module.error_payload(
+            module.ContractError(
+                "review_result_invalid",
+                "invalid Review Agent result",
+                {"role": "Review Agent"},
+            ),
+            [],
+            {"review": {"returnCode": 0}},
+            stages,
+        )
+
+        self.assertEqual(payload["context"]["stages"], stages)
+        self.assertEqual(payload["error"]["details"]["role"], "Review Agent")
+
     def test_rework_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
         module = load_module()
 
