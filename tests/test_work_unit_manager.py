@@ -1326,6 +1326,31 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             payload = json.loads(run_cli("transition", str(package), "ready").stdout)
             self.assertEqual(payload["status"], "ready")
 
+    def test_current_profile_ready_rejects_omitted_review_role_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"]["executionMode"] = "worktree"
+            source = data_value(root, "current-profile-review-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn(
+                "review-separated execution context is missing fields: "
+                "reviewExecution, targetReviewRole",
+                rejected.stderr,
+            )
+
     def test_execution_attempt_retry_and_resume_preserve_identity_history(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

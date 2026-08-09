@@ -1377,6 +1377,7 @@ def validate_ready_semantics(package: Path) -> None:
         "repository",
         "baseRef",
     }
+    legacy_execution_context = "executionMode" not in context["content"]
     execution_mode = context["content"].get("executionMode", "worktree")
     if execution_mode not in {"worktree", "specification-direct"}:
         raise ManagerError(
@@ -1415,7 +1416,9 @@ def validate_ready_semantics(package: Path) -> None:
         ):
             raise ManagerError("authorizedTests must be a list of exact commands")
     review_role_fields = {"targetReviewRole", "reviewExecution"}
-    if review_role_fields.intersection(context["content"]):
+    if not legacy_execution_context or review_role_fields.intersection(
+        context["content"]
+    ):
         missing_review_roles = sorted(
             review_role_fields - set(context["content"])
         )
@@ -1578,7 +1581,11 @@ def validate_review_semantics(package: Path) -> None:
         )
     context = find_kind(package, "execution-context")
     context_content = {} if context is None else context.get("content", {})
-    if isinstance(context_content, dict) and "targetReviewRole" in context_content:
+    review_separated = isinstance(context_content, dict) and {
+        "targetReviewRole",
+        "reviewExecution",
+    }.issubset(context_content)
+    if review_separated:
         expected_role = (
             "Main Agent"
             if package.name == "add-independent-review-agent"
