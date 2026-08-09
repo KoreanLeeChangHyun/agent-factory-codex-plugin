@@ -27,6 +27,13 @@
       "description": "최초 Review Agent 구현에 대한 Main Agent bootstrap AI Review",
       "sha256": "3b26d8df8284fd677ad7f73c90e9b3a825c53f7b2504c5407091d888c1d5aad4",
       "sizeBytes": 1158
+    },
+    {
+      "path": "blocks/integration/factory-integration.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "f7aad649df8910a5726e45b44e42f080c31c71c7bbe7a252a055fc50d7c32f1c",
+      "sizeBytes": 895
     }
   ]
 }

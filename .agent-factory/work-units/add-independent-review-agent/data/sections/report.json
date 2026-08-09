@@ -26,6 +26,28 @@
           "구현 Goal continuation 한도 소진"
         ]
       }
+    },
+    {
+      "id": "INTEGRATION-F7AAD649DF8910A5",
+      "kind": "integration-result",
+      "content": {
+        "operationResult": "merge-commit-created",
+        "relationship": "diverged",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "sourceBranch": "work-unit/add-independent-review-agent",
+        "sourceCommit": "717326f5aa61964945e122e245137da8b8c1f92d",
+        "strategy": "no-ff",
+        "targetAfterCommit": "04dcd629adce08c0f121b343f75ae0d5df15c941",
+        "targetBeforeCommit": "7defc652cacacf50de6f82a95382f025f984c47a",
+        "targetBranch": "factory",
+        "workUnitId": "add-independent-review-agent",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/add-independent-review-agent",
+        "receiptSha256": "f7aad649df8910a5726e45b44e42f080c31c71c7bbe7a252a055fc50d7c32f1c"
+      },
+      "attributes": {
+        "status": "integrated"
+      },
+      "blockRef": "blocks/integration/factory-integration.json"
     }
   ],
   "subsections": []
