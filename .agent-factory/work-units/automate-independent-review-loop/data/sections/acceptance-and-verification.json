@@ -1,0 +1,52 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "Main Agent가 실행 전 인터뷰 필요성을 판정한다.",
+          "각 revision의 Workflow Agent와 Review Agent threadId가 서로 다르고 이전 revision 세션도 재사용하지 않는다.",
+          "Review 결과가 pass, rework-autonomous, human-interview-required 중 하나로 검증된다.",
+          "autonomous rework가 유한 한도 내에서 새 revision으로 반복된다.",
+          "인터뷰 필요 또는 한도 초과 시 자동 실행을 멈추고 compact Human handoff를 반환한다.",
+          "상세 events와 role receipts는 evidence로 보존하고 terminal payload는 요약된다."
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "launcher, manager/profile, 역할 및 lifecycle 문서가 동일한 state machine을 표현한다.",
+          "revision별 provenance와 이전 evidence가 보존된다.",
+          "role continuation 한도와 autonomous revision 한도가 구분된다.",
+          "정적 계약 테스트 기대값이 새 흐름을 반영한다.",
+          "현재 Work Unit에서는 테스트를 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Human이 명시한 테스트 없음: 테스트, lint, build, runtime 또는 기타 검증 명령을 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "실행 후 독립 Review Agent의 구조화 결과와 evidence를 사용한다.",
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

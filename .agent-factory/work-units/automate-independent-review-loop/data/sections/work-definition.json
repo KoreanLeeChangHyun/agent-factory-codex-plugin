@@ -1,0 +1,54 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Main Agent 컨텍스트를 최소화하면서 서로 다른 새 구현·리뷰 세션이 pass까지 bounded autonomous rework를 반복하도록 orchestration을 추가한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "Main Agent 실행 전 interview gate 계약",
+          "revision별 새 Workflow Agent와 Review Agent thread identity 강제",
+          "Review 결과 pass, rework-autonomous, human-interview-required 분기",
+          "bounded autonomous revision loop",
+          "role continuation exhaustion과 revision exhaustion 분리",
+          "compact terminal receipt 및 상세 evidence 외부화",
+          "manager, profile, launcher, 문서와 정적 계약 기대값"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Human 미요청 테스트 실행",
+          "Human final complete 결정 자동화",
+          "배포, push, PR 생성",
+          "Review Agent의 파일 수정이나 검증 명령 실행"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "명시적 autonomous review loop state machine",
+          "세션 identity와 revision provenance 검증",
+          "구조화된 interview 분기",
+          "compact launcher receipt와 registered detailed evidence",
+          "정렬된 역할·lifecycle·Work Unit 문서 및 계약 기대값"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "구현과 리뷰 세션 identity 분리",
+          "Review 3-way 분기 schema",
+          "bounded autonomous revision loop",
+          "interview fail-closed 경계",
+          "compact receipt와 상세 evidence 보존",
+          "테스트 권한 경계 유지",
+          "manager/profile/lifecycle/Project Core 정합성"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "실행 전",
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

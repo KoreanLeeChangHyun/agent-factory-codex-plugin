@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "4.0.0",
+  "documentVersion": "1.0.69",
+  "id": "automate-independent-review-loop",
+  "artifactType": "work-unit",
+  "projectId": "agent-factory-codex-plugins",
+  "lifecycle": {
+    "phase": "work-unit",
+    "status": "blocked"
+  },
+  "createdAt": "2026-08-09T14:40:13+00:00",
+  "updatedAt": "2026-08-09T15:55:39+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory work-unit manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-08-09T14:55:00Z",
+    "contractValid": true,
+    "intakeTraceabilityValid": true,
+    "definitionComplete": true,
+    "executionContextComplete": true,
+    "verificationPlanComplete": true,
+    "findings": []
+  }
+}

@@ -1,0 +1,308 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "automate-independent-review-loop",
+        "objective": "독립 새 세션 리뷰 기반 bounded autonomous rework loop를 구현한다.",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id automate-independent-review-loop",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/automate-independent-review-loop",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/automate-independent-review-loop",
+        "targetWorkflowRole": "implementation-only; must not run tests or AI Review",
+        "targetTestRole": "test-only; must not modify files; runs only exact Human-requested tests",
+        "targetDocumentationRole": "affected-document-only; must not modify code or unrelated documents",
+        "documentationExecution": "mandatory separate background Goal after implementation completion",
+        "targetReviewRole": "review-only; must not modify files or execute verification commands",
+        "reviewExecution": "mandatory separate Goal after Documentation Agent completion and every implementation revision",
+        "handoff": "Main Agent preflight -> Workflow Agent new session -> tests not run -> Documentation Agent -> Review Agent distinct new session -> pass, autonomous rework, or Human interview",
+        "authorizedTests": []
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "blocked",
+        "currentRevision": 4,
+        "currentAttempt": 1,
+        "invocationId": "automate-independent-review-loop-r4-evidence-retry",
+        "invocationChain": [
+          "automate-independent-review-loop-r4-evidence-retry",
+          "019fe736-ce9d-7631-b956-0f9edf00df34"
+        ],
+        "history": [
+          {
+            "revision": 1,
+            "attempt": 1,
+            "invocationId": "019fe6f8-f540-7f03-b127-2ecde2c97cb9",
+            "invocationChain": [
+              "019fe6f8-f540-7f03-b127-2ecde2c97cb9"
+            ],
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-STATUS",
+                "kind": "execution-result",
+                "content": "실행 전",
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": "실행 후 독립 Review Agent의 구조화 결과와 evidence를 사용한다.",
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-REVIEW-STATUS",
+                "kind": "ai-review-result",
+                "content": "실행 전",
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-STATUS",
+                "kind": "report-result",
+                "content": "실행 전",
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-REVIEW-STATUS",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "실행 전"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              },
+              "autonomousReview": {
+                "workflowThreadId": "019fe6f8-f540-7f03-b127-2ecde2c97cb9",
+                "reviewThreadId": "019fe706-607f-7b11-b6f9-dbb6d23c0e2b",
+                "result": "rework-autonomous",
+                "evidence": "blocks/evidence/review-r1-autonomous-rework.md"
+              }
+            }
+          },
+          {
+            "revision": 2,
+            "attempt": 1,
+            "invocationId": "019fe709-992a-75a0-a547-ab983d8439d8",
+            "invocationChain": [
+              "019fe709-992a-75a0-a547-ab983d8439d8",
+              "automate-independent-review-loop-r2-doc-retry",
+              "019fe713-3562-7940-b959-20ebc48fb91e"
+            ],
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-STATUS",
+                "kind": "execution-result",
+                "content": "실행 전",
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": "실행 후 독립 Review Agent의 구조화 결과와 evidence를 사용한다.",
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-REVIEW-STATUS",
+                "kind": "ai-review-result",
+                "content": "실행 전",
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-STATUS",
+                "kind": "report-result",
+                "content": "실행 전",
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-REVIEW-STATUS",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "실행 전"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              },
+              "autonomousReview": {
+                "workflowThreadId": "019fe713-3562-7940-b959-20ebc48fb91e",
+                "reviewThreadId": "019fe717-6d79-73c3-b4f4-513b19667b17",
+                "result": "rework-autonomous",
+                "evidence": "blocks/evidence/review-r2-autonomous-rework.md"
+              }
+            },
+            "reworkInstruction": "Review Agent의 rework-autonomous finding을 수정하라. app_server_goal.py의 autonomous loop 시작 revision과 한도 계산을 프로세스 로컬 상수 1이 아니라 canonical execution state currentRevision 및 revision history에서 도출하라. 재실행·resume 시 receipt와 evidence path가 올바른 revision을 사용하고 기존 evidence를 덮어쓰지 않으며 전체 autonomous revision 한도를 초과하지 않게 fail closed 하라. Documentation Agent handoff에는 구조화되고 검증 가능한 affected-path result를 포함하되 기존 역할 경계를 유지하라. 구현 revision과 Review Agent thread identity 분리, three-way disposition, compact receipt, 상세 evidence 보존 계약을 유지하라. Human-authorized 테스트가 없으므로 테스트, lint, build, runtime, git diff --check를 실행하지 말라."
+          },
+          {
+            "revision": 3,
+            "attempt": 1,
+            "invocationId": "019fe719-e366-7581-95bc-4960048ef59d",
+            "invocationChain": [
+              "019fe719-e366-7581-95bc-4960048ef59d",
+              "automate-independent-review-loop-r3-review-retry",
+              "019fe722-8884-7e10-a8f7-279d39bb91ff",
+              "automate-independent-review-loop-r3-compact-retry",
+              "019fe729-12b3-7201-bd3e-84ac7cec28e2"
+            ],
+            "outcomes": {
+              "execution-result": {
+                "id": "EXECUTION-STATUS",
+                "kind": "execution-result",
+                "content": "실행 전",
+                "attributes": {
+                  "status": "pending",
+                  "verificationResult": "pending"
+                }
+              },
+              "quality-check": {
+                "id": "QUALITY-001",
+                "kind": "quality-check",
+                "content": "실행 후 독립 Review Agent의 구조화 결과와 evidence를 사용한다.",
+                "attributes": {
+                  "status": "planned",
+                  "evidence": []
+                }
+              },
+              "ai-review-result": {
+                "id": "AI-REVIEW-STATUS",
+                "kind": "ai-review-result",
+                "content": "실행 전",
+                "attributes": {
+                  "result": "pending",
+                  "checklistResult": "pending"
+                }
+              },
+              "report-result": {
+                "id": "REPORT-STATUS",
+                "kind": "report-result",
+                "content": "실행 전",
+                "attributes": {
+                  "verificationResult": "pending",
+                  "evidence": []
+                }
+              },
+              "human-review-result": {
+                "id": "HUMAN-REVIEW-STATUS",
+                "kind": "human-review-result",
+                "content": {
+                  "status": "pending",
+                  "summary": "실행 전"
+                },
+                "attributes": {
+                  "status": "pending"
+                }
+              },
+              "autonomousReview": {
+                "workflowThreadId": "019fe729-12b3-7201-bd3e-84ac7cec28e2",
+                "reviewThreadId": "019fe72c-4634-7af1-bfad-af45974d3394",
+                "result": "rework-autonomous",
+                "evidence": "blocks/evidence/review-r3-autonomous-rework.md"
+              }
+            },
+            "reworkInstruction": "Review Agent revision 2 finding을 수정하라. autonomous allowance는 absolute currentRevision이 아니라 canonical history의 autonomousReview transition 수만 계산하고 Human-requested rework와 혼합된 history를 허용하면서 revision/thread provenance는 fail closed로 유지하라. 추적된 skills/lifecycle/scripts/__pycache__/sectioned_document.cpython-312.pyc 변경을 원본 상태로 복구하고 role evidence에 없는 생성물을 남기지 말라. Review Agent prompt가 inputs 배열에 정확히 implementation, tests, documentation만 반환하도록 명시해 validator와 일치시켜라. mixed Human/autonomous history 및 exact inputs 계약의 정적 테스트 기대값을 추가하되 실행하지 말라. 기존 three-way disposition, 새 세션 identity, structured documentation result, compact receipt와 상세 evidence 계약을 유지하라. 테스트, lint, build, runtime, git diff --check를 실행하지 말라."
+          }
+        ],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "PLAN-003",
+            "PLAN-004",
+            "PLAN-005",
+            "PLAN-006"
+          ],
+          "pendingStep": "autonomous-revision-limit",
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "revision-4-plan-001-completed"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "revision-4-plan-002-completed"
+            },
+            {
+              "stepId": "PLAN-003",
+              "state": "completed",
+              "idempotencyKey": "revision-4-plan-003-completed"
+            },
+            {
+              "stepId": "PLAN-004",
+              "state": "completed",
+              "idempotencyKey": "revision-4-plan-004-completed"
+            },
+            {
+              "stepId": "PLAN-005",
+              "state": "completed",
+              "idempotencyKey": "revision-4-plan-005-completed"
+            },
+            {
+              "stepId": "PLAN-006",
+              "state": "completed",
+              "idempotencyKey": "revision-4-plan-006-completed"
+            }
+          ],
+          "retry": {
+            "autonomous-revision-limit": {
+              "count": 1,
+              "maxRetries": 1,
+              "events": [
+                {
+                  "idempotencyKey": "r4-autonomous-limit-review-findings",
+                  "classification": "permanent",
+                  "evidence": "blocks/evidence/autonomous-review/revision-4.json"
+                }
+              ]
+            }
+          }
+        },
+        "recovery": {
+          "status": "blocked",
+          "ownerInvocationId": "019fe736-ce9d-7631-b956-0f9edf00df34",
+          "blockerId": "AUTONOMOUS-REVIEW-LIMIT-001",
+          "evidence": "blocks/evidence/autonomous-review/revision-4.json"
+        },
+        "reworkInstruction": "Review Agent revision 3 finding을 수정하라. rework-autonomous와 human-interview-required disposition은 각각 disposition payload뿐 아니라 비어 있지 않은 blockingFindings를 반드시 요구하고 pass는 blocking finding을 허용하지 않게 validator와 정적 기대값을 정렬하라. compact receipt revisionCount는 이번 launcher invocation의 revisionReceipts 길이를 나타내고 absolute startRevision 및 terminalRevision은 별도 provenance 필드로 유지하라. autonomous evidence 등록 경로를 manager가 허용하는 blocks/evidence/autonomous-review/revision-N.json 아래로 수정하라. Documentation Agent가 남긴 문서 변경을 올바른 affectedPaths와 함께 커밋하고 tracked __pycache__ 변경을 남기지 말라. 테스트와 기타 검증 명령은 실행하지 말라."
+      }
+    }
+  ],
+  "subsections": []
+}

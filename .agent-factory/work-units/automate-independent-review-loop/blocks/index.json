@@ -1,0 +1,60 @@
+{
+  "blocks": [
+    {
+      "path": "blocks/evidence/autonomous-review/revision-4.json",
+      "mediaType": "application/json",
+      "description": "Autonomous review revision 4 detailed evidence",
+      "sha256": "307dce9e4b68b375632b4e6ea58fb7f6d44934248dd4fad10d73179534394d20",
+      "sizeBytes": 140552
+    },
+    {
+      "path": "blocks/evidence/review-r1-autonomous-rework.md",
+      "mediaType": "text/markdown",
+      "description": "revision 1 Review Agent autonomous rework finding",
+      "sha256": "bd85ba71397974847c7e6505d25a9869eee292deae4e4189f7e99d3506a69d7a",
+      "sizeBytes": 904
+    },
+    {
+      "path": "blocks/evidence/review-r2-autonomous-rework.md",
+      "mediaType": "text/markdown",
+      "description": "revision 2 Review Agent autonomous rework finding",
+      "sha256": "06413ecbdca208b67df0be363508f374804d690f58138d84ecc52488cc05f5b6",
+      "sizeBytes": 937
+    },
+    {
+      "path": "blocks/evidence/review-r3-autonomous-rework.md",
+      "mediaType": "text/markdown",
+      "description": "revision 3 Review Agent autonomous rework finding",
+      "sha256": "c60822ac74d0899a7240205c4624b58a33b4ea057963dbef718dbac8bfadceb8",
+      "sizeBytes": 758
+    },
+    {
+      "path": "blocks/evidence/revision-2-documentation-result-failure.md",
+      "mediaType": "text/markdown",
+      "description": "revision 2 transient Documentation Agent result failure",
+      "sha256": "e924448ed52ca1db8b3bc99d2af2c29e733f05088c3507397745e6d619b80d64",
+      "sizeBytes": 482
+    },
+    {
+      "path": "blocks/evidence/revision-3-compact-diagnostic-retry.md",
+      "mediaType": "text/markdown",
+      "description": "revision 3 compact diagnostic retry",
+      "sha256": "ad4687031462381602f9449229f56e3ff1d4c5cfd18382ebcf4a418bf326ab7e",
+      "sizeBytes": 459
+    },
+    {
+      "path": "blocks/evidence/revision-3-review-contract-retry.md",
+      "mediaType": "text/markdown",
+      "description": "revision 3 transient Review result contract retry",
+      "sha256": "5e4cabee8c6c314559d91547848391755a9a60d6047af53607c4a49f6ebb200e",
+      "sizeBytes": 461
+    },
+    {
+      "path": "blocks/evidence/revision-4-evidence-registration-retry.md",
+      "mediaType": "text/markdown",
+      "description": "revision 4 transient evidence registration retry",
+      "sha256": "21443115ff5af7ac5121165f86058f65c27b8e6de70c34548bc595656cf2efce",
+      "sizeBytes": 453
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "실행 전",
+      "attributes": {
+        "status": "pending",
+        "verificationResult": "pending"
+      }
+    },
+    {
+      "id": "AUTONOMOUS-REVIEW-LIMIT-001",
+      "kind": "open-item",
+      "content": {
+        "stepId": "autonomous-revision-limit",
+        "classification": "permanent",
+        "retryCount": 1,
+        "maxRetries": 1,
+        "evidence": "blocks/evidence/autonomous-review/revision-4.json"
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": false
+      }
+    }
+  ],
+  "subsections": []
+}
