@@ -6,21 +6,21 @@
       "id": "REQ-001",
       "kind": "requirement",
       "content": {
-        "requirement": "Workflow Agent는 canonical Work Unit을 읽고 해당 구현 작업만 수행한다."
+        "requirement": "Workflow Agent는 canonical Work Unit을 읽고 구현 작업과 코드 작성만 수행하며 테스트 명령을 실행하지 않는다."
       }
     },
     {
       "id": "REQ-002",
       "kind": "requirement",
       "content": {
-        "requirement": "Workflow Agent의 테스트 실행, 테스트 미실행 기록, AI Review, Report 작성 의무를 제거한다."
+        "requirement": "별도 Test Agent는 Work Unit에 명시된 Human-authorized 테스트만 수행하며 제품 코드와 구현 산출물을 수정하지 않는다."
       }
     },
     {
       "id": "REQ-003",
       "kind": "requirement",
       "content": {
-        "requirement": "Work Unit profile, 실행 상태와 review 전이는 execution-only 계약을 수용해야 한다."
+        "requirement": "launcher, Work Unit profile, 실행 상태와 review 전이는 Workflow Agent 구현 결과, 선택적 Test Agent 결과, Documentation Agent 문서 갱신 결과를 역할별로 분리해 Main Agent 검토 자료로 전달해야 한다."
       }
     },
     {
@@ -35,12 +35,36 @@
       "kind": "acceptance-criterion",
       "content": {
         "criteria": [
-          "Workflow Agent 역할과 launcher prompt에 Work-only sequence가 명시된다.",
-          "Workflow Agent 테스트 실행 지시가 없다.",
-          "AI Review와 Report가 Workflow Agent 필수 단계 및 Work Unit 필수 결과에서 제거된다.",
-          "review 전이가 execution 결과만으로 진행 가능하다.",
-          "관련 문서와 계약 기대값이 같은 책임 경계를 표현한다."
+          "Workflow Agent, Test Agent, Documentation Agent의 역할, 쓰기 권한, 금지 행위가 별도 계약으로 정의된다.",
+          "Workflow Agent 프롬프트에는 구현만, Test Agent 프롬프트에는 Human-authorized 테스트만 명시된다.",
+          "Documentation Agent는 구현 완료 후 반드시 별도 백그라운드 Goal로 시작된다.",
+          "Documentation Agent는 구현 diff와 Work Unit에 직접 관련된 문서만 갱신하고 코드를 수정하지 않는다.",
+          "canonical 문서 갱신은 owning manager를 통해 수행된다.",
+          "구현, 선택적 테스트, 문서 갱신의 전달 순서와 역할별 실패 처리가 lifecycle과 launcher에 정의된다.",
+          "Work Unit review 전이는 역할별 실행 증거를 요구하되 테스트 미승인 시 tests not run을 허용한다.",
+          "Main Agent Human review와 launcher terminal receipt는 유지된다."
         ]
+      }
+    },
+    {
+      "id": "REQ-005",
+      "kind": "constraint",
+      "content": {
+        "constraint": "자동 테스트는 기본적으로 실행하지 않는다. Human이 특정 테스트를 명시적으로 요청한 Work Unit에서만 Test Agent가 그 테스트를 실행하며, 요청이 없으면 Test Agent를 실행하지 않고 Main Agent 결과에 tests not run을 기록한다."
+      }
+    },
+    {
+      "id": "REQ-006",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Documentation Agent는 구현 완료 후 반드시 별도 백그라운드 Goal/실행으로 시작하고, 구현 diff와 Work Unit에 직접 관련된 문서만 갱신한다."
+      }
+    },
+    {
+      "id": "REQ-007",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Documentation Agent는 제품 코드, 테스트 코드, 구성 또는 비문서 구현 산출물을 수정하지 않으며 canonical 문서는 반드시 owning manager를 사용한다."
       }
     }
   ],

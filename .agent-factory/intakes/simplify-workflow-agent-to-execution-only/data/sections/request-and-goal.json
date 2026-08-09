@@ -13,7 +13,7 @@
       "id": "OUTCOME-001",
       "kind": "desired-outcome",
       "content": {
-        "outcome": "Workflow Agent 책임을 Work Unit 구현으로 한정하고 테스트, AI review, report 작성을 제거한다."
+        "outcome": "Workflow Agent를 구현 전용, Test Agent를 테스트 전용, Documentation Agent를 영향 문서 갱신 전용으로 분리하고 각 결과를 독립적으로 전달한다. Documentation Agent는 반드시 별도 백그라운드 Goal에서 실행한다."
       }
     },
     {
@@ -21,11 +21,34 @@
       "kind": "success-criterion",
       "content": {
         "criteria": [
-          "Workflow Agent가 Work Unit의 구현 작업만 수행한다.",
-          "Workflow Agent가 테스트 명령을 실행하지 않는다.",
-          "Workflow Agent가 AI Review 또는 Report 산출물을 작성하지 않는다.",
+          "Workflow Agent가 구현 작업만 수행하고 테스트 명령을 실행하지 않는다.",
+          "Test Agent가 Human이 명시한 테스트만 수행하고 제품 코드나 구현 산출물을 수정하지 않는다.",
+          "Documentation Agent가 구현 완료 후 별도 백그라운드 Goal로 실행된다.",
+          "Documentation Agent가 변경과 직접 관련된 문서만 갱신하고 코드를 수정하지 않는다.",
+          "구현, 테스트 또는 tests not run, 문서 갱신 결과가 각각 Main Agent의 Human review 자료로 전달된다.",
           "Main Agent 사용자 결과 전달과 런처의 성공·실패 영수증은 유지된다."
         ]
+      }
+    },
+    {
+      "id": "FEEDBACK-001",
+      "kind": "human-request",
+      "content": {
+        "request": "코드를 작성하는 친구와 테스트를 수행하는 친구는 명확하게 분리되어야 한다."
+      }
+    },
+    {
+      "id": "FEEDBACK-002",
+      "kind": "human-request",
+      "content": {
+        "request": "사용자가 테스트를 명시적으로 요청하지 않으면 자동 테스트를 실행하지 않는다."
+      }
+    },
+    {
+      "id": "FEEDBACK-003",
+      "kind": "human-request",
+      "content": {
+        "request": "코드 및 테스트 역할과 별도로 문서를 자동 갱신하는 전용 Agent가 필요하다."
       }
     }
   ],

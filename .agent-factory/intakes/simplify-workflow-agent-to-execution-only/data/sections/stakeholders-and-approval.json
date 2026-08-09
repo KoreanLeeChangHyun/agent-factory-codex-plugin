@@ -9,7 +9,9 @@
         "items": [
           "Human",
           "Main-Agent",
-          "Workflow-Agent"
+          "Workflow-Agent",
+          "Test-Agent",
+          "Documentation-Agent"
         ]
       }
     },

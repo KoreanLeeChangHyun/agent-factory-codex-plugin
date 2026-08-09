@@ -7,8 +7,12 @@
       "kind": "ai-checklist",
       "content": {
         "items": [
-          "Workflow Agent 책임이 Work로 한정되는지 확인",
-          "테스트와 report 생성 지시가 제거되는지 확인",
+          "Workflow Agent 책임이 구현으로만 한정되는지 확인",
+          "Test Agent 책임이 Human-authorized 테스트로만 한정되고 코드 수정이 금지되는지 확인",
+          "Documentation Agent가 반드시 별도 백그라운드 Goal로 실행되는지 확인",
+          "Documentation Agent가 영향 문서만 갱신하고 코드와 변경 무관 문서를 수정하지 않는지 확인",
+          "canonical 문서가 owning manager를 통해 갱신되는지 확인",
+          "세 역할 결과의 handoff와 실패 증거가 분리되는지 확인",
           "Main Agent 결과 전달과 launcher receipt가 보존되는지 확인",
           "manager/profile/document 정합성 확인"
         ]

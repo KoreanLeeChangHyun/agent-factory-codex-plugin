@@ -7,11 +7,16 @@
       "kind": "acceptance-criterion",
       "content": {
         "criteria": [
-          "Workflow Agent가 Work만 수행하도록 역할과 launcher prompt가 변경된다.",
-          "Workflow Agent 테스트 실행과 tests-not-run 보고 의무가 제거된다.",
-          "AI Review와 Report가 필수 실행 단계 및 필수 outcome에서 제거된다.",
-          "Work Unit review 전이는 완료된 execution 결과만 요구한다.",
-          "Main Agent Human review와 launcher terminal receipt는 유지된다."
+          "Workflow Agent, Test Agent, Documentation Agent가 별도 역할 계약과 프롬프트를 가진다.",
+          "Workflow Agent는 구현만 수행하고 테스트 명령을 실행하지 않는다.",
+          "Test Agent는 Human-authorized 테스트만 수행하고 제품 코드와 구현 산출물을 수정하지 않는다.",
+          "Documentation Agent는 구현 완료 후 반드시 별도 백그라운드 Goal로 실행된다.",
+          "Documentation Agent는 구현 diff와 Work Unit에 직접 관련된 문서만 갱신하고 코드와 변경 무관 문서를 수정하지 않는다.",
+          "canonical 문서 갱신은 owning manager를 통한다.",
+          "launcher와 실행 상태가 구현, 선택적 테스트, 문서 갱신 결과를 별도 단계와 증거로 추적한다.",
+          "테스트 미승인 시 Test Agent를 실행하지 않고 tests not run 결과가 Main Agent에 전달된다.",
+          "역할별 실패가 terminal receipt와 Human review 자료에 구분되어 나타난다.",
+          "Main Agent Human review는 유지된다."
         ]
       }
     },
@@ -20,9 +25,11 @@
       "kind": "definition-of-done",
       "content": {
         "items": [
-          "범위 내 역할, lifecycle, manager, profile, 문서와 계약 기대값이 execution-only로 정렬된다.",
-          "Project Core가 새 책임 경계를 반영한다.",
-          "테스트는 실행하지 않는다."
+          "범위 내 역할, lifecycle, launcher, manager, profile, 문서와 계약 기대값이 구현·테스트·문서 분리 구조로 정렬된다.",
+          "Test Agent와 Documentation Agent의 코드 수정 금지가 계약과 실행 경계에서 검증된다.",
+          "Documentation Agent의 필수 백그라운드 Goal 실행과 영향 문서 제한이 검증된다.",
+          "Project Core가 새 책임 경계와 handoff를 반영한다.",
+          "현재 Work Unit에서는 테스트를 실행하지 않는다."
         ]
       }
     },
@@ -31,14 +38,16 @@
       "kind": "test-criterion",
       "content": {
         "tests": [
-          "Human이 명시한 테스트 없음: 어떤 테스트 명령도 실행하지 않는다."
+          "자동 테스트 기본값은 비활성화다.",
+          "Human이 현재 Work Unit에 명시한 테스트 없음: Workflow Agent와 Test Agent 모두 어떤 테스트 명령도 실행하지 않는다.",
+          "향후 Human이 특정 테스트를 명시적으로 요청한 경우에만 Test Agent가 정확히 그 테스트를 실행한다."
         ]
       }
     },
     {
       "id": "QUALITY-001",
       "kind": "quality-check",
-      "content": "Execution 이후 기존 workflow 계약에 따라 정적 AI review를 기록한다. 테스트는 실행하지 않는다.",
+      "content": "정적 계약 검토로 세 역할의 권한 경계, Documentation Agent의 필수 백그라운드 실행, 영향 문서 제한, handoff 정합성을 확인한다. 테스트는 실행하지 않는다.",
       "attributes": {
         "status": "planned",
         "testsRun": false

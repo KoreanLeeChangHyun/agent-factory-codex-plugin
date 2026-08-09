@@ -24,16 +24,19 @@
       "id": "BASIS-001",
       "kind": "work-unit-basis",
       "content": {
-        "goal": "Workflow Agent를 Work Unit 구현 전용 역할로 간소화한다.",
+        "goal": "Workflow Agent, Test Agent, Documentation Agent를 구현·테스트·영향 문서 갱신 전용 역할로 분리하고 백그라운드 문서 갱신 및 안전한 결과 전달 계약을 구축한다.",
         "executionOrder": 1,
         "scope": [
-          "역할 및 lifecycle 계약",
-          "launcher prompt",
-          "Work Unit profile, 상태 및 manager validation",
-          "관련 문서와 계약 테스트"
+          "Workflow Agent, Test Agent, Documentation Agent 역할 및 권한 계약",
+          "Documentation Agent용 필수 백그라운드 Goal 실행",
+          "launcher의 역할별 순차 오케스트레이션과 프롬프트",
+          "Work Unit profile, 상태, review validation과 역할별 증거",
+          "관련 lifecycle/work-units 문서와 계약 테스트"
         ],
         "outOfScope": [
-          "테스트 실행",
+          "현재 갱신 작업 중 테스트 실행",
+          "Test Agent 또는 Documentation Agent의 제품 코드 수정",
+          "Documentation Agent의 변경 무관 문서 갱신",
           "Main Agent 결과 전달 제거",
           "런처 terminal receipt 제거",
           "배포와 push"

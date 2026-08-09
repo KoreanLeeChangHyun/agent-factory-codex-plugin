@@ -7,7 +7,7 @@
       "kind": "execution-context",
       "content": {
         "goalId": "simplify-workflow-agent-to-execution-only",
-        "objective": "Workflow Agent를 Work Unit 구현 전용 역할로 간소화한다.",
+        "objective": "구현·테스트·영향 문서 갱신 역할을 분리하고 Documentation Agent를 필수 백그라운드 Goal로 실행한다.",
         "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id simplify-workflow-agent-to-execution-only",
         "executionAgent": "Workflow Agent",
         "repository": "/home/deus/workspace/agent-factory/plugin",
@@ -15,7 +15,13 @@
         "targetBranch": "factory",
         "executionMode": "worktree",
         "branch": "work-unit/simplify-workflow-agent-to-execution-only",
-        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/simplify-workflow-agent-to-execution-only"
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/simplify-workflow-agent-to-execution-only",
+        "targetWorkflowRole": "implementation-only; must not run tests",
+        "targetTestRole": "test-only; must not modify code; runs only exact Human-requested tests",
+        "targetDocumentationRole": "affected-document-only; must not modify code or unrelated documents; must use owning managers for canonical documents",
+        "testDefault": "disabled; do not launch Test Agent when the Human requested no tests",
+        "documentationExecution": "mandatory separate background Goal after implementation completion",
+        "handoff": "Workflow Agent implementation result -> authorized Test Agent result or tests not run -> background Documentation Agent result -> Main Agent Human review"
       }
     }
   ],

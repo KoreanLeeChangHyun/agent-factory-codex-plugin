@@ -6,7 +6,7 @@
       "id": "GOAL-001",
       "kind": "goal",
       "content": {
-        "goal": "Workflow Agent를 Work Unit 구현 전용 역할로 간소화한다."
+        "goal": "Workflow Agent, Test Agent, Documentation Agent를 구현·테스트·영향 문서 갱신 전용 역할로 분리하고 Documentation Agent를 필수 백그라운드 Goal로 실행한다."
       }
     },
     {
@@ -14,10 +14,11 @@
       "kind": "scope",
       "content": {
         "items": [
-          "skills/agents 역할 계약",
-          "skills/lifecycle 실행 계약",
-          "app_server_goal launcher prompt",
-          "work-unit profile, execution state와 review validation",
+          "skills/agents의 Workflow Agent, Test Agent, Documentation Agent 역할 계약",
+          "skills/lifecycle의 구현, 선택적 테스트, 백그라운드 문서 갱신 순서와 결과 전달 계약",
+          "app_server_goal launcher의 역할별 Goal, 프롬프트, ACK, terminal receipt와 오케스트레이션",
+          "work-unit profile, execution state, review validation의 역할별 증거 계약",
+          "Documentation Agent의 영향 문서 판별과 canonical manager 사용 경계",
           "skills/work-units 계약 문서",
           "관련 계약 테스트 기대값",
           "Project Core 정합성"
@@ -29,7 +30,10 @@
       "kind": "out-of-scope",
       "content": {
         "items": [
-          "테스트 실행",
+          "현재 Work Unit 실행 중 테스트 명령 수행",
+          "Test Agent 또는 Documentation Agent의 제품 코드, 테스트 코드, 구성 수정",
+          "Documentation Agent의 변경 무관 문서 또는 저장소 전체 문서 갱신",
+          "Workflow Agent의 테스트 수행",
           "Main Agent Human-facing 결과 전달 제거",
           "launcher terminal receipt 제거",
           "배포, push, PR 생성"
@@ -41,9 +45,12 @@
       "kind": "expected-output",
       "content": {
         "items": [
-          "Work-only Workflow Agent 역할 계약",
-          "execution-only launcher prompt",
-          "execution-only Work Unit 상태 및 manager validation",
+          "구현 전용 Workflow Agent 역할 계약",
+          "코드 수정이 금지된 테스트 전용 Test Agent 역할 계약",
+          "코드 수정이 금지된 영향 문서 전용 Documentation Agent 역할 계약",
+          "구현 완료 후 Documentation Agent를 반드시 별도 백그라운드 Goal로 실행하는 launcher 흐름",
+          "Human-authorized 테스트가 있을 때만 Test Agent를 실행하는 흐름",
+          "구현, 테스트 또는 tests not run, 문서 갱신 결과를 분리해 추적하는 상태 및 validation",
           "정렬된 lifecycle/work-units 문서와 계약 테스트",
           "갱신된 Project Core"
         ]

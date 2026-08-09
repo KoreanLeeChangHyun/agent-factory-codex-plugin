@@ -22,6 +22,33 @@
       "content": {
         "status": "차단 open item 없음"
       }
+    },
+    {
+      "id": "DECISION-003",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Workflow Agent는 코드 작성만 담당하고, 별도 Test Agent는 테스트만 수행하며 코드를 수정하지 않는다.",
+        "status": "accepted",
+        "sourceInterview": "INTERVIEW-001"
+      }
+    },
+    {
+      "id": "DECISION-004",
+      "kind": "decision-status",
+      "content": {
+        "decision": "자동 테스트는 기본적으로 비활성화하며 Test Agent는 Human이 명시적으로 요청한 테스트만 실행한다.",
+        "status": "accepted",
+        "sourceFeedback": "FEEDBACK-002"
+      }
+    },
+    {
+      "id": "DECISION-005",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Documentation Agent는 구현 완료 후 변경과 직접 관련된 문서만 갱신하고 코드를 수정하지 않으며, 반드시 백그라운드 Goal/실행으로 수행한다.",
+        "status": "accepted",
+        "sourceInterview": "INTERVIEW-002"
+      }
     }
   ],
   "subsections": []

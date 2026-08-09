@@ -5,7 +5,7 @@
     {
       "id": "REPORT-STATUS",
       "kind": "report-result",
-      "content": "실행 후 기존 workflow 계약에 따라 Main Agent 검토용 결과를 기록한다.",
+      "content": "실행 후 역할별 변경 경로, 구현 결과, 테스트 미실행 사실, 백그라운드 Documentation Agent의 문서 갱신 결과, handoff 정합성, 남은 위험을 Main Agent 검토용으로 기록한다.",
       "attributes": {
         "verificationResult": "pending",
         "testsRun": false,

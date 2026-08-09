@@ -8,8 +8,10 @@
       "content": {
         "items": [
           "Workflow Agent가 구현만 담당하는지 검토",
-          "테스트 실행 책임이 제거됐는지 검토",
-          "AI Review와 Report 작성 책임이 제거됐는지 검토",
+          "Test Agent가 명시된 테스트만 담당하며 코드를 수정할 수 없는지 검토",
+          "Documentation Agent가 별도 백그라운드 Goal로 수행되는지 검토",
+          "Documentation Agent가 영향 문서만 갱신하고 코드와 변경 무관 문서를 수정하지 않는지 검토",
+          "구현, 테스트 또는 tests not run, 문서 결과가 독립적으로 추적되는지 검토",
           "Main Agent 결과 전달이 유지되는지 검토"
         ]
       }

@@ -6,7 +6,7 @@
       "id": "BASIS-REF-001",
       "kind": "intake-basis-ref",
       "content": {
-        "summary": "Ready Intake의 Workflow Agent execution-only 결정"
+        "summary": "Ready Intake의 구현·테스트·백그라운드 문서 갱신 역할 분리 결정"
       },
       "sourceRefs": [
         {
