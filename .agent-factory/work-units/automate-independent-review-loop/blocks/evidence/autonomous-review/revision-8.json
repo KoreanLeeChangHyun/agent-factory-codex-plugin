@@ -1,0 +1,12 @@
+{
+  "result": "rework-autonomous",
+  "checklistResult": "fail",
+  "workflowSessionId": "/root/workflow_revision8",
+  "reviewSessionId": "/root/review_revision8",
+  "blockingFindings": [
+    "Launcher registers evidence for every Review disposition, but manager-owned validator only accepts rework-autonomous, so pass and human-interview-required cannot reach terminal receipt."
+  ],
+  "reworkInstruction": "Branch revision evidence validation by disposition with exact pass, rework-autonomous, and human-interview-required schemas. Add manager-path positive and cross-schema rejection expectations for pass/interview and ensure every terminal disposition receives a dedicated receipt.",
+  "automaticRevisionLimitReached": true,
+  "testsRun": false
+}

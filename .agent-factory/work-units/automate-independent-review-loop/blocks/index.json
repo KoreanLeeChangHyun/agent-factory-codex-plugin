@@ -8,6 +8,34 @@
       "sizeBytes": 140552
     },
     {
+      "path": "blocks/evidence/autonomous-review/revision-5.json",
+      "mediaType": "application/json",
+      "description": "Independent Review Agent revision 5 detailed evidence",
+      "sha256": "747e7667f5b3aef9e47ca5eb51984c788b1c6647f9cc688a5244e9d402df1a46",
+      "sizeBytes": 853
+    },
+    {
+      "path": "blocks/evidence/autonomous-review/revision-6.json",
+      "mediaType": "application/json",
+      "description": "Independent Review Agent revision 6 detailed evidence",
+      "sha256": "816e20b49367ce8d5a8ad93695a19dd312ed3600ceee6ae45eb07fbf489046d1",
+      "sizeBytes": 758
+    },
+    {
+      "path": "blocks/evidence/autonomous-review/revision-7.json",
+      "mediaType": "application/json",
+      "description": "Independent Review Agent revision 7 detailed evidence",
+      "sha256": "be1341f448e5be434eb2b0e702e35bafd09d46aa86e0a33f6dc6f03970275243",
+      "sizeBytes": 909
+    },
+    {
+      "path": "blocks/evidence/autonomous-review/revision-8.json",
+      "mediaType": "application/json",
+      "description": "Independent Review Agent revision 8 detailed evidence and automatic limit",
+      "sha256": "8362943ad9fa526487bc8995e1734bd346802d0a5b03f4e74a7a42128f90358e",
+      "sizeBytes": 750
+    },
+    {
       "path": "blocks/evidence/review-r1-autonomous-rework.md",
       "mediaType": "text/markdown",
       "description": "revision 1 Review Agent autonomous rework finding",

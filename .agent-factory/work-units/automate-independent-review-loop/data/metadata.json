@@ -1,6 +1,6 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.69",
+  "documentVersion": "1.0.86",
   "id": "automate-independent-review-loop",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugins",
@@ -9,7 +9,7 @@
     "status": "blocked"
   },
   "createdAt": "2026-08-09T14:40:13+00:00",
-  "updatedAt": "2026-08-09T15:55:39+00:00",
+  "updatedAt": "2026-08-09T19:44:16+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

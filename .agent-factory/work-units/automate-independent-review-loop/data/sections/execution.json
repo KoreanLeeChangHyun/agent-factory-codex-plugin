@@ -19,7 +19,23 @@
         "classification": "permanent",
         "retryCount": 1,
         "maxRetries": 1,
-        "evidence": "blocks/evidence/autonomous-review/revision-4.json"
+        "evidence": "blocks/evidence/autonomous-review/revision-4.json",
+        "resolutionEvidence": "Human approval in conversation on 2026-08-10 after autonomous revision limit"
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": true
+      }
+    },
+    {
+      "id": "AUTONOMOUS-REVIEW-LIMIT-002",
+      "kind": "open-item",
+      "content": {
+        "stepId": "review-rework-after-autonomous-limit",
+        "classification": "permanent",
+        "retryCount": 1,
+        "maxRetries": 1,
+        "evidence": "blocks/evidence/autonomous-review/revision-8.json"
       },
       "attributes": {
         "blocking": true,

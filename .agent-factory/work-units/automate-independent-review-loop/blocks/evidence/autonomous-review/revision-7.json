@@ -1,0 +1,11 @@
+{
+  "result": "rework-autonomous",
+  "workflowSessionId": "/root/workflow_revision7",
+  "reviewSessionId": "/root/review_revision7",
+  "blockingFindings": [
+    "Schema-correct fabricated launcher transcript can still be pre-registered through generic block-put and accepted as exact limit provenance.",
+    "Exact objective and fresh created-thread binding is incomplete for Workflow and executed Test Agent, and completed relationships remain caller-controlled."
+  ],
+  "reworkInstruction": "Add a dedicated manager-owned revision evidence registration command and receipt that generic block-put cannot reproduce, atomically bind it to the current running revision/invocation and launcher role identities, require that receipt for autonomous-limit provenance, and validate exact objectives/fresh threads/completed relationships for every executed separate role including Test Agent.",
+  "testsRun": false
+}
