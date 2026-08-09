@@ -765,6 +765,19 @@ def validate_review_result(result: dict[str, Any]) -> dict[str, Any]:
         raise ContractError(
             "review_result_invalid", "blocking findings require a failed review"
         )
+    if result["checklistResult"] == "fail" and result["result"] != "fail":
+        raise ContractError(
+            "review_result_invalid", "a failed checklist requires a failed review"
+        )
+    required_inputs = {"implementation", "tests", "documentation"}
+    if (
+        len(result["inputs"]) != len(required_inputs)
+        or set(result["inputs"]) != required_inputs
+    ):
+        raise ContractError(
+            "review_result_invalid",
+            "review inputs must identify implementation, tests, and documentation",
+        )
     return result
 
 

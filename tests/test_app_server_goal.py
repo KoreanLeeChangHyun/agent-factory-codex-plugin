@@ -473,6 +473,15 @@ class AppServerGoalTest(unittest.TestCase):
         result["blockingFindings"] = ["role contract mismatch"]
         with self.assertRaises(module.ContractError):
             module.validate_review_result(result)
+        result["blockingFindings"] = []
+        result["checklistResult"] = "fail"
+        with self.assertRaises(module.ContractError):
+            module.validate_review_result(result)
+        result["result"] = "fail"
+        result["checklistResult"] = "pass"
+        result["inputs"] = ["implementation", "tests"]
+        with self.assertRaises(module.ContractError):
+            module.validate_review_result(result)
 
     def test_role_failure_payload_preserves_completed_stage_evidence(self) -> None:
         module = load_module()
