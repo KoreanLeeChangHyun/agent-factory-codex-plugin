@@ -1288,6 +1288,44 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("execution context worktreePath must equal", rejected.stderr)
 
+    def test_review_role_context_requires_complete_field_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"]["targetReviewRole"] = (
+                "review-only; must not modify files or execute verification commands"
+            )
+            source = data_value(root, "partial-review-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn(
+                "review-separated execution context is missing fields",
+                rejected.stderr,
+            )
+
+            context["content"]["reviewExecution"] = (
+                "mandatory separate Goal after Documentation Agent completion"
+            )
+            source = data_value(root, "complete-review-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+            payload = json.loads(run_cli("transition", str(package), "ready").stdout)
+            self.assertEqual(payload["status"], "ready")
+
     def test_execution_attempt_retry_and_resume_preserve_identity_history(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

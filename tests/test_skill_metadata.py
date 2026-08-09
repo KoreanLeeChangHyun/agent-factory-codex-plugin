@@ -342,6 +342,24 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("not an approval gate", normalized_main_agent)
         self.assertIn("later batch cleanup", normalized_main_agent)
 
+    def test_review_agent_has_independent_static_review_ownership(self) -> None:
+        router = (SKILLS / "agents" / "SKILL.md").read_text(encoding="utf-8")
+        review_agent = (
+            SKILLS / "agents" / "references" / "review-agent.md"
+        ).read_text(encoding="utf-8")
+        manager = (
+            SKILLS / "work-units" / "scripts" / "work_unit.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("references/review-agent.md", router)
+        self.assertIn("static review only", review_agent)
+        self.assertIn("Do not modify", review_agent)
+        self.assertIn("Do not execute tests", review_agent)
+        self.assertIn('"Review Agent"', manager)
+        self.assertIn('"Main Agent"', manager)
+        self.assertIn('package.name == "add-independent-review-agent"', manager)
+        self.assertIn("require_evidence(package, ai_review", manager)
+
     def test_main_and_workflow_agent_roles_are_separated(self) -> None:
         agent_main = (
             SKILLS / "agents" / "references" / "main-agent.md"
