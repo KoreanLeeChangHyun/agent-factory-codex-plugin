@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "Ready Intake의 Workflow Agent execution-only 결정"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "simplify-workflow-agent-to-execution-only",
+          "path": ".agent-factory/intakes/simplify-workflow-agent-to-execution-only",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

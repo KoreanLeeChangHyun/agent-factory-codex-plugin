@@ -1,0 +1,17 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "실행 전",
+      "attributes": {
+        "status": "planned",
+        "verificationResult": "pending",
+        "testsRun": false
+      }
+    }
+  ],
+  "subsections": []
+}

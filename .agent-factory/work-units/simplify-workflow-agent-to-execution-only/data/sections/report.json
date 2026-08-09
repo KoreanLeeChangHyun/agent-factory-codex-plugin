@@ -1,0 +1,17 @@
+{
+  "id": "report",
+  "title": "Report",
+  "content": [
+    {
+      "id": "REPORT-STATUS",
+      "kind": "report-result",
+      "content": "실행 후 기존 workflow 계약에 따라 Main Agent 검토용 결과를 기록한다.",
+      "attributes": {
+        "verificationResult": "pending",
+        "testsRun": false,
+        "changedPaths": []
+      }
+    }
+  ],
+  "subsections": []
+}

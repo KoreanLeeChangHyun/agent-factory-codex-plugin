@@ -1,0 +1,194 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-CONTRACT-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/agents/SKILL.md; skills/agents/references/main-agent.md; skills/agents/references/intake-agent.md; skills/intakes/SKILL.md; skills/intakes/references/intake-management.md; skills/intakes/references/analysis.md; skills/lifecycle/references/lifecycle.md; skills/lifecycle/references/lifecycle-entry.md; skills/rules/references/fact-and-evidence-control.md",
+        "method": "role, lifecycle, Intake management, analysis, and fact-control contract review",
+        "findings": [
+          "현행 계약은 substantial internal, web, document, runtime 또는 authorized user research에 한해 Main Agent가 Intake Agent로 위임할 수 있다고 규정하지만 substantial의 수치 정의는 제공하지 않는다.",
+          "Intake Agent가 수행할 수 있는 capability는 analysis, web-search, user-research이며 Human-facing decision, Human interview, readiness, Work Unit 생성·실행 admission, Goal, Human result review, Git integration, push, deploy, runtime restart는 명시적으로 Main Agent 또는 다른 lifecycle owner에 남는다.",
+          "Intake Agent는 named Intake만 intake.py로 읽고 쓰며, Main Agent는 compact ACK와 terminal result만 소비하고 반환된 Human 질문을 직접 처리한다.",
+          "analysis 계약은 실제 source path, command, observed result를 기록하고 findings, interpretations, limitations를 분리하도록 요구한다."
+        ],
+        "interpretations": [
+          "위임 여부의 첫 번째 객관적 gate는 작업 크기보다 먼저 capability 적합성과 역할 소유권이어야 한다. 금지된 Human/lifecycle 결정은 크기와 무관하게 Main Agent 직접 처리다.",
+          "현행 문구만으로는 substantial 판단의 일관성을 확보할 수 없으므로 별도의 측정 가능한 운영 기준이 필요하다."
+        ],
+        "limitations": [
+          "계약 문서는 위임 손익분기점의 source 수, 예상 token 수, 예상 시간 또는 command 수를 규정하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-LAUNCHER-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/intakes/scripts/intake_agent_exec.py; skills/intakes/assets/intake-agent-result.schema.json; tests/test_intake_agent_exec.py; tests/test_intake_agent_contract.py",
+        "method": "launcher, result schema, and regression test inspection without test execution",
+        "findings": [
+          "Launcher는 별도 codex exec process와 session을 시작하거나 bound session을 resume하고, 기본 timeout은 1800초이며 stdin prompt, shell=False argv, output schema를 사용한다.",
+          "analysis와 user-research는 network_access=false, web-search만 true이며 sandbox 기본값은 workspace-write다.",
+          "동일 repository와 Intake 조합에 non-blocking advisory lock을 걸고, resume session mismatch와 concurrent delegated writer를 process 시작 전에 거부한다.",
+          "Main-facing stdout은 session이 알려진 뒤 ACK 한 건과 terminal result 한 건으로 제한되며 raw JSONL, stderr, usage, 중간 조사 로그는 전달하지 않는다.",
+          "terminal schema는 status, summary, question, evidence, limitations만 허용하며 malformed, oversized, timeout, process failure를 정제된 오류로 fail closed한다.",
+          "테스트는 신규/resume command, 최소 network, role prompt, compact output, mismatch, duplicate writer, sanitized failure, malformed/oversized event, timeout을 다루지만 delegation 선택 threshold는 다루지 않는다."
+        ],
+        "interpretations": [
+          "위임의 편익은 긴 원시 조사 컨텍스트 격리와 실패 출력 정제이며, 비용은 별도 process/session 시작, prompt 재주입, ACK 대기, single-writer 조정, terminal summary에서 세부 정보가 손실될 가능성이다.",
+          "Main Agent가 delegate 종료 전 같은 Intake를 수정해야 하는 짧고 상호작용적인 작업은 lock 조정 비용 때문에 직접 처리가 유리하다.",
+          "기존 bound session resume은 배경 컨텍스트 재수집 비용을 낮출 수 있지만 stale session context 위험 때문에 자동 선택이 아니라 Main Agent 판단 대상으로 유지되어야 한다."
+        ],
+        "limitations": [
+          "테스트는 실행하지 않았고 test source만 검사했다.",
+          "launcher는 token usage와 raw events를 의도적으로 숨기므로 현재 출력만으로 실제 위임 token 절감량이나 startup latency를 측정할 수 없다.",
+          "advisory lock은 intake_agent_exec.py를 사용하는 delegated writer만 직렬화하며 intake.py를 직접 호출하는 다른 process까지 전역 차단하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-CANONICAL-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": ".agent-factory/intakes/minimize-main-agent-execution-context; .agent-factory/intakes/intake-agent-exec-role-research; .agent-factory/intakes/intake-agent-sandbox-compatibility; .agent-factory/work-units/intake-agent-codex-exec; .agent-factory/work-units/minimize-main-agent-execution-context; .agent-factory/work-units/intake-owned-agent-session-binding",
+        "method": "canonical Intake review through intake.py show and canonical Work Unit review through work_unit.py show",
+        "findings": [
+          "minimize-main-agent-execution-context는 Main Agent 입력을 compact ACK와 terminal 또는 escalation으로 제한하고 routine heartbeat, 상태 event, 알림, 실행 로그를 Main LLM 컨텍스트에 전달하지 않는 원칙을 확정했다.",
+          "intake-agent-exec-role-research는 긴 조사 로그를 별도 Exec에 격리하고 내부·웹·문서·runtime 분석을 Intake Agent에 맡기되 Human interview와 결정은 Main Agent에 유지하는 선택을 기록했다.",
+          "intake-agent-codex-exec Work Unit은 신규/resume, single-writer, session mismatch, compact output, capability network, 역할 경계를 구현·검증했으며 남은 위험으로 advisory lock 보호 범위가 delegated launcher 사용자에 한정됨을 기록했다.",
+          "intake-agent-sandbox-compatibility는 nested workspace-write가 repository inspection 전에 실패한 실제 사례와 이미 격리된 환경에서만 caller가 danger-full-access 호환 모드를 선택하는 예외를 기록했다.",
+          "intake-owned-agent-session-binding은 session binding을 Intake manager 소유 operational metadata로 이동했고, 그 변경은 Human 지시에 따라 테스트 없이 static review만 수행되었다."
+        ],
+        "interpretations": [
+          "canonical 선행 결정은 context isolation의 방향과 책임 경계를 확정했지만, Main 직접 처리와 Intake 위임 사이의 작업량 threshold는 결정하지 않았다.",
+          "위임 실패가 조사 시작 전 발생할 수 있으므로 sandbox 호환성, session binding 상태, writer availability는 작업량 threshold보다 앞선 실행 가능성 gate다.",
+          "과거 artifact의 핵심 최적화 단위는 조사 자체의 총비용이 아니라 Main-facing context 유입량이다."
+        ],
+        "limitations": [
+          "과거 artifacts에는 실제 Intake Agent 호출별 input/output token, startup latency, 조사 duration, 실패율의 집계 telemetry가 없다.",
+          "과거 verification 결과는 당시 실행 기록이며 이번 조사에서 재실행하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-THRESHOLD-CANDIDATES-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "other",
+        "source": "Synthesis of EVIDENCE-CONTRACT-001, EVIDENCE-LAUNCHER-001, and EVIDENCE-CANONICAL-001",
+        "method": "evidence-bounded decision-rule synthesis; numeric values are calibration candidates, not established repository facts",
+        "findings": [
+          "저장소에는 delegation 선택의 수치 threshold나 이를 검증하는 test/telemetry가 현재 존재하지 않는다.",
+          "객관적으로 관찰 가능한 사전 변수는 capability 종류, 예상 source surface 수, 독립 조사 loop 수, raw evidence 예상량, Human interaction 필요성, named Intake writer 상태, bound session 유무, sandbox/network 요구다."
+        ],
+        "interpretations": [
+          "후보 hard gate: analysis·web-search·user-research가 아니거나 Human decision/readiness/Work Unit/Goal/review/integration 책임을 포함하면 Main Agent가 직접 처리한다.",
+          "후보 delegation trigger: 적격 capability 작업에서 다음 중 하나 이상이면 위임한다—서로 독립적인 source surface 3개 이상, 두 capability/domain 이상, 독립 조사·검증 loop 2회 이상, Main context에 유입될 raw evidence 예상량 8,000 tokens 이상, 또는 예상 조사 시간 10분 이상.",
+          "후보 direct fast path: 단일 capability, source surface 1~2개, read-only 조회 1~3개, raw evidence 예상량 4,000 tokens 미만, 예상 5분 미만이며 Human 질문이나 반복 follow-up 없이 compact 결론을 낼 수 있으면 Main Agent가 직접 처리한다.",
+          "후보 gray zone: 4,000~8,000 raw tokens 또는 5~10분은 기존 bound session이 있고 후속 조사의 연속성이 큰 경우 위임 쪽, 즉시 Human 상호작용이나 같은 Intake의 Main-side mutation이 필요한 경우 직접 처리 쪽으로 결정한다.",
+          "비용·위험 예외: sandbox 초기화 불가, writer busy, session mismatch, 매우 짧고 긴급한 확인, terminal summary로 손실되면 안 되는 세밀한 Human 맥락은 직접 처리한다. 반대로 secret-bearing stderr나 noisy logs처럼 Main context 비노출 편익이 큰 조사는 규모가 작아도 최소권한 sandbox가 가능하면 위임을 우선 검토한다.",
+          "측정 제안: 향후 호출별 startup-to-ACK latency, terminal latency, status, new/resume, capability, inspected source count, terminal evidence count, Main-facing terminal byte 수, 재조사율을 민감 정보 없이 집계하고 direct 표본의 elapsed time·Main context 증가량과 비교해 threshold를 보정한다.",
+          "성공 판단 후보: 위임군이 direct 비교군 대비 Main-facing context 증가량을 50% 이상 줄이면서, p95 startup-to-ACK 30초 이하, launcher failure 5% 이하, terminal 이후 동일 사실 재조사율 10% 이하를 만족할 때 기준을 유지한다."
+        ],
+        "limitations": [
+          "3 sources, 2 loops, 4,000/8,000 tokens, 5/10분, 50%, 30초, 5%, 10%는 repository에서 검증된 수치가 아니라 초기 계측을 위한 falsifiable 후보다.",
+          "raw evidence token은 실행 전 정확히 알 수 없으므로 file size, command output line count, 검색 결과 수에 기반한 추정 오차가 발생한다.",
+          "telemetry 추가 자체는 별도 Human 승인 범위와 privacy 검토가 필요한 향후 작업이며 이번 Intake Agent run에서는 구현하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-OPENAI-HANDOFFS-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "OpenAI Agents SDK: Handoffs",
+        "url": "https://openai.github.io/openai-agents-python/handoffs/",
+        "authorityTier": "T1",
+        "freshness": "F5",
+        "retrievedAt": "2026-08-07",
+        "findings": [
+          "OpenAI 공식 SDK는 handoff를 전문화된 agent로의 위임 수단으로 정의하고, destination별 명시적 handoff description과 구조화된 input을 지원한다.",
+          "기본 handoff는 이전 대화 history 전체를 전달하므로 context isolation은 자동 효과가 아니다. input_filter, nested history summary 또는 conversation을 넘기지 않는 Agent.as_tool 구조가 있어야 수신 agent의 context를 의도적으로 제한할 수 있다.",
+          "따라서 capability·전문성 적합성, 전달 payload 경계, manager의 workflow/user-control 유지가 delegation gate의 외부 근거가 된다."
+        ],
+        "limitations": [
+          "문서는 source 수, token 수, elapsed time에 따른 위임 손익분기값을 제공하지 않는다.",
+          "SDK 기능 계약이며 특정 Agent Factory launcher의 latency, token 절감, summary fidelity를 실험한 자료는 아니다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-ANTHROPIC-MULTIAGENT-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "How we built our multi-agent research system",
+        "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+        "authorityTier": "T2",
+        "freshness": "F4",
+        "retrievedAt": "2026-08-07",
+        "findings": [
+          "Anthropic production engineering 보고는 breadth-first이며 독립 방향을 병렬 탐색하는 연구에서 subagent가 각자 context window를 쓰고 핵심 token만 lead agent에 압축 전달한다고 설명한다.",
+          "자체 평가에서 multi-agent 연구 시스템은 single-agent 대비 90.2% 높은 성능을 보였지만, multi-agent는 chat 대비 약 15배 token을 사용했다. shared context나 agent 간 dependency가 많은 domain은 부적합하다고 명시한다.",
+          "운영 prompt heuristic은 simple fact finding을 1 agent와 3~10 tool calls, direct comparison을 2~4 subagents와 agent당 10~15 calls로 배분하며, complex query 병렬화로 research time을 최대 90% 줄였다고 보고한다.",
+          "평가는 고정 경로가 아니라 outcome과 합리적 process를 판단하고, 약 20개의 실제 사용 query로 시작해 factual accuracy, citation accuracy, completeness, source quality, tool efficiency rubric을 사용했다.",
+          "이는 독립 조사 방향·병렬화 가능성·tool-call effort·outcome quality·token cost를 측정 가능한 routing/evaluation 변수로 삼을 직접 근거다."
+        ],
+        "limitations": [
+          "90.2%, 15배, 3~10 calls, 10~15 calls, 20-query 표본은 Anthropic 모델·Research 제품·내부 평가에서 나온 값이며 Agent Factory의 3-source, 4k/8k-token, 5/10-minute threshold를 직접 검증하지 않는다.",
+          "내부 research eval의 전체 dataset과 재현 세부가 공개되지 않아 수치를 보편적 손익분기점으로 일반화할 수 없다.",
+          "병렬 subagent architecture의 결과여서 현재 단일 delegated Intake Agent launcher에 기대되는 speedup과 동일하지 않다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-TACL-LONGCONTEXT-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "Lost in the Middle: How Language Models Use Long Contexts",
+        "url": "https://aclanthology.org/2024.tacl-1.9/",
+        "authorityTier": "T2",
+        "freshness": "F3",
+        "retrievedAt": "2026-08-07",
+        "findings": [
+          "TACL peer-reviewed 연구는 multi-document QA와 key-value retrieval에서 relevant information 위치에 따라 성능이 크게 달라지고, 긴 input의 중간에 정보가 있을 때 성능이 유의하게 저하될 수 있음을 보였다.",
+          "명목상 긴 context를 지원하는 모델도 전체 context의 정보를 robust하게 사용하지 못할 수 있으므로, raw evidence를 Main context에 계속 누적하는 대신 focused context와 압축된 결과를 쓰는 방향을 뒷받침한다.",
+          "연구가 제안한 평가는 context length와 evidence position을 변화시키며 accuracy를 측정하므로, delegation 기준도 token volume 하나가 아니라 retrieval/answer quality를 함께 계측해야 한다."
+        ],
+        "limitations": [
+          "실험 모델과 2023~2024 시점의 결과이며 현재 Agent Factory가 사용하는 모델별 성능을 직접 나타내지 않는다.",
+          "연구는 subagent delegation이나 launcher overhead를 실험하지 않았고 특정 4k/8k-token threshold를 제시하지 않는다.",
+          "성능 저하는 task, model, evidence position에 따라 달라 단일 보편 token cutoff로 환산할 수 없다."
+        ]
+      }
+    },
+    {
+      "id": "WEB-OPENAI-BROWSECOMP-001",
+      "kind": "web-evidence",
+      "content": {
+        "title": "BrowseComp: a benchmark for browsing agents",
+        "url": "https://openai.com/index/browsecomp/",
+        "authorityTier": "T2",
+        "freshness": "F4",
+        "retrievedAt": "2026-08-07",
+        "findings": [
+          "OpenAI 연구는 hard-to-find browsing을 단일 검증 가능한 정답, 1,266개 문제, pass rate로 측정하고 persistence와 search depth를 핵심 능력으로 정의한다.",
+          "문항 난이도 구성에서 5회의 단순 검색으로 첫 결과 페이지에 답이 없어야 하고 다른 사람이 10분 안에 풀기 어렵도록 했으나, 10분 조건은 엄격히 강제되지 않았다.",
+          "test-time compute가 증가할수록 성능이 매끄럽게 증가했고 multiple attempts의 aggregation이 single attempt 대비 15~25% 향상됐으므로 search effort와 outcome accuracy를 함께 평가할 근거가 된다.",
+          "이는 실제 task distribution에서 대표 표본을 만들고 direct와 delegated route의 정답성·완전성·비용·latency를 비교해야 한다는 측정 설계를 지지한다."
+        ],
+        "limitations": [
+          "문항 생성의 10분 난이도 기준은 Human benchmark construction heuristic이지 delegation 손익분기 시간이 아니므로 저장소의 예상 10분 delegation trigger를 직접 정당화하지 않는다.",
+          "짧고 단일 정답인 browsing benchmark라서 open-ended Intake analysis, user research, summary fidelity로 일반화가 제한된다.",
+          "compute scaling은 추가 effort의 편익을 보이지만 launcher startup cost나 Main-facing context 절감량은 측정하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

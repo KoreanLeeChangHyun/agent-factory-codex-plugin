@@ -1,0 +1,51 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Main Agent의 Intake Agent 위임 기준을 구조 기반 hard gate, delegation trigger, direct fast path와 예외로 명확히 정의한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/agents/references/main-agent.md",
+          "skills/agents/references/intake-agent.md 정합성",
+          "관련 skill metadata 및 정적 계약 테스트 기대값"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "telemetry 구현",
+          "숫자 threshold 강제",
+          "Intake Agent launcher 동작 변경",
+          "테스트 실행",
+          "배포와 push"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "명확한 역할 hard gate",
+          "구조 기반 delegation trigger",
+          "Main Agent direct fast path",
+          "실행 가능성 및 context-loss 예외",
+          "정렬된 정적 계약 기대값"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

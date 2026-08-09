@@ -1,0 +1,34 @@
+{
+  "id": "decisions-and-open-items",
+  "title": "Decisions and Open Items",
+  "content": [
+    {
+      "id": "DECISION-001",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human은 구조 기반 Intake Agent 위임 기준과 Main Agent direct fast path를 권장안대로 채택했다."
+      },
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "DECISION-002",
+      "kind": "decision-status",
+      "content": {
+        "decision": "Human은 로컬 telemetry로 검증되기 전 숫자 threshold를 강제 규칙으로 사용하지 않기로 했다."
+      },
+      "attributes": {
+        "status": "accepted"
+      }
+    },
+    {
+      "id": "OPEN-STATUS-001",
+      "kind": "open-items-status",
+      "content": {
+        "status": "차단 open item 없음. telemetry 구현과 수치 보정은 별도 후속 범위다."
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,48 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Workflow Agent는 canonical Work Unit을 읽고 해당 구현 작업만 수행한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Workflow Agent의 테스트 실행, 테스트 미실행 기록, AI Review, Report 작성 의무를 제거한다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Work Unit profile, 실행 상태와 review 전이는 execution-only 계약을 수용해야 한다."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Main Agent의 Human review 자료 전달과 launcher terminal receipt는 Workflow Agent 보고서가 아니므로 유지한다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "Workflow Agent 역할과 launcher prompt에 Work-only sequence가 명시된다.",
+          "Workflow Agent 테스트 실행 지시가 없다.",
+          "AI Review와 Report가 Workflow Agent 필수 단계 및 Work Unit 필수 결과에서 제거된다.",
+          "review 전이가 execution 결과만으로 진행 가능하다.",
+          "관련 문서와 계약 기대값이 같은 책임 경계를 표현한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

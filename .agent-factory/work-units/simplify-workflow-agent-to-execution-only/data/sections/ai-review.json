@@ -1,0 +1,29 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "Workflow Agent 책임이 Work로 한정되는지 확인",
+          "테스트와 report 생성 지시가 제거되는지 확인",
+          "Main Agent 결과 전달과 launcher receipt가 보존되는지 확인",
+          "manager/profile/document 정합성 확인"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "실행 후 기록 예정",
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending",
+        "testsRun": false
+      }
+    }
+  ],
+  "subsections": []
+}

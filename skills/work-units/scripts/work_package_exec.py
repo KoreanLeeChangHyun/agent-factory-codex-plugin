@@ -294,13 +294,17 @@ def run_json_command(arguments: list[str], label: str) -> dict[str, Any]:
     )
     if result.returncode != 0:
         raise ExecutionError(f"{label} failed: {result.stderr.strip()}")
-    lines = [line for line in result.stdout.splitlines() if line.strip()]
-    if not lines:
+    output = result.stdout.strip()
+    if not output:
         raise ExecutionError(f"{label} returned no JSON")
     try:
-        payload = json.loads(lines[-1])
+        payload = json.loads(output)
     except json.JSONDecodeError as error:
-        raise ExecutionError(f"{label} returned invalid JSON: {error}") from error
+        lines = [line for line in output.splitlines() if line.strip()]
+        try:
+            payload = json.loads(lines[-1])
+        except json.JSONDecodeError:
+            raise ExecutionError(f"{label} returned invalid JSON: {error}") from error
     if not isinstance(payload, dict):
         raise ExecutionError(f"{label} returned a non-object")
     return payload

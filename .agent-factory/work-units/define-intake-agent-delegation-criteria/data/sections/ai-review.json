@@ -1,0 +1,49 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "역할 ownership hard gate 확인",
+          "delegation trigger와 direct fast path 구분 확인",
+          "예외가 delegation 원칙을 무력화하지 않는지 확인",
+          "숫자 threshold 비강제 확인"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "summary": "AI Review는 commit 97039f0의 역할 경계, 구조 trigger, direct fast path, 예외, 비수치 원칙과 기존 launcher 경계 보존을 검토했으며 blocking finding이 없다.",
+        "checks": [
+          "Human 및 lifecycle 결정이 Main Agent hard gate로 유지된다.",
+          "복수 evidence domain, 복수 capability, 반복 loop, raw-evidence context 비용이 delegation trigger로 구분된다.",
+          "direct fast path는 단일 capability, 국소 source, 제한된 read-only 조회와 즉시 compact 결론 조건으로 제한된다.",
+          "sandbox, writer, Human interaction, material context-loss 예외가 역할 경계를 무력화하지 않는다.",
+          "검증되지 않은 token, time, source count 수치는 routing hard threshold로 사용되지 않는다.",
+          "compact ACK/terminal, single-writer, launcher 동작은 변경되지 않았다."
+        ],
+        "findings": [
+          "Blocking findings: none.",
+          "Non-blocking findings: automated tests were not run by Human instruction."
+        ]
+      },
+      "attributes": {
+        "result": "pass",
+        "checklistResult": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fd883-0ebc-7480-bca5-7baf6b40ed9d",
+          "revision": 1,
+          "attempt": 1
+        },
+        "testsRun": false
+      }
+    }
+  ],
+  "subsections": []
+}

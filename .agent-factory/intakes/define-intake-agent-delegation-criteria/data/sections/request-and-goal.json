@@ -1,0 +1,33 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Main Agent 컨텍스트 최소화를 위해 Intake Agent 사용 기준을 명확히 정의하되, 먼저 자료조사를 수행한다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "Main Agent 직접 조사와 Intake Agent 위임을 일관되게 구분할 수 있는 객관적이고 검증 가능한 기준을 정의한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "Human 및 lifecycle 결정은 Main Agent에 유지된다.",
+          "복수 자료 영역, 복수 capability, 반복 검증 또는 대량 원시 증거 조사는 Intake Agent에 위임된다.",
+          "단일·국소·즉시 결론 가능한 조회만 Main Agent가 직접 수행한다.",
+          "수치 임계값은 계측 전까지 강제 기준으로 사용하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

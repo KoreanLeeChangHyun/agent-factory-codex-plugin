@@ -1,0 +1,35 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "step": "현재 may delegate 문구를 Human 및 lifecycle ownership hard gate와 조사 capability gate로 분리한다."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "step": "복수 자료 영역, 복수 capability, 반복 조사·검증, 대량 원시 증거에 대한 delegation trigger를 명시한다."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "step": "단일·국소·즉시 결론 가능한 direct fast path와 실행 불가 및 context-loss 예외를 명시한다."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "step": "관련 정적 계약 기대값을 새 문구에 맞추되 테스트는 실행하지 않는다."
+      }
+    }
+  ],
+  "subsections": []
+}

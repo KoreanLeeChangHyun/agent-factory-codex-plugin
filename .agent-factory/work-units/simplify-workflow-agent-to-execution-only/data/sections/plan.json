@@ -1,0 +1,35 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "step": "Workflow Agent의 Plan, test, AI Review와 Report 책임을 역할 및 lifecycle 계약에서 제거한다."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "step": "launcher prompt와 Work Unit profile/state/transition을 execution-only 흐름으로 변경한다."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "step": "관련 문서, Project Core와 정적 계약 테스트 기대값을 새 책임 경계에 맞춘다."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "step": "Human이 테스트를 요청하지 않았으므로 테스트 명령은 실행하지 않는다."
+      }
+    }
+  ],
+  "subsections": []
+}

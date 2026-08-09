@@ -1,0 +1,23 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "repository-inspection",
+        "source": "skills/agents, skills/lifecycle, skills/work-units, tests",
+        "findings": [
+          "workflow-agent.md와 launcher prompt가 Plan -> Work -> AI Review -> Report를 강제한다.",
+          "work-unit.profile.json이 quality-check, ai-review-result, report-result를 필수로 요구한다.",
+          "work_unit.py review transition이 verification, quality, AI review, report pass를 요구한다."
+        ],
+        "limitations": [
+          "테스트는 Human이 요청하지 않아 실행하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

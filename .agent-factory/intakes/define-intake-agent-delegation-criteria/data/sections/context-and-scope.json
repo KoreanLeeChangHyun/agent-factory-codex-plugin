@@ -1,0 +1,40 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 agents 계약은 substantial research를 Main Agent가 may delegate할 수 있다고만 규정해 substantial의 판별 기준이 명확하지 않다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "Main Agent Intake delegation 판단 계약",
+          "Intake Agent capability와 역할 경계",
+          "구조 기반 delegation trigger와 direct fast path",
+          "실행 가능성 및 context-loss 예외",
+          "관련 역할 계약 테스트 기대값"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "telemetry 구현",
+          "검증되지 않은 숫자 threshold 강제",
+          "Human 및 lifecycle 결정 위임",
+          "테스트 실행",
+          "배포와 push"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

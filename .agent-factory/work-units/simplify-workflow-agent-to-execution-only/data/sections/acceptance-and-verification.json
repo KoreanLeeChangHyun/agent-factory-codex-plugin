@@ -1,0 +1,49 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "Workflow Agent가 Work만 수행하도록 역할과 launcher prompt가 변경된다.",
+          "Workflow Agent 테스트 실행과 tests-not-run 보고 의무가 제거된다.",
+          "AI Review와 Report가 필수 실행 단계 및 필수 outcome에서 제거된다.",
+          "Work Unit review 전이는 완료된 execution 결과만 요구한다.",
+          "Main Agent Human review와 launcher terminal receipt는 유지된다."
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "범위 내 역할, lifecycle, manager, profile, 문서와 계약 기대값이 execution-only로 정렬된다.",
+          "Project Core가 새 책임 경계를 반영한다.",
+          "테스트는 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Human이 명시한 테스트 없음: 어떤 테스트 명령도 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "Execution 이후 기존 workflow 계약에 따라 정적 AI review를 기록한다. 테스트는 실행하지 않는다.",
+      "attributes": {
+        "status": "planned",
+        "testsRun": false
+      }
+    }
+  ],
+  "subsections": []
+}

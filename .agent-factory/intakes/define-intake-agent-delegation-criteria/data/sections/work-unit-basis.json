@@ -1,0 +1,38 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "not-applicable",
+        "result": "역할 및 운영 판단 계약 변경으로 canonical Specification 변경은 필요하지 않다."
+      },
+      "attributes": {
+        "status": "not-applicable"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Main Agent의 Intake Agent 위임 기준을 구조 기반 hard gate, delegation trigger, direct fast path와 예외로 명확히 정의한다.",
+        "executionOrder": 1,
+        "scope": [
+          "skills/agents/references/main-agent.md",
+          "관련 agents/intakes 계약 정합성",
+          "관련 정적 계약 테스트 기대값"
+        ],
+        "outOfScope": [
+          "telemetry 구현",
+          "숫자 threshold 강제",
+          "테스트 실행",
+          "배포와 push"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

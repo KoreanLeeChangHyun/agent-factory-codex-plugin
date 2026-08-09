@@ -1,0 +1,54 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Main Agent는 Human decision, interview, readiness, Work Unit 생성과 실행 admission, Goal, Human review 및 integration을 Intake Agent에 위임하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "analysis, web-search 또는 user-research에서 복수 자료 영역, 복수 capability, 반복 조사·검증 또는 대량 원시 증거 중 하나가 있으면 Intake Agent 위임을 기본으로 한다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "단일 capability, 자료 영역 1~2개, 읽기 전용 조회 1~3회이며 반복 조사나 Human 질문 없이 즉시 compact 결론을 만들 수 있는 경우에만 Main Agent direct fast path를 허용한다."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": {
+        "requirement": "sandbox 초기화 불가, writer 충돌, 즉각적인 Human 상호작용 또는 terminal summary의 중대한 맥락 손실 위험이 있으면 Main Agent가 직접 처리할 수 있다."
+      }
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": {
+        "constraint": "source 3개, raw 4k/8k tokens, 5/10분 등의 수치는 검증된 사실이 아니므로 telemetry 없이 hard threshold로 사용하지 않는다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "main-agent 계약이 역할 hard gate, delegation trigger, direct fast path와 예외를 명시한다.",
+          "substantial이라는 단독 모호 표현에 의존하지 않는다.",
+          "숫자 threshold를 근거 없이 강제하지 않는다.",
+          "Intake Agent의 기존 compact ACK/terminal 및 single-writer 경계를 보존한다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

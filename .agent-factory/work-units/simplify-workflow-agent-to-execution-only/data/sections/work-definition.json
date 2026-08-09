@@ -1,0 +1,54 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Workflow Agent를 Work Unit 구현 전용 역할로 간소화한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/agents 역할 계약",
+          "skills/lifecycle 실행 계약",
+          "app_server_goal launcher prompt",
+          "work-unit profile, execution state와 review validation",
+          "skills/work-units 계약 문서",
+          "관련 계약 테스트 기대값",
+          "Project Core 정합성"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "테스트 실행",
+          "Main Agent Human-facing 결과 전달 제거",
+          "launcher terminal receipt 제거",
+          "배포, push, PR 생성"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "Work-only Workflow Agent 역할 계약",
+          "execution-only launcher prompt",
+          "execution-only Work Unit 상태 및 manager validation",
+          "정렬된 lifecycle/work-units 문서와 계약 테스트",
+          "갱신된 Project Core"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

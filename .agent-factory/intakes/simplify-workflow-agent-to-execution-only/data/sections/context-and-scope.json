@@ -1,0 +1,41 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 계약은 Plan -> Work -> AI Review -> Report와 테스트 결과 또는 tests-not-run 보고를 Workflow Agent에 요구한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "Workflow Agent 역할 계약",
+          "Goal launcher 프롬프트",
+          "Work Unit profile과 실행 상태 단계",
+          "Work Unit review 전이 검증",
+          "lifecycle 및 work-units 계약 문서",
+          "관련 계약 테스트의 기대값"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Main Agent의 Human-facing 결과 전달 제거",
+          "런처 최종 성공 또는 실패 영수증 제거",
+          "Work Unit 구현 자체의 동작 변경",
+          "테스트 실행",
+          "배포와 push"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

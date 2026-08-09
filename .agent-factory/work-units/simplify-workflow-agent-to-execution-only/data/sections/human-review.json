@@ -1,0 +1,37 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "Workflow Agent가 구현만 담당하는지 검토",
+          "테스트 실행 책임이 제거됐는지 검토",
+          "AI Review와 Report 작성 책임이 제거됐는지 검토",
+          "Main Agent 결과 전달이 유지되는지 검토"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "전용 worktree diff와 Main Agent의 변경 경로 요약을 검토하고 rework 또는 complete를 결정한다."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "실행 전"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

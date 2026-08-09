@@ -1,0 +1,33 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "Workflow Agent는 Work Unit을 실행만 하고 테스트하거나 보고서를 만들지 않는다."
+      }
+    },
+    {
+      "id": "OUTCOME-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "Workflow Agent 책임을 Work Unit 구현으로 한정하고 테스트, AI review, report 작성을 제거한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": {
+        "criteria": [
+          "Workflow Agent가 Work Unit의 구현 작업만 수행한다.",
+          "Workflow Agent가 테스트 명령을 실행하지 않는다.",
+          "Workflow Agent가 AI Review 또는 Report 산출물을 작성하지 않는다.",
+          "Main Agent 사용자 결과 전달과 런처의 성공·실패 영수증은 유지된다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

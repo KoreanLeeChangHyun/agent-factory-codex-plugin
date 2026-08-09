@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "Ready Intake의 구조 기반 delegation 결정"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "define-intake-agent-delegation-criteria",
+          "path": ".agent-factory/intakes/define-intake-agent-delegation-criteria",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

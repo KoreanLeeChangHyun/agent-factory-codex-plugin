@@ -1,0 +1,23 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "simplify-workflow-agent-to-execution-only",
+        "objective": "Workflow Agent를 Work Unit 구현 전용 역할로 간소화한다.",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id simplify-workflow-agent-to-execution-only",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/simplify-workflow-agent-to-execution-only",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/simplify-workflow-agent-to-execution-only"
+      }
+    }
+  ],
+  "subsections": []
+}
