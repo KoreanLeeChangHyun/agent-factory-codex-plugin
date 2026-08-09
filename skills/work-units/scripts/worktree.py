@@ -1020,7 +1020,7 @@ def cleanup_completed(
     for work_unit_id in work_unit_ids:
         branch = validate_execution_identity(execution, work_unit_id, None)
         context = completed_work_unit_context(repository, work_unit_id)
-        if context.get("executionMode", "worktree") == "specification-direct":
+        if context["executionMode"] == "specification-direct":
             results.append(
                 {
                     "state": "not-applicable",

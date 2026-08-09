@@ -251,10 +251,18 @@ def ready_items(
                     "executionAgent": "Codex",
                     "repository": str(root),
                     "baseRef": "factory",
+                    "executionMode": "worktree",
                     "targetBranch": "factory",
                     "branch": f"work-unit/{work_unit_id}",
                     "worktreePath": str(
                         root / ".agent-factory" / "worktree" / work_unit_id
+                    ),
+                    "targetReviewRole": (
+                        "review-only; must not modify files or execute "
+                        "verification commands"
+                    ),
+                    "reviewExecution": (
+                        "mandatory separate Goal after Documentation Agent completion"
                     ),
                 },
             )
@@ -1295,9 +1303,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             context = ready_items(root, intake, package.name)["execution-context"][0]
-            context["content"]["targetReviewRole"] = (
-                "review-only; must not modify files or execute verification commands"
-            )
+            context["content"].pop("reviewExecution")
             source = data_value(root, "partial-review-context.json", context)
             run_cli(
                 "section-item-put",
@@ -1333,7 +1339,8 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
             context = ready_items(root, intake, package.name)["execution-context"][0]
-            context["content"]["executionMode"] = "worktree"
+            context["content"].pop("targetReviewRole")
+            context["content"].pop("reviewExecution")
             source = data_value(root, "current-profile-review-context.json", context)
             run_cli(
                 "section-item-put",
@@ -1348,6 +1355,33 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertIn(
                 "review-separated execution context is missing fields: "
                 "reviewExecution, targetReviewRole",
+                rejected.stderr,
+            )
+
+    def test_ready_rejects_omitted_execution_mode_and_review_role_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"].pop("executionMode")
+            context["content"].pop("targetReviewRole")
+            context["content"].pop("reviewExecution")
+            source = data_value(root, "missing-required-execution-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn(
+                "execution context executionMode must be worktree or "
+                "specification-direct",
                 rejected.stderr,
             )
 

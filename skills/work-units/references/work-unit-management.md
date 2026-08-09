@@ -75,10 +75,9 @@ the revision, invalidates stale outcome evidence, and prepares the next attempt.
 
 Execution may transition to `review` only with passing execution, quality,
 AI-review, and report evidence bound to the current revision/attempt/invocation.
-Current-profile Work Units are review-separated: their execution context must
-contain both `targetReviewRole` and `reviewExecution`. Only a legacy execution
-context identified by an omitted `executionMode` may omit both fields; providing
-only one of them is invalid. For review-separated Work Units, the AI review must
+All Work Units are review-separated: their execution context must contain
+`executionMode`, `targetReviewRole`, and `reviewExecution`; providing only one
+Review field is invalid. The AI review must
 be the independent Review Agent's structured result with evidence; only the
 bootstrap `add-independent-review-agent` Work Unit uses Main Agent as its source
 role.

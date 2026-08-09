@@ -74,7 +74,7 @@ all role receipts as Report material.
   `specification.py`;
 - has no Git integration or worktree cleanup.
 
-`worktree` (and omitted legacy mode):
+`worktree`:
 
 - resolves the current local `factory` commit as the execution base;
 - derives branch `work-unit/<work-unit-id>`;

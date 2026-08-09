@@ -83,7 +83,7 @@ the initial turn emits no ACK.
   `specification.py`;
 - no merge or worktree cleanup follows.
 
-`executionMode: worktree` (or omitted legacy mode):
+`executionMode: worktree`:
 
 - base is the current commit of local `factory`;
 - branch is `work-unit/<work-unit-id>`;

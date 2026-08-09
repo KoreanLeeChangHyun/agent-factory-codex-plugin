@@ -18,7 +18,7 @@ not create another execution thread from inside the Workflow Agent.
 - `executionMode: specification-direct`: do not create or prepare a Git
   worktree. Update only the primary root canonical Specification through
   `specification.py`.
-- `executionMode: worktree` or an omitted legacy mode: create or reuse the
+- `executionMode: worktree`: create or reuse the
   dedicated `work-unit/<id>` linked worktree through `worktree.py`. The entire
   `.agent-factory` directory is excluded from that worktree. Canonical artifact
   CRUD always targets the primary root through its owning manager. For a fresh

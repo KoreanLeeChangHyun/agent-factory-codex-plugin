@@ -454,7 +454,7 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
             "execution_repository_mismatch",
             "execution context repository does not match repository",
         )
-    execution_route = context.get("executionMode", "worktree")
+    execution_route = context.get("executionMode")
     if execution_route not in {"worktree", "specification-direct"}:
         raise ContractError(
             "invalid_execution_context",
