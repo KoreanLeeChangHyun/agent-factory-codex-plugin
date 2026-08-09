@@ -1,15 +1,15 @@
 {
   "schemaVersion": "4.0.0",
-  "documentVersion": "1.0.62",
+  "documentVersion": "1.0.85",
   "id": "simplify-workflow-agent-to-execution-only",
   "artifactType": "work-unit",
   "projectId": "agent-factory-codex-plugins",
   "lifecycle": {
     "phase": "work-unit",
-    "status": "ready"
+    "status": "done"
   },
   "createdAt": "2026-08-06T18:53:24+00:00",
-  "updatedAt": "2026-08-09T04:35:19+00:00",
+  "updatedAt": "2026-08-09T06:39:50+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

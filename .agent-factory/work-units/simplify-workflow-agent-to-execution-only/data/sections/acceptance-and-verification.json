@@ -47,10 +47,19 @@
     {
       "id": "QUALITY-001",
       "kind": "quality-check",
-      "content": "정적 계약 검토로 세 역할의 권한 경계, Documentation Agent의 필수 백그라운드 실행, 영향 문서 제한, handoff 정합성을 확인한다. 테스트는 실행하지 않는다.",
+      "content": "Attempt 2는 보존된 구현 diff에 대한 이전 정적 AI 검토 결과를 재사용했다. 세 역할 권한 경계, 필수 Documentation Agent 별도 Goal, 영향 문서 제한, owning manager 경계, 역할별 ACK·terminal receipt·failure evidence와 Main Agent handoff가 commit 31de51d에 정렬되어 있다. 현재 attempt에서는 테스트나 다른 검증 명령을 실행하지 않았다.",
       "attributes": {
-        "status": "planned",
-        "testsRun": false
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "019fe4ce-77d2-7982-8b02-ac691b5b6894-retry-2",
+          "revision": 1,
+          "attempt": 2
+        },
+        "testsRun": false,
+        "evidence": [
+          "blocks/evidence/workflow-agent-contract.md"
+        ]
       }
     }
   ],

@@ -1,3 +1,18 @@
 {
-  "blocks": []
+  "blocks": [
+    {
+      "path": "blocks/evidence/workflow-agent-contract.md",
+      "mediaType": "text/markdown",
+      "description": "Committed implementation-only Workflow Agent contract from source commit 31de51d",
+      "sha256": "552b895fcc7ef766ad1ef0c00499e2592a4f850690233f18116f241d41c671c4",
+      "sizeBytes": 3093
+    },
+    {
+      "path": "blocks/integration/simplify-workflow-agent-to-execution-only.json",
+      "mediaType": "application/json",
+      "description": "Raw Work Unit integration receipt",
+      "sha256": "91386e5d22b700b247a0a65401edcfff08c88c6fee458214548307753eca396b",
+      "sizeBytes": 2139
+    }
+  ]
 }
