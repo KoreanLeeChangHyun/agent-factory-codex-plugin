@@ -1388,8 +1388,6 @@ def validate_ready_semantics(package: Path) -> None:
         "targetTestRole",
         "targetDocumentationRole",
         "documentationExecution",
-        "targetReviewRole",
-        "reviewExecution",
     }
     if role_fields.intersection(context["content"]):
         missing_roles = sorted(role_fields - set(context["content"]))
@@ -1410,18 +1408,28 @@ def validate_ready_semantics(package: Path) -> None:
             raise ManagerError(
                 "Documentation Agent execution must be a mandatory separate background Goal"
             )
-        if "review-only" not in context["content"]["targetReviewRole"]:
-            raise ManagerError("Review Agent role must be review-only")
-        if "mandatory separate Goal" not in context["content"]["reviewExecution"]:
-            raise ManagerError(
-                "Review Agent execution must be a mandatory separate Goal"
-            )
         authorized_tests = context["content"].get("authorizedTests", [])
         if not isinstance(authorized_tests, list) or not all(
             isinstance(command, str) and command.strip()
             for command in authorized_tests
         ):
             raise ManagerError("authorizedTests must be a list of exact commands")
+    review_role_fields = {"targetReviewRole", "reviewExecution"}
+    if review_role_fields.intersection(context["content"]):
+        missing_review_roles = sorted(
+            review_role_fields - set(context["content"])
+        )
+        if missing_review_roles:
+            raise ManagerError(
+                "review-separated execution context is missing fields: "
+                + ", ".join(missing_review_roles)
+            )
+        if "review-only" not in context["content"]["targetReviewRole"]:
+            raise ManagerError("Review Agent role must be review-only")
+        if "mandatory separate Goal" not in context["content"]["reviewExecution"]:
+            raise ManagerError(
+                "Review Agent execution must be a mandatory separate Goal"
+            )
     if execution_mode == "worktree":
         required.update({"branch", "targetBranch", "worktreePath"})
     missing = sorted(required - set(context["content"]))
