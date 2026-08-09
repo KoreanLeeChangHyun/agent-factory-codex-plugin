@@ -1,0 +1,40 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": {
+        "context": "현재 launcher는 구현, 선택적 테스트, 문서, 리뷰를 각각 새 app-server client와 thread/start로 실행하지만 리뷰 실패를 Main Agent에 반환할 뿐 자동 재작업 loop는 없다. success/error payload는 operations와 stages 전체를 포함해 매우 크며 동일 role 내부 continuation은 최대 횟수까지 같은 thread를 재사용한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "app_server_goal 세션과 Goal 생성 및 recovery",
+          "Review Agent 구조화 결과 계약",
+          "Work Unit revision, attempt, evidence 모델",
+          "Main Agent admission/interview gate",
+          "compact terminal receipt와 상세 evidence 외부화",
+          "자동 재작업 반복 한도와 Human handoff"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "소스 구현",
+          "테스트, lint, build, runtime 실행",
+          "배포와 push",
+          "Human review 결정 자동화"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

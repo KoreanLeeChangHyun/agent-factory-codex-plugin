@@ -1,0 +1,40 @@
+{
+  "id": "work-unit-basis",
+  "title": "Work Unit Basis",
+  "content": [
+    {
+      "id": "SPEC-001",
+      "kind": "specification-impact",
+      "content": {
+        "status": "gap-accepted-for-work-unit",
+        "result": "Project Core는 독립 Review Agent까지 반영하지만 자동 revision loop, 인터뷰 분기와 compact receipt 계약은 아직 없다."
+      },
+      "attributes": {
+        "status": "gap-accepted-for-work-unit"
+      }
+    },
+    {
+      "id": "BASIS-001",
+      "kind": "work-unit-basis",
+      "content": {
+        "goal": "Main Agent 컨텍스트를 최소화하는 별도 세션 review-driven autonomous rework orchestration을 구현한다.",
+        "executionOrder": 1,
+        "scope": [
+          "사전 interview gate 계약",
+          "새 구현·리뷰 세션 identity 검증",
+          "Review 결과 3-way 분기",
+          "bounded revision loop와 recovery 분리",
+          "compact terminal receipt와 상세 evidence 보존",
+          "관련 manager, profile, launcher, 문서와 정적 계약 기대값"
+        ],
+        "outOfScope": [
+          "Human 미요청 테스트 실행",
+          "Human final complete 결정 자동화",
+          "배포와 push"
+        ],
+        "dependencies": []
+      }
+    }
+  ],
+  "subsections": []
+}

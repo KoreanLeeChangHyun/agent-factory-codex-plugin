@@ -1,0 +1,63 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Main Agent는 실행 직전 요구사항 충분성을 한 번 판정하고, 불충분하면 Work Unit 실행 전에 Human interview로 전환한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "requirement",
+      "content": {
+        "requirement": "각 implementation revision과 Review Agent 검토는 반드시 서로 다른 새 thread/session을 사용하며 launcher가 thread identity 중복을 거부한다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Review Agent 실패 결과는 rework-autonomous 또는 human-interview-required를 구조화해 반환하고, pass만 Human final review로 이동한다."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": {
+        "requirement": "rework-autonomous는 새 revision과 새 Workflow Agent session을 생성하고 다시 새 Review Agent session으로 검토한다."
+      }
+    },
+    {
+      "id": "REQ-005",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Human이 명시하지 않은 테스트와 검증 명령은 자동 loop에서도 실행하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-006",
+      "kind": "constraint",
+      "content": {
+        "constraint": "자동 revision 반복은 유한한 한도를 가지며, 한도 초과·불명확 요구·권한 확대·상충 선택은 human-interview-required로 fail closed 한다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "구현과 리뷰 threadId가 매 revision마다 다름을 검증한다.",
+          "리뷰 결과 세 분기가 schema와 launcher에서 검증된다.",
+          "autonomous rework가 revision history와 이전 evidence를 보존한다.",
+          "Human interview 분기에서는 자동 실행이 중단된다.",
+          "terminal stdout은 compact receipt만 포함하고 상세 events는 registered evidence로 보존된다.",
+          "role 내부 continuation exhaustion과 revision loop exhaustion이 서로 다른 오류로 보고된다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

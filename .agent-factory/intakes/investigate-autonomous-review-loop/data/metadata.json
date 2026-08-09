@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.24",
+  "id": "investigate-autonomous-review-loop",
+  "artifactType": "intake",
+  "projectId": "agent-factory-codex-plugins",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "ready"
+  },
+  "createdAt": "2026-08-09T14:29:34+00:00",
+  "updatedAt": "2026-08-09T14:32:29+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-08-09T14:40:00Z",
+    "contractValid": true,
+    "evidenceComplete": true,
+    "requirementsComplete": true,
+    "specificationConsistent": true,
+    "executionReady": true,
+    "findings": []
+  },
+  "operational": {
+    "agentSessionBinding": {
+      "sessionId": "019fe6ee-0b72-7c00-b904-f9028e833528"
+    }
+  }
+}
