@@ -45,6 +45,7 @@ import time
 scenario = os.environ.get("FAKE_APP_SERVER_SCENARIO", "success")
 log_path = os.environ["FAKE_APP_SERVER_LOG"]
 turn_count = 0
+active_objective = "wu-001"
 
 
 def emit(value):
@@ -57,10 +58,10 @@ def record(method):
         stream.write(method + "\n")
 
 
-def goal(*, status="active", thread_id="thread-1", objective="wu-001"):
+def goal(*, status="active", thread_id="thread-1", objective=None):
     return {
         "threadId": thread_id,
-        "objective": objective,
+        "objective": active_objective if objective is None else objective,
         "status": status,
         "tokensUsed": 0,
         "timeUsedSeconds": 0,
@@ -92,6 +93,7 @@ for line in sys.stdin:
     elif method == "thread/start":
         emit({"id": request_id, "result": {"thread": {"id": "thread-1"}}})
     elif method == "thread/goal/set":
+        active_objective = message["params"]["objective"]
         if scenario == "rpc_error":
             emit(
                 {
@@ -217,7 +219,26 @@ for line in sys.stdin:
                 "turn": {
                     "id": turn_id,
                     "status": turn_status,
-                    "items": [],
+                    "items": [
+                        {
+                            "id": "agent-result",
+                            "type": "agentMessage",
+                            "text": json.dumps(
+                                {
+                                    "result": "pass",
+                                    "checklistResult": "pass",
+                                    "findings": [],
+                                    "blockingFindings": [],
+                                    "remainingRisks": [],
+                                    "inputs": [
+                                        "implementation",
+                                        "tests",
+                                        "documentation",
+                                    ],
+                                }
+                            ),
+                        }
+                    ],
                 },
             },
         }
@@ -475,6 +496,40 @@ class AppServerGoalTest(unittest.TestCase):
 
         self.assertEqual(payload["context"]["stages"], stages)
         self.assertEqual(payload["error"]["details"]["role"], "Review Agent")
+
+    def test_orchestration_runs_review_after_documentation_and_aggregates_report_material(
+        self,
+    ) -> None:
+        os.environ["FAKE_APP_SERVER_SCENARIO"] = "success"
+        module = load_module()
+
+        def validator(repository: Path, work_unit_id: str):
+            package = self.validator(repository, work_unit_id)
+            package["orchestrateRoles"] = True
+            package["authorizedTests"] = []
+            return package
+
+        payload = module.execute(
+            repository=self.repository,
+            work_unit_id="wu-001",
+            codex_executable=str(self.server),
+            timeout_seconds=1.0,
+            validator=validator,
+        )
+
+        self.assertTrue(payload["ok"])
+        stages = payload["context"]["stages"]
+        self.assertEqual(
+            list(stages),
+            ["implementation", "tests", "documentation", "review", "reportMaterial"],
+        )
+        self.assertEqual(stages["tests"]["state"], "tests-not-run")
+        self.assertEqual(stages["review"]["ack"]["role"], "Review Agent")
+        self.assertEqual(stages["review"]["aiReviewResult"]["result"], "pass")
+        self.assertEqual(
+            stages["reportMaterial"]["review"]["aiReviewResult"],
+            stages["review"]["aiReviewResult"],
+        )
 
     def test_rework_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
         module = load_module()
