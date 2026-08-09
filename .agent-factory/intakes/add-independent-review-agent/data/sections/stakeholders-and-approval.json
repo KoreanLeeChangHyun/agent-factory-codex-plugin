@@ -1,0 +1,35 @@
+{
+  "id": "stakeholders-and-approval",
+  "title": "Stakeholders and Approval",
+  "content": [
+    {
+      "id": "STAKEHOLDER-001",
+      "kind": "stakeholder",
+      "content": {
+        "items": [
+          "Human",
+          "Main-Agent",
+          "Workflow-Agent",
+          "Test-Agent",
+          "Documentation-Agent",
+          "Review-Agent"
+        ]
+      }
+    },
+    {
+      "id": "OWNER-001",
+      "kind": "decision-owner",
+      "content": {
+        "owner": "Human"
+      }
+    },
+    {
+      "id": "APPROVAL-001",
+      "kind": "approval-boundary",
+      "content": {
+        "boundary": "Human은 Review Agent 역할 선택, Work Unit 실행, 결과의 rework 또는 complete, promotion을 소유한다. Review Agent는 기술 검토 결과만 반환한다."
+      }
+    }
+  ],
+  "subsections": []
+}

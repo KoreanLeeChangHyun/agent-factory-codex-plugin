@@ -1,0 +1,57 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "독립 Review Agent를 추가하고 launcher, Work Unit review 증거와 최종 Report handoff를 역할 분리 계약에 맞춘다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "skills/agents의 Review Agent 역할과 파일 수정·테스트 실행 금지 계약",
+          "app_server_goal launcher의 Documentation Agent 이후 Review Agent 별도 Goal",
+          "Review Agent 입력, ACK, terminal receipt, findings와 failure evidence",
+          "work-unit execution context, profile, manager review 전이 계약",
+          "launcher의 역할별 결과 및 report 자료 집계",
+          "agents, lifecycle, work-units 문서와 Project Core",
+          "관련 정적 계약 테스트 기대값"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "Review Agent의 파일 수정",
+          "Review Agent의 테스트, lint, build 또는 검증 명령 실행",
+          "Test Agent 또는 Main Agent의 영구 AI Review 소유",
+          "Human review 결정 자동화",
+          "현재 Work Unit의 테스트 실행",
+          "배포, push, PR 생성"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "정적 검토 전용 Review Agent 역할 계약",
+          "Documentation Agent 이후 별도 Review Agent Goal 오케스트레이션",
+          "Review Agent의 구조화된 ai-review-result와 역할별 증거",
+          "역할별 결과를 연결한 report-result 자료",
+          "정렬된 manager/profile/lifecycle 문서와 Project Core",
+          "갱신된 정적 계약 테스트 기대값"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

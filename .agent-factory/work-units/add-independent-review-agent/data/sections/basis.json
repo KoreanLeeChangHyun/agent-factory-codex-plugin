@@ -1,0 +1,25 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "Ready Intake의 독립 Review Agent 및 최초 Main Agent bootstrap review 결정"
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "add-independent-review-agent",
+          "path": ".agent-factory/intakes/add-independent-review-agent",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

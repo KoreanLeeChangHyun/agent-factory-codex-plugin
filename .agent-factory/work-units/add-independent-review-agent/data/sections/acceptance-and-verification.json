@@ -1,0 +1,63 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "Review Agent가 별도 역할로 정의되고 어떤 파일도 수정하거나 검증 명령을 실행하지 않는다.",
+          "launcher가 Documentation Agent 이후 별도 Review Agent Goal을 생성한다.",
+          "Review Agent가 Work Unit, implementation diff, 테스트 또는 tests not run, documentation 결과를 입력으로 받는다.",
+          "Review Agent ACK, terminal receipt, findings와 역할별 failure가 보존된다.",
+          "Review 결과가 ai-review-result와 Work Unit review 전이 근거가 된다.",
+          "launcher가 역할별 결과를 report-result 자료로 집계한다.",
+          "최초 Work Unit만 Main Agent bootstrap AI Review를 사용하고 이후 Main Agent는 AI Review를 소유하지 않는다.",
+          "Test Agent 책임은 테스트로 유지되고 Human review 결정은 자동화되지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "역할, launcher, manager, profile, lifecycle 문서와 Project Core가 Review Agent 소유권으로 정렬된다.",
+          "Review Agent의 파일 수정 및 검증 명령 실행 금지가 계약과 launcher prompt에 명시된다.",
+          "Review Agent 결과와 failure가 Work Unit review 및 report 자료에 연결된다.",
+          "정적 계약 테스트 기대값이 새 역할과 단계 순서를 반영한다.",
+          "현재 Work Unit에서는 테스트를 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Human이 명시한 테스트 없음: Workflow Agent, Test Agent, Documentation Agent, Review Agent와 Main Agent는 어떤 테스트 또는 검증 명령도 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "Pass. 정적 diff 검토에서 executionMode 및 Review 필드 누락 우회와 review provenance/evidence 우회가 제거됐다. 테스트 및 검증 명령은 실행하지 않았다.",
+      "attributes": {
+        "status": "pass",
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "add-independent-review-agent-rework-required-execution-mode",
+          "revision": 3,
+          "attempt": 1
+        },
+        "testsRun": false,
+        "evidence": [
+          "blocks/evidence/bootstrap-main-agent-review-r4.md"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

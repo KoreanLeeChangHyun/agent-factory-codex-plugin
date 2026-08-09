@@ -15,8 +15,9 @@
           "Git 최상위를 project root로 사용하되 canonical .agent-factory CRUD는 tracked, untracked, ignored 상태와 분리한다.",
           "sync destination은 명시적 인자, .agent-factory/sync.json의 source별 override, source 기본값 순서로 해석한다.",
           "main agent는 명시적 단일 Work Unit 또는 Work Package 실행 요청 직전에 충분성을 한 번 판단한다.",
-          "단일 Work Unit Workflow Agent는 승인·체크포인트·재판단과 테스트 없이 구현만 수행하며 launcher가 선택적 Test Agent와 필수 Documentation Agent의 별도 Goal 결과를 Human review에 전달한다.",
+          "단일 Work Unit Workflow Agent는 승인·체크포인트·재판단과 테스트 없이 구현만 수행하며 launcher가 선택적 Test Agent, 필수 Documentation Agent와 필수 독립 Review Agent의 별도 Goal 결과를 Human review에 전달한다.",
           "Test Agent는 Human이 명시한 검증 명령만 실행하고 코드를 수정하지 않으며 Documentation Agent는 구현 영향 문서만 owning manager 경계 안에서 갱신한다.",
+          "Review Agent는 Documentation Agent 이후 정적 검토만 수행하고 파일 수정이나 검증 명령 실행 없이 구조화된 AI review 결과를 반환한다.",
           "Work Package는 deterministic script가 DAG validation, maxParallel, ACK·heartbeat, durable resume, stable merge와 recovery Goal을 소유한다.",
           "Specification-only 실행은 기본 저장소를 직접 갱신하고, 그 외 코드 변경은 .agent-factory가 제외된 전용 worktree에서 수행한다.",
           "Human은 단일 Work Unit 또는 전체 Work Package 결과를 한 번 검토해 rework 또는 complete를 결정하며 complete된 코드 변경은 자동 통합한다."

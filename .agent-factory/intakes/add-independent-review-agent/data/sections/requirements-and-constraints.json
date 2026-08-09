@@ -1,0 +1,65 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Review Agent는 Documentation Agent 완료 후 반드시 별도 Goal로 실행되어 구현 diff, Work Unit, tests not run 또는 Test Agent 결과, Documentation Agent 결과를 정적으로 검토한다."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Review Agent는 코드, 테스트, 문서, 구성, canonical artifact 또는 기타 파일을 수정하지 않고 테스트·lint·build 등 검증 명령을 실행하지 않는다."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "kind": "requirement",
+      "content": {
+        "requirement": "Review Agent는 범위 준수, 역할 권한, 구현과 계약 정합성, 테스트 또는 tests not run 증거, 문서 영향, 남은 위험과 blocking finding을 구조화해 반환한다."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "kind": "requirement",
+      "content": {
+        "requirement": "launcher는 Review Agent의 ACK, terminal receipt와 failure를 별도 단계 증거로 보존하고 결과를 ai-review-result 및 최종 report 자료에 연결한다."
+      }
+    },
+    {
+      "id": "REQ-005",
+      "kind": "constraint",
+      "content": {
+        "constraint": "Review Agent 실패 또는 blocking finding은 자동 코드 수정으로 이어지지 않고 Main Agent의 Human review에서 rework 근거로 제시된다."
+      }
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "agents skill에 파일 수정과 테스트 실행이 금지된 Review Agent 역할이 정의된다.",
+          "launcher가 Documentation Agent 이후 별도 Review Agent Goal을 생성한다.",
+          "Review Agent가 구현, 선택적 테스트, 문서 결과를 입력으로 받는다.",
+          "Review Agent ACK, terminal result와 역할별 failure가 보존된다.",
+          "Review 결과가 ai-review-result와 Work Unit review 전이에 사용된다.",
+          "launcher가 역할별 결과를 report-result 자료로 집계하고 Main Agent가 Human-facing 결과를 제시한다.",
+          "Test Agent와 Main Agent에 AI Review 책임이 추가되지 않는다.",
+          "관련 문서, Project Core, manager/profile과 정적 계약 기대값이 같은 소유권을 표현한다."
+        ]
+      }
+    },
+    {
+      "id": "REQ-006",
+      "kind": "constraint",
+      "content": {
+        "constraint": "bootstrap 예외로 add-independent-review-agent Work Unit에 한해 Main Agent가 AI Review를 1회 수행한다. 해당 구현이 통합된 이후 Main Agent는 AI Review를 수행하지 않는다."
+      }
+    }
+  ],
+  "subsections": []
+}

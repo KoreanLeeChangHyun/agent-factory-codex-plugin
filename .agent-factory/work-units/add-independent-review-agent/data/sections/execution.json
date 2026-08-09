@@ -1,0 +1,43 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "재작업 구현 완료. executionMode 암묵적 legacy/worktree 기본값을 제거하고 모든 Work Unit에 executionMode, targetReviewRole, reviewExecution을 필수화했다. review 전이 provenance/evidence 우회를 제거하고 세 필드 누락 ready 거부 회귀 기대값을 추가했다. 테스트 및 검증 명령은 실행하지 않았다.",
+      "attributes": {
+        "status": "complete",
+        "verificationResult": "pass",
+        "changedPaths": [
+          "source commit 717326f (12 files)"
+        ],
+        "executionTarget": {
+          "contractVersion": "2.0.0",
+          "invocationId": "add-independent-review-agent-rework-required-execution-mode",
+          "revision": 3,
+          "attempt": 1
+        },
+        "testsRun": false,
+        "verificationCommands": []
+      }
+    },
+    {
+      "id": "REVIEW-SOURCE-ROLE-SCHEMA",
+      "kind": "open-item",
+      "content": {
+        "stepId": "ai-review",
+        "classification": "permanent",
+        "retryCount": 1,
+        "maxRetries": 1,
+        "evidence": "blocks/evidence/bootstrap-main-agent-review.md",
+        "resolutionEvidence": "Human authorized corrective rework: store sourceRole at attributes.sourceRole, read it from attributes in manager validation, and add regression expectations without running tests."
+      },
+      "attributes": {
+        "blocking": true,
+        "resolved": true
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,61 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "INTERVIEW-001",
+      "kind": "interview",
+      "content": {
+        "question": "AI Review를 어느 역할이 담당할까요?",
+        "recommendation": "A",
+        "rationale": "테스트는 선택적이지만 AI Review는 필수이므로 Test Agent에 결합하면 테스트 미요청 시 Test Agent를 생성하지 않는 기존 결정과 충돌한다.",
+        "answer": "A",
+        "state": "accepted",
+        "choices": [
+          "A: 별도 Review Agent가 정적 코드·계약 검토 수행",
+          "B: Test Agent가 테스트와 AI Review를 함께 수행",
+          "C: Main Agent가 AI Review를 수행"
+        ]
+      }
+    },
+    {
+      "id": "EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/agents/references/workflow-agent.md, skills/agents/SKILL.md, skills/work-units/assets/profiles/work-unit.profile.json, skills/work-units/scripts/work_unit.py, skills/work-units/scripts/app_server_goal.py, skills/lifecycle/references/lifecycle-entry.md",
+        "method": "repository inspection with rg and focused source reading",
+        "findings": [
+          "Workflow Agent 계약은 AI Review와 final Report 작성을 금지한다.",
+          "agents skill에는 독립 Review Agent 역할이 없다.",
+          "Work Unit profile은 ai-review-result와 report-result를 필수로 요구한다.",
+          "work_unit.py review 전이는 AI review와 report 증거를 요구한다.",
+          "launcher는 Workflow, 선택적 Test, Documentation Agent Goal만 오케스트레이션한다."
+        ],
+        "interpretations": [
+          "독립 Review Agent와 launcher handoff가 없으면 새 역할 경계를 엄격히 적용한 Work Unit은 review 전이에 필요한 AI review 증거의 소유자가 없다."
+        ],
+        "limitations": [
+          "Human이 테스트를 요청하지 않아 테스트 명령은 실행하지 않았다."
+        ]
+      }
+    },
+    {
+      "id": "INTERVIEW-002",
+      "kind": "interview",
+      "content": {
+        "question": "최초 Review Agent 구현 Work Unit의 AI Review를 누가 수행할까요?",
+        "recommendation": "A",
+        "rationale": "구현자와 검토자를 분리하면서 기존 필수 review 계약을 유지하고 예외를 최초 bootstrap 1회로 한정한다.",
+        "answer": "A",
+        "state": "accepted",
+        "choices": [
+          "A: 최초 1회만 Main Agent가 AI Review하고 이후 Review Agent로 전환",
+          "B: 최초 Work Unit만 AI Review 요구를 면제",
+          "C: 최초 1회만 Workflow Agent가 자체 Review"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

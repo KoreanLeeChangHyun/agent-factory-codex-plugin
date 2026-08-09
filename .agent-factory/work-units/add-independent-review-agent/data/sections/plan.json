@@ -1,0 +1,49 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "step": "Review Agent 역할을 추가하고 입력, 정적 검토 범위, 파일 수정과 명령 실행 금지, 출력 증거 계약을 정의한다."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "step": "launcher가 Documentation Agent 이후 별도 Review Agent Goal을 실행하고 ACK, terminal receipt, findings와 failure를 보존하도록 오케스트레이션한다."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "step": "Work Unit execution context, profile, manager review 전이와 report 자료 집계를 Review Agent 소유권에 맞춘다."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "step": "agents, lifecycle, work-units 문서, Project Core와 정적 계약 테스트 기대값을 정렬한다."
+      }
+    },
+    {
+      "id": "PLAN-005",
+      "kind": "plan-step",
+      "content": {
+        "step": "최초 bootstrap Work Unit의 AI Review는 Main Agent가 1회 수행하고 이후부터 Review Agent가 전담한다."
+      }
+    },
+    {
+      "id": "PLAN-006",
+      "kind": "plan-step",
+      "content": {
+        "step": "Human이 테스트를 요청하지 않았으므로 어떤 테스트 또는 검증 명령도 실행하지 않는다."
+      }
+    }
+  ],
+  "subsections": []
+}

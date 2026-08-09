@@ -17,7 +17,7 @@
           "Agent Factory lifecycle routing과 canonical Intake, Specification, Work Unit, Work Package artifact management",
           "Intake, Specification, Work Unit, Work Package CRUD의 owning manager 처리",
           "Main Agent가 선택한 신규 또는 기존 codex exec session에서 Intake Agent가 수행하는 context-isolated 내부, 웹, 문서, runtime과 authorized user research",
-          "명시적으로 요청된 단일 Work Unit의 구현 전용 Workflow Agent, 선택적 Human-authorized Test Agent, 필수 영향 문서 Documentation Agent 백그라운드 Goal 오케스트레이션과 Human 결과 검토",
+          "명시적으로 요청된 단일 Work Unit의 구현 전용 Workflow Agent, 선택적 Human-authorized Test Agent, 필수 영향 문서 Documentation Agent, 필수 독립 정적 Review Agent 백그라운드 Goal 오케스트레이션과 Human 결과 검토",
           "명시적으로 요청된 Work Package의 script-owned DAG scheduling, 제한 병렬 실행, durable resume와 package 단위 Human review·integration",
           "코드 변경용 전용 worktree, package integration worktree와 specification-direct 실행 경로",
           "Git 최상위 project root와 .agent-factory tracking 상태에 의존하지 않는 canonical artifact management",
