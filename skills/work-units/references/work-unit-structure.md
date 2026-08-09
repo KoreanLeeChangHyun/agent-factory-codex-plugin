@@ -32,7 +32,12 @@ separate.
 ## Execution context
 
 Record Goal id, objective, exact `app_server_goal.py` invocation, Workflow Agent
-role, absolute primary repository, base ref, and `executionMode`.
+role, absolute primary repository, base ref, and `executionMode`. Current-profile
+Work Units must also record both `targetReviewRole` and `reviewExecution`; the
+role must be review-only and its execution must be a mandatory separate Goal.
+Only a legacy execution context identified by an omitted `executionMode` may
+omit both Review fields. A context that supplies only one Review field is
+invalid.
 
 For `worktree`, record the derived branch and canonical linked worktree path.
 For `specification-direct`, branch/worktree fields may retain derived identity
