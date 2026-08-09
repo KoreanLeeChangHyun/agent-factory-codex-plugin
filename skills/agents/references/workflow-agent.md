@@ -18,7 +18,7 @@ not create another execution thread from inside the Workflow Agent.
 - `executionMode: specification-direct`: do not create or prepare a Git
   worktree. Update only the primary root canonical Specification through
   `specification.py`.
-- `executionMode: worktree` or an omitted legacy mode: create or reuse the
+- `executionMode: worktree`: create or reuse the
   dedicated `work-unit/<id>` linked worktree through `worktree.py`. The entire
   `.agent-factory` directory is excluded from that worktree. Canonical artifact
   CRUD always targets the primary root through its owning manager. For a fresh
@@ -39,8 +39,8 @@ Execute Plan and Work only. Implement the scoped code or Specification change,
 record implementation progress, and commit worktree results. Do not run test,
 smoke, lint, typecheck, build, or other verification commands. Do not perform
 the independent AI Review, documentation update, or final Report. The launcher
-owns the handoff to the optional Test Agent, mandatory Documentation Agent, and
-Main Agent review material.
+owns the handoff to the optional Test Agent, mandatory Documentation Agent,
+mandatory independent Review Agent, and Main Agent Human review material.
 
 A turn ending as `interrupted` is continued by the launcher in the same Goal.
 Removed checkpoint or approval procedures must never create a blocker. A

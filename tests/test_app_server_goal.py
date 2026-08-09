@@ -45,6 +45,7 @@ import time
 scenario = os.environ.get("FAKE_APP_SERVER_SCENARIO", "success")
 log_path = os.environ["FAKE_APP_SERVER_LOG"]
 turn_count = 0
+active_objective = "wu-001"
 
 
 def emit(value):
@@ -57,10 +58,10 @@ def record(method):
         stream.write(method + "\n")
 
 
-def goal(*, status="active", thread_id="thread-1", objective="wu-001"):
+def goal(*, status="active", thread_id="thread-1", objective=None):
     return {
         "threadId": thread_id,
-        "objective": objective,
+        "objective": active_objective if objective is None else objective,
         "status": status,
         "tokensUsed": 0,
         "timeUsedSeconds": 0,
@@ -92,6 +93,7 @@ for line in sys.stdin:
     elif method == "thread/start":
         emit({"id": request_id, "result": {"thread": {"id": "thread-1"}}})
     elif method == "thread/goal/set":
+        active_objective = message["params"]["objective"]
         if scenario == "rpc_error":
             emit(
                 {
@@ -217,7 +219,26 @@ for line in sys.stdin:
                 "turn": {
                     "id": turn_id,
                     "status": turn_status,
-                    "items": [],
+                    "items": [
+                        {
+                            "id": "agent-result",
+                            "type": "agentMessage",
+                            "text": json.dumps(
+                                {
+                                    "result": "pass",
+                                    "checklistResult": "pass",
+                                    "findings": [],
+                                    "blockingFindings": [],
+                                    "remainingRisks": [],
+                                    "inputs": [
+                                        "implementation",
+                                        "tests",
+                                        "documentation",
+                                    ],
+                                }
+                            ),
+                        }
+                    ],
                 },
             },
         }
@@ -407,12 +428,15 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("Do not run tests", prompt)
         self.assertNotIn("Plan -> Work -> AI Review -> Report", prompt)
 
-    def test_role_prompts_preserve_test_and_documentation_boundaries(self) -> None:
+    def test_role_prompts_preserve_test_documentation_and_review_boundaries(self) -> None:
         module = load_module()
 
         test_prompt = module.test_agent_prompt("wu-001", ["python -m unittest x"])
         documentation_prompt = module.documentation_agent_prompt(
             "wu-001", "tests not run"
+        )
+        review_prompt = module.review_agent_prompt(
+            "wu-001", {"tests": {"state": "tests-not-run"}}
         )
 
         self.assertIn("You are the Test Agent", test_prompt)
@@ -421,6 +445,100 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("You are the Documentation Agent", documentation_prompt)
         self.assertIn("directly affected", documentation_prompt)
         self.assertIn("owning manager", documentation_prompt)
+        self.assertIn("You are the Review Agent", review_prompt)
+        self.assertIn("static review", review_prompt)
+        self.assertIn("Do not modify any file", review_prompt)
+        self.assertIn("Do not execute tests", review_prompt)
+        self.assertIn("blockingFindings", review_prompt)
+
+    def test_review_result_is_extracted_and_rejects_inconsistent_blockers(self) -> None:
+        module = load_module()
+        result = {
+            "result": "pass",
+            "checklistResult": "pass",
+            "findings": [],
+            "blockingFindings": [],
+            "remainingRisks": ["Human review remains"],
+            "inputs": ["implementation", "tests", "documentation"],
+        }
+        turn = {
+            "items": [
+                {"type": "agentMessage", "text": json.dumps(result)}
+            ]
+        }
+
+        self.assertEqual(
+            module.validate_review_result(module.agent_result(turn)), result
+        )
+        result["blockingFindings"] = ["role contract mismatch"]
+        with self.assertRaises(module.ContractError):
+            module.validate_review_result(result)
+        result["blockingFindings"] = []
+        result["checklistResult"] = "fail"
+        with self.assertRaises(module.ContractError):
+            module.validate_review_result(result)
+        result["result"] = "fail"
+        result["checklistResult"] = "pass"
+        result["inputs"] = ["implementation", "tests"]
+        with self.assertRaises(module.ContractError):
+            module.validate_review_result(result)
+
+    def test_role_failure_payload_preserves_completed_stage_evidence(self) -> None:
+        module = load_module()
+        stages = {
+            "implementation": {"ack": {"role": "Workflow Agent"}},
+            "tests": {"state": "tests-not-run"},
+            "documentation": {"ack": {"role": "Documentation Agent"}},
+            "failure": {"role": "Review Agent"},
+        }
+
+        payload = module.error_payload(
+            module.ContractError(
+                "review_result_invalid",
+                "invalid Review Agent result",
+                {"role": "Review Agent"},
+            ),
+            [],
+            {"review": {"returnCode": 0}},
+            stages,
+        )
+
+        self.assertEqual(payload["context"]["stages"], stages)
+        self.assertEqual(payload["error"]["details"]["role"], "Review Agent")
+
+    def test_orchestration_runs_review_after_documentation_and_aggregates_report_material(
+        self,
+    ) -> None:
+        os.environ["FAKE_APP_SERVER_SCENARIO"] = "success"
+        module = load_module()
+
+        def validator(repository: Path, work_unit_id: str):
+            package = self.validator(repository, work_unit_id)
+            package["orchestrateRoles"] = True
+            package["authorizedTests"] = []
+            return package
+
+        payload = module.execute(
+            repository=self.repository,
+            work_unit_id="wu-001",
+            codex_executable=str(self.server),
+            timeout_seconds=1.0,
+            validator=validator,
+        )
+
+        self.assertTrue(payload["ok"])
+        stages = payload["context"]["stages"]
+        self.assertEqual(
+            list(stages),
+            ["implementation", "tests", "documentation", "review", "reportMaterial"],
+        )
+        self.assertEqual(stages["tests"]["state"], "tests-not-run")
+        self.assertEqual(stages["review"]["ack"]["role"], "Review Agent")
+        self.assertEqual(stages["review"]["aiReviewResult"]["result"], "pass")
+        self.assertEqual(
+            stages["reportMaterial"]["review"]["aiReviewResult"],
+            stages["review"]["aiReviewResult"],
+        )
 
     def test_rework_prompt_explicitly_invokes_workflow_agent_role(self) -> None:
         module = load_module()

@@ -83,7 +83,7 @@ the initial turn emits no ACK.
   `specification.py`;
 - no merge or worktree cleanup follows.
 
-`executionMode: worktree` (or omitted legacy mode):
+`executionMode: worktree`:
 
 - base is the current commit of local `factory`;
 - branch is `work-unit/<work-unit-id>`;
@@ -95,11 +95,13 @@ the initial turn emits no ACK.
 - complete integration target is local `factory`.
 
 Execution runs `Plan -> implementation Work -> optional Test Agent -> mandatory
-Documentation Agent -> AI Review -> Report`. The Workflow Agent owns only Plan
-and implementation Work. The launcher skips the Test Agent and records `tests
-not run` unless exact Human-authorized commands exist, and always starts the
-Documentation Agent in a separate background Goal after implementation. Each
-role has an independent Goal, ACK/result evidence, and terminal failure in the
+Documentation Agent -> mandatory independent Review Agent -> Report`. The
+Workflow Agent owns only Plan and implementation Work. The launcher skips the
+Test Agent and records `tests not run` unless exact Human-authorized commands
+exist, always starts the Documentation Agent in a separate background Goal, and
+then starts the Review Agent in another Goal. The Review Agent performs static
+review only: it modifies no files and runs no verification commands. Each role
+has an independent Goal, ACK/result evidence, and terminal failure in the
 launcher receipt. Once started, no role repeats admission, requests approval,
 or reconstructs a checkpoint.
 

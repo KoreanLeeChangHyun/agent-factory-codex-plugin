@@ -1,6 +1,6 @@
 ---
 name: agents
-description: Run the Human-facing Main Agent or a bounded Intake, Workflow, Test, or Documentation Agent role.
+description: Run the Human-facing Main Agent or a bounded Intake, Workflow, Test, Documentation, or Review Agent role.
 ---
 
 # Agent Factory Agents
@@ -18,6 +18,7 @@ Human-facing decision into the Intake Agent or Workflow Agent.
 - `references/workflow-agent.md`: Execute only the Plan and implementation Work for a named Goal-bound Work Unit without repeating admission.
 - `references/test-agent.md`: Run only exact Human-authorized verification commands without modifying implementation artifacts.
 - `references/documentation-agent.md`: Update only directly affected documents after implementation through a mandatory separate Goal.
+- `references/review-agent.md`: Perform independent static review after documentation without modifying files or executing verification commands.
 
 ## Assets and tests
 

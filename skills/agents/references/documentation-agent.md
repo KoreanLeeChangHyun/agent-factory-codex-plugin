@@ -11,4 +11,5 @@ Canonical Intake, Specification, and Work Unit changes must use their owning
 manager against the primary repository; direct JSON writes are forbidden.
 
 Return affected paths, canonical manager commands, unchanged-impact findings,
-and any role failure as documentation-specific evidence for Main Agent review.
+and any role failure as documentation-specific evidence for the following
+Review Agent Goal and Main Agent Human review.

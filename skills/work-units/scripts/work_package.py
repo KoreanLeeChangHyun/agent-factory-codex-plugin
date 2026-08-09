@@ -511,8 +511,8 @@ def preflight(package: Path, repository_arg: str) -> dict[str, Any]:
             raise ManagerError(
                 f"Work Unit {node['workUnitId']} repository mismatch"
             )
-        recorded_mode = context.get("executionMode", "worktree")
-        declared_mode = node.get("executionMode", recorded_mode)
+        recorded_mode = context.get("executionMode")
+        declared_mode = node.get("executionMode")
         if declared_mode != recorded_mode:
             raise ManagerError(
                 f"Work Unit {node['workUnitId']} executionMode mismatch"

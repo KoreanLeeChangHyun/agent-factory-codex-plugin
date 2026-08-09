@@ -11,7 +11,8 @@ Human conversation
   -> Plan -> implementation Work
   -> optional Human-authorized Test Agent | tests not run
   -> mandatory affected-document Documentation Agent
-  -> AI Review -> Report
+  -> mandatory independent static Review Agent
+  -> Report
   -> Human review: rework | complete
   -> complete integration
   -> later batch cleanup
@@ -50,7 +51,11 @@ criteria remain conditional plans: the launcher creates a code-read-only Test
 Agent Goal only for exact Human-requested commands. Otherwise it records `tests
 not run`. The launcher then always creates a separate Documentation Agent Goal,
 which may change only directly affected documents and must use owning managers
-for canonical writes. AI Review and Report consume the three separated results.
+for canonical writes. After documentation, it always creates a separate Review
+Agent Goal that may only inspect the Work Unit, implementation diff, test
+evidence, and documentation result. The Review Agent modifies no files and runs
+no verification commands. Its structured AI review and the preceding role
+receipts become launcher-aggregated Report material for Main Agent Human review.
 
 ## Background Goal + Exec
 

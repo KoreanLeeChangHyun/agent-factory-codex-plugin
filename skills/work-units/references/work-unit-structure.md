@@ -23,13 +23,19 @@ no-tests-authorized state. The `execution-result`, `ai-review-result`, and
 state that tests were not run. Smoke, lint, typecheck, and build verification
 are governed by the same rule. Execution context also records the Workflow
 Agent as implementation-only, the optional code-read-only Test Agent, and the
-mandatory affected-document-only Documentation Agent. Review evidence keeps
-their outcomes separate.
+mandatory affected-document-only Documentation Agent, followed by the mandatory
+static Review Agent. The Review Agent modifies no files, runs no verification
+commands, and provides structured `ai-review-result` evidence. Execution and
+Report evidence keep every role's ACK, terminal receipt, result, and failure
+separate.
 
 ## Execution context
 
 Record Goal id, objective, exact `app_server_goal.py` invocation, Workflow Agent
-role, absolute primary repository, base ref, and `executionMode`.
+role, absolute primary repository, base ref, and `executionMode`. Every Work Unit
+must also record both `targetReviewRole` and `reviewExecution`; the
+role must be review-only and its execution must be a mandatory separate Goal.
+A context that omits either Review field is invalid.
 
 For `worktree`, record the derived branch and canonical linked worktree path.
 For `specification-direct`, branch/worktree fields may retain derived identity

@@ -1216,7 +1216,7 @@ def command_admit(args: argparse.Namespace) -> None:
     context_item = find_kind(package, "execution-context")
     assert context_item is not None
     context = context_item["content"]
-    if context.get("executionMode", "worktree") == "specification-direct":
+    if context["executionMode"] == "specification-direct":
         raise ManagerError(
             "specification-direct Work Unit does not use worktree admission"
         )
@@ -1377,7 +1377,7 @@ def validate_ready_semantics(package: Path) -> None:
         "repository",
         "baseRef",
     }
-    execution_mode = context["content"].get("executionMode", "worktree")
+    execution_mode = context["content"].get("executionMode")
     if execution_mode not in {"worktree", "specification-direct"}:
         raise ManagerError(
             "execution context executionMode must be worktree or "
@@ -1414,6 +1414,19 @@ def validate_ready_semantics(package: Path) -> None:
             for command in authorized_tests
         ):
             raise ManagerError("authorizedTests must be a list of exact commands")
+    review_role_fields = {"targetReviewRole", "reviewExecution"}
+    missing_review_roles = sorted(review_role_fields - set(context["content"]))
+    if missing_review_roles:
+        raise ManagerError(
+            "review-separated execution context is missing fields: "
+            + ", ".join(missing_review_roles)
+        )
+    if "review-only" not in context["content"]["targetReviewRole"]:
+        raise ManagerError("Review Agent role must be review-only")
+    if "mandatory separate Goal" not in context["content"]["reviewExecution"]:
+        raise ManagerError(
+            "Review Agent execution must be a mandatory separate Goal"
+        )
     if execution_mode == "worktree":
         required.update({"branch", "targetBranch", "worktreePath"})
     missing = sorted(required - set(context["content"]))
@@ -1560,6 +1573,16 @@ def validate_review_semantics(package: Path) -> None:
         raise ManagerError(
             "review transition requires a passing AI review and checklist"
         )
+    expected_role = (
+        "Main Agent"
+        if package.name == "add-independent-review-agent"
+        else "Review Agent"
+    )
+    if ai.get("sourceRole") != expected_role:
+        raise ManagerError(
+            f"review transition requires AI review sourceRole {expected_role}"
+        )
+    require_evidence(package, ai_review, "AI review")
     report = find_kind(package, "report-result")
     if (
         report is None

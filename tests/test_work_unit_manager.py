@@ -251,10 +251,18 @@ def ready_items(
                     "executionAgent": "Codex",
                     "repository": str(root),
                     "baseRef": "factory",
+                    "executionMode": "worktree",
                     "targetBranch": "factory",
                     "branch": f"work-unit/{work_unit_id}",
                     "worktreePath": str(
                         root / ".agent-factory" / "worktree" / work_unit_id
+                    ),
+                    "targetReviewRole": (
+                        "review-only; must not modify files or execute "
+                        "verification commands"
+                    ),
+                    "reviewExecution": (
+                        "mandatory separate Goal after Documentation Agent completion"
                     ),
                 },
             )
@@ -1288,6 +1296,95 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("execution context worktreePath must equal", rejected.stderr)
 
+    def test_review_role_context_requires_complete_field_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"].pop("reviewExecution")
+            source = data_value(root, "partial-review-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn(
+                "review-separated execution context is missing fields",
+                rejected.stderr,
+            )
+
+            context["content"]["reviewExecution"] = (
+                "mandatory separate Goal after Documentation Agent completion"
+            )
+            source = data_value(root, "complete-review-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+            payload = json.loads(run_cli("transition", str(package), "ready").stdout)
+            self.assertEqual(payload["status"], "ready")
+
+    def test_current_profile_ready_rejects_omitted_review_role_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"].pop("targetReviewRole")
+            context["content"].pop("reviewExecution")
+            source = data_value(root, "current-profile-review-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn(
+                "review-separated execution context is missing fields: "
+                "reviewExecution, targetReviewRole",
+                rejected.stderr,
+            )
+
+    def test_ready_rejects_omitted_execution_mode_and_review_role_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"].pop("executionMode")
+            context["content"].pop("targetReviewRole")
+            context["content"].pop("reviewExecution")
+            source = data_value(root, "missing-required-execution-context.json", context)
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *source,
+            )
+
+            rejected = run_cli("transition", str(package), "ready", check=False)
+
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn(
+                "execution context executionMode must be worktree or "
+                "specification-direct",
+                rejected.stderr,
+            )
+
     def test_execution_attempt_retry_and_resume_preserve_identity_history(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -1737,6 +1834,24 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             intake = create_ready_intake(root)
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"].update(
+                {
+                    "targetReviewRole": (
+                        "review-only; must not modify files or execute "
+                        "verification commands"
+                    ),
+                    "reviewExecution": (
+                        "mandatory separate Goal after Documentation Agent completion"
+                    ),
+                }
+            )
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *data_value(root, "review-context.json", context),
+            )
             run_cli("transition", str(package), "ready")
             self.initialize_and_start_execution(package)
             target = self.current_execution_target(package)
@@ -1774,6 +1889,8 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     attributes={
                         "result": "pass",
                         "checklistResult": "pass",
+                        "sourceRole": "Review Agent",
+                        "evidence": ["blocks/logs/tests.log"],
                         "executionTarget": target,
                     },
                 ),
@@ -1801,6 +1918,27 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "--description",
                 "tests",
             )
+            invalid_ai_review = dict(replacements["ai-review"])
+            invalid_ai_review["sourceRole"] = invalid_ai_review["attributes"].pop(
+                "sourceRole"
+            )
+            rejected_location = run_cli(
+                "section-item-put",
+                str(package),
+                "ai-review",
+                *data_value(
+                    root,
+                    "invalid-ai-review-source-role.json",
+                    invalid_ai_review,
+                ),
+                check=False,
+            )
+            self.assertNotEqual(rejected_location.returncode, 0)
+            self.assertIn(
+                "Additional properties are not allowed",
+                rejected_location.stderr,
+            )
+            replacements["ai-review"]["attributes"]["sourceRole"] = "Review Agent"
             for section_id, replacement in replacements.items():
                 source = data_value(root, f"replace-{section_id}.json", replacement)
                 run_cli(
@@ -1815,6 +1953,13 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 ],
                 "review",
             )
+            ai_review = json.loads(
+                run_cli("show", str(package), "--section", "ai-review").stdout
+            )["content"]
+            result = next(
+                entry for entry in ai_review if entry["kind"] == "ai-review-result"
+            )
+            self.assertEqual(result["attributes"]["sourceRole"], "Review Agent")
             denied = run_cli("transition", str(package), "done", check=False)
             self.assertNotEqual(denied.returncode, 0)
             self.assertIn(
