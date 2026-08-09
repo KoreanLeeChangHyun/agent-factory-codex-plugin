@@ -1775,6 +1775,24 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             intake = create_ready_intake(root)
             package = create_package(root)
             populate_ready_candidate(root, package, intake)
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"].update(
+                {
+                    "targetReviewRole": (
+                        "review-only; must not modify files or execute "
+                        "verification commands"
+                    ),
+                    "reviewExecution": (
+                        "mandatory separate Goal after Documentation Agent completion"
+                    ),
+                }
+            )
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *data_value(root, "review-context.json", context),
+            )
             run_cli("transition", str(package), "ready")
             self.initialize_and_start_execution(package)
             target = self.current_execution_target(package)
@@ -1812,6 +1830,8 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                     attributes={
                         "result": "pass",
                         "checklistResult": "pass",
+                        "sourceRole": "Review Agent",
+                        "evidence": ["blocks/logs/tests.log"],
                         "executionTarget": target,
                     },
                 ),
@@ -1839,6 +1859,27 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 "--description",
                 "tests",
             )
+            invalid_ai_review = dict(replacements["ai-review"])
+            invalid_ai_review["sourceRole"] = invalid_ai_review["attributes"].pop(
+                "sourceRole"
+            )
+            rejected_location = run_cli(
+                "section-item-put",
+                str(package),
+                "ai-review",
+                *data_value(
+                    root,
+                    "invalid-ai-review-source-role.json",
+                    invalid_ai_review,
+                ),
+                check=False,
+            )
+            self.assertNotEqual(rejected_location.returncode, 0)
+            self.assertIn(
+                "Additional properties are not allowed",
+                rejected_location.stderr,
+            )
+            replacements["ai-review"]["attributes"]["sourceRole"] = "Review Agent"
             for section_id, replacement in replacements.items():
                 source = data_value(root, f"replace-{section_id}.json", replacement)
                 run_cli(
@@ -1853,6 +1894,13 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 ],
                 "review",
             )
+            ai_review = json.loads(
+                run_cli("show", str(package), "--section", "ai-review").stdout
+            )["content"]
+            result = next(
+                entry for entry in ai_review if entry["kind"] == "ai-review-result"
+            )
+            self.assertEqual(result["attributes"]["sourceRole"], "Review Agent")
             denied = run_cli("transition", str(package), "done", check=False)
             self.assertNotEqual(denied.returncode, 0)
             self.assertIn(
