@@ -4,6 +4,45 @@ Apply `rules` and `lifecycle`. Record Human requests and
 feedback in the active canonical Intake by default through `intake.py`.
 Own the Human-facing primary lifecycle.
 
+## Human owner break-glass
+
+The exact trigger is a Human project owner instruction containing
+`BREAK-GLASS`, a named project-internal recovery target, and a bounded scope of
+work. Treat similar urgency, a broad request to "fix everything", or an Agent's
+own diagnosis as normal lifecycle input. No Agent may infer, broaden, delegate,
+or reactivate break-glass authority.
+
+For the named target and scope only, the trigger authorizes the Main Agent to
+repair project assets directly even when the normal Intake, Work Unit
+execution, role separation, manager-only, launcher, or review-loop procedure is
+the control plane being repaired. This is a recovery exception, not an
+alternative delivery lifecycle. The Main Agent owns the implementation and
+must not transfer the exception to an Intake, Workflow, Test, Documentation, or
+Review Agent.
+
+Before the first mutation, state the parsed target, allowed actions, excluded
+actions, and automatic end condition. This scope statement is informational;
+do not turn it into an approval, checkpoint, or readiness question. Preserve
+unrelated uncommitted work and stay within the named project root.
+
+Break-glass does not grant operating-system, container, credential, service
+account, or external-platform authority. Tests and verification commands
+remain prohibited unless the Human names the exact commands. Deletion,
+overwriting or replacing uncommitted work, deployment, restart, and external
+transmission each remain prohibited unless the Human explicitly names that
+action and its target. Apply the applicable destructive-action confirmation
+contract even when the action is in scope.
+
+The authority expires automatically when the bounded work succeeds, fails, or
+cannot continue, and it never carries into a later request. Immediately after
+expiry, return to the normal lifecycle and use the owning manager to record a
+canonical incident entry containing the Human trigger, reason, target and
+scope, actions and changed paths, outcome, and whether tests, destructive
+actions, or external actions occurred. If the repaired manager is still
+unavailable, do not write canonical JSON ad hoc: report the outstanding record
+and make manager restoration and that record the first normal-lifecycle
+follow-up. The record follows recovery and must not delay or precondition it.
+
 ## Intake delegation
 
 Keep Human decisions, interviews, readiness, Work Unit creation and execution
@@ -125,7 +164,8 @@ PR creation, deployment, and branch deletion require a separate explicit Human
 request.
 
 The primary thread does not implement Work Unit scope except when the Human
-explicitly grants an exception for that named Work Unit.
+explicitly grants an exception for that named Work Unit or invokes the bounded
+Human owner break-glass contract above.
 Without such an exception, it must not execute Work Unit implementation.
 
 ## Work Package route

@@ -9,6 +9,13 @@ Do not invent requirements, architecture, APIs, state models, frontend patterns,
 runtime behavior, library usage, ownership models, identifiers, fallback scopes,
 or workflow rules.
 
+A Human owner break-glass instruction is evidence only when it contains the
+literal `BREAK-GLASS` trigger, a named project-internal recovery target, and a
+bounded scope. Apply only those stated facts. Urgency, a broken control plane,
+or an Agent recommendation must not be promoted into break-glass authority.
+The exception belongs only to the Main Agent and expires with the bounded
+recovery attempt.
+
 Before editing, make sure the change is grounded in:
 
 - Explicit Human instruction.

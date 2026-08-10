@@ -18,6 +18,32 @@ Human conversation
   -> later batch cleanup
 ```
 
+## Human owner break-glass recovery
+
+Break-glass is separate from the normal flow above. It starts only when the
+Human project owner supplies all three parts: the literal `BREAK-GLASS`
+trigger, a named project-internal recovery target, and a bounded scope. The
+Main Agent states that parsed boundary and then performs the bounded repair
+directly; it does not rerun readiness or wait for a checkpoint. Intake, Work
+Unit execution, role separation, manager-only, launcher, and review-loop rules
+may be bypassed only when they are inside the named recovery boundary. No
+delegated role can inherit or continue the exception.
+
+The recovery path never expands permissions outside the project or above the
+current execution environment. Tests and verification require exact commands
+from the Human. Deletion, replacement of uncommitted work, deployment,
+restart, and external transmission each require explicit Human authorization
+for that action and target, including the applicable destructive-action
+confirmation.
+
+Authority expires on success, failure, or inability to continue. The next
+action is normal lifecycle work: through the owning manager, record the Human
+trigger, reason, target and scope, actions and changed paths, outcome, and any
+tests, destructive actions, or external actions. When manager repair is the
+incident, this record follows restoration and never blocks the repair. If the
+manager remains unavailable, report the missing record and carry it as the
+first normal-lifecycle follow-up; never edit canonical JSON ad hoc.
+
 Conversation and feedback are appended to Intake through `intake.py`. Intake,
 Specification, and Work Unit CRUD always uses the primary root and never creates
 a worktree. Canonical packages remain tracked in primary Git, but execution does

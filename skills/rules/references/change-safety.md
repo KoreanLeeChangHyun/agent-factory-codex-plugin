@@ -34,6 +34,14 @@ the Human explicitly asks to change them.
 
 ## Change Safety
 
+Human owner break-glass may bypass project-internal workflow procedures, but
+it does not imply permission for a destructive or external action. Deletion,
+overwriting or replacing uncommitted work, deployment, restart, and external
+transmission must each be named explicitly with its target. Existing exact
+confirmation requirements for destructive actions still apply. Tests and
+verification commands require exact Human-requested commands even during
+break-glass recovery.
+
 - Do not roll back commits unless the Human explicitly asks for a commit
   rollback.
 - Do not overwrite, restore, discard, reset, or replace uncommitted work unless

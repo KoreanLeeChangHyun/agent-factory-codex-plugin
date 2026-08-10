@@ -10,7 +10,30 @@ Conversation -> Intake -> Work Unit -> background Goal + Exec
              -> complete integration -> later batch cleanup
 ```
 
+This is the normal lifecycle. A Human project owner may invoke the separate
+break-glass recovery path only with an instruction containing `BREAK-GLASS`, a
+named project-internal recovery target, and a bounded scope. In that scope the
+Main Agent may directly repair the Agent Factory control plane and bypass the
+normal Intake, Work Unit execution, role-separation, manager-only, launcher,
+and review-loop sequence. Other roles cannot invoke, receive, or extend this
+authority.
+
+Break-glass does not bypass project-root limits, external-environment
+permissions, the requirement for exact Human authorization of tests and
+verification commands, or the separate explicit authorization required for
+deletion, replacement of uncommitted work, deployment, restart, and external
+transmission. It ends automatically on success, failure, or inability to
+continue. Normal lifecycle ownership resumes immediately, and the Main Agent
+records the trigger, reason, bounded scope, actions, changed paths, outcome,
+and safety-relevant actions through the owning canonical manager after the
+recovery. An unavailable manager delays that record, not the recovery, and
+never permits ad hoc canonical JSON writes.
+
 ## Mandatory Manager Script Gate
+
+The gate below owns normal lifecycle operations. The bounded Human owner
+break-glass path above is its only recovery exception and applies only while
+the named control-plane repair is active.
 
 Every canonical operation uses its owning manager:
 
