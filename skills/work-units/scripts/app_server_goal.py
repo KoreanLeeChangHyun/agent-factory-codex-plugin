@@ -22,6 +22,7 @@ CLIENT_TITLE = "Agent Factory Work Unit Runner"
 CLIENT_VERSION = "1.0.0"
 WORK_UNIT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 MAX_AUTOMATIC_RECOVERIES = 20
+MAX_LAUNCHER_FAILURE_RETRIES = 3
 WORK_UNIT_MANAGER = (
     Path(__file__).resolve().parents[2]
     / "work-units"
@@ -646,7 +647,7 @@ def execution_prompt(
     else:
         raise ContractError(
             "invalid_execution_mode",
-            "execution mode must be execution or rework",
+            "execution mode must be execution, rework, or resume",
             {"mode": mode},
         )
     return (
@@ -657,7 +658,9 @@ def execution_prompt(
         "the active Goal. Do not reassess readiness after execution starts. "
         "Read the canonical package and execute only its implementation Work "
         "step. Do not run tests, perform AI Review, update documentation, or "
-        "write the final Report. For a Specification-only Work "
+        "write the final Report. Do not execute lint, typecheck, build, smoke, "
+        "runtime verification, git diff --check, or any other verification "
+        "command. For a Specification-only Work "
         "Unit, update the primary root canonical Specification only through "
         "specification.py and do not create a worktree. For every other Work "
         "Unit, create or reuse its dedicated linked worktree before "
@@ -675,7 +678,9 @@ def recovery_prompt(work_unit_id: str, reason: str) -> str:
         "preserve completed work, and do not repeat canonical decisions. Do not "
         "reassess readiness or ask for approval/checkpoint decisions. Continue "
         "the implementation Work step only. Do not run tests, perform AI "
-        "Review, update documentation, or write the final Report. For a Specification-only Work "
+        "Review, update documentation, or write the final Report. Do not execute "
+        "lint, typecheck, build, smoke, runtime verification, git diff --check, "
+        "or any other verification command. For a Specification-only Work "
         "Unit, write only the primary canonical Specification through "
         "specification.py; otherwise continue in the dedicated linked worktree. "
         "If that linked worktree is missing, prepare the missing linked worktree "
@@ -684,14 +689,38 @@ def recovery_prompt(work_unit_id: str, reason: str) -> str:
     )
 
 
-def test_agent_prompt(work_unit_id: str, commands: list[str]) -> str:
+def test_agent_prompt(
+    work_unit_id: str,
+    commands: list[str],
+    execution_route: str,
+    repository: Path,
+) -> str:
     rendered = json.dumps(commands, ensure_ascii=False)
+    if execution_route == "worktree":
+        location = (
+            "Run them in the prepared implementation worktree at "
+            f"{repository / '.agent-factory' / 'worktree' / work_unit_id}."
+        )
+    elif execution_route == "specification-direct":
+        location = (
+            f"Run them in the primary repository at {repository}; this "
+            "execution mode has no implementation worktree."
+        )
+    else:
+        raise ContractError(
+            "invalid_execution_route",
+            "Test Agent execution route is unsupported",
+            {"executionRoute": execution_route},
+        )
     return (
         "You are the Test Agent. Use $agents to execute only the exact "
         f"Human-authorized test commands for Agent Factory Work Unit {work_unit_id}: "
-        f"{rendered}. Inspect the implementation in its dedicated worktree, do "
+        f"{rendered}. {location} Inspect the implementation there, do "
         "not modify product code, tests, configuration, canonical artifacts, or "
-        "any implementation output, and return a test-only terminal result."
+        "any implementation output. Do not run any test, lint, typecheck, build, "
+        "smoke, runtime verification, git diff --check, or other verification "
+        "command beyond the exact commands listed above, and return a test-only "
+        "terminal result."
     )
 
 
@@ -704,7 +733,11 @@ def documentation_agent_prompt(work_unit_id: str, tests_result: str) -> str:
         "test code, configuration, or unrelated documents. Non-canonical affected "
         "documents belong in the dedicated worktree. Update canonical documents "
         "only through their owning manager in the primary repository. Complete "
-        "the documentation Goal with an explicit affected-path result."
+        "the documentation Goal by returning only one JSON object with "
+        "affectedPaths, canonicalManagerCommands, and unchangedImpactFindings "
+        "string arrays plus roleFailure as a string or null. Do not execute tests, "
+        "lint, type checks, builds, smoke checks, runtime verification, "
+        "git diff --check, or any other verification command."
     )
 
 
@@ -717,9 +750,11 @@ def review_agent_prompt(work_unit_id: str, stages: dict[str, Any]) -> str:
         "not run evidence, and the Documentation Agent result. Do not modify any "
         "file or canonical artifact. Do not execute tests, lint, build, smoke, or "
         "any other verification command. Return only one JSON object with keys "
-        "result ('pass' or 'fail'), checklistResult ('pass' or 'fail'), findings "
-        "(array), blockingFindings (array), remainingRisks (array), and inputs "
-        "(array). A blocking finding must produce result 'fail'; never fix a "
+        "result ('pass' or 'fail'), checklistResult ('pass' or 'fail'), findings, "
+        "blockingFindings, and remainingRisks as arrays containing strings only, "
+        "plus inputs as an array of strings. The inputs array must be exactly "
+        '["implementation", "tests", "documentation"] in that order. A blocking '
+        "finding must produce result 'fail'; never fix a "
         "finding yourself. Launcher stage evidence follows: "
         f"{inputs}"
     )
@@ -769,14 +804,36 @@ def validate_review_result(result: dict[str, Any]) -> dict[str, Any]:
         raise ContractError(
             "review_result_invalid", "a failed checklist requires a failed review"
         )
-    required_inputs = {"implementation", "tests", "documentation"}
-    if (
-        len(result["inputs"]) != len(required_inputs)
-        or set(result["inputs"]) != required_inputs
-    ):
+    required_inputs = ["implementation", "tests", "documentation"]
+    if result["inputs"] != required_inputs:
         raise ContractError(
             "review_result_invalid",
             "review inputs must identify implementation, tests, and documentation",
+        )
+    return result
+
+
+def validate_documentation_result(result: dict[str, Any]) -> dict[str, Any]:
+    required_lists = {
+        "affectedPaths",
+        "canonicalManagerCommands",
+        "unchangedImpactFindings",
+    }
+    if any(
+        not isinstance(result.get(key), list)
+        or not all(isinstance(value, str) for value in result[key])
+        for key in required_lists
+    ):
+        raise ContractError(
+            "documentation_result_invalid",
+            "Documentation Agent result must include affected-path evidence",
+        )
+    if result.get("roleFailure") is not None and not isinstance(
+        result.get("roleFailure"), str
+    ):
+        raise ContractError(
+            "documentation_result_invalid",
+            "Documentation Agent roleFailure must be a string or null",
         )
     return result
 
@@ -1084,7 +1141,15 @@ def run_protocol(
                 raise ContractError(
                     "turn_failed",
                     "Work Unit execution turn did not complete",
-                    {"turnId": turn_id, "status": status},
+                    {
+                        "threadId": thread_id,
+                        "threadDisposition": thread_disposition,
+                        "turnIds": list(turn_ids),
+                        "terminalTurn": completed,
+                        "goal": completed_goal or fetched_goal,
+                        "recoveryCount": recovery_count,
+                        "initializationTimingMs": dict(timing),
+                    },
                 )
             completed_turns.add(turn_id)
             completed_turn = completed
@@ -1206,6 +1271,85 @@ def stage_ack_evidence(role: str, protocol: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def record_terminal_failure(
+    package: str,
+    role: str,
+    error: ContractError,
+    stages: dict[str, Any],
+) -> dict[str, Any]:
+    stage_name = {
+        "Test Agent": "tests",
+        "Documentation Agent": "documentation",
+        "Review Agent": "review",
+    }.get(role, "implementation")
+    role_stage = stages.get(stage_name, {})
+    turn_ids = role_stage.get("turnIds", []) if isinstance(role_stage, dict) else []
+    detail_turn_ids = error.details.get("turnIds", [])
+    terminal_id = (
+        turn_ids[-1]
+        if turn_ids
+        else detail_turn_ids[-1]
+        if isinstance(detail_turn_ids, list) and detail_turn_ids
+        else "unknown"
+    )
+    evidence = json.dumps(
+        {
+            "role": role,
+            "code": error.code,
+            "message": error.message,
+            "details": error.details,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    command = [
+        sys.executable,
+        str(WORK_UNIT_MANAGER),
+        "execution-failure",
+        package,
+        "--step-id",
+        "launcher-terminal-handoff",
+        "--classification",
+        "transient",
+        "--max-retries",
+        str(MAX_LAUNCHER_FAILURE_RETRIES),
+        "--evidence",
+        evidence,
+        "--idempotency-key",
+        f"launcher-terminal:{role}:{error.code}:{terminal_id}",
+        "--blocker-id",
+        "EXECUTION-BLOCKER-LAUNCHER-001",
+    ]
+    recorded = subprocess.run(
+        command,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="strict",
+        check=False,
+        shell=False,
+    )
+    if recorded.returncode != 0:
+        raise ContractError(
+            "manager_recovery_failed",
+            "launcher could not establish manager-owned recovery state",
+            {
+                "role": role,
+                "originalCode": error.code,
+                "returnCode": recorded.returncode,
+                "stderr": recorded.stderr.strip(),
+            },
+        )
+    return {
+        "recorded": True,
+        "returnCode": recorded.returncode,
+        "stderr": recorded.stderr.strip(),
+    }
+
+
 def execute(
     *,
     repository: Path,
@@ -1279,32 +1423,78 @@ def execute(
         }
         process_evidence = {"implementation": implementation_process}
         authorized_tests = package.get("authorizedTests", [])
+        test_failure: ContractError | None = None
         if authorized_tests:
             active_role = "Test Agent"
-            client = AppServerClient(codex_executable, deadline, operations)
-            stages["tests"] = run_protocol(
-                client,
-                resolved_repository,
-                work_unit_id,
-                package["mode"],
-                package.get("instruction"),
-                process_started,
-                objective_override=f"{work_unit_id}:tests",
-                prompt_override=test_agent_prompt(work_unit_id, authorized_tests),
-                recovery_role="Test Agent",
-            )
-            stages["tests"]["ack"] = stage_ack_evidence(
-                "Test Agent", stages["tests"]
-            )
-            stages["tests"]["process"] = client.close()
-            process_evidence["tests"] = stages["tests"]["process"]
-            client = None
+            try:
+                client = AppServerClient(codex_executable, deadline, operations)
+                stages["tests"] = run_protocol(
+                    client,
+                    resolved_repository,
+                    work_unit_id,
+                    package["mode"],
+                    package.get("instruction"),
+                    process_started,
+                    objective_override=f"{work_unit_id}:tests",
+                    prompt_override=test_agent_prompt(
+                        work_unit_id,
+                        authorized_tests,
+                        package["executionRoute"],
+                        resolved_repository,
+                    ),
+                    recovery_role="Test Agent",
+                )
+                stages["tests"]["ack"] = stage_ack_evidence(
+                    "Test Agent", stages["tests"]
+                )
+            except ContractError as error:
+                error.details = {**error.details, "role": "Test Agent"}
+                test_failure = error
+                stages["tests"] = {
+                    "state": "failed",
+                    "receipt": error.details,
+                    "failure": {
+                        "role": "Test Agent",
+                        "code": error.code,
+                        "message": error.message,
+                        "details": error.details,
+                    },
+                }
+                if all(
+                    key in error.details
+                    for key in (
+                        "threadId",
+                        "threadDisposition",
+                        "turnIds",
+                        "initializationTimingMs",
+                    )
+                ):
+                    stages["tests"]["ack"] = {
+                        "type": "stage-ack",
+                        "role": "Test Agent",
+                        "threadId": error.details["threadId"],
+                        "threadDisposition": error.details["threadDisposition"],
+                        "turnId": error.details["turnIds"][0],
+                        "initializationTimingMs": error.details[
+                            "initializationTimingMs"
+                        ],
+                    }
+            finally:
+                test_process = client.close() if client is not None else None
+                stages["tests"]["process"] = test_process
+                process_evidence["tests"] = test_process
+                client = None
         active_role = "Documentation Agent"
         client = AppServerClient(codex_executable, deadline, operations)
         tests_result = (
             "tests not run"
             if not authorized_tests
-            else "Human-authorized tests completed; inspect the test Goal receipt"
+            else (
+                "Human-authorized tests failed; preserve the terminal test "
+                "evidence and inspect the test Goal receipt"
+                if test_failure is not None
+                else "Human-authorized tests completed; inspect the test Goal receipt"
+            )
         )
         stages["documentation"] = run_protocol(
             client,
@@ -1320,6 +1510,16 @@ def execute(
         stages["documentation"]["ack"] = stage_ack_evidence(
             "Documentation Agent", stages["documentation"]
         )
+        documentation_completed_turn = stages["documentation"].get("completedTurn")
+        if not isinstance(documentation_completed_turn, dict):
+            raise ContractError(
+                "documentation_result_missing",
+                "Documentation Agent completed without a result",
+            )
+        documentation_result = validate_documentation_result(
+            agent_result(documentation_completed_turn)
+        )
+        stages["documentation"]["documentationResult"] = documentation_result
         documentation_process = client.close()
         stages["documentation"]["process"] = documentation_process
         process_evidence["documentation"] = documentation_process
@@ -1336,6 +1536,9 @@ def execute(
             "documentation": {
                 "ack": stages["documentation"]["ack"],
                 "goal": stages["documentation"]["goal"],
+                "completedTurn": documentation_completed_turn,
+                "terminalResult": documentation_result,
+                "affectedPaths": documentation_result["affectedPaths"],
                 "process": documentation_process,
             },
         }
@@ -1376,6 +1579,16 @@ def execute(
                 "aiReviewResult": stages["review"]["aiReviewResult"],
             },
         }
+        if test_failure is not None:
+            stages["managerRecovery"] = record_terminal_failure(
+                package["package"], "Test Agent", test_failure, stages
+            )
+            return error_payload(
+                test_failure,
+                operations,
+                process_evidence,
+                stages,
+            )
         return success_payload(
             resolved_repository,
             work_unit_id,
@@ -1406,6 +1619,9 @@ def execute(
                 "code": error.code,
                 "message": error.message,
             }
+            stages["managerRecovery"] = record_terminal_failure(
+                package["package"], active_role, error, stages
+            )
         return error_payload(error, operations, process_evidence, stages)
     except (OSError, UnicodeError) as error:
         if client is not None:
@@ -1427,12 +1643,17 @@ def execute(
                 "code": "unexpected_io_error",
                 "message": "unable to execute Work Unit",
             }
+        terminal_error = ContractError(
+            "unexpected_io_error",
+            "unable to execute Work Unit",
+            {"type": type(error).__name__, "role": active_role},
+        )
+        if stages is not None:
+            stages["managerRecovery"] = record_terminal_failure(
+                package["package"], active_role, terminal_error, stages
+            )
         return error_payload(
-            ContractError(
-                "unexpected_io_error",
-                "unable to execute Work Unit",
-                {"type": type(error).__name__},
-            ),
+            terminal_error,
             operations,
             process_evidence,
             stages,
