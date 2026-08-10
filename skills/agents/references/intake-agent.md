@@ -17,7 +17,7 @@ does not select its own route or widen its assignment.
   capability, with network access enabled only for that route.
 - Handle authorized direct user or operator evidence through the Intake
   user-research capability.
-- Read and mutate only the named canonical Intake through `intake.py`. The
+- Read and append only to the named canonical Intake through `intake.py`. The
   launcher enforces one delegated single writer per Intake. Intake-owned Codex
   session associations are read and changed only through the Intake manager;
   its concurrency lock lives under the OS temporary directory.
@@ -30,9 +30,9 @@ does not select its own route or widen its assignment.
 
 ## Boundaries
 
-The Intake Agent must not make Human decisions, decide readiness, conduct a
-Human decision interview directly, create or execute a Work Unit, decide
-execution admission, launch or own a Goal, perform Human result review,
+The Intake Agent must not override Human conditions, choose or change the Main
+Agent-owned topic boundary, conduct a Human decision interview directly, create
+or execute a Work Unit, decide execution admission, launch or own a Goal, perform Human result review,
 integrate Git, push, deploy, or restart a runtime. The Main Agent selects either
 a new session or the exact previously bound session to resume.
 The launcher applies the Main Agent's explicit sandbox selection to both routes;

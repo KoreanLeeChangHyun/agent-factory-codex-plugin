@@ -1,7 +1,8 @@
 # Main Agent
 
-Apply `rules` and `lifecycle`. Record Human requests and
-feedback in the active canonical Intake by default through `intake.py`.
+Apply `rules` and `lifecycle`. Record Human requests, Agent responses,
+interviews, searches, research, feedback, and decisions in the active
+topic-scoped canonical Intake by default through `intake.py`.
 Own the Human-facing primary lifecycle.
 
 ## Human owner break-glass
@@ -45,9 +46,11 @@ follow-up. The record follows recovery and must not delay or precondition it.
 
 ## Intake delegation
 
-Keep Human decisions, interviews, readiness, Work Unit creation and execution
-admission, Goal ownership, Human result review, and integration in the Main
-Agent. These responsibilities must not be delegated to the Intake Agent.
+Keep Human interaction, Intake topic-boundary and sufficiency judgment, Work
+Unit creation and execution admission, Goal ownership, Human result review, and
+integration in the Main Agent. Apply explicit Human conditions first; otherwise
+make these operational judgments without asking the Human. These responsibilities
+must not be delegated to the Intake Agent.
 
 For evidence acquisition in `analysis`, `web-search`, or `user-research`,
 delegate through `skills/intakes/scripts/intake_agent_exec.py` when the task has
@@ -59,16 +62,12 @@ at least one of these structural triggers:
 - enough raw evidence that carrying it in the Main Agent context would be
   materially lossy or noisy.
 
-Use the Main Agent direct fast path only when the task has one capability, one
-or two local source surfaces, one to three read-only lookups, and can produce an
+Use the Main Agent direct fast path only when the task has one capability, one or two local source surfaces, one to three read-only lookups, and can produce an
 immediate compact conclusion without repeated research or a Human question.
-These structural conditions, rather than uncalibrated token, time, or source
-count thresholds, own the routing decision.
+These structural conditions, rather than uncalibrated token, time, or source count thresholds, own the routing decision.
 
 The Main Agent may also handle eligible research directly when delegation
-cannot execute because sandbox initialization fails or the named Intake writer
-is unavailable, when immediate Human interaction is required, or when a compact
-terminal summary would lose material Human context. Record the limitation; do
+cannot execute because sandbox initialization fails or the named Intake writer is unavailable, when immediate Human interaction is required, or when a compact terminal summary would lose material Human context. Record the limitation; do
 not use an exception to transfer a Human or lifecycle decision.
 
 For delegated research, start the launcher with a named Intake and capability.
@@ -85,9 +84,10 @@ remain unchanged.
 
 ## Work Unit creation
 
-Create a Work Unit through `work_unit.py` when the Intake contains enough
-information for independent execution or the Human explicitly requests Work
-Unit creation. A Work Unit must define scope, exclusions, expected output,
+Create a Work Unit through `work_unit.py` when exact Intake entries contain
+enough information for independent execution or the Human explicitly requests
+Work Unit creation. Reference those entry ids. A Specification is optional and
+is referenced only when applicable. A Work Unit must define scope, exclusions, expected output,
 execution mode, verification, AI review, and Human review material.
 
 Test criteria are conditional plans, not execution authority. Record the exact
@@ -102,7 +102,7 @@ Only an explicit Human request to execute a named Work Unit authorizes launch.
 Immediately before launch, decide once whether the canonical Work Unit is
 sufficient:
 
-- its source Intake and Work Unit are full-valid;
+- its referenced Intake entries resolve and its Work Unit is full-valid;
 - no unresolved item blocks execution;
 - scope, exclusions, outputs, verification, and execution context are complete;
 - `executionMode` is `specification-direct` or `worktree`;

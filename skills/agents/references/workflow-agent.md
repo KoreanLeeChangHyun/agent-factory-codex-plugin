@@ -35,7 +35,8 @@ non-idempotent work.
 
 ## Implementation-only boundary
 
-Execute Plan and Work only. Implement the scoped code or Specification change,
+Execute Plan and Work only; the Workflow Agent never runs verification commands.
+Implement the scoped code or Specification change,
 record implementation progress, and commit worktree results. Do not run test,
 smoke, lint, typecheck, build, or other verification commands. Do not perform
 the independent AI Review, documentation update, or final Report. The launcher

@@ -6,7 +6,7 @@
   "maximumSectionDepth": 2,
   "commonRequiredSections": [],
   "profileRequiredSections": [
-    {"id": "basis", "title": "Basis", "requiredKinds": ["intake-basis-ref"], "contains": ["Intake and Specification references", "requirement and decision references", "relevant evidence", "Specification check requirement"]},
+    {"id": "basis", "title": "Basis", "requiredKinds": ["intake-basis-ref"], "contains": ["Intake package and exact entry ids", "optional Specification references", "relevant evidence and decisions"]},
     {"id": "work-definition", "title": "Work Definition", "requiredKinds": ["goal", "scope", "out-of-scope", "expected-output"], "contains": ["single goal", "scope and exclusions", "constraints and assumptions", "dependencies and order", "expected output"]},
     {"id": "plan", "title": "Plan", "requiredKinds": ["plan-step"], "contains": ["implementation-only Workflow Agent", "optional Human-authorized Test Agent", "mandatory affected-document Documentation Agent", "mandatory independent static Review Agent", "runtime actions"]},
     {"id": "execution-context", "title": "Execution Context", "requiredKinds": ["execution-context"], "contains": ["Goal id and objective", "exec reference", "execution agent", "repository and local factory base and target", "mandatory executionMode, targetReviewRole, and reviewExecution", "optional derived branch and linked worktree identity", "versioned execution state and attempt history"]},

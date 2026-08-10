@@ -24,7 +24,9 @@ canonical identity.
 
 ## Creation
 
-Create a Work Unit only from a full-valid ready Intake basis. It must be
+Create a Work Unit when the Main Agent judges the referenced Intake entries
+sufficient, unless the Human specifies a condition. Human conditions take
+priority. It must be
 self-contained for a new Workflow Agent session and include:
 
 - goal, scope, exclusions, expected output;
@@ -39,8 +41,8 @@ criterion must say that no tests are authorized and the report must record that
 tests were not run. This gate includes smoke checks, lint, type checks, build
 verification, and other commands whose purpose is change verification.
 
-The basis reference records the canonical Intake package root and exact section
-and item anchor.
+The basis reference records the canonical Intake package root and exact entry ids.
+It may also reference an existing Specification; Specification is optional.
 
 `executionMode` is:
 

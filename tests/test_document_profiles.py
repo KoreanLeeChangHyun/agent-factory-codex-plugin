@@ -85,9 +85,10 @@ class DocumentProfileTests(unittest.TestCase):
         common = (
             SKILLS / "lifecycle" / "references" / "common-document-contract.md"
         ).read_text(encoding="utf-8")
-        for document in (planner, common):
-            self.assertIn("anchor", document)
-            self.assertIn("package root", document)
+        self.assertIn("entry ids", planner)
+        self.assertIn("package root", planner)
+        self.assertIn("anchor", common)
+        self.assertIn("package root", common)
 
     def test_sectioned_document_manager_is_owned_by_lifecycle(self) -> None:
         common_manager = (
@@ -119,7 +120,15 @@ class DocumentProfileTests(unittest.TestCase):
                 "blocks.schema.json",
             },
         )
-        for manager in (intake_manager, specification_manager, work_unit_manager):
+        intake_source = intake_manager.read_text(encoding="utf-8")
+        self.assertNotIn("configure_contract", intake_source)
+        self.assertIn("data/entries", intake_source)
+        self.assertIn("def command_create(", intake_source)
+        self.assertEqual(
+            {path.name for path in (intake_manager.parents[1] / "assets" / "schema").glob("*.schema.json")},
+            {"metadata.schema.json", "entry.schema.json"},
+        )
+        for manager in (specification_manager, work_unit_manager):
             source = manager.read_text(encoding="utf-8")
             self.assertIn("sectioned_document.py", source)
             self.assertIn("configure_contract", source)
@@ -231,7 +240,7 @@ class DocumentProfileTests(unittest.TestCase):
                     expected,
                 )
 
-    def test_traceability_starts_at_ready_intake_and_specification_is_conditional(
+    def test_traceability_uses_intake_entries_and_specification_is_conditional(
         self,
     ) -> None:
         lifecycle = (SKILLS / "lifecycle" / "references" / "lifecycle.md").read_text(
@@ -244,8 +253,8 @@ class DocumentProfileTests(unittest.TestCase):
             "traceable from Project Core to Design Report to Work Unit",
             lifecycle,
         )
-        self.assertIn("traceable from the ready Intake", lifecycle)
-        self.assertIn("not applicable", lifecycle)
+        self.assertIn("exact entry ids", lifecycle)
+        self.assertIn("Specification is optional", lifecycle)
         for artifact in (
             "canonical Intake",
             "Project Core",

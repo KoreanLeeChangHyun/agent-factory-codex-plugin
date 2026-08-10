@@ -5,9 +5,11 @@ lives only under `<project-root>/.agent-factory/`.
 Always start with `intakes`; there is no separate initialization phase.
 
 ```text
-Conversation -> Intake -> Work Unit -> background Goal + Exec
-             -> Human review (rework | complete)
-             -> complete integration -> later batch cleanup
+Conversation and discovery -> topic-scoped Intake ledger
+                           -> optional Specification reference
+                           -> Work Unit -> background Goal + Exec
+                           -> Human review (rework | complete)
+                           -> complete integration -> later batch cleanup
 ```
 
 This is the normal lifecycle. A Human project owner may invoke the separate
@@ -48,14 +50,16 @@ report that capability gap. Treat each manager as a hard precondition: stop
 before mutation, do not create an exception path, and do not fall back to direct
 JSON editing.
 
-Conversation is recorded in the active Intake by default. When the Intake is
-sufficient or the Human asks for a Work Unit, create the minimum independently
-executable Work Unit from a full-valid ready Intake.
+Conversation and discovery activity are appended to the topic-scoped Intake by
+default. The Main Agent chooses the topic boundary and when the exact recorded
+entries are sufficient for a Work Unit unless the Human states a condition.
+Explicit Human conditions always take priority. Specification is optional.
 The Main Agent may delegate internal, web, document, runtime, or authorized
 user research to an Intake Agent through the `intakes`-owned `codex exec`
 launcher. The Intake Agent returns a compact result to the Main Agent, uses
-`intake.py` for canonical writes, and never owns readiness or Human decisions.
-Use `intakes` for every Intake package and every canonical Intake mutation.
+`intake.py` for canonical appends, and never overrides Human conditions or the
+Main Agent's topic-boundary and sufficiency judgment.
+Use `intakes` for every Intake package and every canonical Intake append.
 Use `intakes` when Intake evidence requires direct observation of users
 or operators.
 
@@ -69,7 +73,7 @@ Only an explicit Human request to execute a named Work Unit starts execution.
 The primary `agents` makes one sufficiency decision immediately before
 launch:
 
-- full-valid Intake and Work Unit;
+- structurally valid referenced Intake entries and full-valid Work Unit;
 - no unresolved blocking item;
 - complete scope, exclusions, outputs, verification, and execution context;
 - matching repository and Work Unit id;

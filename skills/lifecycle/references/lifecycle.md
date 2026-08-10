@@ -3,8 +3,9 @@
 ## Flow
 
 ```text
-Human conversation
-  -> canonical Intake
+Human conversation and discovery
+  -> topic-scoped canonical Intake ledger
+  -> optional Specification
   -> executable Work Unit
   -> one-time agents sufficiency decision
   -> background Goal + Exec
@@ -44,17 +45,18 @@ incident, this record follows restoration and never blocks the repair. If the
 manager remains unavailable, report the missing record and carry it as the
 first normal-lifecycle follow-up; never edit canonical JSON ad hoc.
 
-Conversation and feedback are appended to Intake through `intake.py`. Intake,
+Conversation, feedback, interviews, searches, and research are appended to
+Intake through `intake.py`. Intake,
 Specification, and Work Unit CRUD always uses the primary root and never creates
 a worktree. Canonical packages remain tracked in primary Git, but execution does
 not create artifact commits, immutable snapshots, hashes, or checkpoints.
 The Main Agent may delegate research to an Intake Agent through the
 `intakes`-owned `codex exec` launcher. A new or explicitly selected resume
 session is isolated behind a compact ACK and terminal result; the Main Agent
-retains Human decisions and readiness, while `intake.py` remains the only
+retains topic-boundary and sufficiency judgment, while `intake.py` remains the only
 canonical writer.
-Every Work Unit basis is traceable from the ready Intake through its package
-root anchor. Specification impact may be recorded as not applicable.
+Every Work Unit basis references the Intake package root and exact entry ids it
+uses. Specification is optional and is referenced when applicable.
 
 Design Report is not a stored HTML, CSS, or JavaScript artifact. The external
 viewer must not create canonical `report/`, `report/index.html`,
@@ -64,7 +66,7 @@ viewer must not create canonical `report/`, `report/index.html`,
 
 Before the launcher starts, `agents` checks once that:
 
-- Intake and Work Unit are full-valid;
+- referenced Intake entries resolve and the Work Unit is full-valid;
 - no unresolved blocking item exists;
 - scope, exclusions, output, test criteria, AI checklist, Human checklist, and
   report evidence requirements are complete;

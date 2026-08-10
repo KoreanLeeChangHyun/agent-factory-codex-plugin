@@ -11,19 +11,19 @@
 
 ## Logical Model
 
-Intake, Specification, and Work Unit documents share this logical model:
+Specification and Work Unit documents share this logical model:
 
 ```text
 metadata + title + table of contents + section + content + optional block
 ```
 
 The common model standardizes identity, navigation, traceability, and Viewer
-routing. It does not give the three artifact types the same required section
-list. Each owning skill supplies a versioned document profile.
+routing for refined and execution documents. Intake is outside this document
+contract and uses its own topic-scoped `metadata + entries + blocks` ledger.
 
 ## Required Metadata
 
-Every conforming document has these semantic metadata fields:
+Every conforming sectioned document has these semantic metadata fields:
 
 - `id`, `artifactType`, `schemaVersion`, and `documentVersion`.
 - `projectId`, `lifecycle`, `createdAt`, and `updatedAt`.
@@ -45,7 +45,6 @@ style objects, or style-variable values. Renderers and themes own presentation.
 
 ## Artifact Profiles
 
-- `intakes/assets/profiles/intake.profile.json` owns the Intake sections.
 - `specifications/assets/profiles/*.profile.json` owns common Specification
   sections plus purpose-specific required sections.
 - `work-units/assets/profiles/work-unit.profile.json` owns Work Unit
@@ -56,9 +55,7 @@ style objects, or style-variable values. Renderers and themes own presentation.
   table-of-contents, section, and block-index component schemas. Artifact
   skills own only artifact-specific metadata schemas and profiles.
 - `lifecycle/assets/schema/document-profile.schema.json` validates the
-  Specification registry and Work Unit/Work Package profile shape. The
-  Intake manager validates its operational profile and required content-kind
-  extension directly.
+  Specification registry and Work Unit/Work Package profile shape.
 
 A profile section id must occur exactly once. Common and profile-specific
 required sections are additive, preserve declared order, and must be disjoint.
@@ -69,18 +66,16 @@ does not make them fully valid.
 
 The sectioned document package stores `data/metadata.json`, `data/title.json`,
 `data/table-of-contents.json`, `data/sections/<id>.json`, `blocks/index.json`,
-and optional `blocks/**`. Intake v2, the implemented Specification profiles,
-and Work Unit v4 implement this physical contract.
+and optional `blocks/**`. The implemented Specification profiles and Work Unit
+v4 implement this physical contract. Intake v3 instead stores
+`data/metadata.json`, `data/entries/<entry-id>.json`, and `blocks/**`.
 
-The lifecycle-owned `scripts/sectioned_document.py` implements the
-shared package I/O, table-of-contents, section, block, transaction, and
-validation mechanics. Artifact managers configure that engine with their own
-metadata schema, profile, package root, lifecycle, readiness, and semantic
-validation rules.
+The lifecycle-owned `scripts/sectioned_document.py` implements shared package
+mechanics for Specification and Work Unit. Intake owns its ledger mechanics in
+`intakes/scripts/intake.py` and reuses only the common block-index schema.
 
-The shared engine is the only JSON construction and serialization owner.
-Artifact managers accept semantic data through typed command arguments and
-delegate canonical writes to the engine. LLM callers must not compose JSON
+Each artifact-owning manager is its JSON construction and serialization owner.
+Managers accept semantic data through typed command arguments. LLM callers must not compose JSON
 strings or temporary JSON value files. Structured arguments use JSON Pointer
 paths with typed options such as `--string`, `--integer`, `--number`,
 `--boolean`, `--null`, `--string-list`, `--empty-object`, and `--empty-list`.
@@ -91,9 +86,11 @@ canonical package operation: `intakes/scripts/intake.py`,
 `specifications/scripts/specification.py`, or
 `work-units/scripts/work_unit.py`. This is a hard precondition,
 not a preferred path. Use the script for creation, authoritative display,
-mutation, validation, transitions, block registration, and recovery.
+mutation, validation, applicable transitions, and block registration.
 
-Artifact-owning managers share these canonical package command forms:
+Specification and Work Unit managers share the sectioned command forms below.
+Intake instead exposes `create --topic`, `show --entry`, `entry-put`,
+`entry-items-put`, `topic-set`, `validate`, session commands, and block commands.
 
 ```text
 create <package> --id <id> --title <title> --project-id <project> ...

@@ -55,6 +55,11 @@ class ArtifactManagerScriptContractTests(unittest.TestCase):
                             "/.agent-factory/\n", encoding="utf-8"
                         )
                     package = root / ".agent-factory" / collection / "sample"
+                    identity_arguments = (
+                        ["--topic", "Sample", "--language", "ko"]
+                        if collection == "intakes"
+                        else ["--title", "Sample", "--theme", "default"]
+                    )
                     create = subprocess.run(
                         [
                             "python3",
@@ -63,12 +68,9 @@ class ArtifactManagerScriptContractTests(unittest.TestCase):
                             str(package),
                             "--id",
                             "sample",
-                            "--title",
-                            "Sample",
                             "--project-id",
                             "sample-project",
-                            "--theme",
-                            "default",
+                            *identity_arguments,
                             *create_extra,
                         ],
                         cwd=root,
@@ -97,14 +99,13 @@ class ArtifactManagerScriptContractTests(unittest.TestCase):
                     }[tracking_state]
                     self.assertIn(expected_prefix, status)
 
+                    update_command = (
+                        ["python3", str(manager), "topic-set", str(package), "Updated"]
+                        if collection == "intakes"
+                        else ["python3", str(manager), "title-set", str(package), "Updated"]
+                    )
                     subprocess.run(
-                        [
-                            "python3",
-                            str(manager),
-                            "title-set",
-                            str(package),
-                            "Updated",
-                        ],
+                        update_command,
                         cwd=root,
                         check=True,
                         capture_output=True,

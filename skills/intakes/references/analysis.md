@@ -36,16 +36,12 @@ observing or interviewing a person.
    results without copying secrets or unnecessary sensitive content.
 5. Separate observed facts from interpretations, recommendations, conflicts,
    limitations, and unresolved items.
-6. Add each structured result to `evidence-and-findings` through the sibling
-   Intake manager's `section-item-put` command, normally with kind
-   `internal-evidence`.
-   This kind satisfies the Intake profile's `evidence` family without a
-   duplicate generic `evidence` item.
+6. Append each structured result through the sibling Intake manager's
+   `entry-put` command with activity `internal-analysis`.
 7. Run the sibling Intake manager's `validate` command immediately after the
    update.
-8. Feed accepted findings into their owning requirement, decision, or Work
-   Unit basis section and repeat analysis when semantic review finds missing
-   internal evidence.
+8. Keep later decisions, optional Specifications, and Work Units traceable to
+   the exact analysis entry ids.
 
 ## Evidence Rules
 
@@ -61,7 +57,7 @@ observing or interviewing a person.
 
 ## Canonical Record Shape
 
-Each `internal-evidence` content item records in its `content` object:
+Each `internal-analysis` entry records in its `content` object:
 
 - `kind`: `code`, `database`, `data`, `configuration`, `log`, `test`,
   `runtime`, `document`, or `other`;
@@ -79,8 +75,8 @@ directory through the manager's `block-put` command when needed.
 Apply the item with:
 
 ```text
-python3 <agent-factory-skills-root>/intakes/scripts/intake.py section-item-put \
-  <package> evidence-and-findings <typed-data-arguments>
+python3 <agent-factory-skills-root>/intakes/scripts/intake.py entry-put \
+  <package> <typed-data-arguments>
 python3 <agent-factory-skills-root>/intakes/scripts/intake.py validate <package>
 ```
 
@@ -93,6 +89,6 @@ relative to the shell working directory or the `intakes` skill directory.
 
 ## Output
 
-Report the Intake id, inspected internal sources, validation result,
+Report the Intake id and appended entry id, inspected internal sources, validation result,
 limitations, conflicts, and whether more analysis, Human interview, web search,
 user research, or specification alignment remains necessary.

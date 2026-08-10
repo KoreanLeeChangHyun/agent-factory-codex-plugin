@@ -22,6 +22,19 @@ SCRIPT = (
     / "scripts"
     / "intake_agent_exec.py"
 )
+INTAKE_MANAGER = SCRIPT.with_name("intake.py")
+
+
+def create_intake(root: Path) -> None:
+    package = root / ".agent-factory" / "intakes" / "intake-1"
+    result = subprocess.run(
+        [sys.executable, str(INTAKE_MANAGER), "create", str(package),
+         "--id", "intake-1", "--topic", "test", "--project-id", "test",
+         "--language", "ko"],
+        text=True, capture_output=True, check=False,
+    )
+    if result.returncode:
+        raise AssertionError(result.stderr)
 
 
 def load_module():
@@ -87,7 +100,7 @@ class IntakeAgentExecTests(unittest.TestCase):
         self.assertIn("You are the Intake Agent", prompt)
         self.assertIn("intake.py", prompt)
         self.assertIn("Main Agent", prompt)
-        self.assertIn("Do not decide Intake readiness", prompt)
+        self.assertIn("Main Agent owns topic-boundary", prompt)
         self.assertIn("internal code, documents, and runtime", prompt)
 
     def test_success_emits_only_ack_and_terminal_result(self) -> None:
@@ -106,9 +119,9 @@ class IntakeAgentExecTests(unittest.TestCase):
         process = FakeProcess(lines)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             output = io.StringIO()
-            with mock.patch.object(self.module.subprocess, "Popen", return_value=process):
+            with mock.patch.object(self.module, "start_process", return_value=process):
                 with mock.patch.object(
                     self.module, "read_terminal_result", return_value=terminal
                 ):
@@ -132,10 +145,10 @@ class IntakeAgentExecTests(unittest.TestCase):
     def test_mismatched_resume_is_rejected_before_process_start(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             self.module.save_binding(root, "intake-1", "session-one")
             output = io.StringIO()
-            with mock.patch.object(self.module.subprocess, "Popen") as popen:
+            with mock.patch.object(self.module, "start_process") as popen:
                 code = self.module.run(
                     repository=root,
                     intake_id="intake-1",
@@ -153,10 +166,10 @@ class IntakeAgentExecTests(unittest.TestCase):
     def test_duplicate_writer_is_rejected_before_process_start(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             with self.module.intake_lock(root, "intake-1"):
                 output = io.StringIO()
-                with mock.patch.object(self.module.subprocess, "Popen") as popen:
+                with mock.patch.object(self.module, "start_process") as popen:
                     code = self.module.run(
                         repository=root,
                         intake_id="intake-1",
@@ -181,9 +194,9 @@ class IntakeAgentExecTests(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             output = io.StringIO()
-            with mock.patch.object(self.module.subprocess, "Popen", return_value=process):
+            with mock.patch.object(self.module, "start_process", return_value=process):
                 code = self.module.run(
                     repository=root,
                     intake_id="intake-1",
@@ -202,9 +215,9 @@ class IntakeAgentExecTests(unittest.TestCase):
         process = FakeProcess(["not-json\n"])
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             output = io.StringIO()
-            with mock.patch.object(self.module.subprocess, "Popen", return_value=process):
+            with mock.patch.object(self.module, "start_process", return_value=process):
                 code = self.module.run(
                     repository=root,
                     intake_id="intake-1",
@@ -223,9 +236,9 @@ class IntakeAgentExecTests(unittest.TestCase):
         process = FakeProcess(["{" + ("x" * 1_048_576) + "\n"])
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             output = io.StringIO()
-            with mock.patch.object(self.module.subprocess, "Popen", return_value=process):
+            with mock.patch.object(self.module, "start_process", return_value=process):
                 code = self.module.run(
                     repository=root,
                     intake_id="intake-1",
@@ -245,9 +258,9 @@ class IntakeAgentExecTests(unittest.TestCase):
         process.stdout = os.fdopen(read_fd, "r", encoding="utf-8")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             output = io.StringIO()
-            with mock.patch.object(self.module.subprocess, "Popen", return_value=process):
+            with mock.patch.object(self.module, "start_process", return_value=process):
                 started = time.monotonic()
                 code = self.module.run(
                     repository=root,
@@ -281,7 +294,7 @@ print(json.dumps({"type": "item.completed", "item": {"type": "agent_message", "t
 """
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / ".agent-factory" / "intakes" / "intake-1").mkdir(parents=True)
+            create_intake(root)
             fake = root / "fake-codex"
             fake.write_text(fake_source, encoding="utf-8")
             fake.chmod(0o755)

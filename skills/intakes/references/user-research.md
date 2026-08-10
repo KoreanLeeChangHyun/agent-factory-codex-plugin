@@ -28,18 +28,15 @@ observed behavior or generalize beyond the sampled people and situations.
    interpretations, inferred needs, recommendations, and limitations.
 5. Note sampling limits, accessibility context, environment, task conditions,
    researcher influence, missing user groups, and contradictory evidence.
-6. Add each structured result to `evidence-and-findings` through the sibling
-   Intake manager's `section-item-put` command with kind `user-evidence`.
-   This kind satisfies the Intake profile's `evidence` family without a
-   duplicate generic `evidence` item.
+6. Append each structured result through the sibling Intake manager's
+   `entry-put` command with activity `user-research`.
 7. Run the Intake manager's separate `validate` command immediately.
-8. Feed accepted evidence into its owning requirement, constraint, decision,
-   success criterion, or Work Unit basis item. Route Human-only choices to
-   `references/interview.md`.
+8. Keep later decisions, optional Specifications, and Work Units traceable to
+   the exact research entry ids. Route Human-only choices to `references/interview.md`.
 
 ## Evidence Contract
 
-Each `user-evidence` item's `content` object records:
+Each `user-research` entry's `content` object records:
 
 - `researchQuestion`: the question investigated;
 - `participantGroup`: a non-identifying description of the sampled group;
@@ -59,8 +56,8 @@ redacted or minimized artifact whenever possible.
 Apply an item and validate with:
 
 ```text
-python3 <agent-factory-skills-root>/intakes/scripts/intake.py section-item-put \
-  <package> evidence-and-findings <typed-data-arguments>
+python3 <agent-factory-skills-root>/intakes/scripts/intake.py entry-put \
+  <package> <typed-data-arguments>
 python3 <agent-factory-skills-root>/intakes/scripts/intake.py validate <package>
 ```
 

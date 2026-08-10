@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-factory.local/schemas/intake/v3/entry.schema.json",
+  "title": "Agent Factory Intake Entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "sequence", "recordedAt", "actor", "activity", "content"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "recordedAt": {"type": "string", "format": "date-time"},
+    "occurredAt": {"type": "string", "format": "date-time"},
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["human", "agent", "system", "external-source"]},
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1}
+      }
+    },
+    "activity": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "content": {},
+    "attributes": {"type": "object"},
+    "sourceRefs": {"type": "array", "items": {"$ref": "#/$defs/typedRef"}},
+    "blockRefs": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^blocks/[A-Za-z0-9._/-]+$"},
+      "uniqueItems": true
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "entryId"],
+        "properties": {
+          "type": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "entryId": {"type": "string", "pattern": "^[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*$"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "typedRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactType", "id", "path"],
+      "properties": {
+        "artifactType": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

@@ -139,73 +139,20 @@ def create_ready_intake(root: Path, intake_id: str = "source-intake") -> Path:
         str(package),
         "--id",
         intake_id,
-        "--title",
+        "--topic",
         "Source Intake",
         "--project-id",
         "sample-project",
         "--language",
         "ko",
-        "--theme",
-        "default",
     )
-    required = {
-        "request-and-goal": [
-            item("REQUEST-001", "human-request", "Work Unit v4"),
-            item("OUTCOME-001", "desired-outcome", "Executable unit"),
-            item("SUCCESS-001", "success-criterion", "Validation passes"),
-        ],
-        "context-and-scope": [
-            item("CONTEXT-001", "context", "Agent Factory"),
-            item("SCOPE-001", "scope", "Work Unit v4"),
-            item("OUT-001", "out-of-scope", "Existing data"),
-        ],
-        "stakeholders-and-approval": [
-            item("STAKEHOLDER-001", "stakeholder", "Human"),
-            item("OWNER-001", "decision-owner", "Human"),
-            item("APPROVAL-001", "approval-boundary", "Human Review"),
-        ],
-        "evidence-and-findings": [
-            item("EVIDENCE-001", "evidence", "Accepted interview")
-        ],
-        "requirements-and-constraints": [
-            item("REQUIREMENT-001", "requirement", "Sectioned package"),
-            item("AC-001", "acceptance-criterion", "Anchor resolves"),
-        ],
-        "decisions-and-open-items": [
-            item("DECISION-001", "decision-status", "A/A/A accepted"),
-            item("OPEN-STATUS-001", "open-items-status", "No blockers"),
-        ],
-        "work-unit-basis": [
-            item(
-                "SPEC-001",
-                "specification-impact",
-                {"status": "aligned"},
-                attributes={"status": "aligned"},
-            ),
-            item("BASIS-001", "work-unit-basis", "Implement v4 package"),
-        ],
-    }
-    for section_id, content in required.items():
-        path = package / "data" / "sections" / f"{section_id}.json"
-        section = json.loads(path.read_text(encoding="utf-8"))
-        section["content"] = content
-        path.write_text(
-            json.dumps(section, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-    metadata_path = package / "data" / "metadata.json"
-    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-    metadata["lifecycle"]["status"] = "ready"
-    metadata["readiness"] = {
-        "contractValid": True,
-        "evidenceComplete": True,
-        "requirementsComplete": True,
-        "specificationConsistent": True,
-        "executionReady": True,
-        "reviewedAt": "2026-07-16T00:00:00+00:00",
-        "findings": [],
-    }
-    metadata_path.write_text(
-        json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    run_intake(
+        "entry-put",
+        str(package),
+        "--string", "/id", "BASIS-001",
+        "--string", "/actor/type", "human",
+        "--string", "/activity", "user-input",
+        "--string", "/content/request", "Implement v4 package",
     )
     run_intake("validate", str(package), "--full")
     return package
@@ -218,14 +165,13 @@ def ready_items(
         "artifactType": "intake",
         "id": intake.name,
         "path": f".agent-factory/intakes/{intake.name}",
-        "anchor": {"sectionId": "work-unit-basis", "itemId": "BASIS-001"},
     }
     return {
         "basis": [
             item(
                 "BASIS-REF-001",
                 "intake-basis-ref",
-                "Accepted basis",
+                {"summary": "Accepted basis", "entryIds": ["BASIS-001"]},
                 sourceRefs=[intake_ref],
             )
         ],
@@ -1080,6 +1026,61 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             self.assertEqual(result["status"], "ready")
             self.assertEqual(result["validationMode"], "full")
 
+    def test_ready_rejects_intake_path_swap_after_fd_bound_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+
+            manager_spec = importlib.util.spec_from_file_location(
+                "work_unit_intake_swap_test", SCRIPT
+            )
+            assert manager_spec is not None and manager_spec.loader is not None
+            manager = importlib.util.module_from_spec(manager_spec)
+            manager_spec.loader.exec_module(manager)
+
+            intake_spec = importlib.util.spec_from_file_location(
+                "intake_swap_validation_delegate", INTAKE_SCRIPT
+            )
+            assert intake_spec is not None and intake_spec.loader is not None
+            intake_manager = importlib.util.module_from_spec(intake_spec)
+            intake_spec.loader.exec_module(intake_manager)
+            original_spec_from_file = importlib.util.spec_from_file_location
+            moved = intake.with_name("held-source-intake")
+
+            class SwapValidationLoader:
+                def create_module(self, _spec: object) -> None:
+                    return None
+
+                def exec_module(self, module: object) -> None:
+                    module.ManagerError = intake_manager.ManagerError
+
+                    def validate_package(*args: object, **kwargs: object) -> object:
+                        result = intake_manager.validate_package(*args, **kwargs)
+                        intake.rename(moved)
+                        shutil.copytree(moved, intake)
+                        return result
+
+                    module.validate_package = validate_package
+
+            def swapping_spec(name: str, location: object, *args: object, **kwargs: object):
+                if name == "agent_factory_intake_validation":
+                    return importlib.util.spec_from_loader(
+                        name, SwapValidationLoader()
+                    )
+                return original_spec_from_file(name, location, *args, **kwargs)
+
+            with mock.patch.object(
+                manager.importlib.util,
+                "spec_from_file_location",
+                side_effect=swapping_spec,
+            ):
+                with self.assertRaisesRegex(
+                    manager.ManagerError, "changed during validation"
+                ):
+                    manager.validate_ready_semantics(package)
+
     def test_shared_intake_mutation_policy_does_not_reopen_working_work_unit(
         self,
     ) -> None:
@@ -1138,7 +1139,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
-            self.assertIn("typed reference anchor item does not exist", result.stderr)
+            self.assertIn("data/table-of-contents.json", result.stderr)
             self.assertEqual(metadata_path.read_bytes(), before)
 
     def test_anchor_path_must_target_package_root(self) -> None:
@@ -1174,9 +1175,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
-            self.assertIn(
-                "anchor path must target a sectioned package root", result.stderr
-            )
+            self.assertIn("typed reference does not exist", result.stderr)
 
     def test_ready_rejects_missing_required_kind_and_invalid_execution_branch(
         self,

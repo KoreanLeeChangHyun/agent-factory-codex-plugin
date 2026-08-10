@@ -9,6 +9,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shlex
 import stat
 import subprocess
@@ -1535,22 +1536,96 @@ def validate_ready_semantics(package: Path) -> None:
         reference
         for reference in references
         if reference.get("artifactType") == "intake"
-        and reference.get("anchor", {}).get("sectionId") == "work-unit-basis"
+        and "anchor" not in reference
     ]
     if not valid:
         raise ManagerError(
-            "ready Work Unit requires an anchored Intake work-unit-basis reference"
+            "ready Work Unit requires an Intake ledger package reference"
+        )
+    if len(valid) != 1 or len(references) != 1:
+        raise ManagerError(
+            "ready Work Unit requires exactly one Intake ledger package reference"
+        )
+    basis_content = basis.get("content") if basis is not None else None
+    entry_ids = (
+        basis_content.get("entryIds") if isinstance(basis_content, dict) else None
+    )
+    if (
+        not isinstance(entry_ids, list)
+        or not entry_ids
+        or len(entry_ids) != len(set(entry_ids))
+        or not all(
+            isinstance(entry_id, str)
+            and re.fullmatch(r"[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*", entry_id)
+            for entry_id in entry_ids
+        )
+    ):
+        raise ManagerError(
+            "ready Work Unit Intake basis requires unique non-empty content.entryIds"
         )
     project_root = package_project_root(package)
     for reference in valid:
         target = project_root / base.safe_relative_path(
             reference["path"], "Intake basis path"
         )
-        source_metadata = base.load_object(
-            target / "data" / "metadata.json", "Intake metadata"
+        expected_target = (
+            project_root / ".agent-factory" / "intakes" / reference["id"]
         )
-        if source_metadata.get("lifecycle", {}).get("status") != "ready":
-            raise ManagerError("ready Work Unit basis must reference a ready Intake")
+        if target.resolve(strict=False) != expected_target.resolve(strict=False):
+            raise ManagerError(
+                "ready Work Unit Intake basis must target its canonical package root"
+            )
+        with base.package_descriptor(target) as intake_fd:
+            opened_intake = os.fstat(intake_fd)
+            source_metadata = base.load_object_relative(
+                intake_fd, Path("data/metadata.json"), "Intake metadata"
+            )
+            if (
+                source_metadata.get("artifactType") != "intake"
+                or source_metadata.get("id") != reference.get("id")
+                or source_metadata.get("schemaVersion") != "3.0.0"
+            ):
+                raise ManagerError(
+                    "ready Work Unit basis must reference an Intake v3 ledger"
+                )
+            intake_manager_path = (
+                SKILL_ROOT.parent / "intakes" / "scripts" / "intake.py"
+            )
+            intake_spec = importlib.util.spec_from_file_location(
+                "agent_factory_intake_validation", intake_manager_path
+            )
+            if intake_spec is None or intake_spec.loader is None:
+                raise ManagerError(
+                    "ready Work Unit cannot load the Intake validation manager"
+                )
+            intake_manager = importlib.util.module_from_spec(intake_spec)
+            intake_spec.loader.exec_module(intake_manager)
+            try:
+                intake_manager.validate_package(
+                    target, full=True, package_fd=intake_fd
+                )
+            except intake_manager.ManagerError as error:
+                raise ManagerError(
+                    "ready Work Unit basis Intake ledger failed full validation"
+                ) from error
+            for entry_id in entry_ids:
+                entry = base.load_object_relative(
+                    intake_fd,
+                    Path("data/entries") / f"{entry_id}.json",
+                    "Intake basis entry",
+                )
+                if entry.get("id") != entry_id:
+                    raise ManagerError(
+                        f"ready Work Unit Intake basis entry does not resolve: {entry_id}"
+                    )
+            current_intake = os.stat(target, follow_symlinks=False)
+            if (current_intake.st_dev, current_intake.st_ino) != (
+                opened_intake.st_dev,
+                opened_intake.st_ino,
+            ):
+                raise ManagerError(
+                    "ready Work Unit Intake basis changed during validation"
+                )
 
 
 def validate_review_semantics(package: Path) -> None:

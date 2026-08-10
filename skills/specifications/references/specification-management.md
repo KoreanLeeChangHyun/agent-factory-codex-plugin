@@ -95,15 +95,11 @@ canonical identity.
 - Keep Project Core short, simple, and clear. A Design Report may render the
   resolved Project Core relation as a read-only top view, but that view is not
   another canonical copy.
-- During Intake, check relevant specification source and update it when accepted
-  Human requirements, feedback, decisions, or inspected evidence changes the
-  specification. Record its refs, status, changes, and reason as a
-  `specification-impact` content item in the canonical Intake package's
-  `work-unit-basis` section through the `intakes` manager's
-  `section-item-put` command, then run `validate`. Set
-  `attributes.status` to `aligned`, `not-applicable`, or
-  `gap-accepted-for-work-unit`; the last state records an accepted
-  Specification gap that an executable Work Unit basis will address.
+- During Intake, check a relevant Specification when one exists or when the
+  Human explicitly requires one. Append the check and its reference as an
+  Intake entry. Specification creation remains optional; the Main Agent decides
+  whether a reusable refined contract is warranted unless the Human states a
+  condition, and explicit Human conditions take priority.
 - During Execution, update specification source when scoped implementation or
   verification reveals a new accepted design fact, then return requirement or
   scope changes to Intake.
@@ -176,17 +172,16 @@ During Work Unit Execution, when a new requirement changes design artifacts:
 
 ## Project Timing
 
-Specification creation is not mandatory. During Intake, record the
-Specification impact and create or update a Specification only when the
-recorded impact requires it. A `not-applicable` result is complete and must not
-be replaced with an empty Specification package.
+Specification creation is not mandatory. Reference an existing applicable
+Specification when useful. Otherwise the Main Agent may create a Work Unit
+directly from sufficient Intake entries. Create or update a Specification only
+when a reusable refined contract is warranted or the Human requires it.
 
 ### New Project Start
 
-For a new project, collect explicit Human facts in Intake and resolve
-Specification status. Transition Intake to `ready` and create a Work Unit from
-its basis. Create a Specification or minimal Project Core only when the
-recorded impact requires it and the Work Unit names it as expected output. The
+For a new project, collect explicit Human facts in Intake and create a Work
+Unit from the exact sufficient entries. Create a Specification or minimal
+Project Core only when needed and name it as Work Unit output. The
 external viewer derives the Design Report view from the resulting canonical
 Specification JSON.
 
@@ -195,7 +190,7 @@ Specification JSON.
 For in-progress project adoption, collect baseline reference material first:
 structure, documents, commands, tests, runtime, deployment, known constraints,
 open work, and unresolved decisions when explicitly available. Record them in
-Intake, transition it to `ready`, then create a Work Unit from its basis. During
+Intake, then create a Work Unit from the exact sufficient entries. During
 that Work Unit's Execution, perform the scoped Project Core or Specification
 update.
 
@@ -203,8 +198,8 @@ update.
 
 For ending or release-handoff adoption, collect final-state baseline material
 first: deliverables, completed work, pending reviews, known defects, release
-constraints, deployment status, handoff needs, and unresolved decisions. Use a
-`ready` Intake to create the Work Unit, then during its Execution update Project
+constraints, deployment status, handoff needs, and unresolved decisions. Use
+the exact relevant Intake entries to create the Work Unit, then during Execution update Project
 Core only when the required Project Core fields change and update the
 Specification around the scoped finalization, rework, release, deliverables,
 handoff, verification, and unresolved decisions.
@@ -213,19 +208,17 @@ handoff, verification, and unresolved decisions.
 
 For maintenance or operations adoption, collect operations baseline material
 first: runtime, deployment, incidents, logs, monitoring, known risks, current
-behavior, maintenance request, and Human decision boundaries. Use a `ready`
-Intake to
-create the Work Unit, then during its Execution update Project Core only when the
+behavior, maintenance request, and Human decision boundaries. Use the exact
+relevant Intake entries to create the Work Unit, then during Execution update Project Core only when the
 request changes purpose, principles, scope, decision boundaries, or unresolved
 items and update the Specification within the scoped operational impact.
 
 Do not treat any baseline as a replacement for Project Core, Specification,
 Work Units, Work Unit Outputs, or customer-facing deliverables.
 
-When a Specification exists, Intake records its canonical Specification
-package as a specification reference. When it does not exist, Intake records
-the gap and its ready Work Unit basis may define a Work Unit whose output is
-that specification.
+When a Specification exists, Intake records its canonical package reference.
+When it does not exist, no placeholder or mandatory gap record is required; a
+Work Unit may create one when its scope requires that output.
 
 ## Required Profile Content
 
@@ -256,9 +249,9 @@ Specification JSON, not Design Report HTML, CSS, or JavaScript. Intake and Work
 Unit traceability reference the canonical Specification package rather than the
 derived view.
 
-When a Specification does not yet exist or does not cover the request, Intake
-records and validates that gap. Its ready Work Unit basis can define a Work Unit
-whose expected output is the missing or incomplete Specification JSON.
+When a Specification does not yet exist or does not cover the request, a Work
+Unit may still be created directly from Intake entries and may optionally name
+the missing or incomplete Specification JSON as expected output.
 
 ## Output
 

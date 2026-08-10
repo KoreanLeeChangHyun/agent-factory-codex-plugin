@@ -145,21 +145,36 @@ Work only on Intake `{intake_id}` in `{repository}` and perform this delegated r
 {request}
 
 Use the `intakes` skill and its `{capability}` capability for {routes[capability]}.
-All canonical Intake reads, writes, validation, transitions, and blocks must use
+All canonical Intake reads, appends, validation, and blocks must use
 `skills/intakes/scripts/intake.py`; never edit canonical JSON directly. You are
 the single writer only for the duration of this delegated run.
 
 Return evidence and analysis to the Main Agent. If a Human-owned choice is
 required, return exactly one focused question in the structured result and stop.
-Do not interview the Human directly. Do not decide Intake readiness, create or
-execute a Work Unit, launch a Goal, perform Human result review, integrate Git,
-push, deploy, or restart a runtime.
+Do not interview the Human directly. The Main Agent owns topic-boundary and
+sufficiency judgment unless the Human explicitly supplies a condition. Do not
+create or execute a Work Unit, launch a Goal, perform Human result review,
+integrate Git, push, deploy, or restart a runtime.
 """
 
 
 def emit(stream: IO[str], value: dict[str, Any]) -> None:
     stream.write(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n")
     stream.flush()
+
+
+def start_process(command: list[str], repository: Path) -> subprocess.Popen[str]:
+    return subprocess.Popen(
+        command,
+        cwd=repository,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        encoding="utf-8",
+        errors="strict",
+        shell=False,
+    )
 
 
 def iter_lines_until(stream: IO[str], deadline: float) -> Iterator[str]:
@@ -263,7 +278,7 @@ def run(
                 sandbox=sandbox,
             )
             try:
-                process = subprocess.Popen(command, cwd=repository, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="strict", shell=False)
+                process = start_process(command, repository)
             except OSError as error:
                 raise ContractError("codex_exec_start_failed", "unable to start codex exec") from error
             if process.stdin is None or process.stdout is None:

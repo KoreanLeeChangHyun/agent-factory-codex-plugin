@@ -1,21 +1,21 @@
 ---
 name: intakes
-description: Build canonical Agent Factory Intakes and acquire their required evidence.
+description: Record every topic-scoped Agent Factory interaction and discovery activity.
 ---
 
 # Agent Factory Intakes
 
 ## Entry contract
 
-Use this skill for every Agent Factory Intake and its evidence acquisition.
+Use this skill for every Agent Factory Intake and every activity recorded in it.
 Read `references/intake-management.md` completely, then read every capability
-reference applicable to the evidence or decision being handled. Canonical
+reference applicable to the activity being handled. Canonical
 Intake writes must use `scripts/intake.py`.
 
 ## Reference routing
 
-- `references/intake-management.md`: Create, validate, transition, and hand off canonical Intake packages.
-- `references/intake-structure.md`: Apply the canonical Intake package structure and readiness contract.
+- `references/intake-management.md`: Create, append to, validate, and reference canonical Intake ledgers.
+- `references/intake-structure.md`: Apply the canonical topic-scoped entry contract.
 - `references/analysis.md`: Inspect internal code, data, configuration, logs, tests, runtime behavior, and project documents.
 - `references/web-search.md`: Collect and record authoritative external published evidence.
 - `references/user-research.md`: Record direct observation, contextual inquiry, usability, and participant evidence.
@@ -28,7 +28,7 @@ Intake writes must use `scripts/intake.py`.
 Intake Agent session and emits only a compact ACK and terminal result.
 `intake.py session-bind`, `session-show`, and `session-clear` own the Intake's
 operational Codex session association without changing semantic document
-version or readiness. Delegated-writer locks live under the OS temporary
+version. Delegated-writer locks live under the OS temporary
 directory rather than the repository.
 `scripts/requirements.txt` declares its dependencies; `assets/` owns its
 profile and schema, and `tests/` owns regression coverage.

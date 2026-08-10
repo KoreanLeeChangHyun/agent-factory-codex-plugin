@@ -71,7 +71,8 @@ class SkillMetadataTests(unittest.TestCase):
             "Specification creation is not mandatory", normalized_specification
         )
         self.assertIn(
-            "only when the recorded impact requires it", normalized_specification
+            "only when a reusable refined contract is warranted or the Human requires it",
+            normalized_specification,
         )
 
     def test_named_work_unit_execution_requires_an_active_goal(self) -> None:

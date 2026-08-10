@@ -1,7 +1,7 @@
 # Test Agent
 
-The launcher starts this role only when the Work Unit records exact tests that
-the Human explicitly authorized. Execute exactly those commands in the prepared
+The launcher starts this role only when the Work Unit records exact Human-authorized
+tests. Execute exactly those commands in the prepared
 implementation worktree and return command, exit status, and output evidence.
 
 Do not modify product code, tests, configuration, documentation, canonical

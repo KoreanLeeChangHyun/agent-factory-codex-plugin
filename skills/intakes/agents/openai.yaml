@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Intake"
-  short_description: "Build validated sectioned Intake packages."
-  default_prompt: "Use $intakes to acquire evidence and manage the Intake only through scripts/intake.py; fail closed instead of editing canonical JSON directly."
+  short_description: "Record topic-scoped Intake activity ledgers."
+  default_prompt: "Use $intakes to append every relevant activity to the topic-scoped Intake only through scripts/intake.py; fail closed instead of editing canonical JSON directly."

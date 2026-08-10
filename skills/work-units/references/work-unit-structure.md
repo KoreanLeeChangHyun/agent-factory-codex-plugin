@@ -16,6 +16,11 @@ Required sections:
 8. `human-review`
 9. `report`
 
+The `intake-basis-ref` item references one topic-scoped Intake package root
+without a section anchor. Its content contains the unique non-empty `entryIds`
+used to define the delegation. Intake has no readiness or lifecycle state;
+Work Unit readiness owns execution admission.
+
 The `test-criterion` in `acceptance-and-verification` is a conditional plan. It
 must distinguish the exact tests explicitly requested by the Human from a
 no-tests-authorized state. The `execution-result`, `ai-review-result`, and

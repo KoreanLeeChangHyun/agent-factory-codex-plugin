@@ -10,17 +10,13 @@ a participant study does not.
 
 ## Storage
 
-- Record each external source and finding in the active Intake package's
-  `evidence-and-findings` section through the sibling Intake manager's
-  `section-item-put` command, normally with kind `web-evidence`.
-- `web-evidence` satisfies the Intake profile's `evidence` family; do not add a
-  duplicate generic `evidence` item only for readiness.
+- Append each external search activity and source-backed finding through the
+  sibling Intake manager's `entry-put` command with activity `web-search`.
 - Do not create a separate Markdown, HTML, or JSON intakes source of truth.
 - Put non-JSON supporting material under the Intake package's `blocks/`
   directory through the manager's `block-put` command.
-- Keep findings traceable into their owning requirement, decision,
-  specification-impact, and Work Unit basis items instead of copying them into
-  competing records.
+- Keep decisions, optional Specifications, and Work Units traceable to the
+  exact web-search entry ids.
 - Run the Intake manager's separate `validate` command after every update.
 
 Resolve the sibling manager from the installed Plugin skills root as
@@ -84,16 +80,16 @@ latest available T1/T2 source before recording a conclusion.
 
 ## Canonical Record Shape
 
-Each `web-evidence` item records `title`, `url`, `authorityTier`, `freshness`,
+Each `web-search` entry records `title`, `url`, `authorityTier`, `freshness`,
 `retrievedAt`, `findings`, and any `limitations` in its `content` object. Put
-cross-source recommendations, assumptions, conflicts, and open items in their
-owning Intake sections.
+cross-source recommendations, assumptions, conflicts, and open items as
+separate related Intake entries.
 
-Apply it with `section-item-put <package> evidence-and-findings` and typed data
+Apply it with `entry-put <package>` and typed data
 arguments, then run `validate`. The manager constructs JSON; do not create a
 JSON value file.
 
 ## Output
 
-State the Intake id, highest source tier used, whether the conclusion is
+State the Intake id and appended entry id, highest source tier used, whether the conclusion is
 supported, partial, or blocked, and any unresolved item or Human decision.
