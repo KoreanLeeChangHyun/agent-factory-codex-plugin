@@ -1,0 +1,35 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "step": "감사 Intake의 7개 finding과 현재 코드·문서·테스트 코드를 대조해 최소 변경 계획을 확정한다."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "kind": "plan-step",
+      "content": {
+        "step": "Workflow Agent가 런처, 역할 문서, metadata 및 테스트 코드를 수정하되 검증 명령은 실행하지 않는다."
+      }
+    },
+    {
+      "id": "PLAN-003",
+      "kind": "plan-step",
+      "content": {
+        "step": "Test Agent는 Human-authorized 명령이 없으므로 생성하지 않고 tests not run을 기록한다."
+      }
+    },
+    {
+      "id": "PLAN-004",
+      "kind": "plan-step",
+      "content": {
+        "step": "Documentation Agent가 직접 영향받은 문서를 정렬하고, 별도 Review Agent가 정적 diff만 검토해 결과를 보고한다."
+      }
+    }
+  ],
+  "subsections": []
+}

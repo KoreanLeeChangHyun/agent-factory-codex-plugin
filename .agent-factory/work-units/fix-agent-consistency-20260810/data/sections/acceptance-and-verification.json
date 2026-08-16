@@ -1,0 +1,49 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "criteria": [
+          "Intake Agent resume argv가 현재 Codex CLI 계약과 일치한다.",
+          "Test Agent 작업 위치가 executionMode별로 모순 없이 정의된다.",
+          "Test 실패 뒤 Documentation 및 Review handoff가 유지된다.",
+          "6개 역할 router, metadata, 문서와 테스트 코드 기대값이 일치한다.",
+          "Workflow prompt 인용과 지원 모드 오류 문구가 일치한다."
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "감사 finding 7건 각각에 대응하는 변경 경로가 보고된다.",
+          "Documentation Agent와 Review Agent의 별도 결과가 기록된다.",
+          "테스트를 실행하지 않았음이 execution, review, report에 명시된다."
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "tests": [
+          "Human이 테스트 비실행을 명시함: test, lint, typecheck, build, smoke 및 기타 검증 명령을 실행하지 않는다."
+        ]
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": "별도 Review Agent가 정적 diff와 계약 정합성만 검토한다. 테스트는 실행하지 않는다.",
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,15 @@
+{
+  "id": "HUMAN-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "커밋 fbac83d(refactor: model intakes as topic-scoped ledgers)의 Intake 무상태 목표·주제별 원장화, 선택적 Specification, exact Intake entry 기반 Work Unit, 경로 교체 및 TOCTOU 방어, 테스트 결과와 기존 변경 보존 상태를 검토해 달라는 요청.",
+    "commit": "fbac83d",
+    "claimedFocusedTests": "23 passed",
+    "claimedRelatedTests": "93 passed; 기존 fixture 실패 5개는 범위 밖; 충돌 1개는 수정 후 통과"
+  },
+  "sequence": 1,
+  "recordedAt": "2026-08-10T16:38:02.773432+00:00"
+}

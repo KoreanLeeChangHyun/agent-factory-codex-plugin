@@ -1,0 +1,31 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "Scope matches ANALYSIS-001 findings",
+          "No automatic canonical artifact migration or unrelated mutation",
+          "Crash recovery is durable, idempotent, and fail-closed",
+          "Primary-root and descriptor security contracts are preserved",
+          "Comments document intent and exceptional security constraints only"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": {
+        "statement": "Not run."
+      },
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

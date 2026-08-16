@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "3.0.0",
+  "documentVersion": "1.0.6",
+  "id": "review-topic-scoped-ledger-fbac83d",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "topic": "커밋 fbac83d topic-scoped Intake ledger 전면 수정 검토",
+  "createdAt": "2026-08-10T16:37:48.419301+00:00",
+  "updatedAt": "2026-08-10T17:46:30.945406+00:00",
+  "language": "ko",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "operational": {
+    "agentSessionBinding": {
+      "sessionId": "019fec8d-bca5-76e3-ac68-50afb1f4d2d7"
+    }
+  }
+}

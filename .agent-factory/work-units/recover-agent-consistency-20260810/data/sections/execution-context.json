@@ -1,0 +1,86 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "recover-agent-consistency-20260810",
+        "objective": "에이전트 정합성 수정을 안전한 새 Work Unit에서 완료한다.",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id recover-agent-consistency-20260810",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/recover-agent-consistency-20260810",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/recover-agent-consistency-20260810",
+        "targetReviewRole": "review-only; must not modify files or execute verification commands",
+        "reviewExecution": "mandatory separate Goal after Documentation Agent completion"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "running",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fec2d-2b4b-7583-a4f4-a17714a34ace",
+        "invocationChain": [
+          "019fec2d-2b4b-7583-a4f4-a17714a34ace",
+          "019fecb7-e686-7750-ab71-28a04c9460d3",
+          "019fecc8-cf19-7531-95cf-9c94edd9eb9a"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002",
+            "launcher-terminal-handoff"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "recover-agent-consistency-20260810-r1-a1-plan-001"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "recover-agent-consistency-20260810-r1-a1-plan-002"
+            },
+            {
+              "stepId": "launcher-terminal-handoff",
+              "state": "completed",
+              "idempotencyKey": "recover-agent-consistency-20260810-r1-a1-launcher-terminal-handoff"
+            }
+          ],
+          "retry": {
+            "launcher-terminal-handoff": {
+              "count": 1,
+              "maxRetries": 3,
+              "events": [
+                {
+                  "idempotencyKey": "launcher-terminal:Launcher:launcher_process_terminated:019fecb7-e79e-7aa0-bdca-f882e3390b95",
+                  "classification": "permanent",
+                  "evidence": "{\"role\":\"Launcher\",\"code\":\"launcher_process_terminated\",\"message\":\"ACK 이후 launcher 프로세스가 terminal result 없이 종료되어 canonical state가 running에 잔류함\",\"details\":{\"threadId\":\"019fecb7-e686-7750-ab71-28a04c9460d3\",\"turnId\":\"019fecb7-e79e-7aa0-bdca-f882e3390b95\"}}"
+                }
+              ]
+            }
+          }
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fecc8-cf19-7531-95cf-9c94edd9eb9a",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

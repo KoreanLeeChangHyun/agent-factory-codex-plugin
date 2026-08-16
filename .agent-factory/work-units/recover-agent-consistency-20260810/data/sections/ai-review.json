@@ -1,0 +1,30 @@
+{
+  "id": "ai-review",
+  "title": "AI Review",
+  "content": [
+    {
+      "id": "AI-CHECKLIST-001",
+      "kind": "ai-checklist",
+      "content": {
+        "items": [
+          "기존 7개 finding 포함",
+          "role failure evidence 보존",
+          "Documentation review input 완전성",
+          "exact Review identifiers",
+          "terminal failure recovery state",
+          "no-verification 준수"
+        ]
+      }
+    },
+    {
+      "id": "AI-REVIEW-STATUS",
+      "kind": "ai-review-result",
+      "content": "Not run",
+      "attributes": {
+        "result": "pending",
+        "checklistResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

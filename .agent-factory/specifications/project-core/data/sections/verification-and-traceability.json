@@ -23,6 +23,15 @@
             "sectionId": "work-unit-basis",
             "itemId": "BASIS-001"
           }
+        },
+        {
+          "artifactType": "intake",
+          "id": "add-human-owner-break-glass",
+          "path": ".agent-factory/intakes/add-human-owner-break-glass",
+          "anchor": {
+            "sectionId": "work-unit-basis",
+            "itemId": "BASIS-001"
+          }
         }
       ],
       "content": {
@@ -33,7 +42,8 @@
           "DECISION-016",
           "DECISION-017",
           "SPEC-001",
-          "BASIS-001"
+          "BASIS-001",
+          "add-human-owner-break-glass:BASIS-001"
         ]
       }
     },
@@ -41,10 +51,10 @@
       "id": "CORE-REVIEW-001",
       "kind": "review-status",
       "content": {
-        "status": "ai-verified",
-        "aiVerification": "pass",
+        "status": "documentation-aligned",
+        "aiVerification": "pending",
         "humanStatus": "pending",
-        "verification": "Work Package manager 42, execution 65, agent contract 2, Specification 10, full skills 186 tests, schema checks와 canonical full validation이 통과했다."
+        "verification": "add-human-owner-break-glass Documentation Agent가 owning manager로 Project Core를 정렬했다. Test handoff는 tests not run이며 별도 Review Agent 정적 검토가 pending이다."
       }
     }
   ],

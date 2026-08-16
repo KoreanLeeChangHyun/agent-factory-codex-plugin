@@ -1311,7 +1311,7 @@ def record_terminal_failure(
         "--step-id",
         "launcher-terminal-handoff",
         "--classification",
-        "transient",
+        "permanent",
         "--max-retries",
         str(MAX_LAUNCHER_FAILURE_RETRIES),
         "--evidence",

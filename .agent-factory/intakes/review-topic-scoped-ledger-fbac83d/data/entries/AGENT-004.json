@@ -1,0 +1,27 @@
+{
+  "id": "AGENT-004",
+  "actor": {
+    "type": "agent",
+    "id": "main-agent"
+  },
+  "activity": "agent-response",
+  "content": {
+    "message": "Work Unit 실행은 구현·문서·독립 리뷰까지 완료됐으나 Review Agent가 차단 항목 2건을 판정하여 통합하지 않고 Human rework 또는 complete 결정을 요청한다.",
+    "workUnitId": "fix-topic-scoped-intake-ledger-review-findings",
+    "implementationCommit": "8ebc916",
+    "testState": "tests-not-run",
+    "reviewResult": "fail",
+    "blockingFindings": [
+      "transaction-state 디렉터리 parent fsync 부재로 journal/backup directory entry의 crash durability가 보장되지 않음",
+      "검증된 Intake entry FD/identity를 유지하지 않고 재오픈하여 leaf-file swap TOCTOU가 남음"
+    ]
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "HUMAN-003"
+    }
+  ],
+  "sequence": 7,
+  "recordedAt": "2026-08-10T17:46:30.938105+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "HUMAN-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "⚠ MCP startup interrupted. The following servers were not initialized: codex_apps 이거 뭐임?"
+  },
+  "sequence": 1,
+  "recordedAt": "2026-08-12T14:35:37.511503+00:00"
+}

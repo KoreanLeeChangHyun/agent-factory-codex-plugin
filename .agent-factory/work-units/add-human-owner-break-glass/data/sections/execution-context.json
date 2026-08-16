@@ -1,0 +1,66 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "add-human-owner-break-glass",
+        "objective": "Human owner break-glass 권한을 Agent Factory에 추가한다.",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id add-human-owner-break-glass",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/add-human-owner-break-glass",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/add-human-owner-break-glass",
+        "targetReviewRole": "review-only; must not modify files or execute verification commands",
+        "reviewExecution": "mandatory separate Goal after Documentation Agent completion"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "running",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fec45-11bb-72f3-b5bc-3ddd235cfa85",
+        "invocationChain": [
+          "019fec45-11bb-72f3-b5bc-3ddd235cfa85"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "plan",
+            "work"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "plan",
+              "state": "completed",
+              "idempotencyKey": "019fec45-11bb-72f3-b5bc-3ddd235cfa85:plan"
+            },
+            {
+              "stepId": "work",
+              "state": "completed",
+              "idempotencyKey": "019fec45-11bb-72f3-b5bc-3ddd235cfa85:work"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fec45-11bb-72f3-b5bc-3ddd235cfa85",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

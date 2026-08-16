@@ -1,0 +1,37 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "기존 정합성 수정 포함 여부",
+          "Review blocking findings 해소 여부",
+          "launcher failure recovery 가능 여부",
+          "tests 및 verification commands 미실행 여부"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "method": "변경 diff와 역할별 receipt, Review Agent 결과를 검토해 rework 또는 complete를 결정한다. complete 시 local factory에 자동 통합한다."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "status": "pending",
+        "summary": "역할별 결과 대기"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

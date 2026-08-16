@@ -1,0 +1,12 @@
+{
+  "id": "HUMAN-RULE-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "확대 해석을 절대 금지하고, 부정확한 의미는 무조건 재질의하는 규칙을 강력하게 추가한다."
+  },
+  "sequence": 1,
+  "recordedAt": "2026-08-10T18:00:48.518098+00:00"
+}

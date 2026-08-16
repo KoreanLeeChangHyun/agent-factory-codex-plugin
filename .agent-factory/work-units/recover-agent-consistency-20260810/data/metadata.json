@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "4.0.0",
+  "documentVersion": "1.0.31",
+  "id": "recover-agent-consistency-20260810",
+  "artifactType": "work-unit",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "work-unit",
+    "status": "working"
+  },
+  "createdAt": "2026-08-10T14:41:50+00:00",
+  "updatedAt": "2026-08-10T17:49:53+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory work-unit manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-08-10T00:00:00+09:00",
+    "contractValid": true,
+    "intakeTraceabilityValid": true,
+    "definitionComplete": true,
+    "executionContextComplete": true,
+    "verificationPlanComplete": true,
+    "findings": []
+  }
+}

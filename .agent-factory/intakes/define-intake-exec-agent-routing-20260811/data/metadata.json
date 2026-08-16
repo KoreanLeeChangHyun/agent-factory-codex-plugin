@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "3.0.0",
+  "documentVersion": "1.0.1",
+  "id": "define-intake-exec-agent-routing-20260811",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "topic": "Intake exec 에이전트 수행 및 세션 라우팅",
+  "createdAt": "2026-08-10T18:15:27.031763+00:00",
+  "updatedAt": "2026-08-10T18:15:27.237315+00:00",
+  "language": "ko",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": []
+}

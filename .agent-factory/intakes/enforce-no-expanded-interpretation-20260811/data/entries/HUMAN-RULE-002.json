@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-RULE-002",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "message": "해당 규칙은 절대 준수한다."
+  },
+  "relations": [
+    {
+      "type": "follows",
+      "entryId": "HUMAN-RULE-001"
+    }
+  ],
+  "sequence": 2,
+  "recordedAt": "2026-08-10T18:00:48.525458+00:00"
+}

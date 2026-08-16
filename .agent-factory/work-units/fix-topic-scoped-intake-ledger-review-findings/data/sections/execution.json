@@ -1,0 +1,18 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": {
+        "statement": "Not started."
+      },
+      "attributes": {
+        "status": "pending",
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

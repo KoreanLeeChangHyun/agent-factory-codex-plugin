@@ -1,0 +1,19 @@
+{
+  "id": "DECISION-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "현재 모든 의미 있는 소스 및 .agent-factory 변경을 하나의 커밋으로 묶고 __pycache__ 및 .pyc 생성물은 제외한다.",
+    "basis": "HUMAN-001 및 HUMAN-002"
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-002"
+    }
+  ],
+  "sequence": 5,
+  "recordedAt": "2026-08-16T12:15:27.115815+00:00"
+}

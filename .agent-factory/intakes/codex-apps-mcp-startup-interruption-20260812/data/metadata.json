@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "3.0.0",
+  "documentVersion": "1.0.3",
+  "id": "codex-apps-mcp-startup-interruption-20260812",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "topic": "codex_apps MCP 시작 중단 메시지 설명",
+  "createdAt": "2026-08-12T14:35:37.380436+00:00",
+  "updatedAt": "2026-08-12T14:35:53.182240+00:00",
+  "language": "ko",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": []
+}

@@ -1,0 +1,16 @@
+{
+  "id": "execution",
+  "title": "Execution",
+  "content": [
+    {
+      "id": "EXECUTION-STATUS",
+      "kind": "execution-result",
+      "content": "Not started; tests not authorized.",
+      "attributes": {
+        "status": "pending",
+        "verificationResult": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

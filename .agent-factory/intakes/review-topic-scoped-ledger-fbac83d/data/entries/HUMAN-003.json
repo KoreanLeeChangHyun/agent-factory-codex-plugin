@@ -1,0 +1,19 @@
+{
+  "id": "HUMAN-003",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "직전에 생성된 Work Unit fix-topic-scoped-intake-ledger-review-findings를 실행하라는 요청.",
+    "workUnitId": "fix-topic-scoped-intake-ledger-review-findings"
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "AGENT-003"
+    }
+  ],
+  "sequence": 6,
+  "recordedAt": "2026-08-10T17:28:32.624677+00:00"
+}

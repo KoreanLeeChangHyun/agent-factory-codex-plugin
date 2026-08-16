@@ -1,0 +1,23 @@
+{
+  "id": "plan",
+  "title": "Plan",
+  "content": [
+    {
+      "id": "PLAN-001",
+      "kind": "plan-step",
+      "content": {
+        "steps": [
+          "Inspect v2 package shapes and shared transaction/security helpers",
+          "Implement non-automatic manager-owned v2 compatibility or migration preserving source evidence",
+          "Reuse or adapt durable transaction journal and recovery for Intake writes",
+          "Restore canonical_primary_package routing for every Intake command",
+          "Replace pathname validation with descriptor-anchored child traversal and hashing",
+          "Add regression fixtures for v2, crash interruption, linked worktree routing, and internal directory swaps",
+          "Update directly affected documentation",
+          "Return implementation, tests-not-run, documentation, and static review evidence separately"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

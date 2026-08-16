@@ -1,0 +1,33 @@
+{
+  "id": "WEB-RESEARCH-002",
+  "actor": {
+    "type": "agent",
+    "id": "main-agent"
+  },
+  "activity": "web-search",
+  "content": {
+    "question": "동시 실행과 동일 세션 재사용 판단 기준",
+    "findings": [
+      "상호 의존하지 않는 조사 영역은 동시에 실행할 수 있고, 선행 결과나 누적 문맥이 필요한 조사는 순차적으로 수행한다.",
+      "같은 주제의 후속·보완·중단 재개에는 기존 세션 문맥이 유용하며, 독립 조사나 문맥 오염 위험이 있는 조사는 새 세션이 적합하다.",
+      "장기 상태의 기준은 세션 메모리가 아니라 외부의 지속 기록이어야 한다."
+    ],
+    "sources": [
+      "https://openai.github.io/openai-agents-python/sessions/",
+      "https://openai.github.io/openai-agents-python/multi_agent/",
+      "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns"
+    ],
+    "limitations": [
+      "공식 자료의 SDK sub-agent orchestration 세부 구현은 Agent Factory에 적용하지 않고, 독립 작업·문맥 연속성 원칙만 참고한다."
+    ]
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-SESSION-JUDGMENT-001"
+    }
+  ],
+  "sequence": 8,
+  "recordedAt": "2026-08-10T18:15:27.208622+00:00"
+}

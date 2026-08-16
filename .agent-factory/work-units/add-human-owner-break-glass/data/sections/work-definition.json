@@ -1,0 +1,53 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "goal": "Human owner가 프로젝트 내부 Agent Factory 절차를 명시적으로 우회할 수 있는 공식 break-glass 계약을 구현한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "break-glass trigger와 범위 계약",
+          "Main Agent 직접 복구 예외",
+          "lifecycle, rules, agents, Project Core 정렬",
+          "자동 종료와 사후 canonical 기록",
+          "Human-explicit tests and destructive/external action boundaries",
+          "관련 static contract test code 정렬"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "외부 실행 환경 및 플랫폼 권한 우회",
+          "테스트 및 검증 명령 실행",
+          "배포, 재시작, 삭제, 외부 전송",
+          "현재 stuck Work Unit 통합"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "명시적 owner override 문법과 의미",
+          "break-glass Main Agent execution contract",
+          "정상 lifecycle과 분리된 recovery flow",
+          "범위·종료·사후기록·안전 경계 문서",
+          "갱신된 Project Core와 static contract tests"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

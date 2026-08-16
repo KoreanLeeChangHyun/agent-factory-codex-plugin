@@ -1,0 +1,66 @@
+{
+  "id": "requirements-and-constraints",
+  "title": "Requirements and Constraints",
+  "content": [
+    {
+      "id": "REQ-001",
+      "kind": "requirement",
+      "content": [
+        "현재 설치된 Codex CLI가 허용하는 argv로 신규 및 resume 세션을 실행한다.",
+        "Test Agent가 executionMode에 맞는 위치에서 Human-authorized 명령만 실행하도록 계약과 구현을 맞춘다.",
+        "Test 실패를 terminal evidence로 유지하면서 Documentation 및 Review handoff를 수행한다.",
+        "agents 메타데이터가 Main, Intake, Workflow, Test, Documentation, Review 역할을 모두 표현한다.",
+        "문서의 정확한 프롬프트 인용과 오류 메시지를 실제 지원 모드에 맞춘다.",
+        "관련 회귀 테스트 코드를 현재 계약과 구현에 맞춘다."
+      ]
+    },
+    {
+      "id": "CONSTRAINT-001",
+      "kind": "constraint",
+      "content": [
+        "테스트, lint, typecheck, build, smoke check를 실행하지 않는다.",
+        "Workflow Agent는 테스트를 실행하지 않는다.",
+        "Review Agent는 파일을 변경하거나 검증 명령을 실행하지 않는다.",
+        "기존 및 생성된 __pycache__ 상태를 변경하지 않는다.",
+        "새 lifecycle 정책이나 역할을 도입하지 않는다."
+      ]
+    },
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "resume 명령 argv가 설치된 Codex CLI 옵션 위치 계약과 정적으로 일치한다.",
+        "specification-direct와 worktree 각각의 Test Agent 작업 위치가 명시적이고 모순되지 않는다.",
+        "Test 실패 뒤 Documentation 및 Review 단계가 실행되어 각 역할의 독립 receipt와 실패 근거가 보고 자료에 남는다.",
+        "6개 역할의 라우터, role references, UI metadata와 관련 테스트 기대값이 동일하다.",
+        "Workflow prompt 인용 및 execution/rework/resume 오류 문구가 구현과 문서에서 일치한다.",
+        "최종 보고에 tests not run이 명시된다."
+      ]
+    },
+    {
+      "id": "REQ-RECOVERY-001",
+      "kind": "requirement",
+      "content": [
+        "기존 미통합 구현 및 문서 커밋 0f471db, 8eba6bf의 범위를 새 worktree에서 재사용한다.",
+        "Test Agent 실패의 ACK, Goal, thread/turn, completed turn 또는 terminal failure receipt와 process evidence를 보존한다.",
+        "Documentation Agent completed turn, terminal result, affected paths와 receipt를 Review Agent 입력에 포함한다.",
+        "Review Agent inputs는 implementation, tests, documentation exact 식별자 계약을 명시하고 검증한다.",
+        "launcher terminal failure가 canonical Work Unit을 rework 불가능한 working/running 상태에 고착시키지 않도록 manager-owned failure/recovery 상태를 기록한다.",
+        "Human-authorized test 명령이 없으면 Test Agent와 모든 검증 명령을 실행하지 않는다."
+      ]
+    },
+    {
+      "id": "AC-RECOVERY-001",
+      "kind": "acceptance-criterion",
+      "content": [
+        "기존 7개 정합성 수정이 새 recovery branch에 포함된다.",
+        "두 Review blocking finding이 정적 계약 및 구현에서 해소된다.",
+        "Review result exact inputs 계약이 prompt와 validator에서 일치한다.",
+        "launcher failure 뒤 manager-owned 상태가 rework 또는 bounded recovery 가능한 상태로 남는다.",
+        "Workflow, Documentation, Review prompt 모두 테스트 및 검증 명령 비실행을 명확히 지시한다.",
+        "최종 보고는 tests not run과 검증 명령 미실행을 명시한다."
+      ]
+    }
+  ],
+  "subsections": []
+}

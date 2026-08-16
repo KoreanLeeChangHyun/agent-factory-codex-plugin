@@ -1,0 +1,36 @@
+{
+  "id": "human-review",
+  "title": "Human Review",
+  "content": [
+    {
+      "id": "HUMAN-CHECKLIST-001",
+      "kind": "human-checklist",
+      "content": {
+        "items": [
+          "Confirm all four findings are addressed",
+          "Review compatibility and migration behavior",
+          "Review changed paths and tests-not-run statement",
+          "Choose rework or complete"
+        ]
+      }
+    },
+    {
+      "id": "HUMAN-METHOD-001",
+      "kind": "human-review-method",
+      "content": {
+        "statement": "Review the implementation diff, role-separated receipts, documentation impact, independent static review, and remaining risks."
+      }
+    },
+    {
+      "id": "HUMAN-REVIEW-STATUS",
+      "kind": "human-review-result",
+      "content": {
+        "statement": "Pending"
+      },
+      "attributes": {
+        "status": "pending"
+      }
+    }
+  ],
+  "subsections": []
+}

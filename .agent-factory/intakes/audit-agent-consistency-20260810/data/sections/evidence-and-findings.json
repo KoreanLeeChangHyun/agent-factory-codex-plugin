@@ -1,0 +1,128 @@
+{
+  "id": "evidence-and-findings",
+  "title": "Evidence and Findings",
+  "content": [
+    {
+      "id": "INTERNAL-EVIDENCE-001",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": "skills/intakes/scripts/intake_agent_exec.py:113-133; codex-cli 0.147.0 help/parser",
+        "method": "source inspection and installed CLI parser command",
+        "findings": [
+          "CRITICAL: build_command places --sandbox after the resume subcommand (lines 122-133).",
+          "codex exec supports --sandbox, but codex exec resume --help does not list it.",
+          "codex exec resume --sandbox danger-full-access --help exits 1 with unexpected argument --sandbox; run() maps any nonzero child exit to codex_exec_failed at lines 304-310."
+        ],
+        "interpretations": [
+          "The documented promise that the same sandbox selection is applied to new and resumed sessions is not executable with the current CLI argv shape; this directly reproduces the observed resume failure."
+        ],
+        "limitations": [
+          "No real resumed agent turn was launched because the parser-level failure is deterministic and launching would widen the read-only audit."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-002",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "test",
+        "source": "tests/test_intake_agent_exec.py:54-81,93-315; tests/test_skill_metadata.py:152-220,317-388; tests/test_intake_agent_contract.py:10-76",
+        "method": "targeted unittest execution and test-source review",
+        "findings": [
+          "HIGH: resume argv tests assert only list shape or invoke a fake executable, so they never exercise the installed codex resume parser and accept the invalid --sandbox position.",
+          "The Intake launcher tests patch subprocess.Popen globally while run() now calls intake.py session-show/session-bind through subprocess.run, producing six mock-related errors plus an integration failure before launcher behavior is exercised.",
+          "The agent routing metadata test still expects only Main, Intake, and Workflow references although skills/agents/SKILL.md routes six roles.",
+          "Targeted command ran 57 tests and ended with 5 failures and 7 errors; additional stale literal assertions include AI review findings, implementation Work, and decide execution admission."
+        ],
+        "interpretations": [
+          "The regression suite is materially out of sync with current launcher and role contracts and cannot protect the resume path."
+        ],
+        "limitations": [
+          "pytest is not installed; python3 -m pytest failed and standard unittest was used."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-003",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "configuration",
+        "source": "skills/agents/SKILL.md:1-25; skills/agents/agents/openai.yaml:1-4; README.md:12-28",
+        "method": "metadata and router comparison",
+        "findings": [
+          "MEDIUM: agents SKILL frontmatter and routing define six roles: Main, Intake, Workflow, Test, Documentation, and Review.",
+          "agents/openai.yaml short_description and default_prompt advertise only main and workflow roles.",
+          "README correctly says each skill has agents/openai.yaml metadata but does not enumerate the six agents roles."
+        ],
+        "interpretations": [
+          "UI metadata understates the callable role surface and can misroute or hide Intake, Test, Documentation, and Review role use."
+        ],
+        "limitations": []
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-004",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "code",
+        "source": "skills/agents/references/test-agent.md:3-14; skills/work-units/scripts/app_server_goal.py:687-695,1270-1301,1388-1409; skills/lifecycle/references/lifecycle.md:48-58",
+        "method": "role-boundary and orchestration control-flow comparison",
+        "findings": [
+          "HIGH: Test Agent contract requires exact commands in the prepared implementation worktree, while specification-direct explicitly has no worktree; test_agent_prompt unconditionally directs every Test Agent to the dedicated worktree.",
+          "HIGH: Test Agent contract says a role failure is terminal evidence for following Documentation and Review handoffs, but run_protocol raises turn_failed for a non-completed Test turn and execute immediately returns an error payload, so Documentation and Review Goals are not launched."
+        ],
+        "interpretations": [
+          "The Test Agent execution location is undefined/incorrect for specification-direct Work Units, and the implementation short-circuits a documented downstream failure-evidence sequence."
+        ],
+        "limitations": [
+          "No live Goal was launched; findings are based on explicit prompt construction and deterministic control flow, supported by existing orchestration tests for the success path only."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-005",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "document",
+        "source": "skills/agents/references/*.md; skills/lifecycle/references/lifecycle-entry.md:43-106; skills/lifecycle/references/lifecycle.md:37-73; skills/work-units/scripts/app_server_goal.py:619-725",
+        "method": "six-role ownership matrix and terminology/order comparison",
+        "findings": [
+          "The core ownership split is otherwise consistent: Main owns Human-facing lifecycle/admission/review/integration; Intake owns bounded evidence; Workflow owns Plan and implementation only; Test owns Human-authorized commands only; Documentation owns affected documents; Review owns static review only.",
+          "The implemented success order matches the lifecycle contract: implementation, optional tests or tests-not-run, documentation, review, report material.",
+          "LOW: lifecycle.md quotes the launcher prompt as You are the Workflow Agent. You must execute this Work Unit, while implementation says You must execute the named Work Unit; the semantic role boundary is equivalent but the exact quotation is stale.",
+          "LOW: execution_prompt accepts resume, but its invalid-mode error says mode must be execution or rework and omits resume."
+        ],
+        "interpretations": [
+          "No broad role ownership duplication or missing primary owner was found beyond the Test failure/location conflicts and metadata/test drift."
+        ],
+        "limitations": [
+          "Static comparison cannot establish whether every agent obeys prompts at runtime."
+        ]
+      }
+    },
+    {
+      "id": "INTERNAL-EVIDENCE-006",
+      "kind": "internal-evidence",
+      "content": {
+        "kind": "runtime",
+        "source": "fix-agent-consistency-20260810 launcher terminal result and canonical Work Unit status",
+        "method": "launcher receipt and manager state inspection",
+        "findings": [
+          "Implementation 0f471db와 documentation 8eba6bf는 격리 branch에 커밋되었다.",
+          "Review Agent는 Test failure evidence 유실과 Documentation completed turn/affected paths 누락을 blocking finding으로 보고했다.",
+          "Review result inputs가 exact implementation/tests/documentation 식별자를 충족하지 않아 review_result_invalid로 launcher가 종료되었다.",
+          "종료 후 Work Unit은 working/running 상태에 남아 rework-start가 review 상태 요구로 거부되었다.",
+          "Workflow Agent가 Human 지시와 달리 git diff --check를 1회 실행했다."
+        ],
+        "interpretations": [
+          "기존 branch를 factory에 통합하지 않고 새 recovery Work Unit에서 두 커밋을 이어받아 blocking finding과 terminal-state/rework 가능성 및 no-verification prompt를 함께 수정해야 한다."
+        ],
+        "limitations": [
+          "테스트 및 검증 명령은 Human 지시에 따라 실행하지 않는다."
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

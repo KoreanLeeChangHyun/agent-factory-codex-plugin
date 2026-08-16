@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-EXEC-CONTRACT-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "message": "Agent Factory의 모든 에이전트는 sub-agent가 아니라 독립적인 codex exec 에이전트다."
+  },
+  "relations": [
+    {
+      "type": "follows",
+      "entryId": "HUMAN-EXEC-CORRECTION-001"
+    }
+  ],
+  "sequence": 10,
+  "recordedAt": "2026-08-10T18:15:27.222777+00:00"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "basis",
+  "title": "Basis",
+  "content": [
+    {
+      "id": "BASIS-REF-001",
+      "kind": "intake-basis-ref",
+      "content": {
+        "summary": "fbac83d 정적 리뷰와 Human 수정 요청",
+        "entryIds": [
+          "HUMAN-001",
+          "ANALYSIS-001",
+          "HUMAN-002",
+          "AGENT-002"
+        ]
+      },
+      "sourceRefs": [
+        {
+          "artifactType": "intake",
+          "id": "review-topic-scoped-ledger-fbac83d",
+          "path": ".agent-factory/intakes/review-topic-scoped-ledger-fbac83d"
+        }
+      ]
+    }
+  ],
+  "subsections": []
+}

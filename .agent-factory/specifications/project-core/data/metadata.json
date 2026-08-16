@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "documentVersion": "1.0.36",
+  "documentVersion": "1.0.42",
   "id": "project-core",
   "artifactType": "specification",
   "projectId": "agent-factory",
@@ -9,7 +9,7 @@
     "status": "draft"
   },
   "createdAt": "2026-07-25T10:26:40+00:00",
-  "updatedAt": "2026-08-09T09:30:10+00:00",
+  "updatedAt": "2026-08-10T15:32:02+00:00",
   "language": "ko",
   "theme": "default",
   "provenance": {

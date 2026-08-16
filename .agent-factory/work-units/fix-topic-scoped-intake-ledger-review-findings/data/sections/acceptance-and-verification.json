@@ -1,0 +1,52 @@
+{
+  "id": "acceptance-and-verification",
+  "title": "Acceptance and Verification",
+  "content": [
+    {
+      "id": "AC-001",
+      "kind": "acceptance-criterion",
+      "content": {
+        "items": [
+          "All committed v2 Intake fixtures have a documented manager-owned path to v3 without automatic mutation",
+          "No semantic append or block registration can leave an undetectable partial commit after interruption",
+          "Relative Intake paths invoked from a registered linked worktree resolve to the primary repository",
+          "Validation and exact Work Unit entry resolution retain trusted descriptors through child traversal",
+          "Adversarial swap regression tests cover internal entries and blocks directories"
+        ]
+      }
+    },
+    {
+      "id": "DOD-001",
+      "kind": "definition-of-done",
+      "content": {
+        "items": [
+          "Implementation committed in the Work Unit branch",
+          "Directly affected documentation updated by Documentation Agent",
+          "Independent static Review Agent reports no blocking findings",
+          "Report explicitly records that tests were not run unless the Human later authorizes exact commands"
+        ]
+      }
+    },
+    {
+      "id": "TEST-001",
+      "kind": "test-criterion",
+      "content": {
+        "authorization": "none",
+        "statement": "No tests, lint, build, smoke, or other verification commands are authorized by the Human.",
+        "exactCommands": []
+      }
+    },
+    {
+      "id": "QUALITY-001",
+      "kind": "quality-check",
+      "content": {
+        "statement": "Not run; no verification commands authorized."
+      },
+      "attributes": {
+        "status": "planned",
+        "evidence": []
+      }
+    }
+  ],
+  "subsections": []
+}

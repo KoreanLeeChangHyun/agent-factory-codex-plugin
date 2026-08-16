@@ -1,0 +1,31 @@
+{
+  "id": "WEB-RESEARCH-001",
+  "actor": {
+    "type": "agent",
+    "id": "main-agent"
+  },
+  "activity": "web-search",
+  "content": {
+    "question": "단일 주체와 복수 실행 주체를 구분하는 복잡성 판단 기준",
+    "findings": [
+      "단일 실행을 기본으로 하고, 독립 조사 영역·복수 활동 유형·반복 탐색·문맥 손실 위험·도구 복잡성이 실제로 존재할 때 분리를 고려한다."
+    ],
+    "sources": [
+      "https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/",
+      "https://www.anthropic.com/engineering/building-effective-agents",
+      "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns"
+    ],
+    "limitations": [
+      "조사 자료의 sub-agent 개념은 Agent Factory의 codex exec 에이전트 구조에 직접 대응하지 않는다."
+    ]
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-JUDGMENT-001"
+    }
+  ],
+  "sequence": 5,
+  "recordedAt": "2026-08-10T18:15:27.187558+00:00"
+}

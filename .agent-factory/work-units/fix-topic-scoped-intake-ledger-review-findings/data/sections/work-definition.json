@@ -1,0 +1,54 @@
+{
+  "id": "work-definition",
+  "title": "Work Definition",
+  "content": [
+    {
+      "id": "GOAL-001",
+      "kind": "goal",
+      "content": {
+        "statement": "fbac83d의 Intake v3 전환에서 발견된 네 차단 결함을 수정한다."
+      }
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": {
+        "items": [
+          "manager-owned v2-to-v3 migration or compatibility path",
+          "durable journaled multi-file transaction and startup recovery",
+          "linked-worktree Intake path primary-root canonicalization",
+          "descriptor-anchored internal traversal and adversarial swap regression coverage",
+          "directly affected Agent Factory documentation"
+        ]
+      }
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": {
+        "items": [
+          "automatic migration of existing .agent-factory Intakes during this execution",
+          "deletion or replacement of existing canonical artifacts",
+          "unrelated project-core and Work Unit changes",
+          "pycache cleanup",
+          "push, PR, deployment, restart, or branch promotion beyond local factory"
+        ]
+      }
+    },
+    {
+      "id": "OUTPUT-001",
+      "kind": "expected-output",
+      "content": {
+        "items": [
+          "backward-safe Intake manager migration or compatibility command",
+          "crash-recoverable atomic ledger mutations",
+          "primary-root canonical path resolution",
+          "descriptor-retained safe validation and Work Unit entry resolution",
+          "focused regression tests authored but not executed without Human authorization",
+          "updated affected skill contract documentation"
+        ]
+      }
+    }
+  ],
+  "subsections": []
+}

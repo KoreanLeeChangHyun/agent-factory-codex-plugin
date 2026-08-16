@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2.0.0",
+  "documentVersion": "1.0.37",
+  "id": "audit-agent-consistency-20260810",
+  "artifactType": "intake",
+  "projectId": "agent-factory",
+  "lifecycle": {
+    "phase": "intake",
+    "status": "ready"
+  },
+  "createdAt": "2026-08-10T12:30:18+00:00",
+  "updatedAt": "2026-08-10T14:41:33+00:00",
+  "language": "ko",
+  "theme": "default",
+  "provenance": {
+    "createdBy": "Human",
+    "generatedBy": "Agent Factory intake manager",
+    "sourceRefs": []
+  },
+  "relations": [],
+  "readiness": {
+    "reviewedAt": "2026-08-10T00:00:00+09:00",
+    "contractValid": true,
+    "evidenceComplete": true,
+    "requirementsComplete": true,
+    "specificationConsistent": true,
+    "executionReady": true,
+    "findings": []
+  },
+  "operational": {
+    "agentSessionBinding": {
+      "sessionId": "019feba8-aa5b-7c61-84f5-8070ee2f26a2"
+    }
+  }
+}

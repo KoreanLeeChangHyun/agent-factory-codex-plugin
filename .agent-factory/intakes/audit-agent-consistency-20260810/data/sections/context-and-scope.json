@@ -1,0 +1,33 @@
+{
+  "id": "context-and-scope",
+  "title": "Context and Scope",
+  "content": [
+    {
+      "id": "CONTEXT-001",
+      "kind": "context",
+      "content": "2026-08-10 에이전트 정합성 감사에서 역할 소유권의 큰 틀은 일치했으나 런처 CLI, Test Agent 실행·실패 흐름, 메타데이터, 문서 및 테스트 기대값의 불일치 7건이 확인되었다."
+    },
+    {
+      "id": "SCOPE-001",
+      "kind": "scope",
+      "content": [
+        "intake_agent_exec.py의 신규·재개 sandbox CLI 구성 정합화",
+        "Test Agent의 specification-direct 실행 위치 및 실패 후 Documentation/Review handoff 정합화",
+        "6개 역할 agents/openai.yaml 메타데이터 보완",
+        "Workflow 프롬프트 인용과 resume 오류 문구 정합화",
+        "변경된 계약에 맞춘 관련 회귀 테스트 코드 기대값 정합화"
+      ]
+    },
+    {
+      "id": "OUT-001",
+      "kind": "out-of-scope",
+      "content": [
+        "새 역할 또는 새 lifecycle 정책 추가",
+        "테스트, lint, typecheck, build, smoke check 실행",
+        "기존 또는 생성된 __pycache__ 삭제·복원·수정",
+        "factory 외 브랜치 promotion, push, PR, deploy, branch deletion"
+      ]
+    }
+  ],
+  "subsections": []
+}

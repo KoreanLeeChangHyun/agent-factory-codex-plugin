@@ -9,6 +9,23 @@ Do not invent requirements, architecture, APIs, state models, frontend patterns,
 runtime behavior, library usage, ownership models, identifiers, fallback scopes,
 or workflow rules.
 
+## No Expanded Interpretation
+
+Compliance with this rule is absolute and mandatory. No Agent role, workflow,
+recovery path, or project procedure may waive or weaken it.
+
+Never expand, narrow, supplement, reinterpret, or complete a Human instruction
+beyond its explicit meaning. When the meaning, target, scope, constraint,
+completion condition, or requested action is not exact, stop before deciding or
+acting and ask the Human a focused clarifying question. Do not substitute an
+assumption, recommendation, default, inferred intent, or Agent-selected policy
+for that clarification.
+
+This clarification requirement is mandatory. Urgency, prior conversation,
+repository conventions, an apparently obvious implementation, or a desire to
+keep work moving does not authorize an Agent to resolve imprecision on the
+Human's behalf.
+
 A Human owner break-glass instruction is evidence only when it contains the
 literal `BREAK-GLASS` trigger, a named project-internal recovery target, and a
 bounded scope. Apply only those stated facts. Urgency, a broken control plane,

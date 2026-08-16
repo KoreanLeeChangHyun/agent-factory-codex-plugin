@@ -1,0 +1,96 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "fix-topic-scoped-intake-ledger-review-findings",
+        "objective": "Fix all four blocking findings from the fbac83d Intake ledger review",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id fix-topic-scoped-intake-ledger-review-findings",
+        "executionAgent": "Codex",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "executionMode": "worktree",
+        "targetBranch": "factory",
+        "branch": "work-unit/fix-topic-scoped-intake-ledger-review-findings",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/fix-topic-scoped-intake-ledger-review-findings",
+        "targetReviewRole": "review-only; must not modify files or execute verification commands",
+        "reviewExecution": "mandatory separate Goal after Documentation Agent completion"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "running",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fecb8-2a03-7192-85a6-c0684651afb9",
+        "invocationChain": [
+          "019fecb8-2a03-7192-85a6-c0684651afb9"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "inspect",
+            "v2-migration",
+            "journal-recovery",
+            "canonical-routing",
+            "descriptor-traversal",
+            "regression-sources",
+            "implementation-commit"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "inspect",
+              "state": "completed",
+              "idempotencyKey": "fix-topic-scoped-intake-ledger-review-findings:attempt-1:inspect"
+            },
+            {
+              "stepId": "v2-migration",
+              "state": "completed",
+              "idempotencyKey": "fix-topic-scoped-intake-ledger-review-findings:attempt-1:v2-migration"
+            },
+            {
+              "stepId": "journal-recovery",
+              "state": "completed",
+              "idempotencyKey": "fix-topic-scoped-intake-ledger-review-findings:attempt-1:journal-recovery"
+            },
+            {
+              "stepId": "canonical-routing",
+              "state": "completed",
+              "idempotencyKey": "fix-topic-scoped-intake-ledger-review-findings:attempt-1:canonical-routing"
+            },
+            {
+              "stepId": "descriptor-traversal",
+              "state": "completed",
+              "idempotencyKey": "fix-topic-scoped-intake-ledger-review-findings:attempt-1:descriptor-traversal"
+            },
+            {
+              "stepId": "regression-sources",
+              "state": "completed",
+              "idempotencyKey": "fix-topic-scoped-intake-ledger-review-findings:attempt-1:regression-sources"
+            },
+            {
+              "stepId": "implementation-commit",
+              "state": "completed",
+              "idempotencyKey": "fix-topic-scoped-intake-ledger-review-findings:attempt-1:implementation-commit"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fecb8-2a03-7192-85a6-c0684651afb9",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

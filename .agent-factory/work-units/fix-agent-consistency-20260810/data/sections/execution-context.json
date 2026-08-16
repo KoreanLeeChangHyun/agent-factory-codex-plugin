@@ -1,0 +1,67 @@
+{
+  "id": "execution-context",
+  "title": "Execution Context",
+  "content": [
+    {
+      "id": "EXEC-CONTEXT-001",
+      "kind": "execution-context",
+      "content": {
+        "goalId": "fix-agent-consistency-20260810",
+        "objective": "에이전트 정합성 결함 7건을 기존 계약에 맞게 수정한다.",
+        "execInvocation": "python3 skills/work-units/scripts/app_server_goal.py --repository /home/deus/workspace/agent-factory/plugin --work-unit-id fix-agent-consistency-20260810",
+        "executionAgent": "Workflow Agent",
+        "repository": "/home/deus/workspace/agent-factory/plugin",
+        "baseRef": "factory",
+        "targetBranch": "factory",
+        "executionMode": "worktree",
+        "branch": "work-unit/fix-agent-consistency-20260810",
+        "worktreePath": "/home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/fix-agent-consistency-20260810",
+        "targetReviewRole": "review-only; must not modify files or execute verification commands",
+        "reviewExecution": "mandatory separate Goal after Documentation Agent completion"
+      }
+    },
+    {
+      "id": "EXECUTION-STATE-001",
+      "kind": "execution-state",
+      "content": {
+        "contractVersion": "2.0.0",
+        "state": "running",
+        "currentRevision": 1,
+        "currentAttempt": 1,
+        "invocationId": "019fec03-5dbf-7343-9636-47b265cebd87",
+        "invocationChain": [
+          "019fec03-5dbf-7343-9636-47b265cebd87",
+          "019fecc8-cf19-7531-95cf-9c94edd9eb9a"
+        ],
+        "history": [],
+        "progress": {
+          "completedSteps": [
+            "PLAN-001",
+            "PLAN-002"
+          ],
+          "pendingStep": null,
+          "records": [
+            {
+              "stepId": "PLAN-001",
+              "state": "completed",
+              "idempotencyKey": "fix-agent-consistency-20260810-r1-a1-plan-001"
+            },
+            {
+              "stepId": "PLAN-002",
+              "state": "completed",
+              "idempotencyKey": "fix-agent-consistency-20260810-r1-a1-plan-002"
+            }
+          ],
+          "retry": {}
+        },
+        "recovery": {
+          "status": "running",
+          "ownerInvocationId": "019fecc8-cf19-7531-95cf-9c94edd9eb9a",
+          "blockerId": null,
+          "evidence": null
+        }
+      }
+    }
+  ],
+  "subsections": []
+}

@@ -1,0 +1,32 @@
+{
+  "id": "ANALYSIS-FIX-002",
+  "actor": {
+    "type": "agent",
+    "id": "main-agent"
+  },
+  "activity": "internal-analysis",
+  "content": {
+    "kind": "code",
+    "source": "skills/work-units/scripts/app_server_goal.py",
+    "method": "source and canonical state inspection",
+    "findings": [
+      "terminal failure가 transient/max-retries=3으로 기록되어 첫 프로세스 종료 뒤 execution state가 running에 잔류했다.",
+      "재호출 supervisor가 없는 단일 Work Unit launcher에서는 terminal handoff failure를 즉시 blocked로 종결해야 한다."
+    ],
+    "actions": [
+      "record_terminal_failure classification을 permanent로 변경했다.",
+      "manager execution-failure로 잔류 실행을 blocked 처리했다."
+    ],
+    "limitations": [
+      "launcher와 source test는 재실행하지 않았다."
+    ]
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "HUMAN-REWORK-002"
+    }
+  ],
+  "sequence": 4,
+  "recordedAt": "2026-08-10T17:40:59.178206+00:00"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "request-and-goal",
+  "title": "Request and Goal",
+  "content": [
+    {
+      "id": "REQUEST-001",
+      "kind": "human-request",
+      "content": {
+        "request": "프로젝트 자산은 사용자에게 있으며 프로젝트 내 모든 권한을 사용자가 강제할 수 있도록 수정한다."
+      }
+    },
+    {
+      "id": "GOAL-001",
+      "kind": "desired-outcome",
+      "content": {
+        "outcome": "Human owner의 명시적 break-glass 요청이 Agent Factory 내부 lifecycle과 역할 제한보다 우선하는 공식 자기복구 경로를 제공한다."
+      }
+    },
+    {
+      "id": "SUCCESS-001",
+      "kind": "success-criterion",
+      "content": [
+        "Human owner가 지정한 프로젝트 내부 절차와 역할 제한을 명시적으로 우회할 수 있다.",
+        "우회 범위와 종료 조건이 명확하고 범위 밖 자산은 변경하지 않는다.",
+        "테스트, 배포, 재시작, 삭제, 외부 전송은 Human이 명시한 범위만 수행한다.",
+        "복구 후 사후 기록은 남기되 복구를 선행 차단하지 않는다."
+      ]
+    }
+  ],
+  "subsections": []
+}

@@ -12,6 +12,7 @@
           "Main Agent는 research context가 큰 Intake 증거 수집을 Intake Agent에 위임할 수 있지만 session 선택, Human decision과 readiness를 유지한다.",
           "Intake Agent는 intake.py 전용 canonical write, 동일 Intake single writer, capability별 최소 network와 compact ACK/terminal result 경계를 지킨다.",
           "Intake, Specification, Work Unit과 Work Package canonical CRUD는 owning manager script가 기본 저장소에서 처리한다.",
+          "Human project owner의 literal BREAK-GLASS, named project-internal recovery target, bounded scope가 모두 명시된 경우에만 Main Agent가 해당 control-plane 복구를 직접 수행하며 정상 lifecycle은 자동 종료 뒤 즉시 재개된다.",
           "Git 최상위를 project root로 사용하되 canonical .agent-factory CRUD는 tracked, untracked, ignored 상태와 분리한다.",
           "sync destination은 명시적 인자, .agent-factory/sync.json의 source별 override, source 기본값 순서로 해석한다.",
           "main agent는 명시적 단일 Work Unit 또는 Work Package 실행 요청 직전에 충분성을 한 번 판단한다.",

@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-002",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "네 커밋하고"
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "AGENT-001"
+    }
+  ],
+  "sequence": 4,
+  "recordedAt": "2026-08-16T12:15:26.959975+00:00"
+}

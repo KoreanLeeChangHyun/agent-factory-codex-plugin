@@ -1,0 +1,12 @@
+{
+  "id": "HUMAN-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "커밋하시고"
+  },
+  "sequence": 1,
+  "recordedAt": "2026-08-16T10:05:36.548525+00:00"
+}

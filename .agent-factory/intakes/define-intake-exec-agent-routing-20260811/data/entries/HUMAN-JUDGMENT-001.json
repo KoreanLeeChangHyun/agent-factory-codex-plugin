@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-JUDGMENT-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "message": "사용자 명시가 없으면 Main Agent가 Intake 복잡성을 판단한다."
+  },
+  "relations": [
+    {
+      "type": "follows",
+      "entryId": "HUMAN-ROUTING-001"
+    }
+  ],
+  "sequence": 4,
+  "recordedAt": "2026-08-10T18:15:27.180237+00:00"
+}
