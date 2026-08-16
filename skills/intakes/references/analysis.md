@@ -36,11 +36,11 @@ observing or interviewing a person.
    results without copying secrets or unnecessary sensitive content.
 5. Separate observed facts from interpretations, recommendations, conflicts,
    limitations, and unresolved items.
-6. Append each structured result through the sibling Intake manager's
-   `entry-put` command with activity `internal-analysis`.
-7. Run the sibling Intake manager's `validate` command immediately after the
-   update.
-8. Keep later decisions, optional Specifications, and Work Units traceable to
+6. When an Intake is active, append each structured result through the sibling
+   Intake manager's `entry-put` command with activity `internal-analysis`.
+7. Validate only when the Human explicitly requested that verification command
+   or the selected canonical manager performs validation as part of mutation.
+8. Keep later explicitly selected Specifications and Work Units traceable to
    the exact analysis entry ids.
 
 ## Evidence Rules

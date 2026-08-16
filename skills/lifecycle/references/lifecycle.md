@@ -1,134 +1,49 @@
 # Lifecycle Reference
 
-## Flow
+## Feedback-first loop
 
-```text
-Human conversation and discovery
-  -> topic-scoped canonical Intake ledger
-  -> optional Specification
-  -> executable Work Unit
-  -> one-time agents sufficiency decision
-  -> background Goal + Exec
-  -> Plan -> implementation Work
-  -> optional Human-authorized Test Agent | tests not run
-  -> mandatory affected-document Documentation Agent
-  -> mandatory independent static Review Agent
-  -> Report
-  -> Human review: rework | complete
-  -> complete integration
-  -> later batch cleanup
-```
+The Human owns task size and final evaluation. Favor short iterations over a
+large inferred plan:
 
-## Human owner break-glass recovery
+1. Human requests the next bounded change.
+2. Main Agent resolves the smallest relevant evidence and delegates to one
+   Work Agent.
+3. Work Agent changes the primary Git workspace and returns a compact receipt.
+4. Main Agent immediately presents changed paths, limitations, and exact test
+   evidence or `tests not run`.
+5. Human accepts, rejects, or provides the next correction.
+6. Main Agent starts a Recording Agent for the previous result in the
+   background. When safe, the next Work Agent runs without waiting for it.
 
-Break-glass is separate from the normal flow above. It starts only when the
-Human project owner supplies all three parts: the literal `BREAK-GLASS`
-trigger, a named project-internal recovery target, and a bounded scope. The
-Main Agent states that parsed boundary and then performs the bounded repair
-directly; it does not rerun readiness or wait for a checkpoint. Intake, Work
-Unit execution, role separation, manager-only, launcher, and review-loop rules
-may be bypassed only when they are inside the named recovery boundary. No
-delegated role can inherit or continue the exception.
+Do not turn feedback into a readiness interview, artifact approval, or broad
+up-front specification. Ask one focused question only when a Human-owned
+decision materially changes the result.
 
-The recovery path never expands permissions outside the project or above the
-current execution environment. Tests and verification require exact commands
-from the Human. Deletion, replacement of uncommitted work, deployment,
-restart, and external transmission each require explicit Human authorization
-for that action and target, including the applicable destructive-action
-confirmation.
+## Recording
 
-Authority expires on success, failure, or inability to continue. The next
-action is normal lifecycle work: through the owning manager, record the Human
-trigger, reason, target and scope, actions and changed paths, outcome, and any
-tests, destructive actions, or external actions. When manager repair is the
-incident, this record follows restoration and never blocks the repair. If the
-manager remains unavailable, report the missing record and carry it as the
-first normal-lifecycle follow-up; never edit canonical JSON ad hoc.
+Recording consumes the completed Work Agent receipt and subsequent Human
+feedback. It updates the target Project Skill with accepted decisions and
+completed-work facts. It does not review, test, fix, commit, or delay the work.
 
-Conversation, feedback, interviews, searches, and research are appended to
-Intake through `intake.py`. Intake,
-Specification, and Work Unit CRUD always uses the primary root and never creates
-a worktree. Canonical packages remain tracked in primary Git, but execution does
-not create artifact commits, immutable snapshots, hashes, or checkpoints.
-The Main Agent may delegate research to an Intake Agent through the
-`intakes`-owned `codex exec` launcher. A new or explicitly selected resume
-session is isolated behind a compact ACK and terminal result; the Main Agent
-retains topic-boundary and sufficiency judgment, while `intake.py` remains the only
-canonical writer.
-Every Work Unit basis references the Intake package root and exact entry ids it
-uses. Specification is optional and is referenced when applicable.
+If recording fails, report the missing record separately. Do not roll back or
+invalidate implementation.
 
-Design Report is not a stored HTML, CSS, or JavaScript artifact. The external
-viewer must not create canonical `report/`, `report/index.html`,
-`report/styles.css`, or `report/script.js` files.
+## Optional artifact lifecycle
 
-## Work Unit readiness
+Intake, Specification, Work Unit, Work Package, and linked worktree flows remain
+available for explicit Human selection. Their manager-owned schemas and safety
+contracts remain authoritative after selection. No artifact's mere existence
+activates its lifecycle.
 
-Before the launcher starts, `agents` checks once that:
+For an explicitly requested Work Unit or Work Package, use the existing Goal
+launcher and advanced role chain. The Test Agent still runs only exact
+Human-authorized commands. Worktree preparation occurs only when the Human also
+selected worktree mode. Promotion, push, PR, deployment, restart, and branch
+deletion remain separate explicit actions.
 
-- referenced Intake entries resolve and the Work Unit is full-valid;
-- no unresolved blocking item exists;
-- scope, exclusions, output, test criteria, AI checklist, Human checklist, and
-  report evidence requirements are complete;
-- repository and Work Unit identity match;
-- `executionMode` is explicit.
+## Human-facing project view
 
-After launch, no execution role repeats this decision or asks for approval. The
-Workflow Agent implements only and never runs verification commands. Test
-criteria remain conditional plans: the launcher creates a code-read-only Test
-Agent Goal only for exact Human-requested commands. Otherwise it records `tests
-not run`. The launcher then always creates a separate Documentation Agent Goal,
-which may change only directly affected documents and must use owning managers
-for canonical writes. After documentation, it always creates a separate Review
-Agent Goal that may only inspect the Work Unit, implementation diff, test
-evidence, and documentation result. The Review Agent modifies no files and runs
-no verification commands. Its structured AI review and the preceding role
-receipts become launcher-aggregated Report material for Main Agent Human review.
-
-## Background Goal + Exec
-
-`app_server_goal.py` creates and verifies the Goal before `turn/start`. Its
-prompt declares: `You are the Workflow Agent. You must execute this Work Unit.`
-This Goal preflight uses `thread/goal/set` and `thread/goal/get` before worktree
-preparation and fails closed on mismatched protocol evidence.
-After the verified initial `turn/start`, the launcher emits one immediate JSONL
-ACK and later emits its final execution document. A refusal before the initial
-turn emits no ACK.
-
-The launcher accepts initial, rework, and active-resume states. It automatically
-continues interrupted turns and reactivates Goals blocked by removed workflow
-gates. Recovery is bounded; a real unrecoverable error returns a failed receipt
-instead of leaving a waiting process.
-
-## Execution mode
-
-`specification-direct` updates the primary canonical Specification through
-`specification.py` and never creates a branch or worktree.
-
-`worktree` creates or reuses the derived branch and canonical linked path. It
-resolves the current local `factory` commit as its base and records local
-`factory` as its complete integration target. Sparse checkout excludes all of
-`.agent-factory`. Canonical manager calls made from that worktree still resolve
-to the primary root.
-
-Execution state is revision + attempt + invocation chain + idempotent step
-records. It contains no Git subject or head hash.
-
-## Review and completion
-
-Human review has two outcomes:
-
-- `rework`: exact instruction is stored and background Goal + Exec runs again.
-- `complete`: `--review-decision complete` is stored.
-
-For `worktree` mode, complete triggers integration into local `factory`
-automatically. Primary
-`.agent-factory/**` dirtiness is ignored during target source-code integration.
-Completed worktrees remain until a later batch cleanup. Cleanup refuses dirty
-worktrees and never forces removal.
-
-`specification-direct` completion has no merge or cleanup.
-
-The Work Unit lifecycle never pushes `factory`. Promotion from `factory` into
-`dev`, `main`, `master`, or another real branch, PR creation, deployment,
-branch deletion, and any push are separate explicit requests.
+The local Viewer derives its page at request time from the target Project Skill
+and read-only Git evidence. Diagram HTML, CSS, JavaScript, and SVG are
+presentation. AI-readable Skill references and diagram sources remain the
+project source.

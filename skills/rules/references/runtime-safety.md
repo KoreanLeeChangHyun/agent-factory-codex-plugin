@@ -18,20 +18,19 @@
   loaded the newest file.
 - Do not restart the frontend server just to clear module cache unless the
   Human explicitly asks for restart and gives the required second confirmation.
-- Prefer read-only cache diagnosis first: inspect the served module with
-  `curl`, compare it against the local file, and check whether an import chain
-  uses query-string cache keys.
+- When the Human explicitly requests cache diagnosis, inspect the served module,
+  compare it against the local file, and check whether an import chain uses
+  query-string cache keys.
 - If a changed module is imported through existing query-string cache keys,
   update only the necessary import chain from the changed module back to the
   frontend entrypoint.
 - Keep cache-key updates scoped to the touched behavior. Do not rename broad
   cache keys or sweep unrelated imports.
-- For small frontend UI behavior changes, default to focused verification:
-  syntax checks for touched JavaScript, relevant minimal-app boundary checks,
-  and the Playwright spec or grep that covers the changed behavior.
-- Run full `npm run check`, full E2E, mobile checks, or screenshot checks only
-  when the change touches shared runtime wiring, global layout/CSS, broad API
-  behavior, or when the Human asks for full verification.
+- For frontend UI changes, run syntax checks, boundary checks, Playwright,
+  screenshots, or other verification only when the Human explicitly requests
+  the exact command. Return the changed UI for fast Human feedback instead.
+- Never infer full `npm run check`, E2E, mobile, or screenshot authority from
+  shared runtime wiring, global layout/CSS, or broad API impact.
 - If focused verification passes but a broader check fails in an unrelated
   area, record the exact failing command, failing file or assertion, and whether
   the failure is in files touched by the current work. Do not fix unrelated

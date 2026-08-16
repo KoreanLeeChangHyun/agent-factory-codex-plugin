@@ -12,7 +12,8 @@ Ask for a Human interview or decision when any item is true:
   promotion decision.
 - Recorded decisions conflict, or a newer request may supersede an earlier
   decision.
-- The request is broad enough that the change level is unclear.
+- The request leaves multiple materially different Human-visible outcomes and
+  repository evidence does not select one.
 - The artifact purpose, audience, approval criteria, lifecycle stage, or output
   boundary is unclear.
 - The work would add a new principle or change the meaning of an existing
@@ -24,13 +25,14 @@ Ask for a Human interview or decision when any item is true:
 Do not ask for an interview when all items are true:
 
 - The next action only applies a recorded decision.
-- The path, file, artifact, or command is explicit enough to execute.
+- The bounded outcome is explicit enough to execute; ordinary file and
+  implementation selection may come from repository evidence.
 - The work is factual investigation or only records already-decided facts.
-- The change does not alter lifecycle rules, approval criteria, scope, or Human
-  review boundaries.
+- The change does not require a new Human-owned product, risk, scope, or
+  irreversible decision.
 
-When unsure, ask one concise question. When the gate passes with no Human
-decision needed, state that no additional interview is needed and proceed.
+When a material Human decision is missing, ask one concise question. Otherwise
+proceed without announcing an interview gate.
 
 ## Source Basis
 

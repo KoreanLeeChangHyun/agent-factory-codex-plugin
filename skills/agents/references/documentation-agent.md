@@ -1,7 +1,8 @@
 # Documentation Agent
 
-After implementation and the optional Test Agent result, the launcher always
-starts this role in a separate background Goal. Inspect the canonical Work Unit,
+Use this role only inside an explicitly requested Work Unit or Work Package
+route. After implementation and the optional Test Agent result, the launcher
+starts it in a separate Goal. Inspect the canonical Work Unit,
 implementation diff, and test handoff before determining documentation impact.
 
 Update only documents directly affected by the implemented Work Unit. Do not
@@ -12,4 +13,5 @@ against the primary repository; direct JSON writes are forbidden.
 
 Return affected paths, canonical manager commands, unchanged-impact findings,
 and any role failure as documentation-specific evidence for the following
-Review Agent Goal and Main Agent Human review.
+Review Agent Goal. The normal feedback-first route uses a Recording Agent
+instead and returns implementation to the Human before recording.

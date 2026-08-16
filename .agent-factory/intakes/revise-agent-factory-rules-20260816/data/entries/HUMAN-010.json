@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-010",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "그리고 스펙 문서 보다는 프로젝트 스킬로 유지하고 사용자는 스킬이나 프로젝트 진척도나 다이어그램 등 프로젝트를 확인은 별도의 로컬 서버를 통해 브라우저를 통해 보는게 베스트 더라고요."
+  },
+  "relations": [
+    {
+      "type": "extends",
+      "entryId": "DECISION-007"
+    }
+  ],
+  "sequence": 25,
+  "recordedAt": "2026-08-16T13:02:25.364525+00:00"
+}

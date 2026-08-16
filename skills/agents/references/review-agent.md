@@ -1,6 +1,7 @@
 # Review Agent
 
-After the Documentation Agent completes, the launcher creates a separate Goal
+Use this role only inside an explicitly requested Work Unit or Work Package
+route. After the Documentation Agent completes, the launcher creates a Goal
 for the Review Agent. Read the canonical Work Unit, inspect the implementation
 diff, and consume the Test Agent result or explicit `tests not run` state and
 the Documentation Agent terminal receipt.

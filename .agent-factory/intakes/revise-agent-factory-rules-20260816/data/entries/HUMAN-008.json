@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-008",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "워크 트리 까지는 과합니다."
+  },
+  "relations": [
+    {
+      "type": "clarifies",
+      "entryId": "HUMAN-007"
+    }
+  ],
+  "sequence": 19,
+  "recordedAt": "2026-08-16T12:59:53.617836+00:00"
+}

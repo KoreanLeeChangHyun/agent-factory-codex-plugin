@@ -1,15 +1,16 @@
 ---
 name: specifications
-description: Manage canonical Agent Factory Specifications and their diagrams.
+description: Manage optional canonical Agent Factory Specifications and Specification-owned diagrams only when the Human explicitly requests that artifact route.
 ---
 
 # Agent Factory Specifications
 
 ## Entry contract
 
-Use this skill when Intake or scoped execution requires Specification,
-Project Core, Design Report, or diagram work. Read every applicable reference
-before acting. Canonical Specification writes must use
+Use this skill only when the Human explicitly requests a Specification,
+Project Core, Design Report, or Specification-owned diagram. Use `projects`
+for the default Project Skill and local browser diagrams. Read every applicable
+reference before acting. Canonical Specification writes must use
 `scripts/specification.py`.
 
 ## Reference routing

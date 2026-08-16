@@ -1,0 +1,19 @@
+{
+  "id": "DECISION-006",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "작업 격리와 복구에는 현재 Git 저장소를 사용하며 별도 linked worktree를 강제하지 않는다.",
+    "rationale": "Git이 이미 변경 이력과 복구 수단을 제공하므로 worktree 절차는 과도하다."
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-008"
+    }
+  ],
+  "sequence": 20,
+  "recordedAt": "2026-08-16T12:59:53.890451+00:00"
+}

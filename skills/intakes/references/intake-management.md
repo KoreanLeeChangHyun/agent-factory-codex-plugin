@@ -2,12 +2,16 @@
 
 ## Boundary
 
-An Intake is an append-only JSON ledger for one goal or topic. The Main Agent
+An Intake is an optional append-only JSON ledger for one goal or topic. The
+Human may explicitly request it, or the Main Agent may select it for substantial
+research that needs durable canonical evidence. Never use Intake creation or
+append as a precondition for bounded implementation, UI feedback, result
+delivery, or Project Skill recording. The Main Agent
 decides whether new activity belongs to the active topic or starts another
 Intake unless the Human explicitly specifies the boundary. Human instructions
 always override the default Agent judgment.
 
-Record every applicable activity: Human input, Agent response, interview, web
+After the Intake route is selected, record every applicable activity: Human input, Agent response, interview, web
 search, internal analysis, user research, observation, Specification check,
 decision, correction, and feedback. Intake stores what happened and its source;
 it does not require a synthesized requirements document.
@@ -74,16 +78,14 @@ Agent records its activity through `intake.py` and returns a compact result.
 The Main Agent retains topic-boundary judgment, Human communication, optional
 Specification routing, Work Unit creation, execution admission, and review.
 
-## Specification and Work Unit routing
+## Optional Specification and Work Unit routing
 
-Specification creation is optional. When a relevant Specification exists,
-record the check and reference it. Create or update one only when the Human or
-Main Agent determines a reusable refined contract is warranted, subject to any
-explicit Human condition.
+Specification creation is a separate explicit Human-selected option. Do not
+create or update one merely because an Intake exists.
 
-A Work Unit is an Agent delegation contract. The Main Agent may create it from
-the exact sufficient Intake entries, with or without a Specification. Intake
-does not transition to ready and is not closed when a Work Unit is created.
+A Work Unit is an optional advanced delegation contract. Create one only when
+the Human explicitly requests a Work Unit route. Intake does not transition to
+ready and is not closed when a Work Unit is created.
 
 ## Output
 

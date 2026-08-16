@@ -6,26 +6,55 @@
 > This plugin is under active development. Its skills, artifact formats, and
 > workflows may change without notice.
 
-Agent Factory is a Codex plugin for structured software delivery through an
-Intake, Work Unit, Execution, and Human Review lifecycle.
+Agent Factory is a Codex plugin for fast Human-feedback software delivery. A
+Main Agent delegates bounded work to a Work Agent, returns the result
+immediately, and records accepted progress afterward through a background
+Recording Agent.
 
 ## Included skills
 
-The plugin exposes exactly eight modular skills:
+The plugin exposes nine modular skills:
 
 - `lifecycle`
 - `agents`
 - `rules`
+- `projects`
 - `intakes`
 - `work-units`
 - `specifications`
 - `conventions`
 - `synchronization`
 
-Each skill keeps its entry contract in `SKILL.md`, UI metadata in
+`projects` maintains the AI-facing Project Skill in a target repository and
+serves a read-only local HTML/CSS/JavaScript view of project context, Git
+progress, decisions, and diagrams. Intake, Specification, Work Unit, Work
+Package, and linked worktree routes remain available only when explicitly
+selected.
+
+Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
 `agents/openai.yaml`, and detailed capability guidance in `references/`.
 Executable managers, schemas, assets, and tests remain inside the owning skill
 when that domain needs them.
+
+## Project Skill and local view
+
+In a target repository, initialize the AI-facing Project Skill with:
+
+```bash
+python3 <plugin-root>/skills/projects/scripts/project.py init \
+  --project-root <project-root> \
+  --name <project-name>
+```
+
+Serve the Human-facing read-only view on loopback with:
+
+```bash
+python3 <plugin-root>/skills/projects/scripts/viewer.py \
+  --project-root <project-root>
+```
+
+The browser view derives Project Skill references, progress, decisions,
+diagrams, and Git status at request time. It does not write project facts.
 
 ## Local installation
 
@@ -57,7 +86,7 @@ Validate the plugin structure with the bundled Plugin Creator validator:
 python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/plugin-creator/scripts/validate_plugin.py" .
 ```
 
-Run only the test commands the Human explicitly names. This authority boundary
+Run only the exact test commands the Human explicitly names. This authority boundary
 also applies to smoke checks, lint, type checks, build verification, and other
 commands whose purpose is to verify a change. When no test is explicitly
 requested, report that tests were not run and leave verification to Human

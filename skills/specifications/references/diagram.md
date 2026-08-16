@@ -114,7 +114,7 @@ artifacts, not as the primary AI-readable source.
 
 ## Storage Rules
 
-For Specifications:
+For Specifications explicitly selected by the Human:
 
 - Store diagram source and diagram artifacts under
   `<project-root>/.agent-factory/specifications/<specification-id>/blocks/diagram/`
@@ -124,6 +124,10 @@ For Specifications:
   artifact's own metadata.
 - Keep diagrams traceable to related design sections, Work Units, and customer
   deliverables when those relationships exist.
+
+For the default Project Skill route, store diagram sources under
+`<project-root>/.agent-factory/skills/project/diagrams/` and use the `projects`
+local Viewer. Do not create a Specification solely to store or render a diagram.
 
 Do not store reusable diagram convention inside project Work Unit packages.
 Work Unit packages may reference diagrams as project-specific evidence or

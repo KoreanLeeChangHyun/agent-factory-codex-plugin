@@ -1,0 +1,19 @@
+{
+  "id": "DECISION-001",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "기본 작업 방식은 Human이 작은 작업을 분할해 요청하고 AI가 빠르게 실행한 뒤 Human이 실제 결과를 보고 피드백하는 짧은 반복으로 한다.",
+    "rationale": "AI 자체 검증보다 Human의 최종 결과 판단이 우선하며 불필요한 절차와 토큰 사용을 줄인다."
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-003"
+    }
+  ],
+  "sequence": 7,
+  "recordedAt": "2026-08-16T12:53:19.863973+00:00"
+}

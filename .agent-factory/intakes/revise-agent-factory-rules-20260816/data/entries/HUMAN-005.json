@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-005",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "차라리 메인 에이전트가 피드백을 수집해서 빠르게 작업 에이전트에게 요청 하고 빠르게 작업 후, 나한테 피드백을 받고 작업 이후에 다른 에이전트가 작업 내역을 기록 하도록 하죠. 먼저 작업 후 백그라운드로 기록."
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "AGENT-002"
+    }
+  ],
+  "sequence": 13,
+  "recordedAt": "2026-08-16T12:57:30.531803+00:00"
+}

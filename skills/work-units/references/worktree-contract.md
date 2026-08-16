@@ -1,7 +1,8 @@
 # Worktree Contract
 
-This contract applies only to Work Units whose explicit `executionMode` is
-`worktree`. `specification-direct` Work Units must not invoke this script.
+This optional contract applies only when the Human explicitly requests a linked
+worktree and the Work Unit's `executionMode` is `worktree`.
+`specification-direct` Work Units must not invoke this script.
 
 ## Identity
 

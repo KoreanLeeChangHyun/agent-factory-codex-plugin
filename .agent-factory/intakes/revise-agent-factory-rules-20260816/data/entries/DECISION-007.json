@@ -1,0 +1,20 @@
+{
+  "id": "DECISION-007",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "worktree 기능은 제거하지 않고 사용자가 명시적으로 요청할 때만 사용하는 선택 기능으로 유지한다.",
+    "default": "primary Git workspace direct execution",
+    "optionalMode": "explicit Human-requested linked worktree"
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-009"
+    }
+  ],
+  "sequence": 23,
+  "recordedAt": "2026-08-16T13:00:48.183715+00:00"
+}

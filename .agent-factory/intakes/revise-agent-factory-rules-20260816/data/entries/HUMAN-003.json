@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-003",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "일을 하면서 느꼈지만 결국에는 작은 작업을 사용자가 분할해서 요청하고 AI가 작업을 빠르게 하고 사용자가 다시 피드백을 주는 구조가 가장 좋습니다. 특히. 테스트는 요청 하지 않을 경우 AI가 테스트 할 필요가 없습니다. 왜냐하면 AI가 테스트했다고 해도 내가 최종 실패라고 하면 의미 없는 시간과 토큰을 사용한거니까."
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "ANALYSIS-002"
+    }
+  ],
+  "sequence": 6,
+  "recordedAt": "2026-08-16T12:53:19.719224+00:00"
+}

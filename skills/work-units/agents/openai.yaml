@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Work Units"
-  short_description: "Manage and execute Work Units and Work Packages."
-  default_prompt: "Use $work-units to manage or execute the applicable Work Unit or Work Package."
+  short_description: "Run optional advanced execution artifacts."
+  default_prompt: "Use $work-units only for an explicitly selected Work Unit, Work Package, or linked worktree route."

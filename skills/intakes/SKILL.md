@@ -1,13 +1,15 @@
 ---
 name: intakes
-description: Record every topic-scoped Agent Factory interaction and discovery activity.
+description: Manage an optional topic-scoped evidence ledger when the Human explicitly requests Intake or substantial research needs durable canonical evidence.
 ---
 
 # Agent Factory Intakes
 
 ## Entry contract
 
-Use this skill for every Agent Factory Intake and every activity recorded in it.
+Use this skill only after the optional Intake route is selected. It is not a
+precondition for bounded implementation or Human feedback. For every selected
+Intake and every activity recorded in it,
 Read `references/intake-management.md` completely, then read every capability
 reference applicable to the activity being handled. Canonical
 Intake writes must use `scripts/intake.py`.

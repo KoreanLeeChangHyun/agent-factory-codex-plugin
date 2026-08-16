@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-007",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "어차피 깃이 있잖아요"
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "DECISION-005"
+    }
+  ],
+  "sequence": 18,
+  "recordedAt": "2026-08-16T12:59:53.360661+00:00"
+}

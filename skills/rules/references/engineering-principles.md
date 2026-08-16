@@ -15,15 +15,17 @@ artifacts, and skill work:
   unless the Human explicitly approves behavior change.
 - CI/CD: keep integration, verification, and deployment paths automatable and
   deployable.
-- Test Pyramid: balance unit, integration, and E2E checks according to risk and
-  blast radius.
+- Test Pyramid: when the Human explicitly authorizes exact tests, balance unit,
+  integration, and E2E checks according to risk and blast radius.
 - Agile Principles: keep changes small, get feedback quickly, and improve
   continuously.
 - Human-in-the-loop Review: AI-produced results require Human review and Human
   responsibility.
-- Spec-Driven Development: define specification and success criteria before
-  implementation.
-- Evaluation: judge output through criteria, tests, and metrics.
+- Project-Skill Guidance: use the target Project Skill as the default AI-facing
+  project context; Specification is an explicit optional artifact.
+- Human Feedback Evaluation: deliver small results quickly and treat Human
+  feedback as the primary iteration signal. Tests and metrics run only when the
+  Human explicitly requests their exact commands.
 - Observability: make inputs, outputs, decisions, and errors traceable.
 - Security by Design: include security, authorization, and data protection from
   the design phase.

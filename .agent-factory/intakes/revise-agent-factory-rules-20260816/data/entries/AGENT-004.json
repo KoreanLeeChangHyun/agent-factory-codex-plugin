@@ -1,0 +1,18 @@
+{
+  "id": "AGENT-004",
+  "actor": {
+    "type": "agent"
+  },
+  "activity": "agent-response",
+  "content": {
+    "message": "현재 repository는 plugin producer이며 consumer project의 Project Skill과 viewer data를 직접 보관하는 대상이 아니라는 경계로 정정한다."
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "HUMAN-013"
+    }
+  ],
+  "sequence": 33,
+  "recordedAt": "2026-08-16T13:07:39.858633+00:00"
+}

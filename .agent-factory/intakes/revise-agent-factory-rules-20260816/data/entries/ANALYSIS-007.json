@@ -1,0 +1,23 @@
+{
+  "id": "ANALYSIS-007",
+  "actor": {
+    "type": "agent"
+  },
+  "activity": "internal-analysis",
+  "content": {
+    "kind": "architecture",
+    "source": ".codex-plugin/plugin.json 및 HUMAN-013",
+    "method": "project role correction",
+    "observation": "현재 저장소는 agent-factory Codex plugin 자체이며 특정 소비자 프로젝트가 아니다.",
+    "interpretation": "플러그인 저장소에는 Project Skill 생성·관리 규칙과 local viewer capability를 구현하고, 실제 Project Skill과 project data는 플러그인이 적용되는 대상 프로젝트에 생성해야 한다.",
+    "correction": "현재 저장소의 .agent-factory/skills/project/SKILL.md에 이 저장소 전용 Project Skill을 생성한다는 이전 제안은 철회한다."
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-013"
+    }
+  ],
+  "sequence": 32,
+  "recordedAt": "2026-08-16T13:07:39.500778+00:00"
+}

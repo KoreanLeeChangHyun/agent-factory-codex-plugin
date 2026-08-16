@@ -1,7 +1,7 @@
 {
   "name": "agent-factory",
   "version": "0.1.0+codex.20260802160716",
-  "description": "Agent Factory lifecycle, specification, Work Unit and DAG Work Package execution, review, and workspace integration skills.",
+  "description": "Feedback-first Agent Factory skills with fast work delegation, background project recording, local browser views, and optional advanced artifact routes.",
   "author": {
     "name": "Agent Factory",
     "url": "https://github.com/KoreanLeeChangHyun"
@@ -13,6 +13,8 @@
     "agent-factory",
     "codex",
     "workflow",
+    "project-skill",
+    "local-viewer",
     "dag",
     "work-package",
     "software-delivery"
@@ -20,8 +22,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Factory",
-    "shortDescription": "Run the Agent Factory lifecycle in Codex.",
-    "longDescription": "Provides Agent Factory skills for Intake, specifications, Work Units, deterministic DAG Work Packages, execution, Human review, diagrams, and workspace integrations.",
+    "shortDescription": "Run fast feedback-first project work in Codex.",
+    "longDescription": "Provides feedback-first Work Agent delegation, post-feedback Recording Agents, AI-facing Project Skills, local browser project views, and optional Intake, Specification, Work Unit, Work Package, diagram, and worktree routes.",
     "developerName": "Agent Factory",
     "category": "Productivity",
     "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",
@@ -30,7 +32,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use Agent Factory to inspect this project and route the next lifecycle action."
+      "Use Agent Factory to delegate the next bounded task, return it for Human feedback, and record accepted project progress afterward."
     ]
   }
 }

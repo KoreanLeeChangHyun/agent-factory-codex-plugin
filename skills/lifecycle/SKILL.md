@@ -1,6 +1,6 @@
 ---
 name: lifecycle
-description: Route Agent Factory work through Intake, Work Unit execution, and Human review.
+description: Route Agent Factory work through fast Work Agent execution and post-feedback recording, with Intake, Specification, Work Unit, Work Package, and worktree flows available only when explicitly selected.
 ---
 
 # Agent Factory Lifecycle
@@ -13,8 +13,8 @@ work, then read each additional reference applicable to the operation.
 
 ## Reference routing
 
-- `references/lifecycle-entry.md`: Apply lifecycle ownership, mandatory sequence, capability coordination, and integration boundaries.
-- `references/lifecycle.md`: Follow the end-to-end Intake, Goal launch, execution, review, rework, integration, and cleanup flow.
+- `references/lifecycle-entry.md`: Choose the default feedback-first route or an explicitly requested advanced route.
+- `references/lifecycle.md`: Follow work-first execution, Human feedback, background recording, and optional artifact flows.
 - `references/common-document-contract.md`: Apply the shared canonical sectioned-document engine and package ownership contract.
 
 ## Assets and tools

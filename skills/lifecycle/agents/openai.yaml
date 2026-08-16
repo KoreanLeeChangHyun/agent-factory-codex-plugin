@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Lifecycle"
-  short_description: "Follow the Agent Factory lifecycle."
-  default_prompt: "Use $lifecycle to route this request from Intake through Work Unit execution and Human review."
+  short_description: "Run the feedback-first Agent Factory lifecycle."
+  default_prompt: "Use $lifecycle to route bounded Work Agent execution before background project recording."

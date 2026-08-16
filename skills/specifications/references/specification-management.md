@@ -1,6 +1,7 @@
 # Specification Convention
 
-Use this capability to create or update Agent Factory Specifications, including
+Use this optional capability only when the Human explicitly requests Agent
+Factory Specifications, including
 Project Core and the canonical Specification JSON consumed by the separate
 Chrome extension Design Report viewer.
 
@@ -95,14 +96,10 @@ canonical identity.
 - Keep Project Core short, simple, and clear. A Design Report may render the
   resolved Project Core relation as a read-only top view, but that view is not
   another canonical copy.
-- During Intake, check a relevant Specification when one exists or when the
-  Human explicitly requires one. Append the check and its reference as an
-  Intake entry. Specification creation remains optional; the Main Agent decides
-  whether a reusable refined contract is warranted unless the Human states a
-  condition, and explicit Human conditions take priority.
-- During Execution, update specification source when scoped implementation or
-  verification reveals a new accepted design fact, then return requirement or
-  scope changes to Intake.
+- Do not check, create, or update a Specification merely because one exists or
+  implementation changed. The Human explicitly selects this route.
+- During an explicitly selected Specification execution, update its source only
+  within the named scope.
 - Treat Specification data as JSON. The JSON model is the source of truth and
   must contain all required Specification elements.
 - Specifications may become large. The registered physical target is the
@@ -172,10 +169,9 @@ During Work Unit Execution, when a new requirement changes design artifacts:
 
 ## Project Timing
 
-Specification creation is not mandatory. Reference an existing applicable
-Specification when useful. Otherwise the Main Agent may create a Work Unit
-directly from sufficient Intake entries. Create or update a Specification only
-when a reusable refined contract is warranted or the Human requires it.
+Specification is not the default project source. The target Project Skill owns
+normal AI-facing project context. Create, reference, or update a Specification
+only when the Human explicitly requests it.
 
 ### New Project Start
 

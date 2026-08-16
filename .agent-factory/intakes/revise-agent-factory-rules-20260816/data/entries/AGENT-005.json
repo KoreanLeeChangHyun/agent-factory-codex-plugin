@@ -1,0 +1,18 @@
+{
+  "id": "AGENT-005",
+  "actor": {
+    "type": "agent"
+  },
+  "activity": "agent-response",
+  "content": {
+    "message": "승인된 예외 범위에서 feedback-first fast path, Recording Agent, optional worktree/Specification, consumer Project Skill과 local viewer를 직접 구현한다. 테스트와 검증 명령은 실행하지 않는다."
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "HUMAN-014"
+    }
+  ],
+  "sequence": 36,
+  "recordedAt": "2026-08-16T13:09:48.422774+00:00"
+}

@@ -24,9 +24,9 @@ canonical identity.
 
 ## Creation
 
-Create a Work Unit when the Main Agent judges the referenced Intake entries
-sufficient, unless the Human specifies a condition. Human conditions take
-priority. It must be
+Create a Work Unit only when the Human explicitly requests that advanced route.
+Do not infer it from task size, repository state, available Intake entries, or
+the existence of historical Work Units. It must be
 self-contained for a new Workflow Agent session and include:
 
 - goal, scope, exclusions, expected output;
@@ -44,13 +44,17 @@ verification, and other commands whose purpose is change verification.
 The basis reference records the canonical Intake package root and exact entry ids.
 It may also reference an existing Specification; Specification is optional.
 
-`executionMode` is:
+`executionMode` is selected only inside the explicit Work Unit route:
 
 - `specification-direct` when the complete scope is canonical Specification
   CRUD. It uses `specification.py` in the primary root and has no worktree.
-- `worktree` for every other implementation. It uses the derived branch and
+- `worktree` only when the Human also explicitly requested a linked worktree.
+  It uses the derived branch and
   linked worktree, with `.agent-factory` excluded. Its execution context records
   local-only `factory` as both `baseRef` and `targetBranch`.
+
+If a Human requests a Work Unit without selecting an available execution mode,
+ask one focused question; never silently choose worktree.
 
 The primary main agent checks sufficiency once before launch. No checkpoint,
 artifact commit, hash snapshot, or approval step exists.

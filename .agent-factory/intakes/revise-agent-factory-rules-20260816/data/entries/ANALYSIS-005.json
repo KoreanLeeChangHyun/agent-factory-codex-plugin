@@ -1,0 +1,23 @@
+{
+  "id": "ANALYSIS-005",
+  "actor": {
+    "type": "agent"
+  },
+  "activity": "internal-analysis",
+  "content": {
+    "kind": "workflow",
+    "source": "HUMAN-007, HUMAN-008 및 현재 Work Unit executionMode contract",
+    "method": "decision conflict review",
+    "observation": "현재 Work Unit 계약은 non-Specification 구현에 worktree를 강제하지만 Human은 Git 저장소만 사용하고 linked worktree 강제를 제거하기를 원한다. feedback-first-fast-path Work Unit package만 생성되었고 worktree prepare 또는 execution은 시작되지 않았다.",
+    "interpretation": "새 규칙은 primary workspace 직접 작업을 기본으로 해야 한다. 다만 worktree 기능 자체를 제거할지 명시 요청용 선택 기능으로 남길지는 별도 동작 차이다.",
+    "limitation": "worktree 기능의 완전 제거 여부는 아직 명시되지 않았다."
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "DECISION-006"
+    }
+  ],
+  "sequence": 21,
+  "recordedAt": "2026-08-16T12:59:54.161788+00:00"
+}

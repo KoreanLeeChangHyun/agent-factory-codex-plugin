@@ -1,0 +1,20 @@
+{
+  "id": "DECISION-008",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "프로젝트 지식의 AI-facing source는 프로젝트 Skill로 유지하고, Human-facing 확인은 별도 로컬 서버가 HTML, CSS, JavaScript 브라우저 UI로 Skill, 프로젝트 진척도, diagram을 렌더링한다.",
+    "sourceOfTruth": "project Skill and inspectable project data",
+    "view": "derived local browser UI"
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-011"
+    }
+  ],
+  "sequence": 27,
+  "recordedAt": "2026-08-16T13:02:25.996805+00:00"
+}

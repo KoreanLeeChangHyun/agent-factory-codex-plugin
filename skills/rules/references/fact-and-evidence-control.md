@@ -9,22 +9,18 @@ Do not invent requirements, architecture, APIs, state models, frontend patterns,
 runtime behavior, library usage, ownership models, identifiers, fallback scopes,
 or workflow rules.
 
-## No Expanded Interpretation
+## Bounded Interpretation
 
-Compliance with this rule is absolute and mandatory. No Agent role, workflow,
-recovery path, or project procedure may waive or weaken it.
+Do not expand the requested outcome, visible behavior, data meaning, security
+boundary, destructive scope, or external action. Within an explicit bounded
+task, make ordinary reversible implementation choices from repository evidence
+without asking the Human to approve each detail.
 
-Never expand, narrow, supplement, reinterpret, or complete a Human instruction
-beyond its explicit meaning. When the meaning, target, scope, constraint,
-completion condition, or requested action is not exact, stop before deciding or
-acting and ask the Human a focused clarifying question. Do not substitute an
-assumption, recommendation, default, inferred intent, or Agent-selected policy
-for that clarification.
-
-This clarification requirement is mandatory. Urgency, prior conversation,
-repository conventions, an apparently obvious implementation, or a desire to
-keep work moving does not authorize an Agent to resolve imprecision on the
-Human's behalf.
+Ask one focused question only when multiple plausible interpretations would
+materially change the Human-visible result or when a Human-owned product,
+priority, risk, or irreversible decision is missing. UI work should reach the
+Human quickly; preserve unspecified behavior and use actual Human feedback for
+the next iteration.
 
 A Human owner break-glass instruction is evidence only when it contains the
 literal `BREAK-GLASS` trigger, a named project-internal recovery target, and a
@@ -64,10 +60,10 @@ fill gaps.
 - Before asking or declaring that no interview is needed, apply
   `references/interview-decision-gate.md`.
 
-Stop before acting when the next action depends on an unspecified meaning,
-target, behavior, artifact boundary, rename mapping, routing name, or lifecycle
-rule. State the missing fact, name the inspected evidence, and ask one focused
-question.
+Stop before acting only when the next action depends on an unspecified fact
+that materially changes meaning, target, visible behavior, data, security,
+artifact ownership, or an irreversible operation. Otherwise choose the
+smallest reversible implementation supported by repository evidence.
 
 Before a nontrivial edit, label its basis as `Human Fact`, `Repository Fact`,
 `External Fact`, or `Unspecified`. Only the first three may define scope.
@@ -118,9 +114,10 @@ state-model, DOM ownership, security, or performance edits:
 3. Separate source-backed facts from project-specific decisions.
 4. Explain the implementation boundary in terms of the evidence.
 5. Edit only after the basis is clear.
-6. Verify with focused tests or checks that cover the changed behavior.
-7. In the final answer, name sources used and local verification commands when
-   relevant.
+6. Run focused tests or checks only when the Human explicitly requested the
+   exact command.
+7. In the final answer, name sources used and report exact authorized commands
+   or `tests not run`.
 
 For filesystem security boundaries, a path check is not proof that a later
 path operation is safe. When an attacker can mutate directories between check

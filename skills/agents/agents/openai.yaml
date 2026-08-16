@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Agents"
-  short_description: "Run Agent Factory main and workflow agent roles."
-  default_prompt: "Use $agents to run the applicable Agent Factory main or workflow role."
+  short_description: "Run feedback-first Agent Factory roles."
+  default_prompt: "Use $agents to delegate bounded work, return Human feedback quickly, and record accepted results afterward."

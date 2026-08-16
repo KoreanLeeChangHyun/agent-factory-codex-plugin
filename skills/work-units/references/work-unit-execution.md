@@ -1,5 +1,9 @@
 # Work Unit Execution
 
+This is an optional advanced route. Start it only when the Human explicitly
+requests the named Work Unit and its execution mode. The normal feedback-first
+route uses a Work Agent in the current Git workspace instead.
+
 Read `references/worktree-contract.md` before Git worktree operations.
 
 ## Launch

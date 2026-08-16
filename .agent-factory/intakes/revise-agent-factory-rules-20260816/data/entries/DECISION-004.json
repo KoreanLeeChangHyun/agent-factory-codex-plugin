@@ -1,0 +1,20 @@
+{
+  "id": "DECISION-004",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "Main Agent는 Human 피드백을 수집해 빠르게 Workflow Agent에 작업을 위임하고, 작업 결과를 Human에게 먼저 전달해 피드백을 받은 뒤 별도 Recording Agent가 작업 내역을 백그라운드에서 기록한다.",
+    "order": "feedback collection -> fast delegation -> implementation -> Human result feedback -> background recording",
+    "rationale": "기록 절차가 작업 시작과 Human 피드백을 지연하지 않도록 실행을 기록보다 우선한다."
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-005"
+    }
+  ],
+  "sequence": 14,
+  "recordedAt": "2026-08-16T12:57:30.773252+00:00"
+}

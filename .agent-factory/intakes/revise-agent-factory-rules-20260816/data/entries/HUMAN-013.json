@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-013",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "correction",
+  "content": {
+    "message": "해당 프로젝트는 플러그인을 만드는 프로젝트임."
+  },
+  "relations": [
+    {
+      "type": "corrects",
+      "entryId": "ANALYSIS-006"
+    }
+  ],
+  "sequence": 31,
+  "recordedAt": "2026-08-16T13:07:39.188078+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "DECISION-010",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "feedback-first-fast-path Work Unit에 한해 Main Agent가 현재 primary Git workspace에서 직접 구현한다.",
+    "exclusions": "worktree 생성 및 테스트·검증 명령 실행"
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-014"
+    }
+  ],
+  "sequence": 35,
+  "recordedAt": "2026-08-16T13:09:48.030068+00:00"
+}

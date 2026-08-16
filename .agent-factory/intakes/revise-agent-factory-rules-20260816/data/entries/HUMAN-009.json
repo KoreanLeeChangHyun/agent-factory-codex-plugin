@@ -1,0 +1,18 @@
+{
+  "id": "HUMAN-009",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "user-input",
+  "content": {
+    "message": "선택 기능으로 남겨만 두죠"
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "ANALYSIS-005"
+    }
+  ],
+  "sequence": 22,
+  "recordedAt": "2026-08-16T13:00:47.899704+00:00"
+}

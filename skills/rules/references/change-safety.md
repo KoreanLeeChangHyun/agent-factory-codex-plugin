@@ -2,35 +2,36 @@
 
 ## Intent Confirmation
 
-Do not edit first when the user's intent or scope can be interpreted in more
-than one way.
+Do not delay a bounded, reversible change for implementation details that can
+be resolved from repository evidence. Ask first only when ambiguity materially
+changes Human-visible behavior, data, security, scope, or an irreversible
+action.
 
-Before broad or ambiguous edits:
+Before a materially broad or ambiguous edit:
 
 1. Restate the requested change in 1-3 short sentences.
 2. List explicit facts from the Human and inspected repository evidence.
 3. List what is unspecified.
 4. State the edit boundary: files or areas to touch, and files or areas not to
    touch.
-5. Ask for confirmation when any unspecified item could change behavior,
-   layout, icons, wording, data, tests, commits, runtime, generated artifacts,
-   or existing uncommitted work.
+5. Ask for confirmation when an unspecified item would materially change the
+   requested outcome or cross a Human-owned decision boundary.
 
 Ask before editing when:
 
-- The request uses broad words such as `통일`, `정리`, `수정`, `개선`, `맞춰`,
-  `좋겠습니다`, `간단히`, `비슷하게`, `형태`, or `느낌`.
-- UI work could affect position, icon, visible text, DOM structure, keyboard
-  behavior, focus behavior, accessibility, spacing, or responsive layout.
+- UI work has two or more materially different visible outcomes that repository
+  evidence and the Human's request do not resolve.
 - The target file, component, selector, route, API, artifact, or skill is not
   named.
-- The worktree has unrelated uncommitted changes in files that may be touched.
+- Unrelated uncommitted changes overlap files that must be touched and cannot be
+  preserved safely.
 - The change could require a commit, rollback, restart, migration, destructive
   command, or generated artifact update.
 
-For UI work, preserve position, icon, visible text, DOM structure, event
-behavior, keyboard behavior, data model, persistence, and unrelated tests unless
-the Human explicitly asks to change them.
+For UI work, use the fast Work Agent route. Preserve position, icon, visible
+text, DOM structure, event behavior, keyboard behavior, data model,
+persistence, and unrelated tests unless the bounded request requires a change.
+Return the actual UI quickly for Human feedback.
 
 ## Change Safety
 

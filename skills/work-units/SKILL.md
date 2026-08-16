@@ -1,13 +1,14 @@
 ---
 name: work-units
-description: Manage and execute canonical Agent Factory Work Units and Work Packages.
+description: Manage and execute optional canonical Agent Factory Work Units, Work Packages, and linked worktrees when the Human explicitly selects those advanced routes.
 ---
 
 # Work Units
 
 ## Entry contract
 
-Use this skill for every Work Unit or Work Package operation. Read the complete
+Use this skill only after the Human explicitly selects a Work Unit, Work
+Package, or linked worktree route. Read the complete
 management or execution reference, plus its linked contract, before invoking a
 manager. Canonical package writes must use the scripts in `scripts/`.
 

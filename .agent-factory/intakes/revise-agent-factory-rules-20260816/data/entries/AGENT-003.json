@@ -1,0 +1,18 @@
+{
+  "id": "AGENT-003",
+  "actor": {
+    "type": "agent"
+  },
+  "activity": "agent-response",
+  "content": {
+    "message": "현행 executionMode가 non-Specification 구현에 worktree를 강제하므로 feedback-first-fast-path Work Unit에 한정된 Main Agent primary direct implementation 예외를 사용자에게 요청한다."
+  },
+  "relations": [
+    {
+      "type": "responds-to",
+      "entryId": "HUMAN-009"
+    }
+  ],
+  "sequence": 24,
+  "recordedAt": "2026-08-16T13:00:48.477851+00:00"
+}

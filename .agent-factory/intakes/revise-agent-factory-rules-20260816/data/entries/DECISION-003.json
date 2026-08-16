@@ -1,0 +1,19 @@
+{
+  "id": "DECISION-003",
+  "actor": {
+    "type": "human"
+  },
+  "activity": "decision",
+  "content": {
+    "decision": "UI 작업은 화면 결과를 빠르게 확인하고 Human 피드백으로 반복할 수 있도록 절차를 최소화해야 한다.",
+    "rationale": "UI 결과는 Human의 직접 확인과 빠른 피드백이 중요하며 현재 절차가 지나치게 복잡하다."
+  },
+  "relations": [
+    {
+      "type": "derived-from",
+      "entryId": "HUMAN-004"
+    }
+  ],
+  "sequence": 11,
+  "recordedAt": "2026-08-16T12:55:07.016742+00:00"
+}
