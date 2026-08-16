@@ -1331,7 +1331,7 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
             payload = json.loads(run_cli("transition", str(package), "ready").stdout)
             self.assertEqual(payload["status"], "ready")
 
-    def test_current_profile_ready_rejects_omitted_review_role_pair(self) -> None:
+    def test_current_profile_allows_unselected_review_role_pair(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             intake = create_ready_intake(root)
@@ -1348,14 +1348,8 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
                 *source,
             )
 
-            rejected = run_cli("transition", str(package), "ready", check=False)
-
-            self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn(
-                "review-separated execution context is missing fields: "
-                "reviewExecution, targetReviewRole",
-                rejected.stderr,
-            )
+            payload = json.loads(run_cli("transition", str(package), "ready").stdout)
+            self.assertEqual(payload["status"], "ready")
 
     def test_ready_rejects_omitted_execution_mode_and_review_role_pair(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -1379,10 +1373,48 @@ class WorkUnitV4ManagerTests(unittest.TestCase):
 
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn(
-                "execution context executionMode must be worktree or "
-                "specification-direct",
+                "execution context executionMode must be workspace-direct, "
+                "worktree, or specification-direct",
                 rejected.stderr,
             )
+
+    def test_workspace_direct_accepts_human_request_basis_without_intake(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            intake = create_ready_intake(root)
+            package = create_package(root)
+            populate_ready_candidate(root, package, intake)
+
+            basis = item(
+                "BASIS-REF-001",
+                "work-basis-ref",
+                {
+                    "basisType": "human-request",
+                    "request": "Implement the bounded Work Unit",
+                },
+            )
+            run_cli(
+                "section-item-put",
+                str(package),
+                "basis",
+                *data_value(root, "human-work-basis.json", basis),
+            )
+            context = ready_items(root, intake, package.name)["execution-context"][0]
+            context["content"]["executionMode"] = "workspace-direct"
+            context["content"].pop("targetBranch")
+            context["content"].pop("branch")
+            context["content"].pop("worktreePath")
+            context["content"].pop("targetReviewRole")
+            context["content"].pop("reviewExecution")
+            run_cli(
+                "section-item-put",
+                str(package),
+                "execution-context",
+                *data_value(root, "workspace-direct-context.json", context),
+            )
+
+            payload = json.loads(run_cli("transition", str(package), "ready").stdout)
+            self.assertEqual(payload["status"], "ready")
 
     def test_execution_attempt_retry_and_resume_preserve_identity_history(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

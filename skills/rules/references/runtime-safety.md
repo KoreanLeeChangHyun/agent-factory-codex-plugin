@@ -28,7 +28,9 @@
   cache keys or sweep unrelated imports.
 - For frontend UI changes, run syntax checks, boundary checks, Playwright,
   screenshots, or other verification only when the Human explicitly requests
-  the exact command. Return the changed UI for fast Human feedback instead.
+  verification. Use exact supplied commands unchanged or select the smallest
+  bounded commands from repository evidence. Return the changed UI for fast
+  Human feedback instead.
 - Never infer full `npm run check`, E2E, mobile, or screenshot authority from
   shared runtime wiring, global layout/CSS, or broad API impact.
 - If focused verification passes but a broader check fails in an unrelated

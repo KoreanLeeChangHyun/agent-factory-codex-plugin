@@ -26,9 +26,11 @@ action.
 ## Tests
 
 Test criteria, repository conventions, changed code, or Agent preference do not
-authorize test execution. Run only the exact test, smoke, lint, typecheck,
-build, or verification command explicitly requested by the Human. Otherwise
-report `tests not run` and let the Human evaluate the delivered result.
+authorize test execution. Run tests only when the Human explicitly requests
+testing or verification. Use an exact supplied command unchanged; otherwise
+select the smallest bounded command from repository evidence and report it.
+Without authorization, report `tests not run` and let the Human evaluate the
+delivered result.
 
 ## Project source and view
 
@@ -47,7 +49,8 @@ Only an explicit Human request selects these routes:
 - `Specification`: canonical Specification package;
 - `Work Unit` or `Work Package`: durable orchestrated execution;
 - `worktree`: linked Git worktree isolation;
-- `tests`: exact named commands;
+- `tests`: explicitly requested verification, using exact supplied commands or
+  bounded commands selected from repository evidence;
 - `documentation` or `independent review`: separate role pass.
 
 When selected, use each artifact's owning manager. Never create or mutate

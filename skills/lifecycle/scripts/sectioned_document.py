@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import fcntl
 import hashlib
 import json
 import os
@@ -58,6 +59,7 @@ SECTIONS_PATH = Path("data/sections")
 BLOCK_INDEX_PATH = Path("blocks/index.json")
 MANAGER_PATH = Path(".manager")
 JOURNAL_PATH = MANAGER_PATH / "transaction.json"
+WRITE_LOCK_PATH = MANAGER_PATH / "write.lock"
 PROTECTED_METADATA_FIELDS = {
     "schemaVersion",
     "documentVersion",
@@ -288,8 +290,13 @@ def canonical_primary_package(requested: Path) -> Path:
     # Canonical CRUD follows a linked-worktree path back to the primary root;
     # code-only worktrees must never acquire a second artifact control plane.
     candidate = Path(os.path.abspath(requested))
+    repository_probe = candidate
+    while not repository_probe.exists() and repository_probe != repository_probe.parent:
+        repository_probe = repository_probe.parent
+    if repository_probe.is_file():
+        repository_probe = repository_probe.parent
     probe = subprocess.run(
-        ["git", "-C", str(Path.cwd()), "worktree", "list", "--porcelain"],
+        ["git", "-C", str(repository_probe), "worktree", "list", "--porcelain"],
         text=True,
         capture_output=True,
         check=False,
@@ -312,6 +319,28 @@ def canonical_primary_package(requested: Path) -> Path:
         if relative.parts[:1] == (".agent-factory",):
             return primary / relative
     return candidate
+
+
+@contextmanager
+def package_write_lock(package: Path) -> Iterable[None]:
+    """Serialize recovery and mutation for one canonical package."""
+    with package_descriptor(package) as package_fd:
+        with relative_parent_descriptor(
+            package_fd, WRITE_LOCK_PATH, create=True
+        ) as (parent_fd, name):
+            flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
+            try:
+                descriptor = os.open(name, flags, 0o600, dir_fd=parent_fd)
+            except OSError as error:
+                raise ManagerError(f"cannot open package writer lock: {error}") from error
+            try:
+                if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                    raise ManagerError("package writer lock must be a regular file")
+                fcntl.flock(descriptor, fcntl.LOCK_EX)
+                yield
+            finally:
+                fcntl.flock(descriptor, fcntl.LOCK_UN)
+                os.close(descriptor)
 
 
 def safe_relative_path(value: str, label: str) -> Path:
@@ -474,6 +503,34 @@ def copy_external_file_relative(package_fd: int, source: Path, target: Path) -> 
             f"cannot read transaction input file {source}: {error}"
         ) from error
     write_bytes_relative(package_fd, target, content)
+
+
+def read_external_regular_file(source: Path) -> bytes:
+    """Read one stable, non-symlink source descriptor for hashing and publication."""
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(source, flags)
+    except OSError as error:
+        raise ManagerError(
+            f"cannot securely open block source {source}: {error}"
+        ) from error
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode):
+            raise ManagerError(f"block source must be a regular file: {source}")
+        chunks: list[bytes] = []
+        while chunk := os.read(descriptor, 1024 * 1024):
+            chunks.append(chunk)
+        after = os.fstat(descriptor)
+        if (before.st_dev, before.st_ino, before.st_size) != (
+            after.st_dev,
+            after.st_ino,
+            after.st_size,
+        ):
+            raise ManagerError(f"block source changed while being read: {source}")
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
 
 
 def replace_relative_file(package_fd: int, source: Path, target: Path) -> None:
@@ -2031,8 +2088,7 @@ def command_block_put(args: argparse.Namespace) -> None:
     package = resolve_package(args.package)
     validate_package(package)
     source = Path(args.source)
-    if source.is_symlink() or not source.is_file():
-        raise ManagerError(f"block source must be a regular non-symlink file: {source}")
+    source_content = read_external_regular_file(source)
     target, relative = checked_block_target(package, args.path)
     index = load_object(package / BLOCK_INDEX_PATH, "block index")
     candidate = [entry for entry in index["blocks"] if entry["path"] != relative]
@@ -2041,8 +2097,8 @@ def command_block_put(args: argparse.Namespace) -> None:
             "path": relative,
             "mediaType": args.media_type,
             "description": args.description,
-            "sha256": file_sha256(source),
-            "sizeBytes": source.stat().st_size,
+            "sha256": hashlib.sha256(source_content).hexdigest(),
+            "sizeBytes": len(source_content),
         }
     )
     candidate.sort(key=lambda entry: entry["path"])
@@ -2054,7 +2110,8 @@ def command_block_put(args: argparse.Namespace) -> None:
             package / BLOCK_INDEX_PATH: new_index,
             package / METADATA_PATH: updated_metadata(package),
         },
-        file_writes={target: source},
+        byte_writes={target: source_content},
+        full_validation=True,
     )
     print(json.dumps(validate_package(package), ensure_ascii=False))
 
@@ -2236,8 +2293,11 @@ def main() -> int:
             return 0
         package = resolve_package(args.package, must_exist=args.command != "create")
         if package.exists() and args.command != "delete":
-            recover_transaction(package)
-        args.handler(args)
+            with package_write_lock(package):
+                recover_transaction(package)
+                args.handler(args)
+        else:
+            args.handler(args)
         return 0
     except ManagerError as error:
         sys.stderr.write(f"error: {error}\n")

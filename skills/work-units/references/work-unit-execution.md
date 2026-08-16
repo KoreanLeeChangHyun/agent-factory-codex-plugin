@@ -1,7 +1,7 @@
 # Work Unit Execution
 
 This is an optional advanced route. Start it only when the Human explicitly
-requests the named Work Unit and its execution mode. The normal feedback-first
+requests the named Work Unit. The normal feedback-first
 route uses a Work Agent in the current Git workspace instead.
 
 Read `references/worktree-contract.md` before Git worktree operations.
@@ -25,11 +25,12 @@ The launcher is the Goal preflight. It:
   attempt that must be resumed;
 - creates and verifies the matching active Goal;
 - starts a background Workflow Agent Goal for implementation only;
-- starts a Test Agent Goal only for exact Human-authorized commands, otherwise
+- starts a Test Agent Goal only for Human-authorized bounded commands, otherwise
   records `tests not run`;
-- always starts a separate Documentation Agent Goal after implementation and
-  limits it to directly affected documents;
-- always starts a separate static Review Agent Goal after documentation, with
+- starts a Documentation Agent Goal only when the Human separately selected
+  documentation and limits it to directly affected documents;
+- starts a static Review Agent Goal only when the Human separately selected
+  independent review, with
   file mutation and verification-command execution prohibited;
 - emits one immediate JSONL ACK after the verified initial `turn/start`;
 - automatically continues a turn that ends as `interrupted`;
@@ -60,16 +61,22 @@ attempt may use recovery admission to prepare a missing worktree without
 reopening the one-time readiness decision.
 
 Launch and admission do not authorize tests. The Workflow Agent never executes
-tests. A separate Test Agent executes only commands the Human explicitly
-requested and the Work Unit records. Smoke checks, lint, type checks, build
-verification, and other verification commands are tests. With no authorized
-commands the launcher skips that Goal and reports `tests not run`. Documentation
-still runs in its mandatory separate Goal, followed by the mandatory Review
-Agent Goal. The Review Agent consumes implementation, test, and documentation
-evidence and returns the structured `ai-review-result`; the launcher aggregates
-all role receipts as Report material.
+tests. A separate Test Agent executes only commands authorized by the Human and
+recorded in the Work Unit: exact supplied commands unchanged, or the smallest
+bounded commands selected from repository evidence after a general test
+request. With no authorization the launcher skips that Goal and reports
+`tests not run`. Documentation and independent Review Goals are also skipped
+unless separately selected. When selected, the Review Agent consumes available
+implementation, test, and documentation evidence and returns structured
+`ai-review-result` evidence.
 
 ## Execution modes
+
+`workspace-direct`:
+
+- edits ordinary code and project files in the recorded primary Git workspace;
+- creates no branch or linked worktree and has no later Git integration step;
+- preserves unrelated uncommitted changes.
 
 `specification-direct`:
 
@@ -164,6 +171,11 @@ nodes see integrated prerequisite results,
 specification-direct serialization and full validation, durable leases and
 idempotency keys, and `app_server_resolution_goal.py` recovery. It reaches one
 package review only after every node, verification, and AI review pass.
+The member launcher returns failure when either `aiReviewResult.result` or
+`checklistResult` fails. The package executor independently enforces that gate
+before merge and derives package review evidence from passing member results.
+Node recovery and supervisor restart loops use finite positive budgets and
+return an error when exhausted.
 
 Every Work Package records local `factory` as its only target. Its
 `work-package/<package-id>` branch is an internal aggregation branch, never a
@@ -179,4 +191,6 @@ python3 scripts/work_package_integrate.py \
 ```
 
 This integrates the package branch into the recorded target once and registers
-the manager-owned receipt. Do not integrate before the Human decision.
+the manager-owned receipt. When local `factory` is not checked out, it uses a
+temporary detached worktree and leaves the Human's current checkout unchanged.
+Do not integrate before the Human decision.

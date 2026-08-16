@@ -17,7 +17,8 @@ a participant study does not.
   directory through the manager's `block-put` command.
 - Keep decisions, optional Specifications, and Work Units traceable to the
   exact web-search entry ids.
-- Run the Intake manager's separate `validate` command after every update.
+- Rely on manager-internal mutation validation. Run separate `validate` only
+  when the Human explicitly requests verification.
 
 Resolve the sibling manager from the installed Plugin skills root as
 `<agent-factory-skills-root>/intakes/scripts/intake.py`. Do not resolve it
@@ -85,9 +86,9 @@ Each `web-search` entry records `title`, `url`, `authorityTier`, `freshness`,
 cross-source recommendations, assumptions, conflicts, and open items as
 separate related Intake entries.
 
-Apply it with `entry-put <package>` and typed data
-arguments, then run `validate`. The manager constructs JSON; do not create a
-JSON value file.
+Apply it with `entry-put <package>` and typed data arguments. The manager
+constructs and validates JSON; do not create a JSON value file. Run separate
+`validate` only when the Human explicitly requests verification.
 
 ## Output
 

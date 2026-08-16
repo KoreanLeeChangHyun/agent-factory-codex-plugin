@@ -28,9 +28,12 @@ delegate an unresolved Human-owned product or safety decision.
 ## Tests
 
 Run no test, smoke, lint, typecheck, build, or other verification command unless
-the Human explicitly requests the exact command. A general request to fix,
-review, or complete work is not test authorization. When no command is named,
-the Work Agent returns `tests not run` and Main Agent reports it.
+the Human explicitly requests testing or verification. When the Human requests
+testing without naming a command, select the smallest bounded command from
+repository evidence and report it. When the Human supplies an exact command,
+run that command unchanged. A general request to fix, review, or complete work
+is not test authorization. Without authorization, the Work Agent returns
+`tests not run` and Main Agent reports it.
 
 ## Result and feedback
 

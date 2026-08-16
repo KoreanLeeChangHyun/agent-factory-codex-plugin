@@ -15,6 +15,9 @@ not create another execution thread from inside the Workflow Agent.
 
 ## Execution route
 
+- `executionMode: workspace-direct`: work in the recorded primary Git
+  workspace. Do not create a branch or linked worktree, and preserve unrelated
+  uncommitted changes.
 - `executionMode: specification-direct`: do not create or prepare a Git
   worktree. Update only the primary root canonical Specification through
   `specification.py`.
@@ -37,11 +40,13 @@ non-idempotent work.
 
 Execute Plan and Work only; the Workflow Agent never runs verification commands.
 Implement the scoped code or Specification change,
-record implementation progress, and commit worktree results. Do not run test,
+record implementation progress, and commit only when the selected worktree
+route requires that integration artifact. Do not commit `workspace-direct`
+results unless the Human separately requested a commit. Do not run test,
 smoke, lint, typecheck, build, or other verification commands. Do not perform
 the independent AI Review, documentation update, or final Report. The launcher
-owns the handoff to the optional Test Agent, mandatory Documentation Agent,
-mandatory independent Review Agent, and Main Agent Human review material.
+owns handoff to separately selected Test, Documentation, and independent Review
+Agents and to Main Agent Human review material.
 
 A turn ending as `interrupted` is continued by the launcher in the same Goal.
 Removed checkpoint or approval procedures must never create a blocker. A

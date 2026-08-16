@@ -15,8 +15,9 @@ artifacts, and skill work:
   unless the Human explicitly approves behavior change.
 - CI/CD: keep integration, verification, and deployment paths automatable and
   deployable.
-- Test Pyramid: when the Human explicitly authorizes exact tests, balance unit,
-  integration, and E2E checks according to risk and blast radius.
+- Test Pyramid: when the Human explicitly authorizes testing, balance unit,
+  integration, and E2E checks according to risk and blast radius within the
+  bounded selected commands.
 - Agile Principles: keep changes small, get feedback quickly, and improve
   continuously.
 - Human-in-the-loop Review: AI-produced results require Human review and Human
@@ -25,7 +26,8 @@ artifacts, and skill work:
   project context; Specification is an explicit optional artifact.
 - Human Feedback Evaluation: deliver small results quickly and treat Human
   feedback as the primary iteration signal. Tests and metrics run only when the
-  Human explicitly requests their exact commands.
+  Human explicitly requests verification; exact supplied commands are unchanged
+  and otherwise the smallest bounded commands come from repository evidence.
 - Observability: make inputs, outputs, decisions, and errors traceable.
 - Security by Design: include security, authorization, and data protection from
   the design phase.

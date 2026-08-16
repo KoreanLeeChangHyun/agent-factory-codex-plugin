@@ -61,7 +61,8 @@ session into the three-choice decision format.
 - Do not create a separate Markdown or JSON interview source of truth.
 - Keep each recorded decision traceable to its optional Specification or Work
   Unit reference.
-- Run the Intake manager's separate `validate` command after the update.
+- Rely on manager-internal mutation validation. Run separate `validate` only
+  when the Human explicitly requests verification.
 
 Resolve the sibling manager from the installed Plugin skills root as
 `<agent-factory-skills-root>/intakes/scripts/intake.py`. Do not resolve it

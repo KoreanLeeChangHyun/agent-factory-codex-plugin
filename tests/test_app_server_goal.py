@@ -483,6 +483,21 @@ class AppServerGoalTest(unittest.TestCase):
         with self.assertRaises(module.ContractError):
             module.validate_review_result(result)
 
+    def test_failed_review_result_is_terminal_even_when_structurally_valid(self) -> None:
+        module = load_module()
+        result = {
+            "result": "fail",
+            "checklistResult": "fail",
+            "findings": ["implementation mismatch"],
+            "blockingFindings": ["implementation mismatch"],
+            "remainingRisks": [],
+            "inputs": ["implementation", "tests", "documentation"],
+        }
+
+        self.assertEqual(module.validate_review_result(result), result)
+        with self.assertRaisesRegex(module.ContractError, "did not pass"):
+            module.require_passing_review_result(result)
+
     def test_role_failure_payload_preserves_completed_stage_evidence(self) -> None:
         module = load_module()
         stages = {

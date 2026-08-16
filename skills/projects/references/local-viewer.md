@@ -12,9 +12,10 @@ Run:
 python3 <plugin-root>/skills/projects/scripts/viewer.py --project-root <project-root>
 ```
 
-The server binds to `127.0.0.1` by default. A non-loopback bind, automatic
-browser opening, restart, deployment, or external transmission requires an
-explicit Human request.
+The server binds to `127.0.0.1` by default and accepts only an expected Host
+header. A non-loopback bind requires both an explicit Human request and the
+`--allow-non-loopback` flag. Automatic browser opening, restart, deployment, or
+external transmission also requires an explicit Human request.
 
 ## Data sources
 
@@ -27,6 +28,12 @@ The Viewer reads only:
 The JSON API and static assets expose no write method. Do not read environment
 variables, credentials, arbitrary repository files, ignored files, or file
 content outside the Project Skill.
+
+Project Skill reads are descriptor-anchored, never follow symlinks, and reject
+multiply linked files. The API skips non-UTF-8 sources, individual files over
+512 KiB, content beyond a 2 MiB request budget, and files after the 200-file
+limit for each source tree. Git queries run without system/global configuration,
+optional locks, filesystem monitoring, or the untracked cache.
 
 ## Diagrams
 

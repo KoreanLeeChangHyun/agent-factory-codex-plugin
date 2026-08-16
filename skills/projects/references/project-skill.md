@@ -49,10 +49,18 @@ Project Skill recording follows implementation and Human feedback:
 Recording must not delay implementation, result delivery, or the next bounded
 task. A recording failure is reported separately and does not invalidate the
 work. Use `scripts/project.py`; do not hand-edit its append-only progress and
-decision records.
+decision records. Pass a stable `--receipt` from the completed Work Agent result
+and record whether the Human accepted or corrected it with `--disposition`.
+The manager flattens CLI values into one Markdown line, rejects linked record
+files, and serializes project recording through an OS-temporary lock keyed to
+the resolved Project Skill path, keeping runtime locks outside project source. It writes
+each bounded record by atomically replacing the complete ledger, so readers
+observe either the previous ledger or the complete new ledger.
 
 ## Tests
 
 Do not run tests, smoke checks, lint, type checks, builds, or verification
-commands unless the Human explicitly requests the exact command. Record
-`tests not run` when no command was authorized.
+commands unless the Human explicitly requests testing or verification. Use an
+exact supplied command unchanged; otherwise select the smallest bounded command
+from repository evidence and report it. Record `tests not run` when testing was
+not authorized.

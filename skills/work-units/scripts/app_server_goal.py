@@ -456,10 +456,15 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
             "execution context repository does not match repository",
         )
     execution_route = context.get("executionMode")
-    if execution_route not in {"worktree", "specification-direct"}:
+    if execution_route not in {
+        "workspace-direct",
+        "worktree",
+        "specification-direct",
+    }:
         raise ContractError(
             "invalid_execution_context",
-            "executionMode must be worktree or specification-direct",
+            "executionMode must be workspace-direct, worktree, or "
+            "specification-direct",
         )
     mode = launch_mode(validation_payload, context_section, work_unit_id)
     if execution_route == "worktree":
@@ -526,6 +531,17 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
                         "expected": expected_branch,
                     },
                 )
+    authorized_tests = (
+        context.get("authorizedTests", [])
+        if isinstance(context.get("authorizedTests", []), list)
+        and all(
+            isinstance(command, str) and command.strip()
+            for command in context.get("authorizedTests", [])
+        )
+        else []
+    )
+    run_documentation = "targetDocumentationRole" in context
+    run_review = "targetReviewRole" in context
     return {
         "mode": mode,
         "executionRoute": execution_route,
@@ -534,16 +550,12 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
         ),
         "objective": work_unit_id,
         "package": str(package),
-        "authorizedTests": (
-            context.get("authorizedTests", [])
-            if isinstance(context.get("authorizedTests", []), list)
-            and all(
-                isinstance(command, str) and command.strip()
-                for command in context.get("authorizedTests", [])
-            )
-            else []
+        "authorizedTests": authorized_tests,
+        "runDocumentation": run_documentation,
+        "runReview": run_review,
+        "orchestrateRoles": bool(
+            authorized_tests or run_documentation or run_review
         ),
-        "orchestrateRoles": True,
     }
 
 
@@ -618,7 +630,10 @@ def rework_instruction(execution_context: dict[str, Any]) -> str | None:
 
 
 def execution_prompt(
-    work_unit_id: str, mode: str, instruction: str | None
+    work_unit_id: str,
+    mode: str,
+    instruction: str | None,
+    execution_route: str = "worktree",
 ) -> str:
     if mode == "execution":
         action = f"execute Agent Factory Work Unit {work_unit_id}"
@@ -650,6 +665,30 @@ def execution_prompt(
             "execution mode must be execution, rework, or resume",
             {"mode": mode},
         )
+    if execution_route == "workspace-direct":
+        route_instruction = (
+            "For a workspace-direct Work Unit, edit scoped files in the primary "
+            "Git workspace, preserve unrelated changes, and do not create a "
+            "branch or linked worktree."
+        )
+    elif execution_route == "specification-direct":
+        route_instruction = (
+            "For a Specification-only Work Unit, update the primary root canonical "
+            "Specification only through specification.py and do not create a "
+            "worktree."
+        )
+    elif execution_route == "worktree":
+        route_instruction = (
+            "Create or reuse the dedicated linked worktree before execution-init "
+            "or attempt-start; .agent-factory is excluded from that worktree, and "
+            "all scoped non-canonical changes belong there."
+        )
+    else:
+        raise ContractError(
+            "invalid_execution_route",
+            "Workflow Agent execution route is unsupported",
+            {"executionRoute": execution_route},
+        )
     return (
         "You are the Workflow Agent. You must execute the named Work Unit "
         "without asking for another approval, checkpoint, or readiness "
@@ -660,17 +699,37 @@ def execution_prompt(
         "step. Do not run tests, perform AI Review, update documentation, or "
         "write the final Report. Do not execute lint, typecheck, build, smoke, "
         "runtime verification, git diff --check, or any other verification "
-        "command. For a Specification-only Work "
-        "Unit, update the primary root canonical Specification only through "
-        "specification.py and do not create a worktree. For every other Work "
-        "Unit, create or reuse its dedicated linked worktree before "
-        "execution-init or attempt-start; .agent-factory is excluded from that "
-        "worktree, and all scoped non-canonical changes belong there."
+        f"command. {route_instruction}"
         f"{instruction_text}"
     )
 
 
-def recovery_prompt(work_unit_id: str, reason: str) -> str:
+def recovery_prompt(
+    work_unit_id: str,
+    reason: str,
+    execution_route: str = "worktree",
+) -> str:
+    if execution_route == "workspace-direct":
+        route_instruction = (
+            "Continue in the primary Git workspace, preserve unrelated changes, "
+            "and do not create a branch or linked worktree. "
+        )
+    elif execution_route == "specification-direct":
+        route_instruction = (
+            "Write only the primary canonical Specification through "
+            "specification.py. "
+        )
+    elif execution_route == "worktree":
+        route_instruction = (
+            "Continue in the dedicated linked worktree. If it is missing, prepare "
+            "it before blocker-resolve or attempt-resume. "
+        )
+    else:
+        raise ContractError(
+            "invalid_execution_route",
+            "Workflow Agent recovery route is unsupported",
+            {"executionRoute": execution_route},
+        )
     return (
         "You are the Workflow Agent. You must continue $agents "
         f"execution of Agent Factory Work Unit {work_unit_id}. The prior turn "
@@ -680,11 +739,8 @@ def recovery_prompt(work_unit_id: str, reason: str) -> str:
         "the implementation Work step only. Do not run tests, perform AI "
         "Review, update documentation, or write the final Report. Do not execute "
         "lint, typecheck, build, smoke, runtime verification, git diff --check, "
-        "or any other verification command. For a Specification-only Work "
-        "Unit, write only the primary canonical Specification through "
-        "specification.py; otherwise continue in the dedicated linked worktree. "
-        "If that linked worktree is missing, prepare the missing linked worktree "
-        "before blocker-resolve or attempt-resume. "
+        "or any other verification command. "
+        f"{route_instruction}"
         "Removed checkpoint or approval procedures must not block execution."
     )
 
@@ -701,7 +757,7 @@ def test_agent_prompt(
             "Run them in the prepared implementation worktree at "
             f"{repository / '.agent-factory' / 'worktree' / work_unit_id}."
         )
-    elif execution_route == "specification-direct":
+    elif execution_route in {"workspace-direct", "specification-direct"}:
         location = (
             f"Run them in the primary repository at {repository}; this "
             "execution mode has no implementation worktree."
@@ -724,14 +780,31 @@ def test_agent_prompt(
     )
 
 
-def documentation_agent_prompt(work_unit_id: str, tests_result: str) -> str:
+def documentation_agent_prompt(
+    work_unit_id: str, tests_result: str, execution_route: str = "worktree"
+) -> str:
+    if execution_route == "worktree":
+        location = "Non-canonical affected documents belong in the dedicated worktree."
+    elif execution_route == "workspace-direct":
+        location = (
+            "Non-canonical affected documents belong in the primary Git workspace; "
+            "preserve unrelated changes."
+        )
+    elif execution_route == "specification-direct":
+        location = "Only canonical Specification documents are in scope."
+    else:
+        raise ContractError(
+            "invalid_execution_route",
+            "Documentation Agent execution route is unsupported",
+            {"executionRoute": execution_route},
+        )
     return (
         "You are the Documentation Agent. Use $agents to update only documents "
         f"directly affected by Agent Factory Work Unit {work_unit_id} after "
         f"implementation. Test handoff: {tests_result}. Inspect the Work Unit and "
         "implementation diff before deciding impact. Do not modify product code, "
-        "test code, configuration, or unrelated documents. Non-canonical affected "
-        "documents belong in the dedicated worktree. Update canonical documents "
+        "test code, configuration, or unrelated documents. "
+        f"{location} Update canonical documents "
         "only through their owning manager in the primary repository. Complete "
         "the documentation Goal by returning only one JSON object with "
         "affectedPaths, canonicalManagerCommands, and unchangedImpactFindings "
@@ -811,6 +884,19 @@ def validate_review_result(result: dict[str, Any]) -> dict[str, Any]:
             "review inputs must identify implementation, tests, and documentation",
         )
     return result
+
+
+def require_passing_review_result(result: dict[str, Any]) -> None:
+    if result["result"] != "pass" or result["checklistResult"] != "pass":
+        raise ContractError(
+            "ai_review_failed",
+            "Review Agent did not pass the Work Unit",
+            {
+                "result": result["result"],
+                "checklistResult": result["checklistResult"],
+                "blockingFindings": result["blockingFindings"],
+            },
+        )
 
 
 def validate_documentation_result(result: dict[str, Any]) -> dict[str, Any]:
@@ -917,6 +1003,7 @@ def run_protocol(
     objective_override: str | None = None,
     prompt_override: str | None = None,
     recovery_role: str = "Workflow Agent",
+    execution_route: str = "worktree",
 ) -> dict[str, Any]:
     timing = {"processStart": 0}
 
@@ -1045,14 +1132,15 @@ def run_protocol(
         )
         validate_goal(fetched, thread_id, objective, required_status="active")
         continuation = (
-            recovery_prompt(work_unit_id, reason)
+            recovery_prompt(work_unit_id, reason, execution_route)
             if recovery_role == "Workflow Agent"
             else role_recovery_prompt(recovery_role, work_unit_id, reason)
         )
         start_turn(continuation)
 
     initial_turn_id = start_turn(
-        prompt_override or execution_prompt(work_unit_id, mode, instruction)
+        prompt_override
+        or execution_prompt(work_unit_id, mode, instruction, execution_route)
     )
     mark("turnAccepted")
     mark("ackEmitted")
@@ -1398,6 +1486,7 @@ def execute(
                     )
                 )
             ),
+            execution_route=package["executionRoute"],
         )
         implementation_process = client.close()
         client = None
@@ -1443,6 +1532,7 @@ def execute(
                         resolved_repository,
                     ),
                     recovery_role="Test Agent",
+                    execution_route=package["executionRoute"],
                 )
                 stages["tests"]["ack"] = stage_ack_evidence(
                     "Test Agent", stages["tests"]
@@ -1484,8 +1574,6 @@ def execute(
                 stages["tests"]["process"] = test_process
                 process_evidence["tests"] = test_process
                 client = None
-        active_role = "Documentation Agent"
-        client = AppServerClient(codex_executable, deadline, operations)
         tests_result = (
             "tests not run"
             if not authorized_tests
@@ -1496,36 +1584,45 @@ def execute(
                 else "Human-authorized tests completed; inspect the test Goal receipt"
             )
         )
-        stages["documentation"] = run_protocol(
-            client,
-            resolved_repository,
-            work_unit_id,
-            package["mode"],
-            package.get("instruction"),
-            process_started,
-            objective_override=f"{work_unit_id}:documentation",
-            prompt_override=documentation_agent_prompt(work_unit_id, tests_result),
-            recovery_role="Documentation Agent",
-        )
-        stages["documentation"]["ack"] = stage_ack_evidence(
-            "Documentation Agent", stages["documentation"]
-        )
-        documentation_completed_turn = stages["documentation"].get("completedTurn")
-        if not isinstance(documentation_completed_turn, dict):
-            raise ContractError(
-                "documentation_result_missing",
-                "Documentation Agent completed without a result",
+        documentation_completed_turn = None
+        documentation_result = None
+        documentation_process = None
+        if package.get("runDocumentation", False):
+            active_role = "Documentation Agent"
+            client = AppServerClient(codex_executable, deadline, operations)
+            stages["documentation"] = run_protocol(
+                client,
+                resolved_repository,
+                work_unit_id,
+                package["mode"],
+                package.get("instruction"),
+                process_started,
+                objective_override=f"{work_unit_id}:documentation",
+                prompt_override=documentation_agent_prompt(
+                    work_unit_id, tests_result, package["executionRoute"]
+                ),
+                recovery_role="Documentation Agent",
+                execution_route=package["executionRoute"],
             )
-        documentation_result = validate_documentation_result(
-            agent_result(documentation_completed_turn)
-        )
-        stages["documentation"]["documentationResult"] = documentation_result
-        documentation_process = client.close()
-        stages["documentation"]["process"] = documentation_process
-        process_evidence["documentation"] = documentation_process
-        client = None
-        active_role = "Review Agent"
-        client = AppServerClient(codex_executable, deadline, operations)
+            stages["documentation"]["ack"] = stage_ack_evidence(
+                "Documentation Agent", stages["documentation"]
+            )
+            documentation_completed_turn = stages["documentation"].get("completedTurn")
+            if not isinstance(documentation_completed_turn, dict):
+                raise ContractError(
+                    "documentation_result_missing",
+                    "Documentation Agent completed without a result",
+                )
+            documentation_result = validate_documentation_result(
+                agent_result(documentation_completed_turn)
+            )
+            stages["documentation"]["documentationResult"] = documentation_result
+            documentation_process = client.close()
+            stages["documentation"]["process"] = documentation_process
+            process_evidence["documentation"] = documentation_process
+            client = None
+        else:
+            stages["documentation"] = {"state": "not-requested"}
         review_inputs = {
             "implementation": {
                 "ack": stages["implementation"]["ack"],
@@ -1533,51 +1630,46 @@ def execute(
                 "process": implementation_process,
             },
             "tests": stages["tests"],
-            "documentation": {
-                "ack": stages["documentation"]["ack"],
-                "goal": stages["documentation"]["goal"],
-                "completedTurn": documentation_completed_turn,
-                "terminalResult": documentation_result,
-                "affectedPaths": documentation_result["affectedPaths"],
-                "process": documentation_process,
-            },
+            "documentation": stages["documentation"],
         }
-        stages["review"] = run_protocol(
-            client,
-            resolved_repository,
-            work_unit_id,
-            package["mode"],
-            package.get("instruction"),
-            process_started,
-            objective_override=f"{work_unit_id}:review",
-            prompt_override=review_agent_prompt(work_unit_id, review_inputs),
-            recovery_role="Review Agent",
-        )
-        stages["review"]["ack"] = stage_ack_evidence(
-            "Review Agent", stages["review"]
-        )
-        review_process = client.close()
-        stages["review"]["process"] = review_process
-        process_evidence["review"] = review_process
-        client = None
-        completed_turn = stages["review"].get("completedTurn")
-        if not isinstance(completed_turn, dict):
-            raise ContractError(
-                "review_result_missing", "Review Agent completed without a result"
+        if package.get("runReview", False):
+            active_role = "Review Agent"
+            client = AppServerClient(codex_executable, deadline, operations)
+            stages["review"] = run_protocol(
+                client,
+                resolved_repository,
+                work_unit_id,
+                package["mode"],
+                package.get("instruction"),
+                process_started,
+                objective_override=f"{work_unit_id}:review",
+                prompt_override=review_agent_prompt(work_unit_id, review_inputs),
+                recovery_role="Review Agent",
+                execution_route=package["executionRoute"],
             )
-        stages["review"]["aiReviewResult"] = validate_review_result(
-            agent_result(completed_turn)
-        )
+            stages["review"]["ack"] = stage_ack_evidence(
+                "Review Agent", stages["review"]
+            )
+            review_process = client.close()
+            stages["review"]["process"] = review_process
+            process_evidence["review"] = review_process
+            client = None
+            completed_turn = stages["review"].get("completedTurn")
+            if not isinstance(completed_turn, dict):
+                raise ContractError(
+                    "review_result_missing", "Review Agent completed without a result"
+                )
+            stages["review"]["aiReviewResult"] = validate_review_result(
+                agent_result(completed_turn)
+            )
+            require_passing_review_result(stages["review"]["aiReviewResult"])
+        else:
+            stages["review"] = {"state": "not-requested"}
         stages["reportMaterial"] = {
             "implementation": stages["implementation"],
             "tests": stages["tests"],
             "documentation": stages["documentation"],
-            "review": {
-                "ack": stages["review"]["ack"],
-                "goal": stages["review"]["goal"],
-                "process": review_process,
-                "aiReviewResult": stages["review"]["aiReviewResult"],
-            },
+            "review": stages["review"],
         }
         if test_failure is not None:
             stages["managerRecovery"] = record_terminal_failure(

@@ -10,7 +10,7 @@
       "id": "definition",
       "title": "Definition",
       "requiredKinds": ["package-definition"],
-      "contains": ["DAG nodes", "repository and branches", "execution policy"]
+      "contains": ["DAG nodes", "repository and branches", "finite recovery execution policy"]
     },
     {
       "id": "execution",
@@ -22,7 +22,7 @@
       "id": "ai-review",
       "title": "AI Review",
       "requiredKinds": ["ai-review-result"],
-      "contains": ["package verification and AI review"]
+      "contains": ["member-derived passing package verification and AI review"]
     },
     {
       "id": "human-review",

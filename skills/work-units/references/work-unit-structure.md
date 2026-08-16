@@ -16,20 +16,25 @@ Required sections:
 8. `human-review`
 9. `report`
 
-The `intake-basis-ref` item references one topic-scoped Intake package root
-without a section anchor. Its content contains the unique non-empty `entryIds`
-used to define the delegation. Intake has no readiness or lifecycle state;
-Work Unit readiness owns execution admission.
+The preferred `work-basis-ref` item declares `basisType` as `human-request`,
+`project-skill`, or `intake`. A Human basis contains the bounded request. A
+Project Skill basis references `.agent-factory/skills/project`. An Intake basis
+references one topic-scoped Intake package root without a section anchor and
+contains unique non-empty `entryIds`. The legacy `intake-basis-ref` shape
+remains valid. Intake is optional and Work Unit readiness owns admission.
 
 The `test-criterion` in `acceptance-and-verification` is a conditional plan. It
-must distinguish the exact tests explicitly requested by the Human from a
-no-tests-authorized state. The `execution-result`, `ai-review-result`, and
+must distinguish Human-authorized bounded tests from a no-tests-authorized
+state. Exact Human-supplied commands remain unchanged; otherwise commands come
+from bounded repository evidence. The `execution-result`, optional
+`ai-review-result`, and
 `report-result` must record the commands and results for authorized tests or
 state that tests were not run. Smoke, lint, typecheck, and build verification
 are governed by the same rule. Execution context also records the Workflow
 Agent as implementation-only, the optional code-read-only Test Agent, and the
-mandatory affected-document-only Documentation Agent, followed by the mandatory
-static Review Agent. The Review Agent modifies no files, runs no verification
+separately selected affected-document-only Documentation Agent and independent
+static Review Agent. These roles are not implied by selecting a Work Unit. The
+Review Agent modifies no files, runs no verification
 commands, and provides structured `ai-review-result` evidence. Execution and
 Report evidence keep every role's ACK, terminal receipt, result, and failure
 separate.
@@ -37,14 +42,16 @@ separate.
 ## Execution context
 
 Record Goal id, objective, exact `app_server_goal.py` invocation, Workflow Agent
-role, absolute primary repository, base ref, and `executionMode`. Every Work Unit
-must also record both `targetReviewRole` and `reviewExecution`; the
-role must be review-only and its execution must be a mandatory separate Goal.
-A context that omits either Review field is invalid.
+role, absolute primary repository, base ref, and `executionMode`. When the Human
+selected independent Review, record both `targetReviewRole` and
+`reviewExecution`; the role is review-only and runs in a separate Goal. A
+context containing only one Review field is invalid.
 
 For `worktree`, record the derived branch and canonical linked worktree path.
 For `specification-direct`, branch/worktree fields may retain derived identity
 for compatibility but no worktree is created or used.
+For `workspace-direct`, branch/worktree fields are omitted and work occurs in
+the recorded primary repository.
 
 ## Execution-state v2
 

@@ -1,3 +1,5 @@
 /.agent-factory/worktree/
 feedback/
 uploads
+__pycache__/
+*.py[cod]

@@ -36,10 +36,12 @@ contracts remain authoritative after selection. No artifact's mere existence
 activates its lifecycle.
 
 For an explicitly requested Work Unit or Work Package, use the existing Goal
-launcher and advanced role chain. The Test Agent still runs only exact
-Human-authorized commands. Worktree preparation occurs only when the Human also
-selected worktree mode. Promotion, push, PR, deployment, restart, and branch
-deletion remain separate explicit actions.
+launcher. The primary workspace is the normal execution location; worktree
+preparation occurs only when the Human also selected worktree mode. A Test,
+Documentation, or independent Review Agent runs only when the Human separately
+selected that route. Human-authorized tests use an exact supplied command or a
+bounded command selected from repository evidence. Promotion, push, PR,
+deployment, restart, and branch deletion remain separate explicit actions.
 
 ## Human-facing project view
 

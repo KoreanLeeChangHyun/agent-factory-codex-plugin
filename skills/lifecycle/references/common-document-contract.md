@@ -74,6 +74,11 @@ The lifecycle-owned `scripts/sectioned_document.py` implements shared package
 mechanics for Specification and Work Unit. Intake owns its ledger mechanics in
 `intakes/scripts/intake.py` and reuses only the common block-index schema.
 
+The shared manager serializes recovery and mutation with one descriptor-anchored
+writer lock per package. Block registration opens the external source once
+without following its final symlink and uses the bytes from that same descriptor
+for the recorded digest, size, and published block.
+
 Each artifact-owning manager is its JSON construction and serialization owner.
 Managers accept semantic data through typed command arguments. LLM callers must not compose JSON
 strings or temporary JSON value files. Structured arguments use JSON Pointer

@@ -18,11 +18,12 @@ Human-facing decision into the Intake Agent or Workflow Agent.
 - `references/recording-agent.md`: Record accepted decisions and completed work after Human feedback without blocking delivery.
 - `references/intake-agent.md`: Run delegated Intake research through codex exec while preserving Main Agent decisions and single-writer canonical Intake ownership.
 - `references/workflow-agent.md`: Execute an explicitly requested named Work Unit through the optional advanced lifecycle.
-- `references/test-agent.md`: Run only exact Human-authorized verification commands without modifying implementation artifacts.
+- `references/test-agent.md`: Run only Human-authorized bounded verification commands without modifying implementation artifacts.
 - `references/documentation-agent.md`: Update affected documents inside an explicitly selected advanced route.
 - `references/review-agent.md`: Perform optional independent static review inside an explicitly selected advanced route.
 
 ## Assets and tests
 
 Role contract regression tests live in `tests/`. Run them only when the Human
-explicitly requests the exact command.
+explicitly requests testing; use an exact supplied command unchanged or select
+the smallest bounded command from repository evidence.

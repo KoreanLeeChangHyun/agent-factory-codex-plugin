@@ -146,7 +146,8 @@ Work only on Intake `{intake_id}` in `{repository}` and perform this delegated r
 
 Use the `intakes` skill and its `{capability}` capability for {routes[capability]}.
 All canonical Intake reads, appends, validation, and blocks must use
-`skills/intakes/scripts/intake.py`; never edit canonical JSON directly. You are
+`{INTAKE_MANAGER}`; never resolve the manager from the target repository and
+never edit canonical JSON directly. You are
 the single writer only for the duration of this delegated run.
 
 Return evidence and analysis to the Main Agent. If a Human-owned choice is

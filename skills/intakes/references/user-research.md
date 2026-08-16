@@ -10,8 +10,9 @@ observed behavior or generalize beyond the sampled people and situations.
 - Use `references/analysis.md` for repository, database, analytics, log, test,
   runtime, and document evidence that does not require observing a person.
 - Use `references/web-search.md` for public or external published evidence.
-- Use a Work Unit during Execution for prototype construction, experiment
-  implementation, recruitment, external contact, or other scoped mutations.
+- Use a Work Unit for prototype construction or other scoped mutations only
+  when the Human separately selects that advanced route. Recruitment and
+  external contact always require explicit authorization.
 - Record a research need as an open item when access, consent, participants, or
   an appropriate observation surface is unavailable. Do not fabricate a study.
 
@@ -30,7 +31,8 @@ observed behavior or generalize beyond the sampled people and situations.
    researcher influence, missing user groups, and contradictory evidence.
 6. Append each structured result through the sibling Intake manager's
    `entry-put` command with activity `user-research`.
-7. Run the Intake manager's separate `validate` command immediately.
+7. Rely on manager-internal mutation validation. Run separate `validate` only
+   when the Human explicitly requests verification.
 8. Keep later decisions, optional Specifications, and Work Units traceable to
    the exact research entry ids. Route Human-only choices to `references/interview.md`.
 
@@ -53,12 +55,11 @@ message bodies, or unnecessary recordings in Intake JSON. Register authorized
 non-JSON supporting material under `blocks/` through `block-put`, using a
 redacted or minimized artifact whenever possible.
 
-Apply an item and validate with:
+Apply an item with:
 
 ```text
 python3 <agent-factory-skills-root>/intakes/scripts/intake.py entry-put \
   <package> <typed-data-arguments>
-python3 <agent-factory-skills-root>/intakes/scripts/intake.py validate <package>
 ```
 
 The manager constructs JSON from the typed data arguments. Do not create a
@@ -71,6 +72,6 @@ relative to the shell working directory or the `intakes` skill directory.
 ## Output
 
 Report the Intake id, research question, sampled group and context, methods,
-observations, limitations, validation result, and whether more user research,
+observations, limitations, manager mutation result, and whether more user research,
 internal analysis, web search, Human interview, or specification alignment is
 required.

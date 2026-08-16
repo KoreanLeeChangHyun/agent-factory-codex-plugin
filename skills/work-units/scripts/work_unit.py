@@ -1217,9 +1217,9 @@ def command_admit(args: argparse.Namespace) -> None:
     context_item = find_kind(package, "execution-context")
     assert context_item is not None
     context = context_item["content"]
-    if context["executionMode"] == "specification-direct":
+    if context["executionMode"] != "worktree":
         raise ManagerError(
-            "specification-direct Work Unit does not use worktree admission"
+            f"{context['executionMode']} Work Unit does not use worktree admission"
         )
     expected = {
         "repository": str(Path(args.repository).resolve()),
@@ -1379,10 +1379,10 @@ def validate_ready_semantics(package: Path) -> None:
         "baseRef",
     }
     execution_mode = context["content"].get("executionMode")
-    if execution_mode not in {"worktree", "specification-direct"}:
+    if execution_mode not in {"workspace-direct", "worktree", "specification-direct"}:
         raise ManagerError(
-            "execution context executionMode must be worktree or "
-            "specification-direct"
+            "execution context executionMode must be workspace-direct, "
+            "worktree, or specification-direct"
         )
     role_fields = {
         "targetWorkflowRole",
@@ -1405,9 +1405,9 @@ def validate_ready_semantics(package: Path) -> None:
             raise ManagerError(
                 "Documentation Agent role must be affected-document-only"
             )
-        if "mandatory separate background Goal" not in context["content"]["documentationExecution"]:
+        if "separate background Goal" not in context["content"]["documentationExecution"]:
             raise ManagerError(
-                "Documentation Agent execution must be a mandatory separate background Goal"
+                "Documentation Agent execution must be a separate background Goal"
             )
         authorized_tests = context["content"].get("authorizedTests", [])
         if not isinstance(authorized_tests, list) or not all(
@@ -1416,18 +1416,19 @@ def validate_ready_semantics(package: Path) -> None:
         ):
             raise ManagerError("authorizedTests must be a list of exact commands")
     review_role_fields = {"targetReviewRole", "reviewExecution"}
-    missing_review_roles = sorted(review_role_fields - set(context["content"]))
-    if missing_review_roles:
-        raise ManagerError(
-            "review-separated execution context is missing fields: "
-            + ", ".join(missing_review_roles)
-        )
-    if "review-only" not in context["content"]["targetReviewRole"]:
-        raise ManagerError("Review Agent role must be review-only")
-    if "mandatory separate Goal" not in context["content"]["reviewExecution"]:
-        raise ManagerError(
-            "Review Agent execution must be a mandatory separate Goal"
-        )
+    if review_role_fields.intersection(context["content"]):
+        missing_review_roles = sorted(review_role_fields - set(context["content"]))
+        if missing_review_roles:
+            raise ManagerError(
+                "review-separated execution context is missing fields: "
+                + ", ".join(missing_review_roles)
+            )
+        if "review-only" not in context["content"]["targetReviewRole"]:
+            raise ManagerError("Review Agent role must be review-only")
+        if "separate Goal" not in context["content"]["reviewExecution"]:
+            raise ManagerError(
+                "Review Agent execution must be a separate Goal"
+            )
     if execution_mode == "worktree":
         required.update({"branch", "targetBranch", "worktreePath"})
     missing = sorted(required - set(context["content"]))
@@ -1530,8 +1531,62 @@ def validate_ready_semantics(package: Path) -> None:
             "execution context execInvocation repository and Work Unit id "
             "must match the execution context"
         )
-    basis = find_kind(package, "intake-basis-ref")
+    basis = find_kind(package, "work-basis-ref")
+    legacy_intake_basis = find_kind(package, "intake-basis-ref")
+    if basis is not None and legacy_intake_basis is not None:
+        raise ManagerError("ready Work Unit requires exactly one basis item")
+    if basis is None:
+        basis = legacy_intake_basis
+    if basis is None:
+        raise ManagerError(
+            "ready Work Unit requires a work-basis-ref or legacy intake-basis-ref"
+        )
+    basis_content = basis.get("content")
+    if not isinstance(basis_content, dict):
+        raise ManagerError("ready Work Unit basis content must be an object")
+    basis_type = (
+        "intake"
+        if basis.get("kind") == "intake-basis-ref"
+        else basis_content.get("basisType")
+    )
+    if basis_type not in {"human-request", "project-skill", "intake"}:
+        raise ManagerError(
+            "ready Work Unit work-basis-ref basisType must be human-request, "
+            "project-skill, or intake"
+        )
     references = [] if basis is None else basis.get("sourceRefs", [])
+    if basis_type == "human-request":
+        request = basis_content.get("request")
+        if not isinstance(request, str) or not request.strip() or references:
+            raise ManagerError(
+                "ready Work Unit Human basis requires a non-empty request and no sourceRefs"
+            )
+        return
+    project_root = package_project_root(package)
+    if basis_type == "project-skill":
+        if len(references) != 1:
+            raise ManagerError(
+                "ready Work Unit Project Skill basis requires exactly one sourceRef"
+            )
+        reference = references[0]
+        if (
+            reference.get("artifactType") != "project-skill"
+            or "anchor" in reference
+        ):
+            raise ManagerError(
+                "ready Work Unit Project Skill basis requires a package-root sourceRef"
+            )
+        target = project_root / base.safe_relative_path(
+            reference["path"], "Project Skill basis path"
+        )
+        expected_target = project_root / ".agent-factory" / "skills" / "project"
+        if target.resolve(strict=False) != expected_target.resolve(strict=False):
+            raise ManagerError(
+                "ready Work Unit Project Skill basis must target .agent-factory/skills/project"
+            )
+        if not (target / "SKILL.md").is_file():
+            raise ManagerError("ready Work Unit Project Skill basis is missing SKILL.md")
+        return
     valid = [
         reference
         for reference in references
@@ -1546,7 +1601,6 @@ def validate_ready_semantics(package: Path) -> None:
         raise ManagerError(
             "ready Work Unit requires exactly one Intake ledger package reference"
         )
-    basis_content = basis.get("content") if basis is not None else None
     entry_ids = (
         basis_content.get("entryIds") if isinstance(basis_content, dict) else None
     )
@@ -1563,7 +1617,6 @@ def validate_ready_semantics(package: Path) -> None:
         raise ManagerError(
             "ready Work Unit Intake basis requires unique non-empty content.entryIds"
         )
-    project_root = package_project_root(package)
     for reference in valid:
         target = project_root / base.safe_relative_path(
             reference["path"], "Intake basis path"
@@ -1642,22 +1695,26 @@ def validate_review_semantics(package: Path) -> None:
     if quality is None or quality.get("attributes", {}).get("status") != "pass":
         raise ManagerError("review transition requires passing quality checks")
     require_evidence(package, quality, "quality-check")
+    context = find_kind(package, "execution-context")
+    context_content = {} if context is None else context.get("content", {})
+    review_selected = "targetReviewRole" in context_content
     ai_review = find_kind(package, "ai-review-result")
-    ai = {} if ai_review is None else ai_review.get("attributes", {})
-    if ai.get("result") != "pass" or ai.get("checklistResult") != "pass":
-        raise ManagerError(
-            "review transition requires a passing AI review and checklist"
+    if review_selected:
+        ai = {} if ai_review is None else ai_review.get("attributes", {})
+        if ai.get("result") != "pass" or ai.get("checklistResult") != "pass":
+            raise ManagerError(
+                "review transition requires a passing AI review and checklist"
+            )
+        expected_role = (
+            "Main Agent"
+            if package.name == "add-independent-review-agent"
+            else "Review Agent"
         )
-    expected_role = (
-        "Main Agent"
-        if package.name == "add-independent-review-agent"
-        else "Review Agent"
-    )
-    if ai.get("sourceRole") != expected_role:
-        raise ManagerError(
-            f"review transition requires AI review sourceRole {expected_role}"
-        )
-    require_evidence(package, ai_review, "AI review")
+        if ai.get("sourceRole") != expected_role:
+            raise ManagerError(
+                f"review transition requires AI review sourceRole {expected_role}"
+            )
+        require_evidence(package, ai_review, "AI review")
     report = find_kind(package, "report-result")
     if (
         report is None
@@ -1671,7 +1728,8 @@ def validate_review_semantics(package: Path) -> None:
     if state is not None:
         require_current_execution_target(package, execution, "execution-result")
         require_current_execution_target(package, quality, "quality-check")
-        require_current_execution_target(package, ai_review, "ai-review-result")
+        if review_selected:
+            require_current_execution_target(package, ai_review, "ai-review-result")
         require_current_execution_target(package, report, "report-result")
 
 

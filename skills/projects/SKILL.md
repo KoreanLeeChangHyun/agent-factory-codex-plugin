@@ -22,10 +22,8 @@ facts and binds to loopback by default.
 
 ## Reference routing
 
-- `references/project-skill.md`: Project Skill location, source ownership, and
-  post-work recording contract.
-- `references/local-viewer.md`: Local server, browser view, and diagram source
-  contract.
+- `references/project-skill.md`: Project Skill location, source ownership, and post-work recording contract.
+- `references/local-viewer.md`: Local server, browser view, and diagram source contract.
 
 ## Assets and tools
 

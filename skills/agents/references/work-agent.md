@@ -31,7 +31,7 @@ Return a compact receipt containing:
 
 - delivered task and exclusions;
 - changed paths;
-- exact tests and results, or `tests not run`;
+- Human-authorized test commands and results, or `tests not run`;
 - limitations or a real blocker.
 
 Do not update Intake, Project Skill progress, Specification, Work Unit,

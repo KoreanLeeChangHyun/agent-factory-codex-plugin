@@ -29,6 +29,7 @@ SPECIFICATION_MANAGER = (
     SKILL_ROOT.parent / "specifications" / "scripts" / "specification.py"
 )
 RESOLUTION_LAUNCHER = SCRIPT_ROOT / "app_server_resolution_goal.py"
+DEFAULT_MAX_RECOVERY_ATTEMPTS = 3
 
 
 def load_package_manager() -> Any:
@@ -67,7 +68,7 @@ class DeterministicScheduler:
         emit: Callable[[dict[str, Any]], Any],
         persist: Callable[[dict[str, Any]], Any] | None = None,
         heartbeat_seconds: float = 10.0,
-        max_recovery_attempts: int | None = None,
+        max_recovery_attempts: int = DEFAULT_MAX_RECOVERY_ATTEMPTS,
     ) -> None:
         self.package_id = package_id
         self.revision = revision
@@ -85,6 +86,12 @@ class DeterministicScheduler:
         self.emit_callback = emit
         self.persist_callback = persist
         self.heartbeat_seconds = heartbeat_seconds
+        if (
+            not isinstance(max_recovery_attempts, int)
+            or isinstance(max_recovery_attempts, bool)
+            or max_recovery_attempts <= 0
+        ):
+            raise ExecutionError("node recovery budget must be positive")
         self.max_recovery_attempts = max_recovery_attempts
         self.lock = threading.RLock()
         self.specification_lock = threading.Lock()
@@ -189,14 +196,11 @@ class DeterministicScheduler:
                     idempotencyKey=key,
                     error=str(error),
                 )
-                self.resolve_node(node, error, key)
-                if (
-                    self.max_recovery_attempts is not None
-                    and record["attempts"] >= self.max_recovery_attempts
-                ):
+                if record["attempts"] >= self.max_recovery_attempts:
                     raise ExecutionError(
                         f"node {node_id} recovery budget exhausted"
                     ) from error
+                self.resolve_node(node, error, key)
                 backoff = self.definition.get("executionPolicy", {}).get(
                     "retryBackoffSeconds", [0]
                 )
@@ -318,6 +322,49 @@ def git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
         stderr=subprocess.PIPE,
         check=False,
     )
+
+
+def member_review_result(launch: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(launch, dict):
+        raise ExecutionError("Work Unit returned no AI review result")
+    context = launch.get("context")
+    stages = context.get("stages") if isinstance(context, dict) else None
+    review_stage = stages.get("review") if isinstance(stages, dict) else None
+    review = (
+        review_stage.get("aiReviewResult")
+        if isinstance(review_stage, dict)
+        else None
+    )
+    if not isinstance(review, dict):
+        raise ExecutionError("Work Unit returned no AI review result")
+    if review.get("result") != "pass" or review.get("checklistResult") != "pass":
+        raise ExecutionError("Work Unit AI review did not pass")
+    return review
+
+
+def package_review_evidence(state: dict[str, Any]) -> dict[str, Any]:
+    member_reviews = {
+        node_id: member_review_result(record.get("result", {}))
+        for node_id, record in sorted(state.get("nodes", {}).items())
+    }
+    return {
+        "result": (
+            "pass"
+            if member_reviews
+            and all(review["result"] == "pass" for review in member_reviews.values())
+            else "fail"
+        ),
+        "checklistResult": (
+            "pass"
+            if member_reviews
+            and all(
+                review["checklistResult"] == "pass"
+                for review in member_reviews.values()
+            )
+            else "fail"
+        ),
+        "memberReviews": member_reviews,
+    }
 
 
 class PackageRuntime:
@@ -502,6 +549,7 @@ class PackageRuntime:
             ],
             f"launch Work Unit {work_unit_id}",
         )
+        member_review_result(launch)
         if node.get("executionMode") == "specification-direct":
             check = subprocess.run(
                 [sys.executable, str(SPECIFICATION_MANAGER), "check-schemas"],
@@ -693,9 +741,13 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
         emit=emit_json,
         persist=lambda value: persist_state(package, invocation_id, value),
         heartbeat_seconds=args.heartbeat_seconds,
+        max_recovery_attempts=definition.get("executionPolicy", {}).get(
+            "maxRecoveryAttempts", args.max_recovery_attempts
+        ),
     )
     final_state = scheduler.run()
     persist_state(package, invocation_id, final_state)
+    review_evidence = package_review_evidence(final_state)
     descriptor, evidence_name = tempfile.mkstemp(
         prefix="work-package-review-", suffix=".json"
     )
@@ -705,6 +757,7 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
         evidence_path.write_text(
             json.dumps(
                 {
+                    **review_evidence,
                     "completedOrder": final_state["completedOrder"],
                     "mergedOrder": final_state["mergedOrder"],
                     "aiChecks": [
@@ -746,6 +799,11 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--invocation-id")
     root.add_argument("--resume-owner")
     root.add_argument("--heartbeat-seconds", type=float, default=10.0)
+    root.add_argument(
+        "--max-recovery-attempts",
+        type=int,
+        default=DEFAULT_MAX_RECOVERY_ATTEMPTS,
+    )
     return root
 
 

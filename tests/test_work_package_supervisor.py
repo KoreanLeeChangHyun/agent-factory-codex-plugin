@@ -69,6 +69,9 @@ class WorkPackageSupervisorTest(unittest.TestCase):
                 any(event.get("type") == "supervisor-restart" for event in events)
             )
 
+    def test_default_restart_budget_is_finite(self) -> None:
+        self.assertGreater(self.module.DEFAULT_MAX_RESTARTS, 0)
+
     def test_refusal_before_ack_is_not_retried(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             fake = Path(directory) / "fake.py"

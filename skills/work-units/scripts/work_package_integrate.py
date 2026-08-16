@@ -64,6 +64,37 @@ def noncanonical_changes(repository: Path) -> list[str]:
     return changed
 
 
+def target_worktree(repository: Path, target_branch: str) -> Path | None:
+    listing = git(repository, "worktree", "list", "--porcelain")
+    if listing.returncode != 0:
+        raise IntegrationError("cannot inspect registered Git worktrees")
+    target_ref = f"refs/heads/{target_branch}"
+    matches: list[Path] = []
+    current_path: Path | None = None
+    for line in [*listing.stdout.splitlines(), ""]:
+        if line.startswith("worktree "):
+            current_path = Path(line.removeprefix("worktree ")).resolve()
+        elif line == f"branch {target_ref}" and current_path is not None:
+            matches.append(current_path)
+        elif not line:
+            current_path = None
+    if len(matches) > 1:
+        raise IntegrationError("target branch is checked out in multiple worktrees")
+    return matches[0] if matches else None
+
+
+def remove_temporary_worktree(repository: Path, path: Path) -> None:
+    removed = git(repository, "worktree", "remove", str(path))
+    if removed.returncode != 0:
+        raise IntegrationError(
+            f"cannot remove temporary target worktree: {removed.stderr.strip()}"
+        )
+    try:
+        path.parent.rmdir()
+    except OSError as error:
+        raise IntegrationError("temporary target worktree parent is not empty") from error
+
+
 def integrate(
     *,
     repository: Path,
@@ -75,14 +106,6 @@ def integrate(
     top = git(repository, "rev-parse", "--show-toplevel")
     if top.returncode != 0 or Path(top.stdout.strip()).resolve() != repository:
         raise IntegrationError("repository must be the primary Git root")
-    current = git(repository, "branch", "--show-current")
-    if current.returncode != 0 or current.stdout.strip() != target_branch:
-        raise IntegrationError(f"target branch must be checked out: {target_branch}")
-    dirty = noncanonical_changes(repository)
-    if dirty:
-        raise IntegrationError(
-            f"target has non-canonical changes: {', '.join(sorted(dirty))}"
-        )
     source_commit = resolve_commit(repository, source_branch)
     target_before = resolve_commit(repository, target_branch)
     operations: list[list[str]] = []
@@ -94,22 +117,64 @@ def integrate(
     elif is_ancestor(repository, target_before, source_commit):
         relationship = "fast-forwardable"
         strategy = "ff-only"
-        arguments = ["merge", "--ff-only", source_branch]
-        result = git(repository, *arguments)
-        operations.append(arguments)
-        if result.returncode != 0:
-            raise IntegrationError(f"package integration failed: {result.stderr.strip()}")
     else:
         relationship = "diverged"
         strategy = "no-ff"
-        arguments = ["merge", "--no-ff", "--no-edit", source_branch]
-        result = git(repository, *arguments)
+
+    target_path = target_worktree(repository, target_branch)
+    temporary_target = target_path is None and relationship != "already-integrated"
+    if target_path is not None:
+        dirty = noncanonical_changes(target_path)
+        if dirty:
+            raise IntegrationError(
+                f"target has non-canonical changes: {', '.join(sorted(dirty))}"
+            )
+    if temporary_target:
+        temporary_root = Path(tempfile.mkdtemp(prefix="agent-factory-package-target-"))
+        target_path = temporary_root / target_branch.replace("/", "-")
+        arguments = ["worktree", "add", "--detach", str(target_path), target_before]
+        added = git(repository, *arguments)
+        operations.append(arguments)
+        if added.returncode != 0:
+            temporary_root.rmdir()
+            raise IntegrationError(
+                f"cannot prepare temporary target worktree: {added.stderr.strip()}"
+            )
+
+    if relationship != "already-integrated":
+        assert target_path is not None
+        arguments = (
+            ["merge", "--ff-only", source_commit]
+            if relationship == "fast-forwardable"
+            else ["merge", "--no-ff", "--no-edit", source_commit]
+        )
+        result = git(target_path, *arguments)
         operations.append(arguments)
         if result.returncode != 0:
-            git(repository, "merge", "--abort")
+            if relationship == "diverged":
+                git(target_path, "merge", "--abort")
+            if temporary_target:
+                remove_temporary_worktree(repository, target_path)
             raise IntegrationError(
                 f"package integration conflict: {result.stderr.strip()}"
             )
+
+    if temporary_target:
+        assert target_path is not None
+        detached_after = resolve_commit(target_path, "HEAD")
+        arguments = [
+            "update-ref",
+            f"refs/heads/{target_branch}",
+            detached_after,
+            target_before,
+        ]
+        updated = git(repository, *arguments)
+        operations.append(arguments)
+        if updated.returncode != 0:
+            remove_temporary_worktree(repository, target_path)
+            raise IntegrationError("target branch changed during package integration")
+        remove_temporary_worktree(repository, target_path)
+
     target_after = resolve_commit(repository, target_branch)
     return {
         "schemaVersion": "1.0.0",
@@ -159,12 +224,31 @@ def definition(package: Path) -> dict[str, Any]:
     return matches[0]["content"]
 
 
+def require_passing_review(package: Path) -> None:
+    section = manager_json("show", str(package), "--section", "ai-review")
+    matches = [
+        item
+        for container in [section, *section.get("subsections", [])]
+        for item in container.get("content", [])
+        if item.get("kind") == "ai-review-result"
+    ]
+    if len(matches) != 1:
+        raise IntegrationError("Work Package has no canonical AI review result")
+    attributes = matches[0].get("attributes")
+    if not isinstance(attributes, dict) or (
+        attributes.get("result") != "pass"
+        or attributes.get("checklistResult") != "pass"
+    ):
+        raise IntegrationError("Work Package AI review did not pass")
+
+
 def execute(args: argparse.Namespace) -> dict[str, Any]:
     repository = Path(os.path.abspath(args.repository))
     package = (
         repository / ".agent-factory" / "work-packages" / args.package_id
     )
     manager_json("validate", str(package), "--full")
+    require_passing_review(package)
     contract = definition(package)
     receipt = integrate(
         repository=repository,

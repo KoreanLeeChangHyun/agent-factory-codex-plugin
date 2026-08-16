@@ -16,6 +16,8 @@ from typing import Any, Callable
 
 
 EXECUTOR = Path(__file__).resolve().with_name("work_package_exec.py")
+WORK_PACKAGE_MANAGER = Path(__file__).resolve().with_name("work_package.py")
+DEFAULT_MAX_RESTARTS = 3
 
 
 class SupervisorError(RuntimeError):
@@ -28,12 +30,17 @@ def supervise(
     package_id: str,
     heartbeat_timeout: float,
     emit: Callable[[dict[str, Any]], Any],
-    max_restarts: int | None = None,
+    max_restarts: int = DEFAULT_MAX_RESTARTS,
 ) -> dict[str, Any]:
     if heartbeat_timeout <= 0:
         raise SupervisorError("heartbeat timeout must be positive")
+    if (
+        not isinstance(max_restarts, int)
+        or isinstance(max_restarts, bool)
+        or max_restarts <= 0
+    ):
+        raise SupervisorError("restart budget must be positive")
     restarts = 0
-    accepted = False
     while True:
         process = subprocess.Popen(
             command_factory(restarts),
@@ -89,7 +96,6 @@ def supervise(
                 # ACK confirms that this executor acquired the durable lease;
                 # only an acknowledged invocation can anchor a later resume.
                 current_ack = True
-                accepted = True
             elif not current_ack:
                 process.terminate()
                 process.wait()
@@ -113,14 +119,14 @@ def supervise(
         if process.stderr is not None:
             stderr = process.stderr.read().strip()
             process.stderr.close()
-        if not accepted:
-            # Before the first ACK, the supervisor has no acknowledged resume
-            # owner, so this invocation chain cannot enter the restart path.
+        if not current_ack:
+            # An invocation that ends before its own ACK has no acknowledged
+            # lease owner and cannot enter the restart path.
             raise SupervisorError(
                 "Work Package admission ended before ACK"
                 + (f": {stderr}" if stderr else "")
             )
-        if max_restarts is not None and restarts >= max_restarts:
+        if restarts >= max_restarts:
             raise SupervisorError("Work Package restart budget exhausted")
         restarts += 1
         emit(
@@ -144,8 +150,52 @@ def emit_json(value: dict[str, Any]) -> None:
     sys.stdout.flush()
 
 
+def package_execution_policy(repository: str, package_id: str) -> dict[str, Any]:
+    package = Path(repository) / ".agent-factory" / "work-packages" / package_id
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(WORK_PACKAGE_MANAGER),
+            "show",
+            str(package),
+            "--section",
+            "definition",
+        ],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise SupervisorError(
+            f"cannot read Work Package execution policy: {result.stderr.strip()}"
+        )
+    try:
+        section = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise SupervisorError("Work Package manager returned invalid JSON") from error
+    matches = [
+        item
+        for container in [section, *section.get("subsections", [])]
+        for item in container.get("content", [])
+        if item.get("kind") == "package-definition"
+    ]
+    if len(matches) != 1 or not isinstance(matches[0].get("content"), dict):
+        raise SupervisorError("canonical package-definition is invalid")
+    policy = matches[0]["content"].get("executionPolicy", {})
+    if not isinstance(policy, dict):
+        raise SupervisorError("Work Package executionPolicy is invalid")
+    return policy
+
+
 def execute(args: argparse.Namespace) -> dict[str, Any]:
     repository = str(Path(os.path.abspath(args.repository)))
+    policy = package_execution_policy(repository, args.package_id)
+    max_restarts = (
+        args.max_restarts
+        if args.max_restarts is not None
+        else policy.get("maxSupervisorRestarts", DEFAULT_MAX_RESTARTS)
+    )
     resume_owner: str | None = None
 
     def command_factory(_attempt: int) -> list[str]:
@@ -180,7 +230,7 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
         package_id=args.package_id,
         heartbeat_timeout=args.heartbeat_timeout,
         emit=forward,
-        max_restarts=None,
+        max_restarts=max_restarts,
     )
 
 
@@ -192,6 +242,7 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--package-id", required=True)
     root.add_argument("--heartbeat-seconds", type=float, default=10.0)
     root.add_argument("--heartbeat-timeout", type=float, default=30.0)
+    root.add_argument("--max-restarts", type=int)
     return root
 
 

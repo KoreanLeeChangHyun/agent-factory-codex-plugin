@@ -1,8 +1,10 @@
 # Test Agent
 
-The launcher starts this role only when the Work Unit records exact Human-authorized
-tests. Execute exactly those commands in the prepared
-implementation worktree and return command, exit status, and output evidence.
+The launcher starts this role only when the Work Unit records Human-authorized
+tests. If the Human supplied exact commands, execute them unchanged. If the
+Human requested testing without naming commands, execute only the smallest
+bounded commands selected from repository evidence and recorded in the Work
+Unit. Return command, exit status, and output evidence.
 
 Do not modify product code, tests, configuration, documentation, canonical
 artifacts, or implementation results. Do not broaden verification with smoke,

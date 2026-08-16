@@ -84,6 +84,47 @@ class WorkPackageSchedulerTest(unittest.TestCase):
 
         self.assertEqual(result, terminal)
 
+    def test_member_review_failure_cannot_enter_package_merge(self):
+        failed = {
+            "context": {
+                "stages": {
+                    "review": {
+                        "aiReviewResult": {
+                            "result": "fail",
+                            "checklistResult": "fail",
+                        }
+                    }
+                }
+            }
+        }
+
+        with self.assertRaisesRegex(
+            self.module.ExecutionError, "AI review did not pass"
+        ):
+            self.module.member_review_result(failed)
+
+    def test_package_review_evidence_is_derived_from_member_reviews(self):
+        review = {"result": "pass", "checklistResult": "pass"}
+        state = {
+            "nodes": {
+                "a": {
+                    "result": {
+                        "context": {
+                            "stages": {
+                                "review": {"aiReviewResult": review}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        evidence = self.module.package_review_evidence(state)
+
+        self.assertEqual(evidence["result"], "pass")
+        self.assertEqual(evidence["checklistResult"], "pass")
+        self.assertEqual(evidence["memberReviews"], {"a": review})
+
     def test_independent_nodes_run_in_parallel_and_dependent_runs_after_merges(self):
         lock = threading.Lock()
         running = 0
@@ -196,6 +237,33 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         self.assertEqual(len(resolutions), 1)
         self.assertEqual(attempts[0][1], attempts[1][1])
         self.assertIn("recovering", [event.get("state") for event in events])
+
+    def test_default_node_recovery_budget_is_finite(self):
+        scheduler = self.module.DeterministicScheduler(
+            package_id="pkg",
+            revision=1,
+            definition={
+                "maxParallel": 1,
+                "nodes": [
+                    {
+                        "id": "a",
+                        "workUnitId": "wu-a",
+                        "prerequisites": [],
+                        "executionMode": "worktree",
+                    }
+                ],
+            },
+            durable_state={"nodes": {}},
+            run_node=lambda *_: (_ for _ in ()).throw(RuntimeError("permanent")),
+            merge_node=lambda *_: {},
+            resolve_node=lambda *_: None,
+            emit=lambda *_: None,
+        )
+
+        with self.assertRaisesRegex(
+            self.module.ExecutionError, "recovery budget exhausted"
+        ):
+            scheduler.run()
 
     def test_merge_conflict_enters_recovering_and_launches_resolution(self):
         merges = 0

@@ -17,6 +17,7 @@ class SkillMetadataTests(unittest.TestCase):
             "conventions",
             "intakes",
             "lifecycle",
+            "projects",
             "rules",
             "specifications",
             "synchronization",
@@ -35,6 +36,7 @@ class SkillMetadataTests(unittest.TestCase):
                 "conventions",
                 "intakes",
                 "lifecycle",
+                "projects",
                 "rules",
                 "specifications",
                 "synchronization",
@@ -44,7 +46,7 @@ class SkillMetadataTests(unittest.TestCase):
         removed_skill = "fact" + "-only"
         self.assertFalse((SKILLS / removed_skill).exists())
 
-    def test_lifecycle_starts_with_intake_without_init_skill_or_mandatory_specification(
+    def test_lifecycle_defaults_to_feedback_first_without_mandatory_artifacts(
         self,
     ) -> None:
         self.assertFalse((SKILLS / "init" / "SKILL.md").exists())
@@ -61,19 +63,16 @@ class SkillMetadataTests(unittest.TestCase):
             / "references"
             / "specification-management.md"
         ).read_text(encoding="utf-8")
-        normalized_specification = " ".join(specification.split())
-
         self.assertNotIn("Use `init`", lifecycle)
         self.assertNotIn("route through `init`", lifecycle)
-        self.assertIn("start with `intakes`", lifecycle)
+        self.assertIn("Work Agent edits the current Git workspace", lifecycle)
+        self.assertIn("Recording Agent records the prior result", lifecycle)
+        for optional in ("Intake", "Specification", "Work Unit", "worktree"):
+            with self.subTest(optional=optional):
+                self.assertIn(optional, lifecycle)
         self.assertNotIn("Goal-Based Initialization", lifecycle_reference)
-        self.assertIn(
-            "Specification creation is not mandatory", normalized_specification
-        )
-        self.assertIn(
-            "only when a reusable refined contract is warranted or the Human requires it",
-            normalized_specification,
-        )
+        self.assertIn("Feedback-first loop", lifecycle_reference)
+        self.assertIn("only when the Human explicitly requests it", specification)
 
     def test_named_work_unit_execution_requires_an_active_goal(self) -> None:
         lifecycle = (
@@ -106,13 +105,13 @@ class SkillMetadataTests(unittest.TestCase):
                     text,
                 )
 
-        self.assertIn("Goal preflight", lifecycle)
+        self.assertIn("Explicit advanced routes", lifecycle)
         self.assertIn("Goal preflight", lifecycle_reference)
         self.assertIn("Goal preflight", execution)
         self.assertIn("before worktree preparation", execution)
         self.assertIn("fail closed", execution)
         self.assertTrue(app_server_goal.is_file())
-        for text in (lifecycle, lifecycle_reference, execution):
+        for text in (lifecycle_reference, execution):
             with self.subTest(programmatic_document=text[:80]):
                 self.assertIn("app_server_goal.py", text)
                 self.assertIn("thread/goal/set", text)
@@ -173,6 +172,10 @@ class SkillMetadataTests(unittest.TestCase):
                 "references/lifecycle-entry.md",
                 "references/lifecycle.md",
                 "references/common-document-contract.md",
+            ],
+            "projects": [
+                "references/project-skill.md",
+                "references/local-viewer.md",
             ],
             "rules": [
                 "references/fact-and-evidence-control.md",
@@ -327,21 +330,17 @@ class SkillMetadataTests(unittest.TestCase):
 
         self.assertFalse(skill_path.exists())
         self.assertFalse(metadata_path.exists())
-        self.assertIn("Korean", main_agent)
+        self.assertIn("Default feedback-first route", main_agent)
         for expected in (
-            "delivered scope and exclusions",
-            "changed paths or updated canonical Specification",
-            "exact verification commands and results",
-            "AI review findings",
-            "remaining risks or failed checks",
-            "whether the execution mode requires Git integration",
+            "delivered boundary",
+            "changed paths",
+            "tests run or `tests not run`",
+            "known limitations",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, normalized_main_agent)
-        self.assertIn("`rework`", main_agent)
-        self.assertIn("`complete`", main_agent)
-        self.assertIn("not an approval gate", normalized_main_agent)
-        self.assertIn("later batch cleanup", normalized_main_agent)
+        self.assertIn("Recording Agent", main_agent)
+        self.assertIn("Do not wait for project recording", main_agent)
 
     def test_review_agent_has_independent_static_review_ownership(self) -> None:
         router = (SKILLS / "agents" / "SKILL.md").read_text(encoding="utf-8")
@@ -369,9 +368,9 @@ class SkillMetadataTests(unittest.TestCase):
             SKILLS / "agents" / "references" / "workflow-agent.md"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("primary lifecycle", agent_main)
-        self.assertIn("app_server_goal.py", agent_main)
-        self.assertIn("must not execute Work Unit implementation", agent_main)
+        self.assertIn("Human interaction", agent_main)
+        self.assertIn("delegate immediately to a Work Agent", agent_main)
+        self.assertIn("Work Unit", agent_main)
         self.assertIn("Goal preflight", agent_workflow)
         self.assertIn("implementation Work", agent_workflow)
         self.assertIn("never runs verification commands", agent_workflow)
@@ -489,6 +488,28 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("Result review is outside the Interview capability", normalized)
         self.assertIn("Main Agent directly presents only `rework` and `complete`", normalized)
         self.assertIn("`complete` automatically integrates", normalized)
+
+    def test_feedback_first_optional_contracts_are_consistent(self) -> None:
+        lifecycle = (
+            SKILLS / "lifecycle" / "references" / "lifecycle-entry.md"
+        ).read_text(encoding="utf-8")
+        main_agent = (
+            SKILLS / "agents" / "references" / "main-agent.md"
+        ).read_text(encoding="utf-8")
+        work_management = (
+            SKILLS / "work-units" / "references" / "work-unit-management.md"
+        ).read_text(encoding="utf-8")
+        work_manager = (
+            SKILLS / "work-units" / "scripts" / "work_unit.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("workspace-direct", work_management)
+        self.assertIn('"workspace-direct"', work_manager)
+        self.assertIn("Human request", work_management)
+        self.assertIn("Project Skill", work_management)
+        self.assertIn("separate explicit route", work_management)
+        self.assertIn("select the smallest bounded command", main_agent)
+        self.assertIn("exact supplied command unchanged", lifecycle)
 
     def test_plugin_manifest_routes_to_all_skills_with_valid_starter_prompts(
         self,

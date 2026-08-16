@@ -229,6 +229,12 @@ def validate_definition(definition: Any) -> Graph:
         raise ManagerError(
             "executionPolicy retryBackoffSeconds must contain non-negative numbers"
         )
+    for field in ("maxRecoveryAttempts", "maxSupervisorRestarts"):
+        value = policy.get(field)
+        if value is not None and (
+            not isinstance(value, int) or isinstance(value, bool) or value <= 0
+        ):
+            raise ManagerError(f"executionPolicy {field} must be a positive integer")
     return validate_graph(definition["nodes"])
 
 
@@ -243,6 +249,29 @@ def affected_descendants(nodes: list[dict[str, Any]], affected: set[str]) -> tup
     for node_id in affected:
         selected.update(graph.descendants[node_id])
     return tuple(node_id for node_id in graph.order if node_id in selected)
+
+
+def passing_member_reviews(
+    state: dict[str, Any], graph: Graph
+) -> dict[str, dict[str, Any]]:
+    reviews: dict[str, dict[str, Any]] = {}
+    for node_id in graph.order:
+        record = state.get("nodes", {}).get(node_id)
+        launch = record.get("result") if isinstance(record, dict) else None
+        context = launch.get("context") if isinstance(launch, dict) else None
+        stages = context.get("stages") if isinstance(context, dict) else None
+        review_stage = stages.get("review") if isinstance(stages, dict) else None
+        review = (
+            review_stage.get("aiReviewResult")
+            if isinstance(review_stage, dict)
+            else None
+        )
+        if not isinstance(review, dict):
+            raise ManagerError(f"node {node_id} has no AI review result")
+        if review.get("result") != "pass" or review.get("checklistResult") != "pass":
+            raise ManagerError(f"node {node_id} AI review did not pass")
+        reviews[node_id] = review
+    return reviews
 
 
 def resolve_package(value: str | Path, *, must_exist: bool = True) -> Path:
@@ -658,6 +687,17 @@ def command_review_put(args: argparse.Namespace) -> None:
     evidence = json.loads(Path(args.evidence_file).read_text(encoding="utf-8"))
     if not isinstance(evidence, dict):
         raise ManagerError("review evidence must be a JSON object")
+    review_result = evidence.get("result")
+    checklist_result = evidence.get("checklistResult")
+    if review_result != "pass" or checklist_result != "pass":
+        raise ManagerError(
+            "review-put requires passing result and checklistResult evidence"
+        )
+    member_reviews = passing_member_reviews(state, graph)
+    if evidence.get("memberReviews") != member_reviews:
+        raise ManagerError(
+            "review-put memberReviews must match passing canonical node results"
+        )
     state["state"] = "review"
     state["reviewCount"] = 1
     state["reviewEvidence"] = evidence
@@ -671,11 +711,14 @@ def command_review_put(args: argparse.Namespace) -> None:
             "id": "AI-REVIEW-STATUS",
             "kind": "ai-review-result",
             "content": {
-                "result": "pass",
+                "result": review_result,
                 "reviewedAt": base.now(),
                 "checks": evidence.get("aiChecks", []),
             },
-            "attributes": {"result": "pass", "checklistResult": "pass"},
+            "attributes": {
+                "result": review_result,
+                "checklistResult": checklist_result,
+            },
         },
     )
     replace_item(
@@ -686,7 +729,7 @@ def command_review_put(args: argparse.Namespace) -> None:
             "id": "REPORT-STATUS",
             "kind": "report-result",
             "content": {
-                "verificationResult": "pass",
+                "verificationResult": checklist_result,
                 "memberTraceability": [
                     {
                         "nodeId": node_id,
@@ -705,7 +748,7 @@ def command_review_put(args: argparse.Namespace) -> None:
                 ],
                 "evidence": evidence,
             },
-            "attributes": {"verificationResult": "pass"},
+            "attributes": {"verificationResult": checklist_result},
         },
     )
     set_status(package, "review")
@@ -716,6 +759,15 @@ def command_complete(args: argparse.Namespace) -> None:
     package = resolve_package(args.package)
     if base.load_metadata(package)["lifecycle"]["status"] != "review":
         raise ManagerError("complete requires a Work Package in review")
+    ai_review = find_kind(package, "ai-review", "ai-review-result")
+    review_attributes = (
+        ai_review.get("attributes") if isinstance(ai_review, dict) else None
+    )
+    if not isinstance(review_attributes, dict) or (
+        review_attributes.get("result") != "pass"
+        or review_attributes.get("checklistResult") != "pass"
+    ):
+        raise ManagerError("complete requires a passing Work Package AI review")
     receipt = json.loads(Path(args.receipt).read_text(encoding="utf-8"))
     if not isinstance(receipt, dict):
         raise ManagerError("integration receipt must be a JSON object")

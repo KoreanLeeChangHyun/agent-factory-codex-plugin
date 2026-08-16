@@ -77,8 +77,10 @@ Apply the item with:
 ```text
 python3 <agent-factory-skills-root>/intakes/scripts/intake.py entry-put \
   <package> <typed-data-arguments>
-python3 <agent-factory-skills-root>/intakes/scripts/intake.py validate <package>
 ```
+
+The mutation command performs its manager-owned validation. Run the separate
+`validate` command only when the Human explicitly requests verification.
 
 The manager constructs JSON from the typed data arguments. Do not create a
 JSON value file.
@@ -89,6 +91,7 @@ relative to the shell working directory or the `intakes` skill directory.
 
 ## Output
 
-Report the Intake id and appended entry id, inspected internal sources, validation result,
+Report the Intake id and appended entry id, inspected internal sources,
+manager mutation result,
 limitations, conflicts, and whether more analysis, Human interview, web search,
 user research, or specification alignment remains necessary.

@@ -422,7 +422,19 @@ class WorkPackageManagerCliTest(unittest.TestCase):
             {
                 "state": "completed",
                 "idempotencyKey": "pkg:1:a",
-                "result": {"ok": True},
+                "result": {
+                    "ok": True,
+                    "context": {
+                        "stages": {
+                            "review": {
+                                "aiReviewResult": {
+                                    "result": "pass",
+                                    "checklistResult": "pass",
+                                }
+                            }
+                        }
+                    },
+                },
                 "mergeResult": {"result": "merged"},
             }
         )
@@ -441,7 +453,40 @@ class WorkPackageManagerCliTest(unittest.TestCase):
         )
         evidence_file = self.root / "evidence.json"
         evidence_file.write_text(
-            json.dumps({"aiChecks": ["dag-complete"]}), encoding="utf-8"
+            json.dumps(
+                {
+                    "result": "fail",
+                    "checklistResult": "fail",
+                    "memberReviews": {},
+                    "aiChecks": ["dag-complete"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        refused_review = run_cli(
+            "review-put",
+            str(package),
+            "--evidence-file",
+            str(evidence_file),
+            check=False,
+        )
+        self.assertNotEqual(refused_review.returncode, 0)
+        self.assertIn("requires passing", refused_review.stderr)
+        evidence_file.write_text(
+            json.dumps(
+                {
+                    "result": "pass",
+                    "checklistResult": "pass",
+                    "memberReviews": {
+                        "a": {
+                            "result": "pass",
+                            "checklistResult": "pass",
+                        }
+                    },
+                    "aiChecks": ["dag-complete"],
+                }
+            ),
+            encoding="utf-8",
         )
         run_cli(
             "review-put",

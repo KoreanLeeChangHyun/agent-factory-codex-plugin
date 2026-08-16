@@ -89,5 +89,7 @@ ready and is not closed when a Work Unit is created.
 
 ## Output
 
-Report the Intake id, topic, appended entry ids, validation result, sources and
-limitations, and any Work Unit or optional Specification routing performed.
+Report the Intake id, topic, appended entry ids, manager mutation result,
+sources and limitations, and any separately selected Work Unit or optional
+Specification routing performed. Report a separate validation result only when
+the Human requested that verification.

@@ -108,9 +108,11 @@ canonical identity.
   optional `blocks/**`. Do not create a new custom manifest package and call it
   common-contract compliant.
 - Run `python3 scripts/specification.py check-schemas` after changing the
-  Specification metadata schema or any registered profile. Create a package
-  with `create --profile <profile-id>`, then use the manager's title, metadata,
-  section, and block commands for mutations and run `validate` afterward.
+  Specification metadata schema or any registered profile only when the Human
+  authorized that verification. Create a package with `create --profile
+  <profile-id>`, then use the manager's title, metadata, section, and block
+  commands for mutations. Run separate `validate` only when the Human requested
+  verification; manager-internal mutation validation remains automatic.
 - Specification packages currently have the deterministic lifecycle state
   `draft`. The manager intentionally exposes no transition command. Do not
   infer lifecycle states from Intake or Work Unit lifecycles.
@@ -144,9 +146,9 @@ canonical identity.
   when that file exists in the target project.
 - Record unspecified items explicitly.
 
-Intake owns pre-planning specification alignment. Execution owns delivery work
-and may perform scoped follow-up specification alignment. Do not maintain a
-second Intake-only specification copy.
+The explicitly selected Specification route owns its own scoped alignment.
+Intake and Work Unit references are optional evidence, not prerequisites. Do
+not maintain a second Intake-only specification copy.
 
 ## Project Core
 
@@ -158,7 +160,8 @@ Project Core must define only:
 - Human decision boundaries.
 - What remains unresolved.
 
-During Work Unit Execution, when a new requirement changes design artifacts:
+During an explicitly selected Specification update, when a new requirement
+changes design artifacts:
 
 1. Check whether it changes Project Core.
 2. If it changes project purpose, core principles, scope, decision boundaries,
@@ -175,46 +178,39 @@ only when the Human explicitly requests it.
 
 ### New Project Start
 
-For a new project, collect explicit Human facts in Intake and create a Work
-Unit from the exact sufficient entries. Create a Specification or minimal
-Project Core only when needed and name it as Work Unit output. The
-external viewer derives the Design Report view from the resulting canonical
-Specification JSON.
+For a new project, use the Human request and target Project Skill as the normal
+basis. Create a Specification or minimal Project Core only when the Human
+explicitly selects that route. Intake and Work Unit references may be added
+only when the Human separately selected them. The external viewer derives the
+Design Report view from resulting canonical Specification JSON.
 
 ### In-Progress Project Adoption
 
-For in-progress project adoption, collect baseline reference material first:
-structure, documents, commands, tests, runtime, deployment, known constraints,
-open work, and unresolved decisions when explicitly available. Record them in
-Intake, then create a Work Unit from the exact sufficient entries. During
-that Work Unit's Execution, perform the scoped Project Core or Specification
-update.
+For in-progress project adoption, inspect only the smallest baseline needed for
+the explicitly selected Specification scope. Use existing Project Skill,
+repository, and Human evidence directly. Create Intake or Work Unit artifacts
+only when the Human separately selects them.
 
 ### Ending Or Release-Handoff Adoption
 
-For ending or release-handoff adoption, collect final-state baseline material
-first: deliverables, completed work, pending reviews, known defects, release
-constraints, deployment status, handoff needs, and unresolved decisions. Use
-the exact relevant Intake entries to create the Work Unit, then during Execution update Project
-Core only when the required Project Core fields change and update the
-Specification around the scoped finalization, rework, release, deliverables,
-handoff, verification, and unresolved decisions.
+For ending or release-handoff adoption, update only the explicitly selected
+Specification scope using available Human, Project Skill, repository, and
+release evidence. Intake and Work Unit artifacts remain separately selected
+routes rather than default handoff steps.
 
 ### Maintenance Or Operations Adoption
 
-For maintenance or operations adoption, collect operations baseline material
-first: runtime, deployment, incidents, logs, monitoring, known risks, current
-behavior, maintenance request, and Human decision boundaries. Use the exact
-relevant Intake entries to create the Work Unit, then during Execution update Project Core only when the
-request changes purpose, principles, scope, decision boundaries, or unresolved
-items and update the Specification within the scoped operational impact.
+For maintenance or operations adoption, update only the explicitly selected
+Specification scope using available Human, Project Skill, repository, and
+operations evidence. Intake and Work Unit artifacts remain separately selected
+routes.
 
 Do not treat any baseline as a replacement for Project Core, Specification,
 Work Units, Work Unit Outputs, or customer-facing deliverables.
 
-When a Specification exists, Intake records its canonical package reference.
-When it does not exist, no placeholder or mandatory gap record is required; a
-Work Unit may create one when its scope requires that output.
+When an Intake is separately active, it may record a canonical Specification
+reference. No placeholder, Intake entry, or Work Unit is required when a
+Specification does not exist.
 
 ## Required Profile Content
 

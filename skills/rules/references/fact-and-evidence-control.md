@@ -114,8 +114,9 @@ state-model, DOM ownership, security, or performance edits:
 3. Separate source-backed facts from project-specific decisions.
 4. Explain the implementation boundary in terms of the evidence.
 5. Edit only after the basis is clear.
-6. Run focused tests or checks only when the Human explicitly requested the
-   exact command.
+6. Run focused tests or checks only when the Human explicitly requested
+   verification. Use exact supplied commands unchanged or select the smallest
+   bounded commands from repository evidence.
 7. In the final answer, name sources used and report exact authorized commands
    or `tests not run`.
 
