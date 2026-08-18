@@ -30,17 +30,16 @@ invalidate implementation.
 
 ## Optional artifact lifecycle
 
-Intake, Specification, Work Unit, Work Package, and linked worktree flows remain
-available for explicit Human selection. Their manager-owned schemas and safety
-contracts remain authoritative after selection. No artifact's mere existence
-activates its lifecycle.
+Intake, Specification, Work Unit, and Work Package flows remain available for
+explicit Human selection. Their manager-owned schemas and safety contracts
+remain authoritative after selection. No artifact's mere existence activates
+its lifecycle.
 
 For an explicitly requested Work Unit or Work Package, use the existing Goal
-launcher. The primary workspace is the normal execution location; worktree
-preparation occurs only when the Human also selected worktree mode. A Test,
+launcher and its Goal preflight in the primary workspace. A Test,
 Documentation, or independent Review Agent runs only when the Human separately
 selected that route. Human-authorized tests use an exact supplied command or a
-bounded command selected from repository evidence. Promotion, push, PR,
+bounded command selected from repository evidence. Commit, push, PR,
 deployment, restart, and branch deletion remain separate explicit actions.
 
 ## Human-facing project view

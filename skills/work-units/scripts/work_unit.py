@@ -5,14 +5,11 @@ from __future__ import annotations
 
 import argparse
 import copy
-import hashlib
 import importlib.util
 import json
 import os
 import re
 import shlex
-import stat
-import subprocess
 import sys
 from functools import lru_cache
 from pathlib import Path
@@ -177,11 +174,6 @@ def package_status(package: Path) -> dict[str, Any]:
     human_review = next(
         (item for item in items if item["kind"] == "human-review-result"), None
     )
-    integrations = [item for item in items if item["kind"] == "integration-result"]
-    integration = integrations[-1] if integrations else None
-    integration_result = status_value(integration, "operationResult")
-    if integration_result is None and integration is not None:
-        integration_result = status_value(integration, "status")
     return {
         "id": metadata["id"],
         "lifecycleStatus": metadata["lifecycle"]["status"],
@@ -189,7 +181,6 @@ def package_status(package: Path) -> dict[str, Any]:
             "not-initialized" if execution is None else execution["content"]["state"]
         ),
         "reviewStatus": status_value(human_review, "status") or "not-recorded",
-        "integrationResult": integration_result or "not-integrated",
         "validationStatus": "valid",
     }
 
@@ -215,7 +206,6 @@ def command_status(args: argparse.Namespace) -> None:
                     "lifecycleStatus": None,
                     "executionState": None,
                     "reviewStatus": None,
-                    "integrationResult": None,
                     "validationStatus": "invalid",
                     "validationError": str(error),
                 }
@@ -381,7 +371,6 @@ def find_kind(package: Path, kind: str) -> dict[str, Any] | None:
 
 
 EXECUTION_STATE_CONTRACT_VERSION = "2.0.0"
-FACTORY_BRANCH = "factory"
 EXECUTION_OUTCOME_KINDS = {
     "execution-result": "execution",
     "quality-check": "acceptance-and-verification",
@@ -1186,101 +1175,6 @@ def command_blocker_resolve(args: argparse.Namespace) -> None:
     print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
 
 
-def command_admit(args: argparse.Namespace) -> None:
-    package = resolve_package(args.package)
-    result = validate_package(package, full=True)
-    metadata = base.load_metadata(package)
-    status = metadata["lifecycle"]["status"]
-    if status == "ready":
-        validate_ready_semantics(package)
-        admission_mode = "ready"
-    elif status in {"working", "blocked"}:
-        validate_execution_state(package, required=True)
-        state = find_kind(package, "execution-state")
-        expected_state = "running" if status == "working" else "blocked"
-        if (
-            state is None
-            or state.get("content", {}).get("state") != expected_state
-            or not isinstance(state["content"].get("currentAttempt"), int)
-            or state["content"]["currentAttempt"] < 1
-        ):
-            raise ManagerError(
-                "active attempt recovery admission requires matching "
-                f"{status}/{expected_state} execution state"
-            )
-        admission_mode = "active-attempt-recovery"
-    else:
-        raise ManagerError(
-            "execution admission requires a ready Work Unit or an active "
-            "working/blocked attempt"
-        )
-    context_item = find_kind(package, "execution-context")
-    assert context_item is not None
-    context = context_item["content"]
-    if context["executionMode"] != "worktree":
-        raise ManagerError(
-            f"{context['executionMode']} Work Unit does not use worktree admission"
-        )
-    expected = {
-        "repository": str(Path(args.repository).resolve()),
-        "branch": args.branch,
-        "worktreePath": str(Path(args.path).resolve()),
-    }
-    mismatches = {
-        key: {"expected": value, "actual": context.get(key)}
-        for key, value in expected.items()
-        if context.get(key) != value
-    }
-    if metadata["id"] != args.work_unit_id or package.name != args.work_unit_id:
-        mismatches["workUnitId"] = {
-            "expected": args.work_unit_id,
-            "actual": metadata["id"],
-        }
-    if mismatches:
-        raise ManagerError(f"execution admission context mismatch: {mismatches}")
-    repository = Path(args.repository).resolve()
-    requested_base = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(repository),
-            "rev-parse",
-            "--verify",
-            "--end-of-options",
-            f"{args.base}^{{commit}}",
-        ],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if requested_base.returncode != 0:
-        raise ManagerError("execution admission requested base is unresolved")
-    # Fresh execution is anchored to the local factory control branch. Active
-    # recovery keeps its recorded base so an interrupted attempt is not
-    # silently recreated from different history.
-    if admission_mode == "ready" and args.base != FACTORY_BRANCH:
-        raise ManagerError(
-            f"execution admission requested base must equal {FACTORY_BRANCH}"
-        )
-    requested_commit = requested_base.stdout.strip()
-    print(
-        json.dumps(
-            {
-                **result,
-                "admitted": True,
-                "admissionMode": admission_mode,
-                "repository": str(repository),
-                "baseRef": context["baseRef"],
-                "requestedBase": args.base,
-                "executionCommit": requested_commit,
-                "branch": args.branch,
-                "worktreePath": args.path,
-            },
-            ensure_ascii=False,
-        )
-    )
-
-
 def item_kinds(value: Any) -> set[str]:
     kinds: set[str] = set()
 
@@ -1316,10 +1210,7 @@ def reject_protected_result_mutation(package: Path, value: Any) -> None:
     if base.load_metadata(package)["lifecycle"]["status"] == "done" and kinds & set(
         EXECUTION_OUTCOME_KINDS
     ):
-        raise ManagerError(
-            "done Work Unit outcome records are immutable; use integration-put "
-            "only for orthogonal integration evidence"
-        )
+        raise ManagerError("done Work Unit outcome records are immutable")
 
 
 def command_section_put(args: argparse.Namespace) -> None:
@@ -1379,10 +1270,18 @@ def validate_ready_semantics(package: Path) -> None:
         "baseRef",
     }
     execution_mode = context["content"].get("executionMode")
-    if execution_mode not in {"workspace-direct", "worktree", "specification-direct"}:
+    if execution_mode not in {"workspace-direct", "specification-direct"}:
         raise ManagerError(
-            "execution context executionMode must be workspace-direct, "
-            "worktree, or specification-direct"
+            "execution context executionMode must be workspace-direct or "
+            "specification-direct"
+        )
+    removed_git_fields = {"branch", "targetBranch", "worktreePath"}.intersection(
+        context["content"]
+    )
+    if removed_git_fields:
+        raise ManagerError(
+            "execution context must omit removed Git isolation fields: "
+            + ", ".join(sorted(removed_git_fields))
         )
     role_fields = {
         "targetWorkflowRole",
@@ -1429,68 +1328,12 @@ def validate_ready_semantics(package: Path) -> None:
             raise ManagerError(
                 "Review Agent execution must be a separate Goal"
             )
-    if execution_mode == "worktree":
-        required.update({"branch", "targetBranch", "worktreePath"})
     missing = sorted(required - set(context["content"]))
     if missing:
         raise ManagerError(f"execution context is missing fields: {', '.join(missing)}")
     repository = context["content"]["repository"]
     if not isinstance(repository, str) or not Path(repository).is_absolute():
         raise ManagerError("execution context repository must be an absolute path")
-    if execution_mode == "worktree":
-        if context["content"]["baseRef"] != FACTORY_BRANCH:
-            raise ManagerError(
-                f"execution context baseRef must equal {FACTORY_BRANCH}"
-            )
-        if context["content"]["targetBranch"] != FACTORY_BRANCH:
-            raise ManagerError(
-                f"execution context targetBranch must equal {FACTORY_BRANCH}"
-            )
-        expected_branch = f"work-unit/{package.name}"
-        if context["content"]["branch"] != expected_branch:
-            raise ManagerError(
-                f"execution context branch must equal {expected_branch}"
-            )
-        worktree_path = context["content"]["worktreePath"]
-        if not isinstance(worktree_path, str) or not Path(worktree_path).is_absolute():
-            raise ManagerError(
-                "execution context worktreePath must be an absolute path"
-            )
-        expected_worktree_path = (
-            Path(os.path.abspath(repository))
-            / ".agent-factory"
-            / "worktree"
-            / package.name
-        )
-        if Path(os.path.abspath(worktree_path)) != expected_worktree_path:
-            recorded = Path(os.path.abspath(worktree_path))
-            listing = subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    repository,
-                    "worktree",
-                    "list",
-                    "--porcelain",
-                    "-z",
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-            )
-            raw = listing.stdout
-            matches = [
-                record
-                for record in raw.split(b"\0\0")
-                if f"worktree {recorded}\0".encode() in record + b"\0"
-                and f"branch refs/heads/{expected_branch}".encode() in record
-            ]
-            if listing.returncode != 0 or len(matches) != 1:
-                raise ManagerError(
-                    "execution context worktreePath must equal "
-                    f"{expected_worktree_path} unless it identifies the "
-                    "registered legacy worktree for the derived branch"
-                )
     invocation = context["content"]["execInvocation"]
     if not isinstance(invocation, str) or not invocation.strip():
         raise ManagerError(
@@ -1733,292 +1576,6 @@ def validate_review_semantics(package: Path) -> None:
         require_current_execution_target(package, report, "report-result")
 
 
-def validate_integration_receipt(
-    package: Path, receipt: dict[str, Any]
-) -> dict[str, str]:
-    required_top_level = {
-        "command",
-        "context",
-        "error",
-        "ok",
-        "operations",
-        "schemaVersion",
-        "state",
-    }
-    if set(receipt) != required_top_level:
-        raise ManagerError("integration receipt fields do not match the contract")
-    if (
-        receipt["command"] != "integrate"
-        or receipt["schemaVersion"] != "1.0.0"
-        or receipt["ok"] is not True
-        or receipt["error"] is not None
-        or receipt["state"] not in {"integrated", "already-merged"}
-        or not isinstance(receipt["operations"], list)
-        or not isinstance(receipt["context"], dict)
-    ):
-        raise ManagerError("integration receipt is not a successful integrate result")
-    operations = receipt["operations"]
-    if any(
-        not isinstance(operation, dict)
-        or set(operation) != {"args", "returnCode", "stderr", "stdout"}
-        or not isinstance(operation["args"], list)
-        or not all(isinstance(argument, str) for argument in operation["args"])
-        or not isinstance(operation["returnCode"], int)
-        or not isinstance(operation["stderr"], str)
-        or not isinstance(operation["stdout"], str)
-        for operation in operations
-    ):
-        raise ManagerError("integration receipt operations do not match the contract")
-    context = receipt["context"]
-    fields = {
-        "operationResult",
-        "relationship",
-        "repository",
-        "sourceBranch",
-        "sourceCommit",
-        "strategy",
-        "targetAfterCommit",
-        "targetBeforeCommit",
-        "targetBranch",
-        "worktreePath",
-        "workUnitId",
-    }
-    if set(context) != fields or any(
-        not isinstance(context[field], str) or not context[field] for field in fields
-    ):
-        raise ManagerError(
-            "integration receipt context fields do not match the contract"
-        )
-    if context["workUnitId"] != package.name:
-        raise ManagerError("receipt workUnitId must match package id")
-    commit_fields = ("sourceCommit", "targetBeforeCommit", "targetAfterCommit")
-    if any(
-        len(context[field]) not in {40, 64}
-        or any(character not in "0123456789abcdef" for character in context[field])
-        for field in commit_fields
-    ):
-        raise ManagerError(
-            "integration receipt commits must be lowercase Git object IDs"
-        )
-    # Receipt fields are cross-validated as one state machine so individually
-    # plausible Git facts cannot certify an impossible integration outcome.
-    valid_results = {
-        "fast-forwardable": ({"ff-only"}, "fast-forwarded", "integrated"),
-        "diverged": ({"no-ff"}, "merge-commit-created", "integrated"),
-        "already-merged": ({"none", "no-ff"}, "already-merged", "already-merged"),
-    }
-    expected = valid_results.get(context["relationship"])
-    if (
-        expected is None
-        or context["strategy"] not in expected[0]
-        or context["operationResult"] != expected[1]
-        or receipt["state"] != expected[2]
-    ):
-        raise ManagerError(
-            "integration receipt relationship and result are inconsistent"
-        )
-    if context["relationship"] == "already-merged":
-        if operations or context["targetAfterCommit"] != context["targetBeforeCommit"]:
-            raise ManagerError("already-merged receipt must not contain a mutation")
-    elif len(operations) not in {1, 4} or any(
-        operation["returnCode"] != 0 for operation in operations
-    ):
-        raise ManagerError(
-            "integrated receipt requires a successful checked-out or temporary-target operation sequence"
-        )
-    if context["relationship"] == "fast-forwardable":
-        expected_tail = ["merge", "--ff-only", context["sourceCommit"]]
-    elif context["relationship"] == "diverged":
-        expected_tail = ["merge", "--no-ff", "--no-edit", context["sourceCommit"]]
-    else:
-        expected_tail = []
-    if operations:
-        merge_index = 0 if len(operations) == 1 else 1
-        arguments = operations[merge_index]["args"]
-        if (
-            len(arguments) != len(expected_tail) + 3
-            or arguments[:2] != ["git", "-C"]
-            or not Path(arguments[2]).is_absolute()
-            or arguments[3:] != expected_tail
-        ):
-            raise ManagerError(
-                "integration receipt Git operation does not match the result"
-            )
-        if len(operations) == 4:
-            temporary_path = arguments[2]
-            expected_temporary_operations = [
-                [
-                    "git",
-                    "-C",
-                    context["repository"],
-                    "worktree",
-                    "add",
-                    "--detach",
-                    temporary_path,
-                    context["targetBeforeCommit"],
-                ],
-                [
-                    "git",
-                    "-C",
-                    context["repository"],
-                    "update-ref",
-                    f"refs/heads/{FACTORY_BRANCH}",
-                    context["targetAfterCommit"],
-                    context["targetBeforeCommit"],
-                ],
-                [
-                    "git",
-                    "-C",
-                    context["repository"],
-                    "worktree",
-                    "remove",
-                    temporary_path,
-                ],
-            ]
-            actual_temporary_operations = [
-                operations[0]["args"],
-                operations[2]["args"],
-                operations[3]["args"],
-            ]
-            if actual_temporary_operations != expected_temporary_operations:
-                raise ManagerError(
-                    "integration receipt temporary factory operations do not match the result"
-                )
-    if (
-        context["relationship"] == "fast-forwardable"
-        and context["targetAfterCommit"] != context["sourceCommit"]
-    ):
-        raise ManagerError("fast-forward receipt target must equal the source commit")
-    if context["relationship"] == "diverged" and context["targetAfterCommit"] in {
-        context["sourceCommit"],
-        context["targetBeforeCommit"],
-    }:
-        raise ManagerError("no-ff receipt target must identify a new merge commit")
-    execution_context = find_kind(package, "execution-context")
-    recorded = {} if execution_context is None else execution_context.get("content", {})
-    pairs = {
-        "repository": "repository",
-        "sourceBranch": "branch",
-        "worktreePath": "worktreePath",
-    }
-    for receipt_field, recorded_field in pairs.items():
-        if context[receipt_field] != recorded.get(recorded_field):
-            raise ManagerError(
-                f"receipt {receipt_field} must match the execution context"
-            )
-    if (
-        "targetBranch" in recorded
-        and context["targetBranch"] != recorded["targetBranch"]
-    ):
-        raise ManagerError("receipt targetBranch must match the execution context")
-    return context
-
-
-def command_integration_put(args: argparse.Namespace) -> None:
-    package = resolve_package(args.package)
-    validate_package(package, full=True)
-    source = Path(args.receipt)
-    try:
-        descriptor = os.open(
-            source,
-            os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0),
-        )
-    except OSError as error:
-        raise ManagerError(
-            f"integration receipt must be a readable non-symlink file: {source}"
-        ) from error
-    try:
-        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
-            raise ManagerError(f"integration receipt must be a regular file: {source}")
-        chunks: list[bytes] = []
-        while chunk := os.read(descriptor, 1024 * 1024):
-            chunks.append(chunk)
-        receipt_bytes = b"".join(chunks)
-    finally:
-        os.close(descriptor)
-    try:
-        receipt = json.loads(
-            receipt_bytes.decode("utf-8"), parse_constant=base.reject_constant
-        )
-    except (UnicodeError, ValueError, json.JSONDecodeError) as error:
-        raise ManagerError(
-            f"cannot read strict JSON from integration receipt: {error}"
-        ) from error
-    if not isinstance(receipt, dict):
-        raise ManagerError("integration receipt must be a JSON object")
-    context = validate_integration_receipt(package, receipt)
-    target, relative = base.checked_block_target(package, args.path)
-    digest = hashlib.sha256(receipt_bytes).hexdigest()
-    index = base.load_object(package / base.BLOCK_INDEX_PATH, "block index")
-    existing_block = next(
-        (entry for entry in index["blocks"] if entry["path"] == relative), None
-    )
-    report_path = base.section_path(package, "report")
-    report = base.load_object(report_path, "report section")
-    normalized = {
-        "id": f"INTEGRATION-{digest[:16].upper()}",
-        "kind": "integration-result",
-        "content": {**context, "receiptSha256": digest},
-        "attributes": {"status": receipt["state"]},
-        "blockRef": relative,
-    }
-    existing_item = next(
-        (
-            item
-            for item in report["content"]
-            if item.get("kind") == "integration-result"
-            and item.get("blockRef") == relative
-        ),
-        None,
-    )
-    if existing_block is not None:
-        if (
-            existing_block.get("sha256") != digest
-            or existing_item != normalized
-            or not target.is_file()
-            or base.file_sha256(target) != digest
-        ):
-            raise ManagerError(
-                "integration receipt path already contains different evidence"
-            )
-        print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
-        return
-
-    report["content"].append(normalized)
-    candidate = [*index["blocks"]]
-    candidate.append(
-        {
-            "path": relative,
-            "mediaType": "application/json",
-            "description": "Raw Work Unit integration receipt",
-            "sha256": digest,
-            "sizeBytes": len(receipt_bytes),
-        }
-    )
-    candidate.sort(key=lambda entry: entry["path"])
-    new_index = {"blocks": candidate}
-    base.validate_instance("blocks", new_index)
-    base.validate_instance("section", report)
-    metadata = base.load_metadata(package)
-    metadata["documentVersion"] = base.next_document_version(
-        metadata["documentVersion"]
-    )
-    metadata["updatedAt"] = base.now()
-    base.mark_contract_valid(metadata)
-    base.validate_instance("metadata", metadata)
-    base.commit_transaction(
-        package,
-        json_writes={
-            package / base.BLOCK_INDEX_PATH: new_index,
-            package / base.METADATA_PATH: metadata,
-            report_path: report,
-        },
-        byte_writes={target: receipt_bytes},
-        full_validation=True,
-    )
-    print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
-
-
 base_validate_package = base.validate_package
 
 
@@ -2245,11 +1802,6 @@ def parser() -> argparse.ArgumentParser:
     block_remove.add_argument("package")
     block_remove.add_argument("path")
     block_remove.set_defaults(handler=base.command_block_remove)
-    integration_put = commands.add_parser("integration-put")
-    integration_put.add_argument("package")
-    integration_put.add_argument("receipt")
-    integration_put.add_argument("--path", required=True)
-    integration_put.set_defaults(handler=command_integration_put)
     execution_init = commands.add_parser("execution-init")
     execution_init.add_argument("package")
     execution_init.set_defaults(handler=command_execution_init)
@@ -2289,14 +1841,6 @@ def parser() -> argparse.ArgumentParser:
     blocker_resolve.add_argument("--resolution-evidence", required=True)
     blocker_resolve.add_argument("--invocation-id", required=True)
     blocker_resolve.set_defaults(handler=command_blocker_resolve)
-    admit = commands.add_parser("admit")
-    admit.add_argument("package")
-    admit.add_argument("--repository", required=True)
-    admit.add_argument("--work-unit-id", required=True)
-    admit.add_argument("--base", required=True)
-    admit.add_argument("--branch", required=True)
-    admit.add_argument("--path", required=True)
-    admit.set_defaults(handler=command_admit)
     rework_start = commands.add_parser("rework-start")
     rework_start.add_argument("package")
     rework_start.add_argument("--instruction")

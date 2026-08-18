@@ -91,19 +91,19 @@ class WorkPackageGraphTest(unittest.TestCase):
                 "id": "b",
                 "workUnitId": "wu-b",
                 "prerequisites": [],
-                "executionMode": "worktree",
+                "executionMode": "workspace-direct",
             },
             {
                 "id": "a",
                 "workUnitId": "wu-a",
                 "prerequisites": [],
-                "executionMode": "worktree",
+                "executionMode": "workspace-direct",
             },
             {
                 "id": "c",
                 "workUnitId": "wu-c",
                 "prerequisites": ["a", "b"],
-                "executionMode": "worktree",
+                "executionMode": "workspace-direct",
             },
         ]
 
@@ -127,34 +127,31 @@ class WorkPackageGraphTest(unittest.TestCase):
             ):
                 self.module.validate_graph(nodes)
 
-    def test_positive_parallelism_and_distinct_branches_are_required(self) -> None:
+    def test_positive_parallelism_is_required(self) -> None:
         definition = {
             "nodes": self.nodes(),
             "maxParallel": 0,
             "repository": "/repo",
-            "targetBranch": "main",
-            "integrationBranch": "main",
             "executionPolicy": {"retryBackoffSeconds": [0], "leaseSeconds": 30},
         }
         with self.assertRaises(self.module.ManagerError):
             self.module.validate_definition(definition)
 
-    def test_target_branch_must_be_local_factory(self) -> None:
+    def test_worktree_execution_mode_is_rejected(self) -> None:
+        nodes = self.nodes()
+        nodes[0]["executionMode"] = "worktree"
+        with self.assertRaisesRegex(self.module.ManagerError, "invalid executionMode"):
+            self.module.validate_graph(nodes)
+
+    def test_removed_branch_fields_are_rejected(self) -> None:
         definition = {
             "nodes": self.nodes(),
-            "maxParallel": 2,
+            "maxParallel": 1,
             "repository": "/repo",
-            "targetBranch": "main",
-            "integrationBranch": "work-package/pkg",
             "executionPolicy": {"retryBackoffSeconds": [0], "leaseSeconds": 30},
+            "integrationBranch": "work-package/pkg",
         }
-
-        with self.assertRaisesRegex(
-            self.module.ManagerError, "targetBranch must equal factory"
-        ):
-            self.module.validate_definition(definition)
-        definition["maxParallel"] = 2
-        with self.assertRaises(self.module.ManagerError):
+        with self.assertRaisesRegex(self.module.ManagerError, "removed fields"):
             self.module.validate_definition(definition)
 
     def test_rework_selects_affected_nodes_and_descendants_only(self) -> None:
@@ -194,9 +191,6 @@ class WorkPackageManagerCliTest(unittest.TestCase):
             ["git", "-C", str(self.root), "commit", "-q", "-m", "baseline"],
             check=True,
         )
-        subprocess.run(
-            ["git", "-C", str(self.root), "branch", "factory"], check=True
-        )
 
     def tearDown(self) -> None:
         self.temp.cleanup()
@@ -224,13 +218,11 @@ class WorkPackageManagerCliTest(unittest.TestCase):
                         "id": "a",
                         "workUnitId": work_unit_id,
                         "prerequisites": [],
-                        "executionMode": "worktree",
+                        "executionMode": "workspace-direct",
                     }
                 ],
                 "maxParallel": 1,
                 "repository": str(self.root),
-                "targetBranch": "factory",
-                "integrationBranch": "work-package/pkg",
                 "executionPolicy": {
                     "leaseSeconds": 30,
                     "retryBackoffSeconds": [0],
@@ -282,21 +274,6 @@ class WorkPackageManagerCliTest(unittest.TestCase):
             before["metadata"]["lifecycle"]["status"],
             after["metadata"]["lifecycle"]["status"],
         )
-        self.assertFalse(
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(self.root),
-                    "show-ref",
-                    "--verify",
-                    "--quiet",
-                    "refs/heads/work-package/pkg",
-                ],
-                check=False,
-            ).returncode
-            == 0
-        )
 
     def test_execution_start_returns_ack_contract(self) -> None:
         intake = self.helpers.create_ready_intake(self.root)
@@ -325,54 +302,8 @@ class WorkPackageManagerCliTest(unittest.TestCase):
         self.assertIn("not ready", unready.stderr)
         self.helpers.run_cli("transition", str(work_unit), "ready")
 
-        subprocess.run(
-            [
-                "git",
-                "-C",
-                str(self.root),
-                "branch",
-                "work-unit/wu-a",
-            ],
-            check=True,
-        )
-        collision = run_cli(
-            "preflight",
-            str(package),
-            "--repository",
-            str(self.root),
-            check=False,
-        )
-        self.assertNotEqual(collision.returncode, 0)
-        self.assertIn("collision", collision.stderr)
-        subprocess.run(
-            [
-                "git",
-                "-C",
-                str(self.root),
-                "branch",
-                "-D",
-                "work-unit/wu-a",
-            ],
-            check=True,
-            stdout=subprocess.PIPE,
-        )
         shown = json.loads(run_cli("show", str(package)).stdout)
         self.assertEqual(shown["metadata"]["lifecycle"]["status"], "ready")
-        self.assertNotEqual(
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(self.root),
-                    "show-ref",
-                    "--verify",
-                    "--quiet",
-                    "refs/heads/work-package/pkg",
-                ],
-                check=False,
-            ).returncode,
-            0,
-        )
         payload = json.loads(
             run_cli(
                 "execution-start",
@@ -435,11 +366,9 @@ class WorkPackageManagerCliTest(unittest.TestCase):
                         }
                     },
                 },
-                "mergeResult": {"result": "merged"},
             }
         )
         state["completedOrder"] = ["a"]
-        state["mergedOrder"] = ["a"]
         state["state"] = "review"
         state_file = self.root / "state.json"
         state_file.write_text(json.dumps(state), encoding="utf-8")
@@ -494,24 +423,12 @@ class WorkPackageManagerCliTest(unittest.TestCase):
             "--evidence-file",
             str(evidence_file),
         )
-        receipt_file = self.root / "receipt.json"
-        receipt_file.write_text(
-            json.dumps(
-                {
-                    "packageId": "pkg",
-                    "sourceBranch": "work-package/pkg",
-                    "targetBranch": "factory",
-                    "operationResult": "integrated",
-                }
-            ),
-            encoding="utf-8",
-        )
         completed = json.loads(
             run_cli(
                 "complete",
                 str(package),
-                "--receipt",
-                str(receipt_file),
+                "--review-decision",
+                "complete",
             ).stdout
         )
         self.assertEqual(completed["status"], "done")

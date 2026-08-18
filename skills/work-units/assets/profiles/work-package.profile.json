@@ -10,7 +10,7 @@
       "id": "definition",
       "title": "Definition",
       "requiredKinds": ["package-definition"],
-      "contains": ["DAG nodes", "repository and branches", "finite recovery execution policy"]
+      "contains": ["DAG nodes", "primary repository and execution modes", "finite recovery execution policy"]
     },
     {
       "id": "execution",
@@ -34,7 +34,7 @@
       "id": "report",
       "title": "Report",
       "requiredKinds": ["report-result"],
-      "contains": ["member traceability and integration receipt"]
+      "contains": ["member traceability and accepted primary-workspace result"]
     }
   ],
   "optionalSections": [],

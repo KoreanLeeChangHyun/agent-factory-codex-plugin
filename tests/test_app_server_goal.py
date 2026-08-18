@@ -280,7 +280,7 @@ class AppServerGoalTest(unittest.TestCase):
     def validator(repository: Path, work_unit_id: str) -> dict[str, str]:
         return {
             "mode": "execution",
-            "executionRoute": "worktree",
+            "executionRoute": "workspace-direct",
             "objective": work_unit_id,
             "package": str(
                 repository / ".agent-factory" / "work-units" / work_unit_id
@@ -318,7 +318,7 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["state"], "complete")
         self.assertEqual(payload["context"]["workUnitId"], "wu-001")
-        self.assertEqual(payload["context"]["executionRoute"], "worktree")
+        self.assertEqual(payload["context"]["executionRoute"], "workspace-direct")
         self.assertEqual(payload["context"]["threadId"], "thread-1")
         self.assertEqual(payload["context"]["goal"]["status"], "complete")
         self.assertEqual(payload["context"]["turnIds"], ["turn-1"])
@@ -335,7 +335,7 @@ class AppServerGoalTest(unittest.TestCase):
             [
                 {
                     "executionMode": "execution",
-                    "executionRoute": "worktree",
+                    "executionRoute": "workspace-direct",
                     "package": str(
                         self.repository
                         / ".agent-factory"
@@ -419,9 +419,8 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("$agents", prompt)
         self.assertIn("You are the Workflow Agent", prompt)
         self.assertIn("You must execute", prompt)
-        self.assertIn("Specification-only", prompt)
-        self.assertIn("dedicated linked worktree", prompt)
-        self.assertIn("before execution-init or attempt-start", prompt)
+        self.assertIn("primary Git workspace", prompt)
+        self.assertIn("preserve unrelated changes", prompt)
         self.assertIn("Do not reassess", prompt)
         self.assertIn("execute only its implementation Work", prompt)
         self.assertIn("implementation Work", prompt)
@@ -431,7 +430,12 @@ class AppServerGoalTest(unittest.TestCase):
     def test_role_prompts_preserve_test_documentation_and_review_boundaries(self) -> None:
         module = load_module()
 
-        test_prompt = module.test_agent_prompt("wu-001", ["python -m unittest x"])
+        test_prompt = module.test_agent_prompt(
+            "wu-001",
+            ["python -m unittest x"],
+            "workspace-direct",
+            self.repository,
+        )
         documentation_prompt = module.documentation_agent_prompt(
             "wu-001", "tests not run"
         )
@@ -582,8 +586,8 @@ class AppServerGoalTest(unittest.TestCase):
         self.assertIn("You are the Workflow Agent", prompt)
         self.assertIn("You must continue", prompt)
         self.assertIn("Do not reassess", prompt)
-        self.assertIn("Specification-only", prompt)
-        self.assertIn("prepare the missing linked worktree", prompt)
+        self.assertIn("primary Git workspace", prompt)
+        self.assertIn("preserve unrelated changes", prompt)
 
     def test_launch_mode_accepts_ready_execution_and_planned_rework(
         self,
@@ -657,160 +661,49 @@ class AppServerGoalTest(unittest.TestCase):
 
         self.assertEqual(missing.exception.code, "rework_instruction_missing")
 
-    def test_validate_work_unit_uses_primary_package_not_worktree_copy(
-        self,
-    ) -> None:
+    def test_validate_workspace_direct_uses_primary_repository(self) -> None:
         module = load_module()
         subprocess.run(
             ["git", "init", "-b", "main", str(self.repository)],
             check=True,
             stdout=subprocess.DEVNULL,
         )
-        subprocess.run(
-            ["git", "-C", str(self.repository), "config", "user.name", "Test"],
-            check=True,
-        )
-        subprocess.run(
-            [
-                "git",
-                "-C",
-                str(self.repository),
-                "config",
-                "user.email",
-                "test@example.com",
-            ],
-            check=True,
-        )
-        package = (
-            self.repository / ".agent-factory" / "work-units" / "wu-001"
-        )
-        section = package / "data" / "sections" / "execution-context.json"
-        section.parent.mkdir(parents=True)
-        worktree = (
-            self.repository / ".agent-factory" / "worktree" / "wu-001"
-        )
+        package = self.repository / ".agent-factory" / "work-units" / "wu-001"
+        package.mkdir(parents=True)
         context = {
+            "goalId": "wu-001",
+            "repository": str(self.repository),
+            "baseRef": "primary-workspace",
+            "executionMode": "workspace-direct",
+        }
+        section = {
             "content": [
                 {
                     "id": "EXEC-CONTEXT-001",
                     "kind": "execution-context",
-                    "content": {
-                        "goalId": "wu-001",
-                        "repository": str(self.repository),
-                        "baseRef": "factory",
-                        "branch": "work-unit/wu-001",
-                        "targetBranch": "factory",
-                        "worktreePath": str(worktree),
-                    },
+                    "content": context,
                 }
             ]
         }
-        section.write_text(json.dumps(context), encoding="utf-8")
-        subprocess.run(
-            ["git", "-C", str(self.repository), "add", "."],
-            check=True,
-        )
-        subprocess.run(
-            ["git", "-C", str(self.repository), "commit", "-m", "fixture"],
-            check=True,
-            stdout=subprocess.DEVNULL,
-        )
-        subprocess.run(
-            [
-                "git",
-                "-C",
-                str(self.repository),
-                "worktree",
-                "add",
-                "-b",
-                "work-unit/wu-001",
-                str(worktree),
-            ],
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        linked_section = (
-            worktree
-            / ".agent-factory"
-            / "work-units"
-            / "wu-001"
-            / "data"
-            / "sections"
-            / "execution-context.json"
-        )
-        context["content"].append(
-            {
-                "id": "EXECUTION-STATE-001",
-                "kind": "execution-state",
-                "content": {
-                    "state": "planned",
-                    "currentRevision": 2,
-                    "currentAttempt": None,
-                    "history": [{"revision": 1, "attempt": 1}],
-                    "reworkInstruction": "Commit and rebind evidence.",
-                },
-            }
-        )
-        linked_section.write_text(json.dumps(context), encoding="utf-8")
-        manager = self.root / "fake-work-units"
-        manager_log = self.root / "fake-work-units.log"
-        manager.write_text(
-            textwrap.dedent(
-                f"""\
-                #!/usr/bin/env python3
-                import json
-                import pathlib
-                import sys
-
-                log = pathlib.Path({str(manager_log)!r})
-                with log.open("a", encoding="utf-8") as stream:
-                    stream.write(json.dumps(sys.argv[1:]) + "\\n")
-                package = pathlib.Path(sys.argv[2])
-                section = json.loads(
-                    (package / "data/sections/execution-context.json").read_text()
-                )
-                if sys.argv[1] == "show":
-                    print(json.dumps(section))
-                    raise SystemExit(0)
-                status = (
-                    "working"
-                    if any(item.get("kind") == "execution-state" for item in section["content"])
-                    else "ready"
-                )
-                print(json.dumps({{"valid": True, "id": "wu-001", "status": status}}))
-                """
+        with (
+            mock.patch.object(
+                module,
+                "manager_validation",
+                return_value={"valid": True, "id": "wu-001", "status": "ready"},
             ),
-            encoding="utf-8",
-        )
-        manager.chmod(0o755)
-        module.WORK_UNIT_MANAGER = manager
-
-        selected = module.validate_work_unit(self.repository, "wu-001")
+            mock.patch.object(
+                module,
+                "execution_context_section",
+                return_value=(section, context),
+            ),
+        ):
+            selected = module.validate_work_unit(self.repository, "wu-001")
 
         self.assertEqual(selected["mode"], "execution")
-        self.assertIsNone(selected["instruction"])
-        self.assertEqual(
-            selected["package"],
-            str(package),
-        )
-        commands = [
-            json.loads(line)
-            for line in manager_log.read_text(encoding="utf-8").splitlines()
-        ]
-        self.assertEqual(
-            [command[0] for command in commands],
-            ["validate", "show"],
-        )
-        self.assertTrue(
-            all(
-                command[-2:] == ["--section", "execution-context"]
-                for command in commands
-                if command[0] == "show"
-            )
-        )
+        self.assertEqual(selected["executionRoute"], "workspace-direct")
+        self.assertEqual(selected["package"], str(package))
 
-    def test_validate_specification_direct_never_requires_a_worktree(self) -> None:
+    def test_validate_specification_direct_uses_primary_repository(self) -> None:
         module = load_module()
         subprocess.run(
             ["git", "init", "-b", "main", str(self.repository)],
@@ -848,99 +741,48 @@ class AppServerGoalTest(unittest.TestCase):
 
         self.assertEqual(selected["mode"], "execution")
         self.assertEqual(selected["executionRoute"], "specification-direct")
-        self.assertFalse(
-            (
-                self.repository
-                / ".agent-factory"
-                / "worktree"
-                / "wu-001"
-            ).exists()
-        )
+        self.assertEqual(selected["package"], str(package))
 
-    def test_validate_worktree_requires_factory_base_and_target(self) -> None:
+    def test_validate_work_unit_rejects_removed_execution_mode(self) -> None:
         module = load_module()
         subprocess.run(
             ["git", "init", "-b", "main", str(self.repository)],
             check=True,
             stdout=subprocess.DEVNULL,
         )
-        worktree = self.repository / ".agent-factory" / "worktree" / "wu-001"
-        baseline = {
+        package = self.repository / ".agent-factory" / "work-units" / "wu-001"
+        package.mkdir(parents=True)
+        context = {
             "goalId": "wu-001",
             "repository": str(self.repository),
-            "baseRef": "factory",
-            "branch": "work-unit/wu-001",
-            "targetBranch": "factory",
-            "worktreePath": str(worktree),
-            "executionMode": "worktree",
+            "baseRef": "primary-workspace",
+            "executionMode": "linked-workspace",
         }
-        for field, code in (
-            ("baseRef", "execution_base_mismatch"),
-            ("targetBranch", "execution_target_mismatch"),
-        ):
-            context = {**baseline, field: "main"}
-            section = {
-                "content": [
-                    {
-                        "id": "EXEC-CONTEXT-001",
-                        "kind": "execution-context",
-                        "content": context,
-                    }
-                ]
-            }
-            with (
-                mock.patch.object(
-                    module,
-                    "manager_validation",
-                    return_value={"valid": True, "id": "wu-001", "status": "ready"},
-                ),
-                mock.patch.object(
-                    module,
-                    "execution_context_section",
-                    return_value=(section, context),
-                ),
-                self.assertRaises(module.ContractError) as raised,
-            ):
-                module.validate_work_unit(self.repository, "wu-001")
-
-            self.assertEqual(raised.exception.code, code)
-
-        resumed_context = {**baseline, "baseRef": "legacy-commit"}
-        resumed_section = {
+        section = {
             "content": [
                 {
                     "id": "EXEC-CONTEXT-001",
                     "kind": "execution-context",
-                    "content": resumed_context,
-                },
-                {
-                    "id": "EXECUTION-STATE-001",
-                    "kind": "execution-state",
-                    "content": {
-                        "state": "running",
-                        "currentRevision": 2,
-                        "currentAttempt": 1,
-                        "invocationId": "thread-prior",
-                        "history": [],
-                    },
-                },
+                    "content": context,
+                }
             ]
         }
         with (
             mock.patch.object(
                 module,
                 "manager_validation",
-                return_value={"valid": True, "id": "wu-001", "status": "working"},
+                return_value={"valid": True, "id": "wu-001", "status": "ready"},
             ),
             mock.patch.object(
                 module,
                 "execution_context_section",
-                return_value=(resumed_section, resumed_context),
+                return_value=(section, context),
             ),
+            self.assertRaises(module.ContractError) as raised,
         ):
-            selected = module.validate_work_unit(self.repository, "wu-001")
+            module.validate_work_unit(self.repository, "wu-001")
 
-        self.assertEqual(selected["mode"], "resume")
+        self.assertEqual(raised.exception.code, "invalid_execution_context")
 
     def test_goal_preflight_failures_never_start_a_turn(self) -> None:
         expected_codes = {

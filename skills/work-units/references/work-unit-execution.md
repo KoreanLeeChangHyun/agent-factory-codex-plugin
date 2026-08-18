@@ -1,10 +1,8 @@
 # Work Unit Execution
 
 This is an optional advanced route. Start it only when the Human explicitly
-requests the named Work Unit. The normal feedback-first
-route uses a Work Agent in the current Git workspace instead.
-
-Read `references/worktree-contract.md` before Git worktree operations.
+requests the named Work Unit. The normal feedback-first route uses a Work Agent
+in the current Git workspace instead.
 
 ## Launch
 
@@ -21,44 +19,31 @@ python3 scripts/app_server_goal.py \
 The launcher is the Goal preflight. It:
 
 - validates the canonical primary-root Work Unit;
-- accepts `ready` initial execution, planned rework, or a manager-owned active
+- accepts ready initial execution, planned rework, or a manager-owned active
   attempt that must be resumed;
 - creates and verifies the matching active Goal;
 - starts a background Workflow Agent Goal for implementation only;
 - starts a Test Agent Goal only for Human-authorized bounded commands, otherwise
   records `tests not run`;
-- starts a Documentation Agent Goal only when the Human separately selected
-  documentation and limits it to directly affected documents;
-- starts a static Review Agent Goal only when the Human separately selected
-  independent review, with
-  file mutation and verification-command execution prohibited;
+- starts Documentation and independent static Review Agent Goals only when the
+  Human separately selected those roles;
 - emits one immediate JSONL ACK after the verified initial `turn/start`;
 - automatically continues a turn that ends as `interrupted`;
-- reactivates a Goal that was blocked by a removed checkpoint or approval
-  procedure;
 - returns an explicit error after bounded recovery instead of leaving a live
   process waiting forever.
 
 When `--thread-id` is supplied, the launcher verifies that the existing thread
 already owns the matching active Goal and starts the new turn without calling
-`thread/start`. A missing or mismatched thread or Goal fails closed before
+`thread/start`. A missing or mismatched thread or Goal must fail closed before
 `turn/start`. Without `--thread-id`, the launcher retains the new-thread path.
-The immediate ACK identifies the thread as `created` or `reused` and includes
-monotonic elapsed milliseconds for `processStart`, `appServerReady`,
-`threadReady`, `goalReady`, `turnAccepted`, and `ackEmitted`.
-
 For a new thread, `thread/goal/set` and `thread/goal/get` must agree before
 `turn/start`; for a reused thread, `thread/goal/get` must return the matching
-active Goal. On mismatch, fail closed before worktree preparation.
-Admission refusal before a valid initial turn emits no ACK. After ACK, the
-launcher keeps running and emits its existing final success or failure JSON
-document when execution terminates.
+active Goal. Admission refusal before a valid initial turn emits no ACK. After
+ACK, the launcher emits its final success or failure JSON document when
+execution terminates.
 
 Once launched, do not repeat readiness, checkpoint, or approval decisions.
-For `worktree` execution, prepare or reuse the canonical linked worktree before
-`execution-init` or `attempt-start`. A manager-owned active working or blocked
-attempt may use recovery admission to prepare a missing worktree without
-reopening the one-time readiness decision.
+Execution occurs only in the recorded primary workspace.
 
 Launch and admission do not authorize tests. The Workflow Agent never executes
 tests. A separate Test Agent executes only commands authorized by the Human and
@@ -66,81 +51,24 @@ recorded in the Work Unit: exact supplied commands unchanged, or the smallest
 bounded commands selected from repository evidence after a general test
 request. With no authorization the launcher skips that Goal and reports
 `tests not run`. Documentation and independent Review Goals are also skipped
-unless separately selected. When selected, the Review Agent consumes available
-implementation, test, and documentation evidence and returns structured
-`ai-review-result` evidence.
+unless separately selected.
 
 ## Execution modes
 
 `workspace-direct`:
 
 - edits ordinary code and project files in the recorded primary Git workspace;
-- creates no branch or linked worktree and has no later Git integration step;
+- creates no branch or secondary checkout and has no Git integration phase;
 - preserves unrelated uncommitted changes.
 
 `specification-direct`:
 
-- never creates or prepares a worktree;
-- updates the primary root `.agent-factory/specifications` package only through
+- updates the primary-root `.agent-factory/specifications` package only through
   `specification.py`;
-- has no Git integration or worktree cleanup.
+- has no Git integration or cleanup phase.
 
-`worktree`:
-
-- resolves the current local `factory` commit as the execution base;
-- derives branch `work-unit/<work-unit-id>`;
-- derives path `<repository>/.agent-factory/worktree/<work-unit-id>`;
-- creates it with no checkout, configures sparse checkout to exclude the entire
-  `.agent-factory`, and then checks out source files;
-- keeps canonical Intake, Specification, and Work Unit CRUD in the primary root.
-
-## Worktree commands
-
-```text
-python3 scripts/worktree.py factory-init \
-  --repository <absolute-primary-root>
-
-python3 scripts/worktree.py prepare \
-  --repository <absolute-primary-root> \
-  --work-unit-id <id>
-
-python3 scripts/worktree.py inspect \
-  --repository <absolute-primary-root> \
-  --work-unit-id <id>
-
-python3 scripts/worktree.py integrate \
-  --repository <absolute-primary-root> \
-  --work-unit-id <id> \
-  [--strategy no-ff]
-
-python3 scripts/worktree.py cleanup \
-  --repository <absolute-primary-root> \
-  --work-unit-id <id>
-
-python3 scripts/worktree.py cleanup-completed \
-  --repository <absolute-primary-root> \
-  --work-unit-id <done-id> \
-  [--work-unit-id <done-id> ...]
-```
-
-`prepare` resolves local `factory` at invocation time; explicit `--base` accepts
-only `factory` for fresh execution. It does not inspect or create artifact
-checkpoints. `integrate` targets only local `factory`; explicit
-`--target-branch` accepts only `factory`. When `factory` is not checked out,
-integration uses a temporary detached worktree and atomically advances the
-local ref without displacing the Human's current checkout. `integrate` ignores primary
-`.agent-factory/**` changes when checking target dirtiness, so canonical CRUD
-does not block source integration. It still refuses dirty source code, dirty
-non-canonical target files, repository/branch mismatches, and unresolved merge
-strategies.
-
-After the Human chooses `complete`, integrate `worktree` mode automatically into
-local `factory` and register the receipt through `integration-put`. Do not clean
-the Work Unit worktree immediately. Batch cleanup later removes only clean
-completed worktrees without force and retains branches. The Work Unit lifecycle
-never pushes `factory`; promotion from `factory` into `dev`, `main`, `master`,
-or another real branch, PR creation, deployment, and branch deletion require a
-separate explicit request.
+These are the only execution modes. Commit, branch operations, PR creation,
+push, deployment, and restart remain separate explicit Human actions.
 
 ## Execution state
 
@@ -164,33 +92,21 @@ heartbeat and state events, and reinvokes the same package after ACK-bound
 process death or heartbeat timeout. Admission refusal before ACK is
 non-mutating and is not retried.
 
-`work_package_exec.py` uses manager preflight, stable topological/id ready
-selection, `maxParallel`, a sparse package integration worktree, stable merge
-order, member worktrees based on the package integration branch so dependent
-nodes see integrated prerequisite results,
-specification-direct serialization and full validation, durable leases and
-idempotency keys, and `app_server_resolution_goal.py` recovery. It reaches one
-package review only after every node, verification, and AI review pass.
+`work_package_exec.py` uses manager preflight, stable topological/id selection,
+sequential primary-workspace node execution, Specification-direct
+serialization and full validation, durable leases and idempotency keys, and
+`app_server_resolution_goal.py` recovery. A dependent node starts only after
+its prerequisites have completed in the same workspace. It reaches package
+review only after every node and every selected verification and AI review
+passes.
+
 The member launcher returns failure when either `aiReviewResult.result` or
 `checklistResult` fails. The package executor independently enforces that gate
-before merge and derives package review evidence from passing member results.
-Node recovery and supervisor restart loops use finite positive budgets and
-return an error when exhausted.
+and derives package review evidence from passing member results. Node recovery
+and supervisor restart loops use finite positive budgets and return an error
+when exhausted.
 
-Every Work Package records local `factory` as its only target. Its
-`work-package/<package-id>` branch is an internal aggregation branch, never a
-promotion target.
-
-After the Human chooses complete, run:
-
-```text
-python3 scripts/work_package_integrate.py \
-  --repository <absolute-primary-root> \
-  --package-id <package-id> \
-  --review-decision complete
-```
-
-This integrates the package branch into the recorded target once and registers
-the manager-owned receipt. When local `factory` is not checked out, it uses a
-temporary detached worktree and leaves the Human's current checkout unchanged.
-Do not integrate before the Human decision.
+Every Work Package records the primary repository as its execution target.
+After the Human chooses complete, record the accepted result through the owning
+manager. There is no integration phase. Do not commit, push, or promote the
+result without a separate explicit Human request.

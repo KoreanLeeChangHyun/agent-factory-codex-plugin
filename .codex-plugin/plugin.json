@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "0.1.0+codex.20260816190000",
+  "version": "0.1.0+codex.20260816190001",
   "description": "Feedback-first Agent Factory skills with fast work delegation, background project recording, local browser views, and optional advanced artifact routes.",
   "author": {
     "name": "Agent Factory",

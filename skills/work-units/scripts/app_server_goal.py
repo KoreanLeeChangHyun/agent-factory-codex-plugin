@@ -17,7 +17,6 @@ from typing import Any, Callable, IO, Sequence
 
 SCHEMA_VERSION = "1.0.0"
 CLIENT_NAME = "agent_factory_work_unit_runner"
-FACTORY_BRANCH = "factory"
 CLIENT_TITLE = "Agent Factory Work Unit Runner"
 CLIENT_VERSION = "1.0.0"
 WORK_UNIT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -434,7 +433,7 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
         shell=False,
     )
     if git_result.returncode != 0:
-        raise ContractError("invalid_repository", "repository is not a Git worktree")
+        raise ContractError("invalid_repository", "repository is not a Git repository")
     reported = Path(git_result.stdout.strip()).resolve(strict=False)
     if reported != repository:
         raise ContractError(
@@ -456,81 +455,21 @@ def validate_work_unit(repository: Path, work_unit_id: str) -> dict[str, Any]:
             "execution context repository does not match repository",
         )
     execution_route = context.get("executionMode")
-    if execution_route not in {
-        "workspace-direct",
-        "worktree",
-        "specification-direct",
-    }:
+    if execution_route not in {"workspace-direct", "specification-direct"}:
         raise ContractError(
             "invalid_execution_context",
-            "executionMode must be workspace-direct, worktree, or "
-            "specification-direct",
+            "executionMode must be workspace-direct or specification-direct",
+        )
+    removed_git_fields = {"branch", "targetBranch", "worktreePath"}.intersection(
+        context
+    )
+    if removed_git_fields:
+        raise ContractError(
+            "invalid_execution_context",
+            "execution context contains removed Git isolation fields",
+            {"fields": sorted(removed_git_fields)},
         )
     mode = launch_mode(validation_payload, context_section, work_unit_id)
-    if execution_route == "worktree":
-        # A new attempt must start from current factory. Resume and rework keep
-        # the existing linked branch so completed work is never replayed or
-        # silently rebased under a different source commit.
-        if mode == "execution" and context.get("baseRef") != FACTORY_BRANCH:
-            raise ContractError(
-                "execution_base_mismatch",
-                f"worktree execution baseRef must equal {FACTORY_BRANCH}",
-            )
-        if context.get("targetBranch") != FACTORY_BRANCH:
-            raise ContractError(
-                "execution_target_mismatch",
-                f"worktree execution targetBranch must equal {FACTORY_BRANCH}",
-            )
-        worktree = repository / ".agent-factory" / "worktree" / work_unit_id
-        if Path(context.get("worktreePath", "")).resolve(strict=False) != worktree:
-            raise ContractError(
-                "execution_worktree_mismatch",
-                "execution context worktreePath is not canonical",
-            )
-        if worktree.exists():
-            worktree_result = subprocess.run(
-                ["git", "-C", str(worktree), "rev-parse", "--show-toplevel"],
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding="utf-8",
-                errors="strict",
-                check=False,
-                shell=False,
-            )
-            reported_worktree = Path(
-                worktree_result.stdout.strip()
-            ).resolve(strict=False)
-            if worktree_result.returncode != 0 or reported_worktree != worktree:
-                raise ContractError(
-                    "execution_worktree_mismatch",
-                    "canonical execution worktree is not the registered Git worktree",
-                )
-            branch_result = subprocess.run(
-                ["git", "-C", str(worktree), "branch", "--show-current"],
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding="utf-8",
-                errors="strict",
-                check=False,
-                shell=False,
-            )
-            expected_branch = f"work-unit/{work_unit_id}"
-            if (
-                branch_result.returncode != 0
-                or branch_result.stdout.strip() != expected_branch
-            ):
-                raise ContractError(
-                    "execution_branch_mismatch",
-                    "canonical execution worktree has the wrong branch",
-                    {
-                        "actual": branch_result.stdout.strip(),
-                        "expected": expected_branch,
-                    },
-                )
     authorized_tests = (
         context.get("authorizedTests", [])
         if isinstance(context.get("authorizedTests", []), list)
@@ -633,7 +572,7 @@ def execution_prompt(
     work_unit_id: str,
     mode: str,
     instruction: str | None,
-    execution_route: str = "worktree",
+    execution_route: str = "workspace-direct",
 ) -> str:
     if mode == "execution":
         action = f"execute Agent Factory Work Unit {work_unit_id}"
@@ -668,20 +607,12 @@ def execution_prompt(
     if execution_route == "workspace-direct":
         route_instruction = (
             "For a workspace-direct Work Unit, edit scoped files in the primary "
-            "Git workspace, preserve unrelated changes, and do not create a "
-            "branch or linked worktree."
+            "Git workspace and preserve unrelated changes."
         )
     elif execution_route == "specification-direct":
         route_instruction = (
             "For a Specification-only Work Unit, update the primary root canonical "
-            "Specification only through specification.py and do not create a "
-            "worktree."
-        )
-    elif execution_route == "worktree":
-        route_instruction = (
-            "Create or reuse the dedicated linked worktree before execution-init "
-            "or attempt-start; .agent-factory is excluded from that worktree, and "
-            "all scoped non-canonical changes belong there."
+            "Specification only through specification.py."
         )
     else:
         raise ContractError(
@@ -707,22 +638,17 @@ def execution_prompt(
 def recovery_prompt(
     work_unit_id: str,
     reason: str,
-    execution_route: str = "worktree",
+    execution_route: str = "workspace-direct",
 ) -> str:
     if execution_route == "workspace-direct":
         route_instruction = (
             "Continue in the primary Git workspace, preserve unrelated changes, "
-            "and do not create a branch or linked worktree. "
+            "and preserve unrelated changes. "
         )
     elif execution_route == "specification-direct":
         route_instruction = (
             "Write only the primary canonical Specification through "
             "specification.py. "
-        )
-    elif execution_route == "worktree":
-        route_instruction = (
-            "Continue in the dedicated linked worktree. If it is missing, prepare "
-            "it before blocker-resolve or attempt-resume. "
         )
     else:
         raise ContractError(
@@ -752,15 +678,9 @@ def test_agent_prompt(
     repository: Path,
 ) -> str:
     rendered = json.dumps(commands, ensure_ascii=False)
-    if execution_route == "worktree":
+    if execution_route in {"workspace-direct", "specification-direct"}:
         location = (
-            "Run them in the prepared implementation worktree at "
-            f"{repository / '.agent-factory' / 'worktree' / work_unit_id}."
-        )
-    elif execution_route in {"workspace-direct", "specification-direct"}:
-        location = (
-            f"Run them in the primary repository at {repository}; this "
-            "execution mode has no implementation worktree."
+            f"Run them in the primary repository at {repository}."
         )
     else:
         raise ContractError(
@@ -781,11 +701,9 @@ def test_agent_prompt(
 
 
 def documentation_agent_prompt(
-    work_unit_id: str, tests_result: str, execution_route: str = "worktree"
+    work_unit_id: str, tests_result: str, execution_route: str = "workspace-direct"
 ) -> str:
-    if execution_route == "worktree":
-        location = "Non-canonical affected documents belong in the dedicated worktree."
-    elif execution_route == "workspace-direct":
+    if execution_route == "workspace-direct":
         location = (
             "Non-canonical affected documents belong in the primary Git workspace; "
             "preserve unrelated changes."
@@ -1003,7 +921,7 @@ def run_protocol(
     objective_override: str | None = None,
     prompt_override: str | None = None,
     recovery_role: str = "Workflow Agent",
-    execution_route: str = "worktree",
+    execution_route: str = "workspace-direct",
 ) -> dict[str, Any]:
     timing = {"processStart": 0}
 

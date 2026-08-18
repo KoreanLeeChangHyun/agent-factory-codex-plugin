@@ -35,12 +35,13 @@ def resolution_prompt(args: argparse.Namespace) -> str:
         f"Resolve node {args.node_id} (Work Unit {args.work_unit_id}) in package "
         f"{args.work_package_id}. The deterministic scheduler recorded this error: "
         f"{args.error}. Work only in {args.working_directory}. Preserve unrelated "
-        "changes, resolve only the recorded implementation or merge problem, "
-        "and commit the resolution when this is a code worktree. Do not run "
+        "changes, resolve only the recorded implementation problem, "
+        "and leave the resolution in the primary repository. Do not run "
         "tests or other verification commands; the package executor owns any "
         "separate authorized Test Agent handoff. "
         "Do not ask for an approval, checkpoint, or readiness decision. Do not "
-        "merge to the Human target branch. Mark this Goal complete only when the "
+        "create a branch or secondary checkout. Mark this Goal complete only when "
+        "the "
         f"same idempotency key can be retried safely: {args.idempotency_key}."
     )
 

@@ -14,8 +14,8 @@ Human feedback -> Main Agent -> Work Agent -> Human result feedback
 
 For a bounded implementation request, collect only the facts needed to act and
 delegate immediately to a Work Agent. The Work Agent edits the current Git
-workspace. Do not create an Intake, Specification, Work Unit, branch, linked
-worktree, checkpoint, documentation pass, or review pass first.
+workspace. Do not create an Intake, Specification, Work Unit, branch,
+checkpoint, documentation pass, or review pass first.
 
 UI work uses this route by default. Preserve unspecified UI behavior and let
 the Human evaluate the actual screen quickly. Treat later Human feedback as the
@@ -63,10 +63,9 @@ substantial research needs a canonical evidence ledger. Research recording is
 not a precondition for a bounded implementation.
 
 Create or execute a Work Unit or Work Package only when the Human explicitly
-requests that artifact or route. Use a linked worktree only when the Human
-explicitly requests a worktree. The existing Goal launcher, Test Agent,
-Documentation Agent, Review Agent, integration, and cleanup contracts apply
-only inside that selected advanced route.
+requests that artifact or route. Those routes use the opened primary Git
+workspace. The existing Goal launcher, Test Agent, Documentation Agent, and
+Review Agent contracts apply only inside that selected advanced route.
 
 Pushing, PR creation, deployment, restart, branch deletion, external
 transmission, and replacement or removal of uncommitted work require separate

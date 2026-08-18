@@ -13,7 +13,7 @@ class IntakeAgentContractTests(unittest.TestCase):
         intake = (SKILLS / "agents" / "references" / "intake-agent.md").read_text(
             encoding="utf-8"
         )
-        main = (SKILLS / "agents" / "references" / "main-agent.md").read_text(
+        main = (SKILLS / "agents" / "references" / "main.md").read_text(
             encoding="utf-8"
         )
         workflow = (

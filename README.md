@@ -27,9 +27,9 @@ The plugin exposes nine modular skills:
 
 `projects` maintains the AI-facing Project Skill in a target repository and
 serves a read-only local HTML/CSS/JavaScript view of project context, Git
-progress, decisions, and diagrams. Intake, Specification, Work Unit, Work
-Package, and linked worktree routes remain available only when explicitly
-selected.
+progress, decisions, and diagrams. Intake, Specification, Work Unit, and Work
+Package routes remain available only when explicitly selected. All execution
+uses the opened primary Git workspace.
 
 Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
 `agents/openai.yaml`, and detailed capability guidance in `references/`.

@@ -1,5 +1,8 @@
-/.agent-factory/worktree/
 feedback/
 uploads
 __pycache__/
 *.py[cod]
+# Legacy Work Unit data; remove manually after confirming it is no longer needed.
+/.agent-factory/worktree/
+/.agent-factory/sessions/
+.backup/

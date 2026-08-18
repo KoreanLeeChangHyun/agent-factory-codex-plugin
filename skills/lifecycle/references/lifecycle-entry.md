@@ -14,7 +14,7 @@ Human request
 ```
 
 This route requires no Intake, Specification, Work Unit, Work Package,
-worktree, documentation pass, AI review, or artifact checkpoint. UI work uses
+documentation pass, AI review, or artifact checkpoint. UI work uses
 this route by default because the Human's direct visual feedback is the primary
 evaluation loop.
 
@@ -47,8 +47,8 @@ Only an explicit Human request selects these routes:
 
 - `Intake`: durable evidence or research ledger;
 - `Specification`: canonical Specification package;
-- `Work Unit` or `Work Package`: durable orchestrated execution;
-- `worktree`: linked Git worktree isolation;
+- `Work Unit` or `Work Package`: durable orchestrated execution in the primary
+  Git workspace;
 - `tests`: explicitly requested verification, using exact supplied commands or
   bounded commands selected from repository evidence;
 - `documentation` or `independent review`: separate role pass.
@@ -56,11 +56,10 @@ Only an explicit Human request selects these routes:
 When selected, use each artifact's owning manager. Never create or mutate
 canonical Intake, Specification, Work Unit, or Work Package JSON with generic
 file tools. Existing advanced lifecycle validation, Goal launch, role
-separation, review, integration, and cleanup contracts apply only within that
-selected route.
+separation, and review contracts apply only within that selected route.
 
-Specification and worktree are optional features, not defaults. Do not infer
-either from task size, code changes, or the existence of historical artifacts.
+Specification is an optional feature, not a default. Do not infer it from task
+size, code changes, or the existence of historical artifacts.
 
 ## Safety boundary
 

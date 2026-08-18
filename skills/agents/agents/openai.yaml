@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Agents"
-  short_description: "Run feedback-first Agent Factory roles."
-  default_prompt: "Use $agents to delegate bounded work, return Human feedback quickly, and record accepted results afterward."
+  short_description: "Manage resumable background exec agents."
+  default_prompt: "Use $agents to run the Main Agent or manage addressable background Inquiry Agent sessions through the file-based exec runtime."

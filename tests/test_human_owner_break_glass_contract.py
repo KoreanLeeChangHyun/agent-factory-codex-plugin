@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class HumanOwnerBreakGlassContractTests(unittest.TestCase):
     def test_main_agent_owns_bounded_break_glass_recovery(self) -> None:
         content = (
-            ROOT / "skills" / "agents" / "references" / "main-agent.md"
+            ROOT / "skills" / "agents" / "references" / "main.md"
         ).read_text(encoding="utf-8")
 
         for expected in (

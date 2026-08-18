@@ -17,7 +17,6 @@ from typing import Any, Iterable
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_ROOT.parent
-FACTORY_BRANCH = "factory"
 COMMON_MANAGER = (
     SKILL_ROOT.parent / "lifecycle" / "scripts" / "sectioned_document.py"
 )
@@ -121,7 +120,10 @@ def validate_graph(nodes: Any) -> Graph:
         if node_id in raw_prerequisites:
             raise ManagerError(f"node {node_id} must not depend on itself")
         mode = node.get("executionMode")
-        if mode is not None and mode not in {"worktree", "specification-direct"}:
+        if mode not in {
+            "workspace-direct",
+            "specification-direct",
+        }:
             raise ManagerError(f"node {node_id} has invalid executionMode")
         by_id[node_id] = node
         work_units.add(work_unit_id)
@@ -184,8 +186,6 @@ def validate_definition(definition: Any) -> Graph:
         "nodes",
         "maxParallel",
         "repository",
-        "targetBranch",
-        "integrationBranch",
         "executionPolicy",
     }
     missing = sorted(required - set(definition))
@@ -193,22 +193,17 @@ def validate_definition(definition: Any) -> Graph:
         raise ManagerError(
             f"package-definition is missing fields: {', '.join(missing)}"
         )
+    removed = sorted({"targetBranch", "integrationBranch"} & set(definition))
+    if removed:
+        raise ManagerError(
+            f"package-definition contains removed fields: {', '.join(removed)}"
+        )
     parallel = definition["maxParallel"]
     if not isinstance(parallel, int) or isinstance(parallel, bool) or parallel <= 0:
         raise ManagerError("package maxParallel must be a positive integer")
     repository = non_empty_string(definition["repository"], "package repository")
     if not Path(repository).is_absolute():
         raise ManagerError("package repository must be absolute")
-    target = non_empty_string(definition["targetBranch"], "package targetBranch")
-    if target != FACTORY_BRANCH:
-        raise ManagerError(f"targetBranch must equal {FACTORY_BRANCH}")
-    integration = non_empty_string(
-        definition["integrationBranch"], "package integrationBranch"
-    )
-    if target == integration:
-        raise ManagerError("targetBranch and integrationBranch must be distinct")
-    if not integration.startswith("work-package/"):
-        raise ManagerError("integrationBranch must start with work-package/")
     policy = definition["executionPolicy"]
     if not isinstance(policy, dict):
         raise ManagerError("package executionPolicy must be an object")
@@ -244,7 +239,7 @@ def affected_descendants(nodes: list[dict[str, Any]], affected: set[str]) -> tup
     if unknown:
         raise ManagerError(f"unknown affected nodes: {', '.join(sorted(unknown))}")
     # Rework invalidates every downstream consumer of an affected node, while
-    # independent branches retain their completed evidence.
+    # independent nodes retain their completed evidence.
     selected = set(affected)
     for node_id in affected:
         selected.update(graph.descendants[node_id])
@@ -315,18 +310,25 @@ def validate_package(package_value: str | Path, *, full: bool = False) -> dict[s
     if status != "draft":
         definition = definition_item(package)["content"]
         graph = validate_definition(definition)
-        if definition["integrationBranch"] != f"work-package/{package.name}":
-            raise ManagerError(
-                "integrationBranch must equal work-package/<package-id>"
-            )
         state_item = execution_item(package, required=True)
         assert state_item is not None
         state = state_item["content"]
         if not isinstance(state, dict):
             raise ManagerError("execution-state content must be an object")
+        removed_state = {"mergedOrder", "integrationReceipts"} & set(state)
+        if removed_state:
+            raise ManagerError(
+                "execution-state contains removed integration fields: "
+                + ", ".join(sorted(removed_state))
+            )
         node_state = state.get("nodes")
         if not isinstance(node_state, dict) or set(node_state) - set(graph.order):
             raise ManagerError("execution-state nodes do not match the package graph")
+        if any(
+            isinstance(record, dict) and "mergeResult" in record
+            for record in node_state.values()
+        ):
+            raise ManagerError("execution-state node contains removed mergeResult")
         if status in {"review", "done"} and any(
             node_state.get(node_id, {}).get("state") != "completed"
             for node_id in graph.order
@@ -399,10 +401,8 @@ def command_transition(args: argparse.Namespace) -> None:
                 for node_id in graph.order
             },
             "completedOrder": [],
-            "mergedOrder": [],
             "events": [],
             "reviewCount": 0,
-            "integrationReceipts": [],
         }
         replace_item(
             package,
@@ -453,67 +453,11 @@ def preflight(package: Path, repository_arg: str) -> dict[str, Any]:
     top = git(repository, "rev-parse", "--show-toplevel")
     if top.returncode != 0 or Path(top.stdout.strip()).resolve() != repository.resolve():
         raise ManagerError("Work Package repository is not the primary Git root")
-    for branch_field in ("targetBranch", "integrationBranch"):
-        checked = git(
-            repository,
-            "check-ref-format",
-            "--branch",
-            definition[branch_field],
-        )
-        if checked.returncode != 0:
-            raise ManagerError(f"Work Package {branch_field} is invalid")
-    target = git(
-        repository,
-        "rev-parse",
-        "--verify",
-        f"{definition['targetBranch']}^{{commit}}",
-    )
-    if target.returncode != 0:
-        raise ManagerError("Work Package targetBranch is unresolved")
     state = execution_item(package, required=True)["content"]
     initial = metadata["lifecycle"]["status"] == "ready"
     for executable in (WORK_UNIT_MANAGER, WORK_UNIT_LAUNCHER):
         if not executable.is_file():
             raise ManagerError(f"required launcher is unavailable: {executable}")
-    if initial:
-        # Collision checks are admission-only. A resumed package must reuse the
-        # durable branches and worktrees created by its accepted first run.
-        if git(repository, "show-ref", "--verify", "--quiet", f"refs/heads/{definition['integrationBranch']}").returncode == 0:
-            raise ManagerError("package integration branch collision")
-        listing = git(repository, "worktree", "list", "--porcelain")
-        if listing.returncode != 0:
-            raise ManagerError("cannot inspect Git worktrees")
-        package_worktree = (
-            repository
-            / ".agent-factory"
-            / "worktree"
-            / "work-packages"
-            / package.name
-        )
-        if (
-            package_worktree.exists()
-            or f"worktree {package_worktree}" in listing.stdout
-        ):
-            raise ManagerError("package integration worktree collision")
-        for node in definition["nodes"]:
-            branch = f"work-unit/{node['workUnitId']}"
-            path = repository / ".agent-factory" / "worktree" / node["workUnitId"]
-            if (
-                git(
-                    repository,
-                    "show-ref",
-                    "--verify",
-                    "--quiet",
-                    f"refs/heads/{branch}",
-                ).returncode
-                == 0
-                or
-                f"branch refs/heads/{branch}" in listing.stdout
-                or f"worktree {path}" in listing.stdout
-            ):
-                raise ManagerError(
-                    f"Work Unit branch/worktree collision: {node['workUnitId']}"
-                )
     members = []
     for node in definition["nodes"]:
         work_unit = (
@@ -545,20 +489,6 @@ def preflight(package: Path, repository_arg: str) -> dict[str, Any]:
         if declared_mode != recorded_mode:
             raise ManagerError(
                 f"Work Unit {node['workUnitId']} executionMode mismatch"
-            )
-        base_ref = context.get("baseRef")
-        if (
-            not isinstance(base_ref, str)
-            or git(
-                repository,
-                "rev-parse",
-                "--verify",
-                f"{base_ref}^{{commit}}",
-            ).returncode
-            != 0
-        ):
-            raise ManagerError(
-                f"Work Unit {node['workUnitId']} baseRef is unresolved"
             )
         members.append(
             {
@@ -742,7 +672,6 @@ def command_review_put(args: argparse.Namespace) -> None:
                             "idempotencyKey"
                         ),
                         "result": state["nodes"][node_id].get("result"),
-                        "mergeResult": state["nodes"][node_id].get("mergeResult"),
                     }
                     for node_id in graph.order
                 ],
@@ -768,29 +697,11 @@ def command_complete(args: argparse.Namespace) -> None:
         or review_attributes.get("checklistResult") != "pass"
     ):
         raise ManagerError("complete requires a passing Work Package AI review")
-    receipt = json.loads(Path(args.receipt).read_text(encoding="utf-8"))
-    if not isinstance(receipt, dict):
-        raise ManagerError("integration receipt must be a JSON object")
-    definition = definition_item(package)["content"]
-    required = {
-        "packageId": package.name,
-        "sourceBranch": definition["integrationBranch"],
-        "targetBranch": definition["targetBranch"],
-        "operationResult": "integrated",
-    }
-    mismatches = {
-        key: {"expected": value, "actual": receipt.get(key)}
-        for key, value in required.items()
-        if receipt.get(key) != value
-    }
-    if mismatches:
-        raise ManagerError(f"integration receipt contract mismatch: {mismatches}")
+    if args.review_decision != "complete":
+        raise ManagerError("complete requires Human review decision complete")
     state_item = execution_item(package, required=True)
     assert state_item is not None
     state = copy.deepcopy(state_item["content"])
-    if state.get("integrationReceipts"):
-        raise ManagerError("Work Package target integration may be recorded only once")
-    state["integrationReceipts"] = [receipt]
     state["state"] = "done"
     state_item["content"] = state
     replace_item(package, "execution", "execution-state", state_item)
@@ -804,17 +715,10 @@ def command_complete(args: argparse.Namespace) -> None:
             "content": {
                 "decision": "complete",
                 "decidedAt": base.now(),
-                "integrationReceipt": receipt,
             },
             "attributes": {"status": "complete"},
         },
     )
-    report = find_kind(package, "report", "report-result")
-    assert report is not None
-    report = copy.deepcopy(report)
-    if isinstance(report.get("content"), dict):
-        report["content"]["integrationReceipt"] = receipt
-    replace_item(package, "report", "report-result", report)
     set_status(package, "done")
     print(json.dumps(validate_package(package, full=True), ensure_ascii=False))
 
@@ -886,9 +790,6 @@ def command_rework_start(args: argparse.Namespace) -> None:
         state["nodes"][node_id] = {"state": "pending", "attempts": 0}
     state["completedOrder"] = [
         node_id for node_id in state.get("completedOrder", []) if node_id not in selected
-    ]
-    state["mergedOrder"] = [
-        node_id for node_id in state.get("mergedOrder", []) if node_id not in selected
     ]
     state.setdefault("events", []).append(
         {
@@ -988,7 +889,9 @@ def parser() -> argparse.ArgumentParser:
     review_put.set_defaults(handler=command_review_put)
     complete = commands.add_parser("complete")
     complete.add_argument("package")
-    complete.add_argument("--receipt", required=True)
+    complete.add_argument(
+        "--review-decision", required=True, choices=["complete"]
+    )
     complete.set_defaults(handler=command_complete)
     rework = commands.add_parser("rework-start")
     rework.add_argument("package")

@@ -51,17 +51,13 @@ Intake is never required merely because a Work Unit was selected. Existing
 `executionMode` is selected only inside the explicit Work Unit route:
 
 - `workspace-direct` for ordinary code or project-file work in the opened
-  primary Git workspace. It creates no branch or linked worktree.
+  primary Git workspace.
 - `specification-direct` when the complete scope is canonical Specification
-  CRUD. It uses `specification.py` in the primary root and has no worktree.
-- `worktree` only when the Human also explicitly requested a linked worktree.
-  It uses the derived branch and
-  linked worktree, with `.agent-factory` excluded. Its execution context records
-  local-only `factory` as both `baseRef` and `targetBranch`.
+  CRUD. It uses `specification.py` in the primary root.
 
 Use `workspace-direct` when the Human requests an ordinary Work Unit without
-also selecting worktree or Specification-only execution. Never silently choose
-worktree.
+selecting Specification-only execution. These are the only execution modes.
+Neither mode creates a branch or secondary checkout.
 
 The primary main agent checks sufficiency once before launch. No checkpoint,
 artifact commit, hash snapshot, or approval step exists.
@@ -101,25 +97,20 @@ The Human chooses:
 - `complete`, recorded through
   `transition <package> done --review-decision complete`.
 
-This is not an approval gate. Integration receipts contain no
-`humanDecision`. Completion of `worktree` mode triggers integration into local
-`factory` in the main lifecycle; `workspace-direct` and
-`specification-direct` have no integration.
-Pushing `factory`, merging it into `dev`, `main`, `master`, or another real
-branch, and creating a PR are separate promotion operations that require an
-explicit Human request.
+This is not an approval gate. Completion records the accepted result already
+present in the primary workspace. Commit, push, branch operations, and PR
+creation are separate actions that require an explicit Human request.
 
-Completed outcome records are immutable. Completed clean worktrees are removed
-later through batch cleanup.
+Completed outcome records are immutable.
 
 ## Work Packages
 
 Use `scripts/work_package.py` for every canonical
 `.agent-factory/work-packages/<package-id>` operation. Never edit Work Package
 JSON directly. A package owns its positive `maxParallel`, DAG nodes and
-prerequisites, repository and target/integration branches, durable lease and
-events, node idempotency keys, package review, member traceability, rework
-impact, and single integration receipt.
+prerequisites, primary repository, durable lease and events, node idempotency
+keys, package review, member traceability, and rework impact. `maxParallel`
+remains metadata compatibility; primary-workspace nodes execute sequentially.
 
 Every package has finite recovery limits. `executionPolicy.maxRecoveryAttempts`
 and `executionPolicy.maxSupervisorRestarts` may explicitly set positive limits;
@@ -127,15 +118,15 @@ when omitted, the executor and supervisor use finite built-in defaults.
 Exhaustion returns a terminal error to the Main Agent.
 
 Run `preflight` before execution. It full-validates every member, repository
-identity, readiness, execution mode, graph references and cycles, and
-branch/worktree collisions without mutation. `execution-start` converts a
+identity, readiness, execution mode, graph references, and cycles without
+mutation. `execution-start` converts a
 successful preflight into the ACK-bound running state. Use `state-put` for
 scheduler state, `review-put` for the package AI/Human review handoff,
-`rework-start` for affected nodes and descendants, and `complete` for the one
-target integration receipt.
+`rework-start` for affected nodes and descendants, and `complete` for the
+accepted primary-workspace result.
 `review-put` accepts only explicit `result: pass` and `checklistResult: pass`
 evidence derived from every member Work Unit. It never manufactures a passing
-review, and a failed member review cannot be marked completed or merged.
+review, and a failed member review cannot be marked completed.
 
 The lifecycle is `draft -> ready -> working <-> recovering -> review -> done`.
 After ACK it never uses terminal `blocked` or `failed`.

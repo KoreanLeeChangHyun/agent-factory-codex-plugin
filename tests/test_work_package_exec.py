@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
-import subprocess
 import sys
-import tempfile
 import threading
 import time
 import unittest
@@ -38,25 +36,24 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         selected = modes or {}
         return {
             "maxParallel": 2,
-            "integrationBranch": "work-package/pkg",
             "nodes": [
                 {
                     "id": "a",
                     "workUnitId": "wu-a",
                     "prerequisites": [],
-                    "executionMode": selected.get("a", "worktree"),
+                    "executionMode": selected.get("a", "workspace-direct"),
                 },
                 {
                     "id": "b",
                     "workUnitId": "wu-b",
                     "prerequisites": [],
-                    "executionMode": selected.get("b", "worktree"),
+                    "executionMode": selected.get("b", "workspace-direct"),
                 },
                 {
                     "id": "c",
                     "workUnitId": "wu-c",
                     "prerequisites": ["a", "b"],
-                    "executionMode": selected.get("c", "worktree"),
+                    "executionMode": selected.get("c", "workspace-direct"),
                 },
             ],
         }
@@ -84,7 +81,7 @@ class WorkPackageSchedulerTest(unittest.TestCase):
 
         self.assertEqual(result, terminal)
 
-    def test_member_review_failure_cannot_enter_package_merge(self):
+    def test_member_review_failure_cannot_enter_package_review(self):
         failed = {
             "context": {
                 "stages": {
@@ -125,12 +122,11 @@ class WorkPackageSchedulerTest(unittest.TestCase):
         self.assertEqual(evidence["checklistResult"], "pass")
         self.assertEqual(evidence["memberReviews"], {"a": review})
 
-    def test_independent_nodes_run_in_parallel_and_dependent_runs_after_merges(self):
+    def test_workspace_nodes_are_serial_and_prerequisites_run_first(self):
         lock = threading.Lock()
         running = 0
         peak = 0
-        finished = set()
-        merged = []
+        finished = []
         bases = {}
 
         def run_node(node, base, _key):
@@ -142,13 +138,8 @@ class WorkPackageSchedulerTest(unittest.TestCase):
             time.sleep(0.03)
             with lock:
                 running -= 1
-                finished.add(node["id"])
+                finished.append(node["id"])
             return {"result": "success"}
-
-        def merge_node(node, _result):
-            self.assertTrue(set(node["prerequisites"]) <= set(merged))
-            merged.append(node["id"])
-            return {"result": "merged"}
 
         events = []
         scheduler = self.module.DeterministicScheduler(
@@ -157,20 +148,19 @@ class WorkPackageSchedulerTest(unittest.TestCase):
             definition=self.definition(),
             durable_state={"nodes": {}},
             run_node=run_node,
-            merge_node=merge_node,
             resolve_node=lambda *_: None,
             emit=events.append,
         )
         state = scheduler.run()
-        self.assertEqual(peak, 2)
-        self.assertEqual(merged, ["a", "b", "c"])
+        self.assertEqual(peak, 1)
+        self.assertEqual(finished, ["a", "b", "c"])
         self.assertEqual(tuple(state["completedOrder"]), ("a", "b", "c"))
         self.assertEqual(
             bases,
             {
-                "a": "work-package/pkg",
-                "b": "work-package/pkg",
-                "c": "work-package/pkg",
+                "a": None,
+                "b": None,
+                "c": None,
             },
         )
         self.assertTrue(any(event["type"] == "heartbeat" for event in events))
@@ -183,7 +173,6 @@ class WorkPackageSchedulerTest(unittest.TestCase):
                 "b": {"state": "completed", "idempotencyKey": "pkg:1:b"},
             },
             "completedOrder": ["a", "b"],
-            "mergedOrder": ["a", "b"],
         }
         scheduler = self.module.DeterministicScheduler(
             package_id="pkg",
@@ -191,7 +180,6 @@ class WorkPackageSchedulerTest(unittest.TestCase):
             definition=self.definition(),
             durable_state=state,
             run_node=lambda node, *_: launched.append(node["id"]) or {},
-            merge_node=lambda *_: {},
             resolve_node=lambda *_: None,
             emit=lambda *_: None,
         )
@@ -215,7 +203,7 @@ class WorkPackageSchedulerTest(unittest.TestCase):
                     "id": "a",
                     "workUnitId": "wu-a",
                     "prerequisites": [],
-                    "executionMode": "worktree",
+                    "executionMode": "workspace-direct",
                 }
             ],
         }
@@ -226,7 +214,6 @@ class WorkPackageSchedulerTest(unittest.TestCase):
             definition=definition,
             durable_state={"nodes": {}},
             run_node=run_node,
-            merge_node=lambda *_: {},
             resolve_node=lambda node, error, key: resolutions.append(
                 (node["id"], str(error), key)
             ),
@@ -249,13 +236,12 @@ class WorkPackageSchedulerTest(unittest.TestCase):
                         "id": "a",
                         "workUnitId": "wu-a",
                         "prerequisites": [],
-                        "executionMode": "worktree",
+                        "executionMode": "workspace-direct",
                     }
                 ],
             },
             durable_state={"nodes": {}},
             run_node=lambda *_: (_ for _ in ()).throw(RuntimeError("permanent")),
-            merge_node=lambda *_: {},
             resolve_node=lambda *_: None,
             emit=lambda *_: None,
         )
@@ -264,50 +250,6 @@ class WorkPackageSchedulerTest(unittest.TestCase):
             self.module.ExecutionError, "recovery budget exhausted"
         ):
             scheduler.run()
-
-    def test_merge_conflict_enters_recovering_and_launches_resolution(self):
-        merges = 0
-        resolutions = []
-        events = []
-
-        def merge_node(_node, _result):
-            nonlocal merges
-            merges += 1
-            if merges == 1:
-                raise RuntimeError("merge conflict")
-            return {"result": "merged"}
-
-        definition = {
-            "maxParallel": 1,
-            "integrationBranch": "work-package/pkg",
-            "nodes": [
-                {
-                    "id": "a",
-                    "workUnitId": "wu-a",
-                    "prerequisites": [],
-                    "executionMode": "worktree",
-                }
-            ],
-        }
-        scheduler = self.module.DeterministicScheduler(
-            package_id="pkg",
-            revision=1,
-            definition=definition,
-            durable_state={"nodes": {}},
-            run_node=lambda *_: {},
-            merge_node=merge_node,
-            resolve_node=lambda node, error, key: resolutions.append(
-                (node["id"], str(error), key)
-            ),
-            emit=events.append,
-        )
-        state = scheduler.run()
-        self.assertEqual(merges, 2)
-        self.assertEqual(resolutions, [("a", "merge conflict", "pkg:1:a")])
-        self.assertEqual(state["nodes"]["a"]["state"], "completed")
-        self.assertTrue(
-            any(event.get("state") == "recovering" for event in events)
-        )
 
     def test_specification_direct_nodes_are_serialized(self):
         running = 0
@@ -347,121 +289,11 @@ class WorkPackageSchedulerTest(unittest.TestCase):
             definition=definition,
             durable_state={"nodes": {}},
             run_node=run_node,
-            merge_node=lambda *_: {},
             resolve_node=lambda *_: None,
             emit=lambda *_: None,
         )
         scheduler.run()
         self.assertEqual(peak, 1)
-
-    def test_scheduler_prepares_member_from_package_integration_branch(self):
-        with tempfile.TemporaryDirectory() as directory:
-            repository = Path(directory)
-            subprocess.run(
-                ["git", "init", "-q", "-b", "main", str(repository)], check=True
-            )
-            subprocess.run(
-                ["git", "-C", str(repository), "config", "user.name", "Test"],
-                check=True,
-            )
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(repository),
-                    "config",
-                    "user.email",
-                    "test@example.invalid",
-                ],
-                check=True,
-            )
-            (repository / "tracked.txt").write_text("base\n", encoding="utf-8")
-            (repository / ".agent-factory").mkdir()
-            (repository / ".agent-factory" / "canonical.txt").write_text(
-                "control\n", encoding="utf-8"
-            )
-            subprocess.run(
-                ["git", "-C", str(repository), "add", "."], check=True
-            )
-            subprocess.run(
-                ["git", "-C", str(repository), "commit", "-q", "-m", "base"],
-                check=True,
-            )
-            subprocess.run(
-                ["git", "-C", str(repository), "branch", "factory"], check=True
-            )
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(repository),
-                    "branch",
-                    "work-package/pkg",
-                    "factory",
-                ],
-                check=True,
-            )
-            package_commit = subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(repository),
-                    "commit-tree",
-                    "factory^{tree}",
-                    "-p",
-                    "factory",
-                    "-m",
-                    "package aggregate",
-                ],
-                text=True,
-                capture_output=True,
-                check=True,
-            ).stdout.strip()
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(repository),
-                    "branch",
-                    "-f",
-                    "work-package/pkg",
-                    package_commit,
-                ],
-                check=True,
-            )
-            runtime = self.module.PackageRuntime(
-                repository=repository,
-                package_id="pkg",
-                definition={
-                    "targetBranch": "factory",
-                    "integrationBranch": "work-package/pkg",
-                },
-            )
-
-            context = runtime.prepare_member_worktree("wu-a")
-            member = repository / ".agent-factory" / "worktree" / "wu-a"
-
-            self.assertEqual(context["baseRef"], "work-package/pkg")
-            self.assertEqual(
-                subprocess.run(
-                    ["git", "-C", str(member), "rev-parse", "HEAD"],
-                    text=True,
-                    capture_output=True,
-                    check=True,
-                ).stdout.strip(),
-                package_commit,
-            )
-            self.assertEqual(
-                subprocess.run(
-                    ["git", "-C", str(member), "branch", "--show-current"],
-                    text=True,
-                    capture_output=True,
-                    check=True,
-                ).stdout.strip(),
-                "work-unit/wu-a",
-            )
-            self.assertFalse((member / ".agent-factory").exists())
-
 
 if __name__ == "__main__":
     unittest.main()

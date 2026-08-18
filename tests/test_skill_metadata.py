@@ -67,9 +67,10 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertNotIn("route through `init`", lifecycle)
         self.assertIn("Work Agent edits the current Git workspace", lifecycle)
         self.assertIn("Recording Agent records the prior result", lifecycle)
-        for optional in ("Intake", "Specification", "Work Unit", "worktree"):
+        for optional in ("Intake", "Specification", "Work Unit", "Work Package"):
             with self.subTest(optional=optional):
                 self.assertIn(optional, lifecycle)
+        self.assertNotIn("worktree", lifecycle.lower())
         self.assertNotIn("Goal-Based Initialization", lifecycle_reference)
         self.assertIn("Feedback-first loop", lifecycle_reference)
         self.assertIn("only when the Human explicitly requests it", specification)
@@ -108,7 +109,6 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("Explicit advanced routes", lifecycle)
         self.assertIn("Goal preflight", lifecycle_reference)
         self.assertIn("Goal preflight", execution)
-        self.assertIn("before worktree preparation", execution)
         self.assertIn("fail closed", execution)
         self.assertTrue(app_server_goal.is_file())
         for text in (lifecycle_reference, execution):
@@ -152,7 +152,7 @@ class SkillMetadataTests(unittest.TestCase):
     def test_routing_entrypoints_expose_only_the_approved_capabilities(self) -> None:
         routes = {
             "agents": [
-                "references/main-agent.md",
+                "references/main.md",
                 "references/intake-agent.md",
                 "references/workflow-agent.md",
             ],
@@ -198,7 +198,6 @@ class SkillMetadataTests(unittest.TestCase):
                 "references/work-unit-management.md",
                 "references/work-unit-structure.md",
                 "references/work-unit-execution.md",
-                "references/worktree-contract.md",
             ],
         }
 
@@ -324,7 +323,7 @@ class SkillMetadataTests(unittest.TestCase):
         skill_path = SKILLS / "human-review" / "SKILL.md"
         metadata_path = SKILLS / "human-review" / "agents" / "openai.yaml"
         main_agent = (
-            SKILLS / "agents" / "references" / "main-agent.md"
+            SKILLS / "agents" / "references" / "main.md"
         ).read_text(encoding="utf-8")
         normalized_main_agent = " ".join(main_agent.split())
 
@@ -362,7 +361,7 @@ class SkillMetadataTests(unittest.TestCase):
 
     def test_main_and_workflow_agent_roles_are_separated(self) -> None:
         agent_main = (
-            SKILLS / "agents" / "references" / "main-agent.md"
+            SKILLS / "agents" / "references" / "main.md"
         ).read_text(encoding="utf-8")
         agent_workflow = (
             SKILLS / "agents" / "references" / "workflow-agent.md"
@@ -374,38 +373,32 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertIn("Goal preflight", agent_workflow)
         self.assertIn("implementation Work", agent_workflow)
         self.assertIn("never runs verification commands", agent_workflow)
-        self.assertIn(
-            "before `execution-init` or `attempt-start`",
-            agent_workflow,
-        )
+        self.assertIn("only execution modes", agent_workflow)
         for excluded in (
             "merge",
-            "cleanup",
             "push",
             "PR promotion",
         ):
             with self.subTest(excluded=excluded):
                 self.assertIn(excluded, agent_workflow)
 
-    def test_worktree_lifecycle_uses_local_factory_control_branch(self) -> None:
+    def test_work_unit_lifecycle_uses_only_the_primary_workspace(self) -> None:
         documents = [
-            SKILLS / "agents" / "references" / "main-agent.md",
+            SKILLS / "agents" / "references" / "main.md",
             SKILLS / "agents" / "references" / "workflow-agent.md",
             SKILLS / "lifecycle" / "references" / "lifecycle-entry.md",
             SKILLS / "lifecycle" / "references" / "lifecycle.md",
             SKILLS / "work-units" / "references" / "work-unit-management.md",
             SKILLS / "work-units" / "references" / "work-unit-execution.md",
-            SKILLS / "work-units" / "references" / "worktree-contract.md",
         ]
         combined = "\n".join(path.read_text(encoding="utf-8") for path in documents)
 
-        self.assertIn("local `factory`", combined)
-        self.assertIn("`baseRef`", combined)
-        self.assertIn("`targetBranch`", combined)
-        self.assertIn("never pushes `factory`", combined)
-        for promotion_target in ("`dev`", "`main`", "`master`", "PR"):
-            with self.subTest(promotion_target=promotion_target):
-                self.assertIn(promotion_target, combined)
+        self.assertIn("primary workspace", combined)
+        self.assertIn("workspace-direct", combined)
+        self.assertIn("specification-direct", combined)
+        self.assertIn("sequential", combined)
+        self.assertNotIn("worktree", combined.lower())
+        self.assertNotIn("local `factory`", combined)
 
     def test_consolidated_skill_documents_preserve_reference_level_routing(self) -> None:
         references = SKILLS / "intakes" / "references"
@@ -487,14 +480,14 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertNotIn("result review (`rework` or `complete`)", normalized)
         self.assertIn("Result review is outside the Interview capability", normalized)
         self.assertIn("Main Agent directly presents only `rework` and `complete`", normalized)
-        self.assertIn("`complete` automatically integrates", normalized)
+        self.assertIn("completion records the accepted result", normalized)
 
     def test_feedback_first_optional_contracts_are_consistent(self) -> None:
         lifecycle = (
             SKILLS / "lifecycle" / "references" / "lifecycle-entry.md"
         ).read_text(encoding="utf-8")
         main_agent = (
-            SKILLS / "agents" / "references" / "main-agent.md"
+            SKILLS / "agents" / "references" / "main.md"
         ).read_text(encoding="utf-8")
         work_management = (
             SKILLS / "work-units" / "references" / "work-unit-management.md"

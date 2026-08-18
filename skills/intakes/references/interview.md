@@ -22,8 +22,8 @@ session into the three-choice decision format.
   requirements, approval boundaries, risk tolerance, explicit Work Unit
   execution requests, deployment, operation, maintenance, or PR promotion.
 - Result review is outside the Interview capability. The Main Agent directly
-  presents only `rework` and `complete`; in worktree mode, `complete`
-  automatically integrates the Work Unit branch without another merge decision.
+  presents only `rework` and `complete`; completion records the accepted result
+  already present in the primary workspace.
 - Treat a recorded decision as active unless the user explicitly changes it or
   a later recorded decision supersedes it.
 - Do not re-ask settled decisions or rehash settled options.

@@ -11,7 +11,6 @@ import json
 import os
 import shutil
 import stat
-import subprocess
 import sys
 import tempfile
 import uuid
@@ -287,38 +286,7 @@ def resolve_package(value: str | Path, *, must_exist: bool = True) -> Path:
 
 
 def canonical_primary_package(requested: Path) -> Path:
-    # Canonical CRUD follows a linked-worktree path back to the primary root;
-    # code-only worktrees must never acquire a second artifact control plane.
-    candidate = Path(os.path.abspath(requested))
-    repository_probe = candidate
-    while not repository_probe.exists() and repository_probe != repository_probe.parent:
-        repository_probe = repository_probe.parent
-    if repository_probe.is_file():
-        repository_probe = repository_probe.parent
-    probe = subprocess.run(
-        ["git", "-C", str(repository_probe), "worktree", "list", "--porcelain"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if probe.returncode != 0:
-        return candidate
-    roots = [
-        Path(line.removeprefix("worktree ")).resolve()
-        for line in probe.stdout.splitlines()
-        if line.startswith("worktree ")
-    ]
-    if not roots:
-        return candidate
-    primary = roots[0]
-    for root in sorted(roots, key=lambda path: len(path.parts), reverse=True):
-        try:
-            relative = candidate.relative_to(root)
-        except ValueError:
-            continue
-        if relative.parts[:1] == (".agent-factory",):
-            return primary / relative
-    return candidate
+    return Path(os.path.abspath(requested))
 
 
 @contextmanager

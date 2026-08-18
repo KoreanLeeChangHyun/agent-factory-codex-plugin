@@ -42,16 +42,14 @@ separate.
 ## Execution context
 
 Record Goal id, objective, exact `app_server_goal.py` invocation, Workflow Agent
-role, absolute primary repository, base ref, and `executionMode`. When the Human
+role, absolute primary repository, and `executionMode`. When the Human
 selected independent Review, record both `targetReviewRole` and
 `reviewExecution`; the role is review-only and runs in a separate Goal. A
 context containing only one Review field is invalid.
 
-For `worktree`, record the derived branch and canonical linked worktree path.
-For `specification-direct`, branch/worktree fields may retain derived identity
-for compatibility but no worktree is created or used.
-For `workspace-direct`, branch/worktree fields are omitted and work occurs in
-the recorded primary repository.
+For `specification-direct`, work occurs through the Specification manager in the
+recorded primary repository. For `workspace-direct`, work occurs directly in
+that repository. Branch and secondary-checkout identity fields are omitted.
 
 ## Execution-state v2
 
@@ -97,5 +95,4 @@ work_unit.py transition <package> review
 work_unit.py transition <package> done --review-decision complete
 ```
 
-Integration receipt registration uses `integration-put`; receipts have no
-approval field. `status --all` reports `reviewStatus`.
+`status --all` reports `reviewStatus`.

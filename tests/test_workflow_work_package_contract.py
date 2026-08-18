@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class WorkflowAgentWorkPackageContractTest(unittest.TestCase):
-    def test_workflow_agent_defers_scheduling_and_integration(self) -> None:
+    def test_workflow_agent_defers_sequential_package_scheduling(self) -> None:
         content = (
             Path(__file__).resolve().parents[1]
             / "skills"
@@ -13,9 +13,9 @@ class WorkflowAgentWorkPackageContractTest(unittest.TestCase):
             / "references"
             / "workflow-agent.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("scheduler-prepared worktree", content)
-        self.assertIn("do not ask for", content)
-        self.assertIn("do not integrate its branch", content)
+        self.assertIn("recorded primary workspace", content)
+        self.assertIn("runs nodes sequentially", content)
+        self.assertIn("do not merge", content)
         self.assertIn("deterministic", content)
 
 

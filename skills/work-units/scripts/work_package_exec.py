@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import concurrent.futures
 import copy
 import importlib.util
 import json
@@ -53,7 +52,7 @@ class ExecutionError(RuntimeError):
 
 
 class DeterministicScheduler:
-    """Run ready nodes concurrently while committing results in stable graph order."""
+    """Run ready nodes in stable order in the shared primary workspace."""
 
     def __init__(
         self,
@@ -63,7 +62,6 @@ class DeterministicScheduler:
         definition: dict[str, Any],
         durable_state: dict[str, Any],
         run_node: Callable[[dict[str, Any], str | None, str], dict[str, Any]],
-        merge_node: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
         resolve_node: Callable[[dict[str, Any], Exception, str], Any],
         emit: Callable[[dict[str, Any]], Any],
         persist: Callable[[dict[str, Any]], Any] | None = None,
@@ -78,10 +76,8 @@ class DeterministicScheduler:
         self.state = copy.deepcopy(durable_state)
         self.state.setdefault("nodes", {})
         self.state.setdefault("completedOrder", [])
-        self.state.setdefault("mergedOrder", [])
         self.state.setdefault("events", [])
         self.run_node = run_node
-        self.merge_node = merge_node
         self.resolve_node = resolve_node
         self.emit_callback = emit
         self.persist_callback = persist
@@ -94,7 +90,6 @@ class DeterministicScheduler:
             raise ExecutionError("node recovery budget must be positive")
         self.max_recovery_attempts = max_recovery_attempts
         self.lock = threading.RLock()
-        self.specification_lock = threading.Lock()
         self.stop_heartbeat = threading.Event()
 
     def event(self, event_type: str, **values: Any) -> dict[str, Any]:
@@ -128,18 +123,15 @@ class DeterministicScheduler:
     def completed(self, node_id: str) -> bool:
         return self.state["nodes"].get(node_id, {}).get("state") == "completed"
 
-    def merged(self, node_id: str) -> bool:
-        return node_id in self.state["mergedOrder"]
-
     def ready(self) -> list[str]:
-        # A prerequisite is usable only after execution and ordered integration;
-        # completion alone does not make its code visible to downstream nodes.
+        # Every node edits the primary workspace, so completed prerequisite
+        # changes are immediately visible to downstream nodes.
         return [
             node_id
             for node_id in self.graph.order
             if not self.completed(node_id)
             and all(
-                self.completed(required) and self.merged(required)
+                self.completed(required)
                 for required in self.graph.prerequisites[node_id]
             )
         ]
@@ -162,14 +154,7 @@ class DeterministicScheduler:
                 attempt=record["attempts"],
             )
             try:
-                base = self.definition.get("integrationBranch")
-                if node.get("executionMode") == "specification-direct":
-                    # Canonical Specification mutations share the primary root,
-                    # so they must be serialized even when the DAG allows parallelism.
-                    with self.specification_lock:
-                        result = self.run_node(node, base, key)
-                else:
-                    result = self.run_node(node, base, key)
+                result = self.run_node(node, None, key)
                 record["result"] = result
                 record["state"] = "executed"
                 self.event(
@@ -223,63 +208,23 @@ class DeterministicScheduler:
                 ready = self.ready()
                 if not ready:
                     raise ExecutionError("scheduler has no ready node before completion")
-                batch = ready[: self.definition["maxParallel"]]
-                results: dict[str, dict[str, Any]] = {}
-                with concurrent.futures.ThreadPoolExecutor(
-                    max_workers=self.definition["maxParallel"]
-                ) as pool:
-                    future_by_id = {
-                        node_id: (
-                            pool.submit(
-                                lambda value=self.state["nodes"][node_id]["result"]: value
-                            )
-                            if self.state["nodes"].get(node_id, {}).get("state")
-                            == "executed"
-                            and "result" in self.state["nodes"][node_id]
-                            else pool.submit(self.invoke, self.nodes[node_id])
-                        )
-                        for node_id in batch
-                    }
-                    for node_id in batch:
-                        results[node_id] = future_by_id[node_id].result()
-                # Parallel execution may finish arbitrarily; integration follows
-                # graph order to keep branch history and receipts reproducible.
-                for node_id in self.graph.order:
-                    if node_id not in results:
-                        continue
-                    node = self.nodes[node_id]
-                    record = self.state["nodes"][node_id]
-                    if node.get("executionMode") == "specification-direct":
-                        merge_result = {"result": "canonical-validated"}
-                    else:
-                        try:
-                            merge_result = self.merge_node(node, results[node_id])
-                        except Exception as error:
-                            record["state"] = "recovering"
-                            self.state["state"] = "recovering"
-                            self.event(
-                                "node",
-                                nodeId=node_id,
-                                state="recovering",
-                                idempotencyKey=self.node_key(node_id),
-                                error=str(error),
-                                operation="merge",
-                            )
-                            self.resolve_node(node, error, self.node_key(node_id))
-                            merge_result = self.merge_node(node, results[node_id])
-                    record["mergeResult"] = merge_result
-                    record["state"] = "completed"
-                    if node_id not in self.state["completedOrder"]:
-                        self.state["completedOrder"].append(node_id)
-                    if node_id not in self.state["mergedOrder"]:
-                        self.state["mergedOrder"].append(node_id)
-                    self.state["state"] = "working"
-                    self.event(
-                        "node",
-                        nodeId=node_id,
-                        state="completed",
-                        idempotencyKey=self.node_key(node_id),
-                    )
+                # Direct workspace writers are deliberately serialized until a
+                # separate directory-scope contract can prove disjoint writes.
+                node_id = ready[0]
+                record = self.state["nodes"].get(node_id, {})
+                if record.get("state") != "executed" or "result" not in record:
+                    self.invoke(self.nodes[node_id])
+                record = self.state["nodes"][node_id]
+                record["state"] = "completed"
+                if node_id not in self.state["completedOrder"]:
+                    self.state["completedOrder"].append(node_id)
+                self.state["state"] = "working"
+                self.event(
+                    "node",
+                    nodeId=node_id,
+                    state="completed",
+                    idempotencyKey=self.node_key(node_id),
+                )
             self.state["state"] = "review"
             self.event("package", state="review")
             return self.state
@@ -312,16 +257,6 @@ def run_json_command(arguments: list[str], label: str) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ExecutionError(f"{label} returned a non-object")
     return payload
-
-
-def git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repository), *arguments],
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
 
 
 def member_review_result(launch: dict[str, Any]) -> dict[str, Any]:
@@ -378,166 +313,11 @@ class PackageRuntime:
         self.repository = repository
         self.package_id = package_id
         self.definition = definition
-        self.integration_branch = definition["integrationBranch"]
-        self.target_branch = definition["targetBranch"]
-        self.integration_worktree = (
-            repository
-            / ".agent-factory"
-            / "worktree"
-            / "work-packages"
-            / package_id
-        )
-
-    def ensure_integration_branch(self) -> None:
-        exists = git(
-            self.repository,
-            "show-ref",
-            "--verify",
-            "--quiet",
-            f"refs/heads/{self.integration_branch}",
-        )
-        listing = git(self.repository, "worktree", "list", "--porcelain")
-        registered = (
-            f"worktree {self.integration_worktree}" in listing.stdout
-            and f"branch refs/heads/{self.integration_branch}" in listing.stdout
-        )
-        if registered:
-            return
-        if self.integration_worktree.exists():
-            raise ExecutionError("package integration branch/worktree collision")
-        self.integration_worktree.parent.mkdir(parents=True, exist_ok=True)
-        # Delay checkout until sparse rules exclude .agent-factory, keeping the
-        # canonical control plane out of this code-only integration worktree.
-        arguments = [
-            "worktree",
-            "add",
-            "--no-checkout",
-            "--lock",
-            "--reason",
-            f"Agent Factory Work Package execution: {self.package_id}",
-        ]
-        if exists.returncode != 0:
-            arguments.extend(["-b", self.integration_branch])
-        arguments.extend(
-            [
-                str(self.integration_worktree),
-                self.target_branch
-                if exists.returncode != 0
-                else self.integration_branch,
-            ]
-        )
-        created = git(self.repository, *arguments)
-        if created.returncode != 0:
-            raise ExecutionError(
-                f"cannot create package integration worktree: {created.stderr.strip()}"
-            )
-        sparse = git(
-            self.integration_worktree,
-            "sparse-checkout",
-            "set",
-            "--no-cone",
-            "/*",
-            "!/.agent-factory/",
-        )
-        if sparse.returncode != 0:
-            raise ExecutionError(
-                f"cannot configure package integration worktree: {sparse.stderr.strip()}"
-            )
-        checkout = git(
-            self.integration_worktree,
-            "checkout",
-            self.integration_branch,
-        )
-        if checkout.returncode != 0:
-            raise ExecutionError(
-                f"cannot checkout package integration branch: {checkout.stderr.strip()}"
-            )
-
-    def prepare_member_worktree(self, work_unit_id: str) -> dict[str, Any]:
-        branch = f"work-unit/{work_unit_id}"
-        worktree = self.repository / ".agent-factory" / "worktree" / work_unit_id
-        listing = git(self.repository, "worktree", "list", "--porcelain")
-        if listing.returncode != 0:
-            raise ExecutionError("cannot inspect registered worktrees")
-        registered = f"worktree {worktree}" in listing.stdout
-        if registered:
-            if f"branch refs/heads/{branch}" not in listing.stdout:
-                raise ExecutionError("member worktree is registered to another branch")
-            return {
-                "baseRef": self.integration_branch,
-                "branch": branch,
-                "reused": True,
-                "worktreePath": str(worktree),
-            }
-        if worktree.exists():
-            raise ExecutionError("member worktree path collision")
-        branch_exists = git(
-            self.repository,
-            "show-ref",
-            "--verify",
-            "--quiet",
-            f"refs/heads/{branch}",
-        )
-        if branch_exists.returncode == 0:
-            raise ExecutionError("member branch exists without its worktree")
-        if branch_exists.returncode != 1:
-            raise ExecutionError("cannot inspect member branch")
-        base = git(
-            self.repository,
-            "rev-parse",
-            "--verify",
-            f"{self.integration_branch}^{{commit}}",
-        )
-        if base.returncode != 0:
-            raise ExecutionError("cannot resolve package integration branch")
-        worktree.parent.mkdir(parents=True, exist_ok=True)
-        # The package integration branch carries prerequisite results; sparse
-        # checkout still keeps canonical control-plane data in the primary root.
-        created = git(
-            self.repository,
-            "worktree",
-            "add",
-            "--no-checkout",
-            "--lock",
-            "--reason",
-            f"Agent Factory Work Package member: {self.package_id}/{work_unit_id}",
-            "-b",
-            branch,
-            str(worktree),
-            base.stdout.strip(),
-        )
-        if created.returncode != 0:
-            raise ExecutionError(
-                f"cannot create member worktree: {created.stderr.strip()}"
-            )
-        sparse = git(
-            worktree,
-            "sparse-checkout",
-            "set",
-            "--no-cone",
-            "/*",
-            "!/.agent-factory/",
-        )
-        if sparse.returncode != 0:
-            raise ExecutionError("cannot configure member sparse checkout")
-        checkout = git(worktree, "checkout", branch)
-        if checkout.returncode != 0:
-            raise ExecutionError("cannot checkout member branch")
-        return {
-            "baseRef": self.integration_branch,
-            "branch": branch,
-            "reused": False,
-            "worktreePath": str(worktree),
-        }
 
     def run_node(
-        self, node: dict[str, Any], base: str | None, _key: str
+        self, node: dict[str, Any], _base: str | None, _key: str
     ) -> dict[str, Any]:
         work_unit_id = node["workUnitId"]
-        if node.get("executionMode") == "worktree":
-            if base not in {None, self.integration_branch}:
-                raise ExecutionError("member base must equal package integration branch")
-            self.prepare_member_worktree(work_unit_id)
         launch = run_json_command(
             [
                 sys.executable,
@@ -588,45 +368,7 @@ class PackageRuntime:
                     )
         return launch
 
-    def merge_node(
-        self, node: dict[str, Any], result: dict[str, Any]
-    ) -> dict[str, Any]:
-        branch = f"work-unit/{node['workUnitId']}"
-        before = git(self.integration_worktree, "rev-parse", self.integration_branch)
-        if before.returncode != 0:
-            raise ExecutionError("cannot resolve package integration branch")
-        operation = git(
-            self.integration_worktree,
-            "merge",
-            "--no-ff",
-            "--no-edit",
-            branch,
-        )
-        if operation.returncode != 0:
-            git(self.integration_worktree, "merge", "--abort")
-            raise ExecutionError(
-                f"package merge conflict for {node['id']}: {operation.stderr.strip()}"
-            )
-        after = git(self.integration_worktree, "rev-parse", "HEAD")
-        return {
-            "result": "merged",
-            "nodeId": node["id"],
-            "sourceBranch": branch,
-            "targetBranch": self.integration_branch,
-            "beforeCommit": before.stdout.strip(),
-            "afterCommit": after.stdout.strip(),
-            "launcher": result,
-        }
-
     def resolve_node(self, node: dict[str, Any], error: Exception, key: str) -> None:
-        target = (
-            self.repository
-            / ".agent-factory"
-            / "worktree"
-            / node["workUnitId"]
-        )
-        if "merge conflict" in str(error).lower():
-            target = self.integration_worktree
         result = run_json_command(
             [
                 sys.executable,
@@ -640,7 +382,7 @@ class PackageRuntime:
                 "--work-unit-id",
                 node["workUnitId"],
                 "--working-directory",
-                str(target),
+                str(self.repository),
                 "--idempotency-key",
                 key,
                 "--error",
@@ -729,14 +471,12 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
         package_id=args.package_id,
         definition=definition,
     )
-    runtime.ensure_integration_branch()
     scheduler = DeterministicScheduler(
         package_id=args.package_id,
         revision=state["revision"],
         definition=definition,
         durable_state=state,
         run_node=runtime.run_node,
-        merge_node=runtime.merge_node,
         resolve_node=runtime.resolve_node,
         emit=emit_json,
         persist=lambda value: persist_state(package, invocation_id, value),
@@ -759,10 +499,9 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
                 {
                     **review_evidence,
                     "completedOrder": final_state["completedOrder"],
-                    "mergedOrder": final_state["mergedOrder"],
                     "aiChecks": [
                         "dag-complete",
-                        "deterministic-merge-order",
+                        "deterministic-execution-order",
                         "member-traceability",
                         "durable-event-log",
                     ],
@@ -786,7 +525,6 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
         "invocationId": invocation_id,
         "state": final_state["state"],
         "completedOrder": final_state["completedOrder"],
-        "integrationBranch": definition["integrationBranch"],
     }
 
 

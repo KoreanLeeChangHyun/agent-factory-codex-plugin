@@ -1,6 +1,6 @@
 ---
 name: lifecycle
-description: Route Agent Factory work through fast Work Agent execution and post-feedback recording, with Intake, Specification, Work Unit, Work Package, and worktree flows available only when explicitly selected.
+description: Route Agent Factory work through fast Work Agent execution and post-feedback recording, with Intake, Specification, Work Unit, and Work Package flows available only when explicitly selected.
 ---
 
 # Agent Factory Lifecycle
