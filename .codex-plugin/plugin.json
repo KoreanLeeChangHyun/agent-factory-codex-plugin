@@ -1,7 +1,7 @@
 {
   "name": "agent-factory",
   "version": "0.1.0+codex.20260816190001",
-  "description": "Feedback-first Agent Factory skills with fast work delegation, background project recording, local browser views, and optional advanced artifact routes.",
+  "description": "Five Agent Factory skills for managed agents, conventions, inquiry, specifications, and source gathering.",
   "author": {
     "name": "Agent Factory",
     "url": "https://github.com/KoreanLeeChangHyun"
@@ -12,18 +12,17 @@
   "keywords": [
     "agent-factory",
     "codex",
-    "workflow",
-    "project-skill",
-    "local-viewer",
-    "dag",
-    "work-package",
+    "managed-agents",
+    "inquiry",
+    "specification",
+    "source-gathering",
     "software-delivery"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Factory",
-    "shortDescription": "Run fast feedback-first project work in Codex.",
-    "longDescription": "Provides feedback-first Work Agent delegation, post-feedback Recording Agents, AI-facing Project Skills, local browser project views, and optional Intake, Specification, Work Unit, Work Package, diagram, and worktree routes.",
+    "shortDescription": "Run managed project work with five focused skills.",
+    "longDescription": "Provides managed Main, Work, Review, and Inquiry Agents; annotation and SVG conventions; temporary investigation workspaces; refined Specifications with Human- and AI-facing views; and provenance-preserving source gathering.",
     "developerName": "Agent Factory",
     "category": "Productivity",
     "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",
@@ -32,7 +31,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use Agent Factory to delegate the next bounded task, return it for Human feedback, and record accepted project progress afterward."
+      "Use $agent to route the next bounded task through managed Work and independent Review Agents."
     ]
   }
 }

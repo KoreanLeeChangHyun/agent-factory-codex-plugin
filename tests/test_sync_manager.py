@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 
-SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "synchronization"
+SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "gather"
 MANAGER = SKILL_ROOT / "scripts" / "sync.py"
 
 
@@ -211,10 +211,10 @@ class SyncManagerTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("does not match Git top-level", result.stderr)
 
-    def test_sync_skill_contracts_use_the_shared_resolver(self) -> None:
+    def test_gather_contracts_use_the_shared_resolver(self) -> None:
         documents = {
-            "synchronization": (
-                SKILL_ROOT / "references" / "synchronization-management.md"
+            "gather": (
+                SKILL_ROOT / "references" / "gather-management.md"
             ),
             "google-drive": SKILL_ROOT / "references" / "google-drive.md",
             "google-mail": SKILL_ROOT / "references" / "google-mail.md",

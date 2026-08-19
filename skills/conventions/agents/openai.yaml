@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Conventions"
-  short_description: "Apply annotation and SVG-only interface conventions."
-  default_prompt: "Use $conventions to apply the relevant annotation or SVG-only icon convention."

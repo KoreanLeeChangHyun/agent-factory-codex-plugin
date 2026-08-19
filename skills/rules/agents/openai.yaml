@@ -1,6 +1,0 @@
-interface:
-  display_name: "Agent Rule"
-  short_description: "Apply Agent Factory edit, evidence, and engineering rules."
-  default_prompt: "Use $rules before editing or designing Agent Factory work so the change is explicit, evidence-backed, and scoped."
-policy:
-  allow_implicit_invocation: true

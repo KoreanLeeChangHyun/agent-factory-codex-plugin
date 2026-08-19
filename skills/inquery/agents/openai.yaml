@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Inquery"
+  short_description: "Manage temporary AI inquiry workspaces and notes."
+  default_prompt: "Use $inquery to investigate an uncertain question in an isolated temporary workspace."

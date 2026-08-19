@@ -6,55 +6,33 @@
 > This plugin is under active development. Its skills, artifact formats, and
 > workflows may change without notice.
 
-Agent Factory is a Codex plugin for fast Human-feedback software delivery. A
-Main Agent delegates bounded work to a Work Agent, returns the result
-immediately, and records accepted progress afterward through a background
-Recording Agent.
+Agent Factory is a Codex plugin for Human-directed software delivery. It routes
+bounded implementation through managed Work and independent Review Agents,
+supports resumable investigation, maintains refined project Specifications,
+and gathers distributed source material without promoting it to trusted truth.
 
 ## Included skills
 
-The plugin exposes nine modular skills:
+The plugin exposes exactly five public skills:
 
-- `lifecycle`
-- `agents`
-- `rules`
-- `projects`
-- `intakes`
-- `work-units`
-- `specifications`
-- `conventions`
-- `synchronization`
+- `agent`: Run the Main, Work, Review, and Inquiry Agent roles through the
+  managed `codex exec` session runtime.
+- `convention`: Apply annotation and SVG-only user-interface conventions.
+- `inquery`: Maintain temporary unrefined Markdown investigation workspaces for
+  uncertain questions.
+- `specification`: Maintain one refined body of trusted project knowledge with
+  paired Human-facing HTML/CSS/JavaScript and AI-facing Project Skill views.
+- `gather`: Locate, import, refresh, or mirror distributed sources while
+  preserving fidelity, provenance, identity, and resolved destinations.
 
-`projects` maintains the AI-facing Project Skill in a target repository and
-serves a read-only local HTML/CSS/JavaScript view of project context, Git
-progress, decisions, and diagrams. Intake, Specification, Work Unit, and Work
-Package routes remain available only when explicitly selected. All execution
-uses the opened primary Git workspace.
+Gathered collections remain evidence. Gather does not reconcile their claims,
+refine them, or promote them into a trusted Specification. Operational Agent
+sessions, Inquiry workspaces, and Specification collections remain separate.
 
 Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
 `agents/openai.yaml`, and detailed capability guidance in `references/`.
 Executable managers, schemas, assets, and tests remain inside the owning skill
 when that domain needs them.
-
-## Project Skill and local view
-
-In a target repository, initialize the AI-facing Project Skill with:
-
-```bash
-python3 <plugin-root>/skills/projects/scripts/project.py init \
-  --project-root <project-root> \
-  --name <project-name>
-```
-
-Serve the Human-facing read-only view on loopback with:
-
-```bash
-python3 <plugin-root>/skills/projects/scripts/viewer.py \
-  --project-root <project-root>
-```
-
-The browser view derives Project Skill references, progress, decisions,
-diagrams, and Git status at request time. It does not write project facts.
 
 ## Local installation
 

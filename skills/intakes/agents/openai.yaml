@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Intake"
-  short_description: "Manage optional topic-scoped evidence ledgers."
-  default_prompt: "Use $intakes only for an explicitly selected durable Intake, writing canonical JSON through scripts/intake.py."

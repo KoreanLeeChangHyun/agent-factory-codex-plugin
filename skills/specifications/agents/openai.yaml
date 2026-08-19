@@ -1,6 +1,0 @@
-interface:
-  display_name: "Agent Factory Specification"
-  short_description: "Manage explicitly requested Specifications."
-  default_prompt: "Use $specifications only for a Human-selected Specification or Specification-owned diagram."
-policy:
-  allow_implicit_invocation: false

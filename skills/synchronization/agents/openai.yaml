@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Synchronization"
-  short_description: "Configure destinations and run supported Google synchronization."
-  default_prompt: "Use $synchronization to resolve the project destination and run the supported Google synchronization capability."

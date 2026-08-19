@@ -1,6 +1,0 @@
-interface:
-  display_name: "Agent Factory Work Units"
-  short_description: "Run optional advanced execution artifacts."
-  default_prompt: "Use $work-units only for an explicitly selected Work Unit or Work Package route in the primary Git workspace."
-policy:
-  allow_implicit_invocation: false

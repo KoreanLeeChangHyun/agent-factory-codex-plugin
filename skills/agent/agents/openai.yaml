@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Agent"
+  short_description: "Run resumable Work, Review, and Inquiry Agents."
+  default_prompt: "Use $agent to route bounded implementation through separate Work and static Review sessions or manage a resumable Inquiry session."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Projects"
-  short_description: "Manage project skills and local browser views."
-  default_prompt: "Use $projects to maintain an AI-facing Project Skill and serve its Human-facing local browser view."

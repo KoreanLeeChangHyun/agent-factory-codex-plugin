@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Lifecycle"
-  short_description: "Run the feedback-first Agent Factory lifecycle."
-  default_prompt: "Use $lifecycle to route bounded Work Agent execution before background project recording."

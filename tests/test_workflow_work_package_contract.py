@@ -4,19 +4,19 @@ import unittest
 from pathlib import Path
 
 
-class WorkflowAgentWorkPackageContractTest(unittest.TestCase):
-    def test_workflow_agent_defers_sequential_package_scheduling(self) -> None:
-        content = (
-            Path(__file__).resolve().parents[1]
-            / "skills"
-            / "agents"
-            / "references"
-            / "workflow-agent.md"
-        ).read_text(encoding="utf-8")
-        self.assertIn("recorded primary workspace", content)
-        self.assertIn("runs nodes sequentially", content)
-        self.assertIn("do not merge", content)
-        self.assertIn("deterministic", content)
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class WorkReviewContractTest(unittest.TestCase):
+    def test_work_and_review_are_separate_managed_roles(self) -> None:
+        references = ROOT / "skills" / "agent" / "references"
+        work = (references / "work.md").read_text(encoding="utf-8")
+        review = (references / "review.md").read_text(encoding="utf-8")
+
+        self.assertIn("Implement one bounded Human-requested change", work)
+        self.assertIn("Independently perform a static review", review)
+        self.assertIn("different managed Codex sessions", review)
+        self.assertIn("Do not modify files", review)
 
 
 if __name__ == "__main__":

@@ -416,7 +416,7 @@ class AppServerGoalTest(unittest.TestCase):
 
         prompt = module.execution_prompt("wu-001", "execution", None)
 
-        self.assertIn("$agents", prompt)
+        self.assertIn("$agent", prompt)
         self.assertIn("You are the Workflow Agent", prompt)
         self.assertIn("You must execute", prompt)
         self.assertIn("primary Git workspace", prompt)
@@ -568,7 +568,7 @@ class AppServerGoalTest(unittest.TestCase):
             "Commit the implementation and rebind all evidence.",
         )
 
-        self.assertIn("$agents", prompt)
+        self.assertIn("$agent", prompt)
         self.assertIn("perform rework", prompt)
         self.assertIn(
             "Commit the implementation and rebind all evidence.",

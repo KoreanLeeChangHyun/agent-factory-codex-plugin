@@ -1,203 +1,32 @@
 from __future__ import annotations
 
-import json
-import subprocess
-import tempfile
 import unittest
 from pathlib import Path
 
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-MANAGERS = {
-    "intakes": (
-        PLUGIN_ROOT / "skills" / "intakes" / "scripts" / "intake.py",
-        [],
-    ),
-    "specifications": (
-        PLUGIN_ROOT / "skills" / "specifications" / "scripts" / "specification.py",
-        ["--profile", "project-core"],
-    ),
-    "work-units": (
-        PLUGIN_ROOT
-        / "skills"
-        / "work-units"
-        / "scripts"
-        / "work_unit.py",
-        [],
-    ),
-}
+ROOT = Path(__file__).resolve().parents[1]
+SKILLS = ROOT / "skills"
 
 
-class ArtifactManagerScriptContractTests(unittest.TestCase):
-    def test_canonical_crud_and_validation_ignore_git_tracking_state(self) -> None:
-        for collection, (manager, create_extra) in MANAGERS.items():
-            for tracking_state in ("tracked", "untracked", "ignored"):
-                with self.subTest(
-                    collection=collection, tracking_state=tracking_state
-                ), tempfile.TemporaryDirectory() as temporary:
-                    root = Path(temporary)
-                    subprocess.run(
-                        ["git", "init", "-q", "-b", "main"],
-                        cwd=root,
-                        check=True,
-                    )
-                    if tracking_state == "ignored":
-                        (root / ".gitignore").write_text(
-                            "/.agent-factory/\n", encoding="utf-8"
-                        )
-                    package = root / ".agent-factory" / collection / "sample"
-                    identity_arguments = (
-                        ["--topic", "Sample", "--language", "ko"]
-                        if collection == "intakes"
-                        else ["--title", "Sample", "--theme", "default"]
-                    )
-                    create = subprocess.run(
-                        [
-                            "python3",
-                            str(manager),
-                            "create",
-                            str(package),
-                            "--id",
-                            "sample",
-                            "--project-id",
-                            "sample-project",
-                            *identity_arguments,
-                            *create_extra,
-                        ],
-                        cwd=root,
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-                    self.assertTrue(json.loads(create.stdout)["valid"])
-                    if tracking_state == "tracked":
-                        subprocess.run(
-                            ["git", "add", ".agent-factory"],
-                            cwd=root,
-                            check=True,
-                        )
-                    status = subprocess.run(
-                        ["git", "status", "--short", "--ignored", ".agent-factory"],
-                        cwd=root,
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    ).stdout
-                    expected_prefix = {
-                        "tracked": "A ",
-                        "untracked": "??",
-                        "ignored": "!!",
-                    }[tracking_state]
-                    self.assertIn(expected_prefix, status)
+class PublicSkillResourceContractTests(unittest.TestCase):
+    def test_only_agent_and_gather_ship_executable_managers(self) -> None:
+        self.assertTrue((SKILLS / "agent" / "scripts" / "agent_exec.py").is_file())
+        self.assertTrue((SKILLS / "gather" / "scripts" / "sync.py").is_file())
+        self.assertTrue((SKILLS / "gather" / "scripts" / "sync_gmail.py").is_file())
 
-                    update_command = (
-                        ["python3", str(manager), "topic-set", str(package), "Updated"]
-                        if collection == "intakes"
-                        else ["python3", str(manager), "title-set", str(package), "Updated"]
-                    )
-                    subprocess.run(
-                        update_command,
-                        cwd=root,
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-                    validated = subprocess.run(
-                        ["python3", str(manager), "validate", str(package), "--full"],
-                        cwd=root,
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-                    self.assertTrue(json.loads(validated.stdout)["valid"])
+        for name in ("convention", "inquery", "specification"):
+            with self.subTest(skill=name):
+                self.assertFalse((SKILLS / name / "scripts").exists())
 
-    def test_canonical_artifact_skills_require_their_owning_scripts(self) -> None:
-        contracts = {
-            "intakes": ("scripts/intake.py", "intake-management.md"),
-            "specifications": (
-                "scripts/specification.py",
-                "specification-management.md",
-            ),
-            "work-units": ("scripts/work_unit.py", "work-unit-management.md"),
-        }
-
-        for skill_name, (manager_path, reference) in contracts.items():
-            skill_root = PLUGIN_ROOT / "skills" / skill_name
-            text = " ".join(
-                (skill_root / "references" / reference)
-                .read_text(encoding="utf-8")
-                .split()
-            )
-            with self.subTest(skill=skill_name):
-                self.assertTrue((skill_root / manager_path).is_file())
-                self.assertIn("Mandatory Manager Script Gate", text)
-                self.assertIn(manager_path, text)
-                self.assertIn("hard precondition", text)
-                self.assertIn("stop before mutation", text)
-                self.assertIn("Do not fall back to direct JSON editing", text)
-                self.assertIn("do not create an exception path", text)
-
-    def test_shared_contract_requires_script_only_fail_closed_management(
-        self,
-    ) -> None:
-        paths = [
-            (
-                PLUGIN_ROOT
-                / "skills"
-                / "lifecycle"
-                / "references"
-                / "lifecycle-entry.md"
-            ),
-            (
-                PLUGIN_ROOT
-                / "skills"
-                / "lifecycle"
-                / "references"
-                / "common-document-contract.md"
-            ),
-        ]
-
-        for path in paths:
-            text = " ".join(path.read_text(encoding="utf-8").split())
-            with self.subTest(path=path):
-                self.assertIn("intakes/scripts/intake.py", text)
-                self.assertIn("specifications/scripts/specification.py", text)
-                self.assertIn(
-                    "work-units/scripts/work_unit.py",
-                    text,
-                )
-                self.assertIn("stop before mutation", text)
-                self.assertIn("exception path", text)
-
-    def test_plugin_has_no_artifact_authoring_hooks_or_hook_contract(self) -> None:
-        hooks_root = PLUGIN_ROOT / "hooks"
-        self.assertFalse(hooks_root.exists() and any(hooks_root.iterdir()))
-        contract_paths = [
-            PLUGIN_ROOT / "skills" / "intakes" / "SKILL.md",
-            PLUGIN_ROOT / "skills" / "specifications" / "SKILL.md",
-            PLUGIN_ROOT / "skills" / "work-units" / "SKILL.md",
-            PLUGIN_ROOT / "skills" / "lifecycle" / "SKILL.md",
-            (
-                PLUGIN_ROOT
-                / "skills"
-                / "lifecycle"
-                / "references"
-                / "common-document-contract.md"
-            ),
-        ]
-        forbidden = (
-            "hooks/hooks.json",
-            "artifact_json_guard.py",
-            "PreToolUse",
-            "one-shot grant",
-            "audited one-shot",
-        )
-
-        for path in contract_paths:
-            text = path.read_text(encoding="utf-8")
-            with self.subTest(path=path):
-                for phrase in forbidden:
-                    self.assertNotIn(phrase, text)
+    def test_gather_keeps_existing_sync_schema_and_configuration_identity(self) -> None:
+        schema = SKILLS / "gather" / "assets" / "schema" / "sync.schema.json"
+        management = (
+            SKILLS / "gather" / "references" / "gather-management.md"
+        ).read_text(encoding="utf-8")
+        self.assertTrue(schema.is_file())
+        self.assertIn(".agent-factory/sync.json", management)
+        self.assertIn("google-drive", management)
+        self.assertIn("google-mail", management)
 
 
 if __name__ == "__main__":

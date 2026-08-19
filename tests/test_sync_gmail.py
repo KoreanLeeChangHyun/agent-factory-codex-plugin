@@ -12,7 +12,7 @@ from unittest import mock
 SCRIPT = (
     Path(__file__).resolve().parents[1]
     / "skills"
-    / "synchronization"
+    / "gather"
     / "scripts"
     / "sync_gmail.py"
 )

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Gather"
+  short_description: "Gather source material with provenance."
+  default_prompt: "Use $gather to resolve a destination and gather source material without promoting it to trusted project truth."
