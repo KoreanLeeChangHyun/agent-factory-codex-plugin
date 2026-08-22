@@ -20,6 +20,18 @@
         },
         "google-mail": {
           "$ref": "#/$defs/source"
+        },
+        "slack": {
+          "$ref": "#/$defs/source"
+        },
+        "notion": {
+          "$ref": "#/$defs/source"
+        },
+        "discord": {
+          "$ref": "#/$defs/source"
+        },
+        "onedrive": {
+          "$ref": "#/$defs/source"
         }
       }
     }

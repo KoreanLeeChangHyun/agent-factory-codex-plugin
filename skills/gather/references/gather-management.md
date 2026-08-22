@@ -6,6 +6,10 @@ Choose the gathering capability that matches the source:
   local workspace.
 - `references/google-mail.md`: Import or refresh Gmail messages and attachments
   in the local workspace.
+- `references/slack.md`: Import bounded channel history and files from Slack.
+- `references/notion.md`: Import a shared Notion page tree and its files.
+- `references/discord.md`: Import bounded channel history and attachments from Discord.
+- `references/onedrive.md`: Import selected OneDrive files or folders.
 
 ## Project And Destination Contract
 
@@ -20,6 +24,10 @@ Gather owns the project sync configuration and resolver:
 - Project configuration: `<git-project-root>/.agent-factory/sync.json`.
 - Drive default: `<git-project-root>/source/google/drive`.
 - Gmail default: `<git-project-root>/source/google/mail`.
+- Slack default: `<git-project-root>/source/slack`.
+- Notion default: `<git-project-root>/source/notion`.
+- Discord default: `<git-project-root>/source/discord`.
+- OneDrive default: `<git-project-root>/source/microsoft/onedrive`.
 - Precedence: explicit command destination, source-specific project setting,
   then source default.
 
@@ -31,6 +39,10 @@ normalized resolved destination:
 ```bash
 python <gather-skill-directory>/scripts/sync.py resolve --source google-drive
 python <gather-skill-directory>/scripts/sync.py resolve --source google-mail
+python <gather-skill-directory>/scripts/sync.py resolve --source slack
+python <gather-skill-directory>/scripts/sync.py resolve --source notion
+python <gather-skill-directory>/scripts/sync.py resolve --source discord
+python <gather-skill-directory>/scripts/sync.py resolve --source onedrive
 ```
 
 Set or inspect a persistent source-specific override without moving or deleting
@@ -51,6 +63,18 @@ Configuration shape:
   "sources": {
     "google-drive": {
       "destination": "source/customer-drive"
+    },
+    "slack": {
+      "destination": "source/customer-slack"
+    },
+    "notion": {
+      "destination": "source/customer-notion"
+    },
+    "discord": {
+      "destination": "source/customer-discord"
+    },
+    "onedrive": {
+      "destination": "source/customer-onedrive"
     }
   }
 }

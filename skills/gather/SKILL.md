@@ -1,6 +1,6 @@
 ---
 name: gather
-description: Locate, import, refresh, or mirror distributed source material while preserving source fidelity, provenance, identity, and resolved destinations. Use for Google Drive or Gmail collection, not for reconciling or promoting trusted project truth.
+description: Locate, import, refresh, or mirror distributed source material while preserving source fidelity, provenance, identity, and resolved destinations. Use for Google Drive, Gmail, Slack, Notion, Discord, or OneDrive collection, not for reconciling or promoting trusted project truth.
 ---
 
 # Agent Factory Gather
@@ -21,11 +21,16 @@ copy.
 - `references/gather-management.md`: Resolve and manage project-local gather destinations.
 - `references/google-drive.md`: Share, authorize, import, refresh, mirror, or troubleshoot Google Drive files.
 - `references/google-mail.md`: Authorize, import, refresh, mirror, or troubleshoot Gmail messages and attachments.
+- `references/slack.md`: Connect and gather bounded Slack channel history and files.
+- `references/notion.md`: Connect and gather a shared Notion page, blocks, and files.
+- `references/discord.md`: Connect and gather bounded Discord channel history and attachments.
+- `references/onedrive.md`: Connect and gather selected OneDrive files and folders.
 
 ## Assets and tools
 
-`scripts/sync.py` owns destination resolution and configuration, and
-`scripts/sync_gmail.py` owns Gmail synchronization. Keep
+`scripts/sync.py` owns destination resolution and configuration. Provider
+syncs are `sync_google_drive.py`, `sync_gmail.py`, `sync_slack.py`,
+`sync_notion.py`, `sync_discord.py`, and `sync_onedrive.py`. Keep
 `.agent-factory/sync.json`, source identifiers, schemas, defaults, credential
 safety, read-only behavior, and destructive-sync confirmations as the internal
 synchronization contract.

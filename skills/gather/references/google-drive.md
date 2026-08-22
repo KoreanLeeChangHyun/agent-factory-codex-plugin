@@ -11,10 +11,8 @@ path.
 Keep the workflow read-only by default. Do not upload, delete, or modify Drive
 files unless the user explicitly asks for write-back behavior.
 
-Prefer the least privileged method that fits the job. Do not create
-project-specific Google Cloud OAuth clients or repository-local Google Drive API
-importers unless the user explicitly asks or existing project tooling requires
-it. Treat those as legacy or project-specific paths, not the default workflow.
+Prefer the bundled read-only API sync for repeatable bounded collection. Drive
+for desktop, rclone, and manual download remain useful alternatives.
 
 ## Workspace Convention
 
@@ -48,8 +46,7 @@ Prefer methods in this order:
    policy reasons.
 3. **Manual browser download**: Use for one-off small transfers or when API or
    CLI setup is not worth it.
-4. **Existing OAuth/API importer**: Use only when a repository already has a
-   suitable importer or the user explicitly wants this route. Confirm it uses
+4. **Bundled OAuth/API importer**: Use `scripts/sync_google_drive.py`. Confirm it uses
    `https://www.googleapis.com/auth/drive.readonly` for imports and stores
    credentials outside committed files.
 5. **Service account**: Use for automation when a Google Workspace admin or
@@ -203,36 +200,26 @@ rclone copy "<remote>:<path>" "<resolved-drive-destination>" \
   --progress
 ```
 
-## Existing OAuth/API Importer
+## Bundled OAuth/API Importer
 
-Use this path only when existing project tooling is appropriate.
+Create an Installed application OAuth client in Google Cloud, enable Drive API,
+download its JSON outside the repository as
+`${XDG_CONFIG_HOME:-$HOME/.config}/google-api/oauth-client.json`, and add the
+account as an OAuth test user when applicable. The first run opens browser
+consent and stores a user-only token beside it. The script requests only
+`drive.readonly`, downloads binary files with `files.get` media, exports
+Google-native Docs/Sheets/Slides to declared local representations, and records
+checksums and source metadata in `index.jsonl`.
 
-1. Check for setup docs and importer scripts, for example:
-   - `docs/google_drive_readonly_setup.md`
-   - `tools/google_drive_import.py`
-2. Confirm the importer requests read-only Drive access for imports:
-   - `https://www.googleapis.com/auth/drive.readonly`
-3. Keep OAuth client secrets and tokens outside the repository.
-4. Import to the resolved destination, for example:
-
-```bash
-python tools/google_drive_import.py \
-  --folder-id FOLDER_ID \
-  --output-dir "<resolved-drive-destination>" \
-  --recursive
-```
-
-For shared drives, list or pass the shared drive ID if the importer supports
-it:
+Import one folder, bounded by count and optionally recursive:
 
 ```bash
-python tools/google_drive_import.py --list-shared-drives
-python tools/google_drive_import.py \
-  --drive-id SHARED_DRIVE_ID \
+python <gather-skill-directory>/scripts/sync_google_drive.py \
   --folder-id FOLDER_ID \
-  --output-dir "<resolved-drive-destination>" \
-  --recursive
+  --recursive --max-files 500
 ```
+
+Official setup and download contracts: [Python quickstart](https://developers.google.com/workspace/drive/api/quickstart/python) and [download/export guide](https://developers.google.com/workspace/drive/api/guides/manage-downloads).
 
 ## Troubleshooting
 

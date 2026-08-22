@@ -54,6 +54,11 @@ https://www.googleapis.com/auth/gmail.readonly
 Do not use send, modify, compose, or full mail scopes unless the user explicitly
 requests Gmail write behavior.
 
+Create an Installed application OAuth client, enable Gmail API, and place its
+downloaded JSON at the documented external config path. The first script run
+opens user consent and stores a user-only refresh token outside the repository.
+See Google's [Gmail scope contract](https://developers.google.com/workspace/gmail/api/auth/scopes).
+
 If Google blocks a generic OAuth client, use the user-created Google API OAuth
 client under `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/` and ensure the
 Google Cloud OAuth consent screen has the current Gmail account added as a test

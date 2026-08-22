@@ -25,6 +25,10 @@ SCHEMA_VERSION = "1.0.0"
 DEFAULT_DESTINATIONS = {
     "google-drive": Path("source/google/drive"),
     "google-mail": Path("source/google/mail"),
+    "slack": Path("source/slack"),
+    "notion": Path("source/notion"),
+    "discord": Path("source/discord"),
+    "onedrive": Path("source/microsoft/onedrive"),
 }
 DIRECTORY_OPEN_FLAGS = (
     os.O_RDONLY
