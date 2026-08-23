@@ -24,7 +24,7 @@ class SpecificationContractTests(unittest.TestCase):
         self.assertIn("JavaScript", document)
         self.assertIn("Project Skill", project_skill)
 
-    def test_plural_specification_collection_path_is_preserved(self) -> None:
+    def test_singular_specification_collection_path_is_preserved(self) -> None:
         combined = "\n".join(
             path.read_text(encoding="utf-8")
             for path in (
@@ -32,7 +32,8 @@ class SpecificationContractTests(unittest.TestCase):
                 SKILL_ROOT / "references" / "project-skill.md",
             )
         )
-        self.assertIn(".agent-factory/specifications/", combined)
+        self.assertIn(".agent-factory/specification/", combined)
+        self.assertNotIn(".agent-factory/specifications/", combined)
 
     def test_specification_keeps_inquiry_and_session_state_separate(self) -> None:
         entry = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")

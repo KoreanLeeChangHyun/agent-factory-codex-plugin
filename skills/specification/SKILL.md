@@ -23,7 +23,8 @@ Human has decided them.
 
 - Read `references/specification-document.md` completely whenever creating,
   editing, redesigning, inspecting, or verifying a Specification. It defines
-  the paired representations, alignment requirements, and browser document.
+  the authoring workflow, packaged document template, paired representations,
+  alignment requirements, and browser document.
 - Read `references/project-skill.md` completely whenever the work creates,
   changes, inspects, or verifies the AI-facing representation or any explicitly
   requested project-scoped Project Skill. It defines the standard Skill layout,
@@ -40,3 +41,40 @@ platform subagent concepts.
 Preserve the common Specification shell. Change only project-specific
 Specification content and the corresponding Project Skill content needed by the
 Human's request.
+
+For a new Specification, use the reusable files in `assets/document/` as the
+starting point and follow the copy-once and placeholder-refinement workflow in
+`references/specification-document.md`. The template is a flexible baseline,
+not a schema; adapt its sections to the grounded needs of the Specification.
+
+## Local browser
+
+Use the internal standard-library-only initializer to install the common shell
+and one project-root launcher. For first-time initialization, resolve the actual
+loaded Specification Skill directory from this `SKILL.md`, then invoke its
+initializer with the target Git root explicitly:
+
+```bash
+python3 <resolved-specification-skill>/scripts/serve.py \
+  --project-root <target-git-root> init
+```
+
+The first command installs the reusable assets into
+`<target-git-root>/.agent-factory/specification/common/` and copies the packaged
+`spec.sh` template to `<target-git-root>/spec.sh` once. It never changes an
+existing root `spec.sh`, including with `init --force`; force applies only to
+differing common browser assets.
+
+For normal Human use, launch from any current directory with:
+
+```bash
+<project-root>/spec.sh
+# or, from the project root
+./spec.sh --port 9000
+```
+
+The root launcher resolves its own physical location, serves only
+`.agent-factory/specification/` on loopback, and opens `/common/` in the default
+browser. `--port <port>` or `-p <port>` overrides the default port `8000`.
+`serve.py` remains the internal initializer and advanced safe server; place its
+global `--project-root <target-git-root>` option before `init` or `serve`.

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Agent Factory Specification</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="specification-shell" data-specification-shell>
+      <nav class="activity-bar" aria-label="작업 표시줄" data-region="activity-bar">
+        <button
+          class="activity-button is-active"
+          type="button"
+          aria-label="탐색기"
+          aria-pressed="true"
+          data-activity="explorer"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4.5 3.5h5l2 2h8v15h-15v-17Z" />
+            <path d="M4.5 8h15" />
+          </svg>
+        </button>
+      </nav>
+
+      <aside
+        class="primary-sidebar"
+        aria-label="기본 사이드바"
+        data-region="primary-sidebar"
+      >
+        <header class="primary-sidebar__header">탐색기</header>
+        <div
+          class="primary-sidebar__content explorer-tree"
+          role="tree"
+          aria-label="Specification 탐색기"
+          data-explorer-content
+        ></div>
+      </aside>
+
+      <div
+        class="sidebar-resizer"
+        role="separator"
+        aria-label="기본 사이드바 너비 조절"
+        aria-orientation="vertical"
+        aria-valuemin="180"
+        aria-valuemax="520"
+        aria-valuenow="288"
+        tabindex="0"
+        data-sidebar-resizer
+      ></div>
+
+      <main class="workspace" aria-label="작업영역" data-region="workspace"></main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

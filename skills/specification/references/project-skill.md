@@ -81,7 +81,7 @@ physically separate from:
 - unrefined Markdown Inquiry working material below
   `.agent-factory/inquiries/`;
 - the corresponding refined Human-facing HTML, CSS, and JavaScript view below
-  `.agent-factory/specifications/`;
+  `.agent-factory/specification/`;
 - operational Agent session state below `.agent-factory/agent/`.
 
 Do not automatically promote an Inquiry document into a Project Skill. Create
@@ -121,5 +121,5 @@ Specification is incomplete without the actual paired Project Skill even when
 the Explorer can link to some other Skill.
 
 The Explorer and every other Human-facing Specification view must be rendered
-as HTML, CSS, and JavaScript below `.agent-factory/specifications/`. This
+as HTML, CSS, and JavaScript below `.agent-factory/specification/`. This
 Markdown file defines Skill guidance only; it is not a Specification output.

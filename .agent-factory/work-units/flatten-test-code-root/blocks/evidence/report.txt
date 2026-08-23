@@ -1,9 +1,0 @@
-Worktree: /home/deus/workspace/agent-factory/plugin/.agent-factory/worktree/flatten-test-code-root
-Branch: work-unit/flatten-test-code-root
-Commit: 186ed73fe3d2aaf6c3141ad6d1007eb7ae55a5eb
-Result: 18 Python test files moved one-to-one from skills/*/tests to plugin-root tests.
-Path updates: Path(__file__) roots now resolve from plugin-root tests; test_worktree.py uses a sibling reference for test_work_unit_manager.py.
-Static verification: 18 root tests, zero nested skill tests, zero duplicate names, zero remaining skill test directories, zero active old-path references, clean worktree.
-Tests run: no, by explicit Work Unit instruction.
-Human command: python3 -m unittest discover -s tests -p 'test_*.py'
-Remaining risk: runtime test behavior awaits Human execution.

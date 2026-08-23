@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title data-template-placeholder>[[SPECIFICATION TITLE]]</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to specification content</a>
+
+    <header class="document-header">
+      <div class="eyebrow">
+        <svg class="eyebrow__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 4.75h10.25L19 8.5v10.75H5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M15 4.75V8.5h4M8 12h8M8 15.5h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Specification</span>
+      </div>
+      <h1 data-template-placeholder>[[SPECIFICATION TITLE]]</h1>
+      <p class="summary" data-template-placeholder>[[CONCISE, GROUNDED SUMMARY OF THIS SPECIFICATION]]</p>
+      <dl class="metadata" aria-label="Specification metadata">
+        <div>
+          <dt>Identity</dt>
+          <dd data-template-placeholder>[[specification-id]]</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd data-template-placeholder>[[HUMAN-DECIDED STATUS OR REMOVE THIS FIELD]]</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd data-template-placeholder>[[GROUNDED LAST-UPDATED VALUE OR REMOVE THIS FIELD]]</dd>
+        </div>
+      </dl>
+    </header>
+
+    <div class="document-layout">
+      <nav class="section-nav" aria-label="On this page">
+        <p class="section-nav__label">On this page</p>
+        <ol>
+          <li><a href="#scope">Scope</a></li>
+          <li><a href="#decisions">Accepted decisions</a></li>
+          <li><a href="#requirements">Requirements</a></li>
+          <li><a href="#evidence">Evidence and provenance</a></li>
+          <li><a href="#questions">Unresolved questions</a></li>
+        </ol>
+      </nav>
+
+      <main id="content" tabindex="-1">
+        <section id="scope" aria-labelledby="scope-title">
+          <div class="section-heading">
+            <p class="section-number">01</p>
+            <h2 id="scope-title">Scope</h2>
+          </div>
+          <p data-template-placeholder>[[DEFINE THE SPECIFICATION BOUNDARY AND ITS GROUNDED CONTEXT]]</p>
+          <div class="scope-grid">
+            <article>
+              <h3>In scope</h3>
+              <ul data-template-placeholder>
+                <li>[[GROUNDED IN-SCOPE ITEM]]</li>
+              </ul>
+            </article>
+            <article>
+              <h3>Out of scope</h3>
+              <ul data-template-placeholder>
+                <li>[[GROUNDED EXCLUSION]]</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="decisions" aria-labelledby="decisions-title">
+          <div class="section-heading">
+            <p class="section-number">02</p>
+            <h2 id="decisions-title">Accepted decisions</h2>
+          </div>
+          <div class="card-list" data-template-placeholder>
+            <article class="decision-card">
+              <h3>[[ACCEPTED DECISION]]</h3>
+              <p>[[DECISION RATIONALE OR EFFECT, WITHOUT INVENTED STATE]]</p>
+              <p class="provenance"><strong>Provenance:</strong> [[HUMAN DECISION OR INSPECTABLE SOURCE]]</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="requirements" aria-labelledby="requirements-title">
+          <div class="section-heading">
+            <p class="section-number">03</p>
+            <h2 id="requirements-title">Requirements</h2>
+          </div>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Requirements table">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Requirement</th>
+                  <th scope="col">Provenance</th>
+                </tr>
+              </thead>
+              <tbody data-template-placeholder>
+                <tr>
+                  <th scope="row">[[REQ-ID]]</th>
+                  <td>[[GROUNDED REQUIREMENT]]</td>
+                  <td>[[HUMAN DECISION OR INSPECTABLE SOURCE]]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="evidence" aria-labelledby="evidence-title">
+          <div class="section-heading">
+            <p class="section-number">04</p>
+            <h2 id="evidence-title">Evidence and provenance</h2>
+          </div>
+          <div class="evidence-list" data-template-placeholder>
+            <article>
+              <h3>[[SUPPORTED OBSERVATION]]</h3>
+              <p>[[REFINED EVIDENCE AND ITS RELEVANCE]]</p>
+              <p class="provenance"><strong>Source:</strong> <code>[[INSPECTABLE SOURCE LOCATION OR HUMAN ATTRIBUTION]]</code></p>
+            </article>
+          </div>
+        </section>
+
+        <section id="questions" aria-labelledby="questions-title">
+          <div class="section-heading">
+            <p class="section-number">05</p>
+            <h2 id="questions-title">Unresolved questions</h2>
+          </div>
+          <p>These items remain undecided and must not be treated as accepted project state.</p>
+          <ol class="question-list" data-template-placeholder>
+            <li>[[QUESTION REQUIRING A HUMAN DECISION OR MORE EVIDENCE]]</li>
+          </ol>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

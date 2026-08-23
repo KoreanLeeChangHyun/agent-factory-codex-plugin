@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "0.1.0+codex.20260816190001",
+  "version": "0.1.0+codex.20260823023232",
   "description": "Five Agent Factory skills for managed agents, conventions, inquiry, specifications, and source gathering.",
   "author": {
     "name": "Agent Factory",

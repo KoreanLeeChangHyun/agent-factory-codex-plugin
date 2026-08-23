@@ -56,6 +56,33 @@ workflows are under `skills/`.
 After installing or updating the plugin, start a new Codex thread so newly
 loaded skills and tools are available.
 
+## Specification browser
+
+Resolve the installed Specification Skill directory, then install the reusable
+Specification browser shell and project launcher for the target Git root:
+
+```bash
+python3 <installed-specification-skill>/scripts/serve.py \
+  --project-root <project-root> init
+```
+
+Initialization copies the packaged launcher to `<project-root>/spec.sh` once.
+An existing root launcher is never changed, even by `init --force`; force is
+limited to differing common browser assets. For normal use, serve the existing
+Specification tree on loopback and open `/common/` in the default browser:
+
+```bash
+<project-root>/spec.sh
+# or, from the project root
+./spec.sh --port 9000
+```
+
+The self-contained launcher derives the project root from its own location, so
+`<project-root>/spec.sh` works from any current directory. `--port <port>` or
+`-p <port>` overrides the safe default port `8000`. `serve.py` remains the
+internal initializer and advanced safe server; its global `--project-root`
+option can target another Git root before the `init` or `serve` subcommand.
+
 ## Development
 
 Validate the plugin structure with the bundled Plugin Creator validator:
