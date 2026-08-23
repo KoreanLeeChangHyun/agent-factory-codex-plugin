@@ -21,7 +21,7 @@ import webbrowser
 
 SPECIFICATION_RELATIVE_PATH = Path(".agent-factory/specification")
 PACKAGED_ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets" / "browser"
-PACKAGED_LAUNCHER = Path(__file__).resolve().with_name("spec.sh")
+PACKAGED_LAUNCHER = Path(__file__).resolve().parents[1] / "assets" / "spec.sh"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
 

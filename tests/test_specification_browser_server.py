@@ -11,7 +11,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVER_PATH = ROOT / "skills" / "specification" / "scripts" / "serve.py"
-LAUNCHER_PATH = ROOT / "skills" / "specification" / "scripts" / "spec.sh"
+LAUNCHER_PATH = ROOT / "skills" / "specification" / "assets" / "spec.sh"
 ASSET_ROOT = ROOT / "skills" / "specification" / "assets" / "browser"
 COMMON_ROOT = ROOT / ".agent-factory" / "specification" / "common"
 
@@ -205,7 +205,7 @@ def test_spec_launcher_named_port_contract() -> None:
         Path(__file__).parents[1]
         / "skills"
         / "specification"
-        / "scripts"
+        / "assets"
         / "spec.sh"
     ).read_text(encoding="utf-8")
 

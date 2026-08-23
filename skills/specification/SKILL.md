@@ -61,9 +61,10 @@ python3 <resolved-specification-skill>/scripts/serve.py \
 
 The first command installs the reusable assets into
 `<target-git-root>/.agent-factory/specification/common/` and copies the packaged
-`spec.sh` template to `<target-git-root>/spec.sh` once. It never changes an
-existing root `spec.sh`, including with `init --force`; force applies only to
-differing common browser assets.
+`assets/spec.sh` template to `<target-git-root>/spec.sh` once. The packaged file
+is a project asset, not a Skill script to execute in place. Initialization never
+changes an existing root `spec.sh`, including with `init --force`; force applies
+only to differing common browser assets.
 
 For normal Human use, launch from any current directory with:
 

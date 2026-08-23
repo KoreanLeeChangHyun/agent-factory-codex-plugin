@@ -66,10 +66,12 @@ python3 <installed-specification-skill>/scripts/serve.py \
   --project-root <project-root> init
 ```
 
-Initialization copies the packaged launcher to `<project-root>/spec.sh` once.
-An existing root launcher is never changed, even by `init --force`; force is
-limited to differing common browser assets. For normal use, serve the existing
-Specification tree on loopback and open `/common/` in the default browser:
+Initialization copies the packaged `skills/specification/assets/spec.sh`
+project template to `<project-root>/spec.sh` once; it is an asset rather than a
+Skill script to run in place. An existing root launcher is never changed, even
+by `init --force`; force is limited to differing common browser assets. For
+normal use, serve the existing Specification tree on loopback and open
+`/common/` in the default browser:
 
 ```bash
 <project-root>/spec.sh
