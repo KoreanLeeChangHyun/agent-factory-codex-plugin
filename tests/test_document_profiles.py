@@ -21,7 +21,7 @@ class SpecificationDocumentContractTests(unittest.TestCase):
         content = (
             SPECIFICATION / "references" / "project-skill.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("AI-facing representation of a Specification", content)
+        self.assertIn("AI-readable working", content)
         self.assertIn("standard Skill structure", content)
         self.assertIn("Do not automatically promote an Inquiry document", content)
 
@@ -39,16 +39,18 @@ class SpecificationDocumentContractTests(unittest.TestCase):
         self.assertIn('href="./styles.css"', html)
         self.assertIn('src="./app.js"', html)
         self.assertIn("data-template-placeholder", html)
-        self.assertIn("[[SPECIFICATION TITLE]]", html)
+        self.assertIn('<html lang="ko">', html)
+        self.assertIn("[[명세 제목]]", html)
+        self.assertNotIn("Human", html)
         for element in ("<header", "<nav", "<main", "<section", "<table"):
             self.assertIn(element, html)
         for area in (
-            "In scope",
-            "Out of scope",
-            "Accepted decisions",
-            "Requirements",
-            "Evidence and provenance",
-            "Unresolved questions",
+            "범위에 포함",
+            "범위에서 제외",
+            "수락된 결정",
+            "요구사항",
+            "근거와 출처",
+            "미해결 질문",
         ):
             self.assertIn(area, html)
 
@@ -85,6 +87,29 @@ class SpecificationDocumentContractTests(unittest.TestCase):
             "flexible starting point, not a rigid schema",
         ):
             self.assertIn(required, content)
+
+    def test_primary_sidebar_is_activity_context_not_a_table_of_contents(self) -> None:
+        content = (
+            SPECIFICATION / "references" / "specification-document.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("contextual companion", content)
+        self.assertIn("not as a document table of contents", content)
+        self.assertIn("Explorer Activity renders an Explorer tree", content)
+        self.assertIn("Do not define", content)
+
+    def test_korean_document_and_project_skill_identity_rules_are_explicit(self) -> None:
+        document = (
+            SPECIFICATION / "references" / "specification-document.md"
+        ).read_text(encoding="utf-8")
+        project_skill = (
+            SPECIFICATION / "references" / "project-skill.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Author every Human-facing Specification document in Korean", document)
+        self.assertIn("Human-readable Specification", document)
+        self.assertIn("AI-readable", project_skill)
+        self.assertIn("`<project-root>/.codex/skills/<project-skill>/`", project_skill)
+        self.assertIn("`<category>-<skill-title>`", project_skill)
+        self.assertIn("Do not invent either component", project_skill)
 
 
 if __name__ == "__main__":

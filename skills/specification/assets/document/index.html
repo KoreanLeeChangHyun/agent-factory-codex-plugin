@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title data-template-placeholder>[[SPECIFICATION TITLE]]</title>
+    <title data-template-placeholder>[[명세 제목]]</title>
     <link rel="stylesheet" href="./styles.css">
     <script src="./app.js" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#content">Skip to specification content</a>
+    <a class="skip-link" href="#content">명세 내용으로 건너뛰기</a>
 
     <header class="document-header">
       <div class="eyebrow">
@@ -17,35 +17,35 @@
           <path d="M5 4.75h10.25L19 8.5v10.75H5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <path d="M15 4.75V8.5h4M8 12h8M8 15.5h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span>Specification</span>
+        <span>명세</span>
       </div>
-      <h1 data-template-placeholder>[[SPECIFICATION TITLE]]</h1>
-      <p class="summary" data-template-placeholder>[[CONCISE, GROUNDED SUMMARY OF THIS SPECIFICATION]]</p>
-      <dl class="metadata" aria-label="Specification metadata">
+      <h1 data-template-placeholder>[[명세 제목]]</h1>
+      <p class="summary" data-template-placeholder>[[근거에 기반한 이 명세의 간결한 요약]]</p>
+      <dl class="metadata" aria-label="명세 메타데이터">
         <div>
-          <dt>Identity</dt>
-          <dd data-template-placeholder>[[specification-id]]</dd>
+          <dt>식별자</dt>
+          <dd data-template-placeholder>[[명세-식별자]]</dd>
         </div>
         <div>
-          <dt>Status</dt>
-          <dd data-template-placeholder>[[HUMAN-DECIDED STATUS OR REMOVE THIS FIELD]]</dd>
+          <dt>상태</dt>
+          <dd data-template-placeholder>[[사람이 결정한 상태 또는 이 필드 삭제]]</dd>
         </div>
         <div>
-          <dt>Updated</dt>
-          <dd data-template-placeholder>[[GROUNDED LAST-UPDATED VALUE OR REMOVE THIS FIELD]]</dd>
+          <dt>업데이트</dt>
+          <dd data-template-placeholder>[[근거가 있는 최종 업데이트 값 또는 이 필드 삭제]]</dd>
         </div>
       </dl>
     </header>
 
     <div class="document-layout">
-      <nav class="section-nav" aria-label="On this page">
-        <p class="section-nav__label">On this page</p>
+      <nav class="section-nav" aria-label="이 페이지의 목차">
+        <p class="section-nav__label">이 페이지의 목차</p>
         <ol>
-          <li><a href="#scope">Scope</a></li>
-          <li><a href="#decisions">Accepted decisions</a></li>
-          <li><a href="#requirements">Requirements</a></li>
-          <li><a href="#evidence">Evidence and provenance</a></li>
-          <li><a href="#questions">Unresolved questions</a></li>
+          <li><a href="#scope">범위</a></li>
+          <li><a href="#decisions">수락된 결정</a></li>
+          <li><a href="#requirements">요구사항</a></li>
+          <li><a href="#evidence">근거와 출처</a></li>
+          <li><a href="#questions">미해결 질문</a></li>
         </ol>
       </nav>
 
@@ -53,20 +53,20 @@
         <section id="scope" aria-labelledby="scope-title">
           <div class="section-heading">
             <p class="section-number">01</p>
-            <h2 id="scope-title">Scope</h2>
+            <h2 id="scope-title">범위</h2>
           </div>
-          <p data-template-placeholder>[[DEFINE THE SPECIFICATION BOUNDARY AND ITS GROUNDED CONTEXT]]</p>
+          <p data-template-placeholder>[[명세의 경계와 근거에 기반한 맥락을 정의]]</p>
           <div class="scope-grid">
             <article>
-              <h3>In scope</h3>
+              <h3>범위에 포함</h3>
               <ul data-template-placeholder>
-                <li>[[GROUNDED IN-SCOPE ITEM]]</li>
+                <li>[[근거가 있는 범위 포함 항목]]</li>
               </ul>
             </article>
             <article>
-              <h3>Out of scope</h3>
+              <h3>범위에서 제외</h3>
               <ul data-template-placeholder>
-                <li>[[GROUNDED EXCLUSION]]</li>
+                <li>[[근거가 있는 제외 항목]]</li>
               </ul>
             </article>
           </div>
@@ -75,13 +75,13 @@
         <section id="decisions" aria-labelledby="decisions-title">
           <div class="section-heading">
             <p class="section-number">02</p>
-            <h2 id="decisions-title">Accepted decisions</h2>
+            <h2 id="decisions-title">수락된 결정</h2>
           </div>
           <div class="card-list" data-template-placeholder>
             <article class="decision-card">
-              <h3>[[ACCEPTED DECISION]]</h3>
-              <p>[[DECISION RATIONALE OR EFFECT, WITHOUT INVENTED STATE]]</p>
-              <p class="provenance"><strong>Provenance:</strong> [[HUMAN DECISION OR INSPECTABLE SOURCE]]</p>
+              <h3>[[수락된 결정]]</h3>
+              <p>[[상태를 지어내지 않은 결정의 근거 또는 영향]]</p>
+              <p class="provenance"><strong>출처:</strong> [[사람의 결정 또는 검사 가능한 출처]]</p>
             </article>
           </div>
         </section>
@@ -89,22 +89,22 @@
         <section id="requirements" aria-labelledby="requirements-title">
           <div class="section-heading">
             <p class="section-number">03</p>
-            <h2 id="requirements-title">Requirements</h2>
+            <h2 id="requirements-title">요구사항</h2>
           </div>
-          <div class="table-wrap" tabindex="0" role="region" aria-label="Requirements table">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="요구사항 표">
             <table>
               <thead>
                 <tr>
                   <th scope="col">ID</th>
-                  <th scope="col">Requirement</th>
-                  <th scope="col">Provenance</th>
+                  <th scope="col">요구사항</th>
+                  <th scope="col">출처</th>
                 </tr>
               </thead>
               <tbody data-template-placeholder>
                 <tr>
                   <th scope="row">[[REQ-ID]]</th>
-                  <td>[[GROUNDED REQUIREMENT]]</td>
-                  <td>[[HUMAN DECISION OR INSPECTABLE SOURCE]]</td>
+                  <td>[[근거가 있는 요구사항]]</td>
+                  <td>[[사람의 결정 또는 검사 가능한 출처]]</td>
                 </tr>
               </tbody>
             </table>
@@ -114,13 +114,13 @@
         <section id="evidence" aria-labelledby="evidence-title">
           <div class="section-heading">
             <p class="section-number">04</p>
-            <h2 id="evidence-title">Evidence and provenance</h2>
+            <h2 id="evidence-title">근거와 출처</h2>
           </div>
           <div class="evidence-list" data-template-placeholder>
             <article>
-              <h3>[[SUPPORTED OBSERVATION]]</h3>
-              <p>[[REFINED EVIDENCE AND ITS RELEVANCE]]</p>
-              <p class="provenance"><strong>Source:</strong> <code>[[INSPECTABLE SOURCE LOCATION OR HUMAN ATTRIBUTION]]</code></p>
+              <h3>[[뒷받침되는 관찰]]</h3>
+              <p>[[정제된 근거와 관련성]]</p>
+              <p class="provenance"><strong>출처:</strong> <code>[[검사 가능한 출처 위치 또는 사람 귀속]]</code></p>
             </article>
           </div>
         </section>
@@ -128,11 +128,11 @@
         <section id="questions" aria-labelledby="questions-title">
           <div class="section-heading">
             <p class="section-number">05</p>
-            <h2 id="questions-title">Unresolved questions</h2>
+            <h2 id="questions-title">미해결 질문</h2>
           </div>
-          <p>These items remain undecided and must not be treated as accepted project state.</p>
+          <p>이 항목들은 아직 결정되지 않았으며 수락된 프로젝트 상태로 취급하면 안 됩니다.</p>
           <ol class="question-list" data-template-placeholder>
-            <li>[[QUESTION REQUIRING A HUMAN DECISION OR MORE EVIDENCE]]</li>
+            <li>[[사람의 결정 또는 추가 근거가 필요한 질문]]</li>
           </ol>
         </section>
       </main>

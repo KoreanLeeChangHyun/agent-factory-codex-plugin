@@ -5,10 +5,12 @@
 Treat a Specification as one refined, trustworthy body of project knowledge
 with two faithful representations:
 
-- the Human view is local HTML, CSS, and JavaScript below
+- the Specification is the Human-readable local HTML, CSS, and JavaScript
+  document below
   `<project-root>/.agent-factory/specification/`;
-- the AI view is a standard project-scoped Codex Skill below
-  `<project-root>/.agents/skills/<project-skill>/`.
+- the paired Project Skill is the AI-readable Agent Factory project-scoped
+  Skill below
+  `<project-root>/.codex/skills/<project-skill>/`.
 
 Create and maintain both representations for a Specification. Keep their
 claims, decisions, relationships, and scope aligned. Do not let either view
@@ -51,6 +53,15 @@ Create `assets/` only when the Specification needs additional local resources.
 Use actual SVG for user-facing icons. Do not use Markdown or JSON as the
 canonical Human-facing Specification document.
 
+Author every Human-facing Specification document in Korean. Korean is required
+for prose, headings, labels, accessibility text, and authored explanatory
+content. Preserve technical identifiers, code, paths, commands, proper nouns,
+and source quotations in their original form when translation would reduce
+accuracy. Apply that exception narrowly: it does not permit English scaffolding
+or otherwise weaken the Korean-document requirement. This language rule applies
+to the Human-readable Specification, not to the paired AI-readable Project
+Skill or its Markdown references.
+
 ## New-document authoring workflow
 
 1. Resolve a stable `specification-id` from an explicit Human-provided identity
@@ -74,7 +85,7 @@ canonical Human-facing Specification document.
    `[[...]]` token. A document with any marked template placeholder remaining is
    scaffolding, not a refined Specification.
 6. Create or update the paired
-   `<project-root>/.agents/skills/<project-skill>/` representation and compare
+   `<project-root>/.codex/skills/<project-skill>/` representation and compare
    the two representations for semantic alignment. Decisions, requirements,
    scope, evidence, relationships, and unresolved state must agree even though
    their presentation differs.
@@ -125,13 +136,20 @@ verification.
 ## Common interface
 
 Reuse the common shell below `.agent-factory/specification/common/`. Preserve
-its Activity Bar, resizable Primary Sidebar with the required Explorer, and
-project-specific Workspace. Use VS Code as the visual reference for layout
-density and Explorer behavior.
+its Activity Bar, resizable Primary Sidebar, and project-specific Workspace.
+Treat the Primary Sidebar as the contextual companion to the currently selected
+Activity and Workspace, not as a document table of contents and not as one
+permanently fixed view. The Explorer Activity renders an Explorer tree there.
+Do not define the structure or semantics of other Activity views before their
+requirements exist. Use VS Code as the visual reference for layout density and
+Explorer behavior.
 
 Keep common layout, interaction, and visual tokens in the common HTML, CSS, and
-JavaScript. Keep the actual Explorer entries and Workspace content specific to
-the project or Specification, except for explicitly required common entries.
+JavaScript. Keep each Activity's sidebar view, the actual Explorer entries, and
+Workspace content specific to the project or Specification, except for
+explicitly required common entries. If a document needs a table of contents,
+place it within that document's Workspace presentation rather than using the
+Primary Sidebar as the table of contents.
 
 ## Browser boundary
 

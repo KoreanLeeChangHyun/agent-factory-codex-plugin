@@ -44,7 +44,7 @@ class ProjectRecordingTests(unittest.TestCase):
     def progress(self) -> Path:
         return (
             self.root
-            / ".agent-factory"
+            / ".codex"
             / "skills"
             / "project"
             / "references"
@@ -107,7 +107,7 @@ class ProjectViewerTests(unittest.TestCase):
     def test_reader_skips_symlinks_binary_files_and_oversized_files(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            references = root / ".agent-factory/skills/project/references"
+            references = root / ".codex/skills/project/references"
             references.mkdir(parents=True)
             (references.parent / "SKILL.md").write_text(
                 "# Project\n", encoding="utf-8"

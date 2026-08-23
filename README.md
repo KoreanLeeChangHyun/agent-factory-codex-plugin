@@ -21,7 +21,11 @@ The plugin exposes exactly five public skills:
 - `inquery`: Maintain temporary unrefined Markdown investigation workspaces for
   uncertain questions.
 - `specification`: Maintain one refined body of trusted project knowledge with
-  paired Human-facing HTML/CSS/JavaScript and AI-facing Project Skill views.
+  paired Korean Human-readable HTML/CSS/JavaScript Specifications and
+  AI-readable Project Skill views. Project Skills use the lowercase hyphen-case
+  name `<category>-<skill-title>`; their directory and `SKILL.md` frontmatter
+  `name` match exactly, and they live below `.codex/skills/` in the owning
+  project.
 - `gather`: Locate, import, refresh, or mirror distributed sources while
   preserving fidelity, provenance, identity, and resolved destinations.
 

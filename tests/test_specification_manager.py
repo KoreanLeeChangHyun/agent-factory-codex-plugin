@@ -23,6 +23,9 @@ class SpecificationContractTests(unittest.TestCase):
         self.assertIn("CSS", document)
         self.assertIn("JavaScript", document)
         self.assertIn("Project Skill", project_skill)
+        self.assertIn("must be authored in Korean", entry)
+        self.assertIn("Human-readable", document)
+        self.assertIn("AI-readable", project_skill)
 
     def test_singular_specification_collection_path_is_preserved(self) -> None:
         combined = "\n".join(

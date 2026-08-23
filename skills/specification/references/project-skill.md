@@ -2,27 +2,30 @@
 
 ## Project boundary
 
-A Project Skill belongs to one project. It is the refined, machine-readable
-working form of the specified project knowledge it contains. When it represents
-a Specification, pair it with that Specification's Human-facing browser view
-and keep the two representations semantically aligned.
+A Project Skill belongs to one project. It is the refined, AI-readable working
+form of the specified project knowledge it contains. When it represents a
+Specification, pair it with that Human-readable HTML, CSS, and JavaScript
+document and keep the two representations semantically aligned. The
+Specification's Korean-language requirement does not require the Project Skill
+or its Markdown references to be Korean.
 
-Store repository-scoped Project Skills under the owning project's standard
-Codex Skill location:
+Store repository-scoped Project Skills under the owning project's Agent Factory
+Project Skill location:
 
 ```text
-<project-root>/.agents/skills/<project-skill>/
+<project-root>/.codex/skills/<project-skill>/
 ```
 
-Do not store a repository Project Skill below `.codex/skills/`. Do not create a
-physical `project/` category directory between `.agents/skills/` and the Skill.
+Use this project-local `.codex/skills/` convention consistently. Do not split or
+mirror Project Skills into alternate repository locations. Do not create a
+physical `project/` category directory between `.codex/skills/` and the Skill.
 The Explorer may present a virtual `프로젝트 스킬` category, but the category
 does not exist as a Skill or filesystem directory.
 
 Each Project Skill follows the standard Skill structure:
 
 ```text
-.agents/skills/<project-skill>/
+.codex/skills/<project-skill>/
 ├── SKILL.md
 ├── agents/
 │   └── openai.yaml
@@ -36,13 +39,16 @@ Skill needs UI metadata. Create `references/`, `scripts/`, and `assets/` only
 when that individual Project Skill needs them. Do not create empty optional
 directories.
 
-Name the Project Skill directory exactly after the lowercase hyphen-case
-`name` declared in its `SKILL.md` frontmatter.
+Name a Project Skill in the explicit lowercase hyphen-case form
+`<category>-<skill-title>`. Name its directory exactly after the `name` declared
+in its `SKILL.md` frontmatter, so the directory name and frontmatter `name`
+match exactly.
 
-For a new paired representation, use the Project Skill identity supplied by the
-Human or established unambiguously by accepted project evidence. Preserve an
-existing pairing. Return an ambiguous identity choice to the Human instead of
-creating competing or guessed pairings.
+For a new paired representation, use both the category and skill title supplied
+by the Human or established unambiguously by accepted project evidence. Do not
+invent either component. Preserve an existing pairing. When the category or
+skill title is ambiguous, return that unresolved identity choice to the Human
+instead of creating a competing or guessed pairing.
 
 ## Project information capabilities
 
@@ -113,7 +119,7 @@ a virtual category. Mirror each actual Skill's existing filesystem hierarchy:
 Display only Project Skills and resources that actually exist. Do not hardcode
 a Project Skill into the common Specification shell. Keep category and folder
 rows collapsible and use actual SVG elements for every Explorer icon. Explorer
-paths must resolve to files below the owning project's `.agents/skills/`; do
+paths must resolve to files below the owning project's `.codex/skills/`; do
 not copy Project Skill content into the Specification.
 
 The Explorer projection is navigation, not the AI representation itself. A

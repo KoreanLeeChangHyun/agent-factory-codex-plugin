@@ -19,6 +19,13 @@ important provenance inspectable, and leave Human-owned priority, deadline,
 owner, acceptance, risk acceptance, and completion state unresolved unless the
 Human has decided them.
 
+The Specification is the Human-readable HTML, CSS, and JavaScript document and
+must be authored in Korean. Its paired Project Skill is the AI-readable
+representation and is not required to be Korean. Preserve technical
+identifiers, code, paths, commands, proper nouns, and source quotations in
+their original form when translation would reduce accuracy; this narrow
+accuracy exception does not weaken the Korean-document requirement.
+
 ## Reference routing
 
 - Read `references/specification-document.md` completely whenever creating,

@@ -62,6 +62,13 @@ class SpecificationBrowserServerTests(unittest.TestCase):
                 (ASSET_ROOT / name).read_bytes(),
             )
 
+    def test_primary_sidebar_hosts_the_selected_activity_view(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn("data-sidebar-host", html)
+        self.assertIn('data-sidebar-view="explorer"', html)
+        self.assertIn('role="tree"', html)
+        self.assertNotIn("목차", html)
+
     def test_init_requires_force_before_replacing_a_changed_file(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             project_root = Path(temporary_directory)

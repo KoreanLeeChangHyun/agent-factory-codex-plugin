@@ -111,6 +111,14 @@ body {
   overflow: auto;
 }
 
+.sidebar-view {
+  min-height: 100%;
+}
+
+.sidebar-view[hidden] {
+  display: none;
+}
+
 .explorer-tree {
   padding-block: 3px;
   color: var(--explorer-foreground);

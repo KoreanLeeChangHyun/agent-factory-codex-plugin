@@ -26,16 +26,21 @@
 
       <aside
         class="primary-sidebar"
-        aria-label="기본 사이드바"
+        aria-label="현재 작업 영역의 기본 사이드바"
         data-region="primary-sidebar"
+        data-sidebar-host
       >
-        <header class="primary-sidebar__header">탐색기</header>
-        <div
-          class="primary-sidebar__content explorer-tree"
-          role="tree"
-          aria-label="Specification 탐색기"
-          data-explorer-content
-        ></div>
+        <header class="primary-sidebar__header" data-sidebar-title>탐색기</header>
+        <div class="primary-sidebar__content" data-sidebar-content>
+          <div class="sidebar-view" data-sidebar-view="explorer">
+            <div
+              class="explorer-tree"
+              role="tree"
+              aria-label="현재 작업 영역 탐색기"
+              data-explorer-content
+            ></div>
+          </div>
+        </div>
       </aside>
 
       <div
