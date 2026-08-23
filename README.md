@@ -29,6 +29,10 @@ The plugin exposes exactly five public skills:
 - `gather`: Locate, import, refresh, or mirror distributed sources while
   preserving fidelity, provenance, identity, and resolved destinations.
 
+This plugin repository stores its distributed Skills below `skills/` and does
+not mirror them into a repository-local `.codex/`. A separate project that uses
+the plugin stores its own Project Skills below `.codex/skills/` in that project.
+
 Gathered collections remain evidence. Gather does not reconcile their claims,
 refine them, or promote them into a trusted Specification. Operational Agent
 sessions, Inquiry workspaces, and Specification collections remain separate.

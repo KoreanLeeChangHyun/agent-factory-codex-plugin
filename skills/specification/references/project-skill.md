@@ -9,18 +9,25 @@ document and keep the two representations semantically aligned. The
 Specification's Korean-language requirement does not require the Project Skill
 or its Markdown references to be Korean.
 
-Store repository-scoped Project Skills under the owning project's Agent Factory
-Project Skill location:
+Keep the plugin's distributed Skills and consumer-project Project Skills in
+different locations:
+
+- In the Agent Factory plugin repository itself, store the plugin's distributed
+  Skills below `<plugin-root>/skills/`.
+- In every separate project that uses the Agent Factory plugin, store that
+  project's Project Skills below:
 
 ```text
 <project-root>/.codex/skills/<project-skill>/
 ```
 
-Use this project-local `.codex/skills/` convention consistently. Do not split or
-mirror Project Skills into alternate repository locations. Do not create a
-physical `project/` category directory between `.codex/skills/` and the Skill.
-The Explorer may present a virtual `프로젝트 스킬` category, but the category
-does not exist as a Skill or filesystem directory.
+Do not create or mirror the Agent Factory plugin repository's own distributed
+Skills below its `.codex/`. Use the consumer project's local `.codex/skills/`
+convention consistently for Project Skills. Do not split or mirror Project
+Skills into alternate repository locations. Do not create a physical `project/`
+category directory between `.codex/skills/` and the Skill. The Explorer may
+present a virtual `프로젝트 스킬` category, but the category does not exist as a
+Skill or filesystem directory.
 
 Each Project Skill follows the standard Skill structure:
 
@@ -29,15 +36,29 @@ Each Project Skill follows the standard Skill structure:
 ├── SKILL.md
 ├── agents/
 │   └── openai.yaml
+├── assets/
 ├── references/
-├── scripts/
-└── assets/
+│   └── *.md
+└── scripts/
 ```
 
-Only `SKILL.md` is universally required. Include `agents/openai.yaml` when the
-Skill needs UI metadata. Create `references/`, `scripts/`, and `assets/` only
-when that individual Project Skill needs them. Do not create empty optional
-directories.
+A Project Skill is one self-contained directory. Do not distribute one Project
+Skill's files across multiple Skill directories. Use each location only for its
+declared role:
+
+- `SKILL.md` is the AI-readable entry point and instruction document.
+- `agents/` contains Agent configuration as YAML files. Use `openai.yaml` for
+  OpenAI-facing Skill metadata and dependencies.
+- `assets/` contains reference material the Agent may inspect or reuse, such as
+  source files, templates, samples, images, or data.
+- `references/` contains the Project Skill's supporting AI-readable documents
+  as Markdown files. Use the `.md` extension for every reference document.
+- `scripts/` contains scripts the Agent may execute or reuse while applying the
+  Project Skill.
+
+Create an owned subdirectory when the Project Skill has content for that role.
+Do not create empty optional directories, put Markdown reference documents in
+`assets/`, or use `agents/` for non-YAML files.
 
 Name a Project Skill in the explicit lowercase hyphen-case form
 `<category>-<skill-title>`. Name its directory exactly after the `name` declared

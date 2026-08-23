@@ -25,6 +25,27 @@ class SpecificationDocumentContractTests(unittest.TestCase):
         self.assertIn("standard Skill structure", content)
         self.assertIn("Do not automatically promote an Inquiry document", content)
 
+    def test_project_skill_directory_roles_are_explicit(self) -> None:
+        content = (
+            SPECIFICATION / "references" / "project-skill.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("one self-contained directory", content)
+        self.assertIn("`agents/` contains Agent configuration as YAML files", content)
+        self.assertIn("`assets/` contains reference material", content)
+        self.assertIn("`references/` contains", content)
+        self.assertIn("Use the `.md` extension for every reference document", content)
+        self.assertIn("`scripts/` contains scripts the Agent may execute", content)
+
+    def test_plugin_and_consumer_skill_locations_are_distinct(self) -> None:
+        content = (
+            SPECIFICATION / "references" / "project-skill.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Agent Factory plugin repository itself", content)
+        self.assertIn("`<plugin-root>/skills/`", content)
+        self.assertIn("every separate project that uses", content)
+        self.assertIn("`<project-root>/.codex/skills/<project-skill>/`", content)
+        self.assertIn("Do not create or mirror", content)
+
     def test_packaged_document_has_exactly_three_assets(self) -> None:
         document = SPECIFICATION / "assets" / "document"
         self.assertEqual(
