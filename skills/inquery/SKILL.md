@@ -19,7 +19,7 @@ on the same Inquiry. Use a new Inquiry and Agent session for a different topic.
 Store the Inquiry workspace below:
 
 ```text
-<project-root>/.agent-factory/inquiries/<inquiry-id>/
+<project-root>/.agent-factory/inquery/<inquiry-id>/
 ```
 
 Let the Inquiry Agent freely organize files inside its own workspace. Write

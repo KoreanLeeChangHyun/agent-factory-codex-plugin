@@ -115,8 +115,21 @@ class SpecificationDocumentContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("contextual companion", content)
         self.assertIn("not as a document table of contents", content)
-        self.assertIn("Explorer Activity renders an Explorer tree", content)
-        self.assertIn("Do not define", content)
+        self.assertIn("`explorer/` renders the Explorer project tree", content)
+
+    def test_default_activities_and_planning_skill_pair_are_explicit(self) -> None:
+        document = (
+            SPECIFICATION / "references" / "specification-document.md"
+        ).read_text(encoding="utf-8")
+        project_skill = (
+            SPECIFICATION / "references" / "project-skill.md"
+        ).read_text(encoding="utf-8")
+        for activity in ("explorer/", "planning/", "skills/", "candidate/"):
+            self.assertIn(f"`{activity}`", document)
+        self.assertIn("One Activity Bar item owns one corresponding directory", document)
+        self.assertIn("Every Planning document must have a paired Project Skill", document)
+        self.assertIn("specification/planning/<specification-id>/", document)
+        self.assertIn("Skills Activity projection", project_skill)
 
     def test_korean_document_and_project_skill_identity_rules_are_explicit(self) -> None:
         document = (

@@ -17,7 +17,7 @@ class InquiryAgentContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("Apply the `inquery` Skill", role)
-        self.assertIn(".agent-factory/inquiries/", role + workspace)
+        self.assertIn(".agent-factory/inquery/", role + workspace)
         self.assertIn("unrefined Markdown", role + workspace)
         self.assertIn("not a canonical evidence ledger", workspace)
         self.assertIn(".agent-factory/agent/", workspace)

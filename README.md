@@ -42,6 +42,36 @@ Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
 Executable managers, schemas, assets, and tests remain inside the owning skill
 when that domain needs them.
 
+## Project-local Agent Factory data
+
+Agent Factory uses one project-local work root with explicit ownership:
+
+```text
+.agent-factory/
+├── agent/
+│   └── <agent-id>/
+│       ├── session.json
+│       └── runs/<run-id>/
+├── inquery/<inquiry-id>/
+├── specification/
+│   ├── common/
+│   ├── explorer/
+│   ├── planning/<specification-id>/
+│   ├── skills/
+│   └── candidate/
+└── sync.json
+```
+
+`agent/` contains managed Codex session and run state. `inquery/` contains
+temporary investigation workspaces. `specification/` contains the shared
+browser shell and Activity-owned views: `common/` is the shared shell,
+`explorer/` owns the project tree, `planning/` owns Human-facing planning
+documents, `skills/` owns Project Skill navigation, and `candidate/` owns
+Inquery candidate views. Every document below `planning/` must be paired and
+kept semantically aligned with a Project Skill below `.codex/skills/`.
+`sync.json` contains Gather destination configuration, and gathered source
+collections remain at their resolved destinations outside `.agent-factory/`.
+
 ## Local installation
 
 Install the GitHub-backed marketplace and the plugin with Codex CLI:

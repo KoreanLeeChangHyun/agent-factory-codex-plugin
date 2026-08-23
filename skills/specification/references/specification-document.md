@@ -7,16 +7,18 @@ with two faithful representations:
 
 - the Specification is the Human-readable local HTML, CSS, and JavaScript
   document below
-  `<project-root>/.agent-factory/specification/`;
+  `<project-root>/.agent-factory/specification/planning/<specification-id>/`;
 - the paired Project Skill is the AI-readable Agent Factory project-scoped
   Skill below
   `<project-root>/.codex/skills/<project-skill>/`.
 
-Create and maintain both representations for a Specification. Keep their
+Every Planning document must have a paired Project Skill. Do not create or keep
+a standalone document below `planning/` without that pair. Create and maintain
+both representations for a Specification. Keep their
 claims, decisions, relationships, and scope aligned. Do not let either view
 silently add, omit, or contradict specified knowledge in the other. The
-AI-facing Skill is the machine-readable working form of the Specification; an
-Explorer link to a Skill, or an unrelated optional Project Skill, does not
+AI-facing Skill is the machine-readable working form of the Specification; a
+Skills Activity link, or an unrelated optional Project Skill, does not
 satisfy this requirement.
 
 Use only explicit Human instruction, accepted project decisions, or inspected
@@ -36,13 +38,13 @@ Create every actual Specification document as refined HTML, CSS, and
 JavaScript for Human viewing in a browser. Store Specification output below:
 
 ```text
-<project-root>/.agent-factory/specification/
+<project-root>/.agent-factory/specification/planning/
 ```
 
 Use this minimum browser structure for a project-specific Specification:
 
 ```text
-.agent-factory/specification/<specification-id>/
+.agent-factory/specification/planning/<specification-id>/
 ├── index.html
 ├── styles.css
 ├── app.js
@@ -70,8 +72,8 @@ Skill or its Markdown references.
    naming choice; return that Human-owned decision when no stable identity is
    available.
 2. Confirm that
-   `<project-root>/.agent-factory/specification/<specification-id>/` does not
-   exist. Only for a new target, copy the complete packaged template from
+   `<project-root>/.agent-factory/specification/planning/<specification-id>/`
+   does not exist. Only for a new target, copy the complete packaged template from
    `assets/document/` into that directory. Scaffolding is copy-once: never use
    the template to overwrite, reset, or merge over an existing Specification.
 3. Inspect the accepted Human decisions, relevant project evidence, and any
@@ -115,10 +117,11 @@ promoting raw collection material as truth.
 ## Document boundaries and quality rules
 
 Keep shared browser-shell responsibilities in
-`.agent-factory/specification/common/`. Keep each Specification's content in
-its own `<specification-id>/` directory, and keep optional document-specific
-local resources in `<specification-id>/assets/`. Do not copy project facts into
-the common shell or place one document's private resources in `common/`.
+`.agent-factory/specification/common/`. Keep each Specification's content in its
+own `planning/<specification-id>/` directory, and keep optional
+document-specific local resources in
+`planning/<specification-id>/assets/`. Do not copy project facts into the common
+shell or place one document's private resources in `common/`.
 
 Preserve semantic HTML, keyboard access, visible focus, readable contrast, and
 responsive behavior. Use only local relative dependencies; the document must
@@ -139,10 +142,17 @@ Reuse the common shell below `.agent-factory/specification/common/`. Preserve
 its Activity Bar, resizable Primary Sidebar, and project-specific Workspace.
 Treat the Primary Sidebar as the contextual companion to the currently selected
 Activity and Workspace, not as a document table of contents and not as one
-permanently fixed view. The Explorer Activity renders an Explorer tree there.
-Do not define the structure or semantics of other Activity views before their
-requirements exist. Use VS Code as the visual reference for layout density and
-Explorer behavior.
+permanently fixed view. Provide exactly these default Activity directories and
+display roles:
+
+- `explorer/` renders the Explorer project tree;
+- `planning/` presents the paired Human-facing Planning documents;
+- `skills/` presents Project Skill navigation and views;
+- `candidate/` presents Candidate views backed by Inquery workspaces.
+
+One Activity Bar item owns one corresponding directory. Each directory owns
+that Activity's Primary Sidebar view and Workspace content. Use VS Code as the
+visual reference for layout density and Explorer behavior.
 
 Keep common layout, interaction, and visual tokens in the common HTML, CSS, and
 JavaScript. Keep each Activity's sidebar view, the actual Explorer entries, and

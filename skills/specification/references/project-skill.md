@@ -25,9 +25,9 @@ Do not create or mirror the Agent Factory plugin repository's own distributed
 Skills below its `.codex/`. Use the consumer project's local `.codex/skills/`
 convention consistently for Project Skills. Do not split or mirror Project
 Skills into alternate repository locations. Do not create a physical `project/`
-category directory between `.codex/skills/` and the Skill. The Explorer may
-present a virtual `프로젝트 스킬` category, but the category does not exist as a
-Skill or filesystem directory.
+category directory between `.codex/skills/` and the Skill. The `skills/`
+Activity may present a virtual `프로젝트 스킬` category, but the category does
+not exist as a Skill or filesystem directory.
 
 Each Project Skill follows the standard Skill structure:
 
@@ -106,9 +106,9 @@ paired, the AI-facing representation of a Specification. Keep its files
 physically separate from:
 
 - unrefined Markdown Inquiry working material below
-  `.agent-factory/inquiries/`;
+  `.agent-factory/inquery/`;
 - the corresponding refined Human-facing HTML, CSS, and JavaScript view below
-  `.agent-factory/specification/`;
+  `.agent-factory/specification/planning/<specification-id>/`;
 - operational Agent session state below `.agent-factory/agent/`.
 
 Do not automatically promote an Inquiry document into a Project Skill. Create
@@ -120,10 +120,10 @@ When either paired representation changes, inspect the other and make the
 smallest corresponding update needed to keep their specified knowledge
 aligned.
 
-## Explorer projection
+## Skills Activity projection
 
-Show discovered Project Skills in the Human-facing Specification Explorer under
-a virtual category. Mirror each actual Skill's existing filesystem hierarchy:
+Show discovered Project Skills in the Human-facing `skills/` Activity under a
+virtual category. Mirror each actual Skill's existing filesystem hierarchy:
 
 ```text
 프로젝트 스킬
@@ -139,13 +139,13 @@ a virtual category. Mirror each actual Skill's existing filesystem hierarchy:
 
 Display only Project Skills and resources that actually exist. Do not hardcode
 a Project Skill into the common Specification shell. Keep category and folder
-rows collapsible and use actual SVG elements for every Explorer icon. Explorer
-paths must resolve to files below the owning project's `.codex/skills/`; do
-not copy Project Skill content into the Specification.
+rows collapsible and use actual SVG elements for every tree icon. Skills
+Activity paths must resolve to files below the owning project's
+`.codex/skills/`; do not copy Project Skill content into the Specification.
 
-The Explorer projection is navigation, not the AI representation itself. A
+The Skills Activity projection is navigation, not the AI representation itself. A
 Specification is incomplete without the actual paired Project Skill even when
-the Explorer can link to some other Skill.
+the Skills Activity can link to some other Skill.
 
 The Explorer and every other Human-facing Specification view must be rendered
 as HTML, CSS, and JavaScript below `.agent-factory/specification/`. This

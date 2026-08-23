@@ -19,7 +19,7 @@ unknown rather than filling them in.
 ## Responsibilities
 
 - Use the selected isolated directory below
-  `<project-root>/.agent-factory/inquiries/` as a free temporary workspace.
+  `<project-root>/.agent-factory/inquery/` as a free temporary workspace.
 - Write AI-generated investigation documents as unrefined Markdown.
 - Gather relevant internal or external evidence.
 - Analyze supplied material, code, data, documents, or observations.

@@ -12,6 +12,27 @@ PUBLIC_SKILLS = {"agent", "convention", "inquery", "specification", "gather"}
 
 
 class SkillMetadataTests(unittest.TestCase):
+    def test_agent_factory_project_work_root_has_explicit_ownership(self) -> None:
+        instructions = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        for required in (
+            "<project-root>/.agent-factory/",
+            "<agent-id>/",
+            "<run-id>/",
+            "inquery/",
+            "<inquiry-id>/",
+            "specification/",
+            "common/",
+            "explorer/",
+            "planning/",
+            "skills/",
+            "candidate/",
+            "<specification-id>/",
+            "sync.json",
+            "paired Project Skill below",
+            "Gather uses its resolved destination outside this work root",
+        ):
+            self.assertIn(required, instructions)
+
     def test_public_skill_directories_match_the_five_skill_contract(self) -> None:
         actual = {
             path.name
@@ -23,7 +44,6 @@ class SkillMetadataTests(unittest.TestCase):
         for removed in (
             "agents",
             "conventions",
-            "inquiries",
             "specifications",
             "synchronization",
             "intakes",

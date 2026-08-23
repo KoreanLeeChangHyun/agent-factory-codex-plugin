@@ -35,7 +35,7 @@ accuracy exception does not weaken the Korean-document requirement.
 - Read `references/project-skill.md` completely whenever the work creates,
   changes, inspects, or verifies the AI-facing representation or any explicitly
   requested project-scoped Project Skill. It defines the standard Skill layout,
-  refined project references, and Explorer projection.
+  refined project references, and Skills Activity projection.
 
 ## Boundaries
 
