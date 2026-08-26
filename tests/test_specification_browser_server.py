@@ -65,9 +65,78 @@ class SpecificationBrowserServerTests(unittest.TestCase):
     def test_primary_sidebar_hosts_the_selected_activity_view(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
         self.assertIn("data-sidebar-host", html)
-        self.assertIn('data-sidebar-view="explorer"', html)
+        for activity, label in (
+            ("explorer", "탐색기"),
+            ("planning", "기획"),
+            ("skills", "스킬"),
+            ("candidate", "후보"),
+        ):
+            self.assertIn(f'data-activity="{activity}"', html)
+            self.assertIn(f'aria-label="{label}"', html)
+            self.assertIn(f'data-sidebar-view="{activity}"', html)
+            self.assertIn(f'data-workspace-view="{activity}"', html)
         self.assertIn('role="tree"', html)
         self.assertNotIn("목차", html)
+
+    def test_activity_behavior_switches_sidebar_and_workspace_context(self) -> None:
+        script = (ASSET_ROOT / "app.js").read_text(encoding="utf-8")
+        self.assertIn("const selectActivity", script)
+        self.assertIn('button.setAttribute("aria-pressed", String(isActive))', script)
+        self.assertIn("view.dataset.sidebarView !== activity", script)
+        self.assertIn("view.dataset.workspaceView !== activity", script)
+        self.assertIn("sidebarTitle.textContent = activityTitles[activity]", script)
+
+    def test_init_creates_empty_activity_directories_and_preserves_content(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            asset_root = project_root / "packaged-assets"
+            asset_root.mkdir()
+            (asset_root / "index.html").write_text("asset", encoding="utf-8")
+            existing = project_root / SERVER.SPECIFICATION_RELATIVE_PATH / "planning"
+            existing.mkdir(parents=True)
+            preserved = existing / "existing.html"
+            preserved.write_text("preserve", encoding="utf-8")
+
+            SERVER.install_assets(project_root, asset_root, False)
+
+            for name in SERVER.ACTIVITY_DIRECTORIES:
+                self.assertTrue(
+                    (project_root / SERVER.SPECIFICATION_RELATIVE_PATH / name).is_dir()
+                )
+            self.assertEqual("preserve", preserved.read_text(encoding="utf-8"))
+
+    def test_init_rejects_activity_file_conflicts_before_copy(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            asset_root = project_root / "packaged-assets"
+            asset_root.mkdir()
+            (asset_root / "index.html").write_text("asset", encoding="utf-8")
+            specification_root = project_root / SERVER.SPECIFICATION_RELATIVE_PATH
+            specification_root.mkdir(parents=True)
+            (specification_root / "planning").write_text("conflict", encoding="utf-8")
+
+            with self.assertRaises(SERVER.ViewerError):
+                SERVER.install_assets(project_root, asset_root, False)
+
+            self.assertFalse((specification_root / "common").exists())
+
+    def test_init_rejects_activity_symlink_conflicts(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            asset_root = project_root / "packaged-assets"
+            asset_root.mkdir()
+            (asset_root / "index.html").write_text("asset", encoding="utf-8")
+            specification_root = project_root / SERVER.SPECIFICATION_RELATIVE_PATH
+            specification_root.mkdir(parents=True)
+            outside = project_root / "outside"
+            outside.mkdir()
+            try:
+                os.symlink(outside, specification_root / "candidate")
+            except OSError as exc:
+                self.skipTest(f"symlinks unavailable: {exc}")
+
+            with self.assertRaises(SERVER.ViewerError):
+                SERVER.install_assets(project_root, asset_root, False)
 
     def test_init_requires_force_before_replacing_a_changed_file(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

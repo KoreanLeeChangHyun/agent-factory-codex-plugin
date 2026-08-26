@@ -22,6 +22,42 @@
             <path d="M4.5 8h15" />
           </svg>
         </button>
+        <button
+          class="activity-button"
+          type="button"
+          aria-label="기획"
+          aria-pressed="false"
+          data-activity="planning"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 3.5h9l3 3v14H6v-17Z" />
+            <path d="M15 3.5v3h3M9 11h6M9 15h6" />
+          </svg>
+        </button>
+        <button
+          class="activity-button"
+          type="button"
+          aria-label="스킬"
+          aria-pressed="false"
+          data-activity="skills"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m12 3 2.1 4.9L19 10l-4.9 2.1L12 17l-2.1-4.9L5 10l4.9-2.1L12 3Z" />
+            <path d="m18.5 16 .8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8.8-1.7Z" />
+          </svg>
+        </button>
+        <button
+          class="activity-button"
+          type="button"
+          aria-label="후보"
+          aria-pressed="false"
+          data-activity="candidate"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9 3.5h6M10 3.5v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9v-5" />
+            <path d="M7.5 15h9" />
+          </svg>
+        </button>
       </nav>
 
       <aside
@@ -40,6 +76,15 @@
               data-explorer-content
             ></div>
           </div>
+          <div class="sidebar-view" data-sidebar-view="planning" hidden>
+            <p class="empty-state">기획 문서가 없습니다.</p>
+          </div>
+          <div class="sidebar-view" data-sidebar-view="skills" hidden>
+            <p class="empty-state">표시할 프로젝트 스킬이 없습니다.</p>
+          </div>
+          <div class="sidebar-view" data-sidebar-view="candidate" hidden>
+            <p class="empty-state">표시할 후보가 없습니다.</p>
+          </div>
         </div>
       </aside>
 
@@ -55,7 +100,20 @@
         data-sidebar-resizer
       ></div>
 
-      <main class="workspace" aria-label="작업영역" data-region="workspace"></main>
+      <main class="workspace" aria-label="작업영역" data-region="workspace">
+        <section class="workspace-view" data-workspace-view="explorer">
+          <p class="empty-state">탐색기에서 항목을 선택하세요.</p>
+        </section>
+        <section class="workspace-view" data-workspace-view="planning" hidden>
+          <p class="empty-state">열린 기획 문서가 없습니다.</p>
+        </section>
+        <section class="workspace-view" data-workspace-view="skills" hidden>
+          <p class="empty-state">열린 프로젝트 스킬이 없습니다.</p>
+        </section>
+        <section class="workspace-view" data-workspace-view="candidate" hidden>
+          <p class="empty-state">열린 후보가 없습니다.</p>
+        </section>
+      </main>
     </div>
 
     <script src="./app.js"></script>

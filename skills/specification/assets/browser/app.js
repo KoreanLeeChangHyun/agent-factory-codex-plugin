@@ -1,8 +1,35 @@
 const specificationShell = document.querySelector("[data-specification-shell]");
 const sidebarResizer = document.querySelector("[data-sidebar-resizer]");
 const explorerContent = document.querySelector("[data-explorer-content]");
+const activityButtons = document.querySelectorAll("[data-activity]");
+const sidebarTitle = document.querySelector("[data-sidebar-title]");
+const sidebarViews = document.querySelectorAll("[data-sidebar-view]");
+const workspaceViews = document.querySelectorAll("[data-workspace-view]");
 const minimumSidebarWidth = 180;
 const maximumSidebarWidth = 520;
+const activityTitles = {
+  explorer: "탐색기",
+  planning: "기획",
+  skills: "스킬",
+  candidate: "후보",
+};
+
+const selectActivity = (activity) => {
+  if (!Object.hasOwn(activityTitles, activity)) return;
+
+  activityButtons.forEach((button) => {
+    const isActive = button.dataset.activity === activity;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+  sidebarViews.forEach((view) => {
+    view.hidden = view.dataset.sidebarView !== activity;
+  });
+  workspaceViews.forEach((view) => {
+    view.hidden = view.dataset.workspaceView !== activity;
+  });
+  if (sidebarTitle) sidebarTitle.textContent = activityTitles[activity];
+};
 
 const setSidebarWidth = (width) => {
   if (!specificationShell || !sidebarResizer) return;
@@ -26,6 +53,10 @@ const setSidebarWidth = (width) => {
 if (specificationShell) {
   specificationShell.dataset.ready = "true";
 }
+
+activityButtons.forEach((button) => {
+  button.addEventListener("click", () => selectActivity(button.dataset.activity));
+});
 
 if (sidebarResizer) {
   sidebarResizer.addEventListener("pointerdown", (event) => {

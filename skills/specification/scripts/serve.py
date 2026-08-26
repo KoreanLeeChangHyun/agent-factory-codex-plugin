@@ -24,6 +24,7 @@ PACKAGED_ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets" / "browser"
 PACKAGED_LAUNCHER = Path(__file__).resolve().parents[1] / "assets" / "spec.sh"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
+ACTIVITY_DIRECTORIES = ("explorer", "planning", "skills", "candidate")
 
 
 class ViewerError(RuntimeError):
@@ -168,6 +169,17 @@ def install_assets(
     _resolved_within(project_root, specification_root, "Specification directory")
     _resolved_within(project_root, destination_root, "common asset directory")
 
+    activity_conflicts: list[Path] = []
+    activity_directories: list[Path] = []
+    for name in ACTIVITY_DIRECTORIES:
+        activity_directory = specification_root / name
+        _resolved_within(project_root, activity_directory, f"{name} Activity directory")
+        if activity_directory.is_symlink() or (
+            activity_directory.exists() and not activity_directory.is_dir()
+        ):
+            activity_conflicts.append(activity_directory)
+        activity_directories.append(activity_directory)
+
     try:
         resolved_launcher_source = launcher_source.resolve(strict=True)
     except FileNotFoundError as exc:
@@ -200,10 +212,14 @@ def install_assets(
                 continue
         planned.append((source, destination))
 
-    if conflicts:
-        rendered = "\n".join(f"  - {path}" for path in conflicts)
+    all_conflicts = activity_conflicts + conflicts
+    if all_conflicts:
+        rendered = "\n".join(f"  - {path}" for path in all_conflicts)
         suffix = "" if force else "\nRe-run init with --force to replace differing files."
-        raise ViewerError(f"browser asset conflicts:\n{rendered}{suffix}")
+        raise ViewerError(f"Specification initialization conflicts:\n{rendered}{suffix}")
+
+    for activity_directory in activity_directories:
+        activity_directory.mkdir(parents=True, exist_ok=True)
 
     launcher_installed = False
     if install_launcher:

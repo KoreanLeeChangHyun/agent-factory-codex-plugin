@@ -119,6 +119,14 @@ body {
   display: none;
 }
 
+.empty-state {
+  margin: 0;
+  padding: 16px 20px;
+  color: var(--explorer-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .explorer-tree {
   padding-block: 3px;
   color: var(--explorer-foreground);
@@ -235,6 +243,14 @@ body.is-resizing-sidebar {
   min-width: 0;
   overflow: auto;
   background: var(--workspace-background);
+}
+
+.workspace-view {
+  min-height: 100%;
+}
+
+.workspace-view[hidden] {
+  display: none;
 }
 
 @media (max-width: 720px) {

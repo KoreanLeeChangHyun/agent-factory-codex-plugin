@@ -329,7 +329,7 @@ def create_run(
                     "type": "string",
                     "enum": ["completed", "needs-human-decision", "failed"],
                 },
-                "resultPath": {"const": str(result_path)},
+                "resultPath": {"type": "string", "const": str(result_path)},
             },
             "required": ["status", "resultPath"],
             "additionalProperties": False,
