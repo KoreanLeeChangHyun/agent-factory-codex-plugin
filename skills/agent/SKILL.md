@@ -119,18 +119,30 @@ Pass request content with `--request-file` by default. Use `--actor human` when
 the Human addresses an Exec Agent directly. Do not invoke the private `_worker`
 command outside the manager.
 
+Use `scripts/agent_loop.py` when the Human requests a durable bounded Work ->
+Review -> revision cycle. Its `start`, `status`, `cancel`, and `reconcile`
+commands orchestrate exact managed sessions through `agent_exec.py`; they do
+not launch Codex directly. Read `references/loop.md` before operating a loop.
+
 ## Reference routing
 
 - `references/main.md`: Route Human requests through Work and independent Review Agents or a resumable Inquiry Agent.
 - `references/work.md`: Implement one bounded change without running tests or verification.
 - `references/review.md`: Review Work Agent changes statically and independently without editing files.
 - `references/inquery.md`: Investigate uncertain questions through research, analysis, study, or experiments and return evidence-backed results.
+- `references/loop.md`: Operate the finite Work/Review lifecycle and its machine stop conditions.
 
 ## Scripts and tests
 
 `scripts/agent_exec.py` owns asynchronous `codex exec` launch, exact session
 resume, file handoff, heartbeat, timeout, bounded pre-start retry, cancellation,
 result inbox, and stale-worker reconciliation.
+
+Completed Work and Review runs also publish a strictly validated `receipt.json`
+beside `result.md`. The per-run state declares its exact path, binding, and
+role-specific schema while the compact terminal response remains unchanged.
+Callers must pass `--reviewed-work-run-id` for every Review run; orchestration
+may also pin the shared original identity with `--receipt-request-hash`.
 
 Work and Review Agents never run tests or verification commands. Testing is
 Human-led and remains outside those role contracts.

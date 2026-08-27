@@ -33,6 +33,11 @@ ACTIVE_STATES = {"accepted", "queued", "starting", "running", "cancelling"}
 TERMINAL_STATES = {"completed", "needs-human-decision", "failed", "cancelled"}
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
 MAX_EVENT_BYTES = 1024 * 1024
+MAX_RECEIPT_BYTES = 1024 * 1024
+SANDBOX_UNAVAILABLE_STDERR = (
+    "fs sandbox helper failed with status",
+    "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted",
+)
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 REFERENCES = SKILL_ROOT / "references"
 
@@ -310,6 +315,8 @@ def create_run(
     actor: str,
     request: bytes,
     session: dict[str, Any],
+    receipt_request_hash: str | None = None,
+    reviewed_work_run_id: str | None = None,
 ) -> dict[str, Any]:
     run_id = new_run_id()
     directory = run_directory(project_root, agent_id, run_id, create=True)
@@ -318,6 +325,9 @@ def create_run(
     events_path = directory / "events.jsonl"
     heartbeat_path = directory / "heartbeat.json"
     response_schema = directory / "response.schema.json"
+    receipt_path = directory / "receipt.json"
+    receipt_schema = directory / "receipt.schema.json"
+    request_hash = hashlib.sha256(request).hexdigest()
     atomic_write(request_path, request)
     atomic_write_json(
         response_schema,
@@ -335,6 +345,17 @@ def create_run(
             "additionalProperties": False,
         },
     )
+    role = str(session["role"])
+    if role in {"work", "review"}:
+        atomic_write_json(
+            receipt_schema,
+            receipt_schema_document(
+                role=role,
+                run_id=run_id,
+                request_hash=receipt_request_hash or request_hash,
+                reviewed_work_run_id=reviewed_work_run_id,
+            ),
+        )
     accepted_at = now()
     state = {
         "schemaVersion": SCHEMA_VERSION,
@@ -346,7 +367,8 @@ def create_run(
         "attempt": 0,
         "maxAttempts": session["maxAttempts"],
         "requestPath": str(request_path),
-        "requestHash": hashlib.sha256(request).hexdigest(),
+        "requestHash": request_hash,
+        "statePath": str(directory / "state.json"),
         "resultPath": str(result_path),
         "eventsPath": str(events_path),
         "heartbeatPath": str(heartbeat_path),
@@ -359,6 +381,16 @@ def create_run(
         "unread": False,
         "error": None,
     }
+    if role in {"work", "review"}:
+        state.update(
+            {
+                "receiptPath": str(receipt_path),
+                "receiptSchemaPath": str(receipt_schema),
+                "receiptRequestHash": receipt_request_hash or request_hash,
+            }
+        )
+    if role == "review":
+        state["reviewedWorkRunId"] = reviewed_work_run_id
     atomic_write_json(directory / "state.json", state)
     atomic_write_json(
         heartbeat_path,
@@ -374,6 +406,258 @@ def create_run(
         },
     )
     return state
+
+
+def receipt_schema_document(
+    *, role: str, run_id: str, request_hash: str, reviewed_work_run_id: str | None
+) -> dict[str, Any]:
+    tests = {
+        "type": "object",
+        "properties": {
+            "run": {"const": False},
+            "reason": {
+                "const": (
+                    "work-agent-prohibited" if role == "work" else "static-review-only"
+                )
+            },
+        },
+        "required": ["run", "reason"],
+        "additionalProperties": False,
+    }
+    if role == "work":
+        properties: dict[str, Any] = {
+            "schemaVersion": {"const": SCHEMA_VERSION},
+            "kind": {"const": "work-receipt"},
+            "runId": {"const": run_id},
+            "requestHash": {"const": request_hash},
+            "outcome": {"const": "implemented"},
+            "changedPaths": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1},
+                "uniqueItems": True,
+            },
+            "addressedFindingIds": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1},
+                "uniqueItems": True,
+            },
+            "tests": tests,
+        }
+        required = list(properties)
+    else:
+        finding = {
+            "type": "object",
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "severity": {"enum": ["blocking", "advisory"]},
+                "path": {"type": "string"},
+                "location": {"type": "string"},
+                "problem": {"type": "string", "minLength": 1},
+                "evidence": {"type": "string", "minLength": 1},
+                "correction": {"type": "string", "minLength": 1},
+            },
+            "required": [
+                "id", "severity", "path", "location", "problem", "evidence", "correction"
+            ],
+            "additionalProperties": False,
+        }
+        reviewed_id_schema: dict[str, Any] = {"type": "string", "minLength": 1}
+        if reviewed_work_run_id is not None:
+            reviewed_id_schema = {"const": reviewed_work_run_id}
+        properties = {
+            "schemaVersion": {"const": SCHEMA_VERSION},
+            "kind": {"const": "review-receipt"},
+            "runId": {"const": run_id},
+            "reviewedWorkRunId": reviewed_id_schema,
+            "reviewedRequestHash": {"const": request_hash},
+            "decision": {"enum": ["approved", "changes_requested"]},
+            "findings": {"type": "array", "items": finding},
+            "resolvedFindingIds": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1},
+                "uniqueItems": True,
+            },
+            "tests": tests,
+        }
+        required = list(properties)
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": properties,
+        "required": required,
+        "additionalProperties": False,
+    }
+
+
+def _exact_keys(value: dict[str, Any], expected: set[str], label: str) -> None:
+    if set(value) != expected:
+        raise ContractError("receipt_invalid", f"{label} contains unknown or missing fields")
+
+
+def _string_list(value: object, label: str) -> list[str]:
+    if not isinstance(value, list) or any(
+        not isinstance(item, str) or not item for item in value
+    ):
+        raise ContractError("receipt_invalid", f"{label} must be a string array")
+    if len(set(value)) != len(value):
+        raise ContractError("receipt_invalid", f"{label} must contain unique values")
+    return value
+
+
+def _require_managed_directory(path: Path) -> None:
+    try:
+        info = os.lstat(path)
+    except FileNotFoundError as error:
+        raise ContractError("receipt_path_invalid", "managed run directory is missing") from error
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+        raise ContractError("receipt_path_invalid", "managed run directory is unsafe")
+
+
+def _require_managed_file(path: Path, *, allow_missing: bool = False) -> None:
+    try:
+        info = os.lstat(path)
+    except FileNotFoundError as error:
+        if allow_missing:
+            return
+        raise ContractError("receipt_path_invalid", "managed run file is missing") from error
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
+        raise ContractError("receipt_path_invalid", "managed run file is unsafe")
+
+
+def validate_receipt(
+    project_root: Path,
+    state: dict[str, Any],
+    *,
+    agent_id: str,
+    run_id: str,
+) -> dict[str, Any]:
+    root = resolve_project_root(project_root)
+    role = state.get("role")
+    if role not in {"work", "review"}:
+        raise ContractError("receipt_unexpected", "this Agent role has no receipt contract")
+    validate_id(agent_id, AGENT_ID, "agent_id")
+    validate_id(run_id, AGENT_ID, "run_id")
+    if state.get("agentId") != agent_id or state.get("runId") != run_id:
+        raise ContractError("receipt_path_invalid", "receipt Agent/run binding is invalid")
+    managed_root = root / ".agent-factory" / "agent"
+    agent_path = managed_root / agent_id
+    runs_path = agent_path / "runs"
+    run_path = runs_path / run_id
+    for directory in (root / ".agent-factory", managed_root, agent_path, runs_path, run_path):
+        _require_managed_directory(directory)
+    canonical = {
+        "statePath": run_path / "state.json",
+        "resultPath": run_path / "result.md",
+        "receiptSchemaPath": run_path / "receipt.schema.json",
+        "receiptPath": run_path / "receipt.json",
+    }
+    for field, expected in canonical.items():
+        if state.get(field) != str(expected):
+            raise ContractError("receipt_path_invalid", f"{field} is not canonically bound")
+    _require_managed_file(canonical["statePath"])
+    _require_managed_file(canonical["resultPath"])
+    _require_managed_file(canonical["receiptSchemaPath"])
+    _require_managed_file(canonical["receiptPath"])
+    receipt_path = canonical["receiptPath"]
+    try:
+        receipt = json.loads(safe_read_bytes(receipt_path, MAX_RECEIPT_BYTES))
+    except FileNotFoundError as error:
+        raise ContractError("receipt_missing", "Agent did not publish its receipt") from error
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ContractError("receipt_invalid", "Agent receipt is malformed JSON") from error
+    except ContractError as error:
+        if error.code == "file_not_found":
+            raise ContractError("receipt_missing", "Agent did not publish its receipt") from error
+        raise ContractError("receipt_path_invalid", "Agent receipt path is unsafe") from error
+    if not isinstance(receipt, dict):
+        raise ContractError("receipt_invalid", "Agent receipt must be a JSON object")
+    expected_hash = state.get("receiptRequestHash") or state.get("requestHash")
+    tests = receipt.get("tests")
+    if not isinstance(tests, dict):
+        raise ContractError("receipt_invalid", "receipt tests proof is missing")
+    _exact_keys(tests, {"run", "reason"}, "tests")
+    expected_reason = "work-agent-prohibited" if role == "work" else "static-review-only"
+    if tests != {"run": False, "reason": expected_reason}:
+        raise ContractError("receipt_tests_invalid", "receipt must prove this role ran no tests")
+    if role == "work":
+        _exact_keys(
+            receipt,
+            {
+                "schemaVersion", "kind", "runId", "requestHash", "outcome",
+                "changedPaths", "addressedFindingIds", "tests",
+            },
+            "work receipt",
+        )
+        if (
+            receipt.get("schemaVersion") != SCHEMA_VERSION
+            or receipt.get("kind") != "work-receipt"
+            or receipt.get("runId") != state.get("runId")
+            or receipt.get("requestHash") != expected_hash
+            or receipt.get("outcome") != "implemented"
+        ):
+            raise ContractError("receipt_binding_invalid", "work receipt binding is invalid")
+        changed = _string_list(receipt.get("changedPaths"), "changedPaths")
+        for changed_path in changed:
+            candidate = Path(changed_path)
+            if candidate.is_absolute() or ".." in candidate.parts:
+                raise ContractError("receipt_invalid", "changedPaths must be bounded relative paths")
+        _string_list(receipt.get("addressedFindingIds"), "addressedFindingIds")
+        return receipt
+    _exact_keys(
+        receipt,
+        {
+            "schemaVersion", "kind", "runId", "reviewedWorkRunId",
+            "reviewedRequestHash", "decision", "findings", "resolvedFindingIds", "tests",
+        },
+        "review receipt",
+    )
+    reviewed_work_run_id = receipt.get("reviewedWorkRunId")
+    expected_work_run_id = state.get("reviewedWorkRunId")
+    if (
+        receipt.get("schemaVersion") != SCHEMA_VERSION
+        or receipt.get("kind") != "review-receipt"
+        or receipt.get("runId") != state.get("runId")
+        or not isinstance(reviewed_work_run_id, str)
+        or not AGENT_ID.fullmatch(reviewed_work_run_id)
+        or (expected_work_run_id is not None and reviewed_work_run_id != expected_work_run_id)
+        or receipt.get("reviewedRequestHash") != expected_hash
+    ):
+        raise ContractError("receipt_binding_invalid", "review receipt binding is invalid")
+    findings = receipt.get("findings")
+    if not isinstance(findings, list):
+        raise ContractError("receipt_invalid", "findings must be an array")
+    finding_ids: list[str] = []
+    blocking = 0
+    finding_fields = {"id", "severity", "path", "location", "problem", "evidence", "correction"}
+    for finding in findings:
+        if not isinstance(finding, dict):
+            raise ContractError("receipt_invalid", "each finding must be an object")
+        _exact_keys(finding, finding_fields, "finding")
+        finding_id = finding.get("id")
+        if not isinstance(finding_id, str) or not finding_id:
+            raise ContractError("receipt_invalid", "finding id is invalid")
+        finding_ids.append(finding_id)
+        if finding.get("severity") not in {"blocking", "advisory"}:
+            raise ContractError("receipt_invalid", "finding severity is invalid")
+        blocking += finding.get("severity") == "blocking"
+        for field in ("path", "location", "problem", "evidence", "correction"):
+            if not isinstance(finding.get(field), str):
+                raise ContractError("receipt_invalid", f"finding {field} must be a string")
+        if not finding["problem"] or not finding["evidence"] or not finding["correction"]:
+            raise ContractError("receipt_invalid", "finding details must not be empty")
+    if len(set(finding_ids)) != len(finding_ids):
+        raise ContractError("receipt_invalid", "finding identifiers must be unique")
+    resolved = _string_list(receipt.get("resolvedFindingIds"), "resolvedFindingIds")
+    if set(resolved) & set(finding_ids):
+        raise ContractError("receipt_invalid", "resolved and current finding identifiers overlap")
+    decision = receipt.get("decision")
+    if decision == "approved" and blocking != 0:
+        raise ContractError("receipt_decision_invalid", "approved review has blocking findings")
+    if decision == "changes_requested" and blocking == 0:
+        raise ContractError("receipt_decision_invalid", "changes requested requires a blocking finding")
+    if decision not in {"approved", "changes_requested"}:
+        raise ContractError("receipt_decision_invalid", "review decision is invalid")
+    return receipt
 
 
 def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, Any]:
@@ -474,6 +758,23 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         raise ContractError("request_invalid", "request must be UTF-8 text") from error
     if not request_text.strip():
         raise ContractError("request_invalid", "request must not be empty")
+    receipt_request_hash = getattr(args, "receipt_request_hash", None)
+    reviewed_work_run_id = getattr(args, "reviewed_work_run_id", None)
+    if receipt_request_hash is not None and not re.fullmatch(r"[0-9a-f]{64}", receipt_request_hash):
+        raise ContractError("receipt_binding_invalid", "receipt request hash is invalid")
+    if reviewed_work_run_id is not None:
+        validate_id(reviewed_work_run_id, AGENT_ID, "run_id")
+    role = args.role if new_agent else load_session(project_root, args.agent).get("role")
+    if role == "review" and reviewed_work_run_id is None:
+        raise ContractError(
+            "receipt_binding_invalid",
+            "Review runs require the exact reviewed Work run identifier",
+        )
+    if role != "review" and reviewed_work_run_id is not None:
+        raise ContractError(
+            "receipt_binding_invalid",
+            "reviewed Work run binding is valid only for Review runs",
+        )
     session = create_session(args, project_root) if new_agent else load_session(
         project_root, args.agent
     )
@@ -483,6 +784,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         actor=args.actor,
         request=request,
         session=session,
+        receipt_request_hash=receipt_request_hash,
+        reviewed_work_run_id=reviewed_work_run_id,
     )
     worker_pid = spawn_worker(project_root, args.agent, state["runId"])
     emit(
@@ -558,8 +861,24 @@ class AttemptFailure(Exception):
 
 
 def build_prompt(
-    *, agent_id: str, role: str, request_path: Path, result_path: Path, run_id: str
+    *,
+    agent_id: str,
+    role: str,
+    request_path: Path,
+    result_path: Path,
+    run_id: str,
+    receipt_path: Path | None = None,
+    receipt_schema_path: Path | None = None,
 ) -> str:
+    receipt_obligation = ""
+    if receipt_path is not None and receipt_schema_path is not None:
+        receipt_obligation = f"""
+For a `completed` result, also write the role-specific machine receipt to
+`{receipt_path}`. Its exact contract is `{receipt_schema_path}`. The receipt
+must bind this run and request exactly, contain no unknown fields, and prove
+that this role ran no tests. A completed run with a missing or invalid receipt
+will fail at the runtime boundary.
+"""
     return f"""Act as Agent `{agent_id}` for Agent Factory.
 
 Read the common Agent contract at `{SKILL_ROOT / 'SKILL.md'}` and the complete
@@ -568,7 +887,7 @@ role contract at `{role_path(role)}`. Read the delegated request from
 
 Write the detailed result to `{result_path}`. Then return only the compact JSON
 required by the supplied output schema. Run ID: `{run_id}`.
-"""
+{receipt_obligation}"""
 
 
 def build_codex_command(
@@ -590,7 +909,40 @@ def build_codex_command(
             *common,
             "-",
         ]
-    return [codex, "exec", "resume", *common, session_id, "-"]
+    return [
+        codex,
+        "exec",
+        "--cd",
+        str(session["projectRoot"]),
+        "--sandbox",
+        str(session["sandbox"]),
+        "resume",
+        *common,
+        session_id,
+        "-",
+    ]
+
+
+def stderr_reports_sandbox_unavailable(path: Path) -> bool:
+    try:
+        stderr = safe_read_bytes(path, MAX_EVENT_BYTES).decode("utf-8")
+    except (ContractError, UnicodeDecodeError):
+        return False
+    return all(fragment in stderr for fragment in SANDBOX_UNAVAILABLE_STDERR)
+
+
+def missing_result_failure(stderr_path: Path) -> AttemptFailure:
+    if stderr_reports_sandbox_unavailable(stderr_path):
+        return AttemptFailure(
+            "sandbox_unavailable",
+            "Codex filesystem sandbox is unavailable",
+            True,
+        )
+    return AttemptFailure(
+        "result_file_missing",
+        "Agent did not publish its result file",
+        True,
+    )
 
 
 def append_event(path: Path, line: str) -> None:
@@ -644,6 +996,8 @@ def run_codex_attempt(
     attempt: int,
     heartbeat: Heartbeat,
     cancel_event: threading.Event,
+    expected_agent_id: str,
+    expected_run_id: str,
 ) -> tuple[str, str]:
     state_path = Path(state["requestPath"]).parent / "state.json"
     request = safe_read_bytes(Path(state["requestPath"]), MAX_REQUEST_BYTES)
@@ -691,6 +1045,10 @@ def run_codex_attempt(
         request_path=Path(state["requestPath"]),
         result_path=Path(state["resultPath"]),
         run_id=str(state["runId"]),
+        receipt_path=(Path(state["receiptPath"]) if state.get("receiptPath") else None),
+        receipt_schema_path=(
+            Path(state["receiptSchemaPath"]) if state.get("receiptSchemaPath") else None
+        ),
     )
     try:
         process.stdin.write(prompt)
@@ -800,13 +1158,23 @@ def run_codex_attempt(
     try:
         result_info = os.lstat(result_path)
     except FileNotFoundError as error:
-        raise AttemptFailure("result_file_missing", "Agent did not publish its result file", True) from error
+        raise missing_result_failure(stderr_path) from error
     if (
         stat.S_ISLNK(result_info.st_mode)
         or not stat.S_ISREG(result_info.st_mode)
         or result_info.st_size == 0
     ):
         raise AttemptFailure("result_file_invalid", "Agent result path is unsafe", True)
+    if terminal["status"] == "completed" and state.get("role") in {"work", "review"}:
+        try:
+            validate_receipt(
+                project_root,
+                state,
+                agent_id=expected_agent_id,
+                run_id=expected_run_id,
+            )
+        except ContractError as error:
+            raise AttemptFailure(error.code, error.message, True) from error
     return str(terminal["status"]), active_session
 
 
@@ -865,6 +1233,8 @@ def worker(args: argparse.Namespace) -> int:
                         attempt=attempt,
                         heartbeat=heartbeat,
                         cancel_event=cancel_event,
+                        expected_agent_id=args.agent,
+                        expected_run_id=args.run_id,
                     )
                     mark_terminal(state_path, terminal_status)
                     heartbeat.update(
@@ -930,7 +1300,12 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "maxAttempts",
         "sessionId",
         "requestPath",
+        "statePath",
         "resultPath",
+        "receiptPath",
+        "receiptSchemaPath",
+        "receiptRequestHash",
+        "reviewedWorkRunId",
         "eventsPath",
         "heartbeatPath",
         "acceptedAt",
@@ -942,7 +1317,10 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "unread",
         "error",
     )
-    return {key: state.get(key) for key in keys if key in state}
+    public = {key: state.get(key) for key in keys if key in state}
+    if state.get("role") not in {"work", "review"}:
+        public.pop("statePath", None)
+    return public
 
 
 def find_run(project_root: Path, agent_id: str, run_id: str) -> dict[str, Any]:
@@ -1158,6 +1536,14 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     request.add_argument("--request-file", type=Path)
     request.add_argument("--message")
     parser.add_argument("--actor", choices=ACTORS, default="main")
+    parser.add_argument(
+        "--receipt-request-hash",
+        help="SHA-256 identity the role receipt must bind (defaults to this run request)",
+    )
+    parser.add_argument(
+        "--reviewed-work-run-id",
+        help="exact Work run reviewed by a Review Agent (required for Review runs)",
+    )
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
