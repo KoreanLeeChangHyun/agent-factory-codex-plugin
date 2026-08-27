@@ -9,6 +9,11 @@ document and keep the two representations semantically aligned. The
 Specification's Korean-language requirement does not require the Project Skill
 or its Markdown references to be Korean.
 
+This plugin repository's `agent-factory-core` Human document is not paired with
+a repository-local Project Skill: its AI-facing owner is the distributed
+`<plugin-root>/skills/convention/` Skill. A separate consumer project uses
+the Project Skill structure defined here.
+
 Keep the plugin's distributed Skills and consumer-project Project Skills in
 different locations:
 
@@ -60,16 +65,30 @@ Create an owned subdirectory when the Project Skill has content for that role.
 Do not create empty optional directories, put Markdown reference documents in
 `assets/`, or use `agents/` for non-YAML files.
 
-Name a Project Skill in the explicit lowercase hyphen-case form
-`<category>-<skill-title>`. Name its directory exactly after the `name` declared
-in its `SKILL.md` frontmatter, so the directory name and frontmatter `name`
-match exactly.
+Name a Project Skill in the canonical form `<category>-<name>`. Both `category`
+and `name` use lowercase hyphen-case tokens; either component may contain
+hyphens when it has multiple words. The complete Project Skill name uses only
+lowercase letters, digits, and hyphens and remains under the Codex Skill name
+limit. `category` classifies the Skill for discovery, while `name` identifies
+the bounded project knowledge or capability within that category.
 
-For a new paired representation, use both the category and skill title supplied
+Use the complete `<category>-<name>` value unchanged for both the directory
+name and the `name` field in `SKILL.md` frontmatter. These values must match
+exactly.
+
+For a new paired representation, use both the category and name supplied
 by the Human or established unambiguously by accepted project evidence. Do not
 invent either component. Preserve an existing pairing. When the category or
-skill title is ambiguous, return that unresolved identity choice to the Human
+name is ambiguous, return that unresolved identity choice to the Human
 instead of creating a competing or guessed pairing.
+
+Preserve accepted Skill identities; this rule does not authorize bulk
+renaming. `agent-factory-core` remains the Human document and Specification
+identity, while its AI-facing distributed owner is `skills/convention/`; no
+standalone `agent-factory-core` Skill remains. For newly named Skill
+identities, apply `<category>-<name>` when the owning context requires the
+two-part form; do not use this Project Skill reference to rename accepted
+distributed Skills.
 
 ## Project information capabilities
 
@@ -102,16 +121,24 @@ facts.
 ## Storage boundary
 
 A Project Skill is a refined Skill document for its owning project and, when
-paired, the AI-facing representation of a Specification. Keep its files
-physically separate from:
+paired, the AI-facing representation of a Specification. Information and
+document roles are logical and independent of physical storage. Under the
+current/default local adapter, keep its files physically separate from:
 
-- unrefined Markdown Inquiry working material below
-  `.agent-factory/inquery/`;
+- original or processed Explorer working material below
+  `.agent-factory/explorer/`;
 - the corresponding refined Human-facing HTML, CSS, and JavaScript view below
-  `.agent-factory/specification/planning/<specification-id>/`;
+  `.agent-factory/information/refined/human/<specification-id>/`;
 - operational Agent session state below `.agent-factory/agent/`.
 
-Do not automatically promote an Inquiry document into a Project Skill. Create
+An explicitly resolved alternative document store may be a project server,
+external store, mounted filesystem, or another configured backend. Do not
+silently choose, mirror, or migrate a backend, and do not weaken lifecycle
+stage, provenance, authority, isolation, semantic alignment, accessibility, or
+security. Backend configuration, identity, synchronization/conflict policy,
+authentication, availability, and caching remain unresolved until decided.
+
+Do not automatically promote an Explorer document into a Project Skill. Create
 or update a Project Skill only for its owning project and refined content
 boundary.
 
@@ -147,6 +174,8 @@ The Skills Activity projection is navigation, not the AI representation itself. 
 Specification is incomplete without the actual paired Project Skill even when
 the Skills Activity can link to some other Skill.
 
-The Explorer and every other Human-facing Specification view must be rendered
-as HTML, CSS, and JavaScript below `.agent-factory/specification/`. This
-Markdown file defines Skill guidance only; it is not a Specification output.
+Every Human-facing refined Specification document must be rendered as HTML,
+CSS, and JavaScript in its resolved document store. For the local adapter that
+store is `.agent-factory/information/refined/human/`; shared UI remains below
+`.agent-factory/specification/`. This Markdown file defines Skill guidance
+only; it is not a Specification output.

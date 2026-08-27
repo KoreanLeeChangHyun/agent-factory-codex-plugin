@@ -16,8 +16,8 @@ for desktop, rclone, and manual download remain useful alternatives.
 
 ## Workspace Convention
 
-- Resolve the destination through `gather/scripts/sync.py` before any copy,
-  import, or mirror. It applies explicit input, the `google-drive` entry in
+- Resolve the destination through `scripts/sync.py` from the loaded Gather
+  Skill root before any copy, import, or mirror. It applies explicit input, the `google-drive` entry in
   `.agent-factory/sync.json`, then the `source/google/drive` default.
 - Put original Drive materials under the normalized resolved destination.
 - Keep credentials and tokens private and outside the repository, for example:
@@ -36,19 +36,20 @@ for desktop, rclone, and manual download remain useful alternatives.
 
 Prefer methods in this order:
 
-1. **Google Drive for desktop**: Use when the user can sign in locally and the
-   target files appear in Finder or File Explorer. This avoids creating a
+1. **Bundled read-only OAuth/API importer**: Prefer
+   `scripts/sync_google_drive.py` for repeatable bounded collection. Confirm it
+   uses `https://www.googleapis.com/auth/drive.readonly`, stores credentials
+   outside committed files, and bound the import by folder and file count.
+2. **Google Drive for desktop**: Use when local sign-in and an already mounted
+   source make a direct local copy more appropriate. This avoids creating a
    Google Cloud project.
-2. **rclone**: Use when the user wants a repeatable CLI sync or Drive for
+3. **rclone**: Use when the user wants a contextual CLI alternative or Drive for
    desktop does not expose the needed files. Configure rclone with browser auth
    and read-only scope when possible. Leave `client_id` and `client_secret`
    blank unless the user wants a dedicated Google Cloud project for quota or
    policy reasons.
-3. **Manual browser download**: Use for one-off small transfers or when API or
+4. **Manual browser download**: Use for one-off small transfers or when API or
    CLI setup is not worth it.
-4. **Bundled OAuth/API importer**: Use `scripts/sync_google_drive.py`. Confirm it uses
-   `https://www.googleapis.com/auth/drive.readonly` for imports and stores
-   credentials outside committed files.
 5. **Service account**: Use for automation when a Google Workspace admin or
    folder owner can share a folder or shared drive with the service account
    email. Do not assume a service account can see a user's My Drive files.
@@ -97,18 +98,19 @@ Interpretation:
 
 ## Safety Rules
 
-- Use `gather/scripts/sync.py` to inspect or set project overrides; do not edit
-  `.agent-factory/sync.json` directly.
+- Use `scripts/sync.py` from the loaded Gather Skill root to inspect or set
+  project overrides; do not edit `.agent-factory/sync.json` directly.
 - Check the printed normalized resolved destination before creating directories
   or copying data.
 - Store local Drive materials under the resolved destination.
 - Keep credentials, tokens, and rclone config out of git.
 - Prefer read-only scopes and copy/sync from Drive to local only.
 - Before running a destructive local sync such as `rsync --delete`,
-  `rclone sync`, or local cleanup, follow `rules/references/change-safety.md`:
-  show the exact source, destination, affected files, and exact command, obtain
-  Human approval, then obtain one additional explicit confirmation immediately
-  before execution.
+  `rclone sync`, or local cleanup, show the Human the exact source, normalized
+  destination, affected files, and exact command. Obtain approval for that
+  bounded operation, then obtain one additional explicit confirmation
+  immediately before execution. If any shown detail changes, repeat both
+  confirmations with the updated details.
 - Do not delete cloud files. Local cleanup remains limited to the confirmed
   destination directory and still requires both confirmations above.
 - If the Drive contains confidential client data, avoid third-party hosted
@@ -234,9 +236,9 @@ Official setup and download contracts: [Python quickstart](https://developers.go
 - If a script writes to old `drive_downloads/`, change `--output-dir` to the
   resolved destination.
 
-## Verification
+## Post-Sync Reporting And Optional Verification
 
-After syncing, report:
+After syncing, report information already produced by the sync:
 
 - source method used,
 - normalized resolved destination and whether it came from explicit input,
@@ -245,7 +247,12 @@ After syncing, report:
 - any skipped Google-native files or export conversions,
 - whether credentials or tokens were created.
 
-Useful checks:
+Run optional filesystem checks only when the Human has authorized verification,
+and dispatch them through a separate managed Verification Agent under the Main
+Agent contract. Without that authority, do not run these commands; report the
+sync-produced information and state that optional verification was not run.
+
+When authorized, useful checks are:
 
 ```bash
 find "<resolved-drive-destination>" -type f | wc -l

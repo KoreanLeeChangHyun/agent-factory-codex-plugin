@@ -9,9 +9,8 @@ const minimumSidebarWidth = 180;
 const maximumSidebarWidth = 520;
 const activityTitles = {
   explorer: "탐색기",
-  planning: "기획",
+  planning: "Human 정제 문서",
   skills: "스킬",
-  candidate: "후보",
 };
 
 const selectActivity = (activity) => {

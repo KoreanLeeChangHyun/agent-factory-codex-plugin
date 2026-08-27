@@ -103,7 +103,7 @@ Do not assume a fixed plugin installation root.
 
 The script:
 
-- Loads the shared `gather/scripts/sync.py` resolver.
+- Loads the shared `scripts/sync.py` resolver from the loaded Gather Skill root.
 - Applies explicit `--destination`, then the `google-mail` entry in
   `.agent-factory/sync.json`, then `source/google/mail`.
 - Resolves relative paths from the Git top-level and prints the normalized
@@ -124,8 +124,8 @@ Useful query examples:
 
 ## Safety Rules
 
-- Use `gather/scripts/sync.py` to inspect or set project overrides; do not edit
-  `.agent-factory/sync.json` directly.
+- Use `scripts/sync.py` from the loaded Gather Skill root to inspect or set
+  project overrides; do not edit `.agent-factory/sync.json` directly.
 - Keep sync read-only unless the user explicitly asks for Gmail write actions.
 - Do not delete local mail snapshots unless the user explicitly asks.
 - Do not store OAuth client JSON or token JSON in the repository.
@@ -133,9 +133,9 @@ Useful query examples:
 - Prefer Gmail search queries to limit scope when the user gives a project,
   sender, date range, or subject.
 
-## Verification
+## Post-Sync Reporting And Optional Verification
 
-After syncing, report:
+After syncing, report information already produced by the sync:
 
 - credential path used,
 - normalized resolved destination and whether it came from explicit input,
@@ -146,7 +146,12 @@ After syncing, report:
 - skipped messages or attachments,
 - whether a token file was created.
 
-Useful checks:
+Run optional filesystem checks only when the Human has authorized verification,
+and dispatch them through a separate managed Verification Agent under the Main
+Agent contract. Without that authority, do not run these commands; report the
+sync-produced information and state that optional verification was not run.
+
+When authorized, useful checks are:
 
 ```bash
 find "<resolved-mail-destination>" -type f | wc -l

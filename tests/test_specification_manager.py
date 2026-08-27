@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
@@ -38,11 +39,16 @@ class SpecificationContractTests(unittest.TestCase):
         self.assertIn(".agent-factory/specification/", combined)
         self.assertNotIn(".agent-factory/specifications/", combined)
 
-    def test_specification_keeps_inquiry_and_session_state_separate(self) -> None:
+    def test_specification_keeps_explorer_and_session_state_separate(self) -> None:
         entry = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("Inquiry working material", entry)
-        self.assertIn("managed Agent session state", entry)
-        self.assertIn("separate locations", entry)
+        normalized = " ".join(re.sub(r"[`*_]", "", entry).lower().split())
+        self.assertRegex(
+            normalized,
+            r"(?=.*explorer working material)"
+            r"(?=.*managed agent session state)"
+            r"(?=.*separate logical roles)"
+            r"(?=.*resolved stores)",
+        )
 
 
 if __name__ == "__main__":

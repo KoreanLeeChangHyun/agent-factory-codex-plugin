@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Interview"
+  short_description: "Elicit Human knowledge through adaptive interviews"
+  default_prompt: "Use $interview to clarify the material information gaps in this request with me."

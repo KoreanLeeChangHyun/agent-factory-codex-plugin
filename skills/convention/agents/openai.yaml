@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Convention"
-  short_description: "Apply annotation and SVG-only interface conventions."
-  default_prompt: "Use $convention to apply the relevant annotation or SVG-only icon convention."
+  short_description: "Apply Agent Factory core and cross-cutting conventions."
+  default_prompt: "Use $convention to apply the Agent Factory core model, information lifecycle, Skill ownership, storage, annotation, or SVG convention relevant to the work."

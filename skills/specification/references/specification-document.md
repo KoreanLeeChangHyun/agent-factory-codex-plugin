@@ -3,17 +3,18 @@
 ## Semantic model
 
 Treat a Specification as one refined, trustworthy body of project knowledge
-with two faithful representations:
+with two faithful representations whose document store is explicitly resolved:
 
-- the Specification is the Human-readable local HTML, CSS, and JavaScript
-  document below
-  `<project-root>/.agent-factory/specification/planning/<specification-id>/`;
-- the paired Project Skill is the AI-readable Agent Factory project-scoped
-  Skill below
-  `<project-root>/.codex/skills/<project-skill>/`.
+- in the current/default local adapter, the Specification is the Human-readable
+  HTML, CSS, and JavaScript document below
+  `<project-root>/.agent-factory/information/refined/human/<specification-id>/`;
+- in this plugin repository, the core AI-facing pair is owned by the distributed
+  `skills/convention/` Skill; in a separate consumer project, the pair
+  may be a Project Skill below
+  `<project-root>/.codex/skills/<category>-<name>/`.
 
-Every Planning document must have a paired Project Skill. Do not create or keep
-a standalone document below `planning/` without that pair. Create and maintain
+Every Planning document must have its resolved paired Skill. Do not create or
+keep a standalone Human refined document without that pair. Create and maintain
 both representations for a Specification. Keep their
 claims, decisions, relationships, and scope aligned. Do not let either view
 silently add, omit, or contradict specified knowledge in the other. The
@@ -32,19 +33,29 @@ as needed to preserve semantic alignment. When inspecting or verifying, report
 unsupported, missing, stale, or contradictory claims without treating the
 review itself as authorization to edit them.
 
+Storage does not define the information class or document role. A project may
+explicitly resolve a project server, external document store, mounted
+filesystem, or another configured backend instead of the local adapter. Do not
+silently choose, mirror, migrate, or designate a canonical backend. Preserve
+lifecycle stage, provenance, authority, isolation, semantic alignment,
+accessibility, and security across adapters. Backend configuration, identity,
+synchronization and conflict policy, authentication, availability, and caching
+remain unresolved until the Human or implementation contract decides them.
+
 ## Output format
 
 Create every actual Specification document as refined HTML, CSS, and
-JavaScript for Human viewing in a browser. Store Specification output below:
+JavaScript for Human viewing in a browser. For the current/default local
+adapter, store Specification output below:
 
 ```text
-<project-root>/.agent-factory/specification/planning/
+<project-root>/.agent-factory/information/refined/human/
 ```
 
 Use this minimum browser structure for a project-specific Specification:
 
 ```text
-.agent-factory/specification/planning/<specification-id>/
+.agent-factory/information/refined/human/<specification-id>/
 ├── index.html
 ├── styles.css
 ├── app.js
@@ -71,13 +82,16 @@ Skill or its Markdown references.
    infer an identity from tentative language, raw notes, or an unresolved
    naming choice; return that Human-owned decision when no stable identity is
    available.
-2. Confirm that
-   `<project-root>/.agent-factory/specification/planning/<specification-id>/`
+2. Resolve the document adapter and paired-Skill owning context from explicit
+   configuration or Human direction. Do not infer a remote backend or storage
+   policy. For the local adapter, confirm that
+   `<project-root>/.agent-factory/information/refined/human/<specification-id>/`
    does not exist. Only for a new target, copy the complete packaged template from
    `assets/document/` into that directory. Scaffolding is copy-once: never use
    the template to overwrite, reset, or merge over an existing Specification.
 3. Inspect the accepted Human decisions, relevant project evidence, and any
-   refined Inquiry or Gather output. Resolve important provenance before
+   processed Explorer material or original Gather evidence accepted as input;
+   Specification alone reconciles those inputs into refined knowledge. Resolve important provenance before
    drafting. Raw working notes, collection logs, and unassessed excerpts are
    inputs to refine, not trusted Specification truth to paste into the result.
 4. Adapt the template to the actual body of knowledge. Remove, reorder, split,
@@ -86,8 +100,9 @@ Skill or its Markdown references.
 5. Replace or remove every element marked `data-template-placeholder` and every
    `[[...]]` token. A document with any marked template placeholder remaining is
    scaffolding, not a refined Specification.
-6. Create or update the paired
-   `<project-root>/.codex/skills/<project-skill>/` representation and compare
+6. Create or update the resolved paired representation—this repository's core
+   uses `skills/convention/`, while a separate consumer project may use
+   `<project-root>/.codex/skills/<category>-<name>/`—and compare
    the two representations for semantic alignment. Decisions, requirements,
    scope, evidence, relationships, and unresolved state must agree even though
    their presentation differs.
@@ -110,17 +125,17 @@ Write each statement in the right epistemic category:
 
 Use provenance near the claim it supports. Prefer durable repository-relative
 paths, artifact identifiers, or a concise attribution to an explicit Human
-decision. Refine Inquiry and Gather evidence before inclusion: reconcile
+decision. Refine Explorer and Gather evidence before inclusion: reconcile
 conflicts, assess relevance, and summarize the supported conclusion without
 promoting raw collection material as truth.
 
 ## Document boundaries and quality rules
 
-Keep shared browser-shell responsibilities in
+For the local adapter, keep shared browser-shell responsibilities in
 `.agent-factory/specification/common/`. Keep each Specification's content in its
-own `planning/<specification-id>/` directory, and keep optional
-document-specific local resources in
-`planning/<specification-id>/assets/`. Do not copy project facts into the common
+own `.agent-factory/information/refined/human/<specification-id>/` directory,
+and keep optional document-specific local resources in that document's
+`assets/`. Do not copy project facts into the common
 shell or place one document's private resources in `common/`.
 
 Preserve semantic HTML, keyboard access, visible focus, readable contrast, and
@@ -136,9 +151,10 @@ state, and ensure the paired Project Skill says the same thing. These are
 authoring quality rules, not permission for a Work Agent to run tests or other
 verification.
 
-## Common interface
+## Common local interface
 
-Reuse the common shell below `.agent-factory/specification/common/`. Preserve
+When the local adapter is selected, reuse the common shell below
+`.agent-factory/specification/common/`. Preserve
 its Activity Bar, resizable Primary Sidebar, and project-specific Workspace.
 Treat the Primary Sidebar as the contextual companion to the currently selected
 Activity and Workspace, not as a document table of contents and not as one
@@ -146,9 +162,9 @@ permanently fixed view. Provide exactly these default Activity directories and
 display roles:
 
 - `explorer/` renders the Explorer project tree;
-- `planning/` presents the paired Human-facing Planning documents;
-- `skills/` presents Project Skill navigation and views;
-- `candidate/` presents Candidate views backed by Inquery workspaces.
+- Planning presents paired Human refined documents from
+  `.agent-factory/information/refined/human/`;
+- `skills/` presents Project Skill navigation and views.
 
 One Activity Bar item owns one corresponding directory. Each directory owns
 that Activity's Primary Sidebar view and Workspace content. Use VS Code as the
@@ -163,12 +179,13 @@ Primary Sidebar as the table of contents.
 
 ## Browser boundary
 
-The Specification is the rendered browser application itself. It must remain
+The Specification is the rendered browser application itself, whether exposed
+from the local adapter or a selected host. It must remain
 usable from its HTML entry point with local CSS, JavaScript, and assets. Do not
 require an AI to interpret a Markdown or JSON package before a Human can view
 the Specification.
 
-Refine working material before incorporating it. Do not treat raw Inquiry
+Refine working material before incorporating it. Do not treat raw Explorer
 notes, a draft, a conversation transcript, or an operational log as a
 Specification merely because it is rendered in the browser.
 
@@ -176,8 +193,8 @@ Specification merely because it is rendered in the browser.
 
 Files below `skills/specification/references/` are Markdown instructions for
 the Specification Skill. They are not Specification documents. This Markdown
-instruction format does not permit actual Specification output below
-`.agent-factory/specification/` to use Markdown instead of HTML, CSS, and
+instruction format does not permit actual Specification output in the resolved
+Human refined document root to use Markdown instead of HTML, CSS, and
 JavaScript.
 
 Read `project-skill.md` for the required location and structure of the paired

@@ -53,7 +53,8 @@ class SpecificationBrowserServerTests(unittest.TestCase):
         launcher = LAUNCHER_PATH.read_text(encoding="utf-8")
         self.assertIn("Specification tree is missing", launcher)
         self.assertIn("specification_root.relative_to(project_root)", launcher)
-        self.assertIn("candidate.relative_to(specification_root)", launcher)
+        self.assertIn("human_refined_root.relative_to(project_root)", launcher)
+        self.assertIn("candidate.relative_to(root)", launcher)
 
     def test_packaged_assets_faithfully_copy_the_existing_common_shell(self) -> None:
         for name in ("index.html", "styles.css", "app.js"):
@@ -65,11 +66,11 @@ class SpecificationBrowserServerTests(unittest.TestCase):
     def test_primary_sidebar_hosts_the_selected_activity_view(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
         self.assertIn("data-sidebar-host", html)
+        self.assertEqual(SERVER.ACTIVITY_DIRECTORIES, ("explorer", "skills"))
         for activity, label in (
             ("explorer", "탐색기"),
             ("planning", "기획"),
             ("skills", "스킬"),
-            ("candidate", "후보"),
         ):
             self.assertIn(f'data-activity="{activity}"', html)
             self.assertIn(f'aria-label="{label}"', html)
@@ -113,7 +114,7 @@ class SpecificationBrowserServerTests(unittest.TestCase):
             (asset_root / "index.html").write_text("asset", encoding="utf-8")
             specification_root = project_root / SERVER.SPECIFICATION_RELATIVE_PATH
             specification_root.mkdir(parents=True)
-            (specification_root / "planning").write_text("conflict", encoding="utf-8")
+            (specification_root / "skills").write_text("conflict", encoding="utf-8")
 
             with self.assertRaises(SERVER.ViewerError):
                 SERVER.install_assets(project_root, asset_root, False)
@@ -131,7 +132,7 @@ class SpecificationBrowserServerTests(unittest.TestCase):
             outside = project_root / "outside"
             outside.mkdir()
             try:
-                os.symlink(outside, specification_root / "candidate")
+                os.symlink(outside, specification_root / "skills")
             except OSError as exc:
                 self.skipTest(f"symlinks unavailable: {exc}")
 
@@ -211,10 +212,15 @@ class SpecificationBrowserServerTests(unittest.TestCase):
     def test_request_path_rejects_traversal(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             served_root = Path(temporary_directory)
-            for target in ("/../outside", "/%2e%2e/outside", "//outside"):
+            served_roots = {"common": served_root}
+            for target in (
+                "/common/../outside",
+                "/common/%2e%2e/outside",
+                "//outside",
+            ):
                 with self.subTest(target=target):
                     with self.assertRaises(SERVER.ViewerError):
-                        SERVER.resolve_request_path(served_root, target)
+                        SERVER.resolve_request_path(served_roots, target)
 
     def test_request_path_rejects_symlink_escape(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -229,7 +235,9 @@ class SpecificationBrowserServerTests(unittest.TestCase):
                 self.skipTest(f"symlinks unavailable: {exc}")
 
             with self.assertRaises(SERVER.ViewerError):
-                SERVER.resolve_request_path(served_root, "/escape/file.html")
+                SERVER.resolve_request_path(
+                    {"common": served_root}, "/common/escape/file.html"
+                )
 
     def test_non_loopback_hosts_require_the_explicit_override_contract(self) -> None:
         parser = SERVER.build_parser()
@@ -243,7 +251,10 @@ class SpecificationBrowserServerTests(unittest.TestCase):
     def test_serve_validates_and_binds_one_resolved_address_collection(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             project_root = Path(temporary_directory)
-            (project_root / SERVER.SPECIFICATION_RELATIVE_PATH).mkdir(parents=True)
+            specification_root = project_root / SERVER.SPECIFICATION_RELATIVE_PATH
+            for activity in ("common", *SERVER.ACTIVITY_DIRECTORIES):
+                (specification_root / activity).mkdir(parents=True, exist_ok=True)
+            (project_root / SERVER.HUMAN_REFINED_RELATIVE_PATH).mkdir(parents=True)
             addresses = [(SERVER.socket.AF_INET, ("127.0.0.1", 8000))]
 
             with (

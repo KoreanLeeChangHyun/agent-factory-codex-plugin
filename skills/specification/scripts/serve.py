@@ -20,11 +20,12 @@ import webbrowser
 
 
 SPECIFICATION_RELATIVE_PATH = Path(".agent-factory/specification")
+HUMAN_REFINED_RELATIVE_PATH = Path(".agent-factory/information/refined/human")
 PACKAGED_ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets" / "browser"
 PACKAGED_LAUNCHER = Path(__file__).resolve().parents[1] / "assets" / "spec.sh"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
-ACTIVITY_DIRECTORIES = ("explorer", "planning", "skills", "candidate")
+ACTIVITY_DIRECTORIES = ("explorer", "skills")
 
 
 class ViewerError(RuntimeError):
@@ -220,6 +221,9 @@ def install_assets(
 
     for activity_directory in activity_directories:
         activity_directory.mkdir(parents=True, exist_ok=True)
+    human_refined_root = project_root / HUMAN_REFINED_RELATIVE_PATH
+    _resolved_within(project_root, human_refined_root, "Human refined document directory")
+    human_refined_root.mkdir(parents=True, exist_ok=True)
 
     launcher_installed = False
     if install_launcher:
@@ -232,8 +236,8 @@ def install_assets(
     return len(planned), unchanged, launcher_installed
 
 
-def resolve_request_path(served_root: Path, request_target: str) -> tuple[Path, bool]:
-    """Map a URL target to a path without permitting traversal or symlink escape."""
+def resolve_request_path(served_roots: dict[str, Path], request_target: str) -> tuple[Path, bool]:
+    """Map an allowlisted URL prefix to one of the two local roots safely."""
 
     raw_path = urlsplit(request_target).path
     try:
@@ -249,8 +253,14 @@ def resolve_request_path(served_root: Path, request_target: str) -> tuple[Path, 
     if any(part in {".", ".."} for part in relative.parts):
         raise ViewerError("request path traversal is not allowed")
 
-    root = served_root.resolve(strict=True)
-    candidate = root.joinpath(*relative.parts).resolve(strict=False)
+    if not relative.parts:
+        raise ViewerError("request path does not select a local document root")
+    prefix = relative.parts[0]
+    root = served_roots.get(prefix)
+    if root is None:
+        raise ViewerError("request path does not select an allowlisted local root")
+    root = root.resolve(strict=True)
+    candidate = root.joinpath(*relative.parts[1:]).resolve(strict=False)
     if not _is_within(root, candidate):
         raise ViewerError("request path escapes the served Specification tree")
     return candidate, decoded_path.endswith("/")
@@ -261,8 +271,10 @@ class SpecificationRequestHandler(BaseHTTPRequestHandler):
 
     server_version = "AgentFactorySpecification/1"
 
-    def __init__(self, *args: object, served_root: Path, **kwargs: object) -> None:
-        self.served_root = served_root.resolve(strict=True)
+    def __init__(self, *args: object, served_roots: dict[str, Path], **kwargs: object) -> None:
+        self.served_roots = {
+            prefix: root.resolve(strict=True) for prefix, root in served_roots.items()
+        }
         super().__init__(*args, **kwargs)
 
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
@@ -280,7 +292,7 @@ class SpecificationRequestHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            candidate, trailing_slash = resolve_request_path(self.served_root, self.path)
+            candidate, trailing_slash = resolve_request_path(self.served_roots, self.path)
         except ViewerError as exc:
             self.send_error(400, str(exc))
             return
@@ -300,7 +312,7 @@ class SpecificationRequestHandler(BaseHTTPRequestHandler):
         except (FileNotFoundError, OSError):
             self.send_error(404, "Specification file not found")
             return
-        if not _is_within(self.served_root, resolved_file) or not resolved_file.is_file():
+        if not any(_is_within(root, resolved_file) for root in self.served_roots.values()) or not resolved_file.is_file():
             self.send_error(404, "Specification file not found")
             return
 
@@ -364,6 +376,15 @@ def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, op
         raise ViewerError(
             f"Specification directory does not exist: {specification_root}; run init first"
         )
+    human_refined_root = _resolved_within(
+        project_root,
+        project_root / HUMAN_REFINED_RELATIVE_PATH,
+        "served Human refined document directory",
+    )
+    if not human_refined_root.exists() or not human_refined_root.is_dir():
+        raise ViewerError(
+            f"Human refined directory does not exist: {human_refined_root}; run init first"
+        )
     addresses = _resolved_addresses(host, port)
     if not addresses_are_loopback(addresses) and not allow_non_loopback:
         raise ViewerError(
@@ -372,7 +393,13 @@ def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, op
         )
 
     family, sockaddr = addresses[0]
-    handler = functools.partial(SpecificationRequestHandler, served_root=resolved_root)
+    served_roots = {
+        "common": resolved_root / "common",
+        "explorer": resolved_root / "explorer",
+        "skills": resolved_root / "skills",
+        "planning": human_refined_root,
+    }
+    handler = functools.partial(SpecificationRequestHandler, served_roots=served_roots)
 
     class AddressFamilyServer(ThreadingHTTPServer):
         address_family = family
@@ -390,7 +417,7 @@ def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, op
     if ":" in browser_host and not browser_host.startswith("["):
         browser_host = f"[{browser_host}]"
     url = f"http://{browser_host}:{actual_port}/common/"
-    print(f"Serving {resolved_root} read-only at {url}")
+    print(f"Serving local Specification UI and Human refined documents read-only at {url}")
     if open_browser:
         webbrowser.open(url)
     try:

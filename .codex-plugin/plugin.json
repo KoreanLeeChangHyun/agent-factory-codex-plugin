@@ -1,7 +1,7 @@
 {
   "name": "agent-factory",
-  "version": "0.1.0+codex.20260823023232",
-  "description": "Five Agent Factory skills for managed agents, conventions, inquiry, specifications, and source gathering.",
+  "version": "0.1.0+codex.20260827190756",
+  "description": "Six Agent Factory skills for managed agents, core conventions, exploration, interviews, specifications, and source gathering.",
   "author": {
     "name": "Agent Factory",
     "url": "https://github.com/KoreanLeeChangHyun"
@@ -13,7 +13,8 @@
     "agent-factory",
     "codex",
     "managed-agents",
-    "inquiry",
+    "interview",
+    "exploration",
     "specification",
     "source-gathering",
     "software-delivery"
@@ -21,8 +22,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Factory",
-    "shortDescription": "Run managed project work with five focused skills.",
-    "longDescription": "Provides managed Main, Work, Review, and Inquiry Agents; annotation and SVG conventions; temporary investigation workspaces; refined Specifications with Human- and AI-facing views; and provenance-preserving source gathering.",
+    "shortDescription": "Run managed project work with six focused skills.",
+    "longDescription": "Provides a Human-facing Main orchestration and Interview layer plus managed Work, Review, Explorer, and Verification Agents; the Convention-owned Agent Factory core, three-stage information lifecycle, annotations, and SVG rules; provenance-preserving exploration; storage-independent refined Specifications with Human- and AI-facing views; and source gathering.",
     "developerName": "Agent Factory",
     "category": "Productivity",
     "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",
@@ -31,7 +32,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use $agent to route the next bounded task through managed Work and independent Review Agents."
+      "Use $agent to orchestrate the next request through the appropriate managed role."
     ]
   }
 }
