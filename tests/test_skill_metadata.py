@@ -137,17 +137,13 @@ class SkillMetadataTests(unittest.TestCase):
                 with self.subTest(skill=name, reference=reference):
                     self.assertTrue((SKILLS / name / reference).is_file())
 
-    def test_agent_exposes_declared_main_and_managed_exec_roles(self) -> None:
+    def test_agent_exposes_only_three_prompt_roles(self) -> None:
         references = {
             path.name for path in (SKILLS / "agent" / "references").glob("*.md")
         }
-        self.assertEqual(
-            references,
-            {
-                "main.md", "work.md", "review.md", "explorer.md",
-                "verification.md", "loop.md", "trusted-execution.md",
-            },
-        )
+        prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}
+        self.assertEqual(references, set())
+        self.assertEqual(prompts, {"main.md", "work.md", "verification.md"})
 
     def test_gather_preserves_sync_mechanisms_without_promoting_truth(self) -> None:
         management = (

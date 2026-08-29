@@ -43,13 +43,14 @@ This plugin repository stores its distributed Skills below `skills/` and does
 not mirror them into a repository-local `.codex/`. A separate project that uses
 the plugin stores its own Project Skills below `.codex/skills/` in that project.
 
-Gathered collections remain original-information evidence, and Explorer results
-remain original or processed information. Neither Gather nor Explorer
-reconciles or promotes its output into trusted project truth; Specification
-alone reconciles accepted inputs into refined project knowledge. Operational
-Agent sessions and Explorer workspaces remain operational, while original,
-processed, and Human refined documents occupy distinct information lifecycle
-roles. AI-facing refined knowledge remains in Skills.
+Gathered collections remain original-information evidence, and Work's
+exploration results remain original or processed information. Neither Gather
+nor evidence exploration reconciles or promotes its output into trusted project
+truth; Specification alone reconciles accepted inputs into refined project
+knowledge. Operational Agent sessions and temporary exploration workspaces
+remain operational, while original, processed, and Human refined documents
+occupy distinct information lifecycle roles. AI-facing refined knowledge
+remains in Skills.
 
 Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
 `agents/openai.yaml`, and detailed capability guidance in `references/`.
@@ -80,7 +81,7 @@ Agent Factory uses this project-local structure as its current/default adapter:
 ```
 
 `agent/` contains managed Codex session and run state. `explorer/` contains
-temporary evidence-exploration workspaces. `information/` contains original,
+temporary evidence-exploration workspaces used by Work. `information/` contains original,
 processed, and refined documents; locally materialized Human refined documents
 live below `information/refined/human/`, and preserved legacy Inquery material
 lives below `information/processed/legacy-inquery/`. `specification/` contains
@@ -173,10 +174,9 @@ Run no test, smoke, lint, typecheck, build, or other verification command unless
 the Human explicitly requests testing or verification. Main preserves that
 authorization and dispatches a separate managed Verification Agent. When the
 Human supplies a command, Verification runs it unchanged; otherwise it selects
-only the smallest bounded command justified by repository evidence. Main, Work,
-and Review never execute the check. A general request to fix, review, or
-complete work is not test authority. Without authorization, report that tests
-were not run.
+only the smallest bounded command justified by repository evidence. Main and
+Work never execute the check. A general request to fix or complete work is not
+test authority. Without authorization, report that tests were not run.
 
 ## Status
 

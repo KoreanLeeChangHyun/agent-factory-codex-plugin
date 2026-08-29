@@ -13,7 +13,7 @@ class PublicSkillResourceContractTests(unittest.TestCase):
         agent_scripts = SKILLS / "agent" / "scripts"
         self.assertEqual(
             {path.name for path in agent_scripts.glob("*.py")},
-            {"agent_exec.py", "agent_loop.py", "trusted_executor.py", "trusted_executor_fixture.py", "trusted_executor_native_smoke.py"},
+            {"exec.py", "loop.py"},
         )
 
         gather_scripts = SKILLS / "gather" / "scripts"

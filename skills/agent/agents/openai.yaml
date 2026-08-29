@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Agent"
-  short_description: "Orchestrate Main and bounded managed Exec roles."
-  default_prompt: "Use $agent for a Human-facing Interview or to route research, implementation, review, and authorized verification through the appropriate managed roles."
+  short_description: "Run the Main, Work, and Verification graph."
+  default_prompt: "Use $agent to route work through Main -> Work -> Verification, repeat on verification failure, and end on pass or a Human decision to skip verification."

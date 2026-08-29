@@ -19,14 +19,14 @@ SCRIPT = (
     / "skills"
     / "agent"
     / "scripts"
-    / "agent_exec.py"
+    / "exec.py"
 )
 
 
 def load_module():
-    spec = importlib.util.spec_from_file_location("agent_exec", SCRIPT)
+    spec = importlib.util.spec_from_file_location("exec", SCRIPT)
     if spec is None or spec.loader is None:
-        raise RuntimeError("cannot load agent_exec")
+        raise RuntimeError("cannot load exec runtime")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -35,6 +35,23 @@ def load_module():
 class AgentExecTests(unittest.TestCase):
     def setUp(self) -> None:
         self.module = load_module()
+
+    def test_build_prompt_embeds_each_validated_role_prompt(self) -> None:
+        for role in ("main", "work", "verification"):
+            with self.subTest(role=role):
+                source = self.module.role_path(role).read_text(encoding="utf-8")
+                prompt = self.module.build_prompt(
+                    agent_id=f"{role}-agent", role=role,
+                    request_path=Path("/managed/request.md"),
+                    result_path=Path("/managed/result.md"), run_id="run-one",
+                )
+                self.assertIn(source, prompt)
+                self.assertIn("<agent-factory-role-prompt>", prompt)
+
+    def test_role_path_rejects_role_outside_graph(self) -> None:
+        with self.assertRaises(self.module.ContractError) as raised:
+            self.module.role_path("review")
+        self.assertEqual(raised.exception.code, "role_not_found")
 
     def test_generated_result_path_schema_has_string_type_and_exact_path(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -57,8 +74,8 @@ class AgentExecTests(unittest.TestCase):
     def dispatch_args(self, directory: str, dispatch_id: str, message: str = "bounded request") -> argparse.Namespace:
         return argparse.Namespace(
             project_root=Path(directory), agent="work-agent", actor="main", message=message,
-            request_file=None, receipt_request_hash="a" * 64, reviewed_work_run_id=None,
-            dispatch_id=dispatch_id, role="work", codex="/bin/true", sandbox="workspace-write",
+            request_file=None, receipt_request_hash="a" * 64, verified_work_run_id=None,
+            dispatch_id=dispatch_id, role="work", codex="/bin/true", sandbox=self.module.DEFAULT_SANDBOX,
             model=None, heartbeat_interval=5.0, heartbeat_timeout=20.0,
             start_timeout=60.0, turn_timeout=1800.0, max_attempts=2,
         )
@@ -592,6 +609,20 @@ class AgentExecTests(unittest.TestCase):
         self.assertIn("danger-full-access", command)
         self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", command)
 
+    def test_submit_defaults_new_session_sandbox_and_preserves_explicit_overrides(self) -> None:
+        base = ["submit", "--agent", "work-agent", "--role", "work"]
+
+        self.assertEqual(
+            self.module.parse_args(base).sandbox,
+            "danger-full-access",
+        )
+        for sandbox in self.module.SANDBOXES:
+            with self.subTest(sandbox=sandbox):
+                self.assertEqual(
+                    self.module.parse_args([*base, "--sandbox", sandbox]).sandbox,
+                    sandbox,
+                )
+
     def test_resume_reasserts_project_root_and_stored_sandbox(self) -> None:
         for sandbox in ("danger-full-access", "workspace-write", "read-only"):
             with self.subTest(sandbox=sandbox):
@@ -689,21 +720,20 @@ class AgentExecTests(unittest.TestCase):
 
         self.assertEqual(raised.exception.code, "receipt_tests_invalid")
 
-    def test_review_receipt_enforces_unique_ids_and_decision_consistency(self) -> None:
+    def test_verification_receipt_enforces_unique_ids_and_decision_consistency(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = self.module.create_run(
                 project_root=Path(directory),
-                agent_id="review-agent",
+                agent_id="verification-agent",
                 actor="main",
-                request=b"review request",
-                session={"role": "review", "maxAttempts": 1},
+                request=b"verification request",
+                session={"role": "verification", "maxAttempts": 1},
                 receipt_request_hash="a" * 64,
-                reviewed_work_run_id="run-work-1",
+                verified_work_run_id="run-work-1",
             )
             finding = {
                 "id": "REV-001",
-                "severity": "blocking",
-                "path": "skills/agent/scripts/agent_exec.py",
+                "path": "skills/agent/scripts/exec.py",
                 "location": "validate_receipt",
                 "problem": "binding is not checked",
                 "evidence": "the expected value is available in state",
@@ -711,38 +741,45 @@ class AgentExecTests(unittest.TestCase):
             }
             receipt = {
                 "schemaVersion": "0.1.0",
-                "kind": "review-receipt",
+                "kind": "verification-receipt",
                 "runId": state["runId"],
-                "reviewedWorkRunId": "run-work-1",
-                "reviewedRequestHash": "a" * 64,
-                "decision": "changes_requested",
+                "verifiedWorkRunId": "run-work-1",
+                "verifiedRequestHash": "a" * 64,
+                "decision": "fail",
                 "findings": [finding],
-                "resolvedFindingIds": [],
-                "tests": {"run": False, "reason": "static-review-only"},
             }
             Path(state["resultPath"]).write_text("result\n", encoding="utf-8")
             Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
             self.assertEqual(
                 self.module.validate_receipt(
-                    Path(directory), state, agent_id="review-agent", run_id=state["runId"]
+                    Path(directory), state, agent_id="verification-agent", run_id=state["runId"]
                 ),
                 receipt,
             )
 
-            receipt["decision"] = "approved"
+            receipt["verifiedWorkRunId"] = "run-work-other"
+            Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaises(self.module.ContractError) as binding_error:
+                self.module.validate_receipt(
+                    Path(directory), state, agent_id="verification-agent", run_id=state["runId"]
+                )
+            self.assertEqual(binding_error.exception.code, "receipt_binding_invalid")
+            receipt["verifiedWorkRunId"] = "run-work-1"
+
+            receipt["decision"] = "pass"
             Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
             with self.assertRaises(self.module.ContractError) as raised:
                 self.module.validate_receipt(
-                    Path(directory), state, agent_id="review-agent", run_id=state["runId"]
+                    Path(directory), state, agent_id="verification-agent", run_id=state["runId"]
                 )
             self.assertEqual(raised.exception.code, "receipt_decision_invalid")
 
-            receipt["decision"] = "changes_requested"
+            receipt["decision"] = "fail"
             receipt["findings"] = [finding, finding]
             Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
             with self.assertRaises(self.module.ContractError) as raised:
                 self.module.validate_receipt(
-                    Path(directory), state, agent_id="review-agent", run_id=state["runId"]
+                    Path(directory), state, agent_id="verification-agent", run_id=state["runId"]
                 )
             self.assertEqual(raised.exception.code, "receipt_invalid")
 

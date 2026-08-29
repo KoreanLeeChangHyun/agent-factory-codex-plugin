@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Manage resumable Codex exec agents without blocking the Main Agent."""
+"""Manage resumable Codex exec roles without blocking the Main Agent."""
 
 from __future__ import annotations
 
 import argparse
 import contextlib
 import hashlib
-import importlib.util
 import json
 import os
 import queue
@@ -36,6 +35,7 @@ ROLE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 SESSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 DISPATCH_ID = re.compile(r"^dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SANDBOXES = ("read-only", "workspace-write", "danger-full-access")
+DEFAULT_SANDBOX = "danger-full-access"
 ACTORS = ("main", "human")
 ACTIVE_STATES = {"accepted", "queued", "starting", "running", "cancelling"}
 TERMINAL_STATES = {"completed", "needs-human-decision", "failed", "cancelled"}
@@ -52,19 +52,8 @@ SANDBOX_UNAVAILABLE_STDERR = (
     "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted",
 )
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-REFERENCES = SKILL_ROOT / "references"
-
-
-def trusted_executor_module() -> Any:
-    """Load the cohesive executor sibling without making platform imports eager."""
-    path = Path(__file__).with_name("trusted_executor.py")
-    spec = importlib.util.spec_from_file_location("agent_factory_trusted_executor", path)
-    if spec is None or spec.loader is None:
-        raise ContractError("executor_unavailable", "trusted executor module is unavailable")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+PROMPTS = SKILL_ROOT / "prompt"
+VALID_ROLES = {"main", "work", "verification"}
 
 
 class ContractError(Exception):
@@ -486,7 +475,9 @@ def update_json(
 
 def role_path(role: str) -> Path:
     validate_id(role, ROLE_ID, "role")
-    path = REFERENCES / f"{role}.md"
+    if role not in VALID_ROLES:
+        raise ContractError("role_not_found", f"Agent role was not found: {role}")
+    path = PROMPTS / f"{role}.md"
     reject_symlink(path)
     try:
         info = path.stat()
@@ -541,7 +532,7 @@ def create_run(
     request: bytes,
     session: dict[str, Any],
     receipt_request_hash: str | None = None,
-    reviewed_work_run_id: str | None = None,
+    verified_work_run_id: str | None = None,
     dispatch_id: str | None = None,
     dispatch_operation: str | None = None,
 ) -> dict[str, Any]:
@@ -573,14 +564,14 @@ def create_run(
         },
     )
     role = str(session["role"])
-    if role in {"work", "review"}:
+    if role in {"work", "verification"}:
         atomic_write_json(
             receipt_schema,
             receipt_schema_document(
                 role=role,
                 run_id=run_id,
                 request_hash=receipt_request_hash or request_hash,
-                reviewed_work_run_id=reviewed_work_run_id,
+                verified_work_run_id=verified_work_run_id,
             ),
         )
     accepted_at = now()
@@ -620,10 +611,10 @@ def create_run(
             "actor": actor,
             "requestHash": request_hash,
             "receiptRequestHash": receipt_request_hash or request_hash,
-            "reviewedWorkRunId": reviewed_work_run_id,
+            "verifiedWorkRunId": verified_work_run_id,
             "operation": dispatch_operation,
         }
-    if role in {"work", "review"}:
+    if role in {"work", "verification"}:
         state.update(
             {
                 "receiptPath": str(receipt_path),
@@ -631,8 +622,8 @@ def create_run(
                 "receiptRequestHash": receipt_request_hash or request_hash,
             }
         )
-    if role == "review":
-        state["reviewedWorkRunId"] = reviewed_work_run_id
+    if role == "verification":
+        state["verifiedWorkRunId"] = verified_work_run_id
     atomic_write_json(directory / "state.json", state)
     atomic_write_json(
         heartbeat_path,
@@ -651,7 +642,7 @@ def create_run(
 
 
 def receipt_schema_document(
-    *, role: str, run_id: str, request_hash: str, reviewed_work_run_id: str | None
+    *, role: str, run_id: str, request_hash: str, verified_work_run_id: str | None
 ) -> dict[str, Any]:
     tests = {
         "type": "object",
@@ -659,7 +650,7 @@ def receipt_schema_document(
             "run": {"const": False},
             "reason": {
                 "const": (
-                    "work-agent-prohibited" if role == "work" else "static-review-only"
+                    "work-agent-prohibited" if role == "work" else "verification-recorded-separately"
                 )
             },
         },
@@ -691,7 +682,6 @@ def receipt_schema_document(
             "type": "object",
             "properties": {
                 "id": {"type": "string", "minLength": 1},
-                "severity": {"enum": ["blocking", "advisory"]},
                 "path": {"type": "string"},
                 "location": {"type": "string"},
                 "problem": {"type": "string", "minLength": 1},
@@ -699,27 +689,21 @@ def receipt_schema_document(
                 "correction": {"type": "string", "minLength": 1},
             },
             "required": [
-                "id", "severity", "path", "location", "problem", "evidence", "correction"
+                "id", "path", "location", "problem", "evidence", "correction"
             ],
             "additionalProperties": False,
         }
-        reviewed_id_schema: dict[str, Any] = {"type": "string", "minLength": 1}
-        if reviewed_work_run_id is not None:
-            reviewed_id_schema = {"const": reviewed_work_run_id}
+        verified_id_schema: dict[str, Any] = {"type": "string", "minLength": 1}
+        if verified_work_run_id is not None:
+            verified_id_schema = {"const": verified_work_run_id}
         properties = {
             "schemaVersion": {"const": SCHEMA_VERSION},
-            "kind": {"const": "review-receipt"},
+            "kind": {"const": "verification-receipt"},
             "runId": {"const": run_id},
-            "reviewedWorkRunId": reviewed_id_schema,
-            "reviewedRequestHash": {"const": request_hash},
-            "decision": {"enum": ["approved", "changes_requested"]},
+            "verifiedWorkRunId": verified_id_schema,
+            "verifiedRequestHash": {"const": request_hash},
+            "decision": {"enum": ["pass", "fail"]},
             "findings": {"type": "array", "items": finding},
-            "resolvedFindingIds": {
-                "type": "array",
-                "items": {"type": "string", "minLength": 1},
-                "uniqueItems": True,
-            },
-            "tests": tests,
         }
         required = list(properties)
     return {
@@ -775,7 +759,7 @@ def validate_receipt(
 ) -> dict[str, Any]:
     root = resolve_project_root(project_root)
     role = state.get("role")
-    if role not in {"work", "review"}:
+    if role not in {"work", "verification"}:
         raise ContractError("receipt_unexpected", "this Agent role has no receipt contract")
     validate_id(agent_id, AGENT_ID, "agent_id")
     validate_id(run_id, AGENT_ID, "run_id")
@@ -814,14 +798,13 @@ def validate_receipt(
     if not isinstance(receipt, dict):
         raise ContractError("receipt_invalid", "Agent receipt must be a JSON object")
     expected_hash = state.get("receiptRequestHash") or state.get("requestHash")
-    tests = receipt.get("tests")
-    if not isinstance(tests, dict):
-        raise ContractError("receipt_invalid", "receipt tests proof is missing")
-    _exact_keys(tests, {"run", "reason"}, "tests")
-    expected_reason = "work-agent-prohibited" if role == "work" else "static-review-only"
-    if tests != {"run": False, "reason": expected_reason}:
-        raise ContractError("receipt_tests_invalid", "receipt must prove this role ran no tests")
     if role == "work":
+        tests = receipt.get("tests")
+        if not isinstance(tests, dict):
+            raise ContractError("receipt_invalid", "receipt tests proof is missing")
+        _exact_keys(tests, {"run", "reason"}, "tests")
+        if tests != {"run": False, "reason": "work-agent-prohibited"}:
+            raise ContractError("receipt_tests_invalid", "Work receipt must prove Work ran no tests")
         _exact_keys(
             receipt,
             {
@@ -848,29 +831,28 @@ def validate_receipt(
     _exact_keys(
         receipt,
         {
-            "schemaVersion", "kind", "runId", "reviewedWorkRunId",
-            "reviewedRequestHash", "decision", "findings", "resolvedFindingIds", "tests",
+            "schemaVersion", "kind", "runId", "verifiedWorkRunId",
+            "verifiedRequestHash", "decision", "findings",
         },
-        "review receipt",
+        "verification receipt",
     )
-    reviewed_work_run_id = receipt.get("reviewedWorkRunId")
-    expected_work_run_id = state.get("reviewedWorkRunId")
+    verified_work_run_id = receipt.get("verifiedWorkRunId")
+    expected_work_run_id = state.get("verifiedWorkRunId")
     if (
         receipt.get("schemaVersion") != SCHEMA_VERSION
-        or receipt.get("kind") != "review-receipt"
+        or receipt.get("kind") != "verification-receipt"
         or receipt.get("runId") != state.get("runId")
-        or not isinstance(reviewed_work_run_id, str)
-        or not AGENT_ID.fullmatch(reviewed_work_run_id)
-        or (expected_work_run_id is not None and reviewed_work_run_id != expected_work_run_id)
-        or receipt.get("reviewedRequestHash") != expected_hash
+        or not isinstance(verified_work_run_id, str)
+        or not AGENT_ID.fullmatch(verified_work_run_id)
+        or (expected_work_run_id is not None and verified_work_run_id != expected_work_run_id)
+        or receipt.get("verifiedRequestHash") != expected_hash
     ):
-        raise ContractError("receipt_binding_invalid", "review receipt binding is invalid")
+        raise ContractError("receipt_binding_invalid", "verification receipt binding is invalid")
     findings = receipt.get("findings")
     if not isinstance(findings, list):
         raise ContractError("receipt_invalid", "findings must be an array")
     finding_ids: list[str] = []
-    blocking = 0
-    finding_fields = {"id", "severity", "path", "location", "problem", "evidence", "correction"}
+    finding_fields = {"id", "path", "location", "problem", "evidence", "correction"}
     for finding in findings:
         if not isinstance(finding, dict):
             raise ContractError("receipt_invalid", "each finding must be an object")
@@ -879,9 +861,6 @@ def validate_receipt(
         if not isinstance(finding_id, str) or not finding_id:
             raise ContractError("receipt_invalid", "finding id is invalid")
         finding_ids.append(finding_id)
-        if finding.get("severity") not in {"blocking", "advisory"}:
-            raise ContractError("receipt_invalid", "finding severity is invalid")
-        blocking += finding.get("severity") == "blocking"
         for field in ("path", "location", "problem", "evidence", "correction"):
             if not isinstance(finding.get(field), str):
                 raise ContractError("receipt_invalid", f"finding {field} must be a string")
@@ -889,16 +868,13 @@ def validate_receipt(
             raise ContractError("receipt_invalid", "finding details must not be empty")
     if len(set(finding_ids)) != len(finding_ids):
         raise ContractError("receipt_invalid", "finding identifiers must be unique")
-    resolved = _string_list(receipt.get("resolvedFindingIds"), "resolvedFindingIds")
-    if set(resolved) & set(finding_ids):
-        raise ContractError("receipt_invalid", "resolved and current finding identifiers overlap")
     decision = receipt.get("decision")
-    if decision == "approved" and blocking != 0:
-        raise ContractError("receipt_decision_invalid", "approved review has blocking findings")
-    if decision == "changes_requested" and blocking == 0:
-        raise ContractError("receipt_decision_invalid", "changes requested requires a blocking finding")
-    if decision not in {"approved", "changes_requested"}:
-        raise ContractError("receipt_decision_invalid", "review decision is invalid")
+    if decision == "pass" and findings:
+        raise ContractError("receipt_decision_invalid", "passing verification has findings")
+    if decision == "fail" and not findings:
+        raise ContractError("receipt_decision_invalid", "failed verification requires a finding")
+    if decision not in {"pass", "fail"}:
+        raise ContractError("receipt_decision_invalid", "verification decision is invalid")
     return receipt
 
 
@@ -1020,28 +996,28 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     if not request_text.strip():
         raise ContractError("request_invalid", "request must not be empty")
     receipt_request_hash = getattr(args, "receipt_request_hash", None)
-    reviewed_work_run_id = getattr(args, "reviewed_work_run_id", None)
+    verified_work_run_id = getattr(args, "verified_work_run_id", None)
     dispatch_id = getattr(args, "dispatch_id", None)
     if dispatch_id is not None:
         validate_id(dispatch_id, DISPATCH_ID, "dispatch_id")
     if receipt_request_hash is not None and not re.fullmatch(r"[0-9a-f]{64}", receipt_request_hash):
         raise ContractError("receipt_binding_invalid", "receipt request hash is invalid")
-    if reviewed_work_run_id is not None:
-        validate_id(reviewed_work_run_id, AGENT_ID, "run_id")
+    if verified_work_run_id is not None:
+        validate_id(verified_work_run_id, AGENT_ID, "run_id")
     if new_agent:
         role = validate_id(args.role, ROLE_ID, "role")
         role_path(role)
     else:
         role = load_session(project_root, args.agent).get("role")
-    if role == "review" and reviewed_work_run_id is None:
+    if role == "verification" and verified_work_run_id is None:
         raise ContractError(
             "receipt_binding_invalid",
-            "Review runs require the exact reviewed Work run identifier",
+            "Verification runs require the exact Work run identifier",
         )
-    if role != "review" and reviewed_work_run_id is not None:
+    if role != "verification" and verified_work_run_id is not None:
         raise ContractError(
             "receipt_binding_invalid",
-            "reviewed Work run binding is valid only for Review runs",
+            "verified Work run binding is valid only for Verification runs",
         )
     operation = "submit" if new_agent else "send"
     request_hash = hashlib.sha256(request).hexdigest()
@@ -1051,7 +1027,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "actor": args.actor,
         "requestHash": request_hash,
         "receiptRequestHash": receipt_request_hash or request_hash,
-        "reviewedWorkRunId": reviewed_work_run_id,
+        "verifiedWorkRunId": verified_work_run_id,
         "operation": operation,
     }
     agent_path = agent_directory(project_root, args.agent, create=True)
@@ -1157,7 +1133,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             request=request,
             session=session,
             receipt_request_hash=receipt_request_hash,
-            reviewed_work_run_id=reviewed_work_run_id,
+            verified_work_run_id=verified_work_run_id,
             dispatch_id=dispatch_id,
             dispatch_operation=operation,
         )
@@ -1260,20 +1236,31 @@ def build_prompt(
     receipt_path: Path | None = None,
     receipt_schema_path: Path | None = None,
 ) -> str:
+    prompt_path = role_path(role)
+    try:
+        role_prompt = safe_read_bytes(prompt_path, MAX_REQUEST_BYTES).decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ContractError("role_invalid", "Agent role prompt must be UTF-8 text") from error
+    if not role_prompt.strip():
+        raise ContractError("role_invalid", "Agent role prompt must not be empty")
     receipt_obligation = ""
     if receipt_path is not None and receipt_schema_path is not None:
         receipt_obligation = f"""
 For a `completed` result, also write the role-specific machine receipt to
 `{receipt_path}`. Its exact contract is `{receipt_schema_path}`. The receipt
-must bind this run and request exactly, contain no unknown fields, and prove
-that this role ran no tests. A completed run with a missing or invalid receipt
-will fail at the runtime boundary.
+must bind this run and request exactly and contain no unknown fields. A
+completed run with a missing or invalid receipt will fail at the runtime
+boundary.
 """
     return f"""Act as Agent `{agent_id}` for Agent Factory.
 
-Read the common Agent contract at `{SKILL_ROOT / 'SKILL.md'}` and the complete
-role contract at `{role_path(role)}`. Read the delegated request from
-`{request_path}`. Keep its scope and authority unchanged.
+The following validated content is the complete `{role}` system-prompt source:
+
+<agent-factory-role-prompt>
+{role_prompt}
+</agent-factory-role-prompt>
+
+Read the delegated request from `{request_path}`. Keep its scope and authority unchanged.
 
 Write the detailed result to `{result_path}`. Then return only the compact JSON
 required by the supplied output schema. Run ID: `{run_id}`.
@@ -1733,7 +1720,7 @@ def run_codex_attempt(
         or result_info.st_size == 0
     ):
         raise AttemptFailure("result_file_invalid", "Agent result path is unsafe", True)
-    if terminal["status"] == "completed" and state.get("role") in {"work", "review"}:
+    if terminal["status"] == "completed" and state.get("role") in {"work", "verification"}:
         try:
             validate_receipt(
                 project_root,
@@ -1918,7 +1905,7 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "receiptPath",
         "receiptSchemaPath",
         "receiptRequestHash",
-        "reviewedWorkRunId",
+        "verifiedWorkRunId",
         "dispatchId",
         "dispatchTuple",
         "eventsPath",
@@ -1936,7 +1923,7 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "error",
     )
     public = {key: state.get(key) for key in keys if key in state}
-    if state.get("role") not in {"work", "review"}:
+    if state.get("role") not in {"work", "verification"}:
         public.pop("statePath", None)
     return public
 
@@ -2251,72 +2238,14 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         help="SHA-256 identity the role receipt must bind (defaults to this run request)",
     )
     parser.add_argument(
-        "--reviewed-work-run-id",
-        help="exact Work run reviewed by a Review Agent (required for Review runs)",
+        "--verified-work-run-id",
+        help="exact Work run checked by a Verification Agent (required for Verification runs)",
     )
     parser.add_argument("--dispatch-id", help="idempotency key scoped to this managed Agent")
 
 
-def command_executor(args: argparse.Namespace) -> int:
-    executor = trusted_executor_module()
-    try:
-        if args.command == "probe-executor":
-            emit({"schemaVersion": SCHEMA_VERSION, "kind": "executor-capabilities", "capabilities": executor.capability_report(args.backend)})
-            return 0
-        if args.command == "prepare-execution":
-            run_directory = executor.require_managed_run_directory(args.run_directory)
-            result = executor.prepare_execution(args.manifest, resolve_project_root(args.project_root), run_directory)
-        elif args.command == "seal-execution":
-            run_directory = executor.require_managed_run_directory(args.run_directory)
-            manifest, _, _ = executor._bound_manifest(run_directory, args.manifest)
-            result = executor.seal_artifacts(run_directory, run_directory / manifest["outputs"]["root"])
-        elif args.command == "attest-execution":
-            run_directory = executor.require_managed_run_directory(args.run_directory)
-            if run_directory.name != args.run_id:
-                raise ContractError("provenance_policy_mismatch", "run ID does not match the managed run directory")
-            result = executor.attest(
-                run_dir=run_directory, run_id=args.run_id,
-                manifest_path=args.manifest, index_path=args.index,
-                private_key=args.private_key, public_key=args.public_key,
-                project_root=resolve_project_root(args.project_root),
-            )
-        elif args.command == "verify-execution":
-            run_directory = executor.require_managed_run_directory(args.run_directory)
-            if run_directory.name != args.run_id:
-                raise ContractError("provenance_policy_mismatch", "run ID does not match the managed run directory")
-            result = executor.verify_bundle(
-                run_dir=run_directory, bundle_path=args.bundle,
-                public_key=args.public_key, expected_run_id=args.run_id,
-                manifest_path=args.manifest, index_path=args.index,
-                policy_path=args.policy,
-            )
-        elif args.command == "execute-execution":
-            run_directory = executor.require_managed_run_directory(args.run_directory)
-            if run_directory.name != args.run_id:
-                raise ContractError("provenance_policy_mismatch", "run ID does not match the managed run directory")
-            result = executor.execute(
-                manifest_path=args.manifest,
-                project_root=resolve_project_root(args.project_root),
-                run_dir=run_directory,
-                run_id=args.run_id,
-                private_key=args.private_key,
-                public_key=args.public_key,
-                verifier_policy=args.policy,
-            )
-        elif args.command == "compare-executions":
-            result = executor.compare_records(
-                args.left_manifest, args.right_manifest, args.left_index, args.right_index
-            )
-        else:
-            raise ContractError("invalid_command", "executor command is invalid")
-    except executor.ExecutorError as error:
-        raise ContractError(error.code, error.message) from error
-    emit({"schemaVersion": SCHEMA_VERSION, "kind": args.command, **result})
-    return 0
-
-
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    parser = JsonArgumentParser(prog="agent_exec.py")
+    parser = JsonArgumentParser(prog="exec.py")
     commands = parser.add_subparsers(dest="command", required=True)
 
     submit_parser = commands.add_parser("submit")
@@ -2325,7 +2254,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     submit_parser.add_argument("--agent", required=True)
     submit_parser.add_argument("--role", required=True)
     submit_parser.add_argument("--codex", default="codex")
-    submit_parser.add_argument("--sandbox", choices=SANDBOXES, default="workspace-write")
+    submit_parser.add_argument("--sandbox", choices=SANDBOXES, default=DEFAULT_SANDBOX)
     submit_parser.add_argument("--model")
     submit_parser.add_argument("--heartbeat-interval", type=float, default=5.0)
     submit_parser.add_argument("--heartbeat-timeout", type=float, default=20.0)
@@ -2373,50 +2302,6 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     bootstrap_parser.add_argument("--release-fd", required=True, type=int)
     bootstrap_parser.add_argument("target", nargs=argparse.REMAINDER)
 
-    probe_parser = commands.add_parser("probe-executor")
-    probe_parser.add_argument("--backend", choices=("auto", "linux", "windows", "macos"), default="auto")
-
-    prepare_parser = commands.add_parser("prepare-execution")
-    add_project_argument(prepare_parser)
-    prepare_parser.add_argument("--manifest", type=Path, required=True)
-    prepare_parser.add_argument("--run-directory", type=Path, required=True)
-
-    seal_parser = commands.add_parser("seal-execution")
-    seal_parser.add_argument("--run-directory", type=Path, required=True)
-    seal_parser.add_argument("--manifest", type=Path, required=True)
-
-    attest_parser = commands.add_parser("attest-execution")
-    add_project_argument(attest_parser)
-    attest_parser.add_argument("--run-directory", type=Path, required=True)
-    attest_parser.add_argument("--run-id", required=True)
-    attest_parser.add_argument("--manifest", type=Path, required=True)
-    attest_parser.add_argument("--index", type=Path, required=True)
-    attest_parser.add_argument("--private-key", type=Path, required=True)
-    attest_parser.add_argument("--public-key", type=Path, required=True)
-
-    verify_parser = commands.add_parser("verify-execution")
-    verify_parser.add_argument("--run-directory", type=Path, required=True)
-    verify_parser.add_argument("--run-id", required=True)
-    verify_parser.add_argument("--manifest", type=Path, required=True)
-    verify_parser.add_argument("--index", type=Path, required=True)
-    verify_parser.add_argument("--bundle", type=Path, required=True)
-    verify_parser.add_argument("--public-key", type=Path, required=True)
-    verify_parser.add_argument("--policy", type=Path, required=True)
-
-    execute_parser = commands.add_parser("execute-execution")
-    add_project_argument(execute_parser)
-    execute_parser.add_argument("--run-directory", type=Path, required=True)
-    execute_parser.add_argument("--run-id", required=True)
-    execute_parser.add_argument("--manifest", type=Path, required=True)
-    execute_parser.add_argument("--private-key", type=Path, required=True)
-    execute_parser.add_argument("--public-key", type=Path, required=True)
-    execute_parser.add_argument("--policy", type=Path, required=True)
-
-    compare_parser = commands.add_parser("compare-executions")
-    compare_parser.add_argument("--left-manifest", type=Path, required=True)
-    compare_parser.add_argument("--right-manifest", type=Path, required=True)
-    compare_parser.add_argument("--left-index", type=Path, required=True)
-    compare_parser.add_argument("--right-index", type=Path, required=True)
     return parser.parse_args(argv)
 
 
@@ -2462,11 +2347,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             return worker(args)
         if args.command == "_bootstrap":
             return containment_bootstrap(args)
-        if args.command in {
-            "probe-executor", "prepare-execution", "seal-execution",
-            "attest-execution", "verify-execution", "execute-execution", "compare-executions",
-        }:
-            return command_executor(args)
         raise ContractError("invalid_command", "command is invalid")
     except ContractError as error:
         emit(error_document(error.code, error.message))
