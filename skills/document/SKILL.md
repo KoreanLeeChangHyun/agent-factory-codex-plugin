@@ -1,6 +1,10 @@
 ---
 name: document
 description: Define, create, edit, inspect, or maintain Agent Factory Original, Processed, and Specification Documents while preserving loose provenance relationships and type-specific authority.
+metadata:
+  specification-id: document
+  human-entry: .agent-factory/document/specification/document/index.html
+  ai-root: skills/document/
 ---
 
 # Agent Factory Document
@@ -83,11 +87,17 @@ be achieved, do not report the change or run as completed. The Human-facing
 representation is HTML, CSS, and JavaScript and must be authored in Korean. Its
 paired AI-facing representation is a Skill and need not be Korean.
 
-In this plugin repository, the `agent-factory-core` Specification pair is owned
-by the distributed `skills/convention/` Skill and the Human document below
-`.agent-factory/document/specification/human/agent-factory-core/`. In a
-separate consumer project, a Specification may pair
-with a project-scoped Project Skill below that project's `.codex/skills/`.
+Use a uniform one-to-one pair: one resolved Skill directory and one
+Specification directory with the same stable identity. In this plugin,
+`skills/<skill-id>/` pairs with
+`.agent-factory/document/specification/<skill-id>/`. In a consumer project the
+pair uses the exact lowercase hyphen-case `<category>-<title>` identity on both
+sides: `.codex/skills/<category>-<title>/` pairs with
+`.agent-factory/document/specification/<category>-<title>/`. This plugin is the
+explicit exception whose accepted single-name identities remain unchanged.
+Never aggregate several Skills into one Specification, pair one Skill with
+several Specifications, or mechanically copy a Skill tree into the Human view.
+Map each material Human section to exact sources within its paired Skill.
 
 ## Boundaries
 
@@ -101,11 +111,19 @@ type, provenance, authority, isolation, semantic alignment, accessibility, and
 security regardless of storage.
 
 Locally materialized Human-facing Specifications live below
-`.agent-factory/document/specification/human/`. The Human-facing control tower and
+`.agent-factory/document/specification/`. The Human-facing control tower and
 browser navigation belong to `workspace`, not Document. Do not silently
 promote Explorer material, recreate retired schema/profile/manager machinery,
 or introduce Intake, Work Unit, Work Package, Project Core, Recording Agent, or
 platform subagent concepts.
+
+Under the current local adapter, each immediate directory below
+`document/original/`, `document/processed/`, or `document/specification/` is
+exactly one Document package with that directory's stable identity. Internal
+files and subdirectories belong to that package; producer, category, and legacy
+wrapper layers are not Document packages. Preserved legacy Inquery packages
+use direct `legacy-inquery-<legacy-id>` identities below `processed/` and remain
+Processed Documents whose historical status is metadata, not another type.
 
 For a new Specification, use the reusable files in `assets/document/` as the
 starting point and follow the copy-once and placeholder-refinement workflow in

@@ -11,8 +11,13 @@ Specification truth.
 Under the current/default local adapter, active Processed Documents are
 Markdown (`.md`). Processed is a logical, storage-independent Document type;
 the Markdown convention does not make the type dependent on the local adapter.
-Preserved material below `document/processed/legacy-inquery/` is historical,
-evidence-only content and is not an active target or format precedent.
+Every immediate child directory below the local `document/processed/` root is
+one Processed Document package. Its files and internal subdirectories are
+representations within that package; do not add a producer, category, or legacy
+wrapper layer. Preserved historical Inquery packages use explicit
+`legacy-inquery-<legacy-id>` identities directly below the Processed root. They
+remain Processed Documents, with legacy recorded as status/provenance metadata,
+and are not active targets or format precedents.
 
 ## Relationships and provenance
 

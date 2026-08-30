@@ -1,6 +1,10 @@
 ---
 name: workspace
 description: Provide the Human-facing Agent Factory control tower with exactly five top-level Activities for schedule, Agents, Documents, logs, and tests. Use for Workspace shell and navigation work; do not infer undecided Activity details or own the projected state.
+metadata:
+  specification-id: workspace
+  human-entry: .agent-factory/document/specification/workspace/index.html
+  ai-root: skills/workspace/
 ---
 
 # Agent Factory Workspace
@@ -9,12 +13,45 @@ description: Provide the Human-facing Agent Factory control tower with exactly f
 
 Use Workspace for the Human-facing project control tower. Its Activity Bar has
 exactly five top-level Activities in this order: 일정, 에이전트, 문서, 로그,
-테스트. No other top-level item or alias is allowed. The Human has not yet
-defined any Activity's Primary Sidebar information architecture or detailed
-capabilities; show that state honestly and do not infer a hierarchy, source,
-metric, or control. Workspace owns the browser shell, navigation, Activity
-views, local read-only serving, and project-root launcher. It does not become
-the canonical owner or executor of projected state.
+테스트. No other top-level item or alias is allowed. Only the Document
+Activity's Primary Sidebar is decided: three independently collapsible groups
+in the order `원본문서`, `가공문서`, `스펙문서`. Original has `개요` and
+`문서검색`. Its compact, tab-free search view uses pinned local Tabulator
+6.5.2 with global search and per-column filters over these exact ordered Korean
+columns: `문서 분류`, `출처`, `태그`, `문서 이름`, `확장자`, `수정 일자`.
+At ordinary desktop widths, the table automatically distributes available
+width across all six columns using content-appropriate proportions. Each
+column keeps a compact minimum width so genuinely narrow views use horizontal
+overflow; Human column resizing and movement remain enabled.
+Only document-name cells link to the source Original; provider cells combine
+visible provider text with decorative inline SVG. This is a read-only
+metadata/link projection that does not copy, normalize, edit, or take ownership
+of Original bodies or Gather synchronization. Its source/query adapter,
+synchronization trigger and status contract, and metadata mutation authority
+and persistence remain unresolved, so it exposes only a small in-browser row
+adapter and truthfully reports `데이터 연결 대기` until data is supplied.
+Processed and Specification each have `개요` and a consistent explorer/tree-shaped
+area for actual Documents. The no-space `스펙문서` spelling is a UI label and does not
+rename the Specification type. Overview details, live Document
+discovery/source integration, and the other four Activities' sidebar
+architectures and capabilities remain Human-owned and unresolved; show those
+states honestly and do not invent hierarchy, data, metrics, or controls.
+Workspace owns the browser shell, navigation, Activity views, local read-only
+serving, and project-root launcher. It does not become the canonical owner or
+executor of projected state.
+The local launcher and reusable server bind loopback only. When no port is
+specified, the first successful bind chooses an available port other than
+`8000`, records `{"version":1,"port":<port>}` atomically in generated local
+state at `.agent-factory/workspace/port.json`, and later launches reuse it when
+available. An occupied saved port is replaced only after another non-`8000`
+port has been bound successfully. Explicit `--port`/`-p` values must be from 1
+through 65535, may not be `8000`, and become the saved project assignment only
+after a successful bind. Malformed or unsafe state fails closed.
+The Original overview uses the compact content region without an editor header.
+In the Document Sidebar, the terminal Specification group has no trailing
+bottom divider below its unresolved connection message; separators between the
+three groups remain. This visual treatment does not resolve the still-undecided
+Original overview contents.
 
 The browser shell has two required forms: reusable installation sources below
 `assets/browser/` and the current project's installed publication below
@@ -27,12 +64,12 @@ not a fourth browser-code file. A missing or divergent required form is
 incomplete. The packaged assets remain the installation source rather than a
 second runtime authority.
 
-Under the current/default local adapter, Workspace owns the maintained schema
-asset for the project-wide catalog at `assets/schema/catalog.sql`. A future
-initializer materializes that schema only at `<project-root>/.agent-factory/db.sqlite`.
-The database is a rebuildable, non-authoritative read model spanning Agent
-execution structure and Documents; visibility there transfers neither Agent
-nor Document semantics to Workspace.
+Workspace does not own, initialize, rebuild, inspect, or execute searches
+against the Agent-owned catalog at `<project-root>/.agent-factory/db.sqlite`.
+`serve.py init` has no catalog side effect. Workspace may later present only
+Agent-provided read-only results, but no catalog/search UI or source/query
+binding is implemented and presentation transfers no catalog, Agent, or
+Document ownership.
 
 Keep the responsibility split explicit:
 
@@ -68,19 +105,26 @@ must remain owner-backed and must not infer an Activity placement.
 ```
 
 Human-facing Specifications remain below
-`.agent-factory/document/specification/human/`; Workspace does not own or
+`.agent-factory/document/specification/`; Workspace does not own or
 mirror that Document directory. Agent runtime state remains below
 `.agent-factory/agent/`. The five-category decision does not assign these
 stores to an Activity information architecture.
 
-The schema asset normalizes schema version metadata, Agents and resumable
-sessions, runs and turns, Work/Verification loops, graph and dispatch
-relationships, Documents and storage-independent types, representations,
-source-backed Document relationships, Agent-Document relationships, and
-Specification pair status. It deliberately stores no bodies, event streams,
-requests, results, receipts, heartbeats, or containment/recovery evidence.
-Catalog population, rebuild jobs, dual writes, query APIs, search, and screens
-are not implemented by the schema foundation.
+Specification discovery uses explicit reciprocal binding metadata rather than
+directory-name conventions. Each Human Specification binds to exactly one
+Skill directory and that Skill reciprocates the same identity, Human entry,
+and AI root. A matching reciprocal locator establishes only the pair and scope,
+so semantic alignment remains `unknown` without independent evidence;
+mismatches are reported fail-closed as `misaligned`.
+An explicitly bound Skill with an unavailable declared Human entry is reported
+as `missing-human`; discovery never creates the missing Specification or a
+Skill root.
+
+Ordinary consumer-project pairs use the exact same lowercase hyphen-case
+`<category>-<title>` identity under `.codex/skills/` and
+`.agent-factory/document/specification/`. This plugin is the explicit exception
+whose existing six distributed Skill and Specification identities remain
+single names.
 
 The local structure is an adapter, not a universal storage requirement. A
 resolved project server or external control surface may replace the local UI

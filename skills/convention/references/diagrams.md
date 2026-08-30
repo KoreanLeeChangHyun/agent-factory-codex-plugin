@@ -107,13 +107,16 @@ flowchart TB
 ```mermaid
 flowchart LR
     accTitle: Specification pair semantic alignment
-    accDescr: One Specification semantic body has faithful Human-facing Korean browser and AI-facing English Convention Skill representations that remain aligned.
+    accDescr: One Skill directory and one Human-centered Korean Specification directory share reciprocal identity and locators while remaining semantically aligned.
     HumanView[Human-facing projection<br/>Korean HTML, CSS, JavaScript<br/>resolved document store]
     Core[One Specification semantic body<br/>decisions, relationships,<br/>observations, unresolved questions]
-    AIView[AI-facing projection<br/>English distributed Convention Skill<br/>skills/convention/]
+    AIView[AI-facing projection<br/>one Skill directory<br/>skills/skill-id/]
+    Binding[Reciprocal metadata<br/>SKILL.md and index.html]
     Core --> HumanView
     Core --> AIView
     HumanView <-. semantic alignment .-> AIView
+    Binding -. exact identity and locators .-> HumanView
+    Binding -. scope .-> AIView
 ```
 
 ## Current implementation relationships
@@ -145,7 +148,9 @@ flowchart LR
     Verification -->|pass| End[END]
     Workspace[Workspace Skill<br/>Human control tower]
     Workspace --> Activities[Activity Bar top-level order<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트]
-    Activities -. sidebar, source, controls,<br/>and nesting remain undecided .-> HumanDecision[Future Human decision]
+    Activities --> DocumentSidebar[문서 Sidebar<br/>원본문서 · 가공문서 · 스펙문서]
+    DocumentSidebar -. finer view details and source integration unresolved .-> HumanDecision[Future Human decision]
+    Activities -. other four sidebars and controls unresolved .-> HumanDecision
 ```
 
 ## Project Skill naming
@@ -178,7 +183,8 @@ flowchart LR
     accTitle: Distributed and Project Skill ownership
     accDescr: The plugin owns distributed Skills under skills while separate consumer projects own Specification Project Skills directly under their own .codex skills root.
     Plugin[Agent Factory plugin repository] --> Distributed[Distributed plugin Skills<br/>&lt;plugin-root&gt;/skills/]
-    Distributed --> Core[Convention owns Agent Factory core<br/>skills/convention/]
+    Distributed --> Core[One distributed Skill<br/>skills/skill-id/]
+    Core --> BindingOwner[One Human Specification<br/>document/specification/skill-id/]
     Consumer[Separate consumer project] --> ProjectSkill[Specification Project Skill<br/>&lt;project-root&gt;/.codex/skills/&lt;category&gt;-&lt;name&gt;/]
     Distributed -. never mirrored into this repository .-> NoCodex[No repository-local .codex/skills/]
 ```
@@ -203,8 +209,10 @@ flowchart LR
 ```mermaid
 flowchart LR
     accTitle: Human-facing Workspace shell and launcher
-    accDescr: The Activity Bar contains only 일정, 에이전트, 문서, 로그, and 테스트 in that order; Primary Sidebar details remain undecided; a non-visible read-only utility projects only the project and classified Original and Processed Document trees without defining an Activity or nesting, while temporary Explorer material remains only in its producing Agent run.
-    Activity[Activity Bar<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트] --> Sidebar[Primary Sidebar<br/>details Human-owned and undecided] --> Workspace[Workspace]
+    accDescr: The Activity Bar contains only 일정, 에이전트, 문서, 로그, and 테스트 in that order; the Document sidebar has ordered Original, Processed, and Specification UI groups with decided overview, table, and tree shapes while finer details and the other four sidebars remain unresolved; a non-visible read-only utility projects only the project and classified Original and Processed Document trees without supplying the unresolved live source contract, while temporary Explorer material remains only in its producing Agent run.
+    Activity[Activity Bar<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트] --> Sidebar[문서 Primary Sidebar<br/>원본문서 · 가공문서 · 스펙문서] --> Workspace[Workspace<br/>overview · table · tree shapes]
+    Activity -. other four sidebars unresolved .-> HumanDecision[Future Human decision]
+    Sidebar -. details and live source integration unresolved .-> HumanDecision
     Evidence[Classified durable Original and Processed Documents<br/>.agent-factory/document/] -. read-only metadata .-> DiscoveryUtility[Non-visible read-only discovery utility<br/>.agent-factory/workspace/explorer/]
     Project[Project tree<br/>sensitive control and runtime paths omitted] -. read-only metadata .-> DiscoveryUtility
     DiscoveryUtility -. defines no Activity or nesting .-> Workspace

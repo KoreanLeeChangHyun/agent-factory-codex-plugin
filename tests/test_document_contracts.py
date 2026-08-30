@@ -9,13 +9,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCUMENT = ROOT / "skills" / "document"
+PUBLIC_SKILLS = ("agent", "convention", "document", "gather", "tool", "workspace")
 CORE_HUMAN = (
     ROOT
     / ".agent-factory"
     / "document"
     / "specification"
-    / "human"
-    / "agent-factory-core"
+    / "convention"
     / "index.html"
 )
 
@@ -45,6 +45,42 @@ def normalized_paragraphs(content: str) -> list[str]:
 
 
 class DocumentContractTests(unittest.TestCase):
+    def test_every_distributed_skill_has_one_exact_human_specification_pair(self) -> None:
+        self.assertFalse((ROOT / ".codex" / "skills").exists())
+        for skill_name in PUBLIC_SKILLS:
+            with self.subTest(skill=skill_name):
+                human_path = ROOT / ".agent-factory/document/specification" / skill_name / "index.html"
+                human = human_path.read_text(encoding="utf-8")
+                skill = (ROOT / "skills" / skill_name / "SKILL.md").read_text(encoding="utf-8")
+                self.assertIn(
+                    f'<meta name="agent-factory:specification-id" content="{skill_name}">', human
+                )
+                self.assertIn(
+                    f'<meta name="agent-factory:ai-root" content="skills/{skill_name}/">', human
+                )
+                self.assertIn(
+                    f'<meta name="agent-factory:ai-binding-entry" content="skills/{skill_name}/SKILL.md">', human
+                )
+                self.assertIn(f"specification-id: {skill_name}", skill)
+                self.assertIn(
+                    f"human-entry: .agent-factory/document/specification/{skill_name}/index.html", skill
+                )
+                self.assertIn(f"ai-root: skills/{skill_name}/", skill)
+                parser = TemplateParser()
+                parser.feed(human)
+                mappings = [
+                    attrs["data-ai-sources"]
+                    for tag, attrs in parser.tags
+                    if tag == "section" and attrs.get("data-ai-sources")
+                ]
+                self.assertTrue(mappings)
+                self.assertTrue(any(f"skills/{skill_name}/SKILL.md" in item for item in mappings))
+                for source in {path for mapping in mappings for path in mapping.split(";")}:
+                    self.assertTrue(source.startswith(f"skills/{skill_name}/"), source)
+                    self.assertTrue((ROOT / source).is_file(), source)
+                self.assertNotIn("[[", human)
+        self.assertFalse((ROOT / ".agent-factory/document/specification/agent-factory-core").exists())
+
     def test_three_document_types_are_loose_and_specification_is_paired(self) -> None:
         entry = (DOCUMENT / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(entry.casefold().split())
@@ -99,9 +135,6 @@ class DocumentContractTests(unittest.TestCase):
                 / "references"
                 / "specification.md"
             ),
-            "core_human": (
-                CORE_HUMAN
-            ),
         }
         contents = {
             name: path.read_text(encoding="utf-8").lower()
@@ -130,12 +163,12 @@ class DocumentContractTests(unittest.TestCase):
                 self.assertIn("incomplete and unacceptable", normalized_content)
                 self.assertRegex(content, r"must not be reported as completed|do not report")
 
-        human = contents["core_human"]
-        self.assertIn("source-appropriate", human)
-        self.assertIn("markdown", human)
-        self.assertIn("legacy-inquery", human)
-        self.assertIn("한쪽만 바꾼 변경은 불완전하고 허용되지 않습니다", human)
-        self.assertIn("완료로 보고해서는 안 됩니다", human)
+        for skill_name in PUBLIC_SKILLS:
+            human = (
+                ROOT / ".agent-factory/document/specification" / skill_name / "index.html"
+            ).read_text(encoding="utf-8")
+            self.assertIn("양쪽 의미 변경은 함께 반영해야 합니다", human)
+            self.assertIn(f"skills/{skill_name}/", human)
 
     def test_packaged_document_has_exactly_three_assets(self) -> None:
         document = DOCUMENT / "assets" / "document"
@@ -211,14 +244,18 @@ class DocumentContractTests(unittest.TestCase):
         self.assertIn("skills/workspace/references/interface.md", document)
         self.assertIn("document remains owned by Document", document)
         self.assertIn("Workspace navigation does not refine content", document)
-        self.assertIn("document/specification/human/<specification-id>/", document)
+        self.assertIn("document/specification/<specification-id>/", document)
         self.assertIn("<plugin-root>/skills/", project_skill)
-        self.assertIn("<project-root>/.codex/skills/<category>-<name>/", project_skill)
+        self.assertIn("<project-root>/.codex/skills/<category>-<title>/", project_skill)
+        self.assertIn(
+            "<project-root>/.agent-factory/document/specification/<category>-<title>/",
+            project_skill,
+        )
         paragraphs = normalized_paragraphs(project_skill)
         self.assertTrue(
             any(
                 re.search(
-                    r"canonical form <category>-<name>.*category classifies.*name identifies",
+                    r"canonical form <category>-<title>.*category classifies.*title identifies",
                     paragraph,
                 )
                 for paragraph in paragraphs
@@ -227,7 +264,7 @@ class DocumentContractTests(unittest.TestCase):
         self.assertTrue(
             any(
                 re.search(
-                    r"complete name.*exactly matches both the directory.*name field.*frontmatter",
+                    r"complete identity.*exactly matches the project skill directory.*human specification directory.*name field.*frontmatter",
                     paragraph,
                 )
                 for paragraph in paragraphs
@@ -329,6 +366,81 @@ class DocumentContractTests(unittest.TestCase):
         }
         self.assertEqual(inventory, declared_routes)
 
+    def test_testing_convention_keeps_execution_focused_and_verification_independent(self) -> None:
+        entry = (ROOT / "skills/convention/SKILL.md").read_text(encoding="utf-8")
+        testing = (
+            ROOT / "skills/convention/references/testing.md"
+        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
+
+        self.assertIn("`references/testing.md`", entry)
+        for concept in (
+            "smallest relevant focused test set",
+            "owning component",
+            "affected contract",
+            "cross-domain impact",
+            "human explicitly requests",
+            "full test suite",
+            "independent verification role",
+        ):
+            with self.subTest(concept=concept):
+                self.assertIn(concept, " ".join(testing.casefold().split()))
+        for local_detail in ("pytest", "unittest", "tests/"):
+            with self.subTest(local_detail=local_detail):
+                self.assertNotIn(local_detail, testing.casefold())
+
+        self.assertIn("skills/convention/references/testing.md", human)
+        normalized_human = " ".join(human.split())
+        for concept in (
+            "가장 작은 focused test set",
+            "cross-domain 영향을 보일 때",
+            "full suite는 Human이 명시적으로 요청",
+            "독립적인 Verification role",
+        ):
+            with self.subTest(human_concept=concept):
+                self.assertIn(concept, normalized_human)
+
+    def test_explicit_human_input_rule_is_cross_cutting_and_paired(self) -> None:
+        entry = (ROOT / "skills/convention/SKILL.md").read_text(encoding="utf-8")
+        rule = (
+            ROOT / "skills/convention/references/explicit-human-input.md"
+        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
+
+        self.assertIn("`references/explicit-human-input.md`", entry)
+        normalized_rule = " ".join(rule.casefold().split())
+        for concept in (
+            "human actually states it",
+            "accepted specification resolves it unambiguously",
+            "do not infer, invent, silently default",
+            "ask the human and wait",
+            "silence, ambiguity, convention, precedent, likely preference",
+            "cannot manufacture a missing human decision",
+            "main asks the human",
+            "work and verification report the unresolved question to main",
+            "explorer may gather evidence",
+            "interview is conducted only by main",
+            "creates no agent role, public skill, or capability",
+            "does not weaken existing safety, authority, specification-pair, or managed graph",
+        ):
+            with self.subTest(ai_concept=concept):
+                self.assertIn(concept, normalized_rule)
+
+        self.assertIn("skills/convention/references/explicit-human-input.md", human)
+        normalized_human = " ".join(human.split())
+        for concept in (
+            "명시되지 않은 결정은 반드시 묻고 기다립니다",
+            "추론, 발명, 묵시적 기본값 적용",
+            "침묵, 모호함, 관행, 선례",
+            "사실과 선택을 구분",
+            "Main만 Human에게 질문하고 답을 기다립니다",
+            "Work와 Verification은 미해결 질문을 Main에 보고",
+            "Main, Work, Verification, Explorer, Interview 전체에 적용",
+            "기존 안전, 권한, Specification pair, managed graph 계약도 약화하지 않습니다",
+        ):
+            with self.subTest(human_concept=concept):
+                self.assertIn(concept, normalized_human)
+
     def test_workspace_navigation_claims_stay_within_five_activity_boundary(self) -> None:
         specification = (
             DOCUMENT / "references" / "specification.md"
@@ -362,7 +474,6 @@ class DocumentContractTests(unittest.TestCase):
         ai = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
         ).read_text(encoding="utf-8")
-        human = CORE_HUMAN.read_text(encoding="utf-8")
 
         ai_source_paragraphs = "\n".join(
             paragraph
@@ -378,11 +489,6 @@ class DocumentContractTests(unittest.TestCase):
             for value in re.findall(r"`([^`]+)`", ai_source_paragraphs)
             if value.startswith((".agent-factory/", ".codex-plugin/", "skills/"))
         }
-        human_provenance = "\n".join(
-            re.findall(r'<p class="provenance">(.*?)</p>', human, re.DOTALL)
-        )
-        targets.update(unescape(value) for value in re.findall(r"<code>(.*?)</code>", human_provenance))
-
         local_targets = {
             value
             for value in targets
@@ -399,9 +505,6 @@ class DocumentContractTests(unittest.TestCase):
         tracked_targets = local_targets - runtime_provenance_targets
         self.assertTrue(
             any(target.endswith("/request.md") for target in runtime_provenance_targets)
-        )
-        self.assertTrue(
-            any(target.endswith("/result.md") for target in runtime_provenance_targets)
         )
         self.assertTrue(tracked_targets)
         for target in sorted(runtime_provenance_targets):
@@ -423,22 +526,38 @@ class DocumentContractTests(unittest.TestCase):
         ai = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
         ).read_text(encoding="utf-8")
-        human = CORE_HUMAN.read_text(encoding="utf-8")
-
         self.assertIn(decision_request, ai)
-        self.assertIn(decision_request, human)
         self.assertNotIn("active Human request for the Tool Skill", ai)
-        self.assertNotIn("현재 Tool Skill을 추가하라는 Human 결정", human)
+        self.assertEqual(
+            set(PUBLIC_SKILLS),
+            {
+                path.name
+                for path in (ROOT / ".agent-factory/document/specification").iterdir()
+                if path.is_dir()
+            },
+        )
 
     def test_human_skip_timing_is_aligned_in_ai_and_human_views(self) -> None:
+        agent = (ROOT / "skills/agent/SKILL.md").read_text(encoding="utf-8")
         ai_core = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
         ).read_text(encoding="utf-8")
         diagrams = (
             ROOT / "skills" / "convention" / "references" / "diagrams.md"
         ).read_text(encoding="utf-8")
-        human = CORE_HUMAN.read_text(encoding="utf-8")
+        human = (
+            ROOT / ".agent-factory/document/specification/agent/index.html"
+        ).read_text(encoding="utf-8")
+        normalized_agent = " ".join(agent.split())
         normalized_ai_core = " ".join(ai_core.split())
+        for phrase in (
+            "+-- pass -> END",
+            "+-- Human skip -> END",
+            "before the next Verification starts",
+            "only after the current initial or revision Work turn completes",
+            "starts no next or additional Verification run and reaches `END`",
+        ):
+            self.assertIn(phrase, normalized_agent)
         for phrase in (
             "Human-only, evidenced control-plane intent",
             "not a graph transition or completion",
@@ -454,10 +573,18 @@ class DocumentContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, diagrams)
         for phrase in (
-            "Human만 근거를 갖춰 기록할 수 있는 skip",
-            "제어면 의도이지 전이나 완료가 아니며",
-            "현재 initial 또는 revision Work가 끝난 뒤에만 적용",
+            "Main",
+            "Work",
+            "Verification",
+            "fail → 같은 Work",
+            "Verification pass → END",
+            "Human skip → END",
+            "Human만 authorization reference와 결정 근거를 갖춰",
+            "현재 initial 또는 revision Work가 끝난 뒤",
+            "다음 Verification이 시작되기 전에만 적용",
             "다음 또는 추가 Verification을 시작하지 않고 END에 도달",
+            "non-Human이 기록할 수 없으며",
+            "fail closed로 거부",
         ):
             self.assertIn(phrase, human)
 
@@ -465,7 +592,9 @@ class DocumentContractTests(unittest.TestCase):
         ai_core = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
         ).read_text(encoding="utf-8")
-        human = CORE_HUMAN.read_text(encoding="utf-8")
+        human = (
+            ROOT / ".agent-factory/document/specification/workspace/index.html"
+        ).read_text(encoding="utf-8")
         normalized_ai_core = " ".join(ai_core.split())
         for path in (
             ".agent-factory/document/original/",
@@ -473,12 +602,12 @@ class DocumentContractTests(unittest.TestCase):
             ".agent-factory/workspace/explorer/",
         ):
             self.assertIn(path, ai_core)
-            self.assertIn(path, human)
         for phrase in (
             "temporary execution-only material remains in the producing managed Agent run",
             "exactly five top-level Activities in this order: 일정, 에이전트, 문서, 로그, 테스트",
-            "every Activity's Primary Sidebar information architecture",
-            "remain Human-owned and undecided",
+            "원본문서`, `가공문서`, and `스펙문서`",
+            "The UI label does not rename Specification",
+            "other four Activity sidebars and capabilities remain Human-owned and unresolved",
             "both forms must exist and remain byte-identical",
             "packaged files are the reusable installation source",
         ):
@@ -490,30 +619,58 @@ class DocumentContractTests(unittest.TestCase):
             r"(?:nor nesting|or authorize nesting) under one of the five",
         )
         for phrase in (
-            "실행 전용 임시 자료",
-            "Activity Bar에는 일정, 에이전트, 문서, 로그, 테스트가 이 순서로 정확히 다섯 개만 있습니다",
-            "Primary Sidebar 정보 구조, 상세 기능",
-            "Human의 후속 결정을 기다립니다",
-            "세 개의 핵심 코드 파일과 필수 동반 notice는 두 형태에 함께 존재하고 각각 byte 단위로 같아야 합니다",
-            "THIRD_PARTY_NOTICES.txt",
-            "네 번째 브라우저 코드 파일이 아닙니다",
-            "패키지 에셋이 재사용 설치 원본",
+            "정확히 다섯 Activity",
+            "원본문서",
+            "가공문서",
+            "스펙문서",
+            "Agent-owned db.sqlite",
+            "논리 type은 Specification",
         ):
             self.assertIn(phrase, human)
-        self.assertRegex(
-            " ".join(human.split()),
-            r"내부 읽기 전용 .*workspace/explorer/.*File/Project metadata 투영과 "
-            r".*workspace/skills/.*Skill navigation 투영은 상단 Activity 또는 "
-            r"다섯 범주 아래의 navigation(?: 계층)?을 정의하지 않습니다",
-        )
         self.assertNotIn("<td>로드맵</td>", human)
         self.assertNotIn("여섯 영역", human)
+
+    def test_catalog_ownership_is_synchronized_across_specification_pairs(self) -> None:
+        agent = (
+            ROOT / ".agent-factory/document/specification/agent/index.html"
+        ).read_text(encoding="utf-8")
+        convention = (
+            ROOT / ".agent-factory/document/specification/convention/index.html"
+        ).read_text(encoding="utf-8")
+        document = (
+            ROOT / ".agent-factory/document/specification/document/index.html"
+        ).read_text(encoding="utf-8")
+        workspace = (
+            ROOT / ".agent-factory/document/specification/workspace/index.html"
+        ).read_text(encoding="utf-8")
+        for phrase in (
+            "skills/agent/scripts/catalog.py",
+            "skills/agent/assets/schema/catalog.sql",
+            "schema version 3",
+            "last-good recovery",
+        ):
+            self.assertIn(phrase, agent)
+        self.assertIn("Agent 구현 소유", convention)
+        self.assertIn("Agent가 구현을 소유하는 rebuildable·non-authoritative projection", document)
+        for phrase in (
+            "카탈로그의 schema와 manager",
+            "Workspace의 <code>serve.py init</code>은 카탈로그를 만들지 않으며",
+            "현재 catalog/search UI나 source/query binding은 구현되지 않았습니다",
+        ):
+            self.assertIn(phrase, workspace)
+        self.assertNotIn("skills/workspace/scripts/catalog.py", workspace)
+        self.assertNotIn("skills/workspace/assets/schema/catalog.sql", workspace)
 
     def test_tool_and_gather_boundaries_are_aligned_in_both_views(self) -> None:
         ai_core = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
         ).read_text(encoding="utf-8")
-        human = CORE_HUMAN.read_text(encoding="utf-8")
+        human = "\n".join(
+            (
+                ROOT / ".agent-factory/document/specification" / name / "index.html"
+            ).read_text(encoding="utf-8")
+            for name in ("convention", "gather", "tool")
+        )
         normalized_ai_core = " ".join(ai_core.split())
         for phrase in (
             "exactly six public distributed Skills",
@@ -522,33 +679,20 @@ class DocumentContractTests(unittest.TestCase):
             "Google Drive and OneDrive provider scripts retain their",
         ):
             self.assertIn(phrase, normalized_ai_core)
-        for phrase in (
-            "public distributed Skill",
-            "여섯 개입니다",
-            "Tool은 Workspace의 여섯 번째 Activity가 아닙니다",
-            "scope를 임의 승격하지 않습니다",
-            "Google Drive와 OneDrive의 auth/token 코드는 현재 Gather script에 결합",
-            "Tool registry/state 저장소",
-        ):
+        for phrase in ("여섯 public Skill", "최소 read-only permission", "credential 자체를 저장하지 않고"):
             self.assertIn(phrase, human)
 
     def test_core_human_connectors_use_accessible_svg_or_visible_prose(self) -> None:
-        human = CORE_HUMAN.read_text(encoding="utf-8")
-        self.assertIsNone(
-            re.search(r'<(?:span|code)[^>]*aria-hidden="true"[^>]*>\s*[+=→]\s*<', human)
-        )
-        parser = TemplateParser()
-        parser.feed(human)
-        connector_svgs = [
-            attrs
-            for tag, attrs in parser.tags
-            if tag == "svg" and "connector-icon" in (attrs.get("class") or "").split()
-        ]
-        self.assertTrue(connector_svgs)
-        for attrs in connector_svgs:
-            self.assertEqual(attrs.get("aria-hidden"), "true")
-            self.assertEqual(attrs.get("focusable"), "false")
-        self.assertIn("Original / Processed / Specification", human)
+        for name in ("agent", "document", "gather", "workspace"):
+            human = (
+                ROOT / ".agent-factory/document/specification" / name / "index.html"
+            ).read_text(encoding="utf-8")
+            parser = TemplateParser()
+            parser.feed(human)
+            svgs = [attrs for tag, attrs in parser.tags if tag == "svg"]
+            self.assertTrue(svgs)
+            for attrs in svgs:
+                self.assertEqual(attrs.get("aria-hidden"), "true")
 
 
 if __name__ == "__main__":

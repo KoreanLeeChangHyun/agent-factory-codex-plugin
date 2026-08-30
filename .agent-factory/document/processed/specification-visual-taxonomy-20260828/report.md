@@ -13,8 +13,8 @@ directly answer the Human's question. It does not mean adding charts to every
 section, replacing prose with pictures, or making a rendering library the source
 of project truth.
 
-The report consolidates the earlier read-only processed report at
-`.agent-factory/inquery/specification-visualization-libraries-20260828/report.md`
+The report consolidates the earlier read-only processed report now preserved at
+`.agent-factory/document/processed/legacy-inquery-specification-visualization-libraries-20260828/report.md`
 and adds a usable taxonomy and routing policy. Existing legacy Inquery data was
 not modified. No renderer, browser, validator, build, test, or prototype was run;
 the findings are based on repository inspection and primary documentation.

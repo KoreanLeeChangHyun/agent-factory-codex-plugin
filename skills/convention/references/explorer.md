@@ -43,7 +43,8 @@ Document and stored under the resolved Document root. Temporary execution-only
 material belongs to the producing managed Agent run; Explorer has no standalone
 storage root.
 
-Preserved legacy Inquery evidence below
-`.agent-factory/document/processed/legacy-inquery/` is historical,
-read-only, evidence-only material. Inspect it only when the delegated scope
-requires it, and never use it as an active workspace or write target.
+Direct `.agent-factory/document/processed/legacy-inquery-<legacy-id>/`
+packages contain historical, read-only, evidence-only Processed Documents.
+Legacy is status/provenance metadata, not a Document type or wrapper. Inspect
+these packages only when the delegated scope requires it, and never use them as
+active workspaces or write targets.

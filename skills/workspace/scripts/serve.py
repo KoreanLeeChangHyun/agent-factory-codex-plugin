@@ -21,13 +21,27 @@ import webbrowser
 
 
 WORKSPACE_RELATIVE_PATH = Path(".agent-factory/workspace")
-HUMAN_SPECIFICATION_RELATIVE_PATH = Path(".agent-factory/document/specification/human")
+HUMAN_SPECIFICATION_RELATIVE_PATH = Path(".agent-factory/document/specification")
 PROJECT_SKILLS_RELATIVE_PATH = Path(".codex/skills")
 DOCUMENT_RELATIVE_PATH = Path(".agent-factory/document")
 PACKAGED_ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets" / "browser"
 PACKAGED_LAUNCHER = Path(__file__).resolve().parents[1] / "assets" / "workspace.sh"
+PACKAGED_BROWSER_ASSET_PATHS = frozenset(
+    {
+        Path("index.html"),
+        Path("styles.css"),
+        Path("app.js"),
+        Path("THIRD_PARTY_NOTICES.txt"),
+        Path("vendor/tabulator/6.5.2/tabulator.min.js"),
+        Path("vendor/tabulator/6.5.2/tabulator.min.css"),
+        Path("vendor/tabulator/6.5.2/LICENSE"),
+    }
+)
 DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 8000
+FORBIDDEN_PORT = 8000
+PORT_STATE_RELATIVE_PATH = WORKSPACE_RELATIVE_PATH / "port.json"
+PORT_STATE_VERSION = 1
+PORT_STATE_MAX_BYTES = 128
 ACTIVITY_DIRECTORIES = ("explorer", "skills")
 TREE_MAX_DEPTH = 5
 TREE_MAX_ENTRIES = 120
@@ -124,6 +138,18 @@ def _packaged_files(asset_root: Path) -> list[tuple[Path, Path]]:
             files.append((source, source.relative_to(resolved_asset_root)))
     if not files:
         raise ViewerError(f"packaged browser asset directory is empty: {asset_root}")
+    if resolved_asset_root == PACKAGED_ASSET_ROOT.resolve(strict=True):
+        discovered = {relative_path for _source, relative_path in files}
+        missing = sorted(PACKAGED_BROWSER_ASSET_PATHS - discovered)
+        unexpected = sorted(discovered - PACKAGED_BROWSER_ASSET_PATHS)
+        if missing or unexpected:
+            details = [
+                *(f"missing {path.as_posix()}" for path in missing),
+                *(f"unallowlisted {path.as_posix()}" for path in unexpected),
+            ]
+            raise ViewerError(
+                "packaged browser asset allowlist mismatch: " + ", ".join(details)
+            )
     return files
 
 
@@ -236,7 +262,7 @@ def install_assets(
         activity_directory.mkdir(parents=True, exist_ok=True)
     document_root = project_root / DOCUMENT_RELATIVE_PATH
     _resolved_within(project_root, document_root, "Document directory")
-    for type_root in ("original", "processed", "specification/human"):
+    for type_root in ("original", "processed", "specification"):
         (document_root / type_root).mkdir(parents=True, exist_ok=True)
 
     launcher_installed = False
@@ -594,7 +620,74 @@ def addresses_are_loopback(
     )
 
 
-def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, open_browser: bool) -> None:
+def _read_port_state(project_root: Path) -> int | None:
+    state_path = project_root / PORT_STATE_RELATIVE_PATH
+    _resolved_within(project_root, state_path, "Workspace port state")
+    if not state_path.exists() and not state_path.is_symlink():
+        return None
+    if state_path.is_symlink() or not state_path.is_file():
+        raise ViewerError(f"Workspace port state is not a regular file: {state_path}")
+    try:
+        if state_path.stat().st_size > PORT_STATE_MAX_BYTES:
+            raise ViewerError(f"Workspace port state is too large: {state_path}")
+        payload = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ViewerError(f"Workspace port state is malformed: {state_path}") from exc
+    if not isinstance(payload, dict) or set(payload) != {"version", "port"}:
+        raise ViewerError(f"Workspace port state has an invalid shape: {state_path}")
+    port = payload["port"]
+    if (
+        payload["version"] != PORT_STATE_VERSION
+        or not isinstance(port, int)
+        or isinstance(port, bool)
+        or port not in range(1, 65536)
+        or port == FORBIDDEN_PORT
+    ):
+        raise ViewerError(f"Workspace port state contains an invalid port: {state_path}")
+    return port
+
+
+def _publish_port_state(project_root: Path, port: int) -> None:
+    state_path = project_root / PORT_STATE_RELATIVE_PATH
+    workspace_root = state_path.parent
+    _resolved_within(project_root, workspace_root, "Workspace port state directory")
+    _resolved_within(project_root, state_path, "Workspace port state")
+    if workspace_root.is_symlink() or not workspace_root.is_dir():
+        raise ViewerError(f"Workspace port state directory is unsafe: {workspace_root}")
+    if state_path.is_symlink() or (state_path.exists() and not state_path.is_file()):
+        raise ViewerError(f"Workspace port state is not a regular file: {state_path}")
+    body = json.dumps(
+        {"version": PORT_STATE_VERSION, "port": port},
+        separators=(",", ":"),
+    ).encode("utf-8") + b"\n"
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            prefix=f".{state_path.name}.", dir=workspace_root, delete=False
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            temporary.write(body)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        os.chmod(temporary_path, 0o600)
+        os.replace(temporary_path, state_path)
+    except OSError as exc:
+        raise ViewerError(f"cannot publish Workspace port state: {exc}") from exc
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
+
+
+def _validate_requested_port(port: int | None) -> None:
+    if port is None:
+        return
+    if isinstance(port, bool) or port not in range(1, 65536):
+        raise ViewerError("--port must be between 1 and 65535")
+    if port == FORBIDDEN_PORT:
+        raise ViewerError(f"port {FORBIDDEN_PORT} is reserved and cannot be used")
+
+
+def serve(project_root: Path, host: str, port: int | None, allow_non_loopback: bool, open_browser: bool) -> None:
     workspace_root = project_root / WORKSPACE_RELATIVE_PATH
     resolved_root = _resolved_within(
         project_root, workspace_root, "served Workspace directory"
@@ -612,14 +705,8 @@ def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, op
         raise ViewerError(
             f"Human Specification directory does not exist: {human_specification_root}; run init first"
         )
-    addresses = _resolved_addresses(host, port)
-    if not addresses_are_loopback(addresses) and not allow_non_loopback:
-        raise ViewerError(
-            f"refusing non-loopback bind host {host!r}; "
-            "pass --allow-non-loopback to explicitly permit network exposure"
-        )
-
-    family, sockaddr = addresses[0]
+    _validate_requested_port(port)
+    stored_port = _read_port_state(project_root)
     served_roots = {
         "common": resolved_root / "common",
         "explorer": resolved_root / "explorer",
@@ -643,16 +730,48 @@ def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, op
         project_root=project_root,
     )
 
-    class AddressFamilyServer(ThreadingHTTPServer):
-        address_family = family
-        daemon_threads = True
+    def bind(candidate_port: int) -> ThreadingHTTPServer:
+        addresses = _resolved_addresses(host, candidate_port)
+        if not addresses_are_loopback(addresses) and not allow_non_loopback:
+            raise ViewerError(
+                f"refusing non-loopback bind host {host!r}; "
+                "pass --allow-non-loopback to explicitly permit network exposure"
+            )
+        family, sockaddr = addresses[0]
 
-    try:
-        server = AddressFamilyServer(sockaddr, handler)
-    except OSError as exc:
-        raise ViewerError(f"cannot bind {host}:{port}: {exc}") from exc
+        class AddressFamilyServer(ThreadingHTTPServer):
+            address_family = family
+            daemon_threads = True
+
+        return AddressFamilyServer(sockaddr, handler)
+
+    selected_port = port if port is not None else stored_port
+    server: ThreadingHTTPServer | None = None
+    if selected_port is not None:
+        try:
+            server = bind(selected_port)
+        except OSError as exc:
+            if port is not None:
+                raise ViewerError(f"cannot bind {host}:{port}: {exc}") from exc
+    if server is None:
+        for _attempt in range(32):
+            try:
+                candidate = bind(0)
+            except OSError as exc:
+                raise ViewerError(f"cannot allocate an available loopback port: {exc}") from exc
+            if int(candidate.server_address[1]) != FORBIDDEN_PORT:
+                server = candidate
+                break
+            candidate.server_close()
+        if server is None:
+            raise ViewerError(f"could not allocate a port other than {FORBIDDEN_PORT}")
 
     actual_port = int(server.server_address[1])
+    try:
+        _publish_port_state(project_root, actual_port)
+    except ViewerError:
+        server.server_close()
+        raise
     browser_host = host
     if host in {"0.0.0.0", "::", ""}:
         browser_host = DEFAULT_HOST
@@ -689,7 +808,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     serve_parser = subparsers.add_parser("serve", help="serve the existing Workspace tree read-only")
     serve_parser.add_argument("--host", default=DEFAULT_HOST, help=f"bind host (default: {DEFAULT_HOST})")
-    serve_parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"bind port (default: {DEFAULT_PORT})")
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        help="bind and persist this port (automatic per-project allocation when omitted; 8000 is reserved)",
+    )
     serve_parser.add_argument("--open", action="store_true", help="open the common shell in the default browser")
     serve_parser.add_argument(
         "--allow-non-loopback",
@@ -702,8 +825,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    if getattr(args, "port", DEFAULT_PORT) not in range(0, 65536):
-        parser.error("--port must be between 0 and 65535")
+    requested_port = getattr(args, "port", None)
+    if requested_port is not None and requested_port not in range(1, 65536):
+        parser.error("--port must be between 1 and 65535")
+    if requested_port == FORBIDDEN_PORT:
+        parser.error(f"port {FORBIDDEN_PORT} is reserved and cannot be used")
 
     try:
         project_root = resolve_project_root(args.project_root)

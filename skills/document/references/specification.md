@@ -37,18 +37,38 @@ review itself as authorization to edit them.
 
 ### Ownership boundary
 
-The Agent Factory core is the exception within this plugin repository: its
-AI-facing owner is the distributed `<plugin-root>/skills/convention/` Skill,
-paired with the `agent-factory-core` Human document. Do not create a standalone
-`agent-factory-core` Skill or mirror the plugin's distributed Skills below this
-repository's `.codex/`.
+Apply one invariant uniformly: exactly one Skill directory pairs with exactly
+one Specification directory under the same stable identity. In this plugin,
+`<plugin-root>/skills/<skill-id>/` pairs with
+`.agent-factory/document/specification/<skill-id>/`. Do not create or mirror
+the plugin's distributed Skills below this repository's `.codex/`, and do not
+create an aggregate Specification across several Skills.
+
+Do not mirror the paired Skill directory mechanically into the Human document.
+Reorganize its accepted semantics around Human-readable topics, Korean
+summaries, tables, and useful diagrams or flows. Keep every material section
+inspectably mapped to exact paths inside that one Skill. Preserve these
+machine-readable reciprocal locators:
+
+- Human HTML metadata: `agent-factory:specification-id`,
+  `agent-factory:ai-root`, and `agent-factory:ai-binding-entry`;
+- binding-owner `SKILL.md` frontmatter `metadata`: `specification-id`,
+  `human-entry`, and `ai-root`.
+
+The IDs and locators must match in both directions. This proves pair identity
+and scope, not semantic equivalence. Hashes, timestamps, or raw-copy equality
+cannot prove that a Human-centered explanation faithfully represents its
+paired Skill. Without independent semantic-alignment evidence, report
+alignment as `unknown`; report reciprocal mismatch as `misaligned` and fail
+closed.
 
 A separate consumer project may use a project-scoped Project Skill as a
 Specification's AI-facing representation. Keep it directly below the owning
 project's Skill root:
 
 ```text
-<project-root>/.codex/skills/<category>-<name>/
+<project-root>/.codex/skills/<category>-<title>/
+<project-root>/.agent-factory/document/specification/<category>-<title>/
 ```
 
 Do not split or mirror a Project Skill into alternate locations or create a
@@ -62,7 +82,7 @@ actual Project Skill without copying it or becoming its owner.
 Each Project Skill is one self-contained directory:
 
 ```text
-.codex/skills/<category>-<name>/
+.codex/skills/<category>-<title>/
 ├── SKILL.md
 ├── agents/
 │   └── openai.yaml
@@ -88,14 +108,18 @@ role. Do not create empty optional directories, put Markdown references in
 
 ### Project Skill identity
 
-Name a Project Skill in the canonical form `<category>-<name>`. Both components
+Name an ordinary consumer Project Skill and its paired Specification in the
+canonical form `<category>-<title>`. Both components
 use lowercase hyphen-case tokens; a component may itself contain hyphens. The
-complete name uses only lowercase letters, digits, and hyphens, remains under
-the Codex Skill name limit, and exactly matches both the directory and the
-`name` field in `SKILL.md` frontmatter. `category` classifies the Skill for
-discovery, while `name` identifies the bounded project knowledge or capability.
+complete identity uses only lowercase letters, digits, and hyphens, remains
+under the Codex Skill name limit, and exactly matches the Project Skill
+directory, the Human Specification directory, and the `name` field in
+`SKILL.md` frontmatter. `category` classifies the Skill for discovery, while
+`title` identifies the bounded project knowledge or capability. This plugin is
+the explicit exception whose six accepted distributed Skill and Specification
+identities remain single names.
 
-Use the category and name supplied by the Human or established unambiguously by
+Use the category and title supplied by the Human or established unambiguously by
 accepted project evidence. Do not invent either component. Preserve an existing
 pairing and accepted Skill identity; this rule does not authorize bulk
 renaming. Return an ambiguous identity choice to the Human.
@@ -126,7 +150,7 @@ not become a private source of additional or contradictory specified facts.
 Under the current/default local adapter, keep a consumer Project Skill
 physically separate from Original or Processed Explorer Documents below
 `.agent-factory/document/`, its Human-facing Specification below
-`.agent-factory/document/specification/human/<specification-id>/`, and
+`.agent-factory/document/specification/<specification-id>/`, and
 operational Agent state below `.agent-factory/agent/`. Temporary execution-only
 Explorer material belongs to the producing managed Agent run. Do not
 automatically promote an Explorer document into a Project Skill. The storage-independent adapter rules
@@ -155,13 +179,13 @@ JavaScript for Human viewing in a browser. For the current/default local
 adapter, store Specification output below:
 
 ```text
-<project-root>/.agent-factory/document/specification/human/
+<project-root>/.agent-factory/document/specification/
 ```
 
 Use this minimum browser structure for a project-specific Specification:
 
 ```text
-.agent-factory/document/specification/human/<specification-id>/
+.agent-factory/document/specification/<specification-id>/
 ├── index.html
 ├── styles.css
 ├── app.js
@@ -191,7 +215,7 @@ Skill or its Markdown references.
 2. Resolve the document adapter and paired-Skill owning context from explicit
    configuration or Human direction. Do not infer a remote backend or storage
    policy. For the local adapter, confirm that
-   `<project-root>/.agent-factory/document/specification/human/<specification-id>/`
+   `<project-root>/.agent-factory/document/specification/<specification-id>/`
    does not exist. Only for a new target, copy the complete packaged template from
    `assets/document/` into that directory. Scaffolding is copy-once: never use
    the template to overwrite, reset, or merge over an existing Specification.
@@ -207,12 +231,16 @@ Skill or its Markdown references.
 5. Replace or remove every element marked `data-template-placeholder` and every
    `[[...]]` token. A document with any marked template placeholder remaining is
    scaffolding, not a Specification.
-6. Create or update the resolved paired representation under the AI-facing
+6. Resolve and replace the template's reciprocal binding metadata in both the
+   HTML and paired Skill frontmatter. For a Human document with multiple
+   material sections, add exact source mappings such as `data-ai-sources`
+   without making the source tree its navigation structure.
+7. Create or update the resolved paired representation under the AI-facing
    ownership and identity contract above, and compare
    the two representations for semantic alignment. Decisions, requirements,
    scope, evidence, relationships, and unresolved state must agree even though
    their presentation differs.
-7. Keep the Human document directly readable from its `index.html`, then hand
+8. Keep the Human document directly readable from its `index.html`, then hand
    testing to the Human under the applicable Agent contract.
 
 ## Knowledge and provenance rules
@@ -238,7 +266,7 @@ promoting raw collection material as truth.
 ## Document boundaries and quality rules
 
 For the local adapter, keep each Specification's content in its own
-`.agent-factory/document/specification/human/<specification-id>/` directory and
+`.agent-factory/document/specification/<specification-id>/` directory and
 optional document-specific resources in that document's `assets/`. Shared
 browser-shell responsibilities belong to the Workspace capability at
 `.agent-factory/workspace/common/`; do not copy project facts or one document's

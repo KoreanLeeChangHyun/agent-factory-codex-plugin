@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
+    <meta name="agent-factory:specification-id" content="[[specification-id]]" data-template-placeholder>
+    <meta name="agent-factory:ai-root" content="[[paired-ai-root]]" data-template-placeholder>
+    <meta name="agent-factory:ai-binding-entry" content="[[paired-skill-entry]]" data-template-placeholder>
     <title data-template-placeholder>[[명세 제목]]</title>
     <link rel="stylesheet" href="./styles.css">
     <script src="./app.js" defer></script>
@@ -50,7 +53,7 @@
       </nav>
 
       <main id="content" tabindex="-1">
-        <section id="scope" aria-labelledby="scope-title">
+        <section id="scope" aria-labelledby="scope-title" data-ai-sources="[[paired-skill-source-paths]]" data-template-placeholder>
           <div class="section-heading">
             <p class="section-number">01</p>
             <h2 id="scope-title">범위</h2>
@@ -72,7 +75,7 @@
           </div>
         </section>
 
-        <section id="decisions" aria-labelledby="decisions-title">
+        <section id="decisions" aria-labelledby="decisions-title" data-ai-sources="[[paired-skill-source-paths]]" data-template-placeholder>
           <div class="section-heading">
             <p class="section-number">02</p>
             <h2 id="decisions-title">수락된 결정</h2>
@@ -86,7 +89,7 @@
           </div>
         </section>
 
-        <section id="requirements" aria-labelledby="requirements-title">
+        <section id="requirements" aria-labelledby="requirements-title" data-ai-sources="[[paired-skill-source-paths]]" data-template-placeholder>
           <div class="section-heading">
             <p class="section-number">03</p>
             <h2 id="requirements-title">요구사항</h2>
@@ -111,7 +114,7 @@
           </div>
         </section>
 
-        <section id="evidence" aria-labelledby="evidence-title">
+        <section id="evidence" aria-labelledby="evidence-title" data-ai-sources="[[paired-skill-source-paths]]" data-template-placeholder>
           <div class="section-heading">
             <p class="section-number">04</p>
             <h2 id="evidence-title">근거와 출처</h2>
@@ -125,7 +128,7 @@
           </div>
         </section>
 
-        <section id="questions" aria-labelledby="questions-title">
+        <section id="questions" aria-labelledby="questions-title" data-ai-sources="[[paired-skill-source-paths]]" data-template-placeholder>
           <div class="section-heading">
             <p class="section-number">05</p>
             <h2 id="questions-title">미해결 질문</h2>

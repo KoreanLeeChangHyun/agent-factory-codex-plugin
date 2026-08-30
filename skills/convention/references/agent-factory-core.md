@@ -2,19 +2,25 @@
 
 ## Authority and identity
 
-The Human-established Specification identity is `agent-factory-core`, based on
-“Agent-Factory 코어 개념들.” Its paired AI-facing owner is now the distributed
-`convention` Skill. The
-canonical Specification body has two faithful projections:
+The Convention Specification identity is `convention`. Its canonical semantic
+body has two faithful projections:
 
 - Human-facing Korean HTML, CSS, and JavaScript in the current local adapter:
-  `.agent-factory/document/specification/human/agent-factory-core/`
-- AI-facing English distributed plugin Skill: `skills/convention/`
+  `.agent-factory/document/specification/convention/`
+- AI-facing distributed Skill and supporting resources: `skills/convention/`
 
 These projections may use different presentation forms, but they must contain
 the same decisions, relationships, current implementation observations, and
 unresolved questions. Neither projection may privately add or omit specified
 knowledge.
+
+The Human projection is organized around readable Korean topics, summaries,
+tables, and flows rather than mechanically mirroring the Skill hierarchy.
+Each material section maps to exact Skill/reference source paths. Reciprocal
+HTML and Convention frontmatter locators establish identity and scope only;
+they do not prove semantic alignment by hash or raw-copy equality. Do not
+create or mirror `.codex/skills/` in this plugin repository. The other five
+distributed Skills each have their own one-to-one Specification pair.
 
 The accepted decisions and required semantic model below come from the Human's
 delegated core Specification request at
@@ -23,15 +29,16 @@ observations are separately attributed. The earlier Human decision to implement
 Interview as a distributed Skill came from
 `.agent-factory/agent/interview-skill-work/runs/run-20260827T174030938939Z-d3e6f56f/request.md` and is superseded by the
 former five-public-Skill decision and the latest six-Skill decision below. The engineering synthesis at
-`.agent-factory/document/processed/legacy-inquery/agent-factory-engineering-synthesis-20260828/synthesis.md`
+`.agent-factory/document/processed/legacy-inquery-agent-factory-engineering-synthesis-20260828/synthesis.md`
 is supporting, non-canonical evidence only.
 
 The Human decision to retire the distributed `inquery` Skill and managed
 Inquiry role, assign evidence exploration to Explorer, and retain adaptive
 Human-facing elicitation in Interview comes from
 `.agent-factory/agent/inquery-retirement-split-work/runs/run-20260827T180810962479Z-6077b043/request.md`.
-Legacy Inquery contents are preserved as processed historical project data at
-`.agent-factory/document/processed/legacy-inquery/`.
+Legacy Inquery contents are preserved as direct Processed packages below
+`.agent-factory/document/processed/`; each stable identity starts with the
+non-path identity prefix `legacy-inquery-`.
 
 The Human decision that Main is the Human-facing Interview, orchestration, and
 integration layer; delegates research, implementation, independent review,
@@ -59,6 +66,11 @@ AI-facing owner of Agent Factory core, use the three-stage local information
 tree, migrate Human refined and legacy processed documents, and retain
 storage-backend independence—comes from
 `.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T185448822401Z-ef49909a/request.md`.
+
+The current Human decision supersedes that aggregate pairing shape: each of
+the six distributed Skill directories now has its own one-to-one Human
+Specification directory under the same identity. Convention remains the owner
+of shared core semantics, not the AI-side locator for the other five pairs.
 
 The superseding contracts keep Explorer and Interview as distinct core
 capabilities without independent public Skill entry points. The former five-
@@ -90,13 +102,22 @@ The final Workspace Activity redirect supersedes that six-area navigation.
 The Activity Bar has exactly five top-level items, in order and labeled 일정,
 에이전트, 문서, 로그, 테스트. Roadmap, Explorer/File Explorer,
 Planning/Specification, Project Skills, overview/dashboard, and aliases are
-not top-level items. The Human has not yet decided any Activity's Primary
-Sidebar information architecture, detailed capabilities, hierarchy, controls,
-metrics, or source contract, so none may be inferred or nested. Workspace
+not top-level items. This decision comes from
+`.agent-factory/agent/workspace-work/runs/run-20260830T090533619149Z-bfd9f5fa/request.md`.
+
+The superseding Document Activity decision defines only its Primary Sidebar
+and main-view shapes. It has three prominent, independently collapsible groups
+in order: `원본문서`, `가공문서`, and `스펙문서`. Original has `개요` and
+`문서검색`, with search selecting a semantic table shell. Processed and
+Specification each have `개요` and consistent explorer/tree-shaped regions
+reserved for actual Documents. The no-space `스펙문서` spelling is the UI
+label and does not rename the Specification type. Overview details, table
+columns and behavior, and discovery/source integration remain unresolved, as
+do all four other Activity sidebars and detailed capabilities. Workspace
 retains its observation/control-routing boundary and does not own or execute
 schedule data, Agent runtime state, Documents, logs, or tests. This decision
 comes from
-`.agent-factory/agent/workspace-work/runs/run-20260830T090533619149Z-bfd9f5fa/request.md`.
+`.agent-factory/agent/workspace-document-work/runs/run-20260830T141127363791Z-f665d487/request.md`.
 
 The Workspace publication decision requires its browser code in two forms:
 reusable installation sources below `skills/workspace/assets/browser/` and the
@@ -152,14 +173,33 @@ execution-only material remains in the producing managed Agent run. The
 Workspace `explorer/` path remains a read-only projection. This decision comes
 from `.agent-factory/agent/document-root-migration-work/runs/run-20260830T085419496276Z-66baeaeb/request.md`.
 
-The Human-approved local catalog decision reserves the exact path
+The latest Human decision removes the representation-only `human/` layer from
+the local Specification tree. Each locally materialized Human-facing browser
+document now lives directly at
+`.agent-factory/document/specification/<specification-id>/`; its AI-facing
+Skill remains in its separately owned Skill root. This physical flattening does
+not weaken the mandatory semantic pair or create another Document type.
+
+The earlier Human-approved local catalog decision reserved the exact path
 `<project-root>/.agent-factory/db.sqlite` for one project-wide SQLite
 catalog/read model spanning Agent execution structure and Documents. The
-catalog is initially rebuildable and non-authoritative. The active bounded
-implementation is schema-only: no database instance, scanner, rebuild/index
-job, runtime dual write, Workspace screen or API, search behavior, or external
-backend ingestion is authorized. This decision comes from
+catalog remained rebuildable and non-authoritative. The initial decision comes from
 `.agent-factory/agent/shared-db-work/runs/run-20260830T085102207719Z-c11abc11/request.md`.
+The earlier adoption decision came from
+`.agent-factory/agent/sqlite-adoption-work/runs/run-20260830T153751477078Z-57de39e2/request.md`.
+
+The later Human decision implements bounded Agent and Document search over
+that catalog. It authorizes FTS5 projections from Agent structural metadata and
+safe bounded local Document text, plus read-only CLI search; it does not
+authorize a Workspace search UI, HTTP/general query API, watcher, runtime dual
+write, semantic/vector search, or external-backend ingestion. This decision
+comes from `.agent-factory/agent/catalog-search-work/runs/run-20260830T155949742576Z-5bc8cccf/request.md`.
+
+The latest Human decision assigns the complete catalog implementation and
+table-management lifecycle to Agent and supersedes inferred Workspace
+ownership and initialization. Workspace may only become a presentation
+consumer of Agent-provided read-only results. This decision comes from
+`.agent-factory/agent/catalog-owner-work/runs/run-20260830T174324574670Z-c5a8167b/request.md`.
 
 The latest Human decision supersedes the former five-Skill discovery contract
 with exactly six public distributed Skills in the consistent order `agent`,
@@ -173,25 +213,26 @@ by the managed Human request at
 
 ## Project Skill naming
 
-For a newly named Skill identity whose owning context requires the two-part
-form, `category` classifies the Skill for discovery and `name` identifies its
-bounded knowledge or capability.
+For an ordinary consumer-project pair, `category` classifies the Skill for
+discovery and `title` identifies its bounded knowledge or capability.
 Both components use lowercase hyphen-case tokens, so a multiword component may
-itself contain hyphens. The complete `<category>-<name>` value uses lowercase
+itself contain hyphens. The complete `<category>-<title>` value uses lowercase
 letters, digits, and hyphens, remains under the Codex Skill name limit, and
-must exactly match both the Skill directory and the `name` field in `SKILL.md`
-frontmatter.
+must exactly match the Project Skill directory, Human Specification directory,
+and the `name` field in `SKILL.md` frontmatter.
 
 Neither component may be inferred when Human instruction or unambiguous
 accepted project evidence does not supply it. Preserve accepted Skill
 identities: this rule does not authorize bulk renaming. Explorer and Interview
 retain their accepted capability identities without retaining public Skill
 identities. The durable Agent Factory core rules are consolidated into
-`skills/convention/`. Separate
-consumer projects may use the rule for
-their Specification Project Skills at
-`<project-root>/.codex/skills/<category>-<name>/`; this plugin repository has no
-repository-local `.codex/skills/` store.
+`skills/convention/`. Ordinary consumer projects use the exact same lowercase hyphen-case
+`<category>-<title>` identity for both representations:
+`<project-root>/.codex/skills/<category>-<title>/` and
+`<project-root>/.agent-factory/document/specification/<category>-<title>/`.
+This plugin is the explicit exception whose accepted single-name distributed
+Skill and Specification identities remain unchanged; it has no repository-local
+`.codex/skills/` store.
 
 ## Storage-independent Document types and roles
 
@@ -211,36 +252,14 @@ they do not prove remote or server adapters exist.
 
 ## Shared local catalog
 
-The current/default local adapter reserves
-`<project-root>/.agent-factory/db.sqlite` as a project-wide SQLite catalog/read
-model for later Workspace queries across Agent execution structure and
-Documents. It is shared only as a projection boundary: Workspace gains no
-Agent or Document semantics from displaying it, and the catalog creates no new
-public Skill or Agent role.
-
-The catalog is rebuildable and non-authoritative. Agent runtime files,
-Document bodies and representations, relationship/provenance evidence, Gather
-configuration, Project Skills, and faithful Specification pairs remain in
-their existing resolved authoritative stores. Large bodies, event streams,
-requests, results, receipts, heartbeats, and containment or recovery evidence
-do not belong in SQLite. Paths, hashes, bounded summaries, statuses, and
-relationships may be projected only when an inspectable source provides them;
-unknown and legacy values remain explicit, and absent relations are never
-inferred.
-
-Workspace owns the maintained standard-library SQLite DDL at
-`skills/workspace/assets/schema/catalog.sql`. Its initial normalized schema
-covers schema metadata/migrations, Agents and resumable sessions, runs/turns,
-Work/Verification loops, graph/dispatch relationships, Documents and their
-storage-independent types, representations, provenance/derivation
-relationships, Agent-Document relationships, and Specification pair status.
-The DDL is an idempotent schema foundation only. Database initialization,
-scanners, rebuild/index jobs, runtime/database dual writes, screens, APIs,
-navigation, and search remain outside this bounded implementation.
-
-Do not commit `db.sqlite` or its SQLite runtime sidecars. Do not make Agent
-execution depend on catalog freshness or availability, and do not silently
-select, mirror, migrate, or ingest an external backend.
+The exact `<project-root>/.agent-factory/db.sqlite` path and its complete
+implementation lifecycle are Agent-owned. The catalog remains ignored,
+rebuildable, non-authoritative, and independent of Agent execution; it cannot
+replace authoritative Agent runtime or Document sources. Workspace performs no
+catalog initialization, rebuild, inspection, or search execution and may only
+present Agent-provided read-only results. The Agent
+Specification owns all detailed command, schema, indexing, safety,
+publication, and recovery rules.
 
 ## Human-facing Workspace shell and launcher
 
@@ -300,9 +319,11 @@ other transformations. A Processed Document may be useful and well-supported,
 but it remains non-authoritative working knowledge and implies no required
 Specification. Processed remains a logical, storage-independent
 type. Under the current/default local adapter, active Processed Documents are
-Markdown (`.md`). Preserved legacy material under
-`document/processed/legacy-inquery/` is not an active target or format
-precedent.
+Markdown (`.md`). Every immediate type-root child directory is exactly one
+Document package. Preserved historical Inquery packages use direct
+`document/processed/legacy-inquery-<legacy-id>/` identities, remain Processed,
+and record legacy only as status/provenance. They are not active targets or
+format precedents.
 
 ### Specification (스펙 문서)
 
@@ -465,11 +486,15 @@ capability binding, execution authority, dispatch, and execution receipts.
 
 Workspace is the Human-facing project control tower with exactly five
 top-level Activities in this order: 일정, 에이전트, 문서, 로그, 테스트. No
-other top-level item or alias is allowed. Only these broad categories are
-decided; every Activity's Primary Sidebar information architecture, detailed
-capabilities, hierarchy, controls, metrics, and source contract remain
-Human-owned and undecided. The packaged browser therefore presents explicit
-awaiting-definition states rather than project data or inferred structure.
+other top-level item or alias is allowed. The Document Primary Sidebar has the
+decided ordered, independently collapsible `원본문서`, `가공문서`, and
+`스펙문서` groups. Original provides overview and table-shaped search views;
+Processed and Specification provide overview and consistent explorer/tree
+regions for actual Documents. The UI label does not rename Specification.
+Finer overview/table/discovery/source details and the other four Activity
+sidebars and capabilities remain Human-owned and unresolved. The packaged
+browser presents explicit awaiting-definition or awaiting-connection states
+rather than project data or inferred source behavior.
 Workspace does not become the canonical owner or executor of schedule data,
 Agent runtime records, Documents, logs, or tests, and any future mutation must
 use the owner's explicit authority contract. Workspace is a cross-cutting
@@ -495,7 +520,7 @@ temporary Explorer material stays only in its producing managed Agent run.
 | Document | Documents and grounded Human decisions | Original, Processed, and Specification Documents | Define all three types, preserve optional provenance relationships, and pair every Specification |
 | Convention | Human-defined working constraints | Cross-cutting control | Weak harness across all Document types |
 | Agent | Role, authority, context, Tool-prepared capabilities, state | Cross-cutting execution | Bind capabilities, authorize and receipt execution; Main orchestrates, Work performs bounded tasks, and Verification independently checks unless the Human skips it |
-| Workspace | Future owner-resolved schedule, Agent, Document, log, and test sources | Five-category Human control tower | Exactly five ordered top-level Activities; sidebar architecture and detailed capabilities remain undecided; never own or execute projected state |
+| Workspace | Future owner-resolved schedule, Agent, Document, log, and test sources | Five-category Human control tower | Exactly five ordered top-level Activities; only the three-group Document sidebar and its overview/table/tree view shapes are decided; finer Document details and the other four sidebars remain unresolved; never own or execute projected state |
 
 ## Agent engineering stack
 
@@ -543,25 +568,31 @@ target conceptual model:
   launcher assets below `skills/workspace/` and local materialization below
   `.agent-factory/workspace/`. Its packaged shell exposes exactly 일정,
   에이전트, 문서, 로그, 테스트 as top-level navigation, in that order, with
-  explicit awaiting-definition views. It exposes no other top-level Activity
-  and does not infer sidebar structure or live integration from existing
-  discovery utilities. The packaged and materialized `index.html`,
+  the decided three-group Document sidebar and honest awaiting-definition or
+  awaiting-connection details. It exposes no other top-level Activity and does
+  not infer live integration from existing discovery utilities. The packaged
+  and materialized `index.html`,
   `styles.css`, and `app.js` are maintained byte-identically, with the package
   serving as the reusable installation source.
-- `skills/workspace/assets/schema/catalog.sql` is the maintained schema-only
-  foundation for the approved local catalog. No `.agent-factory/db.sqlite`
-  artifact or catalog population behavior is part of this implementation.
+- `skills/agent/assets/schema/catalog.sql` is the maintained schema and
+  `skills/agent/scripts/catalog.py` is the implemented local manager. The
+  current project materializes the ignored `.agent-factory/db.sqlite` artifact
+  through explicit Agent-owned operations; Workspace initialization has no
+  catalog side effect.
 
 ## Unresolved architecture decisions
 
 1. Roadmap priority, deadline, owner, acceptance status, risk acceptance, and
    completion state remain Human-owned and unspecified.
-2. The five Activities' Primary Sidebar information architecture, detailed
-   capabilities, hierarchy, controls, metrics, and source contracts remain
-   unresolved. The Agent runtime has an owning local contract, but the
-   Workspace redirect does not define its projection.
-   Catalog initialization, population/rebuild, freshness, sanitized query/API,
-   search, and dual-write behavior also remain unimplemented.
+2. The Document sidebar's three ordered groups and overview/table/tree view
+   shapes are decided. Its overview details, table columns and behavior, live
+   discovery/source integration, and the other four Activities' sidebar
+   architecture and detailed capabilities remain unresolved. The Agent runtime
+   has an owning local contract, but the Workspace decision does not define its
+   projection.
+   Catalog search screens, HTTP/general query APIs, semantic/vector search,
+   live-watcher, freshness automation, and dual-write behavior remain
+   unimplemented; bounded read-only FTS5 CLI search is Agent-owned.
 3. Tool registry/state storage and concrete host/plugin/MCP/project-manifest
    adapters remain unresolved. The Tool connection/token lifecycle interface,
    Gather capability/scope request interface, and migration of currently
@@ -594,12 +625,17 @@ When changing either projection, compare both and preserve:
   that applies after current Work completion without starting another
   Verification;
 - provenance for accepted decisions and repository observations;
-- the `<category>-<name>` identity contract, its owning-context scope, exact
-  directory/frontmatter match, and no-bulk-renaming boundary;
+- the ordinary consumer `<category>-<title>` pair identity contract, exact
+  Skill/Specification directory match, plugin single-name exception, and
+  no-bulk-renaming boundary;
 - the Workspace-owned VS Code-shaped Activity Bar, Primary Sidebar, and main
   Workspace relationship; exactly five ordered top-level items labeled 일정,
-  에이전트, 문서, 로그, 테스트; undecided sidebar/capability details; no
-  aliases or inferred nesting; the owner-mediated boundary; and the local
+  에이전트, 문서, 로그, 테스트; the ordered, independently collapsible
+  `원본문서`, `가공문서`, `스펙문서` Document groups and their decided
+  overview/table/tree shapes; exact no-space UI spelling without semantic type
+  rename; unresolved finer details, source integration, and other four
+  sidebars; no aliases or inferred data behavior; the owner-mediated boundary;
+  and the local
   byte-identical packaged-browser-to-materialized-common publication contract,
   including the three core browser-code files and the installed, byte-identical
   `THIRD_PARTY_NOTICES.txt` companion attribution/license asset,
@@ -607,9 +643,9 @@ When changing either projection, compare both and preserve:
 - the distributed-plugin versus consumer-Project-Skill ownership split and the
   storage-independent document model with unresolved backend integration;
 - the exact `.agent-factory/db.sqlite` local catalog path, its rebuildable and
-  non-authoritative scope, Workspace-owned schema asset, authoritative-store
-  boundaries, explicit unknown/legacy handling, no inferred relationships, and
-  schema-only exclusions for creation/population/UI/API/search/dual writes;
+  non-authoritative scope, Agent implementation ownership, Workspace's
+  presentation-only no-operation boundary, and
+  authoritative-store boundaries;
 - diverse native/source-appropriate Original formats, the local-adapter
   Markdown contract for active Processed Documents, and the exclusion of
   preserved legacy Inquery material as an active target or precedent;

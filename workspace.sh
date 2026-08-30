@@ -2,9 +2,10 @@
 
 usage() {
     printf 'Usage: %s [--port <port>]\n' "${0##*/}"
+    printf '  Without --port, reuse this project\047s saved port or allocate an available port. Port 8000 is reserved.\n'
 }
 
-port=8000
+port=
 while [ "$#" -gt 0 ]; do
     case "$1" in
         -h|--help)
@@ -32,7 +33,6 @@ while [ "$#" -gt 0 ]; do
             ;;
     esac
 done
-set -- "$port"
 
 script_path=$0
 case $script_path in
@@ -62,12 +62,6 @@ script_dir=$(CDPATH= cd -P "$(dirname "$script_path")" && pwd) || {
     exit 1
 }
 project_root=$script_dir
-port=${1:-8000}
-
-if [ "$#" -gt 1 ]; then
-    echo "usage: $0 [port]" >&2
-    exit 2
-fi
 
 exec python3 - "$project_root" "$port" <<'PY'
 from __future__ import annotations
@@ -79,13 +73,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path, PurePosixPath
 import shutil
 import sys
+import tempfile
 from urllib.parse import quote, unquote, urlsplit
 import webbrowser
 
 
 project_root = Path(sys.argv[1]).resolve(strict=True)
 workspace_path = project_root / ".agent-factory" / "workspace"
-human_specification_path = project_root / ".agent-factory" / "document" / "specification" / "human"
+human_specification_path = project_root / ".agent-factory" / "document" / "specification"
 project_skills_path = project_root / ".codex" / "skills"
 document_path = project_root / ".agent-factory" / "document"
 tree_max_depth = 5
@@ -132,12 +127,69 @@ if project_skills_path.exists():
         raise SystemExit(f"error: Project Skill tree is not a directory: {project_skills_path}")
     served_roots["project-skills"] = project_skills_root
 
-try:
-    port = int(sys.argv[2])
-except ValueError:
-    raise SystemExit("error: port must be an integer")
-if port not in range(1, 65536):
-    raise SystemExit("error: port must be between 1 and 65535")
+forbidden_port = 8000
+port_state_path = workspace_path / "port.json"
+requested_port = None
+if sys.argv[2]:
+    try:
+        requested_port = int(sys.argv[2])
+    except ValueError:
+        raise SystemExit("error: --port must be an integer")
+    if requested_port not in range(1, 65536):
+        raise SystemExit("error: --port must be between 1 and 65535")
+    if requested_port == forbidden_port:
+        raise SystemExit("error: port 8000 is reserved and cannot be used")
+
+
+def read_port_state():
+    try:
+        port_state_path.resolve(strict=False).relative_to(project_root)
+    except ValueError:
+        raise SystemExit(f"error: Workspace port state escapes the project root: {port_state_path}")
+    if not port_state_path.exists() and not port_state_path.is_symlink():
+        return None
+    if port_state_path.is_symlink() or not port_state_path.is_file():
+        raise SystemExit(f"error: Workspace port state is not a regular file: {port_state_path}")
+    try:
+        if port_state_path.stat().st_size > 128:
+            raise ValueError
+        payload = json.loads(port_state_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+        raise SystemExit(f"error: Workspace port state is malformed: {port_state_path}")
+    port = payload.get("port") if isinstance(payload, dict) else None
+    if (
+        not isinstance(payload, dict)
+        or set(payload) != {"version", "port"}
+        or payload.get("version") != 1
+        or not isinstance(port, int)
+        or isinstance(port, bool)
+        or port not in range(1, 65536)
+        or port == forbidden_port
+    ):
+        raise SystemExit(f"error: Workspace port state contains invalid data: {port_state_path}")
+    return port
+
+
+def publish_port_state(port):
+    if workspace_path.is_symlink() or not workspace_path.is_dir():
+        raise SystemExit(f"error: Workspace port state directory is unsafe: {workspace_path}")
+    if port_state_path.is_symlink() or (port_state_path.exists() and not port_state_path.is_file()):
+        raise SystemExit(f"error: Workspace port state is not a regular file: {port_state_path}")
+    body = json.dumps({"version": 1, "port": port}, separators=(",", ":")).encode("utf-8") + b"\n"
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(prefix=".port.json.", dir=workspace_path, delete=False) as temporary:
+            temporary_path = Path(temporary.name)
+            temporary.write(body)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        os.chmod(temporary_path, 0o600)
+        os.replace(temporary_path, port_state_path)
+    except OSError as exc:
+        raise SystemExit(f"error: cannot publish Workspace port state: {exc}")
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def request_file(target: str) -> tuple[Path, bool]:
@@ -361,7 +413,32 @@ class Handler(BaseHTTPRequestHandler):
                 shutil.copyfileobj(source, self.wfile)
 
 
-server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+stored_port = read_port_state()
+selected_port = requested_port if requested_port is not None else stored_port
+server = None
+if selected_port is not None:
+    try:
+        server = ThreadingHTTPServer(("127.0.0.1", selected_port), Handler)
+    except OSError as exc:
+        if requested_port is not None:
+            raise SystemExit(f"error: cannot bind 127.0.0.1:{requested_port}: {exc}")
+if server is None:
+    for _attempt in range(32):
+        try:
+            candidate = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        except OSError as exc:
+            raise SystemExit(f"error: cannot allocate an available loopback port: {exc}")
+        if candidate.server_address[1] != forbidden_port:
+            server = candidate
+            break
+        candidate.server_close()
+if server is None:
+    raise SystemExit("error: could not allocate a port other than 8000")
+try:
+    publish_port_state(server.server_address[1])
+except BaseException:
+    server.server_close()
+    raise
 url = f"http://127.0.0.1:{server.server_address[1]}/common/"
 print(f"Serving local Workspace UI and Human Specifications read-only at {url}")
 webbrowser.open(url)

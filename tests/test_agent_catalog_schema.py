@@ -8,10 +8,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_PATH = ROOT / "skills" / "workspace" / "assets" / "schema" / "catalog.sql"
+SCHEMA_PATH = ROOT / "skills" / "agent" / "assets" / "schema" / "catalog.sql"
 
 
-class WorkspaceCatalogSchemaTests(unittest.TestCase):
+class AgentCatalogSchemaTests(unittest.TestCase):
     def setUp(self) -> None:
         self.ddl = SCHEMA_PATH.read_text(encoding="utf-8")
         self.connection = sqlite3.connect(":memory:")
@@ -47,14 +47,27 @@ class WorkspaceCatalogSchemaTests(unittest.TestCase):
                 "document_relationships",
                 "agent_document_relationships",
                 "specification_pair_status",
+                "agent_search_entities",
+                "agent_search_fts",
+                "document_search_entries",
+                "document_search_fts",
             }
             <= tables
         )
         self.assertEqual(
-            "1",
+            "3",
             self.connection.execute(
                 "SELECT value FROM schema_metadata WHERE key = 'schema_version'"
             ).fetchone()[0],
+        )
+        self.assertIn(
+            "timestamp",
+            {
+                row[1]
+                for row in self.connection.execute(
+                    "PRAGMA table_info(agent_search_fts)"
+                )
+            },
         )
 
     def test_initialization_is_idempotent(self) -> None:
@@ -66,7 +79,19 @@ class WorkspaceCatalogSchemaTests(unittest.TestCase):
             ).fetchone()[0],
         )
         self.assertEqual(
-            5,
+            1,
+            self.connection.execute(
+                "SELECT count(*) FROM schema_migrations WHERE version = 2"
+            ).fetchone()[0],
+        )
+        self.assertEqual(
+            1,
+            self.connection.execute(
+                "SELECT count(*) FROM schema_migrations WHERE version = 3"
+            ).fetchone()[0],
+        )
+        self.assertEqual(
+            3,
             self.connection.execute("SELECT count(*) FROM document_types").fetchone()[0],
         )
 
@@ -155,18 +180,27 @@ class WorkspaceCatalogSchemaTests(unittest.TestCase):
                 ),
             )
 
-    def test_legacy_and_unknown_values_are_explicitly_supported(self) -> None:
-        self.connection.executemany(
-            "INSERT INTO documents (document_id, document_type, source_path) VALUES (?, ?, ?)",
+    def test_legacy_is_status_on_processed_not_a_document_type(self) -> None:
+        self.connection.execute(
+            "INSERT INTO documents "
+            "(document_id, document_type, status, source_path) VALUES (?, ?, ?, ?)",
             (
-                ("legacy-doc", "legacy", "document/processed/legacy-inquery/item.md"),
-                ("unknown-doc", "unknown", "document/original/unclassified.bin"),
+                "processed-legacy-inquery-item",
+                "processed",
+                "legacy-historical",
+                "document/processed/legacy-inquery-item",
             ),
         )
         self.assertEqual(
-            [("legacy",), ("unknown",)],
+            [("processed", "legacy-historical")],
             self.connection.execute(
-                "SELECT document_type FROM documents ORDER BY document_id"
+                "SELECT document_type, status FROM documents"
+            ).fetchall(),
+        )
+        self.assertEqual(
+            [("original",), ("processed",), ("specification",)],
+            self.connection.execute(
+                "SELECT type_code FROM document_types ORDER BY type_code"
             ).fetchall(),
         )
 
@@ -174,8 +208,8 @@ class WorkspaceCatalogSchemaTests(unittest.TestCase):
         self.connection.executemany(
             "INSERT INTO documents (document_id, document_type, source_path) VALUES (?, ?, ?)",
             (
-                ("spec-a", "specification", "document/specification/human/spec-a"),
-                ("spec-b", "specification", "document/specification/human/spec-b"),
+                ("spec-a", "specification", "document/specification/spec-a"),
+                ("spec-b", "specification", "document/specification/spec-b"),
                 ("original-a", "original", "document/original/original-a"),
             ),
         )
@@ -184,9 +218,9 @@ class WorkspaceCatalogSchemaTests(unittest.TestCase):
             "(representation_id, document_id, representation_kind, source_path) "
             "VALUES (?, ?, ?, ?)",
             (
-                ("human-a", "spec-a", "human-html", "document/specification/human/spec-a/index.html"),
+                ("human-a", "spec-a", "human-html", "document/specification/spec-a/index.html"),
                 ("ai-a", "spec-a", "ai-skill", ".codex/skills/project-spec-a/SKILL.md"),
-                ("wrong-human-a", "spec-a", "other", "document/specification/human/spec-a/other.txt"),
+                ("wrong-human-a", "spec-a", "other", "document/specification/spec-a/other.txt"),
                 ("ai-b", "spec-b", "ai-skill", ".codex/skills/project-spec-b/SKILL.md"),
             ),
         )

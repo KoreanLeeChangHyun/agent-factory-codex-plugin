@@ -23,3 +23,41 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+Tabulator 6.5.2 (tabulator-tables)
+Upstream distribution: https://registry.npmjs.org/tabulator-tables/-/tabulator-tables-6.5.2.tgz
+Upstream project: https://github.com/tabulator-tables/tabulator/tree/6.5.2
+License: MIT
+Local files:
+  - ./vendor/tabulator/6.5.2/tabulator.min.js
+    SHA-256: 04802e757fa4189342c666d0f970a01d761c312798f31ffc664c24cbccc7ce3e
+  - ./vendor/tabulator/6.5.2/tabulator.min.css
+    SHA-256: b55e204b2f968cecc4d3663d37858093b31dd22d20f01d76f590726ee18f7e1f
+  - ./vendor/tabulator/6.5.2/LICENSE
+    SHA-256: 191a2ee554684e1064c897b432f0e1bc6dfa714ca045d3f6ea2cf692cbd398b7
+Retention requirement: the following copyright notice and permission notice
+must be included in all copies or substantial portions of the Software.
+
+The MIT License (MIT)
+
+Copyright (c) 2015-2026 Oli Folkerd
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -9,4 +9,5 @@ __pycache__/
 /.agent-factory/db.sqlite-journal
 /.agent-factory/db.sqlite-shm
 /.agent-factory/db.sqlite-wal
+/.agent-factory/workspace/port.json
 .backup/

@@ -1,6 +1,6 @@
 PRAGMA foreign_keys = ON;
 
--- Agent Factory local catalog schema, version 1.
+-- Agent Factory local catalog schema, version 3.
 -- This database is a rebuildable projection. Authoritative bodies and runtime
 -- recovery evidence remain in their resolved files and stores.
 
@@ -18,9 +18,11 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 INSERT OR IGNORE INTO schema_metadata (key, value) VALUES
     ('catalog_kind', 'rebuildable-local-projection'),
-    ('schema_version', '1');
+    ('schema_version', '3');
 INSERT OR IGNORE INTO schema_migrations (version, name) VALUES
-    (1, 'initial-catalog-schema');
+    (1, 'initial-catalog-schema'),
+    (2, 'agent-and-document-fts5-search'),
+    (3, 'agent-search-timestamps');
 
 CREATE TABLE IF NOT EXISTS agents (
     agent_id TEXT PRIMARY KEY,
@@ -170,13 +172,11 @@ CREATE TABLE IF NOT EXISTS document_types (
 INSERT OR IGNORE INTO document_types (type_code, description) VALUES
     ('original', 'source-faithful evidence'),
     ('processed', 'derived working knowledge'),
-    ('specification', 'accepted and reconciled project knowledge'),
-    ('legacy', 'preserved legacy classification'),
-    ('unknown', 'source does not provide a supported classification');
+    ('specification', 'accepted and reconciled project knowledge');
 
 CREATE TABLE IF NOT EXISTS documents (
     document_id TEXT PRIMARY KEY,
-    document_type TEXT NOT NULL DEFAULT 'unknown'
+    document_type TEXT NOT NULL
         REFERENCES document_types(type_code),
     title TEXT,
     status TEXT,
@@ -318,6 +318,82 @@ CREATE TABLE IF NOT EXISTS specification_pair_status (
         OR pair_status IN ('legacy', 'unknown')
     )
 ) WITHOUT ROWID;
+
+-- Version 2 search projection, extended in version 3 with searchable Agent
+-- timestamps. These normalized rows bind stable source-backed entity or
+-- representation identity and result metadata; FTS tables contain only
+-- explicitly bounded searchable fields produced during rebuild.
+CREATE TABLE IF NOT EXISTS agent_search_entities (
+    search_entity_id TEXT PRIMARY KEY,
+    entity_kind TEXT NOT NULL CHECK (
+        entity_kind IN ('agent', 'session', 'run', 'loop', 'dispatch')
+    ),
+    entity_id TEXT NOT NULL,
+    agent_id TEXT REFERENCES agents(agent_id) ON DELETE CASCADE,
+    role TEXT,
+    status TEXT,
+    error_summary TEXT,
+    timestamp TEXT,
+    source_path TEXT NOT NULL,
+    UNIQUE (entity_kind, entity_id, source_path),
+    CHECK (length(search_entity_id) > 0),
+    CHECK (length(entity_id) > 0),
+    CHECK (length(source_path) > 0)
+) WITHOUT ROWID;
+
+CREATE VIRTUAL TABLE IF NOT EXISTS agent_search_fts USING fts5(
+    search_entity_id UNINDEXED,
+    entity_id,
+    role,
+    status,
+    error_summary,
+    timestamp,
+    source_path,
+    tokenize = 'unicode61'
+);
+
+CREATE TABLE IF NOT EXISTS document_search_entries (
+    search_entry_id TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL REFERENCES documents(document_id) ON DELETE CASCADE,
+    representation_id TEXT NOT NULL
+        REFERENCES document_representations(representation_id) ON DELETE CASCADE,
+    document_type TEXT NOT NULL REFERENCES document_types(type_code),
+    representation_kind TEXT NOT NULL REFERENCES representation_kinds(kind_code),
+    title TEXT,
+    source_path TEXT NOT NULL UNIQUE,
+    media_type TEXT,
+    index_status TEXT NOT NULL CHECK (
+        index_status IN (
+            'indexed', 'truncated', 'excluded-format', 'excluded-binary',
+            'excluded-total-limit', 'inaccessible', 'invalid-utf8'
+        )
+    ),
+    source_bytes INTEGER CHECK (source_bytes IS NULL OR source_bytes >= 0),
+    indexed_bytes INTEGER NOT NULL DEFAULT 0 CHECK (indexed_bytes >= 0),
+    truncated INTEGER NOT NULL DEFAULT 0 CHECK (truncated IN (0, 1)),
+    error_code TEXT,
+    FOREIGN KEY (document_id, document_type)
+        REFERENCES documents(document_id, document_type) ON DELETE CASCADE,
+    FOREIGN KEY (document_id, representation_id, representation_kind)
+        REFERENCES document_representations(
+            document_id, representation_id, representation_kind
+        ) ON DELETE CASCADE,
+    CHECK (length(search_entry_id) > 0),
+    CHECK (length(source_path) > 0)
+) WITHOUT ROWID;
+
+CREATE VIRTUAL TABLE IF NOT EXISTS document_search_fts USING fts5(
+    search_entry_id UNINDEXED,
+    title,
+    source_path,
+    body,
+    tokenize = 'unicode61'
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_search_kind_status
+    ON agent_search_entities(entity_kind, status, source_path);
+CREATE INDEX IF NOT EXISTS idx_document_search_type_status
+    ON document_search_entries(document_type, index_status, source_path);
 
 CREATE INDEX IF NOT EXISTS idx_agent_sessions_agent ON agent_sessions(agent_id);
 CREATE INDEX IF NOT EXISTS idx_runs_agent_status ON runs(agent_id, status);

@@ -15,14 +15,26 @@ not change the accepted model or choose whether the Human should redesign it.
   and identity`, `Information lifecycle`, `Core capability topology`,
   `Responsibility matrix`, `Observed current implementation`, and
   `Representation-alignment checklist`.
-- `skills/convention/references/agent-factory-core-diagrams.md`, especially
-  `Core capability topology` and `Current implementation relationships`.
-- `skills/explorer/SKILL.md` and `skills/explorer/references/workspace.md`.
-- `skills/interview/SKILL.md` and `skills/interview/references/conduct.md`.
+- Historical `skills/convention/references/agent-factory-core-diagrams.md`,
+  especially `Core capability topology` and `Current implementation
+  relationships`, as preserved at commit
+  `bd3daa40645b710728e658b98e7606c2c29c05f8`; its current successor is
+  `skills/convention/references/diagrams.md`.
+- Historical `skills/explorer/SKILL.md` and
+  `skills/explorer/references/workspace.md`, as preserved at commit
+  `e191d7c772c8054ddd2c0c5bbbb3fff5defa143b`; the current capability contract
+  is `skills/convention/references/explorer.md`.
+- Historical `skills/interview/SKILL.md` and
+  `skills/interview/references/conduct.md`, as preserved at commit
+  `e191d7c772c8054ddd2c0c5bbbb3fff5defa143b`; the current capability contract
+  is `skills/convention/references/interview.md`.
 - `.codex-plugin/plugin.json` as current public-surface corroboration.
 
 All sources were read from the local repository on 2026-08-29. No tests,
 validators, builds, servers, runtime probes, or external research were used.
+The historical commit and current-successor locators above were added during
+the later physical layout migration; they do not rewrite the investigation's
+observations or conclusions.
 
 ## Observation
 
@@ -61,4 +73,3 @@ level there is a limited mixture: Convention properly owns the canonical
 cross-capability summaries, while some operational rules are duplicated between
 Convention and the capability-specific contracts and within those contracts.
 That duplication does not currently reclassify either capability.
-

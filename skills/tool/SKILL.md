@@ -1,6 +1,10 @@
 ---
 name: tool
 description: Discover and manage the lifecycle of Agent-usable external tools and connectors without taking over their authoritative host, plugin, MCP, project manifest, credentials, or execution authority.
+metadata:
+  specification-id: tool
+  human-entry: .agent-factory/document/specification/tool/index.html
+  ai-root: skills/tool/
 ---
 
 # Agent Factory Tool

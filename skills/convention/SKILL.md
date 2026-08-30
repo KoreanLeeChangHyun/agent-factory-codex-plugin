@@ -1,6 +1,10 @@
 ---
 name: convention
-description: Apply Agent Factory's core model and cross-cutting conventions for project structure, development, libraries, design, annotations, Document types, and Skill ownership.
+description: Apply Agent Factory's core model and cross-cutting conventions for project structure, development, testing, libraries, design, annotations, Document types, and Skill ownership.
+metadata:
+  specification-id: convention
+  human-entry: .agent-factory/document/specification/convention/index.html
+  ai-root: skills/convention/
 ---
 
 # Agent Factory Convention
@@ -10,7 +14,7 @@ description: Apply Agent Factory's core model and cross-cutting conventions for 
 Use this Skill whenever work designs, reviews, or explains Agent Factory core
 concepts or applies its cross-cutting conventions, including Document types,
 capability boundaries, Skill ownership and naming, document storage,
-project structure, development, libraries, design, or annotations. Read every
+project structure, development, testing, libraries, design, or annotations. Read every
 applicable reference before acting.
 
 Agent Factory has exactly six public distributed Skills: `agent`,
@@ -32,8 +36,12 @@ or source-appropriate form, including fidelity, identity, provenance, and
 collection context; never impose one canonical original format. Under the
 current/default `.agent-factory/` local adapter, active Processed Documents use
 Markdown (`.md`), but that representation does not make the logical Processed
-type storage-dependent or turn preserved `processed/legacy-inquery/` material
-into an active target or precedent. An explicitly resolved project server or
+type storage-dependent. Each local type root contains Document packages
+directly: one immediate child directory is one stable Document identity, with
+package-internal files and subdirectories allowed and no producer/category or
+legacy wrapper layer. Preserved `processed/legacy-inquery-<legacy-id>/`
+packages remain Processed, with legacy expressed only as status/provenance, and
+are not active targets or precedents. An explicitly resolved project server or
 external backend may own any document root without weakening provenance,
 authority, isolation, semantic alignment, accessibility, or security. Never
 invent or silently select a backend.
@@ -44,6 +52,12 @@ AI-facing Skill and a Human-facing Korean HTML, CSS, and JavaScript document.
 Always keep both representations semantically synchronized. A one-sided change
 is incomplete and unacceptable; if synchronization cannot be achieved, the
 change or run must not be reported as completed.
+
+This Skill's Human Specification is the Human-centered semantic representation
+of `skills/convention/`. Preserve the reciprocal `convention` identity and
+locators in this frontmatter and the paired HTML metadata. Organize the Human
+document by readable topics rather than copying the Skill directory hierarchy,
+and keep material sections traceable to exact Skill or reference sources.
 
 Document adapter initialization and physical layout/backend migration remain
 inside the public `document` Skill and are distinct from semantic Document
@@ -58,8 +72,13 @@ in `references/agent-factory-core.md`.
 
 Workspace is the Human-facing project control tower with exactly five
 top-level Activities, in order: 일정, 에이전트, 문서, 로그, 테스트. Their
-Primary Sidebar information architecture and detailed capabilities remain
-Human-owned and undecided. Workspace does not own or execute underlying state.
+Document Primary Sidebar is decided as ordered, independently collapsible
+`원본문서`, `가공문서`, and `스펙문서` groups: Original has overview and
+table-shaped search views, while Processed and Specification have overview and
+consistent explorer/tree-shaped areas for actual Documents. `스펙문서` is a
+display label, not a semantic type rename. Finer Document view/source details
+and the other four sidebar architectures and capabilities remain Human-owned
+and unresolved. Workspace does not own or execute underlying state.
 Its browser shell must exist as byte-identical packaged installation sources in
 `skills/workspace/assets/browser/` and a materialized current-project copy in
 `.agent-factory/workspace/common/`; the packaged assets are the installation
@@ -77,19 +96,21 @@ does not store credentials, execute Agent tasks, own Gather synchronization, or
 create a sixth Workspace Activity. Convention owns shared least-privilege,
 safety, and approval rules across these integrations.
 
-The current/default local adapter reserves the exact project-wide catalog path
-`<project-root>/.agent-factory/db.sqlite`. This shared SQLite catalog is a
-rebuildable, non-authoritative read model across Agent execution structure and
-Documents for later Workspace use. It neither creates a public Skill or Agent
-role nor replaces runtime artifacts, Document bodies and representations,
-Gather configuration, Project Skills, provenance evidence, or Specification
-pairs. Its maintained DDL belongs to Workspace at
-`skills/workspace/assets/schema/catalog.sql`.
+The exact `<project-root>/.agent-factory/db.sqlite` local catalog and all of its
+implementation lifecycle are Agent-owned. Workspace may only present
+Agent-provided read-only results; it never owns, initializes, rebuilds,
+inspects, or executes searches against the catalog. Preserve the catalog as an
+ignored, rebuildable, non-authoritative projection that cannot replace any
+owning Agent or Document source. Detailed catalog operations belong to Agent;
+Convention carries only this cross-cutting ownership rule.
 
-Keep distributed plugin Skills below `<plugin-root>/skills/`. Keep consumer
-Project Skills below `<project-root>/.codex/skills/<category>-<name>/`. Use the
-accepted `<category>-<name>` form for newly named Skill identities when the
-owning context requires two parts, and preserve existing accepted identities.
+Keep distributed plugin Skills below `<plugin-root>/skills/`. Ordinary consumer
+Project Skill and Specification pairs use the exact same lowercase hyphen-case
+`<category>-<title>` identity at
+`<project-root>/.codex/skills/<category>-<title>/` and
+`<project-root>/.agent-factory/document/specification/<category>-<title>/`.
+This plugin is the explicit exception: preserve the accepted single-name
+distributed Skill and Specification identities.
 
 ## Reference routing
 
@@ -101,6 +122,13 @@ owning context requires two parts, and preserve existing accepted identities.
   project layout and ownership boundaries.
 - `references/development.md`: Apply shared implementation and maintenance
   conventions while preserving the owning project's established patterns.
+- `references/testing.md`: Apply focused test selection and execution scope
+  whenever implementation, maintenance, or Verification work selects or runs
+  tests.
+- `references/explicit-human-input.md`: Apply the explicit-Human-input rule
+  whenever requirements, choices, scope, authority, or acceptance criteria are
+  absent or ambiguous; Main asks and waits, while delegated Agents report the
+  unresolved question without impersonating or interviewing the Human.
 - `references/libraries.md`: Select dependencies and formats using the
   recommended library policy.
 - `references/design.md`: Apply shared Human-facing interface and document

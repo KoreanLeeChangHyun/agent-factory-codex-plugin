@@ -19,6 +19,23 @@ SERVER_PATH = ROOT / "skills" / "workspace" / "scripts" / "serve.py"
 LAUNCHER_PATH = ROOT / "skills" / "workspace" / "assets" / "workspace.sh"
 ASSET_ROOT = ROOT / "skills" / "workspace" / "assets" / "browser"
 COMMON_ROOT = ROOT / ".agent-factory" / "workspace" / "common"
+PACKAGED_BROWSER_ASSETS = (
+    Path("index.html"),
+    Path("styles.css"),
+    Path("app.js"),
+    Path("THIRD_PARTY_NOTICES.txt"),
+    Path("vendor/tabulator/6.5.2/tabulator.min.js"),
+    Path("vendor/tabulator/6.5.2/tabulator.min.css"),
+    Path("vendor/tabulator/6.5.2/LICENSE"),
+)
+ORIGINAL_SEARCH_COLUMNS = (
+    "문서 분류",
+    "출처",
+    "태그",
+    "문서 이름",
+    "확장자",
+    "수정 일자",
+)
 
 SPEC = importlib.util.spec_from_file_location("workspace_serve", SERVER_PATH)
 assert SPEC is not None and SPEC.loader is not None
@@ -72,6 +89,25 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn('/common/"', launcher)
         self.assertNotIn("allow-non-loopback", launcher)
 
+    def test_launcher_accepts_named_port_and_rejects_invalid_arguments(self) -> None:
+        launcher = LAUNCHER_PATH.read_text(encoding="utf-8")
+        for contract in (
+            "port=8000",
+            "-p|--port)",
+            "-h|--help)",
+            'if [ "$#" -lt 2 ]',
+            "case $2 in",
+            "-[0-9]*) ;;",
+            "-*)",
+            "*)",
+            "usage >&2",
+            "exit 0",
+            "exit 2",
+            'set -- "$port"',
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, launcher)
+
     def test_launcher_refuses_missing_tree_and_prevents_symlink_escape(self) -> None:
         launcher = LAUNCHER_PATH.read_text(encoding="utf-8")
         self.assertIn("Workspace tree is missing", launcher)
@@ -79,15 +115,13 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn("candidate.relative_to(root)", launcher)
 
     def test_packaged_assets_faithfully_copy_the_existing_common_shell(self) -> None:
-        for name in (
-            "index.html",
-            "styles.css",
-            "app.js",
-            "THIRD_PARTY_NOTICES.txt",
-        ):
+        self.assertEqual(
+            set(PACKAGED_BROWSER_ASSETS), SERVER.PACKAGED_BROWSER_ASSET_PATHS
+        )
+        for relative_path in PACKAGED_BROWSER_ASSETS:
             self.assertEqual(
-                (COMMON_ROOT / name).read_bytes(),
-                (ASSET_ROOT / name).read_bytes(),
+                (COMMON_ROOT / relative_path).read_bytes(),
+                (ASSET_ROOT / relative_path).read_bytes(),
             )
         for root in (ASSET_ROOT, COMMON_ROOT):
             script = (root / "app.js").read_text(encoding="utf-8")
@@ -114,13 +148,184 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             positions.append(html.index(f'data-activity="{activity}"'))
         self.assertEqual(positions, sorted(positions))
         self.assertEqual(html.count('data-activity="'), 5)
-        self.assertGreaterEqual(html.count("정의 대기"), 10)
+        self.assertGreaterEqual(html.count("정의 대기"), 8)
         self.assertNotIn('data-activity="roadmap"', html)
         self.assertNotIn('data-activity="explorer"', html)
         self.assertNotIn('data-activity="skills"', html)
         self.assertNotIn('data-activity="planning"', html)
         self.assertNotIn('role="tree"', html)
         self.assertNotIn("목차", html)
+
+    def test_document_sidebar_has_decided_groups_and_navigation(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        group_labels = (
+            '<span id="original-group-label">원본문서</span>',
+            '<span id="processed-group-label">가공문서</span>',
+            '<span id="specification-group-label">스펙문서</span>',
+        )
+        positions = [html.index(label) for label in group_labels]
+        self.assertEqual(positions, sorted(positions))
+        self.assertEqual(3, html.count("data-document-group-toggle"))
+        self.assertEqual(3, html.count('aria-expanded="true"'))
+        self.assertIn('aria-label="원본문서 보기"', html)
+        self.assertIn('data-document-target="original-overview">개요</a>', html)
+        self.assertIn('data-document-target="original-search">문서검색</a>', html)
+        self.assertIn('aria-label="가공문서 보기"', html)
+        self.assertIn('data-document-target="processed-overview">개요</a>', html)
+        self.assertIn('aria-label="스펙문서 보기"', html)
+        self.assertIn('data-document-target="specification-overview">개요</a>', html)
+        self.assertNotIn("스펙 문서 보기", html)
+
+        document_sidebar_start = html.index(
+            '<div class="sidebar-view document-sidebar"'
+        )
+        document_sidebar_end = html.index(
+            '</div>\n          <div class="sidebar-view oversight-sidebar" '
+            'data-sidebar-view="logs"',
+            document_sidebar_start,
+        )
+        document_sidebar = html[document_sidebar_start:document_sidebar_end]
+        self.assertEqual(2, document_sidebar.count('role="region"'))
+        self.assertEqual(0, document_sidebar.count('role="treeitem"'))
+        self.assertEqual(2, document_sidebar.count("aria-describedby="))
+        self.assertIn('id="processed-tree-state"', document_sidebar)
+        self.assertIn('id="specification-tree-state"', document_sidebar)
+        self.assertEqual(
+            2,
+            document_sidebar.count("문서 연결 방식은 Human 결정을 기다리고 있습니다"),
+        )
+        self.assertNotIn("legacy-inquery", document_sidebar)
+        self.assertNotIn("notes.md", document_sidebar)
+
+    def test_original_document_views_have_compact_overview_and_search_shapes(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        search_start = html.index('id="document-original-search"')
+        search_end = html.index('</article>', search_start)
+        search_view = html[search_start:search_end]
+        overview_start = html.index('id="document-original-overview"')
+        overview_end = html.index('</article>', overview_start)
+        overview_view = html[overview_start:overview_end]
+        for original_view in (overview_view, search_view):
+            self.assertNotIn('class="editor-header"', original_view)
+            self.assertNotIn('class="editor-header__tab"', original_view)
+        self.assertIn("<table", search_view)
+        self.assertIn("<caption>", search_view)
+        heading_positions = [
+            search_view.index(f'<th scope="col">{heading}</th>')
+            for heading in ORIGINAL_SEARCH_COLUMNS
+        ]
+        self.assertEqual(heading_positions, sorted(heading_positions))
+        self.assertEqual(6, search_view.count('<th scope="col">'))
+        self.assertIn('type="search"', search_view)
+        self.assertIn('data-original-global-search', search_view)
+        self.assertIn('disabled data-original-global-search', search_view)
+        self.assertIn('data-original-table-fallback', search_view)
+        self.assertIn('data-original-table', search_view)
+        self.assertNotIn(
+            "원본문서 본문을 변경하거나 복제하지 않는 메타데이터·출처 링크 보기입니다.",
+            search_view,
+        )
+        self.assertNotIn("<select", search_view)
+        self.assertNotIn("<button", search_view)
+        self.assertIn("데이터 연결 대기", search_view)
+
+    def test_document_views_start_visible_with_plain_overview_styling(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        document_view_openings = [
+            line.strip()
+            for line in html.splitlines()
+            if "data-document-view=" in line
+        ]
+        self.assertEqual(4, len(document_view_openings))
+        self.assertTrue(
+            all(" hidden" not in opening for opening in document_view_openings)
+        )
+        self.assertIn(
+            'class="activity-button is-active" type="button" '
+            'aria-label="문서" aria-pressed="true"',
+            html,
+        )
+
+        styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("--primary-sidebar-width: 252px", styles)
+        self.assertIn(".document-group__toggle", styles)
+        self.assertIn("height: 22px", styles)
+        self.assertIn(".document-navigation:focus-within", styles)
+        self.assertIn(".editor-header__tab", styles)
+        self.assertEqual(2, html.count('class="editor-header__tab"'))
+        self.assertIn("가공문서 / 개요", html)
+        self.assertIn("스펙문서 / 개요", html)
+        self.assertIn(".document-view__canvas", styles)
+        self.assertNotIn("linear-gradient", styles)
+        self.assertNotIn("box-shadow", styles)
+
+    def test_document_separators_preserve_internal_borders_and_omit_terminal_divider(
+        self,
+    ) -> None:
+        styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
+        self.assertIn(
+            ".document-group {\n  border-bottom: 1px solid var(--region-border);\n}",
+            styles,
+        )
+        self.assertIn(
+            ".document-sidebar > .document-group:last-child {\n"
+            "  border-bottom: 0;\n}",
+            styles,
+        )
+        self.assertIn(
+            ".primary-sidebar {\n  min-width: 0;\n  overflow: auto;\n"
+            "  background: var(--primary-sidebar-background);\n"
+            "  border-right: 1px solid var(--region-border);",
+            styles,
+        )
+        self.assertIn(
+            ".original-search .tabulator .tabulator-header {\n"
+            "  border-bottom: 1px solid #3c3c3c;",
+            styles,
+        )
+
+    def test_document_group_icons_are_decorative_svg_and_controls_are_named(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(3, html.count("data-document-group-toggle"))
+        for label_id, label in (
+            ("original-group-label", "원본문서"),
+            ("processed-group-label", "가공문서"),
+            ("specification-group-label", "스펙문서"),
+        ):
+            label_position = html.index(f'<span id="{label_id}">{label}</span>')
+            toggle_start = html.rfind(
+                '<button class="document-group__toggle"', 0, label_position
+            )
+            toggle_end = html.index("</button>", label_position)
+            self.assertGreaterEqual(toggle_start, 0)
+            toggle = html[toggle_start:toggle_end]
+            self.assertIn('type="button"', toggle)
+            self.assertIn('aria-expanded="true"', toggle)
+            self.assertIn("<svg", toggle)
+            self.assertIn('aria-hidden="true"', toggle)
+            self.assertIn('focusable="false"', toggle)
+
+    def test_only_original_document_views_use_the_compact_workspace_inset(self) -> None:
+        styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
+        compact_rule = """.document-view[data-document-view="original-overview"] .document-view__canvas,
+.document-view[data-document-view="original-search"] .document-view__canvas {
+  max-width: none;
+  padding: var(--compact-workspace-inset);
+}"""
+        self.assertIn("--compact-workspace-inset: 12px", styles)
+        self.assertEqual(1, styles.count(compact_rule))
+        self.assertNotIn(
+            'data-document-view="processed-overview"] .document-view__canvas',
+            styles,
+        )
+        self.assertNotIn(
+            'data-document-view="specification-overview"] .document-view__canvas',
+            styles,
+        )
+        self.assertIn(
+            "padding: 24px clamp(24px, 5vw, 56px) 40px",
+            styles,
+        )
 
     def test_activity_icons_are_distinct_accessible_inline_svg(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
@@ -208,6 +413,11 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE",
             "https://tabler.io/icons/icon/history",
             "https://github.com/tabler/tabler-icons/blob/main/LICENSE",
+            "Tabulator 6.5.2",
+            "https://registry.npmjs.org/tabulator-tables/-/tabulator-tables-6.5.2.tgz",
+            "Copyright (c) 2015-2026 Oli Folkerd",
+            "vendor/tabulator/6.5.2/tabulator.min.js",
+            "vendor/tabulator/6.5.2/tabulator.min.css",
         ):
             self.assertIn(required_notice_text, normalized_notice)
         self.assertNotIn("Lucide", normalized_notice)
@@ -236,6 +446,41 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertNotIn("roadmap:", script)
         self.assertNotIn("explorer:", script)
         self.assertNotIn("skills:", script)
+        self.assertNotIn("fetch(", script)
+        self.assertIn("const selectDocumentView", script)
+        self.assertIn('item.setAttribute("aria-current", "page")', script)
+        self.assertIn("view.hidden = view !== nextView", script)
+        self.assertIn('toggle.setAttribute("aria-expanded", String(!isExpanded))', script)
+        self.assertIn("content.hidden = isExpanded", script)
+        self.assertIn('selectDocumentView("original-overview")', script)
+        self.assertIn("initializeOriginalSearch();", script)
+
+    def test_original_search_uses_pinned_local_tabulator_and_safe_read_only_adapter(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        script = (ASSET_ROOT / "app.js").read_text(encoding="utf-8")
+        styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
+        self.assertIn('./vendor/tabulator/6.5.2/tabulator.min.css', html)
+        self.assertIn('./vendor/tabulator/6.5.2/tabulator.min.js', html)
+        self.assertNotIn("unpkg.com", html)
+        self.assertNotIn("cdn", html.lower())
+        for title in ORIGINAL_SEARCH_COLUMNS:
+            self.assertIn(f'title: "{title}"', script)
+        self.assertEqual(3, script.count("...listFilter"))
+        self.assertEqual(3, script.count("...textFilter"))
+        self.assertIn("movableColumns: true", script)
+        self.assertIn('layout: "fitColumns"', script)
+        self.assertEqual(6, script.count("widthGrow:"))
+        self.assertIn('field: "name", minWidth: 220, widthGrow: 2', script)
+        self.assertIn("resizable: true", script)
+        self.assertIn(".document-table-wrap {\n  margin-top: 8px;\n  overflow-x: auto;", styles)
+        self.assertIn(".original-search .tabulator {\n  min-width: 900px;", styles)
+        self.assertIn("document.createElement(\"a\")", script)
+        self.assertIn("link.textContent = name", script)
+        self.assertIn('resolved.protocol === "http:" || resolved.protocol === "https:"', script)
+        self.assertIn('link.rel = "noopener noreferrer"', script)
+        self.assertIn('icon.setAttribute("aria-hidden", "true")', script)
+        self.assertIn('icon.setAttribute("focusable", "false")', script)
+        self.assertIn("window.agentFactoryWorkspace.originalSearch.replaceRows(rows)", script)
         self.assertNotIn("fetch(", script)
 
     def test_explorer_projection_separates_project_and_classified_documents(self) -> None:
@@ -408,6 +653,11 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
                 self.assertTrue(
                     (project_root / SERVER.WORKSPACE_RELATIVE_PATH / name).is_dir()
                 )
+            specification_root = (
+                project_root / ".agent-factory" / "document" / "specification"
+            )
+            self.assertTrue(specification_root.is_dir())
+            self.assertFalse((specification_root / "human").exists())
             self.assertEqual("preserve", preserved.read_text(encoding="utf-8"))
 
     def test_init_materializes_packaged_browser_files_byte_identically(self) -> None:
@@ -419,17 +669,26 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             installed_root = (
                 project_root / SERVER.WORKSPACE_RELATIVE_PATH / "common"
             )
-            for name in (
-                "index.html",
-                "styles.css",
-                "app.js",
-                "THIRD_PARTY_NOTICES.txt",
-            ):
-                self.assertTrue((installed_root / name).is_file())
+            for relative_path in PACKAGED_BROWSER_ASSETS:
+                self.assertTrue((installed_root / relative_path).is_file())
                 self.assertEqual(
-                    (ASSET_ROOT / name).read_bytes(),
-                    (installed_root / name).read_bytes(),
+                    (ASSET_ROOT / relative_path).read_bytes(),
+                    (installed_root / relative_path).read_bytes(),
                 )
+
+    def test_normal_init_flow_has_no_catalog_side_effect(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            with (
+                mock.patch.object(SERVER, "resolve_project_root", return_value=project_root),
+                mock.patch.object(
+                    SERVER, "install_assets", return_value=(4, 0, True)
+                ) as install_assets,
+            ):
+                self.assertEqual(0, SERVER.main(["--project-root", str(project_root), "init"]))
+            install_assets.assert_called_once_with(project_root, ASSET_ROOT, False)
+            self.assertFalse((project_root / ".agent-factory" / "db.sqlite").exists())
+            self.assertFalse(hasattr(SERVER, "initialize_catalog"))
 
     def test_init_rejects_activity_file_conflicts_before_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -610,26 +869,3 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-def test_workspace_launcher_named_port_contract() -> None:
-    from pathlib import Path
-
-    launcher = (
-        Path(__file__).parents[1]
-        / "skills"
-        / "workspace"
-        / "assets"
-        / "workspace.sh"
-    ).read_text(encoding="utf-8")
-
-    assert "port=8000" in launcher
-    assert "-p|--port)" in launcher
-    assert "-h|--help)" in launcher
-    assert 'if [ "$#" -lt 2 ]' in launcher
-    assert "case $2 in" in launcher
-    assert "-[0-9]*) ;;" in launcher
-    assert "-*)" in launcher
-    assert "*)" in launcher
-    assert "usage >&2" in launcher
-    assert "exit 0" in launcher
-    assert "exit 2" in launcher
-    assert "set -- \"$port\"" in launcher

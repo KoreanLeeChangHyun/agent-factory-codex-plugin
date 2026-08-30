@@ -1,6 +1,10 @@
 ---
 name: agent
 description: Run the Agent Factory Main, Work, and Verification graph from a CLI or hosted interface with managed Codex exec sessions for delegated roles.
+metadata:
+  specification-id: agent
+  human-entry: .agent-factory/document/specification/agent/index.html
+  ai-root: skills/agent/
 ---
 
 # Agent Factory Agent
@@ -102,6 +106,56 @@ record itself is not a graph transition or completion. A managed child failure,
 cancellation, or Human-decision request is a control-plane error and is not
 graph completion. Only Verification `pass` or an evidenced Human skip applied
 after Work completion reaches `END`.
+
+## Local catalog
+
+Agent owns the current/default local adapter's complete project-wide catalog
+implementation at `<project-root>/.agent-factory/db.sqlite`: initialization,
+rebuild, read-only status inspection, bounded Agent and Document FTS5 search,
+atomic publication and last-good recovery safety, and schema evolution. The
+maintained schema is `assets/schema/catalog.sql` and the standard-library
+manager is `scripts/catalog.py`.
+
+```bash
+python3 skills/agent/scripts/catalog.py --project-root <target-git-root> init
+python3 skills/agent/scripts/catalog.py --project-root <target-git-root> rebuild
+python3 skills/agent/scripts/catalog.py --project-root <target-git-root> status
+python3 skills/agent/scripts/catalog.py --project-root <target-git-root> search-agents 'completed work' --limit 20
+python3 skills/agent/scripts/catalog.py --project-root <target-git-root> search-documents '한국어 검색' --limit 20
+```
+
+`init` is idempotent on the current schema. When it finds an explicitly
+supported schema version 1 or 2 catalog, it does not migrate or trust old rows:
+it rebuilds version 3 from the current authoritative local Agent and Document
+files, validates SQLite integrity and foreign keys, and publishes through the
+same atomic last-good-safe replacement path. It reports whether the result was
+created, migrated, or unchanged together with source and target versions.
+Missing, ambiguous, unparseable, unsupported, or future version markers fail
+closed without replacing the prior bytes. `rebuild` bounds and rejects unsafe
+local scans, builds and integrity-checks a separate database, and publishes
+atomically without losing the last good catalog. Existing SQLite sidecars
+block replacement.
+Schema version 3 projects authorized Agent structure and one Document row per
+immediate package directory, with recursive representation rows from package
+files and capped allowlisted UTF-8 text. Document type comes only from the
+`original`, `processed`, or `specification` root; historical legacy state is
+status or provenance, never a fourth type. Text caps remain 256 KiB per file
+and 8 MiB per rebuild.
+
+Search opens the existing database read-only and returns deterministic JSON.
+Queries are bounded literal Unicode, not raw FTS5 expressions: quotes are
+escaped, identifier hyphens are tokenized, a manager-generated final-token
+prefix supports Korean suffixes, invalid or empty input fails closed, result
+limits stay between 1 and 100, and SQL remains parameterized.
+
+The database and sidecars are ignored generated artifacts. The catalog is
+rebuildable, non-authoritative, and independent from Agent execution; it does
+not replace runtime records, Document bodies, provenance, Gather configuration,
+Project Skills, or Specification pairs. It adds no runtime dual write,
+HTTP/general query API, search UI, watcher, semantic/vector search, or
+external-backend ingestion. Workspace does not own, initialize, rebuild,
+inspect, or execute searches against it. Workspace may later present only
+Agent-provided read-only results.
 
 ## Receipts
 

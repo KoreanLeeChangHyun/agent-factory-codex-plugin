@@ -31,10 +31,11 @@ The plugin exposes exactly six public skills:
   many-to-one, or many-to-many. A Specification is accepted and reconciled
   project knowledge and uses paired Korean
   Human-readable HTML/CSS/JavaScript and AI-readable Skill views. Project
-  Skills use the lowercase hyphen-case name
-  `<category>-<name>`; their directory and `SKILL.md` frontmatter
-  `name` match exactly, and they live below `.codex/skills/` in the owning
-  project.
+  Skill/Specification pairs use the exact lowercase hyphen-case identity
+  `<category>-<title>` in both `.codex/skills/` and
+  `.agent-factory/document/specification/`; the Skill frontmatter `name` also
+  matches. This plugin's six accepted single-name distributed pairs are the
+  explicit exception.
 - `gather`: Select and synchronize bounded external sources as Original
   Documents while preserving fidelity, provenance, identity, and resolved
   destinations. It uses connector capability prepared through Tool without
@@ -101,7 +102,6 @@ Agent Factory uses this project-local structure as its current/default adapter:
 │   ├── original/
 │   ├── processed/
 │   ├── specification/
-│   │   └── human/
 │   └── sync.json
 └── workspace/
 │   ├── common/
@@ -109,13 +109,46 @@ Agent Factory uses this project-local structure as its current/default adapter:
 │   └── skills/
 ```
 
-The exact `.agent-factory/db.sqlite` path is reserved for a rebuildable,
-non-authoritative catalog/read model across Agent execution structure and
-Documents. Workspace maintains its schema at
-`skills/workspace/assets/schema/catalog.sql`. The current implementation is
-schema-only: it does not create or populate a database or implement UI, APIs,
-search, scanners, rebuild jobs, or runtime dual writes. Do not commit the
-database or its SQLite runtime sidecars.
+The exact `.agent-factory/db.sqlite` path is the shared project-wide
+catalog/read model across Agent execution structure and Documents. It is
+rebuildable and non-authoritative. Agent owns the maintained DDL at
+`skills/agent/assets/schema/catalog.sql`. The catalog does
+not replace authoritative Agent runtime files, Document bodies or
+representations, provenance evidence, Gather configuration, Project Skills, or
+faithful Specification pairs.
+
+The standard-library manager at `skills/agent/scripts/catalog.py` provides
+explicit `init`, `rebuild`, `status`, `search-agents`, and `search-documents`
+operations. Workspace initialization has no catalog side effect; rebuild uses bounded local Agent and
+Document metadata scans plus capped allowlisted textual Document indexing,
+builds and checks a separate database, and atomically publishes it without
+replacing the last good catalog on failure. `init` leaves the current schema
+unchanged, automatically rebuild-migrates supported schema versions 1 and 2
+from authoritative files, and rejects missing, unparseable, unsupported, or
+future versions without replacing the prior database. Run:
+
+```bash
+python3 skills/agent/scripts/catalog.py --project-root . init
+python3 skills/agent/scripts/catalog.py --project-root . rebuild
+python3 skills/agent/scripts/catalog.py --project-root . status
+python3 skills/agent/scripts/catalog.py --project-root . search-agents completed --limit 20
+python3 skills/agent/scripts/catalog.py --project-root . search-documents '한국어 검색' --limit 20
+```
+
+Search treats each bounded Unicode query as literal text, including ordinary
+hyphenated identifiers, Korean, spaces, punctuation, and quotes; it does not
+expose raw FTS5 expressions. A manager-generated final-token prefix supports
+attached suffixes such as `검색과`, while the complete user input remains
+escaped and SQL remains parameterized. It uses read-only FTS5 queries over
+authorized Agent structure and bounded local textual Document representations. The
+implementation has no runtime dual write, HTTP/general query API, catalog
+search screen/navigation integration, live watcher, semantic/vector search, or
+external-backend ingestion. The
+database and its SQLite journal, SHM, and WAL sidecars are ignored generated
+artifacts and must not be committed. Agent execution does not depend on catalog
+creation, freshness, corruption, or availability. Workspace may later present
+Agent-provided read-only results, but it does not own, initialize, rebuild,
+inspect, or execute searches against the catalog.
 
 `agent/` contains managed Codex session and run state.
 Temporary execution-only Explorer material stays in the producing managed Agent
@@ -123,8 +156,12 @@ run. Durable Explorer evidence is classified as an Original or Processed
 Document. `document/` contains
 the local roots for Original, Processed, and Specification Documents; locally
 materialized Human-facing Specifications
-live below `document/specification/human/`, and preserved legacy Inquery material
-lives below `document/processed/legacy-inquery/`. Gather configuration is
+live below `document/specification/`. Every immediate child directory of a
+Document type root is one stable Document package; package-internal files and
+directories are allowed, but producer/category/legacy wrappers are not.
+Preserved legacy Inquery packages live directly below `document/processed/`
+with `legacy-inquery-<legacy-id>` identities and remain Processed Documents
+whose legacy state is status/provenance metadata. Gather configuration is
 `document/sync.json`.
 `workspace/` contains the shared browser shell and control-tower UI: `common/`
 is the shared shell, `.agent-factory/workspace/explorer/` owns an internal
@@ -134,10 +171,18 @@ under one of the five Activities. The Explorer projection distinguishes the
 project tree from classified Document trees without copying or becoming the
 canonical owner of either; temporary Explorer material remains in its producing
 managed Agent run.
-Workspace reads Human-facing Specifications from the Document tree. The
-Agent Factory core Specification is paired with `skills/convention/`; consumer
-project Specifications pair with Project Skills below that project's
-`.codex/skills/`.
+Workspace reads Human-facing Specifications from the Document tree. Each
+Specification pairs one-to-one with exactly one Skill directory under the same
+stable identity. In this plugin, `skills/<skill-id>/` pairs with
+`.agent-factory/document/specification/<skill-id>/`; the Korean view is
+organized for Human readability and maps material sections to exact sources in
+that Skill instead of copying its directory or raw text. This repository does
+not create or mirror `.codex/skills/`. Consumer-project Skill roots may instead
+be below that project's `.codex/skills/`; ordinary consumer pairs use the exact
+same lowercase hyphen-case `<category>-<title>` identity at
+`.codex/skills/<category>-<title>/` and
+`.agent-factory/document/specification/<category>-<title>/`. This plugin is the
+explicit exception whose six accepted single-name pairs remain unchanged.
 
 The information roots are logical roles. A project may explicitly resolve them
 to a project server or other external backend without weakening provenance,
@@ -213,7 +258,7 @@ byte-identical. For normal use, serve the existing Workspace tree on loopback an
 
 The self-contained launcher derives the project root from its own location and
 serves only the allowlisted local UI root plus
-`.agent-factory/document/specification/human/`, so
+`.agent-factory/document/specification/`, so
 `<project-root>/workspace.sh` works from any current directory. `--port <port>` or
 `-p <port>` overrides the safe default port `8000`. `serve.py` remains the
 internal initializer and advanced safe server; its global `--project-root`

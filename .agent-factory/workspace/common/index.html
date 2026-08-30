@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
     <title>Agent Factory Workspace</title>
+    <link rel="stylesheet" href="./vendor/tabulator/6.5.2/tabulator.min.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="workspace-shell" data-workspace-shell>
       <nav class="activity-bar" aria-label="작업 표시줄" data-region="activity-bar">
-        <button class="activity-button is-active" type="button" aria-label="일정" aria-pressed="true" data-activity="schedule">
+        <button class="activity-button" type="button" aria-label="일정" aria-pressed="false" data-activity="schedule">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.75" y="5.25" width="16.5" height="15" rx="2"/><path d="M7.5 3.75v3M16.5 3.75v3M3.75 9h16.5"/><circle cx="7.5" cy="12.5" r="0.55" fill="currentColor" stroke="none"/><circle cx="12" cy="12.5" r="0.55" fill="currentColor" stroke="none"/><circle cx="16.5" cy="12.5" r="0.55" fill="currentColor" stroke="none"/><circle cx="7.5" cy="16.5" r="0.55" fill="currentColor" stroke="none"/><circle cx="12" cy="16.5" r="0.55" fill="currentColor" stroke="none"/></svg>
         </button>
         <button class="activity-button" type="button" aria-label="에이전트" aria-pressed="false" data-activity="agents">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="4.25" r="0.75"/><path d="M12 5v2M5.75 12h-2M18.25 12h2M10.25 17v2.75M13.75 17v2.75M9 19.75h6"/><rect x="5.75" y="7" width="12.5" height="10" rx="2.5"/><circle cx="9.5" cy="11.5" r="0.65" fill="currentColor" stroke="none"/><circle cx="14.5" cy="11.5" r="0.65" fill="currentColor" stroke="none"/><path d="M9.25 14h5.5"/></svg>
         </button>
-        <button class="activity-button" type="button" aria-label="문서" aria-pressed="false" data-activity="documents">
+        <button class="activity-button is-active" type="button" aria-label="문서" aria-pressed="true" data-activity="documents">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.75 3.75h8l3.5 3.5v10.5a2 2 0 0 1-2 2h-9.5a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2Z"/><path d="M14.75 3.75v3.5h3.5M8.5 11h6.5M8.5 14.25h6.5M8.5 17.5h4.25M4.75 6.25H4.5a1.75 1.75 0 0 0-1.75 1.75v10.25A3 3 0 0 0 5.75 21h8.5"/></svg>
         </button>
         <!-- Tabler History icon; see ./THIRD_PARTY_NOTICES.txt for its source and complete MIT notice. -->
@@ -29,27 +30,102 @@
       </nav>
 
       <aside class="primary-sidebar" aria-label="현재 작업 영역의 기본 사이드바" data-region="primary-sidebar" data-sidebar-host>
-        <header class="primary-sidebar__header" data-sidebar-title>일정</header>
+        <header class="primary-sidebar__header" data-sidebar-title>문서</header>
         <div class="primary-sidebar__content" data-sidebar-content>
-          <div class="sidebar-view oversight-sidebar" data-sidebar-view="schedule"><span class="source-state">정의 대기</span><p>Primary Sidebar 정보 구조는 Human 결정을 기다리고 있습니다.</p></div>
+          <div class="sidebar-view oversight-sidebar" data-sidebar-view="schedule" hidden><span class="source-state">정의 대기</span><p>Primary Sidebar 정보 구조는 Human 결정을 기다리고 있습니다.</p></div>
           <div class="sidebar-view oversight-sidebar" data-sidebar-view="agents" hidden><span class="source-state">정의 대기</span><p>Primary Sidebar 정보 구조는 Human 결정을 기다리고 있습니다.</p></div>
-          <div class="sidebar-view oversight-sidebar" data-sidebar-view="documents" hidden><span class="source-state">정의 대기</span><p>Primary Sidebar 정보 구조는 Human 결정을 기다리고 있습니다.</p></div>
+          <div class="sidebar-view document-sidebar" data-sidebar-view="documents">
+            <section class="document-group" aria-labelledby="original-group-label">
+              <button class="document-group__toggle" type="button" aria-expanded="true" aria-controls="original-group-content" data-document-group-toggle>
+                <svg class="document-group__chevron" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 6 3.5 3.5L11.5 6"/></svg>
+                <span id="original-group-label">원본문서</span>
+              </button>
+              <div class="document-group__content" id="original-group-content">
+                <nav class="document-navigation" aria-label="원본문서 보기">
+                  <a class="document-navigation__item is-selected" href="#document-original-overview" aria-current="page" data-document-target="original-overview">개요</a>
+                  <a class="document-navigation__item" href="#document-original-search" data-document-target="original-search">문서검색</a>
+                </nav>
+              </div>
+            </section>
+            <section class="document-group" aria-labelledby="processed-group-label">
+              <button class="document-group__toggle" type="button" aria-expanded="true" aria-controls="processed-group-content" data-document-group-toggle>
+                <svg class="document-group__chevron" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 6 3.5 3.5L11.5 6"/></svg>
+                <span id="processed-group-label">가공문서</span>
+              </button>
+              <div class="document-group__content" id="processed-group-content">
+                <nav class="document-navigation" aria-label="가공문서 보기">
+                  <a class="document-navigation__item" href="#document-processed-overview" data-document-target="processed-overview">개요</a>
+                </nav>
+                <div class="document-tree" role="region" aria-label="가공문서 탐색기" aria-describedby="processed-tree-state">
+                  <p class="document-tree__state" id="processed-tree-state">문서 연결 방식은 Human 결정을 기다리고 있습니다.</p>
+                </div>
+              </div>
+            </section>
+            <section class="document-group" aria-labelledby="specification-group-label">
+              <button class="document-group__toggle" type="button" aria-expanded="true" aria-controls="specification-group-content" data-document-group-toggle>
+                <svg class="document-group__chevron" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4.5 6 3.5 3.5L11.5 6"/></svg>
+                <span id="specification-group-label">스펙문서</span>
+              </button>
+              <div class="document-group__content" id="specification-group-content">
+                <nav class="document-navigation" aria-label="스펙문서 보기">
+                  <a class="document-navigation__item" href="#document-specification-overview" data-document-target="specification-overview">개요</a>
+                </nav>
+                <div class="document-tree" role="region" aria-label="스펙문서 탐색기" aria-describedby="specification-tree-state">
+                  <p class="document-tree__state" id="specification-tree-state">문서 연결 방식은 Human 결정을 기다리고 있습니다.</p>
+                </div>
+              </div>
+            </section>
+          </div>
           <div class="sidebar-view oversight-sidebar" data-sidebar-view="logs" hidden><span class="source-state">정의 대기</span><p>Primary Sidebar 정보 구조는 Human 결정을 기다리고 있습니다.</p></div>
           <div class="sidebar-view oversight-sidebar" data-sidebar-view="tests" hidden><span class="source-state">정의 대기</span><p>Primary Sidebar 정보 구조는 Human 결정을 기다리고 있습니다.</p></div>
         </div>
       </aside>
 
-      <div class="sidebar-resizer" role="separator" aria-label="기본 사이드바 너비 조절" aria-orientation="vertical" aria-valuemin="180" aria-valuemax="520" aria-valuenow="288" tabindex="0" data-sidebar-resizer></div>
+      <div class="sidebar-resizer" role="separator" aria-label="기본 사이드바 너비 조절" aria-orientation="vertical" aria-valuemin="180" aria-valuemax="520" aria-valuenow="252" tabindex="0" data-sidebar-resizer></div>
 
       <main class="workspace" aria-label="작업영역" data-region="workspace">
-        <section class="workspace-view" data-workspace-view="schedule"><div class="oversight-introduction"><span class="source-state">정의 대기</span><h1>일정</h1><p>이 Activity의 상세 기능, 내부 구조, source와 control은 Human 결정을 기다리고 있습니다.</p></div></section>
+        <section class="workspace-view" data-workspace-view="schedule" hidden><div class="oversight-introduction"><span class="source-state">정의 대기</span><h1>일정</h1><p>이 Activity의 상세 기능, 내부 구조, source와 control은 Human 결정을 기다리고 있습니다.</p></div></section>
         <section class="workspace-view" data-workspace-view="agents" hidden><div class="oversight-introduction"><span class="source-state">정의 대기</span><h1>에이전트</h1><p>이 Activity의 상세 기능, 내부 구조, source와 control은 Human 결정을 기다리고 있습니다.</p></div></section>
-        <section class="workspace-view" data-workspace-view="documents" hidden><div class="oversight-introduction"><span class="source-state">정의 대기</span><h1>문서</h1><p>이 Activity의 상세 기능, 내부 구조, source와 control은 Human 결정을 기다리고 있습니다.</p></div></section>
+        <section class="workspace-view document-workspace" data-workspace-view="documents">
+          <article class="document-view" id="document-original-overview" data-document-view="original-overview">
+            <div class="document-view__canvas"><p class="document-view__status">상세 정의 대기</p><h1>원본문서 개요</h1><p>원본문서는 source fidelity, identity, provenance, collection context를 보존하는 source-faithful evidence입니다.</p><p>개요의 세부 내용은 Human 정의를 기다리고 있습니다.</p></div>
+          </article>
+          <article class="document-view" id="document-original-search" data-document-view="original-search">
+            <div class="document-view__canvas original-search">
+              <header class="original-search__header">
+                <h1>문서검색</h1>
+                <p class="original-search__state" role="status" aria-live="polite" data-original-search-state>데이터 연결 대기</p>
+              </header>
+              <div class="original-search__toolbar">
+                <label for="original-global-search">전체 검색</label>
+                <input id="original-global-search" type="search" autocomplete="off" placeholder="표시된 메타데이터 검색" disabled data-original-global-search />
+              </div>
+              <div class="document-table-wrap" data-original-table-shell>
+                <table data-original-table-fallback>
+                  <caption>원본문서 메타데이터 검색 · 데이터 연결 대기</caption>
+                  <thead><tr><th scope="col">문서 분류</th><th scope="col">출처</th><th scope="col">태그</th><th scope="col">문서 이름</th><th scope="col">확장자</th><th scope="col">수정 일자</th></tr></thead>
+                  <tbody><tr><td colspan="6">데이터 연결 대기</td></tr></tbody>
+                </table>
+                <div class="original-search__table" aria-label="원본문서 메타데이터 검색 결과" hidden data-original-table></div>
+              </div>
+              <p class="original-search__failure" role="alert" hidden data-original-search-failure>로컬 표 구성요소를 초기화하지 못했습니다. 기본 열 정보만 표시합니다.</p>
+            </div>
+          </article>
+          <article class="document-view" id="document-processed-overview" data-document-view="processed-overview">
+            <header class="editor-header"><span class="editor-header__tab">가공문서 / 개요</span></header>
+            <div class="document-view__canvas"><p class="document-view__status">상세 정의 대기</p><h1>가공문서 개요</h1><p>가공문서는 transformation과 derived working knowledge를 담는 non-authoritative 문서입니다.</p><p>개요의 세부 내용은 Human 정의를 기다리고 있습니다.</p></div>
+          </article>
+          <article class="document-view" id="document-specification-overview" data-document-view="specification-overview">
+            <header class="editor-header"><span class="editor-header__tab">스펙문서 / 개요</span></header>
+            <div class="document-view__canvas"><p class="document-view__status">상세 정의 대기</p><h1>스펙문서 개요</h1><p>스펙문서는 Human이 수락·조정한 Specification 지식이며, Human-facing 문서와 AI-facing Skill의 faithful pair를 유지합니다.</p><p>개요의 세부 내용은 Human 정의를 기다리고 있습니다.</p></div>
+          </article>
+        </section>
         <section class="workspace-view" data-workspace-view="logs" hidden><div class="oversight-introduction"><span class="source-state">정의 대기</span><h1>로그</h1><p>이 Activity의 상세 기능, 내부 구조, source와 control은 Human 결정을 기다리고 있습니다.</p></div></section>
         <section class="workspace-view" data-workspace-view="tests" hidden><div class="oversight-introduction"><span class="source-state">정의 대기</span><h1>테스트</h1><p>이 Activity의 상세 기능, 내부 구조, source와 control은 Human 결정을 기다리고 있습니다.</p></div></section>
       </main>
     </div>
 
+    <script src="./vendor/tabulator/6.5.2/tabulator.min.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

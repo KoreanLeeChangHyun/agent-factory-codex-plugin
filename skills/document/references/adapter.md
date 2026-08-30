@@ -227,7 +227,7 @@ it does not replace Verification or authorize a Work Agent to verify itself.
 - **Convention** continues to own shared safety, least privilege, approval,
   and Agent Factory core semantics.
 - `<project-root>/.agent-factory/db.sqlite` remains a rebuildable,
-  non-authoritative Workspace catalog. It cannot replace authoritative
+  non-authoritative Agent-owned catalog implementation. It cannot replace authoritative
   Document bodies, manifests, plans, journals, provenance, or recovery evidence.
 
 ## Unresolved design and implementation

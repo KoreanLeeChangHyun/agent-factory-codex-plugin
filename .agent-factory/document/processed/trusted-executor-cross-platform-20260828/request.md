@@ -20,7 +20,7 @@ read-only runtime capability probes and bounded experiments in your isolated
 Explorer workspace, but must not edit canonical project files or run the
 repository's test suite.
 
-Produce `.agent-factory/explorer/trusted-executor-cross-platform-20260828/notes.md`
+Produce `.agent-factory/document/processed/trusted-executor-cross-platform-20260828/notes.md`
 with observed facts, platform/API constraints, proposed module/schema/CLI design,
 security assumptions, CI strategy, test-retirement criteria, contradictions,
 and residual limitations. Include direct source URLs and clearly label

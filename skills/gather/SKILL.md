@@ -1,6 +1,10 @@
 ---
 name: gather
 description: Locate, import, refresh, or mirror distributed source material while preserving source fidelity, provenance, identity, and resolved destinations. Use for Google Drive, Gmail, Slack, Notion, Discord, or OneDrive collection, not for reconciling or promoting trusted project truth.
+metadata:
+  specification-id: gather
+  human-entry: .agent-factory/document/specification/gather/index.html
+  ai-root: skills/gather/
 ---
 
 # Agent Factory Gather

@@ -45,7 +45,6 @@ universal document-storage requirement:
 │   ├── original/
 │   ├── processed/
 │   ├── specification/
-│   │   └── human/
 │   └── sync.json
 └── workspace/
 │   ├── common/
@@ -56,9 +55,19 @@ universal document-storage requirement:
 Use the exact `db.sqlite` path for the current/default local adapter's shared,
 rebuildable, non-authoritative catalog/read model across Agent execution
 structure and Documents. It does not own or replace the authoritative files or
-stores it projects. Its maintained schema asset is
-`skills/workspace/assets/schema/catalog.sql`; the database and SQLite runtime
-sidecars are local generated artifacts and must not be committed.
+stores it projects. Agent owns its maintained schema asset at
+`skills/agent/assets/schema/catalog.sql` and standard-library manager at
+`skills/agent/scripts/catalog.py`, including explicit initialization,
+rebuild, read-only status inspection, bounded FTS5 Agent and Document search,
+publication/recovery safety, and schema evolution. The database and SQLite
+runtime sidecars are local generated artifacts and must not be committed. Rebuild
+projects authorized Agent metadata plus local Document metadata and capped
+allowlisted textual representations, publishes atomically after integrity
+checks, and remains independent from Agent execution; it does not add runtime
+dual writes, an HTTP/general query API, a watcher, semantic/vector search, a
+search UI, or external-backend ingestion.
+Workspace may only present Agent-provided read-only results; it does not own,
+initialize, rebuild, inspect, or execute searches against the catalog.
 
 Keep operational Agent runtime state in `agent/`. Keep temporary execution-only
 Explorer material in the producing managed Agent run. Classify durable Explorer
@@ -76,9 +85,15 @@ preserve source fidelity, identity, provenance, collection context, and a
 native or source-appropriate form instead of imposing a canonical file format.
 In this local adapter, active Processed Documents are Markdown (`.md`), while
 Processed remains a logical, storage-independent Document type. Store locally
-materialized Human-facing Specifications below `document/specification/human/`.
-Preserved legacy Inquery artifacts live below
-`document/processed/legacy-inquery/`; do not use them as active targets.
+materialized Human-facing Specifications below `document/specification/`.
+Every immediate child of `document/original/`, `document/processed/`, or
+`document/specification/` is exactly one Document package named by its stable
+Document identity. Package-internal files and directories are allowed, but do
+not add producer, category, or legacy wrapper layers between a type root and a
+Document package. Preserved legacy Inquery packages use explicit
+`legacy-inquery-<legacy-id>` identities directly below `document/processed/`;
+their legacy status is provenance/status metadata, never a fourth Document
+type or a wrapper directory, and they are not active targets.
 Within the local adapter's `workspace/`, `common/` owns the shared browser
 shell, `.agent-factory/workspace/explorer/` owns an internal read-only
 File/Project metadata projection, and `skills/` owns internal read-only Skill
@@ -87,7 +102,7 @@ the five Activities. The Explorer projection discovers and displays the project
 and classified Document trees without copying or becoming the canonical owner
 of either; temporary Explorer material remains in its producing managed Agent
 run.
-Workspace reads Human-facing Specifications from `document/specification/human/` rather
+Workspace reads Human-facing Specifications from `document/specification/` rather
 than owning a document directory.
 
 A Specification is accepted and reconciled project knowledge represented as
@@ -95,11 +110,22 @@ one semantic body with two faithful
 representations: an AI-facing Skill and a Human-facing Korean HTML, CSS, and
 JavaScript document. The pair must always remain semantically synchronized; a
 one-sided change is incomplete and unacceptable. If both representations
-cannot be synchronized, do not report the change or run as completed. This
-plugin repository's Agent Factory core pair is owned by the distributed
-`skills/convention/` Skill. A separate consumer project's pair is a Project
-Skill below that project's `.codex/skills/`. Do not create a standalone
-Human-facing Specification without its resolved pair.
+cannot be synchronized, do not report the change or run as completed.
+Every Specification has exactly one paired Skill directory, and every paired
+Skill directory has exactly one Human-facing Specification directory with the
+same stable identity. In this plugin repository, pair each distributed
+`skills/<skill-id>/` with
+`.agent-factory/document/specification/<skill-id>/`; do not create or mirror
+`.codex/skills/` here. In an ordinary consumer project, both paired directories
+use the exact lowercase hyphen-case `<category>-<title>` identity:
+`.codex/skills/<category>-<title>/` pairs with
+`.agent-factory/document/specification/<category>-<title>/`. This plugin is the
+explicit exception whose existing single-name distributed Skill and
+Specification IDs remain `agent`, `convention`, `document`, `gather`, `tool`,
+and `workspace`. Organize each Korean Human view for
+readability rather than mechanically mirroring the Skill hierarchy, and map
+material sections to exact paths within its paired Skill. Do not create a
+standalone representation or an aggregate Specification for multiple Skills.
 
 Original, Processed, and Specification Document types and document roles are
 logical and storage-independent. Do not introduce Refined as a fourth active

@@ -41,6 +41,30 @@ def normalized_paragraphs(content: str) -> list[str]:
 
 
 class SkillMetadataTests(unittest.TestCase):
+    def test_readme_declares_adopted_shared_catalog_and_authority_boundary(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        normalized = " ".join(readme.casefold().replace("`", "").split())
+
+        self.assertRegex(
+            readme,
+            r"(?ms)^\.agent-factory/\n├── db\.sqlite\n├── agent/",
+        )
+        for contract in (
+            "the shared project-wide catalog/read model across agent execution structure and documents",
+            "it is rebuildable and non-authoritative",
+            "agent owns the maintained ddl at skills/agent/assets/schema/catalog.sql",
+            "does not replace authoritative agent runtime files, document bodies or representations, provenance evidence, gather configuration, project skills, or faithful specification pairs",
+            "the standard-library manager at skills/agent/scripts/catalog.py provides explicit init, rebuild, status, search-agents, and search-documents operations",
+            "workspace initialization has no catalog side effect",
+            "rebuild uses bounded local agent and document metadata scans plus capped allowlisted textual document indexing, builds and checks a separate database, and atomically publishes it without replacing the last good catalog on failure",
+            "the implementation has no runtime dual write, http/general query api, catalog search screen/navigation integration, live watcher, semantic/vector search, or external-backend ingestion",
+            "the database and its sqlite journal, shm, and wal sidecars are ignored generated artifacts and must not be committed",
+            "agent execution does not depend on catalog creation, freshness, corruption, or availability",
+            "workspace may later present agent-provided read-only results, but it does not own, initialize, rebuild, inspect, or execute searches against the catalog",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, normalized)
+
     def test_agent_factory_project_work_root_has_explicit_ownership(self) -> None:
         instructions = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         paths = fenced_tree_paths(instructions)
@@ -51,7 +75,7 @@ class SkillMetadataTests(unittest.TestCase):
                 "<project-root>/.agent-factory/agent/<agent-id>/runs/<run-id>",
                 "<project-root>/.agent-factory/document/original",
                 "<project-root>/.agent-factory/document/processed",
-                "<project-root>/.agent-factory/document/specification/human",
+                "<project-root>/.agent-factory/document/specification",
                 "<project-root>/.agent-factory/document/sync.json",
                 "<project-root>/.agent-factory/workspace/common",
                 "<project-root>/.agent-factory/workspace/explorer",
@@ -139,7 +163,16 @@ class SkillMetadataTests(unittest.TestCase):
                 text = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
                 _, frontmatter, _ = text.split("---", 2)
                 metadata = yaml.safe_load(frontmatter)
-                self.assertEqual(set(metadata), {"name", "description"})
+                expected_fields = {"name", "description", "metadata"}
+                self.assertEqual(
+                    {
+                        "specification-id": name,
+                        "human-entry": f".agent-factory/document/specification/{name}/index.html",
+                        "ai-root": f"skills/{name}/",
+                    },
+                    metadata["metadata"],
+                )
+                self.assertEqual(set(metadata), expected_fields)
                 self.assertEqual(metadata["name"], name)
 
     def test_openai_yaml_interfaces_use_matching_invocation_names(self) -> None:
@@ -173,7 +206,7 @@ class SkillMetadataTests(unittest.TestCase):
 
     def test_public_skills_expose_only_their_owned_scripts(self) -> None:
         expected = {
-            "agent": {"exec.py", "loop.py"},
+            "agent": {"catalog.py", "exec.py", "loop.py"},
             "convention": {"init_agents.py"},
             "document": set(),
             "gather": {
@@ -195,6 +228,16 @@ class SkillMetadataTests(unittest.TestCase):
                     {path.name for path in (SKILLS / skill / "scripts").glob("*.py")},
                     scripts,
                 )
+
+    def test_catalog_assets_and_manager_are_agent_owned_only(self) -> None:
+        self.assertTrue((SKILLS / "agent" / "scripts" / "catalog.py").is_file())
+        self.assertTrue(
+            (SKILLS / "agent" / "assets" / "schema" / "catalog.sql").is_file()
+        )
+        self.assertFalse((SKILLS / "workspace" / "scripts" / "catalog.py").exists())
+        self.assertFalse(
+            (SKILLS / "workspace" / "assets" / "schema" / "catalog.sql").exists()
+        )
 
     def test_gather_preserves_shared_sync_configuration_identity(self) -> None:
         management = (
