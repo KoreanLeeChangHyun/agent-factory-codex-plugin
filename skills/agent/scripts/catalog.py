@@ -45,6 +45,7 @@ SEARCHABLE_MEDIA_TYPES = {
 }
 CURRENT_SCHEMA_VERSION = 3
 SUPPORTED_REBUILD_MIGRATION_VERSIONS = frozenset({1, 2})
+MAX_SCHEMA_VERSION_DIGITS = 9
 
 SPECIFICATION_META_NAMES = {
     "agent-factory:specification-id",
@@ -1006,11 +1007,15 @@ def _existing_catalog_version(catalog_path: Path) -> int:
     if len(rows) != 1:
         raise CatalogError("existing catalog schema version is missing or ambiguous")
     raw_version = rows[0][0]
-    if not isinstance(raw_version, str) or not raw_version.isascii() or not raw_version.isdigit():
+    if (
+        not isinstance(raw_version, str)
+        or not raw_version.isascii()
+        or not raw_version.isdigit()
+        or len(raw_version) > MAX_SCHEMA_VERSION_DIGITS
+        or raw_version.startswith("0")
+    ):
         raise CatalogError("existing catalog schema version is unparseable")
     version = int(raw_version)
-    if str(version) != raw_version:
-        raise CatalogError("existing catalog schema version is unparseable")
     return version
 
 

@@ -126,7 +126,9 @@ class AgentCatalogManagerTests(unittest.TestCase):
         for version, error in (
             (None, "missing or ambiguous"),
             ("banana", "unparseable"),
-            ("0", "unsupported"),
+            ("0", "unparseable"),
+            ("01", "unparseable"),
+            (" 1", "unparseable"),
             ("4", "future"),
         ):
             with self.subTest(version=version), tempfile.TemporaryDirectory() as temporary_directory:
@@ -139,6 +141,33 @@ class AgentCatalogManagerTests(unittest.TestCase):
                     CATALOG.initialize_catalog(root)
 
                 self.assertEqual(before, database.read_bytes())
+
+    def test_init_cli_rejects_oversized_numeric_version_without_traceback(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            self._project(root)
+            database = self._old_catalog(root, "9" * 5000)
+            before = database.read_bytes()
+
+            completed = subprocess.run(
+                [
+                    "python3",
+                    str(MANAGER_PATH),
+                    "--project-root",
+                    str(root),
+                    "init",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(2, completed.returncode)
+            self.assertIn("schema version is unparseable", completed.stderr)
+            self.assertNotIn("Traceback", completed.stderr)
+            self.assertEqual("", completed.stdout)
+            self.assertEqual(before, database.read_bytes())
 
     def test_init_migration_failure_preserves_prior_database_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
