@@ -8,49 +8,65 @@
 
 Agent Factory is a Codex plugin for Human-directed software delivery. Main is
 the Human-facing Interview, orchestration, and integration layer; it routes
-research to Explorer, bounded implementation to Work and independent Review,
-and Human-authorized checks to Verification. The plugin supports resumable evidence exploration, maintains refined project
+bounded tasks, including research and implementation, to Work and independent
+checking to Verification unless the Human skips it. The plugin supports
+evidence exploration, defines three Document types, maintains paired
 Specifications, and gathers distributed source material without promoting it
 to trusted truth.
 
 ## Included skills
 
-The plugin exposes exactly six public skills:
+The plugin exposes exactly five public skills:
 
-- `agent`: Use Main for Human conversation, adaptive Interview, orchestration,
-  and result integration, and run Work, Review, Explorer, and Verification Exec
-  Agents through the managed session runtime. Main performs no executable task
-  work itself.
-- `convention`: Own and apply the Agent Factory core model, three-stage
-  information lifecycle, Skill ownership and naming, storage-independent
-  document rules, annotations, and SVG-only user-interface conventions.
-- `explorer`: Explore evidence across web, code, documents, and supplied
-  material in a resumable workspace. Explorer may preserve original information
-  and produce processed information but never accepts refined project truth.
-- `interview`: Reduce material AI-Human information gaps through an adaptive,
-  Human-facing Main Agent conversation that produces processed information
-  without independently promoting it to refined project truth.
-- `specification`: Maintain one refined body of trusted project knowledge with
-  paired Korean Human-readable HTML/CSS/JavaScript Specifications and
-  AI-readable Skill views. Project Skills use the lowercase hyphen-case name
+- `agent`: Run the exact `Main -> Work -> Verification` graph through managed
+  sessions. Main orchestrates, Work performs the bounded task, and Verification
+  independently returns pass or fail unless the Human skips it.
+- `convention`: Own and apply the Agent Factory core model plus directory,
+  development, library, design, annotation, and document conventions.
+- `document`: Define and maintain Original (원본문서), Processed (가공문서),
+  and Specification (스펙 문서) Documents. The conceptual ordering
+  `Original -> Processed -> Specification` expresses only possible derivation
+  or evidence relationships; relationships may be absent, one-to-many,
+  many-to-one, or many-to-many. A Specification is accepted and reconciled
+  project knowledge and uses paired Korean
+  Human-readable HTML/CSS/JavaScript and AI-readable Skill views. Project
+  Skills use the lowercase hyphen-case name
   `<category>-<name>`; their directory and `SKILL.md` frontmatter
   `name` match exactly, and they live below `.codex/skills/` in the owning
   project.
 - `gather`: Locate, import, refresh, or mirror distributed sources while
   preserving fidelity, provenance, identity, and resolved destinations.
+- `workspace`: Provide the Human-facing control tower for navigating and
+  managing Agents, documents, and project views without replacing their owning
+  stores or authority.
+
+Evidence exploration is a capability Work may use while performing its bounded
+task, and Interview remains Main's adaptive Human-facing capability. Neither is
+a separate Agent role; the only roles are Main, Work, and Verification.
+
+Main is the same graph node when used directly in Codex CLI, hosted through
+`codex exec`, or surfaced by a VS Code extension. Codex CLI is the default
+entry interface; these hosts do not add Agent roles or graph nodes. Exec-hosted
+roles receive their Agent Factory role instructions as a tagged block in the
+stdin request rather than as a distinct platform system-channel message.
+While delegated work runs, Main continues the Human conversation, preserves
+the active session/run state, and connects new input to the existing task; a
+redirect is explicit and does not erase prior execution or result state.
 
 This plugin repository stores its distributed Skills below `skills/` and does
 not mirror them into a repository-local `.codex/`. A separate project that uses
 the plugin stores its own Project Skills below `.codex/skills/` in that project.
 
-Gathered collections remain original-information evidence, and Work's
-exploration results remain original or processed information. Neither Gather
-nor evidence exploration reconciles or promotes its output into trusted project
-truth; Specification alone reconciles accepted inputs into refined project
-knowledge. Operational Agent sessions and temporary exploration workspaces
-remain operational, while original, processed, and Human refined documents
-occupy distinct information lifecycle roles. AI-facing refined knowledge
-remains in Skills.
+Gathered collections remain Original Documents, and Work's exploration results
+remain Original or Processed Documents. Gather owns external synchronization;
+Document defines all three types. The conceptual ordering does not imply
+completeness, maturity, a required transition, or automatic promotion;
+Original and Processed remain non-authoritative. No mandatory
+Original-to-Processed-to-Specification pipeline exists. Operational Agent sessions
+and temporary exploration workspaces remain operational, while Original,
+Processed, and Human-facing Specifications occupy distinct logical roles.
+AI-facing Specifications remain in Skills. Refined is not a fourth active
+Document type.
 
 Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
 `agents/openai.yaml`, and detailed capability guidance in `references/`.
@@ -73,23 +89,32 @@ Agent Factory uses this project-local structure as its current/default adapter:
 │   ├── processed/
 │   └── refined/
 │       └── human/
-├── specification/
+├── workspace/
 │   ├── common/
 │   ├── explorer/
 │   └── skills/
 └── sync.json
 ```
 
-`agent/` contains managed Codex session and run state. `explorer/` contains
-temporary evidence-exploration workspaces used by Work. `information/` contains original,
-processed, and refined documents; locally materialized Human refined documents
+`agent/` contains managed Codex session and run state.
+`.agent-factory/explorer/` contains temporary evidence-exploration workspaces
+used by Work. `information/` contains
+the local roots for Original, Processed, and Specification Documents; locally
+materialized Human-facing Specifications
 live below `information/refined/human/`, and preserved legacy Inquery material
-lives below `information/processed/legacy-inquery/`. `specification/` contains
+lives below `information/processed/legacy-inquery/`.
+The `refined/` path segment is the established local-adapter location and does
+not define a fourth active Document type.
+`workspace/` contains
 the shared browser shell and Activity-owned UI: `common/` is the shared shell,
-`explorer/` owns the project tree, and `skills/` owns Skill navigation.
-Planning reads Human refined documents from the information tree. The Agent
-Factory core Human document is paired with `skills/convention/`; consumer
-project documents pair with Project Skills below that project's `.codex/skills/`.
+`.agent-factory/workspace/explorer/` owns the read-only File/Project Explorer
+Activity projection, and `skills/` owns Skill navigation. The projection
+distinguishes the project tree from the temporary evidence tree without copying
+or becoming the canonical owner of either.
+Planning reads Human-facing Specifications from the information tree. The
+Agent Factory core Specification is paired with `skills/convention/`; consumer
+project Specifications pair with Project Skills below that project's
+`.codex/skills/`.
 
 The information roots are logical roles. A project may explicitly resolve them
 to a project server or other external backend without weakening provenance,
@@ -131,33 +156,33 @@ The bootstrap refuses to overwrite any existing project-root `AGENTS.md`.
 This setup is plugin-provided because the plugin manifest does not inject
 project files.
 
-## Local Specification browser
+## Local Workspace control tower
 
-Resolve the installed Specification Skill directory, then install the reusable
-Specification browser shell and project launcher for the target Git root:
+Resolve the installed Workspace Skill directory, then install the reusable
+Workspace browser shell and project launcher for the target Git root:
 
 ```bash
-python3 <installed-specification-skill>/scripts/serve.py \
+python3 <installed-workspace-skill>/scripts/serve.py \
   --project-root <project-root> init
 ```
 
-Initialization copies the packaged `skills/specification/assets/spec.sh`
-project template to `<project-root>/spec.sh` once; it is an asset rather than a
+Initialization copies the packaged `skills/workspace/assets/workspace.sh`
+project template to `<project-root>/workspace.sh` once; it is an asset rather than a
 Skill script to run in place. An existing root launcher is never changed, even
 by `init --force`; force is limited to differing common browser assets. For
-normal use, serve the existing Specification tree on loopback and open
+normal use, serve the existing Workspace tree on loopback and open
 `/common/` in the default browser:
 
 ```bash
-<project-root>/spec.sh
+<project-root>/workspace.sh
 # or, from the project root
-./spec.sh --port 9000
+./workspace.sh --port 9000
 ```
 
 The self-contained launcher derives the project root from its own location and
 serves only the allowlisted local UI root plus
 `.agent-factory/information/refined/human/`, so
-`<project-root>/spec.sh` works from any current directory. `--port <port>` or
+`<project-root>/workspace.sh` works from any current directory. `--port <port>` or
 `-p <port>` overrides the safe default port `8000`. `serve.py` remains the
 internal initializer and advanced safe server; its global `--project-root`
 option can target another Git root before the `init` or `serve` subcommand.

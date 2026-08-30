@@ -1,7 +1,7 @@
 {
   "name": "agent-factory",
   "version": "0.1.0+codex.20260827190756",
-  "description": "Six Agent Factory skills for managed agents, core conventions, exploration, interviews, specifications, and source gathering.",
+  "description": "Five Agent Factory skills for managed agents, core conventions, source gathering, Original/Processed/Specification Documents, and the Human control-tower workspace.",
   "author": {
     "name": "Agent Factory",
     "url": "https://github.com/KoreanLeeChangHyun"
@@ -15,6 +15,7 @@
     "managed-agents",
     "interview",
     "exploration",
+    "document",
     "specification",
     "source-gathering",
     "software-delivery"
@@ -22,8 +23,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Factory",
-    "shortDescription": "Run managed project work with six focused skills.",
-    "longDescription": "Provides a Human-facing Main orchestration and Interview layer plus managed Work, Review, Explorer, and Verification Agents; the Convention-owned Agent Factory core, three-stage information lifecycle, annotations, and SVG rules; provenance-preserving exploration; storage-independent refined Specifications with Human- and AI-facing views; and source gathering.",
+    "shortDescription": "Manage Agent Factory through five focused skills.",
+    "longDescription": "Provides five public Skills: Agent for the Main -> Work -> Verification graph, Convention for rules and core semantics, Gather for external source synchronization, Document for Original, Processed, and Specification Document definitions, and Workspace for the Human control tower. Specifications are accepted and reconciled project knowledge with faithful Human/AI representations. Explorer and Interview remain Convention-owned capabilities applied by Work and Main.",
     "developerName": "Agent Factory",
     "category": "Productivity",
     "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",

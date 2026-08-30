@@ -1,6 +1,0 @@
-interface:
-  display_name: "Agent Factory Specification"
-  short_description: "Maintain refined project Specifications"
-  default_prompt: "Use $specification to create or maintain a trustworthy project Specification and its faithful Project Skill view."
-policy:
-  allow_implicit_invocation: true

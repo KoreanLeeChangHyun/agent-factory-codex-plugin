@@ -9,7 +9,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
-PUBLIC_SKILLS = {"agent", "convention", "explorer", "interview", "specification", "gather"}
+PUBLIC_SKILLS = {"agent", "convention", "document", "gather", "workspace"}
 
 
 def fenced_tree_paths(content: str) -> set[str]:
@@ -49,12 +49,12 @@ class SkillMetadataTests(unittest.TestCase):
                 "<project-root>/.agent-factory/agent/<agent-id>/session.json",
                 "<project-root>/.agent-factory/agent/<agent-id>/runs/<run-id>",
                 "<project-root>/.agent-factory/explorer/<exploration-id>",
-                "<project-root>/.agent-factory/specification/common",
-                "<project-root>/.agent-factory/specification/explorer",
+                "<project-root>/.agent-factory/workspace/common",
+                "<project-root>/.agent-factory/workspace/explorer",
                 "<project-root>/.agent-factory/information/original",
                 "<project-root>/.agent-factory/information/processed",
                 "<project-root>/.agent-factory/information/refined/human",
-                "<project-root>/.agent-factory/specification/skills",
+                "<project-root>/.agent-factory/workspace/skills",
                 "<project-root>/.agent-factory/sync.json",
             }
             <= paths
@@ -63,21 +63,30 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertTrue(
             any(
                 re.search(
-                    r"common/ owns the shared browser shell.*explorer/ owns explorer ui.*skills/ owns skill navigation",
+                    r"common/ owns the shared browser shell.*workspace/explorer/ owns the read-only workspace file/project explorer activity projection.*skills/ owns skill navigation",
                     paragraph,
                 )
                 for paragraph in paragraphs
             )
         )
-        self.assertTrue(
-            any(
-                re.search(
-                    r"human refined document.*semantically aligned.*ai-facing skill",
-                    paragraph,
-                )
-                for paragraph in paragraphs
-            )
+        self.assertIn(
+            "temporary work/explorer evidence workspaces in .agent-factory/explorer/",
+            " ".join(instructions.casefold().replace("`", "").split()),
         )
+        self.assertEqual(
+            instructions,
+            (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(encoding="utf-8"),
+        )
+        normalized_instructions = " ".join(instructions.casefold().split())
+        for semantic_requirement in (
+            "one semantic body",
+            "ai-facing skill",
+            "human-facing korean html, css, and javascript document",
+            "must always remain semantically synchronized",
+            "one-sided change is incomplete and unacceptable",
+            "if both representations cannot be synchronized, do not report the change or run as completed",
+        ):
+            self.assertIn(semantic_requirement, normalized_instructions)
         self.assertTrue(
             any(
                 re.search(r"gather.*destination outside this work root", paragraph)
@@ -85,7 +94,7 @@ class SkillMetadataTests(unittest.TestCase):
             )
         )
 
-    def test_public_skill_directories_match_the_six_skill_contract(self) -> None:
+    def test_public_skill_directories_match_the_five_skill_contract(self) -> None:
         actual = {
             path.name
             for path in SKILLS.iterdir()
@@ -96,7 +105,10 @@ class SkillMetadataTests(unittest.TestCase):
         for removed in (
             "agents",
             "conventions",
+            "explorer",
+            "interview",
             "specifications",
+            "specification",
             "synchronization",
             "intakes",
             "lifecycle",

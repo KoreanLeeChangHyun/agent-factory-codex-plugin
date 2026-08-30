@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Factory Document"
+  short_description: "Maintain Original, Processed, and Specification Documents"
+  default_prompt: "Use $document to define or maintain an Original, Processed, or Specification Document while preserving provenance and type authority."
+policy:
+  allow_implicit_invocation: true

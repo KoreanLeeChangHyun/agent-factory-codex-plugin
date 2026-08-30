@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Factory Explorer"
-  short_description: "Explore evidence without accepting refined truth."
-  default_prompt: "Use $explorer to investigate an uncertain question in a provenance-preserving resumable workspace."

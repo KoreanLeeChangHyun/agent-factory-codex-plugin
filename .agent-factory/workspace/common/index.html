@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Agent Factory Workspace</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="workspace-shell" data-workspace-shell>
+      <nav class="activity-bar" aria-label="작업 표시줄" data-region="activity-bar">
+        <button
+          class="activity-button is-active"
+          type="button"
+          aria-label="문서탐색기"
+          aria-pressed="true"
+          data-activity="explorer"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4.5 3.5h5l2 2h8v15h-15v-17Z" />
+            <path d="M4.5 8h15" />
+          </svg>
+        </button>
+        <button
+          class="activity-button"
+          type="button"
+          aria-label="명세서"
+          aria-pressed="false"
+          data-activity="planning"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 3.5h9l3 3v14H6v-17Z" />
+            <path d="M15 3.5v3h3M9 11h6M9 15h6" />
+          </svg>
+        </button>
+        <button
+          class="activity-button"
+          type="button"
+          aria-label="프로젝트 스킬"
+          aria-pressed="false"
+          data-activity="skills"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 3.5 20 8v8l-8 4.5L4 16V8l8-4.5Z" />
+            <path d="m4 8 8 4.5L20 8M12 12.5v8" />
+          </svg>
+        </button>
+      </nav>
+
+      <aside
+        class="primary-sidebar"
+        aria-label="현재 작업 영역의 기본 사이드바"
+        data-region="primary-sidebar"
+        data-sidebar-host
+      >
+        <header class="primary-sidebar__header" data-sidebar-title>문서탐색기</header>
+        <div class="primary-sidebar__content" data-sidebar-content>
+          <div class="sidebar-view" data-sidebar-view="explorer">
+            <div
+              class="explorer-tree"
+              role="tree"
+              aria-label="프로젝트와 임시 Explorer 근거 탐색기"
+              data-explorer-content
+            >
+              <p class="empty-state">프로젝트와 임시 Explorer 근거 트리를 불러오는 중입니다.</p>
+            </div>
+          </div>
+          <div class="sidebar-view" data-sidebar-view="planning" hidden></div>
+          <div class="sidebar-view" data-sidebar-view="skills" hidden>
+            <div
+              class="explorer-tree"
+              role="tree"
+              aria-label="프로젝트 스킬"
+              data-skills-content
+            >
+              <p class="empty-state">프로젝트 스킬을 불러오는 중입니다.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div
+        class="sidebar-resizer"
+        role="separator"
+        aria-label="기본 사이드바 너비 조절"
+        aria-orientation="vertical"
+        aria-valuemin="180"
+        aria-valuemax="520"
+        aria-valuenow="288"
+        tabindex="0"
+        data-sidebar-resizer
+      ></div>
+
+      <main class="workspace" aria-label="작업영역" data-region="workspace">
+        <section class="workspace-view" data-workspace-view="explorer">
+          <div class="explorer-introduction" data-explorer-selection>
+            <h1>읽기 전용 문서탐색기</h1>
+            <p>프로젝트 트리와 <code>.agent-factory/explorer/</code>의 임시 Explorer 근거를 구분해 표시합니다.</p>
+            <p>이 화면은 파일 이름과 폴더 구조만 투영하며 파일 내용이나 Agent 실행 상태를 제공하지 않습니다.</p>
+          </div>
+        </section>
+        <section class="workspace-view" data-workspace-view="planning" hidden>
+          <p class="empty-state">왼쪽에서 Human 스펙 문서를 선택하세요.</p>
+        </section>
+        <section class="workspace-view" data-workspace-view="skills" hidden>
+          <p class="empty-state" data-skills-selection>
+            왼쪽에서 실제 Project Skill을 선택하세요.
+          </p>
+          <pre class="skill-document" data-skills-document hidden></pre>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

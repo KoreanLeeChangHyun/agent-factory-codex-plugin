@@ -1,0 +1,330 @@
+:root {
+  color-scheme: dark;
+  --activity-bar-width: 48px;
+  --primary-sidebar-width: 288px;
+  --activity-bar-background: #181818;
+  --activity-item-foreground: #929292;
+  --activity-item-active-background: #2b2d30;
+  --activity-item-active-foreground: #d0d0d0;
+  --primary-sidebar-background: #181818;
+  --workspace-background: #1e1e1e;
+  --region-border: #2b2b2b;
+  --explorer-row-hover: #2a2d2e;
+  --explorer-row-selected: #37373d;
+  --explorer-foreground: #cccccc;
+  --explorer-muted: #a0a0a0;
+  font-family:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 320px;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.workspace-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns:
+    var(--activity-bar-width)
+    var(--primary-sidebar-width)
+    minmax(0, 1fr);
+  height: 100dvh;
+}
+
+.activity-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--activity-bar-background);
+  border-right: 1px solid var(--region-border);
+}
+
+.activity-button {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 48px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--activity-item-foreground);
+  cursor: pointer;
+}
+
+.activity-button:hover {
+  color: var(--activity-item-active-foreground);
+}
+
+.activity-button.is-active {
+  background: var(--activity-item-active-background);
+  color: var(--activity-item-active-foreground);
+}
+
+.activity-button:focus-visible {
+  outline: 2px solid #a8c7ff;
+  outline-offset: -3px;
+}
+
+.activity-button svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+}
+
+.primary-sidebar {
+  min-width: 0;
+  overflow: auto;
+  background: var(--primary-sidebar-background);
+  border-right: 1px solid var(--region-border);
+}
+
+.primary-sidebar__header {
+  display: flex;
+  height: 35px;
+  align-items: center;
+  padding-inline: 20px;
+  color: var(--explorer-foreground);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.primary-sidebar__content {
+  height: calc(100% - 35px);
+  overflow: auto;
+}
+
+.sidebar-view {
+  min-height: 100%;
+}
+
+.sidebar-view[hidden] {
+  display: none;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 16px 20px;
+  color: var(--explorer-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.explorer-tree {
+  padding-block: 3px;
+  color: var(--explorer-foreground);
+  font-size: 13px;
+}
+
+.tree-section + .tree-section {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--region-border);
+}
+
+.tree-section__heading {
+  margin: 0;
+  padding: 5px 12px;
+  color: var(--explorer-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tree-section--evidence .tree-section__heading {
+  color: #9fb9dd;
+}
+
+.tree-state,
+.tree-limit-state {
+  margin: 0;
+  padding: 5px 12px 7px calc(12px + var(--explorer-indent, 0px));
+  color: var(--explorer-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tree-limit-state {
+  margin-top: 8px;
+  border-top: 1px solid var(--region-border);
+}
+
+.explorer-row {
+  display: flex;
+  width: 100%;
+  height: 22px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 calc(8px + var(--explorer-indent, 0px));
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+}
+
+button.explorer-row {
+  font: inherit;
+  cursor: pointer;
+}
+
+.explorer-row:hover {
+  background: var(--explorer-row-hover);
+}
+
+.explorer-row.is-selected {
+  background: var(--explorer-row-selected);
+}
+
+.explorer-row:focus-visible {
+  outline: 1px solid #007fd4;
+  outline-offset: -1px;
+}
+
+.explorer-row svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+}
+
+.explorer-row .explorer-chevron {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
+  color: var(--explorer-muted);
+}
+
+.explorer-row[aria-expanded="false"] .explorer-chevron {
+  transform: rotate(-90deg);
+}
+
+.explorer-indent {
+  display: block;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+}
+
+[data-explorer-group][hidden] {
+  display: none;
+}
+
+.explorer-row__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skill-document {
+  min-height: 100%;
+  margin: 0;
+  padding: 20px 24px;
+  overflow: auto;
+  color: var(--explorer-foreground);
+  font: 13px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+.skill-document[hidden] {
+  display: none;
+}
+
+.sidebar-resizer {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--activity-bar-width) + var(--primary-sidebar-width) - 3px);
+  width: 6px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.sidebar-resizer::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 2px;
+  background: transparent;
+  content: "";
+}
+
+.sidebar-resizer:hover::after,
+.sidebar-resizer:focus-visible::after,
+.sidebar-resizer.is-dragging::after {
+  background: #75a7ff;
+}
+
+.sidebar-resizer:focus-visible {
+  outline: 0;
+}
+
+body.is-resizing-sidebar {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.workspace {
+  min-width: 0;
+  overflow: auto;
+  background: var(--workspace-background);
+}
+
+.workspace-view {
+  min-height: 100%;
+}
+
+.workspace-view[hidden] {
+  display: none;
+}
+
+.explorer-introduction {
+  max-width: 720px;
+  padding: 36px clamp(24px, 5vw, 64px);
+  color: var(--explorer-foreground);
+}
+
+.explorer-introduction h1 {
+  margin: 0 0 12px;
+  font-size: clamp(22px, 3vw, 32px);
+}
+
+.explorer-introduction p {
+  margin: 0 0 10px;
+  color: var(--explorer-muted);
+  line-height: 1.65;
+}
+
+.explorer-introduction code {
+  color: #b9d7ff;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --activity-bar-width: 44px;
+    --primary-sidebar-width: min(240px, 40vw);
+  }
+}

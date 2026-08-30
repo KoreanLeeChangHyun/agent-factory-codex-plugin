@@ -31,9 +31,15 @@ class PublicSkillResourceContractTests(unittest.TestCase):
             },
         )
 
-        specification_scripts = SKILLS / "specification" / "scripts"
+        document_scripts = SKILLS / "document" / "scripts"
         self.assertEqual(
-            {path.name for path in specification_scripts.glob("*.py")},
+            {path.name for path in document_scripts.glob("*.py")},
+            set(),
+        )
+
+        workspace_scripts = SKILLS / "workspace" / "scripts"
+        self.assertEqual(
+            {path.name for path in workspace_scripts.glob("*.py")},
             {"serve.py"},
         )
 

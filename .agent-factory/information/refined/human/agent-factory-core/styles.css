@@ -52,10 +52,10 @@ code { overflow-wrap: anywhere; font-size: .88em; }
 .capability-row article span { grid-column: 2; color: var(--muted); font-size: .84rem; }
 .flow-line { display: flex; align-items: center; justify-content: center; gap: .6rem; color: var(--blue); font-size: .82rem; font-weight: 800; text-align: center; }
 .flow-line svg { width: 3rem; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.lifecycle { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: .8rem; margin: 2rem 0; }
+.lifecycle { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: .8rem; margin: 2rem 0; }
 .stage { min-height: 19rem; padding: 1.4rem; border: 1px solid var(--border); border-top: 5px solid var(--blue); border-radius: .75rem; background: var(--surface); }
 .stage.processed { border-top-color: var(--amber); }
-.stage.refined { border-top-color: var(--accent); }
+.stage.specification { border-top-color: var(--accent); }
 .stage-index { color: var(--muted); font: 700 .74rem ui-monospace, monospace; }
 .stage h3 { margin: .6rem 0; font-size: 1.25rem; }
 .stage ul { padding-left: 1.2rem; color: var(--muted); }
@@ -70,7 +70,7 @@ tbody th { white-space: nowrap; }
 .pill { display: inline-block; margin: .1rem; padding: .12rem .48rem; border-radius: 999px; font-size: .76rem; font-weight: 800; }
 .original-pill { background: var(--blue-soft); color: var(--blue); }
 .processed-pill { background: var(--amber-soft); color: var(--amber); }
-.refined-pill { background: var(--accent-soft); color: var(--accent); }
+.specification-pill { background: var(--accent-soft); color: var(--accent); }
 .engineering-stack { display: grid; gap: .55rem; margin: 2rem auto; max-width: 62rem; }
 .engineering-stack article { display: flex; align-items: center; gap: 1rem; min-height: 5.2rem; margin-inline: calc(var(--level, 0) * 1.8rem); padding: .9rem 1.2rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
 .engineering-stack article:nth-child(2) { --level: 1; }
@@ -93,6 +93,7 @@ tbody th { white-space: nowrap; }
 .name-part.separator { background: var(--surface-muted); }
 .name-part.separator strong { color: var(--accent); font: 800 1.8rem ui-monospace, monospace; }
 .name-operator, .match-mark { color: var(--muted); font: 800 1.2rem ui-monospace, monospace; text-align: center; }
+.connector-icon { width: 2rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .naming-arrow { width: 2.6rem; fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .skill-identity { border-color: var(--accent); background: var(--accent-soft); }
 .skill-identity code { margin-top: .35rem; color: var(--accent); font-weight: 800; }

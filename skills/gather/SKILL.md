@@ -8,12 +8,11 @@ description: Locate, import, refresh, or mirror distributed source material whil
 ## Entry contract
 
 Use this skill to locate, import, refresh, or mirror distributed source
-material. Original information may use diverse source formats, so preserve
+material as Original Documents. Original Documents may use diverse source formats, so preserve
 source fidelity, identity, provenance, collection context, and its native or
 source-appropriate form instead of converting it to one canonical file format.
 Preserve the resolved destination. Treat gathered collections as evidence; do
-not reconcile their claims, refine them, or promote them into a trusted
-Specification.
+not reconcile their claims or promote them into a Specification.
 
 Keep synchronization mechanisms read-only by default. Read the management
 reference and selected provider reference completely before authorization or
