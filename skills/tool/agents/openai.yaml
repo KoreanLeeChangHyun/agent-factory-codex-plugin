@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Factory Tool"
+  short_description: "Manage external tool and connector lifecycles."
+  default_prompt: "Use $tool to discover or manage an Agent-usable tool or connector while preserving its authoritative provider and least-privilege boundary."
+policy:
+  allow_implicit_invocation: true

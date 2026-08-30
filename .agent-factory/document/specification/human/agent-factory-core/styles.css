@@ -47,7 +47,7 @@ code { overflow-wrap: anywhere; font-size: .88em; }
 .control-band span { font-weight: 800; }
 .control-band small { color: var(--text); }
 .agent-band { background: var(--violet-soft); color: var(--violet); }
-.capability-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem; }
+.capability-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .7rem; }
 .capability-row article { display: grid; grid-template-columns: auto 1fr; gap: .1rem .55rem; padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface-muted); }
 .capability-row article span { grid-column: 2; color: var(--muted); font-size: .84rem; }
 .flow-line { display: flex; align-items: center; justify-content: center; gap: .6rem; color: var(--blue); font-size: .82rem; font-weight: 800; text-align: center; }

@@ -13,8 +13,8 @@ capability boundaries, Skill ownership and naming, document storage,
 project structure, development, libraries, design, or annotations. Read every
 applicable reference before acting.
 
-Agent Factory has exactly five public distributed Skills: `gather`,
-`convention`, `agent`, `document`, and `workspace`. Explorer and Interview remain core
+Agent Factory has exactly six public distributed Skills: `agent`,
+`convention`, `document`, `gather`, `tool`, and `workspace`. Explorer and Interview remain core
 capabilities rather than public Skill entry points. Convention owns their
 durable semantics and the paired AI-facing core representation; Agent's Main
 and Work roles apply them within the managed execution graph.
@@ -53,6 +53,15 @@ Its browser shell must exist as byte-identical packaged installation sources in
 `skills/workspace/assets/browser/` and a materialized current-project copy in
 `.agent-factory/workspace/common/`; the packaged assets are the installation
 source, not a second runtime authority.
+
+Tool is the logical control plane for Agent-usable external tool and connector
+lifecycle. It owns discovery/catalog metadata, lifecycle routing,
+connection/authentication state, opaque credential references,
+requested/granted scopes, health, enablement, and capability metadata while
+preserving each host, plugin, MCP server, or project manifest as authority. It
+does not store credentials, execute Agent tasks, own Gather synchronization, or
+create a sixth Workspace Activity. Convention owns shared least-privilege,
+safety, and approval rules across these integrations.
 
 The current/default local adapter reserves the exact project-wide catalog path
 `<project-root>/.agent-factory/db.sqlite`. This shared SQLite catalog is a

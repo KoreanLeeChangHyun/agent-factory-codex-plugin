@@ -22,6 +22,9 @@ those decisions exist, each sidebar and workspace view must state that its
 configuration is awaiting Human definition. Do not use placeholder project
 state or examples that could be mistaken for real state.
 
+The public Tool Skill's lifecycle/control contract does not define a sixth
+Activity and does not authorize placing Tool beneath any existing Activity.
+
 ## Shared authority boundary
 
 Workspace remains a Human-facing observation and control-routing surface. It

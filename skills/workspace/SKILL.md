@@ -36,10 +36,14 @@ Keep the responsibility split explicit:
 - `convention` owns Agent rules, constraints, and core semantics;
 - `gather` synchronizes external sources as Original Documents;
 - `document` defines and maintains Original, Processed, and Specification Documents;
+- `tool` owns logical external tool and connector lifecycle control while its
+  host, plugin, MCP server, or project manifest remains authoritative;
 - `workspace` lets the Human navigate and manage those actors and artifacts.
 
 Existing local projection or discovery directories and utilities do not define
 a top-level Activity or authorize nesting under one of the five Activities.
+Tool is likewise not a sixth Activity. Any future Tool projection or control
+must remain owner-backed and must not infer an Activity placement.
 
 ## Reference routing
 

@@ -487,6 +487,29 @@ class DocumentContractTests(unittest.TestCase):
         self.assertNotIn("<td>로드맵</td>", human)
         self.assertNotIn("여섯 영역", human)
 
+    def test_tool_and_gather_boundaries_are_aligned_in_both_views(self) -> None:
+        ai_core = (
+            ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
+        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
+        normalized_ai_core = " ".join(ai_core.split())
+        for phrase in (
+            "exactly six public distributed Skills",
+            "Tool never escalates scope automatically",
+            "creates no `.agent-factory/tool/` root or Workspace Activity",
+            "Google Drive and OneDrive provider scripts retain their",
+        ):
+            self.assertIn(phrase, normalized_ai_core)
+        for phrase in (
+            "public distributed Skill",
+            "여섯 개입니다",
+            "Tool은 Workspace의 여섯 번째 Activity가 아닙니다",
+            "scope를 임의 승격하지 않습니다",
+            "Google Drive와 OneDrive의 auth/token 코드는 현재 Gather script에 결합",
+            "Tool registry/state 저장소",
+        ):
+            self.assertIn(phrase, human)
+
     def test_core_human_connectors_use_accessible_svg_or_visible_prose(self) -> None:
         human = CORE_HUMAN.read_text(encoding="utf-8")
         self.assertIsNone(

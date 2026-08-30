@@ -17,6 +17,14 @@ consent according to policy. The refreshable MSAL cache defaults outside the
 repository to `${XDG_CONFIG_HOME:-$HOME/.config}/agent-factory/onedrive-token-cache.json`
 with user-only permissions.
 
+Gather declares the selected item/folder/drive, recursion and count bounds,
+`Files.Read` as the minimum scope, whether `Files.Read.All` and Human/admin
+approval are actually required, and the read-only intent. Tool must report the
+requested and granted scopes separately and must not widen them. The bundled
+script's MSAL and token-cache behavior remains an observed implementation
+coupling until concrete Tool connection/token and Gather capability/scope
+interfaces exist and migration is separately authorized and verified.
+
 See Microsoft's [delegated auth flow](https://learn.microsoft.com/en-us/graph/auth-v2-user),
 [permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference),
 and [DriveItem content download](https://learn.microsoft.com/en-us/graph/api/driveitem-get-content?view=graph-rest-1.0).

@@ -41,6 +41,19 @@ the Git project. Provider scripts require regular non-symlink credential files
 and atomically publish generated token/cache content with user-only `0600`
 permissions; they do not repair or follow an unsafe existing path.
 
+For connector-backed collection, Gather declares the provider capability,
+minimum scope, Human-approval or administrator-consent need, and exact source
+selection bounds. Tool resolves or prepares the logical connection lifecycle
+and reports requested versus actually granted scope without escalating it.
+Gather still owns destination resolution, the bounded read-only sync, and its
+Original Document output.
+
+Google Drive and OneDrive authentication/token-cache code is currently coupled
+to the provider scripts. Keep it in place until a concrete Tool
+connection/token lifecycle interface and Gather capability/scope request
+interface exist. No Tool registry/state backend or migration is implemented by
+this contract.
+
 Use the manager before a sync operation. It validates the Git top-level,
 validates project configuration, resolves relative destinations from that
 top-level, accepts an explicitly selected absolute destination, and prints the

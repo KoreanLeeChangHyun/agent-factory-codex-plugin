@@ -52,6 +52,10 @@ Use this structure as Agent Factory's current/default local adapter:
   copying or owning either; temporary Explorer material remains in its
   producing managed Agent run.
 - `document/sync.json` holds Gather configuration, not gathered source collections.
+- Tool has no current/default local-adapter responsibility directory. Do not
+  create `.agent-factory/tool/`; each host, plugin, MCP server, project
+  manifest, or explicitly selected provider remains authoritative, and Tool
+  registry/state storage is unresolved.
 
 Keep plugin distributed Skills below `<plugin-root>/skills/`. In a separate
 consumer project, keep Project Skills below

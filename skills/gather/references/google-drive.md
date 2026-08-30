@@ -14,6 +14,14 @@ files unless the user explicitly asks for write-back behavior.
 Prefer the bundled read-only API sync for repeatable bounded collection. Drive
 for desktop, rclone, and manual download remain useful alternatives.
 
+Before connector-backed authorization, Gather declares the Drive read
+capability, `drive.readonly` as the minimum scope, whether Human or Google
+Workspace administrator approval is needed, and the selected folder/file/count bounds.
+Tool must surface requested and granted scopes separately and must not widen
+them. The bundled script still owns OAuth and token behavior as an observed
+implementation coupling; do not move it until the Tool-Gather interfaces are
+implemented and migration is separately authorized and verified.
+
 ## Workspace Convention
 
 - Resolve the destination through `scripts/sync.py` from the loaded Gather

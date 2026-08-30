@@ -53,8 +53,11 @@ flowchart LR
 ```mermaid
 flowchart LR
     accTitle: Agent Factory core capability topology
-    accDescr: Gather, Explorer, Interview, Document, Convention, Agent, and Workspace have distinct inputs, outputs, execution, and authority relationships.
+    accDescr: Gather, Tool, Explorer, Interview, Document, Convention, Agent, and Workspace have distinct inputs, outputs, execution, lifecycle, and authority relationships.
     Sources[Distributed cloud sources] --> Gather
+    Authorities[Host, plugin, MCP,<br/>project manifest] --> Tool[Tool lifecycle control]
+    Gather -->|declares capability, minimum scope,<br/>approval need, selection bounds| Tool
+    Tool -->|connection readiness,<br/>actually granted scope| Gather
     Gather -->|synchronizes| Original[Original Documents]
     WebCodeDocs[Web, code, documents] --> Explorer
     Original --> Explorer
@@ -71,15 +74,18 @@ flowchart LR
     Workspace[Human control tower] -->|navigates| HumanView
     Workspace -->|manages views of| Agent
     Convention -. cross-cutting constraints .-> Gather
+    Convention -. cross-cutting constraints .-> Tool
     Convention -. cross-cutting constraints .-> Explorer
     Convention -. cross-cutting constraints .-> Interview
     Convention -. cross-cutting constraints .-> Document
     Convention -. cross-cutting constraints .-> Workspace
     Agent -. cross-cutting execution .-> Gather
+    Tool -. capability readiness,<br/>not execution authority .-> Agent
     Agent -. cross-cutting execution .-> Explorer
     Agent -. cross-cutting execution .-> Interview
     Agent -. cross-cutting execution .-> Document
     Agent -. exposes managed state to .-> Workspace
+    Tool -. creates no Activity .-> Workspace
 ```
 
 ## Agent engineering stack

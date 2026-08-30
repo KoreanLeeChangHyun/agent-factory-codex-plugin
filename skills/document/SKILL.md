@@ -26,8 +26,10 @@ a relationship exists.
 Do not introduce Refined as a fourth active Document type or combine the three
 active type names.
 
-Gather owns external synchronization; Document owns the definitions of all
-three types and work on already-resolved Document targets. Explorer may create
+Gather owns external synchronization and may use a connector whose lifecycle
+is prepared through Tool; Tool does not own or produce the resulting Original
+Document. Document owns the definitions of all three types and work on
+already-resolved Document targets. Explorer may create
 Original or Processed Documents as bounded Work evidence, but it is a
 Convention-owned capability, not a public Skill, and it does not accept or
 reconcile Specification truth.

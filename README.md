@@ -11,12 +11,13 @@ the Human-facing Interview, orchestration, and integration layer; it routes
 bounded tasks, including research and implementation, to Work and independent
 checking to Verification unless the Human skips it. The plugin supports
 evidence exploration, defines three Document types, maintains paired
-Specifications, and gathers distributed source material without promoting it
-to trusted truth.
+Specifications, gathers distributed source material without promoting it to
+trusted truth, and provides a logical lifecycle contract for Agent-usable
+external tools and connectors.
 
 ## Included skills
 
-The plugin exposes exactly five public skills:
+The plugin exposes exactly six public skills:
 
 - `agent`: Run the exact `Main -> Work -> Verification` graph through managed
   sessions. Main orchestrates, Work performs the bounded task, and Verification
@@ -34,8 +35,15 @@ The plugin exposes exactly five public skills:
   `<category>-<name>`; their directory and `SKILL.md` frontmatter
   `name` match exactly, and they live below `.codex/skills/` in the owning
   project.
-- `gather`: Locate, import, refresh, or mirror distributed sources while
-  preserving fidelity, provenance, identity, and resolved destinations.
+- `gather`: Select and synchronize bounded external sources as Original
+  Documents while preserving fidelity, provenance, identity, and resolved
+  destinations. It uses connector capability prepared through Tool without
+  transferring synchronization ownership.
+- `tool`: Provide one logical lifecycle and control contract for Agent-usable
+  external tools and connectors: discovery, install/update/remove routing,
+  connection/auth lifecycle, opaque credential references, requested/granted
+  scopes, health, enablement, and capability metadata. The authoritative host,
+  plugin, MCP server, or project manifest remains the source of truth.
 - `workspace`: Provide the Human-facing control tower for navigating and
   managing Agents, documents, and project views without replacing their owning
   stores or authority.
@@ -65,7 +73,10 @@ Original and Processed remain non-authoritative. No mandatory
 Original-to-Processed-to-Specification pipeline exists. Operational Agent sessions
 and temporary exploration workspaces remain operational, while Original,
 Processed, and Human-facing Specifications occupy distinct logical roles.
-AI-facing Specifications remain in Skills. Refined is not a fourth active
+AI-facing Specifications remain in Skills. Tool manages connector lifecycle
+semantics without storing credentials or taking over Gather's source-selection,
+destination, sync, or provenance contract. Agent retains capability binding,
+execution authority, and receipts. Refined is not a fourth active
 Document type.
 
 Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
@@ -123,6 +134,11 @@ authority, isolation, semantic alignment, accessibility, or security. Agent
 Factory does not silently select a backend or claim a remote implementation.
 `sync.json` contains Gather destination configuration, and gathered source
 collections remain at their resolved destinations outside `.agent-factory/`.
+Tool has no `.agent-factory/tool/` directory: its registry/state backend and
+concrete provider adapters remain unresolved. Hosts, plugins, MCP servers, and
+project manifests remain authoritative, and credentials or tokens never belong
+in the repository or Specification. Tool also does not add a sixth Workspace
+Activity; the Activity Bar contract remains exactly five items.
 
 ## Local installation
 

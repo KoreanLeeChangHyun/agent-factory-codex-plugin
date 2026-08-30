@@ -1,7 +1,7 @@
 {
   "name": "agent-factory",
   "version": "0.1.0+codex.20260827190756",
-  "description": "Five Agent Factory skills for managed agents, core conventions, source gathering, Original/Processed/Specification Documents, and Human control-tower oversight.",
+  "description": "Six Agent Factory skills for managed agents, core conventions, Documents, source gathering, external tool lifecycle control, and Human control-tower oversight.",
   "author": {
     "name": "Agent Factory",
     "url": "https://github.com/KoreanLeeChangHyun"
@@ -18,13 +18,14 @@
     "document",
     "specification",
     "source-gathering",
+    "tool-management",
     "software-delivery"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Factory",
-    "shortDescription": "Manage Agent Factory through five focused skills.",
-    "longDescription": "Provides five public Skills: Agent for the Main -> Work -> Verification graph, Convention for rules and core semantics, Gather for external source synchronization, Document for Original, Processed, and Specification Document definitions, and Workspace for the five top-level schedule, Agent, Document, log, and test control-tower categories without taking ownership. Specifications are accepted and reconciled project knowledge with faithful Human/AI representations. Explorer and Interview remain Convention-owned capabilities applied by Work and Main.",
+    "shortDescription": "Manage Agent Factory through six focused skills.",
+    "longDescription": "Provides six public Skills: Agent for the Main -> Work -> Verification graph, Convention for rules and core semantics, Document for Original, Processed, and Specification Document definitions, Gather for external source synchronization, Tool for external tool and connector lifecycle control, and Workspace for the five top-level schedule, Agent, Document, log, and test control-tower categories without taking ownership. Tool preserves the authority of hosts, plugins, MCP servers, and project manifests; Gather retains bounded source synchronization and Original Document ownership. Specifications are accepted and reconciled project knowledge with faithful Human/AI representations. Explorer and Interview remain Convention-owned capabilities applied by Work and Main.",
     "developerName": "Agent Factory",
     "category": "Productivity",
     "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",

@@ -18,6 +18,13 @@ Keep synchronization mechanisms read-only by default. Read the management
 reference and selected provider reference completely before authorization or
 copy.
 
+Gather owns source selection, resolved destination, sync bounds, read-only
+intent, fidelity, identity, provenance, and Original Document output. When a
+provider uses a connector, declare its capability, minimum permission scope,
+whether Human approval or administrator consent is needed, and the exact
+selection bounds to Tool. Tool owns the logical connection/authentication
+lifecycle and reports the actually granted scope, but must not widen it.
+
 ## Reference routing
 
 - `references/gather-management.md`: Resolve and manage project-local gather destinations.
@@ -36,3 +43,9 @@ syncs are `sync_google_drive.py`, `sync_gmail.py`, `sync_slack.py`,
 `.agent-factory/document/sync.json`, source identifiers, schemas, defaults, credential
 safety, read-only behavior, and destructive-sync confirmations as the internal
 synchronization contract.
+
+The current Google Drive and OneDrive scripts still contain provider-specific
+authentication and token-cache behavior. Preserve that observed coupling until
+concrete Tool connection/token and Gather capability/scope interfaces are
+implemented and a migration is separately authorized and verified. This Skill
+does not claim that interface exists today.

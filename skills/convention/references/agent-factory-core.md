@@ -22,7 +22,7 @@ delegated core Specification request at
 observations are separately attributed. The earlier Human decision to implement
 Interview as a distributed Skill came from
 `.agent-factory/agent/interview-skill-work/runs/run-20260827T174030938939Z-d3e6f56f/request.md` and is superseded by the
-five-public-Skill decision below. The engineering synthesis at
+former five-public-Skill decision and the latest six-Skill decision below. The engineering synthesis at
 `.agent-factory/document/processed/legacy-inquery/agent-factory-engineering-synthesis-20260828/synthesis.md`
 is supporting, non-canonical evidence only.
 
@@ -53,15 +53,16 @@ below `skills/`, has no `.codex/skills/` store, and treats document storage as
 adapter-resolved rather than intrinsically `.agent-factory/` come from
 `.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T184536518402Z-9b6f2283/request.md`.
 
-The earlier consolidation decision—keep six public Skills, make Convention the
+The earlier consolidation decision—keep six public Skills under a prior
+identity set, make Convention the
 AI-facing owner of Agent Factory core, use the three-stage local information
 tree, migrate Human refined and legacy processed documents, and retain
 storage-backend independence—comes from
 `.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T185448822401Z-ef49909a/request.md`.
 
 The superseding contracts keep Explorer and Interview as distinct core
-capabilities without independent public Skill entry points. The five-public-
-Skill decision and Explorer's capability boundary are recorded in
+capabilities without independent public Skill entry points. The former five-
+public-Skill decision and Explorer's capability boundary are recorded in
 `.agent-factory/agent/document-types-work/runs/run-20260830T070110807574Z-61393ff6/request.md`.
 Main's Interview conduct and delegation of research are recorded in
 `.agent-factory/agent/main-interface-orchestration-work/runs/run-20260827T185954481797Z-83e4ca60/request.md`,
@@ -111,8 +112,8 @@ preflight and force contract. This decision comes from
 The superseding Human decision renames the public `specification` Skill to
 `document` and introduced an earlier three-type terminology that the final
 redirect below replaces. The relationship was already loose rather than a
-mandatory pipeline or transition system. The five public distributed
-Skills are now `gather`, `convention`, `agent`, `document`, and `workspace`.
+mandatory pipeline or transition system. It established the former five public
+distributed Skills: `gather`, `convention`, `agent`, `document`, and `workspace`.
 This decision comes from
 `.agent-factory/agent/document-types-work/runs/run-20260830T070110807574Z-61393ff6/request.md`.
 
@@ -142,6 +143,15 @@ implementation is schema-only: no database instance, scanner, rebuild/index
 job, runtime dual write, Workspace screen or API, search behavior, or external
 backend ingestion is authorized. This decision comes from
 `.agent-factory/agent/shared-db-work/runs/run-20260830T085102207719Z-c11abc11/request.md`.
+
+The latest Human decision supersedes the former five-Skill discovery contract
+with exactly six public distributed Skills in the consistent order `agent`,
+`convention`, `document`, `gather`, `tool`, and `workspace`. Tool is the logical
+control plane for Agent-usable external tool and connector lifecycle. Gather
+remains independent and uses a Tool-prepared connector while retaining source
+selection, destination, bounded read-only synchronization, source fidelity,
+identity, provenance, and Original Document output. This decision is supplied
+by the active Human request for the Tool Skill implementation.
 
 ## Project Skill naming
 
@@ -284,6 +294,10 @@ achieved, the change or run must not be reported as completed.
 
 ## Core capability topology
 
+The accepted topology now contains eight capabilities. Six have public Skill
+entry points; Explorer and Interview remain Convention-owned capabilities
+applied through Agent roles.
+
 ### Gather
 
 Gather synchronizes project-needed external Documents scattered across Google Drive,
@@ -291,6 +305,30 @@ OneDrive, Slack, Notion, Discord, and similar cloud sources. It preserves that
 material as Original Documents, including source fidelity, identity, and
 provenance. It does not define the other Document types or promote evidence to
 Specification truth.
+
+For connector-backed collection, Gather declares the capability, minimum
+permission scope, Human-approval or administrator-consent need, and exact
+selection bounds. It receives connection readiness and actually granted scope
+through Tool without transferring synchronization or Original Document
+ownership.
+
+### Tool
+
+Tool provides one logical lifecycle/control contract across Agent-usable
+external tools and connectors such as Playwright, pytest, Office, Google Drive,
+and OneDrive. It owns discovery/catalog metadata, install/update/remove routing,
+connection and authentication lifecycle, opaque credential references,
+requested and granted permission scopes, availability/health, enable/disable
+state, and capability metadata.
+
+Each host, plugin, MCP server, project manifest, or explicitly selected
+provider remains authoritative. Tool stores no credential or token, does not
+execute Agent work, does not own Gather synchronization, does not choose a
+registry/state backend, and creates no `.agent-factory/tool/` root or Workspace
+Activity. Current Google Drive and OneDrive provider scripts retain their
+authentication/token-cache code as observed coupling until concrete Tool
+connection/token and Gather capability/scope interfaces exist and migration is
+separately authorized and verified. Tool never escalates scope automatically.
 
 ### Explorer
 
@@ -341,6 +379,8 @@ not a graph transition or completion. It may be recorded before the next
 Verification starts, is applied only after the current initial or revision Work
 completes, starts no next or additional Verification, and then reaches END.
 Verification pass also reaches END.
+Tool may establish capability readiness, but Agent retains Work/Verification
+capability binding, execution authority, dispatch, and execution receipts.
 
 ### Workspace
 
@@ -361,8 +401,8 @@ classified below `.agent-factory/document/original/` or
 remains in the producing managed Agent run.
 The internal read-only `.agent-factory/workspace/explorer/` File/Project
 metadata projection and `.agent-factory/workspace/skills/` Skill-navigation
-projection define neither a top-level Activity nor nesting under one of the
-five. The Explorer projection may show classified durable Document metadata;
+projection do not define a top-level Activity or authorize nesting under one
+of the five. The Explorer projection may show classified durable Document metadata;
 temporary Explorer material stays only in its producing managed Agent run.
 
 ## Responsibility matrix
@@ -370,11 +410,12 @@ temporary Explorer material stays only in its producing managed Agent run.
 | Capability | Principal inputs | Produces or manages | Boundary |
 | --- | --- | --- | --- |
 | Gather | Distributed cloud sources | Original Documents | Synchronize external Documents while preserving fidelity and provenance; do not define other types |
+| Tool | Authoritative host, plugin, MCP, project-manifest, and provider metadata | Logical external tool/connector lifecycle control | Preserve provider authority; manage metadata, connection/scope/health/enablement without storing secrets, executing tasks, or owning Gather sync |
 | Explorer | Web, code, Documents, Original/Processed material | Original and Processed Documents | Explore, analyze, and research; do not accept or reconcile Specification truth |
 | Interview | Human knowledge and questions | Processed Documents | Reduce the AI-Human information gap through an adaptive Main-Agent conversation; do not independently create Specification truth |
 | Document | Documents and grounded Human decisions | Original, Processed, and Specification Documents | Define all three types, preserve optional provenance relationships, and pair every Specification |
 | Convention | Human-defined working constraints | Cross-cutting control | Weak harness across all Document types |
-| Agent | Role, authority, context, tools, state | Cross-cutting execution | Main orchestrates, Work performs bounded tasks, and Verification independently checks unless the Human skips it |
+| Agent | Role, authority, context, Tool-prepared capabilities, state | Cross-cutting execution | Bind capabilities, authorize and receipt execution; Main orchestrates, Work performs bounded tasks, and Verification independently checks unless the Human skips it |
 | Workspace | Future owner-resolved schedule, Agent, Document, log, and test sources | Five-category Human control tower | Exactly five ordered top-level Activities; sidebar architecture and detailed capabilities remain undecided; never own or execute projected state |
 
 ## Agent engineering stack
@@ -402,9 +443,9 @@ governs the complete operating lifecycle.
 These are observations, not accepted completion claims or replacements for the
 target conceptual model:
 
-- `.codex-plugin/plugin.json` describes five public Agent Factory Skills:
-  Gather, Convention, Agent, Document, and Workspace. This public discovery
-  surface does not replace the accepted seven-capability topology.
+- `.codex-plugin/plugin.json` describes six public Agent Factory Skills:
+  Agent, Convention, Document, Gather, Tool, and Workspace. This public
+  discovery surface does not replace the accepted eight-capability topology.
 - `skills/convention/references/explorer.md` and
   `skills/convention/references/interview.md` own the durable semantic,
   information, provenance, and authority boundaries for Explorer and Interview.
@@ -413,6 +454,8 @@ target conceptual model:
   Interview in the Human conversation. Neither capability has an independent
   public Skill entry point or Agent role.
 - `skills/gather/SKILL.md` establishes source-faithful external synchronization;
+  `skills/tool/SKILL.md` establishes the logical external tool/connector
+  lifecycle boundary without implementing a registry or state backend;
   `skills/document/SKILL.md` establishes all three Document types and paired
   Human/AI Specifications; and `skills/agent/SKILL.md` establishes
   managed Agent execution and role boundaries. These are present implementation foundations,
@@ -440,6 +483,10 @@ target conceptual model:
    Workspace redirect does not define its projection.
    Catalog initialization, population/rebuild, freshness, sanitized query/API,
    search, and dual-write behavior also remain unimplemented.
+3. Tool registry/state storage and concrete host/plugin/MCP/project-manifest
+   adapters remain unresolved. The Tool connection/token lifecycle interface,
+   Gather capability/scope request interface, and migration of currently
+   coupled Google Drive/OneDrive authentication code are not implemented.
 
 ## Representation-alignment checklist
 
@@ -447,10 +494,15 @@ When changing either projection, compare both and preserve:
 
 - all three loosely related Document types, optional relationship
   cardinalities, and authority boundaries;
-- all seven capabilities and their inputs, outputs, and cross-cutting roles;
+- all eight capabilities and their inputs, outputs, and cross-cutting roles;
 - all five Agent engineering layers and their scopes;
-- the five-public-Skill discovery surface and the separate seven-capability
+- the six-public-Skill discovery surface and the separate eight-capability
   topology, including Convention-owned semantics and Agent-owned execution;
+- the Tool/Gather boundary: Tool lifecycle control and preserved provider
+  authority; Gather-owned selection, destination, bounded read-only sync,
+  fidelity, identity, provenance, and Original output; minimum requested versus
+  granted scopes; no automatic escalation; no secrets, invented backend,
+  `.agent-factory/tool/`, premature auth-code migration, or Tool Activity;
 - the Main-owned Interview and orchestration topology, including Work-applied
   Explorer and the Main -> Work -> Verification graph, plus unspecified
   Human-owned planning/status fields and the Human-only evidenced skip intent

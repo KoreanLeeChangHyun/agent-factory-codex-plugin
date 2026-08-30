@@ -9,7 +9,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
-PUBLIC_SKILLS = {"agent", "convention", "document", "gather", "workspace"}
+PUBLIC_SKILLS = {"agent", "convention", "document", "gather", "tool", "workspace"}
 
 
 def fenced_tree_paths(content: str) -> set[str]:
@@ -108,7 +108,7 @@ class SkillMetadataTests(unittest.TestCase):
             )
         )
 
-    def test_public_skill_directories_match_the_five_skill_contract(self) -> None:
+    def test_public_skill_directories_match_the_six_skill_contract(self) -> None:
         actual = {
             path.name
             for path in SKILLS.iterdir()
@@ -186,6 +186,7 @@ class SkillMetadataTests(unittest.TestCase):
                 "sync_onedrive.py",
                 "sync_slack.py",
             },
+            "tool": set(),
             "workspace": {"serve.py"},
         }
         for skill, scripts in expected.items():
@@ -205,6 +206,30 @@ class SkillMetadataTests(unittest.TestCase):
         )
         self.assertTrue((SKILLS / "gather" / "scripts" / "sync.py").is_file())
         self.assertTrue((SKILLS / "gather" / "scripts" / "sync_gmail.py").is_file())
+
+    def test_tool_is_a_logical_control_contract_without_a_local_backend(self) -> None:
+        entry = (SKILLS / "tool" / "SKILL.md").read_text(encoding="utf-8")
+        lifecycle = (
+            SKILLS / "tool" / "references" / "lifecycle.md"
+        ).read_text(encoding="utf-8")
+        combined = " ".join((entry + lifecycle).casefold().split())
+        for authority_marker in (
+            "host",
+            "plugin",
+            "mcp server",
+            "project manifest",
+        ):
+            with self.subTest(authority_marker=authority_marker):
+                self.assertIn(authority_marker, combined)
+        for phrase in (
+            "credential reference",
+            "requested and actually granted permission scopes",
+            "tool readiness does not authorize execution",
+            "tool must not widen scope on its own",
+            "no such runtime interface, registry, or state backend is implemented",
+        ):
+            self.assertIn(phrase, combined)
+        self.assertFalse((ROOT / ".agent-factory" / "tool").exists())
 
 
 if __name__ == "__main__":

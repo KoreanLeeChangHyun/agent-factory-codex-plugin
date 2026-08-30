@@ -1,12 +1,16 @@
 <agent-factory>
 Always load and comply with Agent Factory skills.
 
-Use the five public Skills by responsibility: `agent` owns Agent execution and
-orchestration; `convention` owns Agent rules and conventions; `gather` syncs
-external documents as Original Documents; `document` defines and maintains
-Original, Processed, and Specification Documents; and `workspace` is the Human
-control tower for managing Agents, documents, and the project. Explorer and
-Interview remain capabilities, not separate public Skills.
+Use the six public Skills by responsibility: `agent` owns Agent execution,
+Work/Verification capability binding, authority, orchestration, and receipts;
+`convention` owns Agent rules, shared safety, least privilege, and approval
+conventions; `document` defines and maintains Original, Processed, and
+Specification Documents; `gather` owns bounded read-only external source
+synchronization and its Original Document output; `tool` owns the logical
+lifecycle/control contract for Agent-usable external tools and connectors; and
+`workspace` is the Human control tower for managing Agents, documents, and the
+project. Explorer and Interview remain capabilities, not separate public
+Skills.
 
 Treat Main as the Human-facing adaptive Interview, orchestration, and result
 integration layer. Main performs no Work or Verification directly. Route every
@@ -108,4 +112,13 @@ mirror, or migrate a backend. Keep operational Agent runtime state under the
 declared local runtime contract unless separately changed. Do not put Project
 Skills or gathered source collections below `.agent-factory/`; Gather uses its
 resolved destination outside this work root.
+
+Do not create `.agent-factory/tool/` or silently select a Tool registry or
+state backend. Tool preserves the authority of each host, plugin, MCP server,
+project manifest, or explicitly selected provider and records only logical
+lifecycle metadata, never credentials or tokens. Gather declares connector
+capability, minimum permission scope, Human-approval need, and selection bounds;
+Tool must not escalate scope. Until concrete Tool connection/token and Gather
+capability/scope interfaces exist, keep the observed Google Drive and OneDrive
+authentication implementation in Gather and treat migration as unresolved.
 </agent-factory>

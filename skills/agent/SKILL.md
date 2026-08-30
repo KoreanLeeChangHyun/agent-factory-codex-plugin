@@ -115,3 +115,12 @@ managed runtime. Reconcile an interrupted dispatch through the same dispatch ID;
 never create a replacement intent for an ambiguous acknowledgement.
 
 Every Verification dispatch supplies `--verified-work-run-id`. Failed findings return to the same Work session, and the next check uses the same Verification session.
+
+## Tool boundary
+
+Tool owns logical discovery and lifecycle control for external tools and
+connectors, but readiness does not authorize their use. Agent owns binding a
+specific capability to a Work or Verification request, the authority for that
+execution, and the resulting execution receipt. Preserve the authoritative
+host, plugin, MCP server, or project manifest selected through Tool; do not
+copy its registry or credentials into Agent runtime state.
