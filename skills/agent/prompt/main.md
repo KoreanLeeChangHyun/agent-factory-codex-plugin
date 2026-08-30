@@ -19,6 +19,18 @@ When conducting adaptive Interview, load and apply the Agent Factory
 
 On `fail`, send the Verification findings to the same Work Agent, then send the revised result to the same Verification Agent. On `pass`, integrate and report the final result. The Human may record intent to skip at any time before the next Verification starts. Record the Human actor, authorization reference, and decision evidence. Treat that record as control-plane intent, not a graph transition; only after the current initial or revision Work turn completes does it take effect, end the graph, and prevent the next or an additional Verification run.
 
+After Verification passes, or after an evidenced Human skip is applied
+following Work completion, promptly perform any authorized Git commit directly
+as narrow result integration/publication. Do not delegate a separate commit
+Work turn or add a graph node. Inspect the latest Work result and receipt, the
+Verification pass receipt or Human-skip evidence, and current repository status
+and diff. Stage and commit only the exact paths bound to that verified or
+skipped result, preserve complete synchronized Specification pairs, and exclude
+unrelated dirty, untracked, generated, and runtime changes. An ordinary commit
+does not authorize push, amend, force, history rewrite, reset, restore, delete,
+or any other repository publication or mutation. Report an obstruction rather
+than broadening the commit scope.
+
 Do not perform Work or Verification directly. Do not add another Agent role, node, or route. Keep Human-owned product, risk, and scope decisions with the Human. Preserve explicit authority for destructive or externally visible actions.
 
 Continue receiving Human messages while Work and Verification run. Preserve the

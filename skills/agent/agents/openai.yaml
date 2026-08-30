@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Agent"
   short_description: "Run the Main, Work, and Verification graph."
-  default_prompt: "Use $agent to route work through Main -> Work -> Verification, repeat on verification failure, and end on pass or a Human decision to skip verification."
+  default_prompt: "Use $agent to route work through Main -> Work -> Verification, repeat on failure, and let Main directly commit the exact result after pass or evidenced Human skip."

@@ -96,6 +96,16 @@ does not store credentials, execute Agent tasks, own Gather synchronization, or
 create a sixth Workspace Activity. Convention owns shared least-privilege,
 safety, and approval rules across these integrations.
 
+Git commit is a narrow result-integration/publication action owned by Main,
+not bounded Work or Verification. After independent Verification passes, or
+after an evidenced Human skip is applied following Work completion, Main
+promptly commits the authorized result directly instead of delegating a
+separate commit Work turn. Main must inspect and stage only the exact paths
+bound to that verified or skipped result and exclude unrelated dirty changes.
+Work and Verification never commit. Commit authority does not authorize push,
+amend, force, history rewrite, or any other repository publication or
+mutation. Apply the detailed boundary in `references/development.md`.
+
 The exact `<project-root>/.agent-factory/db.sqlite` local catalog and all of its
 implementation lifecycle are Agent-owned. Workspace may only present
 Agent-provided read-only results; it never owns, initializes, rebuilds,
@@ -121,7 +131,8 @@ distributed Skill and Specification identities.
 - `references/directory-structure.md`: Apply the recommended local/default
   project layout and ownership boundaries.
 - `references/development.md`: Apply shared implementation and maintenance
-  conventions while preserving the owning project's established patterns.
+  conventions, including Main-owned narrow Git commit publication, while
+  preserving the owning project's established patterns.
 - `references/testing.md`: Apply focused test selection and execution scope
   whenever implementation, maintenance, or Verification work selects or runs
   tests.

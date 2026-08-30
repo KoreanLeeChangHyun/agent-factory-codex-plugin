@@ -107,6 +107,24 @@ cancellation, or Human-decision request is a control-plane error and is not
 graph completion. Only Verification `pass` or an evidenced Human skip applied
 after Work completion reaches `END`.
 
+## Result integration and commit publication
+
+After independent Verification passes, or after an evidenced Human skip is
+applied following Work completion, Main promptly performs an authorized Git
+commit itself as narrow result integration/publication. The commit is not Work,
+Verification, a new Agent role, or a new graph node, and Main does not delegate
+a separate commit Work turn.
+
+Before staging, Main inspects the latest Work result and receipt, the
+Verification pass receipt or Human-skip evidence, and the current repository
+status and diff. It stages and commits only the exact paths bound to that
+verified or skipped result, preserves complete synchronized Specification
+pairs, and excludes unrelated dirty, untracked, generated, and runtime changes.
+Work and Verification never commit. Ordinary commit authority does not imply
+push, amend, force, history rewrite, reset, restore, delete, or any other
+repository publication or mutation. If exact safe staging or the ordinary
+commit fails, Main reports the obstruction without broadening scope.
+
 ## Local catalog
 
 Agent owns the current/default local adapter's complete project-wide catalog

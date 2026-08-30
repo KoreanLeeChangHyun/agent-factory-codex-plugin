@@ -45,6 +45,26 @@ has been explicitly established.
 - Report observed behavior separately from accepted decisions, inferred state,
   and unresolved questions.
 
+## Git commit publication
+
+- Treat an authorized Git commit as Main-owned narrow result integration and
+  publication, not as Work or Verification. Work and Verification never
+  commit.
+- Main commits promptly and directly only after independent Verification
+  passes, or after an evidenced Human skip is applied following completion of
+  the current Work turn. Do not delegate a separate commit Work turn and do
+  not add a commit node or role to `Main -> Work -> Verification`.
+- Before staging, Main inspects the latest Work result and receipt, the
+  Verification pass receipt or Human-skip evidence, and current repository
+  status and diff. Stage only the exact paths bound to that verified or
+  skipped result. Exclude unrelated dirty, untracked, generated, or runtime
+  changes, and preserve a Specification's complete synchronized Human/AI pair.
+- A commit request authorizes only the resulting ordinary commit within its
+  exact scope. Do not infer authorization to push, amend, force, rewrite
+  history, reset, restore, delete, or include unrelated changes. If exact safe
+  staging or ordinary commit cannot be completed, Main reports the obstruction
+  instead of broadening the commit.
+
 ## Evidence basis
 
 Google's engineering practices recommend one self-contained concern per change

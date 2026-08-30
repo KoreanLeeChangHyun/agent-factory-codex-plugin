@@ -211,6 +211,15 @@ identity, provenance, and Original Document output. This decision is supplied
 by the managed Human request at
 `.agent-factory/agent/six-skill-core-sync-work-20260830/runs/run-20260830T103238358728Z-5e61ab5d/request.md`.
 
+The Human decision that Main promptly performs Git commits directly, without a
+separate commit Work turn, comes from
+.agent-factory/agent/main-commit-convention-request.md. This is narrow result
+integration/publication only after an independent Verification pass or an
+evidenced Human skip applied following Work completion. It leaves Work and
+Verification unable to commit, requires exact staging of only the bound result
+paths while excluding unrelated dirty changes, and supplies no authority for
+push, amend, force, history rewrite, or other repository mutation.
+
 ## Project Skill naming
 
 For an ordinary consumer-project pair, `category` classifies the Skill for
@@ -481,6 +490,11 @@ completes, starts no next or additional Verification, and then reaches END.
 Verification pass also reaches END.
 Tool may establish capability readiness, but Agent retains Work/Verification
 capability binding, execution authority, dispatch, and execution receipts.
+After pass or an evidenced Human skip applied after Work completion, Main may
+promptly perform the authorized ordinary Git commit itself as narrow result
+integration/publication. This does not add a graph node or delegate commit to
+Work: Main stages only exact bound result paths, excludes unrelated dirty
+changes, and infers no push, amend, force, or history-rewrite authority.
 
 ### Workspace
 
@@ -623,7 +637,10 @@ When changing either projection, compare both and preserve:
   Explorer and the Main -> Work -> Verification graph, plus unspecified
   Human-owned planning/status fields and the Human-only evidenced skip intent
   that applies after current Work completion without starting another
-  Verification;
+  Verification; and Main-owned prompt direct commit publication after pass or
+  evidenced skip, with exact result-only staging, no separate commit Work turn,
+  no Work or Verification commit, and no inferred push, amend, force, or
+  history rewrite;
 - provenance for accepted decisions and repository observations;
 - the ordinary consumer `<category>-<title>` pair identity contract, exact
   Skill/Specification directory match, plugin single-name exception, and

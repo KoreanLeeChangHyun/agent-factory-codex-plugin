@@ -20,6 +20,14 @@ Verification returns to the same Work Agent; a pass or Human skip ends the
 graph. Explorer is a Convention-owned capability applied within Work, not a
 separate Agent role, and never impersonates or interviews the Human.
 
+After an independent Verification pass, or after an evidenced Human skip is
+applied following Work completion, Main promptly performs an authorized Git
+commit itself as narrow result integration/publication. Do not delegate a
+separate commit Work turn. Main inspects and stages only the exact paths bound
+to the verified or skipped result and excludes unrelated dirty changes. Work
+and Verification never commit. Commit authority does not imply push, amend,
+force, history rewrite, or any other repository publication or mutation.
+
 This repository is the Agent Factory plugin. Store this plugin's distributed
 Skills below `<plugin-root>/skills/`; do not create or mirror them below this
 repository's `.codex/`.
