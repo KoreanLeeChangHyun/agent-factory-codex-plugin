@@ -161,14 +161,69 @@ class DocumentContractTests(unittest.TestCase):
                 normalized_content = " ".join(content.split())
                 self.assertIn("one-sided change", content)
                 self.assertIn("incomplete and unacceptable", normalized_content)
-                self.assertRegex(content, r"must not be reported as completed|do not report")
+                self.assertRegex(
+                    normalized_content,
+                    r"must not be reported as completed|do not report",
+                )
 
         for skill_name in PUBLIC_SKILLS:
             human = (
                 ROOT / ".agent-factory/document/specification" / skill_name / "index.html"
             ).read_text(encoding="utf-8")
-            self.assertIn("양쪽 의미 변경은 함께 반영해야 합니다", human)
+            self.assertRegex(human, r"양쪽(?:의)? 의미 변경은 함께 반영해야 합니다")
             self.assertIn(f"skills/{skill_name}/", human)
+
+    def test_project_skill_and_specification_pair_contract_is_adapter_scoped(self) -> None:
+        instructions_path = ROOT / "AGENTS.md"
+        bootstrap_path = ROOT / "skills/convention/assets/AGENTS.md"
+        self.assertEqual(instructions_path.read_bytes(), bootstrap_path.read_bytes())
+
+        instructions = " ".join(instructions_path.read_text(encoding="utf-8").split())
+        self.assertIn("`SKILL.md` is required", instructions)
+        self.assertIn("do not create empty optional directories", instructions)
+
+        contracts = {
+            "instructions": instructions,
+            "convention": " ".join(
+                (ROOT / "skills/convention/SKILL.md").read_text(encoding="utf-8").split()
+            ),
+            "core": " ".join(
+                (ROOT / "skills/convention/references/agent-factory-core.md")
+                .read_text(encoding="utf-8")
+                .split()
+            ),
+            "document": " ".join(
+                (ROOT / "skills/document/SKILL.md").read_text(encoding="utf-8").split()
+            ),
+            "specification": " ".join(
+                (ROOT / "skills/document/references/specification.md")
+                .read_text(encoding="utf-8")
+                .split()
+            ),
+        }
+        for name, contract in contracts.items():
+            with self.subTest(contract=name):
+                self.assertIn("exactly one resolved AI-facing", contract)
+                self.assertIn("exactly one resolved Human-facing", contract)
+                self.assertIn("same stable identity", contract)
+                self.assertRegex(
+                    contract,
+                    r"adapter-resolved|resolved by the selected adapter|each adapter resolves",
+                )
+                self.assertRegex(contract, r"external backend may use different locators")
+
+        specification = contracts["specification"]
+        for optional_role in ("agents/", "assets/", "references/", "scripts/"):
+            self.assertRegex(specification, rf"{re.escape(optional_role)}`?\s+optional")
+        self.assertIn("only when the Project Skill has content for that role", specification)
+
+        for name in ("convention", "document"):
+            human = (
+                ROOT / ".agent-factory/document/specification" / name / "index.html"
+            ).read_text(encoding="utf-8")
+            self.assertIn("stable identity", human)
+            self.assertIn("locator", human)
+            self.assertIn("외부 backend", human)
 
     def test_packaged_document_has_exactly_three_assets(self) -> None:
         document = DOCUMENT / "assets" / "document"
@@ -264,7 +319,7 @@ class DocumentContractTests(unittest.TestCase):
         self.assertTrue(
             any(
                 re.search(
-                    r"complete identity.*exactly matches the project skill directory.*human specification directory.*name field.*frontmatter",
+                    r"complete identity.*exactly matches both resolved representations.*name field.*frontmatter.*current/default local adapter.*project skill.*human specification directory",
                     paragraph,
                 )
                 for paragraph in paragraphs
@@ -548,23 +603,18 @@ class DocumentContractTests(unittest.TestCase):
         human = (
             ROOT / ".agent-factory/document/specification/agent/index.html"
         ).read_text(encoding="utf-8")
-        normalized_agent = " ".join(agent.split())
-        normalized_ai_core = " ".join(ai_core.split())
-        for phrase in (
-            "+-- pass -> END",
-            "+-- Human skip -> END",
-            "before the next Verification starts",
-            "only after the current initial or revision Work turn completes",
-            "starts no next or additional Verification run and reaches `END`",
-        ):
-            self.assertIn(phrase, normalized_agent)
-        for phrase in (
-            "Human-only, evidenced control-plane intent",
-            "not a graph transition or completion",
-            "only after the current initial or revision Work completes",
-            "starts no next or additional Verification",
-        ):
-            self.assertIn(phrase, normalized_ai_core)
+        normalized_agent = " ".join(agent.casefold().split())
+        normalized_ai_core = " ".join(ai_core.casefold().split())
+        for contract in (normalized_agent, normalized_ai_core):
+            with self.subTest(contract="skip-semantics"):
+                words = contract.replace("-", " ").replace("`", "")
+                self.assertIn("authorization reference", words)
+                self.assertIn("decision evidence", words)
+                self.assertIn("before the next verification starts", words)
+                self.assertIn("not a graph transition or completion", words)
+                self.assertRegex(words, r"only after the current (?:initial or revision )?work")
+                self.assertRegex(words, r"starts no next (?:or additional )?verification")
+                self.assertIn("reaches end", words)
         for phrase in (
             "Human-only skip intent",
             "not a transition or completion",
@@ -661,6 +711,30 @@ class DocumentContractTests(unittest.TestCase):
             "packaged files are the reusable installation source",
         ):
             self.assertIn(phrase, normalized_ai_core)
+        unresolved = re.search(
+            r"## Unresolved architecture decisions\n(.*?)\n## Representation-alignment checklist",
+            ai_core,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(unresolved)
+        unresolved_text = " ".join(unresolved.group(1).split())
+        for label in ("문서 분류", "출처", "태그", "문서 이름", "확장자", "수정 일자"):
+            self.assertIn(label, ai_core)
+        for decided_behavior in (
+            "global and per-column filtering",
+            "link/provider-cell behavior",
+            "Human column resizing/reordering",
+        ):
+            self.assertIn(decided_behavior, unresolved_text)
+        self.assertNotIn("table columns and behavior", unresolved_text)
+        for genuinely_unresolved in (
+            "overview content",
+            "live source/query integration",
+            "synchronization trigger and status",
+            "metadata-mutation authority and persistence",
+            "other four Activities' sidebar architecture",
+        ):
+            self.assertIn(genuinely_unresolved, unresolved_text)
         self.assertRegex(
             normalized_ai_core.casefold(),
             r"internal read-only .*file/project metadata projection and .*skill-navigation projection "

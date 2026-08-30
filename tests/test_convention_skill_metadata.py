@@ -40,7 +40,7 @@ def normalized_paragraphs(content: str) -> list[str]:
     ]
 
 
-class SkillMetadataTests(unittest.TestCase):
+class ConventionSkillMetadataTests(unittest.TestCase):
     def test_readme_declares_adopted_shared_catalog_and_authority_boundary(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         normalized = " ".join(readme.casefold().replace("`", "").split())
