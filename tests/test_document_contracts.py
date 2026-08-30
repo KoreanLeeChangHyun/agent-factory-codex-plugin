@@ -588,6 +588,55 @@ class DocumentContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, human)
 
+    def test_main_decomposition_is_aligned_in_agent_specification_pair(self) -> None:
+        agent = (ROOT / "skills/agent/SKILL.md").read_text(encoding="utf-8")
+        prompt = (ROOT / "skills/agent/prompt/main.md").read_text(encoding="utf-8")
+        human = (
+            ROOT / ".agent-factory/document/specification/agent/index.html"
+        ).read_text(encoding="utf-8")
+        normalized_agent = " ".join(agent.split())
+        normalized_prompt = " ".join(prompt.split())
+        shared_phrases = (
+            "materially separable bounded tasks",
+            "overlapping repository paths and writes",
+            "Uncertainty about independence defaults to sequencing",
+            "multiple independent `Work -> Verification` chains concurrently",
+            "distinct Agent IDs, loop IDs, run IDs",
+            "dependency order",
+            "runtime mechanically guarantees conflict freedom",
+        )
+        for contract in (normalized_agent, normalized_prompt):
+            for phrase in shared_phrases:
+                with self.subTest(ai_phrase=phrase):
+                    self.assertIn(phrase, contract)
+        for phrase in (
+            "shared mutable resources",
+            "its Verification starts only after its Work result is complete",
+            "binds that exact Work run",
+        ):
+            self.assertIn(phrase, normalized_agent)
+        for phrase in (
+            "shared mutable resource",
+            "start its Verification only after its Work result is complete",
+            "bind Verification to that exact Work run",
+        ):
+            self.assertIn(phrase, normalized_prompt)
+        for phrase in (
+            "실질적으로 분리 가능한 bounded task",
+            "repository path와 write",
+            "Git index·worktree",
+            "독립성이 불확실하면 순차 실행",
+            "독립된 Work → Verification chain을 동시에 실행",
+            "각 chain 내부는 반드시 순차적",
+            "서로 다른 Agent ID·loop ID·run ID",
+            "dependency order로 통합",
+            "runtime이 conflict freedom을 기계적으로 보장한다는 뜻이 아닙니다",
+            "새 Agent role이나 graph node",
+            "병렬성을 최대화하라는 요구도 아닙니다",
+        ):
+            with self.subTest(human_phrase=phrase):
+                self.assertIn(phrase, human)
+
     def test_workspace_activity_and_explorer_boundaries_are_aligned(self) -> None:
         ai_core = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"

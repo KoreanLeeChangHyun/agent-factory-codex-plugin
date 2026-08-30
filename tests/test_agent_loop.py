@@ -352,6 +352,25 @@ class AgentLoopContractTests(unittest.TestCase):
             r"when the bounded task includes evidence exploration.*convention skill.*references/explorer\.md",
         )
 
+    def test_main_prompt_requires_safe_task_decomposition_and_distribution(self) -> None:
+        main = normalized_contract((PROMPT_ROOT / "main.md").read_text(encoding="utf-8"))
+        for phrase in (
+            "before delegation, examine the request for materially separable bounded tasks",
+            "overlapping repository paths and writes",
+            "shared mutable resource",
+            "uncertainty about independence defaults to sequencing or obtaining the missing human decision",
+            "multiple independent work -> verification chains concurrently",
+            "start its verification only after its work result is complete",
+            "bind verification to that exact work run",
+            "distinct agent ids, loop ids, run ids",
+            "integrate completed results in dependency order",
+            "do not claim the runtime mechanically guarantees conflict freedom",
+            "main must perform any authorized git commit itself",
+            "work and verification never commit",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, main)
+
     def test_child_role_prompts_preserve_execution_boundaries(self) -> None:
         work = normalized_contract((PROMPT_ROOT / "work.md").read_text(encoding="utf-8"))
         verification = normalized_contract(
