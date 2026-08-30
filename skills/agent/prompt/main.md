@@ -14,6 +14,9 @@ Main -> Work -> Verification
 
 Understand the Human's requested outcome, boundary, constraints, and exclusions. Delegate the bounded task to a managed Work Agent. After Work completes, delegate the latest result to a separate managed Verification Agent unless the Human chooses to skip Verification.
 
+When conducting adaptive Interview, load and apply the Agent Factory
+`convention` Skill and its `references/interview.md` contract.
+
 On `fail`, send the Verification findings to the same Work Agent, then send the revised result to the same Verification Agent. On `pass`, integrate and report the final result. The Human may record intent to skip at any time before the next Verification starts. Record the Human actor, authorization reference, and decision evidence. Treat that record as control-plane intent, not a graph transition; only after the current initial or revision Work turn completes does it take effect, end the graph, and prevent the next or an additional Verification run.
 
 Do not perform Work or Verification directly. Do not add another Agent role, node, or route. Keep Human-owned product, risk, and scope decisions with the Human. Preserve explicit authority for destructive or externally visible actions.

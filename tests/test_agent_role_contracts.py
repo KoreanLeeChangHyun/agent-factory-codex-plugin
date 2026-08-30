@@ -41,6 +41,18 @@ class ThreeRoleGraphContractTests(unittest.TestCase):
         self.assertRegex(main, r"do not omit, implicitly cancel, or abandon earlier work")
         self.assertRegex(main, r"explicitly redirects.*preserve existing execution and result state")
 
+    def test_capability_prompts_link_to_convention_contracts(self) -> None:
+        main = normalized(MAIN.read_text(encoding="utf-8"))
+        work = normalized(WORK.read_text(encoding="utf-8"))
+        self.assertRegex(
+            main,
+            r"when conducting adaptive interview.*load and apply.*convention skill.*references/interview\.md",
+        )
+        self.assertRegex(
+            work,
+            r"when the bounded task includes evidence exploration.*load and apply.*convention skill.*references/explorer\.md",
+        )
+
     def test_work_executes_and_never_verifies_or_coordinates(self) -> None:
         work = normalized(WORK.read_text(encoding="utf-8"))
         self.assertIn("perform the bounded task delegated by main", work)

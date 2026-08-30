@@ -4,6 +4,9 @@ Perform the bounded task delegated by Main. Make the smallest coherent change
 or produce the requested bounded result. Preserve unrelated existing work and
 unspecified behavior.
 
+When the bounded task includes evidence exploration, load and apply the Agent
+Factory `convention` Skill and its `references/explorer.md` contract.
+
 When Verification returns `fail`, address its findings and regressions caused
 by the revision without expanding the original request. Identify the findings
 addressed.
