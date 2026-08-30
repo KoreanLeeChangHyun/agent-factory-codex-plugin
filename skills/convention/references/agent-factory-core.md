@@ -109,6 +109,14 @@ one-sided, semantically divergent, or byte-divergent change is incomplete.
 preflight and force contract. This decision comes from
 `.agent-factory/agent/workspace-work/runs/run-20260830T092305700450Z-683ed85d/request.md`.
 
+The three named files remain the core browser code. The packaged and
+materialized forms also contain byte-identical `THIRD_PARTY_NOTICES.txt`
+companion assets carrying required attribution and license text. `serve.py
+init` installs that companion through the same asset-copy contract; the notice
+is not a fourth browser-code file. This current companion-asset clarification
+comes from
+`.agent-factory/agent/document-consistency-completion-work-20260830/runs/run-20260830T123400206653Z-185e3f0e/request.md`.
+
 The superseding Human decision renames the public `specification` Skill to
 `document` and introduced an earlier three-type terminology that the final
 redirect below replaces. The relationship was already loose rather than a
@@ -232,11 +240,15 @@ whose primary spatial relationship is `Activity Bar -> Primary Sidebar ->
 Workspace`. The reusable shell is packaged below
 `skills/workspace/assets/browser/` and installed in the project at
 `.agent-factory/workspace/common/`. Its `index.html`, `styles.css`, and
-`app.js` must exist in both forms and remain byte-identical. The packaged files
-are the reusable installation source and the local files are the materialized
-publication, not an independent canonical source. `serve.py init` creates or,
-when safely forced, replaces the local copies from the package without
-weakening preflight, path-containment, symlink, atomic-copy, or launcher rules.
+`app.js` are the three core browser-code files and must exist in both forms and
+remain byte-identical. The companion `THIRD_PARTY_NOTICES.txt` attribution and
+license asset must likewise exist in both forms, be installed by `serve.py
+init`, and remain byte-identical; it is not a fourth browser-code file. The
+packaged files are the reusable installation source and the local files are
+the materialized publication, not an independent canonical source. `serve.py
+init` creates or, when safely forced, replaces the local copies from the
+package without weakening preflight, path-containment, symlink, atomic-copy, or
+launcher rules.
 
 For the local adapter, the reusable launcher source is
 `skills/workspace/assets/workspace.sh`; its
@@ -517,6 +529,8 @@ When changing either projection, compare both and preserve:
   에이전트, 문서, 로그, 테스트; undecided sidebar/capability details; no
   aliases or inferred nesting; the owner-mediated boundary; and the local
   byte-identical packaged-browser-to-materialized-common publication contract,
+  including the three core browser-code files and the installed, byte-identical
+  `THIRD_PARTY_NOTICES.txt` companion attribution/license asset,
   plus the packaged-to-root copy-once `workspace.sh` launcher contract;
 - the distributed-plugin versus consumer-Project-Skill ownership split and the
   storage-independent document model with unresolved backend integration;

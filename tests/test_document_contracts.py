@@ -489,7 +489,9 @@ class DocumentContractTests(unittest.TestCase):
             "Activity Bar에는 일정, 에이전트, 문서, 로그, 테스트가 이 순서로 정확히 다섯 개만 있습니다",
             "Primary Sidebar 정보 구조, 상세 기능",
             "Human의 후속 결정을 기다립니다",
-            "두 형태와 세 파일은 함께 존재하고 byte 단위로 같아야 합니다",
+            "세 개의 핵심 코드 파일과 필수 동반 notice는 두 형태에 함께 존재하고 각각 byte 단위로 같아야 합니다",
+            "THIRD_PARTY_NOTICES.txt",
+            "네 번째 브라우저 코드 파일이 아닙니다",
             "패키지 에셋이 재사용 설치 원본",
         ):
             self.assertIn(phrase, human)

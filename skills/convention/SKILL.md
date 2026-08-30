@@ -52,7 +52,10 @@ Human-owned and undecided. Workspace does not own or execute underlying state.
 Its browser shell must exist as byte-identical packaged installation sources in
 `skills/workspace/assets/browser/` and a materialized current-project copy in
 `.agent-factory/workspace/common/`; the packaged assets are the installation
-source, not a second runtime authority.
+source, not a second runtime authority. The three core browser-code files are
+`index.html`, `styles.css`, and `app.js`; the initializer also installs the
+byte-identical companion `THIRD_PARTY_NOTICES.txt` attribution and license
+asset, which is not a fourth browser-code file.
 
 Tool is the logical control plane for Agent-usable external tool and connector
 lifecycle. It owns discovery/catalog metadata, lifecycle routing,

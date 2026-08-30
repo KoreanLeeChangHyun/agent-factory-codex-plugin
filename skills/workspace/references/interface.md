@@ -42,11 +42,15 @@ Workspace browser code has two required forms:
 - `<project-root>/.agent-factory/workspace/common/{index.html,styles.css,app.js}`
   is that exact target project's installed, published copy.
 
-Create and maintain all three files in both forms together and byte-identically.
-A missing form, a one-sided change, or semantic or byte divergence is an
-incomplete Workspace change. This does not create two canonical sources: the
-packaged files are the reusable installation source and `common/` is the
-materialized project copy.
+These are the three core browser-code files. Create and maintain all three in
+both forms together and byte-identically. A required packaged companion asset
+must follow the same two-form publication contract. The current
+`THIRD_PARTY_NOTICES.txt` provides attribution and license text for browser
+code, is copied by the initializer, and must remain byte-identical to the file
+in `common/`; it is not a fourth browser-code file. A missing form, a one-sided
+change, or semantic or byte divergence is an incomplete Workspace change. This
+does not create two canonical sources: the packaged assets are the reusable
+installation source and `common/` is the materialized project copy.
 
 The standard-library-only initializer is `skills/workspace/scripts/serve.py`.
 Initialize an exact target Git root with:

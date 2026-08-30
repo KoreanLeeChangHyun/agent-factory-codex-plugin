@@ -79,7 +79,12 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn("candidate.relative_to(root)", launcher)
 
     def test_packaged_assets_faithfully_copy_the_existing_common_shell(self) -> None:
-        for name in ("index.html", "styles.css", "app.js"):
+        for name in (
+            "index.html",
+            "styles.css",
+            "app.js",
+            "THIRD_PARTY_NOTICES.txt",
+        ):
             self.assertEqual(
                 (COMMON_ROOT / name).read_bytes(),
                 (ASSET_ROOT / name).read_bytes(),
@@ -166,14 +171,36 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         document_tags = tuple(
             element.tag for element in tuple(icons_by_activity["documents"].iter())[1:]
         )
-        log_tags = tuple(
-            element.tag for element in tuple(icons_by_activity["logs"].iter())[1:]
-        )
+        log_icon = icons_by_activity["logs"]
+        log_tags = tuple(element.tag for element in tuple(log_icon.iter())[1:])
         self.assertNotEqual(document_tags, log_tags)
         self.assertNotIn("rect", document_tags)
-        self.assertNotIn("polyline", document_tags)
-        self.assertIn("rect", log_tags)
-        self.assertIn("polyline", log_tags)
+        self.assertNotIn("g", document_tags)
+
+        log_rows = log_icon.findall("./g")
+        self.assertEqual(3, len(log_rows))
+        for row in log_rows:
+            self.assertEqual(["path", "path", "path"], [child.tag for child in row])
+        self.assertNotIn("rect", log_tags)
+        self.assertNotIn("polyline", log_tags)
+        self.assertNotIn("circle", log_tags)
+        self.assertIn("Lucide Logs", html)
+        self.assertIn("THIRD_PARTY_NOTICES.txt", html)
+
+        notice = (ASSET_ROOT / "THIRD_PARTY_NOTICES.txt").read_text(
+            encoding="utf-8"
+        )
+        for required_notice_text in (
+            "Copyright (c) 2026 Lucide Icons and Contributors",
+            "Permission to use, copy, modify, and/or distribute this software",
+            "this permission notice appear in all copies",
+            'THE SOFTWARE IS PROVIDED "AS IS"',
+            "AUTHOR DISCLAIMS ALL WARRANTIES",
+            "IN NO EVENT SHALL THE AUTHOR BE LIABLE",
+            "https://lucide.dev/icons/logs",
+            "https://lucide.dev/license",
+        ):
+            self.assertIn(required_notice_text, notice)
 
         styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
         self.assertIn(".activity-button:focus-visible", styles)
@@ -381,7 +408,12 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             installed_root = (
                 project_root / SERVER.WORKSPACE_RELATIVE_PATH / "common"
             )
-            for name in ("index.html", "styles.css", "app.js"):
+            for name in (
+                "index.html",
+                "styles.css",
+                "app.js",
+                "THIRD_PARTY_NOTICES.txt",
+            ):
                 self.assertTrue((installed_root / name).is_file())
                 self.assertEqual(
                     (ASSET_ROOT / name).read_bytes(),

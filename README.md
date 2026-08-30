@@ -69,7 +69,9 @@ Gathered collections remain Original Documents, and Work's exploration results
 remain Original or Processed Documents. Gather owns external synchronization;
 Document defines all three types. The conceptual ordering does not imply
 completeness, maturity, a required transition, or automatic promotion;
-Original and Processed remain non-authoritative. No mandatory
+Original is source-faithful evidence and is authority-neutral: its type alone
+does not decide authority or trust. Processed remains non-authoritative working
+knowledge. No mandatory
 Original-to-Processed-to-Specification pipeline exists. Operational Agent sessions
 and temporary exploration workspaces remain operational, while Original,
 Processed, and Human-facing Specifications occupy distinct logical roles.
@@ -90,6 +92,7 @@ Agent Factory uses this project-local structure as its current/default adapter:
 
 ```text
 .agent-factory/
+├── db.sqlite
 ├── agent/
 │   └── <agent-id>/
 │       ├── session.json
@@ -105,6 +108,14 @@ Agent Factory uses this project-local structure as its current/default adapter:
 │   ├── explorer/
 │   └── skills/
 ```
+
+The exact `.agent-factory/db.sqlite` path is reserved for a rebuildable,
+non-authoritative catalog/read model across Agent execution structure and
+Documents. Workspace maintains its schema at
+`skills/workspace/assets/schema/catalog.sql`. The current implementation is
+schema-only: it does not create or populate a database or implement UI, APIs,
+search, scanners, rebuild jobs, or runtime dual writes. Do not commit the
+database or its SQLite runtime sidecars.
 
 `agent/` contains managed Codex session and run state.
 Temporary execution-only Explorer material stays in the producing managed Agent
@@ -187,7 +198,11 @@ Initialization copies the packaged `skills/workspace/assets/workspace.sh`
 project template to `<project-root>/workspace.sh` once; it is an asset rather than a
 Skill script to run in place. An existing root launcher is never changed, even
 by `init --force`; force is limited to differing common browser assets. For
-normal use, serve the existing Workspace tree on loopback and open
+the browser shell, `index.html`, `styles.css`, and `app.js` are the three core
+browser-code files. The packaged `THIRD_PARTY_NOTICES.txt` is a companion
+attribution and license asset, not a fourth browser-code file; initialization
+installs it with the core files, and packaged and materialized copies remain
+byte-identical. For normal use, serve the existing Workspace tree on loopback and open
 `/common/` in the default browser:
 
 ```bash

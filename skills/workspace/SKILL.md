@@ -18,8 +18,12 @@ the canonical owner or executor of projected state.
 
 The browser shell has two required forms: reusable installation sources below
 `assets/browser/` and the current project's installed publication below
-`.agent-factory/workspace/common/`. Maintain `index.html`, `styles.css`, and
-`app.js` together and byte-identically; a missing or divergent form is
+`.agent-factory/workspace/common/`. Maintain the three core browser-code files
+`index.html`, `styles.css`, and `app.js` together and byte-identically. Maintain
+any required packaged companion asset in both forms as well: the current
+`THIRD_PARTY_NOTICES.txt` carries attribution and license text, is installed by
+the initializer, and must remain byte-identical to its materialized copy. It is
+not a fourth browser-code file. A missing or divergent required form is
 incomplete. The packaged assets remain the installation source rather than a
 second runtime authority.
 
