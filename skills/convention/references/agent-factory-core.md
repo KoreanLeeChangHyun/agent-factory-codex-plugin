@@ -116,9 +116,16 @@ in order: `원본문서`, `가공문서`, and `스펙문서`. Original has `개�
 `문서검색`, with search selecting a semantic table shell. Processed and
 Specification each have `개요` and consistent explorer/tree-shaped regions
 reserved for actual Documents. The no-space `스펙문서` spelling is the UI
-label and does not rename the Specification type. Overview details, table
-columns and behavior, and discovery/source integration remain unresolved, as
-do all four other Activity sidebars and detailed capabilities. Workspace
+label and does not rename the Specification type. That decision initially left
+overview details, table columns and behavior, and discovery/source integration
+unresolved. The current Workspace contract has since fixed the Original search
+view as a compact, tab-free Tabulator 6.5.2 table with global search,
+per-column filters, resizing/reordering, and exact ordered columns `문서 분류`,
+`출처`, `태그`, `문서 이름`, `확장자`, `수정 일자`; only document-name cells
+link to the source Original, and provider cells use visible provider text with
+decorative inline SVG. Overview content, live source/query integration,
+synchronization and metadata-mutation contracts, and all four other Activity
+sidebars and detailed capabilities remain unresolved. Workspace
 retains its observation/control-routing boundary and does not own or execute
 schedule data, Agent runtime state, Documents, logs, or tests. This decision
 comes from
@@ -492,11 +499,12 @@ Engineering, and Agentic Engineering. It is an execution layer, not a fourth
 Document type. Main owns Human interaction, Interview, orchestration, and
 integration but performs neither Work nor Verification. Work performs every
 bounded task, including Explorer research and implementation. Verification
-independently returns pass or fail unless the Human skips it; failure returns
-to the same Work Agent. A skip is Human-only, evidenced control-plane intent,
-not a graph transition or completion. It may be recorded before the next
-Verification starts, is applied only after the current initial or revision Work
-completes, starts no next or additional Verification, and then reaches END.
+independently returns pass or fail unless a Human-only skip intent with an
+authorization reference and decision evidence is applied; failure returns to
+the same Work Agent. Recording skip intent before the next Verification starts
+is not a graph transition or completion. It is applied only after the current
+initial or revision Work completes, starts no next or additional Verification,
+and then reaches END.
 Verification pass also reaches END.
 Tool may establish capability readiness, but Agent retains Work/Verification
 capability binding, execution authority, dispatch, and execution receipts.
@@ -512,11 +520,17 @@ Workspace is the Human-facing project control tower with exactly five
 top-level Activities in this order: 일정, 에이전트, 문서, 로그, 테스트. No
 other top-level item or alias is allowed. The Document Primary Sidebar has the
 decided ordered, independently collapsible `원본문서`, `가공문서`, and
-`스펙문서` groups. Original provides overview and table-shaped search views;
+`스펙문서` groups. Original provides overview and a compact, tab-free Tabulator
+6.5.2 search view with global search, filters on all six exact ordered columns
+(`문서 분류`, `출처`, `태그`, `문서 이름`, `확장자`, `수정 일자`),
+responsive width distribution with narrow-view horizontal overflow, and Human
+resizing and reordering. Only document-name cells link to source Originals;
+provider cells combine visible provider text with decorative inline SVG.
 Processed and Specification provide overview and consistent explorer/tree
 regions for actual Documents. The UI label does not rename Specification.
-Finer overview/table/discovery/source details and the other four Activity
-sidebars and capabilities remain Human-owned and unresolved. The packaged
+Overview content, live source/query integration, synchronization and metadata
+mutation, and the other four Activity sidebars and capabilities remain
+Human-owned and unresolved. The packaged
 browser presents explicit awaiting-definition or awaiting-connection states
 rather than project data or inferred source behavior.
 Workspace does not become the canonical owner or executor of schedule data,
@@ -544,7 +558,7 @@ temporary Explorer material stays only in its producing managed Agent run.
 | Document | Documents and grounded Human decisions | Original, Processed, and Specification Documents | Define all three types, preserve optional provenance relationships, and pair every Specification |
 | Convention | Human-defined working constraints | Cross-cutting control | Weak harness across all Document types |
 | Agent | Role, authority, context, Tool-prepared capabilities, state | Cross-cutting execution | Bind capabilities, authorize and receipt execution; Main orchestrates, Work performs bounded tasks, and Verification independently checks unless the Human skips it |
-| Workspace | Future owner-resolved schedule, Agent, Document, log, and test sources | Five-category Human control tower | Exactly five ordered top-level Activities; only the three-group Document sidebar and its overview/table/tree view shapes are decided; finer Document details and the other four sidebars remain unresolved; never own or execute projected state |
+| Workspace | Future owner-resolved schedule, Agent, Document, log, and test sources | Five-category Human control tower | Exactly five ordered top-level Activities; the three-group Document sidebar, view shapes, and six-column Original search behavior are decided; overview/live integration/mutation contracts and the other four sidebars remain unresolved; never own or execute projected state |
 
 ## Agent engineering stack
 
@@ -609,11 +623,14 @@ target conceptual model:
 1. Roadmap priority, deadline, owner, acceptance status, risk acceptance, and
    completion state remain Human-owned and unspecified.
 2. The Document sidebar's three ordered groups and overview/table/tree view
-   shapes are decided. Its overview details, table columns and behavior, live
-   discovery/source integration, and the other four Activities' sidebar
-   architecture and detailed capabilities remain unresolved. The Agent runtime
-   has an owning local contract, but the Workspace decision does not define its
-   projection.
+   shapes are decided. Original search also has decided six-column ordering,
+   global and per-column filtering, sorting, link/provider-cell behavior,
+   responsive sizing, and Human column resizing/reordering. Its overview
+   content, live source/query integration, synchronization trigger and status,
+   metadata-mutation authority and persistence, and the other four Activities'
+   sidebar architecture and detailed capabilities remain unresolved. The Agent
+   runtime has an owning local contract, but the Workspace decision does not
+   define its projection.
    Catalog search screens, HTTP/general query APIs, semantic/vector search,
    live-watcher, freshness automation, and dual-write behavior remain
    unimplemented; bounded read-only FTS5 CLI search is Agent-owned.
@@ -660,8 +677,9 @@ When changing either projection, compare both and preserve:
   Workspace relationship; exactly five ordered top-level items labeled 일정,
   에이전트, 문서, 로그, 테스트; the ordered, independently collapsible
   `원본문서`, `가공문서`, `스펙문서` Document groups and their decided
-  overview/table/tree shapes; exact no-space UI spelling without semantic type
-  rename; unresolved finer details, source integration, and other four
+  overview/table/tree shapes; exact six-column Original search order and
+  behavior; exact no-space UI spelling without semantic type rename;
+  unresolved overview/live source-query/sync/mutation contracts and other four
   sidebars; no aliases or inferred data behavior; the owner-mediated boundary;
   and the local
   byte-identical packaged-browser-to-materialized-common publication contract,

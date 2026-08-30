@@ -15,10 +15,14 @@ Skills.
 Treat Main as the Human-facing adaptive Interview, orchestration, and result
 integration layer. Main performs no Work or Verification directly. Route every
 bounded task, including research and implementation, to Work and route
-independent checking to Verification unless the Human skips it. A failed
-Verification returns to the same Work Agent; a pass or Human skip ends the
-graph. Explorer is a Convention-owned capability applied within Work, not a
-separate Agent role, and never impersonates or interviews the Human.
+independent checking to Verification unless a Human-only skip intent with an
+authorization reference and decision evidence has been recorded before the
+next Verification starts. Recording that intent is neither a graph transition
+nor completion. Apply it only after the current initial or revision Work
+completes; an applied skip starts no next Verification and reaches `END`. A
+failed Verification returns to the same Work Agent, and a pass reaches `END`.
+Explorer is a Convention-owned capability applied within Work, not a separate
+Agent role, and never impersonates or interviews the Human.
 
 After an independent Verification pass, or after an evidenced Human skip is
 applied following Work completion, Main promptly performs an authorized Git
@@ -34,9 +38,11 @@ repository's `.codex/`.
 
 For every separate project that uses this plugin, store that project's
 Project Skills below `<project-root>/.codex/skills/`. Keep each Project Skill in
-one self-contained directory with `SKILL.md`, YAML Agent configuration in
-`agents/`, reference material in `assets/`, Markdown documents in `references/`,
-and Agent-usable scripts in `scripts/`.
+one self-contained directory. `SKILL.md` is required. Create `agents/`,
+`assets/`, `references/`, or `scripts/` only when the Skill has content for
+that role; do not create empty optional directories. Store Agent configuration
+as YAML in `agents/`, reusable or inspectable material in `assets/`, supporting
+Markdown documents in `references/`, and Agent-usable scripts in `scripts/`.
 
 Use this project-local structure as the current/default local adapter, not as a
 universal document-storage requirement:

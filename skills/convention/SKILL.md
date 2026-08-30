@@ -76,11 +76,14 @@ Workspace is the Human-facing project control tower with exactly five
 top-level Activities, in order: 일정, 에이전트, 문서, 로그, 테스트. Their
 Document Primary Sidebar is decided as ordered, independently collapsible
 `원본문서`, `가공문서`, and `스펙문서` groups: Original has overview and
-table-shaped search views, while Processed and Specification have overview and
-consistent explorer/tree-shaped areas for actual Documents. `스펙문서` is a
-display label, not a semantic type rename. Finer Document view/source details
-and the other four sidebar architectures and capabilities remain Human-owned
-and unresolved. Workspace does not own or execute underlying state.
+the decided compact Tabulator 6.5.2 search view with global and per-column
+filters, sorting, resizing/reordering, and exact ordered columns `문서 분류`,
+`출처`, `태그`, `문서 이름`, `확장자`, `수정 일자`, while Processed and
+Specification have overview and consistent explorer/tree-shaped areas for
+actual Documents. `스펙문서` is a display label, not a semantic type rename.
+Overview content, live source/query integration, synchronization and metadata
+mutation, and the other four sidebar architectures and capabilities remain
+Human-owned and unresolved. Workspace does not own or execute underlying state.
 Its browser shell must exist as byte-identical packaged installation sources in
 `skills/workspace/assets/browser/` and a materialized current-project copy in
 `.agent-factory/workspace/common/`; the packaged assets are the installation

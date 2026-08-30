@@ -60,9 +60,10 @@ Use this structure as Agent Factory's current/default local adapter:
   manifest, or explicitly selected provider remains authoritative, and Tool
   registry/state storage is unresolved.
 
-Keep plugin distributed Skills below `<plugin-root>/skills/`. In an ordinary
-consumer project, keep the paired Project Skill and Human Specification under
-the exact same lowercase hyphen-case identity:
+Keep plugin distributed Skills below `<plugin-root>/skills/`. Under this
+current/default local adapter, in an ordinary consumer project keep the paired
+Project Skill and Human Specification directories under the exact same
+lowercase hyphen-case identity:
 `<project-root>/.codex/skills/<category>-<title>/` and
 `<project-root>/.agent-factory/document/specification/<category>-<title>/`.
 This plugin is the explicit exception whose accepted single-name pairs remain

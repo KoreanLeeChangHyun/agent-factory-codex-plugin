@@ -88,13 +88,13 @@ Each Project Skill is one self-contained directory:
 
 ```text
 .codex/skills/<category>-<title>/
-├── SKILL.md
-├── agents/
+├── SKILL.md                 required
+├── agents/                  optional
 │   └── openai.yaml
-├── assets/
-├── references/
+├── assets/                  optional
+├── references/              optional
 │   └── *.md
-└── scripts/
+└── scripts/                 optional
 ```
 
 - `SKILL.md` is the AI-readable entry point and instruction document.

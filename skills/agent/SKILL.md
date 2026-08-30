@@ -51,6 +51,31 @@ not implicitly cancel or abandon prior work. An explicit Human redirect
 preserves existing execution/result state and is recorded as a control-plane
 transition within the same graph.
 
+## Task decomposition and chain orchestration
+
+Before delegation, Main examines the Human request for materially separable
+bounded tasks. Main decides dependencies and actual independence by considering
+overlapping repository paths and writes plus shared mutable resources such as
+the Git index and worktree, Agent, session, loop, and run identities, databases,
+ports, and external systems. Uncertainty about independence defaults to
+sequencing or obtaining the missing Human decision; Main must not silently
+treat uncertain tasks as independent.
+
+When useful, Main may run multiple independent `Work -> Verification` chains
+concurrently. Each chain remains internally sequential: its Verification starts
+only after its Work result is complete and binds that exact Work run. Dependent
+tasks, overlapping writes, and repository-wide integration or publication such
+as Git commits are sequenced. Every parallel chain uses distinct Agent IDs,
+loop IDs, run IDs, scoped authority and capability bindings, and bounded inputs.
+Main continues the Human conversation, tracks every active chain, preserves all
+execution and result state, and integrates results in dependency order without
+losing or implicitly cancelling work.
+
+Decomposition and safe distribution are Main's orchestration judgment and
+responsibility. They are not a claim that the runtime mechanically guarantees
+conflict freedom, a new Agent role or graph node, or a requirement to maximize
+parallelism.
+
 ## Managed sessions
 
 Start delegated Work and Verification through `scripts/exec.py`; Main may
@@ -196,3 +221,31 @@ specific capability to a Work or Verification request, the authority for that
 execution, and the resulting execution receipt. Preserve the authoritative
 host, plugin, MCP server, or project manifest selected through Tool; do not
 copy its registry or credentials into Agent runtime state.
+
+Main may bind capabilities to an individual managed Work or Verification run
+with `exec.py --capability-binding-file`. `loop.py start` keeps least privilege
+with separate `--work-capability-binding-file` and
+`--verification-capability-binding-file` inputs; a binding for one role is not
+forwarded to the other. The strict versioned document contains one to 32
+unique bindings, each with capability ID, authority kind/reference, invocation
+route, exact target, allowed effects, allowed scopes, and a nullable approval
+reference. The runtime validates unknown fields and bounds, canonicalizes the
+document, copies it into the managed run, hashes it into the immutable dispatch
+tuple, and exposes its canonical path/hash in run status. It stores no
+credential or token field.
+
+The caller-supplied binding file is opened without resolving or following any
+file or parent-directory symlink. Unsupported safe traversal, traversal
+components, non-regular files, unsafe parents, replacement races, and oversized
+content fail closed before dispatch. The final component is opened nonblocking
+before its descriptor is checked as a regular file, so a caller-controlled FIFO,
+socket, or device cannot block the runtime. The bounded bytes read from the
+same opened regular-file descriptor are the bytes canonicalized for the managed
+run.
+
+When a run has bindings, its role receipt must carry one ordered
+`capabilityOutcomes` entry per binding. Each entry repeats the original request
+hash, exact run ID, capability ID, authority, and target and records only
+`succeeded`, `failed`, `unknown`, or `not-invoked`. Receipt validation re-reads
+and hashes the canonical binding and rejects omitted, reordered, widened, or
+substituted outcomes. Tool readiness still grants no execution authority.

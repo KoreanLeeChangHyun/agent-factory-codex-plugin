@@ -196,6 +196,49 @@ project manifests remain authoritative, and credentials or tokens never belong
 in the repository or Specification. Tool also does not add a sixth Workspace
 Activity; the Activity Bar contract remains exactly five items.
 
+The implemented Tool adapter is stateless and machine-readable:
+
+```bash
+python3 skills/tool/scripts/tool.py inspect --profile git.cli --target .
+python3 skills/tool/scripts/tool.py health --profile github.cli --hostname github.com --target .
+python3 skills/tool/scripts/tool.py discover --profile git-lfs.cli --target .
+python3 skills/tool/scripts/tool.py inspect --profile playwright.browser \
+  --authority-kind project-cli --target .
+```
+
+`discover`, `inspect`, and `health` run bounded read-only provider inspection.
+Lifecycle mutation verbs return a provider route with `performed: false`; the
+adapter never installs, authenticates, downloads browsers, alters repositories,
+or creates a Tool state directory. Explicit plugin, MCP, or host authority is
+preserved and reported `unknown` when no concrete provider adapter exists.
+
+Managed Agent runs accept a strict binding file on `exec.py submit`/`send`.
+The graph launcher accepts separate role-scoped binding files on `loop.py
+start`:
+
+```json
+{
+  "schemaVersion": "0.1.0",
+  "bindings": [{
+    "capabilityId": "playwright.browser.execute",
+    "authority": {"kind": "project-cli", "reference": "package-lock.json#playwright"},
+    "invocationRoute": "node_modules/.bin/playwright",
+    "exactTarget": "https://example.invalid/health",
+    "allowedEffects": ["navigate"],
+    "allowedScopes": ["network:https://example.invalid"],
+    "approvalReference": "human-request-1"
+  }]
+}
+```
+
+Pass it with `exec.py --capability-binding-file <path>`, or use
+`loop.py start --work-capability-binding-file <path>` and/or
+`--verification-capability-binding-file <path>`. A loop never forwards one
+role's binding to the other. The runtime validates and
+copies the canonical document into the managed run, binds its hash into the
+dispatch tuple, and requires one exact `capabilityOutcomes` receipt entry per
+binding. Binding and receipt fields contain no credentials or tokens.
+
 ## Local installation
 
 Install the GitHub-backed marketplace and the plugin with Codex CLI:
