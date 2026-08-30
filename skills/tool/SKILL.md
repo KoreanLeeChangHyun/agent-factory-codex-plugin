@@ -44,3 +44,9 @@ Tool must not widen scope on its own.
 - `references/lifecycle.md`: Read before designing, changing, or operating a
   Tool catalog entry, installation, connection, permission, health, or
   enablement lifecycle, and when integrating Tool with Gather or Agent.
+- `references/git.md`: Read for discovery, install, update, remove, connection,
+  authentication, or health requests involving Git, GitHub CLI (`gh`), or Git
+  LFS, and before binding one of their capabilities to Agent execution.
+- `references/playwright.md`: Read for discovery, install, update, removal,
+  browser/runtime readiness, or health requests involving Playwright, and
+  before binding its browser capability to Agent execution.

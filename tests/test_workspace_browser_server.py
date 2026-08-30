@@ -132,6 +132,7 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         )
 
         signatures = []
+        icons_by_activity = {}
         for button, (activity, label) in zip(buttons, expected, strict=True):
             self.assertEqual(activity, button.attrib["data-activity"])
             self.assertEqual(label, button.attrib["aria-label"])
@@ -143,6 +144,7 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             self.assertEqual("0 0 24 24", svg.attrib["viewBox"])
             self.assertEqual("true", svg.attrib["aria-hidden"])
             self.assertEqual("false", svg.attrib["focusable"])
+            icons_by_activity[activity] = svg
 
             elements = tuple(svg.iter())[1:]
             self.assertTrue(elements)
@@ -160,6 +162,18 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertEqual(len(expected), len(buttons))
         self.assertEqual(len(expected), len(set(signatures)))
         self.assertNotIn("<img", html[nav_start:nav_end].lower())
+
+        document_tags = tuple(
+            element.tag for element in tuple(icons_by_activity["documents"].iter())[1:]
+        )
+        log_tags = tuple(
+            element.tag for element in tuple(icons_by_activity["logs"].iter())[1:]
+        )
+        self.assertNotEqual(document_tags, log_tags)
+        self.assertNotIn("rect", document_tags)
+        self.assertNotIn("polyline", document_tags)
+        self.assertIn("rect", log_tags)
+        self.assertIn("polyline", log_tags)
 
         styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
         self.assertIn(".activity-button:focus-visible", styles)

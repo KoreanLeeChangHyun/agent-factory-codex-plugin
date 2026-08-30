@@ -151,7 +151,8 @@ control plane for Agent-usable external tool and connector lifecycle. Gather
 remains independent and uses a Tool-prepared connector while retaining source
 selection, destination, bounded read-only synchronization, source fidelity,
 identity, provenance, and Original Document output. This decision is supplied
-by the active Human request for the Tool Skill implementation.
+by the managed Human request at
+`.agent-factory/agent/six-skill-core-sync-work-20260830/runs/run-20260830T103238358728Z-5e61ab5d/request.md`.
 
 ## Project Skill naming
 

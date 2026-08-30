@@ -410,6 +410,21 @@ class DocumentContractTests(unittest.TestCase):
             with self.subTest(target=target):
                 self.assertTrue((ROOT / target).exists())
 
+    def test_six_skill_decision_has_exact_managed_request_provenance(self) -> None:
+        decision_request = (
+            ".agent-factory/agent/six-skill-core-sync-work-20260830/runs/"
+            "run-20260830T103238358728Z-5e61ab5d/request.md"
+        )
+        ai = (
+            ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
+        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
+
+        self.assertIn(decision_request, ai)
+        self.assertIn(decision_request, human)
+        self.assertNotIn("active Human request for the Tool Skill", ai)
+        self.assertNotIn("현재 Tool Skill을 추가하라는 Human 결정", human)
+
     def test_human_skip_timing_is_aligned_in_ai_and_human_views(self) -> None:
         ai_core = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"

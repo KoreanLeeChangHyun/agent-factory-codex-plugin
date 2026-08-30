@@ -231,6 +231,39 @@ class SkillMetadataTests(unittest.TestCase):
             self.assertIn(phrase, combined)
         self.assertFalse((ROOT / ".agent-factory" / "tool").exists())
 
+    def test_tool_routes_distinct_git_profiles_without_owning_state(self) -> None:
+        entry = (SKILLS / "tool" / "SKILL.md").read_text(encoding="utf-8")
+        git_profiles = (
+            SKILLS / "tool" / "references" / "git.md"
+        ).read_text(encoding="utf-8")
+        normalized_profiles = " ".join(git_profiles.casefold().split())
+        self.assertIn("`references/git.md`", entry)
+        for profile_id in ("git.cli", "github.cli", "git-lfs.cli"):
+            with self.subTest(profile_id=profile_id):
+                self.assertIn(f"`{profile_id}`", git_profiles)
+                self.assertIn(f"`{profile_id}.inspect`", git_profiles)
+                self.assertIn(f"`{profile_id}.execute`", git_profiles)
+        for boundary in (
+            "tool readiness never authorizes agent execution",
+            "do not use a token-printing operation as a health check",
+            "repository activation/configuration",
+        ):
+            self.assertIn(boundary, normalized_profiles)
+
+    def test_tool_routes_playwright_profile_without_conflating_readiness(self) -> None:
+        entry = (SKILLS / "tool" / "SKILL.md").read_text(encoding="utf-8")
+        playwright = (
+            SKILLS / "tool" / "references" / "playwright.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("`references/playwright.md`", entry)
+        for identifier in (
+            "playwright.browser",
+            "playwright.browser.inspect",
+            "playwright.browser.execute",
+        ):
+            with self.subTest(identifier=identifier):
+                self.assertIn(f"`{identifier}`", playwright)
+
 
 if __name__ == "__main__":
     unittest.main()
