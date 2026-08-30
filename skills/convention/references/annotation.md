@@ -16,3 +16,12 @@ annotations are created, changed, or reviewed.
 - Do not preserve inactive code in comments; rely on version control history.
 - Prefer clear names, small units, type information, and tests over comments.
 - Prioritize accuracy and information value over comment quantity.
+
+## Evidence basis
+
+This convention follows the common guidance that comments should explain
+reasoning the code cannot express, must stay aligned with the implementation,
+and should not restate obvious operations:
+
+- [Google Engineering Practices: What to look for in a code review](https://google.github.io/eng-practices/review/reviewer/looking-for.html)
+- [Python PEP 8: Comments](https://peps.python.org/pep-0008/#comments)

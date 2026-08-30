@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Convention"
   short_description: "Apply Agent Factory core and cross-cutting conventions."
-  default_prompt: "Use $convention to apply the Agent Factory core model, information lifecycle, Skill ownership, storage, annotation, or SVG convention relevant to the work."
+  default_prompt: "Use $convention to apply the relevant Agent Factory core, structure, development, library, design, or annotation convention."
