@@ -54,6 +54,25 @@ unless the Human has decided them.
   reconciled project knowledge, honest unresolved state, the packaged browser
   template, the mandatory faithful Human/AI pair, and the complete AI-facing
   Project Skill representation contract.
+- `references/adapter.md`: Read completely for any Document adapter
+  initialization, inspection/planning, physical layout or backend migration,
+  integrity-check, or recovery design or work. It distinguishes deterministic
+  physical control from semantic Document work and defines the LLM boundary,
+  closed plan/IR, fail-closed manager, pair publication, and ownership rules.
+
+## Initialization and migration
+
+Initialization and physical adapter/layout migration remain capabilities of
+this public Skill, not another Skill or Agent role. Initialization is
+deterministic and needs no LLM. Physical migration preserves `documentType`
+and never implies `Original -> Processed -> Specification` promotion. An LLM
+may advise on ambiguous classification, provenance, difficult transformations,
+semantic reconciliation, or synchronized Specification drafts, but its raw
+output is never executable. Only an allowlisted, versioned deterministic plan
+compiled and validated from a proposal may reach a deterministic manager after
+current-state revalidation and required Human authority. Keep uncertainty
+`unknown` or `requiresDecision` and apply the complete contract in
+`references/adapter.md`.
 
 ## Specification pair
 

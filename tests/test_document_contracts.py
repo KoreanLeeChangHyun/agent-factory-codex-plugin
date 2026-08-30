@@ -65,7 +65,7 @@ class DocumentContractTests(unittest.TestCase):
         references = DOCUMENT / "references"
         self.assertEqual(
             {path.name for path in references.glob("*.md")},
-            {"original.md", "processed.md", "specification.md"},
+            {"adapter.md", "original.md", "processed.md", "specification.md"},
         )
         self.assertFalse((references / "specification-document.md").exists())
 
@@ -391,20 +391,25 @@ class DocumentContractTests(unittest.TestCase):
             and not value.startswith(("http://", "https://"))
         }
         self.assertTrue(local_targets)
-        runtime_request_targets = {
+        runtime_provenance_targets = {
             target
             for target in local_targets
             if target.startswith(".agent-factory/agent/")
         }
-        tracked_targets = local_targets - runtime_request_targets
-        self.assertTrue(runtime_request_targets)
+        tracked_targets = local_targets - runtime_provenance_targets
+        self.assertTrue(
+            any(target.endswith("/request.md") for target in runtime_provenance_targets)
+        )
+        self.assertTrue(
+            any(target.endswith("/result.md") for target in runtime_provenance_targets)
+        )
         self.assertTrue(tracked_targets)
-        for target in sorted(runtime_request_targets):
+        for target in sorted(runtime_provenance_targets):
             with self.subTest(runtime_provenance=target):
                 self.assertRegex(
                     target,
                     r"^\.agent-factory/agent/[a-z0-9][a-z0-9-]*/runs/"
-                    r"run-\d{8}T\d{12}Z-[0-9a-f]{8}/request\.md$",
+                    r"run-\d{8}T\d{12}Z-[0-9a-f]{8}/(?:request|result)\.md$",
                 )
         for target in sorted(tracked_targets):
             with self.subTest(target=target):

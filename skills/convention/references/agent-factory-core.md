@@ -117,6 +117,15 @@ is not a fourth browser-code file. This current companion-asset clarification
 comes from
 `.agent-factory/agent/document-consistency-completion-work-20260830/runs/run-20260830T123400206653Z-185e3f0e/request.md`.
 
+The Human-accepted documentation-first contract for Document adapter
+initialization, physical migration, and conditional LLM participation comes
+from
+`.agent-factory/agent/document-adapter-contract-docs-work/runs/run-20260830T135328504819Z-24544fc7/request.md`.
+Its complete Document-owned operational design reference is
+`skills/document/references/adapter.md`. The researched recommendations that
+informed the Human direction remain evidence, not an independent source of
+accepted product decisions.
+
 The superseding Human decision renames the public `specification` Skill to
 `document` and introduced an earlier three-type terminology that the final
 redirect below replaces. The relationship was already loose rather than a
@@ -304,6 +313,63 @@ representations: an AI-facing Skill and a Human-facing Korean HTML, CSS, and
 JavaScript document. The pair must always remain semantically synchronized. A
 one-sided change is incomplete and unacceptable; if synchronization cannot be
 achieved, the change or run must not be reported as completed.
+
+## Document adapter initialization and physical migration
+
+Initialization and physical adapter/layout migration are capabilities inside
+the public `document` Skill, not another public Skill or Agent role. Keep them
+distinct from semantic Document work. Initialization deterministically and
+idempotently establishes compatible physical structure for an explicitly
+resolved adapter. Physical migration changes adapter, layout, locator, or
+representation placement while preserving Document identity, provenance,
+authority, pair binding, and `documentType`. It never performs or implies
+`Original -> Processed -> Specification` promotion; classification,
+transformation, reconciliation, and acceptance remain separately authorized
+semantic Document work.
+
+No LLM is required for initialization, and no LLM controls locks, hashes,
+copying, moving, overwrite, delete, state transitions, commit, cutover,
+integrity verdicts, or recovery. Within advisory/authoring Work, an LLM may
+propose evidence-backed legacy classifications, provenance candidates,
+difficult format transformations, semantic reconciliation, and synchronized
+Specification drafts. Uncertainty remains `unknown` or `requiresDecision`.
+Raw LLM output is non-executable.
+
+Any proposal that may inform physical execution must be compiled and validated
+by deterministic code into a closed, versioned plan/IR. It allowlists and binds
+operations, contained paths, identities, immutable Document type,
+preconditions, exact effects, validation, recovery, expiry/staleness, and
+authority references. A deterministic manager may execute only that bounded
+plan after revalidating current state and obtaining any required Human
+authority. Stale plans, unknown operations or fields, executable free-form
+content, path escape or symlinks, unresolved conflicts, missing provenance or
+authority, type promotion, unsupported capabilities, unauthorized destructive
+or cutover behavior, and integrity mismatches fail closed.
+
+A Specification's Human and AI representations are one migration and
+authoring group. Both must be staged and semantically aligned. A one-sided
+result is incomplete. If the adapter cannot guarantee atomic pair publication,
+the prior canonical authority remains in force and execution stops in a
+recoverable staged state. Conceptual operations include initialize,
+inspect/plan, migrate, integrity-check, and recover; these labels are not
+accepted CLI spelling. A deterministic integrity-check provides evidence and
+must not be confused with or replace the independent Agent Verification role.
+
+The Agent graph remains unchanged. Main interviews, resolves authority,
+orchestrates, and integrates without performing Work or Verification. Work may
+perform LLM advisory/authoring and, under separate exact authority, invoke the
+deterministic manager. Verification independently checks evidence; fail returns
+to the same Work Agent, while pass or an evidenced Human skip ends the graph.
+
+Gather continues to own external synchronization and `document/sync.json`;
+Tool continues to own connector lifecycle without credentials or execution
+authority; Agent continues to own capability binding, authority, and receipts;
+Workspace may only project or route owner-backed control; and
+`.agent-factory/db.sqlite` remains a rebuildable, non-authoritative catalog,
+never a migration manifest or recovery source. The manager, proposal/IR
+schemas, manifest and journal, command names, approval thresholds, backend
+capability requirements, pair-alignment evidence, and recovery implementation
+remain unimplemented or unresolved.
 
 ## Core capability topology
 
@@ -500,6 +566,12 @@ target conceptual model:
    adapters remain unresolved. The Tool connection/token lifecycle interface,
    Gather capability/scope request interface, and migration of currently
    coupled Google Drive/OneDrive authentication code are not implemented.
+4. The Document adapter manager/API and exact command names, proposal and
+   compiled-IR schemas, manifest/registry/journal paths and formats, stable
+   identity and hash rules, approval thresholds and evidence, conflict and
+   cutover policy, backend capability/metadata requirements, Specification pair
+   alignment evidence, and recovery implementation remain unresolved. The
+   documentation-first contract does not claim any of them are implemented.
 
 ## Representation-alignment checklist
 
@@ -542,4 +614,11 @@ When changing either projection, compare both and preserve:
   Markdown contract for active Processed Documents, and the exclusion of
   preserved legacy Inquery material as an active target or precedent;
 - the mandatory fail-closed synchronization contract for every Specification
-  Human/AI pair.
+  Human/AI pair;
+- Document-owned initialization and physical migration as distinct from
+  semantic work; invariant `documentType`; advisory-only, non-executable LLM
+  proposals; closed versioned deterministic plan/IR; current-state and Human
+  authority gates; fail-closed stale/path/conflict/provenance/type/destructive
+  conditions; recoverable grouped Specification publication; unchanged
+  Gather/Tool/Agent/Workspace/catalog authority; unchanged Main -> Work ->
+  Verification graph; and honest documentation-first unresolved state.

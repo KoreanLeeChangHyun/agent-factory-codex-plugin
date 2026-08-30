@@ -45,6 +45,17 @@ Always keep both representations semantically synchronized. A one-sided change
 is incomplete and unacceptable; if synchronization cannot be achieved, the
 change or run must not be reported as completed.
 
+Document adapter initialization and physical layout/backend migration remain
+inside the public `document` Skill and are distinct from semantic Document
+work. Physical migration preserves `documentType`; it never promotes Original,
+Processed, or Specification. LLM participation is limited to non-executable
+advisory/authoring proposals. A deterministic manager may act only from a
+closed, versioned, allowlisted plan/IR after current-state revalidation and any
+required Human authority. Specification representations form one publication
+group; a one-sided change fails closed. Apply the complete Document-owned
+contract in `skills/document/references/adapter.md` and the paired core model
+in `references/agent-factory-core.md`.
+
 Workspace is the Human-facing project control tower with exactly five
 top-level Activities, in order: 일정, 에이전트, 문서, 로그, 테스트. Their
 Primary Sidebar information architecture and detailed capabilities remain
@@ -84,7 +95,8 @@ owning context requires two parts, and preserve existing accepted identities.
 
 - `references/agent-factory-core.md`: Apply the accepted Document model,
   capabilities, engineering stack, Skill ownership, storage-independent
-  document roles, and Specification paired representations.
+  document roles, adapter initialization/migration boundary, and Specification
+  paired representations.
 - `references/directory-structure.md`: Apply the recommended local/default
   project layout and ownership boundaries.
 - `references/development.md`: Apply shared implementation and maintenance
