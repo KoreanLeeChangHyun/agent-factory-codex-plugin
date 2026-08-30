@@ -94,3 +94,27 @@ Do not equate repository configuration with remote LFS access. Remote
 authentication may be mediated by Git, a credential helper, hosting provider,
 or another resolved authority; preserve that authority and never copy its
 credentials into Tool metadata.
+
+## Implemented inspection route
+
+Use `python3 skills/tool/scripts/tool.py {discover,inspect,health} --profile
+<git.cli|github.cli|git-lfs.cli> --target <existing-directory>`. The adapter
+resolves executables and bounded versions. Git inspection keeps worktree root,
+Git directory, common Git directory, branch, and detached state separate.
+GitHub inspection asks `gh auth status --hostname HOST --json hosts` for one
+explicit hostname and retains only its bounded non-secret hosts/account/scopes
+projection; it never requests a token. Git LFS inspection leaves activation and remote access `unknown` rather
+than inferring either from executable or repository availability.
+
+Executable availability, structured-inspection support, and authentication
+state are three separate observations. A `gh` executable whose version does
+not support the selected `--json` fields reports `inspectionSupport:
+unsupported` and authentication `unknown`; malformed or unrecognized
+structured output likewise remains `unknown`. Only a successfully parsed,
+supported provider response may report authenticated `available` or actual
+unauthenticated `unavailable` state.
+
+The same CLI accepts lifecycle mutation verbs only to return the selected
+provider route with `performed: false` and the need for Human approval. It does
+not execute a Git, GitHub, Git LFS, package-manager, authentication, repository,
+remote, or cleanup mutation.

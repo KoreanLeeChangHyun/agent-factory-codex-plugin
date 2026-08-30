@@ -45,6 +45,7 @@ MAX_EVENT_BYTES = 1024 * 1024
 MAX_EVENTS_BYTES = 8 * 1024 * 1024
 MAX_STDERR_BYTES = 4 * 1024 * 1024
 MAX_RECEIPT_BYTES = 1024 * 1024
+MAX_CAPABILITY_BINDING_BYTES = 256 * 1024
 PROCESS_TERM_TIMEOUT = 5.0
 PROCESS_KILL_TIMEOUT = 5.0
 CONTAINMENT_START_TIMEOUT = 5.0
@@ -69,6 +70,12 @@ SANDBOX_UNAVAILABLE_STDERR = (
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = SKILL_ROOT / "prompt"
 VALID_ROLES = {"main", "work", "verification"}
+CAPABILITY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
+AUTHORITY_KINDS = {
+    "native-executable", "project-cli", "mcp-server", "plugin",
+    "host-capability", "external-provider",
+}
+CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
 
 
 class ContractError(Exception):
@@ -758,6 +765,129 @@ def state_file(project_root: Path, agent_id: str, run_id: str) -> Path:
     return run_directory(project_root, agent_id, run_id) / "state.json"
 
 
+def _bounded_text(value: object, label: str, *, nullable: bool = False) -> str | None:
+    if nullable and value is None:
+        return None
+    if not isinstance(value, str) or not value or len(value.encode("utf-8")) > 4096:
+        raise ContractError("capability_binding_invalid", f"{label} is invalid")
+    if any(character in value for character in "\x00\r\n"):
+        raise ContractError("capability_binding_invalid", f"{label} contains control characters")
+    return value
+
+
+def validate_capability_bindings(document: object) -> dict[str, Any]:
+    if not isinstance(document, dict) or set(document) != {"schemaVersion", "bindings"}:
+        raise ContractError("capability_binding_invalid", "capability binding document has unknown or missing fields")
+    if document.get("schemaVersion") != SCHEMA_VERSION or not isinstance(document.get("bindings"), list):
+        raise ContractError("capability_binding_invalid", "capability binding document is invalid")
+    bindings = document["bindings"]
+    if not 1 <= len(bindings) <= 32:
+        raise ContractError("capability_binding_invalid", "capability bindings must contain 1 through 32 entries")
+    identities: set[str] = set()
+    fields = {
+        "capabilityId", "authority", "invocationRoute", "exactTarget",
+        "allowedEffects", "allowedScopes", "approvalReference",
+    }
+    for binding in bindings:
+        if not isinstance(binding, dict) or set(binding) != fields:
+            raise ContractError("capability_binding_invalid", "capability binding has unknown or missing fields")
+        capability_id = binding.get("capabilityId")
+        if not isinstance(capability_id, str) or CAPABILITY_ID.fullmatch(capability_id) is None:
+            raise ContractError("capability_binding_invalid", "capabilityId is invalid")
+        if capability_id in identities:
+            raise ContractError("capability_binding_invalid", "capabilityId bindings must be unique")
+        identities.add(capability_id)
+        authority = binding.get("authority")
+        if not isinstance(authority, dict) or set(authority) != {"kind", "reference"}:
+            raise ContractError("capability_binding_invalid", "authority has unknown or missing fields")
+        if authority.get("kind") not in AUTHORITY_KINDS:
+            raise ContractError("capability_binding_invalid", "authority kind is invalid")
+        _bounded_text(authority.get("reference"), "authority reference")
+        _bounded_text(binding.get("invocationRoute"), "invocation route")
+        _bounded_text(binding.get("exactTarget"), "exact target")
+        _bounded_text(binding.get("approvalReference"), "approval reference", nullable=True)
+        for field in ("allowedEffects", "allowedScopes"):
+            values = binding.get(field)
+            if not isinstance(values, list) or len(values) > 64:
+                raise ContractError("capability_binding_invalid", f"{field} must be a bounded array")
+            checked = [_bounded_text(value, field) for value in values]
+            if len(set(checked)) != len(checked):
+                raise ContractError("capability_binding_invalid", f"{field} must contain unique values")
+    return document
+
+
+def read_capability_bindings(path: Path | None) -> tuple[dict[str, Any] | None, bytes | None]:
+    if path is None:
+        return None, None
+    raw = safe_read_caller_file(path, MAX_CAPABILITY_BINDING_BYTES)
+    try:
+        document = json.loads(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ContractError("capability_binding_invalid", "capability binding file is invalid JSON") from error
+    validated = validate_capability_bindings(document)
+    canonical = (json.dumps(validated, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    return validated, canonical
+
+
+def safe_read_caller_file(path: Path, limit: int) -> bytes:
+    """Read an explicit caller file without following any path component."""
+    if ".." in path.parts:
+        raise ContractError("capability_binding_invalid", "capability binding path contains traversal")
+    if (
+        not hasattr(os, "O_NOFOLLOW")
+        or not hasattr(os, "O_DIRECTORY")
+        or not hasattr(os, "O_NONBLOCK")
+        or os.open not in os.supports_dir_fd
+    ):
+        raise ContractError(
+            "capability_binding_unsupported",
+            "safe capability binding file traversal is unavailable on this platform",
+        )
+    absolute = path if path.is_absolute() else Path.cwd() / path
+    components = [part for part in absolute.parts if part not in {absolute.anchor, "."}]
+    if not components:
+        raise ContractError("capability_binding_invalid", "capability binding path is invalid")
+    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    file_flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+    descriptor = -1
+    try:
+        descriptor = os.open(absolute.anchor or os.sep, directory_flags)
+        for component in components[:-1]:
+            next_descriptor = os.open(component, directory_flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = next_descriptor
+            if not stat.S_ISDIR(os.fstat(descriptor).st_mode):
+                raise ContractError("capability_binding_invalid", "capability binding parent is unsafe")
+        file_descriptor = os.open(components[-1], file_flags, dir_fd=descriptor)
+        os.close(descriptor)
+        descriptor = file_descriptor
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode):
+            raise ContractError("capability_binding_invalid", "capability binding is not a regular file")
+        if info.st_size > limit:
+            raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
+        chunks: list[bytes] = []
+        remaining = limit + 1
+        while remaining > 0:
+            chunk = os.read(descriptor, min(remaining, 65536))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        content = b"".join(chunks)
+        if len(content) > limit:
+            raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
+        return content
+    except (FileNotFoundError, NotADirectoryError, OSError) as error:
+        raise ContractError(
+            "capability_binding_invalid",
+            "capability binding path is missing or contains an unsafe component",
+        ) from error
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
 def create_run(
     *,
     project_root: Path,
@@ -769,6 +899,7 @@ def create_run(
     verified_work_run_id: str | None = None,
     dispatch_id: str | None = None,
     dispatch_operation: str | None = None,
+    capability_bindings: bytes | None = None,
 ) -> dict[str, Any]:
     run_id = new_run_id()
     directory = run_directory(project_root, agent_id, run_id, create=True)
@@ -779,8 +910,15 @@ def create_run(
     response_schema = directory / "response.schema.json"
     receipt_path = directory / "receipt.json"
     receipt_schema = directory / "receipt.schema.json"
+    capability_binding_path = directory / "capability-bindings.json"
     request_hash = hashlib.sha256(request).hexdigest()
     atomic_write(request_path, request)
+    capability_binding_hash = None
+    capability_binding_document = None
+    if capability_bindings is not None:
+        capability_binding_document = validate_capability_bindings(json.loads(capability_bindings))
+        atomic_write(capability_binding_path, capability_bindings)
+        capability_binding_hash = hashlib.sha256(capability_bindings).hexdigest()
     atomic_write_json(
         response_schema,
         {
@@ -806,6 +944,7 @@ def create_run(
                 run_id=run_id,
                 request_hash=receipt_request_hash or request_hash,
                 verified_work_run_id=verified_work_run_id,
+                capability_bindings=capability_binding_document,
             ),
         )
     accepted_at = now()
@@ -851,6 +990,8 @@ def create_run(
             "verifiedWorkRunId": verified_work_run_id,
             "operation": dispatch_operation,
         }
+        if capability_binding_hash is not None:
+            state["dispatchTuple"]["capabilityBindingHash"] = capability_binding_hash
     if role in {"work", "verification"}:
         state.update(
             {
@@ -861,6 +1002,11 @@ def create_run(
         )
     if role == "verification":
         state["verifiedWorkRunId"] = verified_work_run_id
+    if capability_binding_hash is not None:
+        state.update({
+            "capabilityBindingPath": str(capability_binding_path),
+            "capabilityBindingHash": capability_binding_hash,
+        })
     atomic_write_json(directory / "state.json", state)
     atomic_write_json(
         heartbeat_path,
@@ -879,7 +1025,8 @@ def create_run(
 
 
 def receipt_schema_document(
-    *, role: str, run_id: str, request_hash: str, verified_work_run_id: str | None
+    *, role: str, run_id: str, request_hash: str, verified_work_run_id: str | None,
+    capability_bindings: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     tests = {
         "type": "object",
@@ -894,6 +1041,27 @@ def receipt_schema_document(
         "required": ["run", "reason"],
         "additionalProperties": False,
     }
+    capability_outcomes = None
+    if capability_bindings is not None:
+        outcome_items = []
+        for binding in capability_bindings["bindings"]:
+            outcome_items.append({
+                "type": "object",
+                "properties": {
+                    "requestHash": {"const": request_hash},
+                    "runId": {"const": run_id},
+                    "capabilityId": {"const": binding["capabilityId"]},
+                    "authority": {"const": binding["authority"]},
+                    "exactTarget": {"const": binding["exactTarget"]},
+                    "outcome": {"enum": sorted(CAPABILITY_OUTCOMES)},
+                },
+                "required": ["requestHash", "runId", "capabilityId", "authority", "exactTarget", "outcome"],
+                "additionalProperties": False,
+            })
+        capability_outcomes = {
+            "type": "array", "prefixItems": outcome_items,
+            "minItems": len(outcome_items), "maxItems": len(outcome_items),
+        }
     if role == "work":
         properties: dict[str, Any] = {
             "schemaVersion": {"const": SCHEMA_VERSION},
@@ -943,6 +1111,9 @@ def receipt_schema_document(
             "findings": {"type": "array", "items": finding},
         }
         required = list(properties)
+    if capability_outcomes is not None:
+        properties["capabilityOutcomes"] = capability_outcomes
+        required.append("capabilityOutcomes")
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -1035,6 +1206,26 @@ def validate_receipt(
     if not isinstance(receipt, dict):
         raise ContractError("receipt_invalid", "Agent receipt must be a JSON object")
     expected_hash = state.get("receiptRequestHash") or state.get("requestHash")
+    binding_document = None
+    binding_hash = state.get("capabilityBindingHash")
+    if binding_hash is not None:
+        binding_path = canonical["statePath"].parent / "capability-bindings.json"
+        if state.get("capabilityBindingPath") != str(binding_path):
+            raise ContractError("receipt_path_invalid", "capability binding path is not canonically bound")
+        _require_managed_file(binding_path)
+        binding_bytes = safe_read_bytes(binding_path, MAX_CAPABILITY_BINDING_BYTES)
+        if hashlib.sha256(binding_bytes).hexdigest() != binding_hash:
+            raise ContractError("capability_binding_invalid", "capability binding hash does not match")
+        try:
+            binding_document = validate_capability_bindings(json.loads(binding_bytes))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ContractError("capability_binding_invalid", "capability binding is invalid JSON") from error
+    expected_fields = {
+        "schemaVersion", "kind", "runId", "requestHash", "outcome",
+        "changedPaths", "addressedFindingIds", "tests",
+    }
+    if binding_document is not None:
+        expected_fields.add("capabilityOutcomes")
     if role == "work":
         tests = receipt.get("tests")
         if not isinstance(tests, dict):
@@ -1042,14 +1233,7 @@ def validate_receipt(
         _exact_keys(tests, {"run", "reason"}, "tests")
         if tests != {"run": False, "reason": "work-agent-prohibited"}:
             raise ContractError("receipt_tests_invalid", "Work receipt must prove Work ran no tests")
-        _exact_keys(
-            receipt,
-            {
-                "schemaVersion", "kind", "runId", "requestHash", "outcome",
-                "changedPaths", "addressedFindingIds", "tests",
-            },
-            "work receipt",
-        )
+        _exact_keys(receipt, expected_fields, "work receipt")
         if (
             receipt.get("schemaVersion") != SCHEMA_VERSION
             or receipt.get("kind") != "work-receipt"
@@ -1064,55 +1248,77 @@ def validate_receipt(
             if candidate.is_absolute() or ".." in candidate.parts:
                 raise ContractError("receipt_invalid", "changedPaths must be bounded relative paths")
         _string_list(receipt.get("addressedFindingIds"), "addressedFindingIds")
-        return receipt
-    _exact_keys(
-        receipt,
-        {
+    else:
+        expected_fields = {
             "schemaVersion", "kind", "runId", "verifiedWorkRunId",
             "verifiedRequestHash", "decision", "findings",
-        },
-        "verification receipt",
-    )
-    verified_work_run_id = receipt.get("verifiedWorkRunId")
-    expected_work_run_id = state.get("verifiedWorkRunId")
-    if (
-        receipt.get("schemaVersion") != SCHEMA_VERSION
-        or receipt.get("kind") != "verification-receipt"
-        or receipt.get("runId") != state.get("runId")
-        or not isinstance(verified_work_run_id, str)
-        or not AGENT_ID.fullmatch(verified_work_run_id)
-        or (expected_work_run_id is not None and verified_work_run_id != expected_work_run_id)
-        or receipt.get("verifiedRequestHash") != expected_hash
-    ):
-        raise ContractError("receipt_binding_invalid", "verification receipt binding is invalid")
-    findings = receipt.get("findings")
-    if not isinstance(findings, list):
-        raise ContractError("receipt_invalid", "findings must be an array")
-    finding_ids: list[str] = []
-    finding_fields = {"id", "path", "location", "problem", "evidence", "correction"}
-    for finding in findings:
-        if not isinstance(finding, dict):
-            raise ContractError("receipt_invalid", "each finding must be an object")
-        _exact_keys(finding, finding_fields, "finding")
-        finding_id = finding.get("id")
-        if not isinstance(finding_id, str) or not finding_id:
-            raise ContractError("receipt_invalid", "finding id is invalid")
-        finding_ids.append(finding_id)
-        for field in ("path", "location", "problem", "evidence", "correction"):
-            if not isinstance(finding.get(field), str):
-                raise ContractError("receipt_invalid", f"finding {field} must be a string")
-        if not finding["problem"] or not finding["evidence"] or not finding["correction"]:
-            raise ContractError("receipt_invalid", "finding details must not be empty")
-    if len(set(finding_ids)) != len(finding_ids):
-        raise ContractError("receipt_invalid", "finding identifiers must be unique")
-    decision = receipt.get("decision")
-    if decision == "pass" and findings:
-        raise ContractError("receipt_decision_invalid", "passing verification has findings")
-    if decision == "fail" and not findings:
-        raise ContractError("receipt_decision_invalid", "failed verification requires a finding")
-    if decision not in {"pass", "fail"}:
-        raise ContractError("receipt_decision_invalid", "verification decision is invalid")
-    return receipt
+        }
+        if binding_document is not None:
+            expected_fields.add("capabilityOutcomes")
+        _exact_keys(receipt, expected_fields, "verification receipt")
+    if role == "work":
+        validated_receipt = receipt
+    else:
+        verified_work_run_id = receipt.get("verifiedWorkRunId")
+        expected_work_run_id = state.get("verifiedWorkRunId")
+        if (
+            receipt.get("schemaVersion") != SCHEMA_VERSION
+            or receipt.get("kind") != "verification-receipt"
+            or receipt.get("runId") != state.get("runId")
+            or not isinstance(verified_work_run_id, str)
+            or not AGENT_ID.fullmatch(verified_work_run_id)
+            or (expected_work_run_id is not None and verified_work_run_id != expected_work_run_id)
+            or receipt.get("verifiedRequestHash") != expected_hash
+        ):
+            raise ContractError("receipt_binding_invalid", "verification receipt binding is invalid")
+        findings = receipt.get("findings")
+        if not isinstance(findings, list):
+            raise ContractError("receipt_invalid", "findings must be an array")
+        finding_ids: list[str] = []
+        finding_fields = {"id", "path", "location", "problem", "evidence", "correction"}
+        for finding in findings:
+            if not isinstance(finding, dict):
+                raise ContractError("receipt_invalid", "each finding must be an object")
+            _exact_keys(finding, finding_fields, "finding")
+            finding_id = finding.get("id")
+            if not isinstance(finding_id, str) or not finding_id:
+                raise ContractError("receipt_invalid", "finding id is invalid")
+            finding_ids.append(finding_id)
+            for field in ("path", "location", "problem", "evidence", "correction"):
+                if not isinstance(finding.get(field), str):
+                    raise ContractError("receipt_invalid", f"finding {field} must be a string")
+            if not finding["problem"] or not finding["evidence"] or not finding["correction"]:
+                raise ContractError("receipt_invalid", "finding details must not be empty")
+        if len(set(finding_ids)) != len(finding_ids):
+            raise ContractError("receipt_invalid", "finding identifiers must be unique")
+        decision = receipt.get("decision")
+        if decision == "pass" and findings:
+            raise ContractError("receipt_decision_invalid", "passing verification has findings")
+        if decision == "fail" and not findings:
+            raise ContractError("receipt_decision_invalid", "failed verification requires a finding")
+        if decision not in {"pass", "fail"}:
+            raise ContractError("receipt_decision_invalid", "verification decision is invalid")
+        validated_receipt = receipt
+    if binding_document is not None:
+        outcomes = receipt.get("capabilityOutcomes")
+        bindings = binding_document["bindings"]
+        if not isinstance(outcomes, list) or len(outcomes) != len(bindings):
+            raise ContractError("receipt_invalid", "capability outcomes must match bound capabilities")
+        for outcome, binding in zip(outcomes, bindings):
+            expected_outcome_fields = {"requestHash", "runId", "capabilityId", "authority", "exactTarget", "outcome"}
+            if not isinstance(outcome, dict):
+                raise ContractError("receipt_invalid", "capability outcome must be an object")
+            _exact_keys(outcome, expected_outcome_fields, "capability outcome")
+            if (
+                outcome.get("requestHash") != expected_hash
+                or outcome.get("runId") != state.get("runId")
+                or outcome.get("capabilityId") != binding["capabilityId"]
+                or outcome.get("authority") != binding["authority"]
+                or outcome.get("exactTarget") != binding["exactTarget"]
+                or outcome.get("outcome") not in CAPABILITY_OUTCOMES
+            ):
+                raise ContractError("receipt_binding_invalid", "capability outcome binding is invalid")
+    return validated_receipt
 
 
 def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, Any]:
@@ -1370,6 +1576,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     receipt_request_hash = getattr(args, "receipt_request_hash", None)
     verified_work_run_id = getattr(args, "verified_work_run_id", None)
     dispatch_id = getattr(args, "dispatch_id", None)
+    _capability_document, capability_bindings = read_capability_bindings(
+        getattr(args, "capability_binding_file", None)
+    )
+    capability_binding_hash = (
+        hashlib.sha256(capability_bindings).hexdigest()
+        if capability_bindings is not None else None
+    )
     if dispatch_id is not None:
         validate_id(dispatch_id, DISPATCH_ID, "dispatch_id")
     if receipt_request_hash is not None and not re.fullmatch(r"[0-9a-f]{64}", receipt_request_hash):
@@ -1402,6 +1615,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "verifiedWorkRunId": verified_work_run_id,
         "operation": operation,
     }
+    if capability_binding_hash is not None:
+        dispatch_tuple["capabilityBindingHash"] = capability_binding_hash
     agent_path = agent_directory(project_root, args.agent, create=True)
     with file_lock(agent_path / ".dispatch.lock"):
         reservation_path: Path | None = None
@@ -1508,6 +1723,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             verified_work_run_id=verified_work_run_id,
             dispatch_id=dispatch_id,
             dispatch_operation=operation,
+            capability_bindings=capability_bindings,
         )
         worker_pid = spawn_worker(project_root, args.agent, state["runId"])
     document = {
@@ -1607,6 +1823,7 @@ def build_prompt(
     run_id: str,
     receipt_path: Path | None = None,
     receipt_schema_path: Path | None = None,
+    capability_binding_path: Path | None = None,
 ) -> str:
     prompt_path = role_path(role)
     try:
@@ -1624,6 +1841,13 @@ must bind this run and request exactly and contain no unknown fields. A
 completed run with a missing or invalid receipt will fail at the runtime
 boundary.
 """
+    binding_obligation = ""
+    if capability_binding_path is not None:
+        binding_obligation = f"""
+This run has a strict capability binding at `{capability_binding_path}`. Use
+only its exact capability, authority, invocation route, target, allowed effects
+and scopes, and approval reference. Preserve its binding in the required receipt.
+"""
     return f"""Act as Agent `{agent_id}` for Agent Factory.
 
 The following validated content is the complete `{role}` system-prompt source:
@@ -1636,7 +1860,7 @@ Read the delegated request from `{request_path}`. Keep its scope and authority u
 
 Write the detailed result to `{result_path}`. Then return only the compact JSON
 required by the supplied output schema. Run ID: `{run_id}`.
-{receipt_obligation}"""
+{binding_obligation}{receipt_obligation}"""
 
 
 def build_codex_command(
@@ -1910,6 +2134,10 @@ def run_codex_attempt(
         receipt_path=(Path(state["receiptPath"]) if state.get("receiptPath") else None),
         receipt_schema_path=(
             Path(state["receiptSchemaPath"]) if state.get("receiptSchemaPath") else None
+        ),
+        capability_binding_path=(
+            Path(state["capabilityBindingPath"])
+            if state.get("capabilityBindingPath") else None
         ),
     )
     try:
@@ -2277,6 +2505,8 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "receiptPath",
         "receiptSchemaPath",
         "receiptRequestHash",
+        "capabilityBindingPath",
+        "capabilityBindingHash",
         "verifiedWorkRunId",
         "dispatchId",
         "dispatchTuple",
@@ -2673,6 +2903,10 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         help="exact Work run checked by a Verification Agent (required for Verification runs)",
     )
     parser.add_argument("--dispatch-id", help="idempotency key scoped to this managed Agent")
+    parser.add_argument(
+        "--capability-binding-file", type=Path,
+        help="strict Agent capability/authority/effects binding to preserve in this run",
+    )
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

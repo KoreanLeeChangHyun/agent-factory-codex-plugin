@@ -219,7 +219,7 @@ class SkillMetadataTests(unittest.TestCase):
                 "sync_onedrive.py",
                 "sync_slack.py",
             },
-            "tool": set(),
+            "tool": {"tool.py"},
             "workspace": {"serve.py"},
         }
         for skill, scripts in expected.items():

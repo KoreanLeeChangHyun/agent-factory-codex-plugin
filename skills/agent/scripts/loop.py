@@ -71,6 +71,7 @@ class AgentRuntime:
         dispatch_id: str,
         verified_work_run_id: str | None,
         execution: dict[str, Any],
+        capability_binding_file: Path | None,
     ) -> dict[str, Any]:
         arguments = [
             operation,
@@ -89,6 +90,8 @@ class AgentRuntime:
                 arguments.extend(["--model", str(execution["model"])])
         if verified_work_run_id is not None:
             arguments.extend(["--verified-work-run-id", verified_work_run_id])
+        if capability_binding_file is not None:
+            arguments.extend(["--capability-binding-file", str(capability_binding_file)])
         return self.call(arguments)
 
     def status(self, agent_id: str, run_id: str) -> dict[str, Any]:
@@ -161,6 +164,7 @@ def prepare_dispatch(
     root = Path(state["projectRoot"])
     operation = "send" if agent_exec.session_file(root, agent_id).exists() else "submit"
     content = agent_exec.safe_read_bytes(request_file, agent_exec.MAX_REQUEST_BYTES)
+    role_binding = state.get("capabilityBindings", {}).get(role, {})
     state["pendingDispatch"] = {
         "dispatchId": f"dispatch-{uuid.uuid4().hex}",
         "operation": operation,
@@ -170,6 +174,8 @@ def prepare_dispatch(
         "requestHash": hashlib.sha256(content).hexdigest(),
         "receiptRequestHash": state["originalRequestHash"],
         "verifiedWorkRunId": verified_work_run_id,
+        "capabilityBindingPath": role_binding.get("path"),
+        "capabilityBindingHash": role_binding.get("hash"),
     }
     state["phase"] = f"{role}-dispatching"
     state["updatedAt"] = now()
@@ -196,6 +202,10 @@ def complete_pending_dispatch(
             dispatch_id=pending["dispatchId"],
             verified_work_run_id=pending["verifiedWorkRunId"],
             execution=state["execution"],
+            capability_binding_file=(
+                Path(pending["capabilityBindingPath"])
+                if pending.get("capabilityBindingPath") else None
+            ),
         )
         run = runtime.status(pending["agentId"], str(acknowledgement["runId"]))
     expected_tuple = {
@@ -207,6 +217,8 @@ def complete_pending_dispatch(
         "verifiedWorkRunId": pending["verifiedWorkRunId"],
         "operation": pending["operation"],
     }
+    if pending.get("capabilityBindingHash") is not None:
+        expected_tuple["capabilityBindingHash"] = pending["capabilityBindingHash"]
     if run.get("dispatchId") != pending["dispatchId"] or run.get("dispatchTuple") != expected_tuple:
         raise agent_exec.ContractError("dispatch_binding_invalid", "managed run does not match durable dispatch intent")
     role = pending["role"]
@@ -249,6 +261,21 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     directory = loop_directory(root, args.work_agent, loop_id, create=True)
     original = directory / "original-request.md"
     agent_exec.atomic_write(original, request)
+    capability_bindings: dict[str, dict[str, str | None]] = {}
+    for role in ("work", "verification"):
+        _binding_document, binding_bytes = agent_exec.read_capability_bindings(
+            getattr(args, f"{role}_capability_binding_file", None)
+        )
+        binding_path = None
+        binding_hash = None
+        if binding_bytes is not None:
+            binding_path = directory / f"{role}-capability-bindings.json"
+            agent_exec.atomic_write(binding_path, binding_bytes)
+            binding_hash = hashlib.sha256(binding_bytes).hexdigest()
+        capability_bindings[role] = {
+            "path": str(binding_path) if binding_path else None,
+            "hash": binding_hash,
+        }
     created = now()
     path = directory / "state.json"
     state = {
@@ -260,6 +287,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "statePath": str(path),
         "originalRequestPath": str(original),
         "originalRequestHash": hashlib.sha256(request).hexdigest(),
+        "capabilityBindings": capability_bindings,
         "workAgentId": args.work_agent,
         "verificationAgentId": args.verification_agent,
         "latestWorkRunId": None,
@@ -409,6 +437,8 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--codex", default="codex")
     start.add_argument("--sandbox", choices=agent_exec.SANDBOXES, default=agent_exec.DEFAULT_SANDBOX)
     start.add_argument("--model")
+    start.add_argument("--work-capability-binding-file", type=Path)
+    start.add_argument("--verification-capability-binding-file", type=Path)
     for name in ("status", "reconcile", "skip"):
         command = commands.add_parser(name)
         command.add_argument("--project-root", type=Path, default=Path.cwd())

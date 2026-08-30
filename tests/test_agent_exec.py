@@ -480,6 +480,48 @@ class AgentExecTests(unittest.TestCase):
                 self.module.submit(self.dispatch_args(directory, "dispatch-one", "different"), True)
             self.assertEqual(raised.exception.code, "dispatch_id_collision")
 
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are required")
+    def test_submit_and_send_reject_symlinked_capability_binding_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binding = root / "binding.json"
+            binding.write_text("{}", encoding="utf-8")
+            linked = root / "binding-link.json"
+            linked.symlink_to(binding)
+            for new_agent in (True, False):
+                with self.subTest(operation="submit" if new_agent else "send"):
+                    args = self.dispatch_args(directory, f"dispatch-symlink-{new_agent}")
+                    args.capability_binding_file = linked
+                    with self.assertRaises(self.module.ContractError) as raised:
+                        self.module.submit(args, new_agent)
+                    self.assertEqual(raised.exception.code, "capability_binding_invalid")
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are required")
+    def test_submit_rejects_symlinked_capability_binding_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            actual = root / "actual"
+            actual.mkdir()
+            (actual / "binding.json").write_text("{}", encoding="utf-8")
+            linked_parent = root / "linked-parent"
+            linked_parent.symlink_to(actual, target_is_directory=True)
+            args = self.dispatch_args(directory, "dispatch-parent-symlink")
+            args.capability_binding_file = linked_parent / "binding.json"
+            with self.assertRaises(self.module.ContractError) as raised:
+                self.module.submit(args, True)
+            self.assertEqual(raised.exception.code, "capability_binding_invalid")
+
+    @unittest.skipUnless(hasattr(os, "mkfifo") and hasattr(os, "O_NONBLOCK"), "FIFO nonblocking open is required")
+    def test_capability_binding_fifo_is_rejected_without_blocking(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fifo = Path(directory) / "binding.fifo"
+            os.mkfifo(fifo)
+            with self.assertRaises(self.module.ContractError) as raised:
+                self.module.safe_read_caller_file(
+                    fifo, self.module.MAX_CAPABILITY_BINDING_BYTES
+                )
+            self.assertEqual(raised.exception.code, "capability_binding_invalid")
+
     def test_identical_requests_with_distinct_dispatches_create_distinct_runs_and_send_deduplicates(self) -> None:
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(self.module, "spawn_worker", return_value=123) as spawn, mock.patch.object(self.module, "emit") as emit:
             self.module.submit(self.dispatch_args(directory, "dispatch-submit"), True)
@@ -1108,6 +1150,52 @@ class AgentExecTests(unittest.TestCase):
                 )
 
         self.assertEqual(raised.exception.code, "receipt_tests_invalid")
+
+    def test_capability_binding_is_copied_and_receipt_outcome_is_exact(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binding = {
+                "schemaVersion": "0.1.0",
+                "bindings": [{
+                    "capabilityId": "playwright.browser.execute",
+                    "authority": {"kind": "project-cli", "reference": "package-lock.json#playwright"},
+                    "invocationRoute": "node_modules/.bin/playwright",
+                    "exactTarget": "https://example.invalid/health",
+                    "allowedEffects": ["navigate"],
+                    "allowedScopes": ["network:https://example.invalid"],
+                    "approvalReference": "human-request-1",
+                }],
+            }
+            canonical = (json.dumps(binding, sort_keys=True, separators=(",", ":")) + "\n").encode()
+            state = self.module.create_run(
+                project_root=root, agent_id="work-agent", actor="main",
+                request=b"bounded request", session={"role": "work", "maxAttempts": 1},
+                capability_bindings=canonical,
+            )
+            outcome = {
+                "requestHash": state["requestHash"], "runId": state["runId"],
+                "capabilityId": "playwright.browser.execute",
+                "authority": {"kind": "project-cli", "reference": "package-lock.json#playwright"},
+                "exactTarget": "https://example.invalid/health", "outcome": "succeeded",
+            }
+            receipt = {
+                "schemaVersion": "0.1.0", "kind": "work-receipt", "runId": state["runId"],
+                "requestHash": state["requestHash"], "outcome": "implemented",
+                "changedPaths": [], "addressedFindingIds": [],
+                "tests": {"run": False, "reason": "work-agent-prohibited"},
+                "capabilityOutcomes": [outcome],
+            }
+            Path(state["resultPath"]).write_text("result\n", encoding="utf-8")
+            Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
+            self.assertEqual(
+                self.module.validate_receipt(root, state, agent_id="work-agent", run_id=state["runId"]),
+                receipt,
+            )
+            receipt["capabilityOutcomes"][0]["exactTarget"] = "https://other.invalid"
+            Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaises(self.module.ContractError) as raised:
+                self.module.validate_receipt(root, state, agent_id="work-agent", run_id=state["runId"])
+            self.assertEqual(raised.exception.code, "receipt_binding_invalid")
 
     def test_verification_receipt_enforces_unique_ids_and_decision_consistency(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

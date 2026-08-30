@@ -53,6 +53,12 @@ specific Work or Verification task, supplies execution authority, and records
 the resulting receipt. Tool may report capability and health metadata, but it
 does not dispatch the task or claim its result.
 
+The current stateless adapter at `skills/tool/scripts/tool.py` routes lifecycle
+mutations without performing them. Its `provider-route-required` result is not
+approval, readiness, or evidence that the provider supports the operation.
+Agent runtime binding is supplied separately through
+`--capability-binding-file`; Tool does not create or persist that run record.
+
 ## Gather connector handshake
 
 For connector-backed collection, Gather supplies:

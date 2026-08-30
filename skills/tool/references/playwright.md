@@ -80,3 +80,18 @@ This profile defines no concrete registry, health service, lifecycle backend,
 browser cache, or credential store. Project manifests, package managers,
 Playwright providers, operating systems, hosts, plugins, and MCP servers remain
 authoritative for the facts and operations they expose.
+
+## Implemented inspection route
+
+Use `python3 skills/tool/scripts/tool.py {discover,inspect,health} --profile
+playwright.browser --target <existing-project-directory>`. For a project-CLI
+authority, the adapter reports recognized local manifest/lockfile paths and a
+resolved local or PATH Playwright CLI version when available. Browser binaries,
+system dependencies, compatibility, permissions, and health remain `unknown`
+unless their provider reports them; no browser is launched as a health check.
+
+An explicit plugin, MCP, or host-capability authority/reference is preserved
+without probing or substituting a project package. Lifecycle mutation verbs
+return only `provider-route-required`, `performed: false`, and required Human
+approval metadata; they do not download browsers, alter packages or system
+dependencies, clear caches, or perform page actions.

@@ -53,6 +53,10 @@ class FakeRuntime:
         run_id = f"run-{self.next_run}"
         self.next_run += 1
         request_hash = hashlib.sha256(Path(values["request_file"]).read_bytes()).hexdigest()
+        binding_hash = (
+            hashlib.sha256(Path(values["capability_binding_file"]).read_bytes()).hexdigest()
+            if values.get("capability_binding_file") else None
+        )
         dispatch_tuple = {
             "agentId": values["agent_id"],
             "role": values["role"],
@@ -62,6 +66,8 @@ class FakeRuntime:
             "verifiedWorkRunId": values["verified_work_run_id"],
             "operation": values["operation"],
         }
+        if binding_hash is not None:
+            dispatch_tuple["capabilityBindingHash"] = binding_hash
         directory = self.root / ".agent-factory" / "agent" / values["agent_id"] / "runs" / run_id
         directory.mkdir(parents=True, exist_ok=True)
         run = {
@@ -183,6 +189,44 @@ class AgentLoopContractTests(unittest.TestCase):
         state = self.reconcile(state)
         self.assertEqual(state["status"], "completed")
         self.assertEqual(state["terminalReason"]["code"], "pass")
+
+    def test_loop_preserves_capability_binding_for_child_dispatch(self) -> None:
+        binding = self.root / "binding.json"
+        binding.write_text(json.dumps({
+            "schemaVersion": "0.1.0",
+            "bindings": [{
+                "capabilityId": "git.cli.inspect",
+                "authority": {"kind": "native-executable", "reference": "executable:git"},
+                "invocationRoute": "git",
+                "exactTarget": str(self.root),
+                "allowedEffects": [],
+                "allowedScopes": ["repository:read"],
+                "approvalReference": None,
+            }],
+        }), encoding="utf-8")
+        args = self.agent_loop.build_parser().parse_args([
+            "start", "--project-root", str(self.root), "--request-file", str(self.request),
+            "--work-agent", "work-agent", "--verification-agent", "verification-agent",
+            "--codex", "/bin/true", "--work-capability-binding-file", str(binding),
+        ])
+        state = self.agent_loop.start_loop(args)
+        dispatched = self.runtime.dispatches[-1]["capability_binding_file"]
+        self.assertIsNotNone(dispatched)
+        self.assertEqual(Path(dispatched).parent.name, state["loopId"])
+
+    def test_loop_start_rejects_symlinked_capability_binding(self) -> None:
+        binding = self.root / "binding.json"
+        binding.write_text("{}", encoding="utf-8")
+        linked = self.root / "binding-link.json"
+        linked.symlink_to(binding)
+        args = self.agent_loop.build_parser().parse_args([
+            "start", "--project-root", str(self.root), "--request-file", str(self.request),
+            "--work-agent", "work-agent", "--verification-agent", "verification-agent",
+            "--codex", "/bin/true", "--work-capability-binding-file", str(linked),
+        ])
+        with self.assertRaises(self.agent_exec.ContractError) as raised:
+            self.agent_loop.start_loop(args)
+        self.assertEqual(raised.exception.code, "capability_binding_invalid")
 
     def test_human_skip_records_evidence_and_never_dispatches_verification(self) -> None:
         state = self.start()
