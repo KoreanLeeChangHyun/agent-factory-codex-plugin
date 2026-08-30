@@ -119,8 +119,8 @@ class SkillMetadataTests(unittest.TestCase):
         for semantic_requirement in (
             "one semantic body",
             "ai-facing skill",
-            "human-facing korean html, css, and javascript document",
-            "must always remain semantically synchronized",
+            "human-facing korean html, css, and javascript representation",
+            "must remain semantically synchronized",
             "one-sided change is incomplete and unacceptable",
             "if both representations cannot be synchronized, do not report the change or run as completed",
         ):

@@ -3,7 +3,9 @@
 ## Authority and identity
 
 The Convention Specification identity is `convention`. Its canonical semantic
-body has two faithful projections:
+body has exactly one resolved AI-facing representation and exactly one resolved
+Human-facing representation under that same stable identity. In the
+current/default local adapter, those faithful projections are:
 
 - Human-facing Korean HTML, CSS, and JavaScript in the current local adapter:
   `.agent-factory/document/specification/convention/`
@@ -14,7 +16,10 @@ the same decisions, relationships, current implementation observations, and
 unresolved questions. Neither projection may privately add or omit specified
 knowledge.
 
-The Human projection is organized around readable Korean topics, summaries,
+The concrete locators are adapter-resolved rather than universal directory
+requirements. An explicitly resolved external backend may use different
+locators while preserving the exact one-to-one pair, stable identity,
+authority, and semantic alignment. The Human projection is organized around readable Korean topics, summaries,
 tables, and flows rather than mechanically mirroring the Skill hierarchy.
 Each material section maps to exact Skill/reference source paths. Reciprocal
 HTML and Convention frontmatter locators establish identity and scope only;
@@ -227,21 +232,24 @@ discovery and `title` identifies its bounded knowledge or capability.
 Both components use lowercase hyphen-case tokens, so a multiword component may
 itself contain hyphens. The complete `<category>-<title>` value uses lowercase
 letters, digits, and hyphens, remains under the Codex Skill name limit, and
-must exactly match the Project Skill directory, Human Specification directory,
-and the `name` field in `SKILL.md` frontmatter.
+must exactly match both resolved representations and the `name` field in
+`SKILL.md` frontmatter. Under the current/default local adapter, it also
+exactly matches the Project Skill and Human Specification directory names.
 
 Neither component may be inferred when Human instruction or unambiguous
 accepted project evidence does not supply it. Preserve accepted Skill
 identities: this rule does not authorize bulk renaming. Explorer and Interview
 retain their accepted capability identities without retaining public Skill
 identities. The durable Agent Factory core rules are consolidated into
-`skills/convention/`. Ordinary consumer projects use the exact same lowercase hyphen-case
-`<category>-<title>` identity for both representations:
+`skills/convention/`. Under the current/default local adapter, ordinary
+consumer projects use the exact same lowercase hyphen-case
+`<category>-<title>` identity for both representation directories:
 `<project-root>/.codex/skills/<category>-<title>/` and
 `<project-root>/.agent-factory/document/specification/<category>-<title>/`.
 This plugin is the explicit exception whose accepted single-name distributed
 Skill and Specification identities remain unchanged; it has no repository-local
-`.codex/skills/` store.
+`.codex/skills/` store. An explicitly resolved external backend may use
+different locators while preserving the same identity and one-to-one pair.
 
 ## Storage-independent Document types and roles
 
@@ -338,11 +346,13 @@ format precedents.
 
 Accepted and reconciled project knowledge that preserves important provenance,
 records honest unresolved state, and defines requirements, constraints, or a
-normative project model. A Specification is one semantic body with two faithful
-representations: an AI-facing Skill and a Human-facing Korean HTML, CSS, and
-JavaScript document. The pair must always remain semantically synchronized. A
-one-sided change is incomplete and unacceptable; if synchronization cannot be
-achieved, the change or run must not be reported as completed.
+normative project model. A Specification is one semantic body with exactly one
+resolved AI-facing Skill representation and exactly one resolved Human-facing
+Korean HTML, CSS, and JavaScript representation under the same stable identity.
+Their concrete locators are adapter-resolved. The pair must always remain
+semantically synchronized. A one-sided change is incomplete and unacceptable;
+if synchronization cannot be achieved, the change or run must not be reported
+as completed.
 
 ## Document adapter initialization and physical migration
 
@@ -642,9 +652,10 @@ When changing either projection, compare both and preserve:
   no Work or Verification commit, and no inferred push, amend, force, or
   history rewrite;
 - provenance for accepted decisions and repository observations;
-- the ordinary consumer `<category>-<title>` pair identity contract, exact
-  Skill/Specification directory match, plugin single-name exception, and
-  no-bulk-renaming boundary;
+- the ordinary consumer `<category>-<title>` pair identity contract, exactly
+  one resolved AI/Human representation pair, current/local exact
+  Skill/Specification directory match, external-locator allowance, plugin
+  single-name exception, and no-bulk-renaming boundary;
 - the Workspace-owned VS Code-shaped Activity Bar, Primary Sidebar, and main
   Workspace relationship; exactly five ordered top-level items labeled 일정,
   에이전트, 문서, 로그, 테스트; the ordered, independently collapsible

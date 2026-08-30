@@ -47,11 +47,13 @@ authority, isolation, semantic alignment, accessibility, or security. Never
 invent or silently select a backend.
 
 A Specification is accepted and reconciled project knowledge represented as
-one semantic body by an
-AI-facing Skill and a Human-facing Korean HTML, CSS, and JavaScript document.
-Always keep both representations semantically synchronized. A one-sided change
-is incomplete and unacceptable; if synchronization cannot be achieved, the
-change or run must not be reported as completed.
+one semantic body by exactly one resolved AI-facing Skill representation and
+exactly one resolved Human-facing Korean HTML, CSS, and JavaScript
+representation under the same stable identity. Always keep both
+representations semantically synchronized. Their concrete locators are
+adapter-resolved; local directories are not the universal contract. A
+one-sided change is incomplete and unacceptable; if synchronization cannot be
+achieved, the change or run must not be reported as completed.
 
 This Skill's Human Specification is the Human-centered semantic representation
 of `skills/convention/`. Preserve the reciprocal `convention` identity and
@@ -114,13 +116,16 @@ ignored, rebuildable, non-authoritative projection that cannot replace any
 owning Agent or Document source. Detailed catalog operations belong to Agent;
 Convention carries only this cross-cutting ownership rule.
 
-Keep distributed plugin Skills below `<plugin-root>/skills/`. Ordinary consumer
-Project Skill and Specification pairs use the exact same lowercase hyphen-case
+Keep distributed plugin Skills below `<plugin-root>/skills/`. Under the
+current/default local adapter, ordinary consumer Project Skill and
+Specification pairs use the exact same lowercase hyphen-case
 `<category>-<title>` identity at
 `<project-root>/.codex/skills/<category>-<title>/` and
 `<project-root>/.agent-factory/document/specification/<category>-<title>/`.
 This plugin is the explicit exception: preserve the accepted single-name
-distributed Skill and Specification identities.
+distributed Skill and Specification identities. An explicitly resolved
+external backend may use different locators while preserving the one-to-one
+pair and stable identity.
 
 ## Reference routing
 

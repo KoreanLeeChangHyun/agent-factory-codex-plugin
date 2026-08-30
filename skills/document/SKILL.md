@@ -80,24 +80,28 @@ current-state revalidation and required Human authority. Keep uncertainty
 
 ## Specification pair
 
-A Specification is one semantic body with faithful Human- and AI-facing
-representations. Always keep the two representations semantically synchronized.
-A one-sided change is incomplete and unacceptable; if synchronization cannot
-be achieved, do not report the change or run as completed. The Human-facing
-representation is HTML, CSS, and JavaScript and must be authored in Korean. Its
-paired AI-facing representation is a Skill and need not be Korean.
+A Specification is one semantic body with exactly one resolved Human-facing
+representation and exactly one resolved AI-facing Skill representation under
+the same stable identity. Always keep the two representations semantically
+synchronized. A one-sided change is incomplete and unacceptable; if
+synchronization cannot be achieved, do not report the change or run as
+completed. The Human-facing representation is HTML, CSS, and JavaScript and
+must be authored in Korean. Its AI-facing representation need not be Korean.
 
-Use a uniform one-to-one pair: one resolved Skill directory and one
-Specification directory with the same stable identity. In this plugin,
-`skills/<skill-id>/` pairs with
-`.agent-factory/document/specification/<skill-id>/`. In a consumer project the
-pair uses the exact lowercase hyphen-case `<category>-<title>` identity on both
-sides: `.codex/skills/<category>-<title>/` pairs with
+The one-to-one pair is storage-independent; each adapter resolves the two
+concrete locators. Under the current/default local adapter, each representation
+is a directory. In this plugin, `skills/<skill-id>/` pairs with
+`.agent-factory/document/specification/<skill-id>/`. In a consumer project
+using that adapter, the pair uses the exact lowercase hyphen-case
+`<category>-<title>` identity on both sides:
+`.codex/skills/<category>-<title>/` pairs with
 `.agent-factory/document/specification/<category>-<title>/`. This plugin is the
-explicit exception whose accepted single-name identities remain unchanged.
-Never aggregate several Skills into one Specification, pair one Skill with
-several Specifications, or mechanically copy a Skill tree into the Human view.
-Map each material Human section to exact sources within its paired Skill.
+explicit exception whose accepted single-name identities remain unchanged. An
+explicitly resolved external backend may use different locators, but it must
+preserve the same stable identity and exact one-to-one pair. Never aggregate
+several Skills into one Specification, pair one Skill with several
+Specifications, or mechanically copy a Skill tree into the Human view. Map
+each material Human section to exact sources within its paired Skill.
 
 ## Boundaries
 

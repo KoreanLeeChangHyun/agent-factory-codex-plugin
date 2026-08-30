@@ -114,26 +114,29 @@ Workspace reads Human-facing Specifications from `document/specification/` rathe
 than owning a document directory.
 
 A Specification is accepted and reconciled project knowledge represented as
-one semantic body with two faithful
-representations: an AI-facing Skill and a Human-facing Korean HTML, CSS, and
-JavaScript document. The pair must always remain semantically synchronized; a
-one-sided change is incomplete and unacceptable. If both representations
-cannot be synchronized, do not report the change or run as completed.
-Every Specification has exactly one paired Skill directory, and every paired
-Skill directory has exactly one Human-facing Specification directory with the
-same stable identity. In this plugin repository, pair each distributed
+one semantic body by exactly one resolved AI-facing Skill representation and
+exactly one resolved Human-facing Korean HTML, CSS, and JavaScript
+representation. Both representations use the same stable identity and must
+remain semantically synchronized; a one-sided change is incomplete and
+unacceptable. If both representations cannot be synchronized, do not report
+the change or run as completed. Their concrete locators are adapter-resolved,
+not universally required directories. Under the current/default local adapter,
+the representations are one Skill directory and one Human-facing
+Specification directory. In this plugin repository, pair each distributed
 `skills/<skill-id>/` with
 `.agent-factory/document/specification/<skill-id>/`; do not create or mirror
-`.codex/skills/` here. In an ordinary consumer project, both paired directories
-use the exact lowercase hyphen-case `<category>-<title>` identity:
-`.codex/skills/<category>-<title>/` pairs with
+`.codex/skills/` here. In an ordinary consumer project using the local adapter,
+both paired directories use the exact lowercase hyphen-case
+`<category>-<title>` identity: `.codex/skills/<category>-<title>/` pairs with
 `.agent-factory/document/specification/<category>-<title>/`. This plugin is the
 explicit exception whose existing single-name distributed Skill and
 Specification IDs remain `agent`, `convention`, `document`, `gather`, `tool`,
-and `workspace`. Organize each Korean Human view for
-readability rather than mechanically mirroring the Skill hierarchy, and map
-material sections to exact paths within its paired Skill. Do not create a
-standalone representation or an aggregate Specification for multiple Skills.
+and `workspace`. An explicitly resolved external backend may use different
+locators while preserving the one-to-one pair and stable identity. Organize
+each Korean Human view for readability rather than mechanically mirroring the
+Skill hierarchy, and map material sections to exact paths within its paired
+Skill. Do not create a standalone representation or an aggregate Specification
+for multiple Skills.
 
 Original, Processed, and Specification Document types and document roles are
 logical and storage-independent. Do not introduce Refined as a fourth active

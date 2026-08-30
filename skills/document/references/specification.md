@@ -37,8 +37,11 @@ review itself as authorization to edit them.
 
 ### Ownership boundary
 
-Apply one invariant uniformly: exactly one Skill directory pairs with exactly
-one Specification directory under the same stable identity. In this plugin,
+Apply one invariant uniformly: exactly one resolved AI-facing Skill
+representation pairs with exactly one resolved Human-facing Specification
+representation under the same stable identity. Concrete locators are resolved
+by the selected adapter; directory paths are the current/default local-adapter
+form, not the universal contract. Under that adapter in this plugin,
 `<plugin-root>/skills/<skill-id>/` pairs with
 `.agent-factory/document/specification/<skill-id>/`. Do not create or mirror
 the plugin's distributed Skills below this repository's `.codex/`, and do not
@@ -63,8 +66,8 @@ alignment as `unknown`; report reciprocal mismatch as `misaligned` and fail
 closed.
 
 A separate consumer project may use a project-scoped Project Skill as a
-Specification's AI-facing representation. Keep it directly below the owning
-project's Skill root:
+Specification's AI-facing representation. Under the current/default local
+adapter, keep it directly below the owning project's Skill root:
 
 ```text
 <project-root>/.codex/skills/<category>-<title>/
@@ -72,10 +75,12 @@ project's Skill root:
 ```
 
 Do not split or mirror a Project Skill into alternate locations or create a
-physical `project/` category directory. Physical ownership does not assign a
-Workspace Activity, virtual category, nested destination, or other navigation
-detail. A neutral read-only discovery or exposure utility may locate the
-actual Project Skill without copying it or becoming its owner.
+physical `project/` category directory. An explicitly resolved external
+backend may use different locators while preserving the pair's stable identity,
+one-to-one cardinality, authority, and reciprocal binding. Physical ownership
+does not assign a Workspace Activity, virtual category, nested destination, or
+other navigation detail. A neutral read-only discovery or exposure utility may
+locate the actual Project Skill without copying it or becoming its owner.
 
 ### Project Skill structure
 
@@ -112,12 +117,13 @@ Name an ordinary consumer Project Skill and its paired Specification in the
 canonical form `<category>-<title>`. Both components
 use lowercase hyphen-case tokens; a component may itself contain hyphens. The
 complete identity uses only lowercase letters, digits, and hyphens, remains
-under the Codex Skill name limit, and exactly matches the Project Skill
-directory, the Human Specification directory, and the `name` field in
-`SKILL.md` frontmatter. `category` classifies the Skill for discovery, while
-`title` identifies the bounded project knowledge or capability. This plugin is
-the explicit exception whose six accepted distributed Skill and Specification
-identities remain single names.
+under the Codex Skill name limit, and exactly matches both resolved
+representations and the `name` field in `SKILL.md` frontmatter. Under the
+current/default local adapter, it also exactly matches the Project Skill and
+Human Specification directory names. `category` classifies the Skill for
+discovery, while `title` identifies the bounded project knowledge or capability.
+This plugin is the explicit exception whose six accepted distributed Skill and
+Specification identities remain single names.
 
 Use the category and title supplied by the Human or established unambiguously by
 accepted project evidence. Do not invent either component. Preserve an existing
