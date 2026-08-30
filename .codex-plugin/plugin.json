@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "0.1.0+codex.20260827190756",
+  "version": "0.1.0+codex.20260830135409",
   "description": "Six Agent Factory skills for managed agents, core conventions, Documents, source gathering, external tool lifecycle control, and Human control-tower oversight.",
   "author": {
     "name": "Agent Factory",
