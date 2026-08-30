@@ -43,9 +43,9 @@
             </div>
             <div class="flow-line" aria-label="원본문서에서 가공문서를 거쳐 스펙 문서로 이어질 수 있는 개념적 순서"><span>Document</span><span>원본문서</span><svg viewBox="0 0 48 16" aria-hidden="true" focusable="false"><path d="M2 8h40m-6-5 6 5-6 5"/></svg><span>가공문서</span><svg viewBox="0 0 48 16" aria-hidden="true" focusable="false"><path d="M2 8h40m-6-5 6 5-6 5"/></svg><span>스펙 문서</span></div>
             <div class="control-band agent-band"><span>Agent</span><small>Main에서 Work를 거쳐 Verification으로 진행하며 실패하면 같은 Work로 복귀합니다. Human만 근거를 갖춰 기록할 수 있는 skip은 제어면 의도이지 전이나 완료가 아니며, 현재 initial 또는 revision Work가 끝난 뒤에만 적용되어 다음 또는 추가 Verification을 시작하지 않고 END에 도달합니다. Verification 통과도 END에 도달합니다.</small></div>
-            <div class="control-band"><span>Workspace</span><small>Human이 Agents, 문서, 프로젝트 뷰를 탐색하고 관리하는 관제탑</small></div>
+            <div class="control-band"><span>Workspace</span><small>일정 · 에이전트 · 문서 · 로그 · 테스트의 다섯 상단 범주를 가진 Human 관제탑</small></div>
           </div>
-          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work-request.md</code>, 현재 <code>skills/agent/SKILL.md</code>의 실행 graph, <code>.agent-factory/agent/workspace-skill-work-request.md</code>에 기록된 수락된 Human 결정과 필수 의미 모델.</p>
+          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work/runs/run-20260827T171518255940Z-9be41ed7/request.md</code>, 현재 <code>skills/agent/SKILL.md</code>의 실행 graph, <code>.agent-factory/agent/workspace-work/runs/run-20260830T084555205214Z-18e640b1/request.md</code>에 기록된 수락된 Human 결정과 필수 의미 모델.</p>
         </section>
         <section id="lifecycle" aria-labelledby="lifecycle-title">
           <div class="section-heading"><p class="section-number">02</p><h2 id="lifecycle-title">세 가지 Document 유형</h2></div>
@@ -67,11 +67,11 @@
               <tr><th scope="row">Document</th><td>문서와 근거가 있는 Human 결정</td><td><span class="pill original-pill">원본</span> <span class="pill processed-pill">가공</span> <span class="pill specification-pill">스펙</span></td><td>세 유형을 정의하고 선택적 provenance 관계를 보존하며 모든 스펙 문서의 Human·AI 표현을 함께 유지합니다.</td></tr>
               <tr><th scope="row">Convention</th><td>Human이 정한 작업 제약</td><td>전 단계 통제</td><td>AI가 따라야 할 제약을 기록하는 약한 하네스로 생명주기 전체에 적용됩니다.</td></tr>
               <tr><th scope="row">Agent</th><td>역할, 권한, 맥락, 도구, 상태</td><td>전 단계 실행</td><td>다섯 공학 계층을 통합해 생명주기 전체의 AI Agent 실행을 담당합니다.</td></tr>
-              <tr><th scope="row">Workspace</th><td>Agents, 문서, 프로젝트 뷰</td><td>Human 관제탑</td><td>각 소유자의 상태와 권한을 대체하지 않고 Human이 탐색하고 관리할 수 있는 통합 제어 표면을 제공합니다.</td></tr>
+              <tr><th scope="row">Workspace</th><td>향후 소유자가 해결할 일정, Agent, Document, 로그, 테스트 source</td><td>다섯 범주의 Human 관제탑</td><td>상단 Activity는 일정, 에이전트, 문서, 로그, 테스트 순서의 정확히 다섯 개입니다. Sidebar 구조와 상세 기능은 미결정이며 기반 상태를 소유하거나 실행하지 않습니다.</td></tr>
             </tbody></table>
           </div>
           <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p><strong>역량과 public Skill은 같은 분류가 아닙니다.</strong> 핵심 역량은 Workspace를 포함한 일곱 개이며 public distributed Skill은 <code>agent</code>, <code>convention</code>, <code>gather</code>, <code>document</code>, <code>workspace</code> 다섯 개입니다. Explorer와 Interview의 지속적 의미·권한 경계는 Convention이 소유하고, Agent의 Work와 Main이 각각 적용합니다.</p></aside>
-          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work-request.md</code>, <code>.agent-factory/agent/explorer-interview-skill-consolidation-work-request.md</code>, <code>.agent-factory/agent/workspace-skill-work-request.md</code>에 기록된 수락된 Human 결정. 기존 Inquery 자료는 provenance를 보존한 채 <code>.agent-factory/information/processed/legacy-inquery/</code>로 이전되었습니다.</p>
+          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work/runs/run-20260827T171518255940Z-9be41ed7/request.md</code>, 다섯 public Skill과 Explorer 역량 경계를 확정한 <code>.agent-factory/agent/document-types-work/runs/run-20260830T070110807574Z-61393ff6/request.md</code>, Main과 Interview·Explorer 위임을 확정한 <code>.agent-factory/agent/main-interface-orchestration-work/runs/run-20260827T185954481797Z-83e4ca60/request.md</code>, Convention reference 적용을 확정한 <code>.agent-factory/agent/convention-prompt-link-work/runs/run-20260830T040515493151Z-713220d2/request.md</code>, Workspace 관제탑 경계를 확정한 <code>.agent-factory/agent/workspace-work/runs/run-20260830T084555205214Z-18e640b1/request.md</code>에 기록된 Human 결정. 기존 Inquery 자료는 provenance를 보존한 채 <code>.agent-factory/document/processed/legacy-inquery/</code>로 이전되었습니다.</p>
         </section>
         <section id="engineering" aria-labelledby="engineering-title">
           <div class="section-heading"><p class="section-number">04</p><h2 id="engineering-title">Agent 공학 계층</h2></div>
@@ -83,17 +83,17 @@
             <article><span>02</span><div><h3>Context Engineering</h3><p>turn 입력의 선택, 조립, provenance, 격리</p></div></article>
             <article><span>01</span><div><h3>Prompt Engineering</h3><p>turn 단위 지시와 출력 계약</p></div></article>
           </div>
-          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work-request.md</code>에 기록된 필수 Agent engineering stack. <code>.agent-factory/information/processed/legacy-inquery/agent-factory-engineering-synthesis-20260828/synthesis.md</code>는 보조적 비정규 근거로만 사용됨.</p>
+          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work/runs/run-20260827T171518255940Z-9be41ed7/request.md</code>에 기록된 필수 Agent engineering stack. <code>.agent-factory/document/processed/legacy-inquery/agent-factory-engineering-synthesis-20260828/synthesis.md</code>는 보조적 비정규 근거로만 사용됨.</p>
         </section>
         <section id="alignment" aria-labelledby="alignment-title">
           <div class="section-heading"><p class="section-number">05</p><h2 id="alignment-title">하나의 의미, 두 표현</h2></div>
           <div class="alignment-map" role="img" aria-label="하나의 스펙 의미 체계가 한국어 Human 스펙 문서와 영어 Convention Skill로 투영되고 두 표현이 의미적으로 정렬되는 구조">
-            <article><svg class="icon large" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 5h17v14h-17zM3.5 8.5h17M6 6.75h.01M8.5 6.75h.01"/></svg><h3>Human-facing</h3><p>한국어 HTML, CSS, JavaScript</p><code>.agent-factory/information/refined/human/agent-factory-core/</code></article>
+            <article><svg class="icon large" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 5h17v14h-17zM3.5 8.5h17M6 6.75h.01M8.5 6.75h.01"/></svg><h3>Human-facing</h3><p>한국어 HTML, CSS, JavaScript</p><code>.agent-factory/document/specification/human/agent-factory-core/</code></article>
             <div class="semantic-core"><svg class="icon large" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8zM4 8l8 4.5L20 8M12 12.5v8"/></svg><strong>하나의 스펙 의미 체계</strong><span>결정, 관계, 관찰, 미해결 질문</span></div>
             <article><svg class="icon large" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3.5h10v17H7zM10 8h4M10 12h4M10 16h4"/></svg><h3>AI-facing</h3><p>Convention이 소유하는 영어 규칙</p><code>skills/convention/</code></article>
           </div>
           <p>두 표현은 문장과 시각 형식이 달라도 같은 결정, 관계, 현재 구현 관찰, 미해결 질문을 포함해야 하며 항상 의미적으로 동기화되어야 합니다. 한쪽만 바꾼 변경은 불완전하고 허용되지 않습니다. 두 표현을 동기화할 수 없으면 그 변경이나 run을 완료로 보고해서는 안 됩니다.</p>
-          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work-request.md</code>, <code>.agent-factory/agent/document-types-work/runs/run-20260830T072849765327Z-1f535f3f/request.md</code>, <code>skills/document/references/specification.md</code>.</p>
+          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/agent-factory-core-spec-work/runs/run-20260827T171518255940Z-9be41ed7/request.md</code>, <code>.agent-factory/agent/document-types-work/runs/run-20260830T072849765327Z-1f535f3f/request.md</code>, <code>skills/document/references/specification.md</code>.</p>
         </section>
         <section id="skill-naming" aria-labelledby="skill-naming-title">
           <div class="section-heading"><p class="section-number">06</p><h2 id="skill-naming-title">Skill 작명 규칙</h2></div>
@@ -115,11 +115,11 @@
           <div class="example-row" aria-label="작명 예시"><span>예시</span><code>agent-factory-core</code><code>domain-order-policy</code></div>
           <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p><strong>소유 경계:</strong> plugin distributed Skills는 <code>&lt;plugin-root&gt;/skills/</code>, consumer Project Skills는 <code>&lt;project-root&gt;/.codex/skills/&lt;category&gt;-&lt;name&gt;/</code>에 둡니다.</p></aside>
           <p><strong>기존 정체성 보존:</strong> 이 결정은 일반적인 일괄 이름 변경을 허가하지 않습니다. Explorer와 Interview는 역량 정체성을 유지하지만 public Skill 정체성은 갖지 않습니다. Agent Factory 코어 규칙은 <code>convention</code>이 소유합니다.</p>
-          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T183744485278Z-1d60a54e/request.md</code>와 이를 대체하는 <code>.agent-factory/agent/explorer-interview-skill-consolidation-work-request.md</code>에 기록된 Human 결정.</p>
+          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T183744485278Z-1d60a54e/request.md</code>, 다섯 public Skill과 Explorer 역량 경계를 확정한 <code>.agent-factory/agent/document-types-work/runs/run-20260830T070110807574Z-61393ff6/request.md</code>, Main과 Work의 Convention reference 적용을 확정한 <code>.agent-factory/agent/convention-prompt-link-work/runs/run-20260830T040515493151Z-713220d2/request.md</code>에 기록된 Human 결정.</p>
         </section>
         <section id="workspace-shell" aria-labelledby="workspace-shell-title">
           <div class="section-heading"><p class="section-number">07</p><h2 id="workspace-shell-title">Human을 위한 Workspace 관제탑</h2></div>
-          <p class="section-lead">Workspace는 VS Code 형태의 세 영역을 통해 Agent, 문서, 프로젝트 뷰를 한곳에서 탐색하고 관리하게 합니다.</p>
+          <p class="section-lead">Workspace는 VS Code 형태의 세 영역을 사용하며, Activity Bar에는 일정, 에이전트, 문서, 로그, 테스트가 이 순서로 정확히 다섯 개만 있습니다.</p>
           <div class="shell-flow" role="img" aria-label="작업 표시줄에서 기본 사이드바를 거쳐 작업 영역으로 이어지는 VS Code 형태의 Workspace 관제탑">
             <article><svg class="icon large" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 3.5h4v4H4zM4 10h4v4H4zM4 16.5h4v4H4z"/></svg><h3>작업 표시줄</h3><code>Activity Bar</code></article>
             <svg class="connector-icon match-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15m-5-5 5 5-5 5"/></svg>
@@ -127,6 +127,26 @@
             <svg class="connector-icon match-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15m-5-5 5 5-5 5"/></svg>
             <article><svg class="icon large" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 4h17v16h-17zM8 4v16"/></svg><h3>작업 영역</h3><code>Workspace</code></article>
           </div>
+          <h3>정확히 다섯 개의 상단 Activity</h3>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Workspace Activity Bar의 다섯 항목과 순서">
+            <table><thead><tr><th scope="col">순서</th><th scope="col">표시 이름</th><th scope="col">현재 결정 상태</th></tr></thead><tbody>
+              <tr><th scope="row">1</th><td>일정</td><td>상단 범주만 결정됨</td></tr>
+              <tr><th scope="row">2</th><td>에이전트</td><td>상단 범주만 결정됨</td></tr>
+              <tr><th scope="row">3</th><td>문서</td><td>상단 범주만 결정됨</td></tr>
+              <tr><th scope="row">4</th><td>로그</td><td>상단 범주만 결정됨</td></tr>
+              <tr><th scope="row">5</th><td>테스트</td><td>상단 범주만 결정됨</td></tr>
+            </tbody></table>
+          </div>
+          <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p><strong>미결정 경계:</strong> 각 Activity의 Primary Sidebar 정보 구조, 상세 기능, 내부 계층, control, metric, source 계약은 Human의 후속 결정을 기다립니다. Explorer·문서탐색기, Planning·명세서, Project Skills·프로젝트 스킬, roadmap, overview/dashboard 또는 별칭을 상단에 추가하거나 다섯 Activity 아래에 임의로 배치하지 않습니다.</p></aside>
+          <p>Workspace는 관찰과 control routing의 표면이며 일정 데이터, Agent runtime, Documents, logs, tests의 권위 있는 소유자나 실행자가 아닙니다. 향후 source 또는 control 계약이 해결되기 전까지 각 화면은 정의 대기 상태만 정직하게 표시합니다.</p>
+          <h3>브라우저 코드의 두 가지 필수 형태</h3>
+          <div class="identity-match" aria-label="패키지 설치 원본과 현재 프로젝트에 materialize된 Workspace 브라우저 코드의 동일성 관계">
+            <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6.5h6l2 2h9v10h-17z"/></svg><h3>재사용 설치 원본</h3><code>skills/workspace/assets/browser/</code><p><code>index.html</code>, <code>styles.css</code>, <code>app.js</code>를 다른 프로젝트에도 설치할 수 있는 패키지 형태입니다.</p></article>
+            <svg class="connector-icon match-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15m-5-5 5 5-5 5M19 12H4m5 5-5-5 5-5"/></svg>
+            <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3.5h9l3 3V20.5H6zM15 3.5v3h3M9 11h6M9 14.5h6"/></svg><h3>현재 프로젝트 게시본</h3><code>.agent-factory/workspace/common/</code><p>동일한 세 파일을 현재 프로젝트에서 실제로 제공하는 materialized 설치본입니다.</p></article>
+          </div>
+          <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p><strong>동기화 경계:</strong> 두 형태와 세 파일은 함께 존재하고 byte 단위로 같아야 합니다. 패키지 에셋이 재사용 설치 원본이며 <code>common/</code>은 독립적인 두 번째 canonical source가 아니라 현재 프로젝트의 설치본입니다. 한쪽만 바꾸거나 의미 또는 byte가 달라진 상태는 완료가 아닙니다.</p></aside>
+          <p><code>serve.py init</code>은 기존 안전한 preflight와 force 규칙을 유지하면서 패키지 원본을 정확한 대상 프로젝트의 <code>.agent-factory/workspace/common/</code>에 materialize합니다. force가 없으면 다른 설치 파일을 충돌로 처리하고, force가 있어도 다른 일반 common browser 파일만 교체하며 path containment, symlink 방어, atomic copy, launcher 보존 규칙은 약화하지 않습니다.</p>
           <h3>루트 실행기: 에셋에서 한 번만 복사</h3>
           <div class="identity-match" aria-label="패키지된 workspace.sh 에셋을 프로젝트 루트로 한 번만 복사하는 관계">
             <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6.5h6l2 2h9v10h-17z"/></svg><h3>재사용 원본</h3><code>skills/workspace/assets/workspace.sh</code></article>
@@ -134,23 +154,25 @@
             <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3.5h9l3 3V20.5H6zM15 3.5v3h3M9 11h6M9 14.5h6"/></svg><h3>프로젝트 설치본</h3><code>&lt;project-root&gt;/workspace.sh</code></article>
           </div>
           <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p><strong>copy-once 경계:</strong> 루트의 <code>workspace.sh</code>가 이미 존재하면 초기화는 그대로 보존합니다. 이 규칙은 force를 사용해도 바뀌지 않으며, 설치본은 symlink가 아닌 일반 프로젝트 파일입니다.</p></aside>
-          <h3>서로 다른 두 Explorer 위치</h3>
-          <div class="identity-match" aria-label="임시 Explorer 근거 저장소와 읽기 전용 Workspace Explorer Activity 투영의 서로 다른 소유 관계">
-            <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6.5h6l2 2h9v10h-17z"/></svg><h3>임시 근거 저장소</h3><code>.agent-factory/explorer/</code><p>Work가 Explorer 역량을 적용하며 만드는 임시 evidence workspace입니다.</p></article>
-            <svg class="connector-icon match-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8h15m-5-5 5 5-5 5M20 16H5m5-5-5 5 5 5"/></svg>
-            <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 4h17v16h-17zM8 4v16"/></svg><h3>읽기 전용 Activity 투영</h3><code>.agent-factory/workspace/explorer/</code><p>프로젝트 트리와 임시 근거 트리를 구분해 발견·표시하며 어느 트리도 복사하거나 소유하지 않습니다.</p></article>
-          </div>
-          <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p>Workspace Explorer Activity는 파일 내용이나 Agent 실행 상태를 노출하지 않고, 임시 근거를 편집·이동·삭제·승격하지 않습니다. traversal과 symlink escape를 막고 깊이, 항목 수, 응답 크기를 제한하는 읽기 전용 metadata projection입니다.</p></aside>
-          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/workspace-skill-work-request.md</code>에 기록된 수락된 Human 결정과 현재 Workspace 에셋·초기화 계약.</p>
+          <p class="provenance"><strong>출처:</strong> 최초 셀·루트 launcher 결정을 기록한 <code>.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T183901489117Z-e71747f6/request.md</code>, Workspace 관제탑 경계를 확정한 <code>.agent-factory/agent/workspace-work/runs/run-20260830T084555205214Z-18e640b1/request.md</code>, 이를 대체하는 <code>.agent-factory/agent/workspace-work/runs/run-20260830T090533619149Z-bfd9f5fa/request.md</code>, 두 형태의 게시 계약을 추가한 <code>.agent-factory/agent/workspace-work/runs/run-20260830T092305700450Z-683ed85d/request.md</code>에 기록된 Human 결정.</p>
         </section>
         <section id="storage" aria-labelledby="storage-title">
           <div class="section-heading"><p class="section-number">08</p><h2 id="storage-title">논리적 문서 역할과 저장소</h2></div>
           <div class="shell-flow" role="img" aria-label="원본, 가공, 스펙 문서 역할이 로컬 기본 어댑터 또는 명시적으로 선택한 외부 백엔드에 연결되는 구조">
-            <article><h3>논리적 역할</h3><code>Original / Processed / Specification</code></article><svg class="connector-icon match-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15m-5-5 5 5-5 5"/></svg><article><h3>로컬 기본 어댑터</h3><code>.agent-factory/information/</code></article><span class="match-mark">또는</span><article><h3>명시적 대안</h3><code>project server / external backend</code></article>
+            <article><h3>논리적 역할</h3><code>Original / Processed / Specification</code></article><svg class="connector-icon match-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15m-5-5 5 5-5 5"/></svg><article><h3>로컬 기본 어댑터</h3><code>.agent-factory/document/</code></article><span class="match-mark">또는</span><article><h3>명시적 대안</h3><code>project server / external backend</code></article>
           </div>
+          <p>로컬 어댑터의 최상위 책임 디렉터리는 <code>agent/</code>, <code>document/</code>, <code>workspace/</code> 세 개뿐입니다. <code>document/</code>는 <code>original/</code>, <code>processed/</code>, <code>specification/</code>을 가지며 Gather 설정은 <code>document/sync.json</code>에 있습니다.</p>
           <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p>저장 위치가 달라도 provenance, authority, isolation, 의미 정렬, 접근성, 보안 요구는 유지됩니다. 원격 backend의 configuration, identity, sync/conflict, authentication, availability, caching은 미해결이며 구현된 것으로 간주하지 않습니다.</p></aside>
-          <p><code>workspace.sh</code>는 로컬의 <code>.agent-factory/workspace/</code> 관제탑 UI와 <code>.agent-factory/information/refined/human/</code> 문서를 제공하는 실행기입니다. 원격 Workspace에는 강제되지 않습니다.</p>
-          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/workspace-skill-work-request.md</code>.</p>
+          <h3>공유 로컬 카탈로그의 경계</h3>
+          <div class="identity-match" aria-label="권위 있는 Agent 및 Document 저장소를 대체하지 않는 재구축 가능한 SQLite 카탈로그 관계">
+            <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5h16v13H4zM8 9h8M8 12.5h8M8 16h5"/></svg><h3>권위 있는 기존 저장소</h3><code>agent/ · document/ · document/sync.json · .codex/skills/</code><p>Agent 실행 파일, Document 본문·표현·provenance, Gather 설정, Project Skill과 스펙 pair가 계속 권위를 가집니다.</p></article>
+            <svg class="connector-icon match-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15m-5-5 5 5-5 5"/></svg>
+            <article><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6M4.5 11.5v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></svg><h3>재구축 가능한 읽기 모델</h3><code>.agent-factory/db.sqlite</code><p>나중의 Workspace 질의를 위해 Agent 실행 구조와 Document metadata를 함께 투영하는 비권위 로컬 카탈로그입니다.</p></article>
+          </div>
+          <p>유지되는 표준 SQLite DDL은 <code>skills/workspace/assets/schema/catalog.sql</code>에 있습니다. schema metadata와 migration, Agent·재개 가능한 session, run·turn, Work/Verification loop, graph·dispatch 관계, Document 유형·표현·근거가 있는 provenance/derivation 관계, Agent-Document 관계, Specification pair 상태를 정규화합니다. source가 관계를 제공하지 않으면 만들지 않으며 legacy와 unknown을 명시적으로 보존합니다.</p>
+          <aside class="callout"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7.5h.01"/></svg><p><strong>이번 구현은 schema-only입니다.</strong> 실제 <code>db.sqlite</code> 생성, scanner, rebuild/index job, runtime dual write, Workspace 화면·API·navigation, search, 외부 backend ingest는 구현하거나 허가하지 않습니다. 큰 본문, event stream, request, result, receipt, heartbeat, containment·recovery evidence는 기존 파일에 남습니다. 데이터베이스와 SQLite sidecar는 commit 대상이 아니며 Agent 실행은 카탈로그 freshness나 availability에 의존하지 않습니다.</p></aside>
+          <p><code>workspace.sh</code>는 로컬의 <code>.agent-factory/workspace/</code> 관제탑 UI와 <code>.agent-factory/document/specification/human/</code> 문서를 제공하는 실행기입니다. 원격 Workspace에는 강제되지 않습니다.</p>
+          <p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/workspace-work/runs/run-20260830T084555205214Z-18e640b1/request.md</code>, <code>.agent-factory/agent/shared-db-work/runs/run-20260830T085102207719Z-c11abc11/request.md</code>.</p>
         </section>
         <section id="evidence" aria-labelledby="evidence-title">
           <div class="section-heading"><p class="section-number">09</p><h2 id="evidence-title">관찰된 현재 구현</h2></div>
@@ -161,8 +183,9 @@
             <article class="observation-card"><span class="status-label">관찰</span><h3>Main orchestration과 Interview</h3><p>Main Agent는 Human 인터페이스, 적응형 Interview, orchestration, 통합을 소유합니다. <code>skills/convention/references/interview.md</code>가 지속적 정보·권한 경계를 소유하고 Main이 현재 대화에서 적용합니다. 필요한 배경 조사는 Work가 Explorer 역량으로 수행한 뒤 Interview를 재개할 수 있습니다.</p><p class="provenance"><strong>출처:</strong> <code>skills/convention/references/interview.md</code>, <code>skills/agent/prompt/main.md</code></p></article>
             <article class="observation-card"><span class="status-label">관찰</span><h3>Convention이 코어 의미를 소유</h3><p><code>skills/convention/</code>은 다섯 public Skills 중 하나로 코어 의미 모델, 일곱 역량의 관계, 느슨한 세 Document 유형, Skill 소유·작명, 저장소 독립 규칙을 제공합니다.</p><p class="provenance"><strong>출처:</strong> <code>skills/convention/SKILL.md</code>, <code>.agent-factory/agent/document-types-work/runs/run-20260830T072849765327Z-1f535f3f/request.md</code></p></article>
             <article class="observation-card"><span class="status-label">관찰</span><h3>Document가 세 유형을 정의</h3><p><code>skills/document/</code>는 Original, Processed, Specification의 정의를 소유합니다. Gather는 외부 동기화를 계속 소유하며 모든 Specification은 수락·조정된 프로젝트 지식과 필수 Human·AI 표현을 가집니다.</p><p class="provenance"><strong>출처:</strong> <code>skills/document/SKILL.md</code>, <code>skills/gather/SKILL.md</code></p></article>
-            <article class="observation-card"><span class="status-label">관찰</span><h3>Workspace가 Human 관제탑을 소유</h3><p><code>skills/workspace/</code>가 공통 브라우저 셸, Activity navigation, local serving, <code>workspace.sh</code> launcher를 소유하고 로컬 UI는 <code>.agent-factory/workspace/</code>에 materialize됩니다.</p><p class="provenance"><strong>출처:</strong> <code>skills/workspace/SKILL.md</code>, <code>.agent-factory/agent/workspace-skill-work-request.md</code></p></article>
-            <article class="observation-card"><span class="status-label">관찰</span><h3>Explorer 저장과 투영은 분리</h3><p><code>.agent-factory/explorer/</code>는 임시 Work/Explorer 근거 저장소이고, <code>.agent-factory/workspace/explorer/</code>는 프로젝트와 근거 트리를 분리해 표시하는 읽기 전용 Workspace Activity입니다.</p><p class="provenance"><strong>출처:</strong> <code>skills/workspace/references/interface.md</code>, <code>skills/convention/references/directory-structure.md</code></p></article>
+            <article class="observation-card"><span class="status-label">관찰</span><h3>Workspace가 다섯 상단 범주의 Human 관제탑을 소유</h3><p><code>skills/workspace/</code>가 공통 브라우저 셸, Activity navigation, local serving, <code>workspace.sh</code> launcher를 소유합니다. 패키지 셸의 상단 Activity는 일정, 에이전트, 문서, 로그, 테스트 순서의 정확히 다섯 개이며, 각 sidebar와 workspace는 Human의 상세 정의를 기다린다고 표시합니다. 브라우저의 세 파일은 <code>skills/workspace/assets/browser/</code>의 설치 원본과 <code>.agent-factory/workspace/common/</code>의 현재 프로젝트 게시본으로 함께 유지됩니다.</p><p class="provenance"><strong>출처:</strong> <code>skills/workspace/SKILL.md</code>, <code>skills/workspace/references/activities.md</code>, <code>.agent-factory/agent/workspace-work/runs/run-20260830T090533619149Z-bfd9f5fa/request.md</code>, <code>.agent-factory/agent/workspace-work/runs/run-20260830T092305700450Z-683ed85d/request.md</code></p></article>
+            <article class="observation-card"><span class="status-label">관찰</span><h3>내부 투영은 Activity를 정의하지 않음</h3><p>내구성 Explorer 근거는 <code>.agent-factory/document/original/</code> 또는 <code>.agent-factory/document/processed/</code>에 분류되고, 실행 전용 임시 자료는 생성한 Agent run에만 남습니다. 내부 읽기 전용 <code>.agent-factory/workspace/explorer/</code> File/Project metadata 투영과 <code>.agent-factory/workspace/skills/</code> Skill navigation 투영은 상단 Activity 또는 다섯 범주 아래의 navigation 계층을 정의하지 않습니다.</p><p class="provenance"><strong>출처:</strong> <code>skills/workspace/references/interface.md</code>, <code>skills/convention/references/directory-structure.md</code></p></article>
+            <article class="observation-card"><span class="status-label">관찰</span><h3>로컬 카탈로그 DDL의 schema-only 기반</h3><p><code>skills/workspace/assets/schema/catalog.sql</code>이 <code>.agent-factory/db.sqlite</code>용 정규화·버전 관리 schema를 정의합니다. 실제 DB나 population, rebuild, UI/API, search, dual write는 포함하지 않습니다.</p><p class="provenance"><strong>출처:</strong> <code>.agent-factory/agent/shared-db-work/runs/run-20260830T085102207719Z-c11abc11/request.md</code>, <code>skills/workspace/assets/schema/catalog.sql</code></p></article>
           </div>
         </section>
         <section id="questions" aria-labelledby="questions-title">
@@ -170,6 +193,8 @@
           <p class="section-lead">다음 항목은 Human이 결정하기 전까지 목표 구조나 완료 상태로 간주하지 않습니다.</p>
           <div class="question-grid">
             <article class="question-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 3.1 2.42c-.8.3-.8.95-.8 1.58M12 16.7h.01"/></svg><div><span class="status-label unresolved">Human 소유</span><h3>실행 계획과 수락 상태</h3><p>roadmap 우선순위, deadline, owner, acceptance, risk acceptance, completion state는 이 명세에서 만들지 않았습니다.</p></div></article>
+            <article class="question-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 3.1 2.42c-.8.3-.8.95-.8 1.58M12 16.7h.01"/></svg><div><span class="status-label unresolved">Human 소유</span><h3>다섯 Activity의 상세 정의</h3><p>일정, 에이전트, 문서, 로그, 테스트의 Primary Sidebar 정보 구조, 상세 기능, 내부 계층, control, metric, source 계약은 아직 결정되지 않았습니다.</p></div></article>
+            <article class="question-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 3.1 2.42c-.8.3-.8.95-.8 1.58M12 16.7h.01"/></svg><div><span class="status-label unresolved">미구현</span><h3>카탈로그 실행 경로</h3><p><code>db.sqlite</code> 초기화, authoritative local file scanner, rebuild와 freshness, bounded/sanitized query API, search, runtime dual write의 세부 계약은 이번 schema-only 범위에 포함되지 않았습니다.</p></div></article>
             <article class="question-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 3.1 2.42c-.8.3-.8.95-.8 1.58M12 16.7h.01"/></svg><div><span class="status-label unresolved">미해결</span><h3>외부 저장소 통합</h3><p>backend configuration, identity, synchronization/conflict policy, authentication, availability, caching은 아직 결정되거나 구현되지 않았습니다.</p></div></article>
           </div>
         </section>

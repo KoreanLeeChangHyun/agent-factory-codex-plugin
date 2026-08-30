@@ -12,9 +12,9 @@ or keep a standalone Human-facing Specification without that pair. Create and
 maintain both representations for a Specification. Keep their
 claims, decisions, relationships, and scope aligned. Do not let either view
 silently add, omit, or contradict specified knowledge in the other. The
-AI-facing Skill is the machine-readable working form of the Specification; a
-Skills Activity link, or an unrelated optional Project Skill, does not
-satisfy this requirement.
+AI-facing Skill is the machine-readable working form of the Specification; an
+internal Workspace Skill-navigation projection, or an unrelated optional
+Project Skill, does not satisfy this requirement.
 
 Semantic synchronization is a mandatory, fail-closed completion condition.
 Every change to either representation must include the faithful corresponding
@@ -52,9 +52,10 @@ project's Skill root:
 ```
 
 Do not split or mirror a Project Skill into alternate locations or create a
-physical `project/` category directory. A Workspace Activity may display a
-virtual `프로젝트 스킬` category, but that presentation is not a Skill or
-filesystem directory.
+physical `project/` category directory. Physical ownership does not assign a
+Workspace Activity, virtual category, nested destination, or other navigation
+detail. A neutral read-only discovery or exposure utility may locate the
+actual Project Skill without copying it or becoming its owner.
 
 ### Project Skill structure
 
@@ -123,17 +124,20 @@ not become a private source of additional or contradictory specified facts.
 ### Storage and Workspace projection
 
 Under the current/default local adapter, keep a consumer Project Skill
-physically separate from Original or Processed Explorer material below
-`.agent-factory/explorer/`, its Human-facing Specification below
-`.agent-factory/information/refined/human/<specification-id>/`, and operational
-Agent state below `.agent-factory/agent/`. Do not automatically promote an
-Explorer document into a Project Skill. The storage-independent adapter rules
+physically separate from Original or Processed Explorer Documents below
+`.agent-factory/document/`, its Human-facing Specification below
+`.agent-factory/document/specification/human/<specification-id>/`, and
+operational Agent state below `.agent-factory/agent/`. Temporary execution-only
+Explorer material belongs to the producing managed Agent run. Do not
+automatically promote an Explorer document into a Project Skill. The storage-independent adapter rules
 below apply equally to the AI-facing representation.
 
-The Workspace `skills/` Activity may discover and navigate actual Project
-Skills below the owning project's `.codex/skills/`. This projection must not
-copy, hardcode, or become the canonical owner of Project Skill content, and it
-does not satisfy a missing paired representation.
+The Workspace `skills/` store may support internal read-only discovery and
+navigation of actual Project Skills below the owning project's
+`.codex/skills/`. This projection defines neither an Activity nor nesting under
+one of the five Activities. It must not copy, hardcode, or become the canonical
+owner of Project Skill content, and it does not satisfy a missing paired
+representation.
 
 Storage does not define the information class or document role. A project may
 explicitly resolve a project server, external document store, mounted
@@ -151,13 +155,13 @@ JavaScript for Human viewing in a browser. For the current/default local
 adapter, store Specification output below:
 
 ```text
-<project-root>/.agent-factory/information/refined/human/
+<project-root>/.agent-factory/document/specification/human/
 ```
 
 Use this minimum browser structure for a project-specific Specification:
 
 ```text
-.agent-factory/information/refined/human/<specification-id>/
+.agent-factory/document/specification/human/<specification-id>/
 ├── index.html
 ├── styles.css
 ├── app.js
@@ -187,7 +191,7 @@ Skill or its Markdown references.
 2. Resolve the document adapter and paired-Skill owning context from explicit
    configuration or Human direction. Do not infer a remote backend or storage
    policy. For the local adapter, confirm that
-   `<project-root>/.agent-factory/information/refined/human/<specification-id>/`
+   `<project-root>/.agent-factory/document/specification/human/<specification-id>/`
    does not exist. Only for a new target, copy the complete packaged template from
    `assets/document/` into that directory. Scaffolding is copy-once: never use
    the template to overwrite, reset, or merge over an existing Specification.
@@ -234,7 +238,7 @@ promoting raw collection material as truth.
 ## Document boundaries and quality rules
 
 For the local adapter, keep each Specification's content in its own
-`.agent-factory/information/refined/human/<specification-id>/` directory and
+`.agent-factory/document/specification/human/<specification-id>/` directory and
 optional document-specific resources in that document's `assets/`. Shared
 browser-shell responsibilities belong to the Workspace capability at
 `.agent-factory/workspace/common/`; do not copy project facts or one document's
@@ -255,9 +259,11 @@ verification.
 
 ## Workspace projection
 
-The Workspace control tower may discover and render a Specification through
-Planning, but the document remains owned by Document in its resolved
-document store. Workspace navigation does not refine content, supply a missing
+The Workspace control tower or another selected host may expose a
+Specification through a neutral read-only discovery utility. This exposure
+assigns no Activity, category, nested destination, or other unresolved
+navigation detail. The document remains owned by Document in its resolved
+document store; Workspace navigation does not refine content, supply a missing
 paired Skill, or grant acceptance. Apply
 `skills/workspace/references/interface.md` for shell and navigation behavior.
 

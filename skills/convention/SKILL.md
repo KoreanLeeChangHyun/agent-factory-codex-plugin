@@ -45,6 +45,24 @@ Always keep both representations semantically synchronized. A one-sided change
 is incomplete and unacceptable; if synchronization cannot be achieved, the
 change or run must not be reported as completed.
 
+Workspace is the Human-facing project control tower with exactly five
+top-level Activities, in order: 일정, 에이전트, 문서, 로그, 테스트. Their
+Primary Sidebar information architecture and detailed capabilities remain
+Human-owned and undecided. Workspace does not own or execute underlying state.
+Its browser shell must exist as byte-identical packaged installation sources in
+`skills/workspace/assets/browser/` and a materialized current-project copy in
+`.agent-factory/workspace/common/`; the packaged assets are the installation
+source, not a second runtime authority.
+
+The current/default local adapter reserves the exact project-wide catalog path
+`<project-root>/.agent-factory/db.sqlite`. This shared SQLite catalog is a
+rebuildable, non-authoritative read model across Agent execution structure and
+Documents for later Workspace use. It neither creates a public Skill or Agent
+role nor replaces runtime artifacts, Document bodies and representations,
+Gather configuration, Project Skills, provenance evidence, or Specification
+pairs. Its maintained DDL belongs to Workspace at
+`skills/workspace/assets/schema/catalog.sql`.
+
 Keep distributed plugin Skills below `<plugin-root>/skills/`. Keep consumer
 Project Skills below `<project-root>/.codex/skills/<category>-<name>/`. Use the
 accepted `<category>-<name>` form for newly named Skill identities when the

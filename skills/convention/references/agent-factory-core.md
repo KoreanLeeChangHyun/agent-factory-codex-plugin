@@ -8,7 +8,7 @@ The Human-established Specification identity is `agent-factory-core`, based on
 canonical Specification body has two faithful projections:
 
 - Human-facing Korean HTML, CSS, and JavaScript in the current local adapter:
-  `.agent-factory/information/refined/human/agent-factory-core/`
+  `.agent-factory/document/specification/human/agent-factory-core/`
 - AI-facing English distributed plugin Skill: `skills/convention/`
 
 These projections may use different presentation forms, but they must contain
@@ -18,12 +18,12 @@ knowledge.
 
 The accepted decisions and required semantic model below come from the Human's
 delegated core Specification request at
-`.agent-factory/agent/agent-factory-core-spec-work-request.md`. Repository
+`.agent-factory/agent/agent-factory-core-spec-work/runs/run-20260827T171518255940Z-9be41ed7/request.md`. Repository
 observations are separately attributed. The earlier Human decision to implement
 Interview as a distributed Skill came from
-`.agent-factory/agent/interview-skill-work-request.md` and is superseded by the
-four-public-Skill decision below. The engineering synthesis at
-`.agent-factory/information/processed/legacy-inquery/agent-factory-engineering-synthesis-20260828/synthesis.md`
+`.agent-factory/agent/interview-skill-work/runs/run-20260827T174030938939Z-d3e6f56f/request.md` and is superseded by the
+five-public-Skill decision below. The engineering synthesis at
+`.agent-factory/document/processed/legacy-inquery/agent-factory-engineering-synthesis-20260828/synthesis.md`
 is supporting, non-canonical evidence only.
 
 The Human decision to retire the distributed `inquery` Skill and managed
@@ -31,7 +31,7 @@ Inquiry role, assign evidence exploration to Explorer, and retain adaptive
 Human-facing elicitation in Interview comes from
 `.agent-factory/agent/inquery-retirement-split-work/runs/run-20260827T180810962479Z-6077b043/request.md`.
 Legacy Inquery contents are preserved as processed historical project data at
-`.agent-factory/information/processed/legacy-inquery/`.
+`.agent-factory/document/processed/legacy-inquery/`.
 
 The Human decision that Main is the Human-facing Interview, orchestration, and
 integration layer; delegates research, implementation, independent review,
@@ -59,23 +59,54 @@ tree, migrate Human refined and legacy processed documents, and retain
 storage-backend independence—comes from
 `.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T185448822401Z-ef49909a/request.md`.
 
-The superseding Human decision keeps Explorer and Interview as distinct core
-capabilities but removes their independent public Skill entry points. Agent
-assigned Explorer execution and Main Interview conduct to Agent while
-Convention owned their durable semantics and information/authority boundaries.
-The plugin then
-had four public distributed Skills: `gather`, `convention`, `agent`, and
-`specification`. This decision comes from the current Human conversation and
-is recorded in
-`.agent-factory/agent/explorer-interview-skill-consolidation-work-request.md`.
+The superseding contracts keep Explorer and Interview as distinct core
+capabilities without independent public Skill entry points. The five-public-
+Skill decision and Explorer's capability boundary are recorded in
+`.agent-factory/agent/document-types-work/runs/run-20260830T070110807574Z-61393ff6/request.md`.
+Main's Interview conduct and delegation of research are recorded in
+`.agent-factory/agent/main-interface-orchestration-work/runs/run-20260827T185954481797Z-83e4ca60/request.md`,
+while the exact Convention-reference links applied by Main and Work are
+recorded in
+`.agent-factory/agent/convention-prompt-link-work/runs/run-20260830T040515493151Z-713220d2/request.md`.
 
-The earlier Workspace decision introduced `workspace` as the Human control tower for
-managing Agents, documents, and the project. The browser shell, navigation,
-local serving, and root launcher move from Specification to Workspace;
-the Skill then named Specification retained document definition and paired
-semantic representations. The plugin then had five public distributed Skills:
-`gather`, `convention`, `agent`, `specification`, and `workspace`. This decision
-is recorded in `.agent-factory/agent/workspace-skill-work-request.md`.
+The Workspace control-tower contract makes `workspace` the Human-facing surface
+for project oversight without transferring canonical ownership or execution
+from the underlying domains. Its accepted scope and owner-mediated boundary
+are recorded in
+`.agent-factory/agent/workspace-work/runs/run-20260830T084555205214Z-18e640b1/request.md`.
+
+The expanded Workspace decision defines six control-tower oversight areas:
+Roadmap, Schedule, Agent Orchestration, Documents, Logs, and Test Center.
+Oversight means source-backed visibility, health/status presentation, anomaly
+and attention signaling, drill-down, and clearly authorized owner-mediated
+control handoff. Workspace does not become the canonical owner or executor of
+roadmap/schedule data, Agent runtime state, Documents, logs, or tests. Missing
+source contracts remain visibly unconfigured instead of being represented by
+fabricated status. This decision comes from
+`.agent-factory/agent/workspace-work/runs/run-20260830T084555205214Z-18e640b1/request.md`.
+
+The final Workspace Activity redirect supersedes that six-area navigation.
+The Activity Bar has exactly five top-level items, in order and labeled 일정,
+에이전트, 문서, 로그, 테스트. Roadmap, Explorer/File Explorer,
+Planning/Specification, Project Skills, overview/dashboard, and aliases are
+not top-level items. The Human has not yet decided any Activity's Primary
+Sidebar information architecture, detailed capabilities, hierarchy, controls,
+metrics, or source contract, so none may be inferred or nested. Workspace
+retains its observation/control-routing boundary and does not own or execute
+schedule data, Agent runtime state, Documents, logs, or tests. This decision
+comes from
+`.agent-factory/agent/workspace-work/runs/run-20260830T090533619149Z-bfd9f5fa/request.md`.
+
+The Workspace publication decision requires its browser code in two forms:
+reusable installation sources below `skills/workspace/assets/browser/` and the
+current project's installed publication below
+`.agent-factory/workspace/common/`. The packaged `index.html`, `styles.css`,
+and `app.js` are the installation source, while `common/` is the materialized
+project copy; both forms must exist and remain byte-identical. A missing,
+one-sided, semantically divergent, or byte-divergent change is incomplete.
+`serve.py init` materializes the packaged files under the existing safe
+preflight and force contract. This decision comes from
+`.agent-factory/agent/workspace-work/runs/run-20260830T092305700450Z-683ed85d/request.md`.
 
 The superseding Human decision renames the public `specification` Skill to
 `document` and introduced an earlier three-type terminology that the final
@@ -93,6 +124,24 @@ possible derivation or evidence relationship. Specification is the accepted
 and reconciled project-knowledge type with the mandatory faithful Human/AI
 pair; Refined is not a fourth active type. This decision comes from
 `.agent-factory/agent/document-types-work/runs/run-20260830T072849765327Z-1f535f3f/request.md`.
+
+The final local-adapter root decision permits exactly the `agent/`, `document/`,
+and `workspace/` top-level responsibility directories. `document/` contains
+`original/`, `processed/`, and `specification/`; Gather configuration is
+`document/sync.json`. Explorer has no standalone storage domain: durable
+evidence is classified as Original or Processed, while temporary
+execution-only material remains in the producing managed Agent run. The
+Workspace `explorer/` path remains a read-only projection. This decision comes
+from `.agent-factory/agent/document-root-migration-work/runs/run-20260830T085419496276Z-66baeaeb/request.md`.
+
+The Human-approved local catalog decision reserves the exact path
+`<project-root>/.agent-factory/db.sqlite` for one project-wide SQLite
+catalog/read model spanning Agent execution structure and Documents. The
+catalog is initially rebuildable and non-authoritative. The active bounded
+implementation is schema-only: no database instance, scanner, rebuild/index
+job, runtime dual write, Workspace screen or API, search behavior, or external
+backend ingestion is authorized. This decision comes from
+`.agent-factory/agent/shared-db-work/runs/run-20260830T085102207719Z-c11abc11/request.md`.
 
 ## Project Skill naming
 
@@ -132,21 +181,62 @@ availability, and caching remain unresolved Human or implementation decisions.
 Current local scripts and runtime paths are observed local implementations;
 they do not prove remote or server adapters exist.
 
+## Shared local catalog
+
+The current/default local adapter reserves
+`<project-root>/.agent-factory/db.sqlite` as a project-wide SQLite catalog/read
+model for later Workspace queries across Agent execution structure and
+Documents. It is shared only as a projection boundary: Workspace gains no
+Agent or Document semantics from displaying it, and the catalog creates no new
+public Skill or Agent role.
+
+The catalog is rebuildable and non-authoritative. Agent runtime files,
+Document bodies and representations, relationship/provenance evidence, Gather
+configuration, Project Skills, and faithful Specification pairs remain in
+their existing resolved authoritative stores. Large bodies, event streams,
+requests, results, receipts, heartbeats, and containment or recovery evidence
+do not belong in SQLite. Paths, hashes, bounded summaries, statuses, and
+relationships may be projected only when an inspectable source provides them;
+unknown and legacy values remain explicit, and absent relations are never
+inferred.
+
+Workspace owns the maintained standard-library SQLite DDL at
+`skills/workspace/assets/schema/catalog.sql`. Its initial normalized schema
+covers schema metadata/migrations, Agents and resumable sessions, runs/turns,
+Work/Verification loops, graph/dispatch relationships, Documents and their
+storage-independent types, representations, provenance/derivation
+relationships, Agent-Document relationships, and Specification pair status.
+The DDL is an idempotent schema foundation only. Database initialization,
+scanners, rebuild/index jobs, runtime/database dual writes, screens, APIs,
+navigation, and search remain outside this bounded implementation.
+
+Do not commit `db.sqlite` or its SQLite runtime sidecars. Do not make Agent
+execution depend on catalog freshness or availability, and do not silently
+select, mirror, migrate, or ingest an external backend.
+
 ## Human-facing Workspace shell and launcher
 
 Workspace uses a developer-familiar VS Code-shaped Human control-tower shell
 whose primary spatial relationship is `Activity Bar -> Primary Sidebar ->
 Workspace`. The reusable shell is packaged below
 `skills/workspace/assets/browser/` and installed in the project at
-`.agent-factory/workspace/common/`.
+`.agent-factory/workspace/common/`. Its `index.html`, `styles.css`, and
+`app.js` must exist in both forms and remain byte-identical. The packaged files
+are the reusable installation source and the local files are the materialized
+publication, not an independent canonical source. `serve.py init` creates or,
+when safely forced, replaces the local copies from the package without
+weakening preflight, path-containment, symlink, atomic-copy, or launcher rules.
 
 For the local adapter, the reusable launcher source is
 `skills/workspace/assets/workspace.sh`; its
 project-installed copy is the ordinary file `<project-root>/workspace.sh`. The
 installation contract is copy-once: initialization preserves an existing root
-launcher, including when force is requested. The accepted shell and launcher
-decision is superseded and relocated by
-`.agent-factory/agent/workspace-skill-work-request.md`. A server-hosted Workspace
+launcher, including when force is requested. The original shell and launcher
+decision is recorded in
+`.agent-factory/agent/project-skill-naming-work-20260828/runs/run-20260827T183901489117Z-e71747f6/request.md`;
+the current Workspace ownership and location are observed in
+`skills/workspace/SKILL.md` and `skills/workspace/references/interface.md`.
+A server-hosted Workspace
 is exposed by its selected host or adapter and is not required to use
 `workspace.sh` remotely.
 
@@ -179,7 +269,7 @@ but it remains non-authoritative working knowledge and implies no required
 Specification. Processed remains a logical, storage-independent
 type. Under the current/default local adapter, active Processed Documents are
 Markdown (`.md`). Preserved legacy material under
-`information/processed/legacy-inquery/` is not an active target or format
+`document/processed/legacy-inquery/` is not an active target or format
 precedent.
 
 ### Specification (스펙 문서)
@@ -254,16 +344,26 @@ Verification pass also reaches END.
 
 ### Workspace
 
-Workspace is the Human-facing control tower for navigating and managing Agents,
-documents, and project views. It projects existing state without becoming the
-canonical owner of Agent runtime records, gathered sources, Explorer evidence,
-Specifications, or Project Skills. It is a cross-cutting Human management
-surface rather than another Document type. In the local adapter,
-`.agent-factory/explorer/` is temporary Work/Explorer evidence storage, while
-`.agent-factory/workspace/explorer/` is the read-only Workspace File/Project
-Explorer Activity projection. The projection discovers the project and
-temporary evidence trees without copying, editing, moving, deleting, or
-assuming ownership of either.
+Workspace is the Human-facing project control tower with exactly five
+top-level Activities in this order: 일정, 에이전트, 문서, 로그, 테스트. No
+other top-level item or alias is allowed. Only these broad categories are
+decided; every Activity's Primary Sidebar information architecture, detailed
+capabilities, hierarchy, controls, metrics, and source contract remain
+Human-owned and undecided. The packaged browser therefore presents explicit
+awaiting-definition states rather than project data or inferred structure.
+Workspace does not become the canonical owner or executor of schedule data,
+Agent runtime records, Documents, logs, or tests, and any future mutation must
+use the owner's explicit authority contract. Workspace is a cross-cutting
+Human management surface rather than another Document type. In the local
+adapter, durable Explorer evidence is
+classified below `.agent-factory/document/original/` or
+`.agent-factory/document/processed/`, while temporary execution-only material
+remains in the producing managed Agent run.
+The internal read-only `.agent-factory/workspace/explorer/` File/Project
+metadata projection and `.agent-factory/workspace/skills/` Skill-navigation
+projection define neither a top-level Activity nor nesting under one of the
+five. The Explorer projection may show classified durable Document metadata;
+temporary Explorer material stays only in its producing managed Agent run.
 
 ## Responsibility matrix
 
@@ -275,7 +375,7 @@ assuming ownership of either.
 | Document | Documents and grounded Human decisions | Original, Processed, and Specification Documents | Define all three types, preserve optional provenance relationships, and pair every Specification |
 | Convention | Human-defined working constraints | Cross-cutting control | Weak harness across all Document types |
 | Agent | Role, authority, context, tools, state | Cross-cutting execution | Main orchestrates, Work performs bounded tasks, and Verification independently checks unless the Human skips it |
-| Workspace | Agents, documents, project views | Human control tower | Present and manage owned state without replacing its authority or storage |
+| Workspace | Future owner-resolved schedule, Agent, Document, log, and test sources | Five-category Human control tower | Exactly five ordered top-level Activities; sidebar architecture and detailed capabilities remain undecided; never own or execute projected state |
 
 ## Agent engineering stack
 
@@ -319,14 +419,27 @@ target conceptual model:
   not proof that the entire accepted core topology is complete.
 - `skills/workspace/SKILL.md` owns the Human control tower, with packaged UI and
   launcher assets below `skills/workspace/` and local materialization below
-  `.agent-factory/workspace/`. Its Explorer Activity keeps the project-tree
-  projection separate from temporary Work/Explorer evidence stored below
-  `.agent-factory/explorer/`.
+  `.agent-factory/workspace/`. Its packaged shell exposes exactly 일정,
+  에이전트, 문서, 로그, 테스트 as top-level navigation, in that order, with
+  explicit awaiting-definition views. It exposes no other top-level Activity
+  and does not infer sidebar structure or live integration from existing
+  discovery utilities. The packaged and materialized `index.html`,
+  `styles.css`, and `app.js` are maintained byte-identically, with the package
+  serving as the reusable installation source.
+- `skills/workspace/assets/schema/catalog.sql` is the maintained schema-only
+  foundation for the approved local catalog. No `.agent-factory/db.sqlite`
+  artifact or catalog population behavior is part of this implementation.
 
 ## Unresolved architecture decisions
 
 1. Roadmap priority, deadline, owner, acceptance status, risk acceptance, and
    completion state remain Human-owned and unspecified.
+2. The five Activities' Primary Sidebar information architecture, detailed
+   capabilities, hierarchy, controls, metrics, and source contracts remain
+   unresolved. The Agent runtime has an owning local contract, but the
+   Workspace redirect does not define its projection.
+   Catalog initialization, population/rebuild, freshness, sanitized query/API,
+   search, and dual-write behavior also remain unimplemented.
 
 ## Representation-alignment checklist
 
@@ -347,10 +460,17 @@ When changing either projection, compare both and preserve:
 - the `<category>-<name>` identity contract, its owning-context scope, exact
   directory/frontmatter match, and no-bulk-renaming boundary;
 - the Workspace-owned VS Code-shaped Activity Bar, Primary Sidebar, and main
-  Workspace relationship, plus the local packaged-to-root copy-once
-  `workspace.sh` launcher contract;
+  Workspace relationship; exactly five ordered top-level items labeled 일정,
+  에이전트, 문서, 로그, 테스트; undecided sidebar/capability details; no
+  aliases or inferred nesting; the owner-mediated boundary; and the local
+  byte-identical packaged-browser-to-materialized-common publication contract,
+  plus the packaged-to-root copy-once `workspace.sh` launcher contract;
 - the distributed-plugin versus consumer-Project-Skill ownership split and the
   storage-independent document model with unresolved backend integration;
+- the exact `.agent-factory/db.sqlite` local catalog path, its rebuildable and
+  non-authoritative scope, Workspace-owned schema asset, authoritative-store
+  boundaries, explicit unknown/legacy handling, no inferred relationships, and
+  schema-only exclusions for creation/population/UI/API/search/dual writes;
 - diverse native/source-appropriate Original formats, the local-adapter
   Markdown contract for active Processed Documents, and the exclusion of
   preserved legacy Inquery material as an active target or precedent;

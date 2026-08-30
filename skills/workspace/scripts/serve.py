@@ -21,9 +21,9 @@ import webbrowser
 
 
 WORKSPACE_RELATIVE_PATH = Path(".agent-factory/workspace")
-HUMAN_REFINED_RELATIVE_PATH = Path(".agent-factory/information/refined/human")
+HUMAN_SPECIFICATION_RELATIVE_PATH = Path(".agent-factory/document/specification/human")
 PROJECT_SKILLS_RELATIVE_PATH = Path(".codex/skills")
-EXPLORER_EVIDENCE_RELATIVE_PATH = Path(".agent-factory/explorer")
+DOCUMENT_RELATIVE_PATH = Path(".agent-factory/document")
 PACKAGED_ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets" / "browser"
 PACKAGED_LAUNCHER = Path(__file__).resolve().parents[1] / "assets" / "workspace.sh"
 DEFAULT_HOST = "127.0.0.1"
@@ -36,9 +36,8 @@ PROJECT_TREE_EXCLUDED_PATHS = {
     PurePosixPath(".git"),
     PurePosixPath(".codex"),
     PurePosixPath(".agent-factory/agent"),
-    PurePosixPath(".agent-factory/explorer"),
+    PurePosixPath(".agent-factory/document"),
     PurePosixPath(".agent-factory/workspace"),
-    PurePosixPath(".agent-factory/sync.json"),
 }
 
 
@@ -235,9 +234,10 @@ def install_assets(
 
     for activity_directory in activity_directories:
         activity_directory.mkdir(parents=True, exist_ok=True)
-    human_refined_root = project_root / HUMAN_REFINED_RELATIVE_PATH
-    _resolved_within(project_root, human_refined_root, "Human Specification directory")
-    human_refined_root.mkdir(parents=True, exist_ok=True)
+    document_root = project_root / DOCUMENT_RELATIVE_PATH
+    _resolved_within(project_root, document_root, "Document directory")
+    for type_root in ("original", "processed", "specification/human"):
+        (document_root / type_root).mkdir(parents=True, exist_ok=True)
 
     launcher_installed = False
     if install_launcher:
@@ -385,7 +385,7 @@ def _tree_children(
 
 
 def discover_explorer_trees(project_root: Path) -> dict[str, object]:
-    """Project and temporary evidence trees for the read-only Explorer Activity."""
+    """Project and classified Document trees for the internal read-only projection."""
 
     resolved_project = project_root.resolve(strict=True)
     project_budget: dict[str, int | bool] = {"entries": 0, "truncated": False}
@@ -403,9 +403,9 @@ def discover_explorer_trees(project_root: Path) -> dict[str, object]:
         "children": project_children,
     }
 
-    evidence_path = resolved_project / EXPLORER_EVIDENCE_RELATIVE_PATH
+    evidence_path = resolved_project / DOCUMENT_RELATIVE_PATH
     evidence_tree: dict[str, object] = {
-        "label": "임시 Explorer 근거",
+        "label": "분류된 Document",
         "role": "evidence",
         "state": "missing",
         "children": [],
@@ -416,7 +416,7 @@ def discover_explorer_trees(project_root: Path) -> dict[str, object]:
             if evidence_path.is_symlink() or not evidence_root.is_dir() or not _is_within(
                 resolved_project, evidence_root
             ):
-                raise ViewerError("Explorer evidence path is not a safe project directory")
+                raise ViewerError("Document path is not a safe project directory")
             evidence_budget: dict[str, int | bool] = {"entries": 0, "truncated": False}
             evidence_children, evidence_error = _tree_children(
                 evidence_root,
@@ -603,14 +603,14 @@ def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, op
         raise ViewerError(
             f"Workspace directory does not exist: {workspace_root}; run init first"
         )
-    human_refined_root = _resolved_within(
+    human_specification_root = _resolved_within(
         project_root,
-        project_root / HUMAN_REFINED_RELATIVE_PATH,
+        project_root / HUMAN_SPECIFICATION_RELATIVE_PATH,
         "served Human Specification directory",
     )
-    if not human_refined_root.exists() or not human_refined_root.is_dir():
+    if not human_specification_root.exists() or not human_specification_root.is_dir():
         raise ViewerError(
-            f"Human Specification directory does not exist: {human_refined_root}; run init first"
+            f"Human Specification directory does not exist: {human_specification_root}; run init first"
         )
     addresses = _resolved_addresses(host, port)
     if not addresses_are_loopback(addresses) and not allow_non_loopback:
@@ -624,7 +624,7 @@ def serve(project_root: Path, host: str, port: int, allow_non_loopback: bool, op
         "common": resolved_root / "common",
         "explorer": resolved_root / "explorer",
         "skills": resolved_root / "skills",
-        "planning": human_refined_root,
+        "planning": human_specification_root,
     }
     project_skills_root = _resolved_within(
         project_root,

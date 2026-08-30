@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from html import unescape
 from html.parser import HTMLParser
 import re
 import unittest
@@ -8,6 +9,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCUMENT = ROOT / "skills" / "document"
+CORE_HUMAN = (
+    ROOT
+    / ".agent-factory"
+    / "document"
+    / "specification"
+    / "human"
+    / "agent-factory-core"
+    / "index.html"
+)
 
 
 class TemplateParser(HTMLParser):
@@ -59,6 +69,16 @@ class DocumentContractTests(unittest.TestCase):
         )
         self.assertFalse((references / "specification-document.md").exists())
 
+        boundary_paragraphs = normalized_paragraphs(entry)
+        self.assertTrue(
+            any(
+                "explorer working material" in paragraph
+                and "managed agent session state" in paragraph
+                and "separate logical roles" in paragraph
+                for paragraph in boundary_paragraphs
+            )
+        )
+
     def test_information_formats_and_pair_completion_are_enforced(self) -> None:
         paths = {
             "instructions": ROOT / "AGENTS.md",
@@ -80,13 +100,7 @@ class DocumentContractTests(unittest.TestCase):
                 / "specification.md"
             ),
             "core_human": (
-                ROOT
-                / ".agent-factory"
-                / "information"
-                / "refined"
-                / "human"
-                / "agent-factory-core"
-                / "index.html"
+                CORE_HUMAN
             ),
         }
         contents = {
@@ -197,7 +211,7 @@ class DocumentContractTests(unittest.TestCase):
         self.assertIn("skills/workspace/references/interface.md", document)
         self.assertIn("document remains owned by Document", document)
         self.assertIn("Workspace navigation does not refine content", document)
-        self.assertIn("information/refined/human/<specification-id>/", document)
+        self.assertIn("document/specification/human/<specification-id>/", document)
         self.assertIn("<plugin-root>/skills/", project_skill)
         self.assertIn("<project-root>/.codex/skills/<category>-<name>/", project_skill)
         paragraphs = normalized_paragraphs(project_skill)
@@ -261,10 +275,28 @@ class DocumentContractTests(unittest.TestCase):
             <= semantic_tokens(document + project_skill)
         )
 
-    def test_core_mermaid_sources_have_unique_accessibility_metadata(self) -> None:
-        diagrams = (
+    def test_core_diagram_routes_and_accessibility_metadata_are_complete(self) -> None:
+        diagram_path = (
             ROOT / "skills" / "convention" / "references" / "diagrams.md"
-        ).read_text(encoding="utf-8")
+        )
+        diagrams = diagram_path.read_text(encoding="utf-8")
+        routes = set(
+            re.findall(r"`(diagrams/(?:erd|behavior|sequence)\.md)`", diagrams)
+        )
+        self.assertEqual(
+            {"diagrams/erd.md", "diagrams/behavior.md", "diagrams/sequence.md"},
+            routes,
+        )
+        for route in routes:
+            with self.subTest(route=route):
+                self.assertTrue((diagram_path.parent / route).is_file())
+        retired = "agent-factory-core-diagrams.md"
+        active_contracts = [ROOT / "AGENTS.md", *ROOT.joinpath("skills").rglob("*.md")]
+        for contract in active_contracts:
+            with self.subTest(contract=contract.relative_to(ROOT)):
+                self.assertNotIn(retired, contract.read_text(encoding="utf-8"))
+        self.assertFalse((diagram_path.parent / retired).exists())
+
         blocks = re.findall(r"```mermaid\n(.*?)```", diagrams, flags=re.DOTALL)
         self.assertEqual(len(blocks), 9)
         titles = []
@@ -279,6 +311,105 @@ class DocumentContractTests(unittest.TestCase):
         self.assertEqual(len(set(titles)), len(titles))
         self.assertEqual(len(set(descriptions)), len(descriptions))
 
+    def test_convention_reference_inventory_is_fully_routed(self) -> None:
+        convention = ROOT / "skills" / "convention"
+        references = convention / "references"
+        entry = (convention / "SKILL.md").read_text(encoding="utf-8")
+        root_routes = set(re.findall(r"`references/([^`]+\.md)`", entry))
+        declared_routes = set(root_routes)
+
+        for route in root_routes:
+            content = (references / route).read_text(encoding="utf-8")
+            for nested in re.findall(r"^- Read `([^`]+\.md)`", content, re.MULTILINE):
+                declared_routes.add((Path(route).parent / nested).as_posix())
+
+        inventory = {
+            path.relative_to(references).as_posix()
+            for path in references.rglob("*.md")
+        }
+        self.assertEqual(inventory, declared_routes)
+
+    def test_workspace_navigation_claims_stay_within_five_activity_boundary(self) -> None:
+        specification = (
+            DOCUMENT / "references" / "specification.md"
+        ).read_text(encoding="utf-8")
+        diagrams = (
+            ROOT / "skills" / "convention" / "references" / "diagrams.md"
+        ).read_text(encoding="utf-8")
+
+        for forbidden in (
+            "virtual `프로젝트 스킬` category",
+            "Workspace `skills/` Activity",
+            "through Planning",
+        ):
+            with self.subTest(contract="specification", forbidden=forbidden):
+                self.assertNotIn(forbidden, specification)
+        for forbidden in (
+            "Workspace --> Main",
+            "Workspace --> Work",
+            "Planning[",
+            "ExplorerActivity",
+            "temporary evidence trees",
+        ):
+            with self.subTest(contract="diagrams", forbidden=forbidden):
+                self.assertNotIn(forbidden, diagrams)
+
+        self.assertIn("neutral read-only discovery or exposure utility", specification)
+        self.assertIn("Non-visible read-only discovery utility", diagrams)
+        self.assertIn("Producing managed Agent run only", diagrams)
+
+    def test_core_representation_provenance_paths_resolve(self) -> None:
+        ai = (
+            ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
+        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
+
+        ai_source_paragraphs = "\n".join(
+            paragraph
+            for paragraph in re.split(r"\n\s*\n", ai)
+            if re.search(
+                r"comes? from|recorded in|supporting, non-canonical evidence|established by",
+                paragraph,
+                re.IGNORECASE,
+            )
+        )
+        targets = {
+            value
+            for value in re.findall(r"`([^`]+)`", ai_source_paragraphs)
+            if value.startswith((".agent-factory/", ".codex-plugin/", "skills/"))
+        }
+        human_provenance = "\n".join(
+            re.findall(r'<p class="provenance">(.*?)</p>', human, re.DOTALL)
+        )
+        targets.update(unescape(value) for value in re.findall(r"<code>(.*?)</code>", human_provenance))
+
+        local_targets = {
+            value
+            for value in targets
+            if value.startswith((".agent-factory/", ".codex-plugin/", "skills/"))
+            and "<" not in value
+            and not value.startswith(("http://", "https://"))
+        }
+        self.assertTrue(local_targets)
+        runtime_request_targets = {
+            target
+            for target in local_targets
+            if target.startswith(".agent-factory/agent/")
+        }
+        tracked_targets = local_targets - runtime_request_targets
+        self.assertTrue(runtime_request_targets)
+        self.assertTrue(tracked_targets)
+        for target in sorted(runtime_request_targets):
+            with self.subTest(runtime_provenance=target):
+                self.assertRegex(
+                    target,
+                    r"^\.agent-factory/agent/[a-z0-9][a-z0-9-]*/runs/"
+                    r"run-\d{8}T\d{12}Z-[0-9a-f]{8}/request\.md$",
+                )
+        for target in sorted(tracked_targets):
+            with self.subTest(target=target):
+                self.assertTrue((ROOT / target).exists())
+
     def test_human_skip_timing_is_aligned_in_ai_and_human_views(self) -> None:
         ai_core = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
@@ -286,15 +417,7 @@ class DocumentContractTests(unittest.TestCase):
         diagrams = (
             ROOT / "skills" / "convention" / "references" / "diagrams.md"
         ).read_text(encoding="utf-8")
-        human = (
-            ROOT
-            / ".agent-factory"
-            / "information"
-            / "refined"
-            / "human"
-            / "agent-factory-core"
-            / "index.html"
-        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
         normalized_ai_core = " ".join(ai_core.split())
         for phrase in (
             "Human-only, evidenced control-plane intent",
@@ -318,46 +441,54 @@ class DocumentContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, human)
 
-    def test_workspace_explorer_ownership_is_aligned_in_ai_and_human_views(self) -> None:
+    def test_workspace_activity_and_explorer_boundaries_are_aligned(self) -> None:
         ai_core = (
             ROOT / "skills" / "convention" / "references" / "agent-factory-core.md"
         ).read_text(encoding="utf-8")
-        human = (
-            ROOT
-            / ".agent-factory"
-            / "information"
-            / "refined"
-            / "human"
-            / "agent-factory-core"
-            / "index.html"
-        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
         normalized_ai_core = " ".join(ai_core.split())
-        for path in (".agent-factory/explorer/", ".agent-factory/workspace/explorer/"):
+        for path in (
+            ".agent-factory/document/original/",
+            ".agent-factory/document/processed/",
+            ".agent-factory/workspace/explorer/",
+        ):
             self.assertIn(path, ai_core)
             self.assertIn(path, human)
         for phrase in (
-            "temporary Work/Explorer evidence storage",
-            "read-only Workspace File/Project Explorer Activity projection",
-            "without copying, editing, moving, deleting",
+            "temporary execution-only material remains in the producing managed Agent run",
+            "exactly five top-level Activities in this order: 일정, 에이전트, 문서, 로그, 테스트",
+            "every Activity's Primary Sidebar information architecture",
+            "remain Human-owned and undecided",
+            "both forms must exist and remain byte-identical",
+            "packaged files are the reusable installation source",
         ):
             self.assertIn(phrase, normalized_ai_core)
+        self.assertRegex(
+            normalized_ai_core.casefold(),
+            r"internal read-only .*file/project metadata projection and .*skill-navigation projection "
+            r"(?:define neither|do not define) a top-level activity "
+            r"(?:nor nesting|or authorize nesting) under one of the five",
+        )
         for phrase in (
-            "임시 evidence workspace",
-            "읽기 전용 Activity 투영",
-            "편집·이동·삭제·승격하지 않습니다",
+            "실행 전용 임시 자료",
+            "Activity Bar에는 일정, 에이전트, 문서, 로그, 테스트가 이 순서로 정확히 다섯 개만 있습니다",
+            "Primary Sidebar 정보 구조, 상세 기능",
+            "Human의 후속 결정을 기다립니다",
+            "두 형태와 세 파일은 함께 존재하고 byte 단위로 같아야 합니다",
+            "패키지 에셋이 재사용 설치 원본",
         ):
             self.assertIn(phrase, human)
+        self.assertRegex(
+            " ".join(human.split()),
+            r"내부 읽기 전용 .*workspace/explorer/.*File/Project metadata 투영과 "
+            r".*workspace/skills/.*Skill navigation 투영은 상단 Activity 또는 "
+            r"다섯 범주 아래의 navigation(?: 계층)?을 정의하지 않습니다",
+        )
+        self.assertNotIn("<td>로드맵</td>", human)
+        self.assertNotIn("여섯 영역", human)
 
     def test_core_human_connectors_use_accessible_svg_or_visible_prose(self) -> None:
-        human = (
-            ROOT
-            / ".agent-factory"
-            / "information"
-            / "refined"
-            / "human"
-            / "agent-factory-core"
-            / "index.html"
-        ).read_text(encoding="utf-8")
+        human = CORE_HUMAN.read_text(encoding="utf-8")
         self.assertIsNone(
             re.search(r'<(?:span|code)[^>]*aria-hidden="true"[^>]*>\s*[+=→]\s*<', human)
         )

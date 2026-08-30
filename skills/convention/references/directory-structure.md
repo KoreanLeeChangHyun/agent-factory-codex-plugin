@@ -4,46 +4,54 @@ Use this structure as Agent Factory's current/default local adapter:
 
 ```text
 <project-root>/.agent-factory/
+├── db.sqlite
 ├── agent/
 │   └── <agent-id>/
 │       ├── session.json
 │       └── runs/
 │           └── <run-id>/
-├── explorer/
-│   └── <exploration-id>/
-├── information/
+├── document/
 │   ├── original/
 │   ├── processed/
-│   └── refined/
-│       └── human/
-├── workspace/
+│   ├── specification/
+│   │   └── human/
+│   └── sync.json
+└── workspace/
 │   ├── common/
 │   ├── explorer/
 │   └── skills/
-└── sync.json
 ```
 
 ## Ownership
 
+- `db.sqlite` is the exact current/default local path for the project-wide,
+  rebuildable, non-authoritative catalog/read model used by later Workspace
+  queries across Agent execution structure and Documents. It does not replace
+  or move any owning file or store. The database and its SQLite runtime
+  sidecars are local generated artifacts and must not be committed.
 - `agent/` owns operational Agent sessions and run records.
-- `.agent-factory/explorer/` owns temporary Work/Explorer evidence workspaces.
-- `information/` owns the local adapter roots for the three loosely related
+- Temporary execution-only Explorer material belongs to its producing managed
+  Agent run. Durable Explorer evidence is classified as an Original or
+  Processed Document; Explorer has no standalone storage root.
+- `document/` owns the local adapter roots for the three loosely related
   active Document types: Original, Processed, and Specification. Preserve
   Original Documents in diverse native or
   source-appropriate formats. Write active Processed Documents as Markdown
   (`.md`) under this local adapter, but
-  do not use preserved `information/processed/legacy-inquery/` material as an
+  do not use preserved `document/processed/legacy-inquery/` material as an
   active target or format precedent. Put locally materialized Human-facing
-  Specifications in `information/refined/human/`; the path name
-  does not define Refined as a fourth active type. The roots do
+  Specifications in `document/specification/human/`. The roots do
   not impose a pipeline, transition sequence, maturity scale, or mapping
   cardinality among Documents.
 - `workspace/` owns the local Human control-tower projection. `common/` holds
   the shared browser shell, `.agent-factory/workspace/explorer/` holds the
-  read-only File/Project Explorer Activity projection, and `skills/` holds
-  Project Skill navigation. The Explorer Activity discovers the project tree
-  and the distinct temporary evidence tree; it does not copy or own either.
-- `sync.json` holds Gather configuration, not gathered source collections.
+  internal read-only File/Project metadata projection, and `skills/` holds
+  internal read-only Project Skill navigation. These stores define neither an
+  Activity nor nesting under one of the five Activities. The Explorer
+  projection discovers the project and classified Document trees without
+  copying or owning either; temporary Explorer material remains in its
+  producing managed Agent run.
+- `document/sync.json` holds Gather configuration, not gathered source collections.
 
 Keep plugin distributed Skills below `<plugin-root>/skills/`. In a separate
 consumer project, keep Project Skills below
@@ -57,6 +65,12 @@ document root while preserving provenance, authority, isolation, semantic
 alignment, accessibility, and security. Do not silently choose, mirror, or
 migrate a backend. Keep Agent runtime state under the declared local runtime
 contract unless that contract is separately changed.
+
+The maintained schema foundation for the local catalog is
+`skills/workspace/assets/schema/catalog.sql`. It models only projection
+metadata and relationships that authoritative local sources actually expose;
+it is not permission to scan, rebuild, dual-write, or ingest an external
+backend.
 
 Directory layouts outside this Agent Factory adapter remain technology- and
 distribution-specific. For example, Python's official packaging guide presents

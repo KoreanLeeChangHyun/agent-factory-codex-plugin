@@ -64,9 +64,8 @@ paired AI-facing representation is a Skill and need not be Korean.
 
 In this plugin repository, the `agent-factory-core` Specification pair is owned
 by the distributed `skills/convention/` Skill and the Human document below
-`.agent-factory/information/refined/human/agent-factory-core/`. The `refined/`
-path segment is part of the current local adapter and does not define a fourth
-active Document type. In a separate consumer project, a Specification may pair
+`.agent-factory/document/specification/human/agent-factory-core/`. In a
+separate consumer project, a Specification may pair
 with a project-scoped Project Skill below that project's `.codex/skills/`.
 
 ## Boundaries
@@ -81,7 +80,7 @@ type, provenance, authority, isolation, semantic alignment, accessibility, and
 security regardless of storage.
 
 Locally materialized Human-facing Specifications live below
-`.agent-factory/information/refined/human/`. The Human-facing control tower and
+`.agent-factory/document/specification/human/`. The Human-facing control tower and
 browser navigation belong to `workspace`, not Document. Do not silently
 promote Explorer material, recreate retired schema/profile/manager machinery,
 or introduce Intake, Work Unit, Work Package, Project Core, Recording Agent, or

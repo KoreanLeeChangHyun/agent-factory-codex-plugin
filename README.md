@@ -83,35 +83,36 @@ Agent Factory uses this project-local structure as its current/default adapter:
 │   └── <agent-id>/
 │       ├── session.json
 │       └── runs/<run-id>/
-├── explorer/<exploration-id>/
-├── information/
+├── document/
 │   ├── original/
 │   ├── processed/
-│   └── refined/
-│       └── human/
-├── workspace/
+│   ├── specification/
+│   │   └── human/
+│   └── sync.json
+└── workspace/
 │   ├── common/
 │   ├── explorer/
 │   └── skills/
-└── sync.json
 ```
 
 `agent/` contains managed Codex session and run state.
-`.agent-factory/explorer/` contains temporary evidence-exploration workspaces
-used by Work. `information/` contains
+Temporary execution-only Explorer material stays in the producing managed Agent
+run. Durable Explorer evidence is classified as an Original or Processed
+Document. `document/` contains
 the local roots for Original, Processed, and Specification Documents; locally
 materialized Human-facing Specifications
-live below `information/refined/human/`, and preserved legacy Inquery material
-lives below `information/processed/legacy-inquery/`.
-The `refined/` path segment is the established local-adapter location and does
-not define a fourth active Document type.
-`workspace/` contains
-the shared browser shell and Activity-owned UI: `common/` is the shared shell,
-`.agent-factory/workspace/explorer/` owns the read-only File/Project Explorer
-Activity projection, and `skills/` owns Skill navigation. The projection
-distinguishes the project tree from the temporary evidence tree without copying
-or becoming the canonical owner of either.
-Planning reads Human-facing Specifications from the information tree. The
+live below `document/specification/human/`, and preserved legacy Inquery material
+lives below `document/processed/legacy-inquery/`. Gather configuration is
+`document/sync.json`.
+`workspace/` contains the shared browser shell and control-tower UI: `common/`
+is the shared shell, `.agent-factory/workspace/explorer/` owns an internal
+read-only File/Project metadata projection, and `skills/` owns internal
+read-only Skill navigation. These stores define neither an Activity nor nesting
+under one of the five Activities. The Explorer projection distinguishes the
+project tree from classified Document trees without copying or becoming the
+canonical owner of either; temporary Explorer material remains in its producing
+managed Agent run.
+Workspace reads Human-facing Specifications from the Document tree. The
 Agent Factory core Specification is paired with `skills/convention/`; consumer
 project Specifications pair with Project Skills below that project's
 `.codex/skills/`.
@@ -181,7 +182,7 @@ normal use, serve the existing Workspace tree on loopback and open
 
 The self-contained launcher derives the project root from its own location and
 serves only the allowlisted local UI root plus
-`.agent-factory/information/refined/human/`, so
+`.agent-factory/document/specification/human/`, so
 `<project-root>/workspace.sh` works from any current directory. `--port <port>` or
 `-p <port>` overrides the safe default port `8000`. `serve.py` remains the
 internal initializer and advanced safe server; its global `--project-root`

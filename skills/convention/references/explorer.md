@@ -38,7 +38,12 @@ targets nor a format precedent.
   verification belong to an explicitly Human-authorized Verification role,
   not Explorer.
 
+Durable Explorer output must be classified as an Original or Processed
+Document and stored under the resolved Document root. Temporary execution-only
+material belongs to the producing managed Agent run; Explorer has no standalone
+storage root.
+
 Preserved legacy Inquery evidence below
-`.agent-factory/information/processed/legacy-inquery/` is historical,
+`.agent-factory/document/processed/legacy-inquery/` is historical,
 read-only, evidence-only material. Inspect it only when the delegated scope
 requires it, and never use it as an active workspace or write target.

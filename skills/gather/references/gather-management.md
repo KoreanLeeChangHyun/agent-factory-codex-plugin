@@ -21,7 +21,7 @@ Gather owns the project sync configuration and resolver:
 
 - Manager: `scripts/sync.py`, resolved from this `SKILL.md` directory.
 - Schema: `assets/schema/sync.schema.json`.
-- Project configuration: `<git-project-root>/.agent-factory/sync.json`.
+- Project configuration: `<git-project-root>/.agent-factory/document/sync.json`.
 - Drive default: `<git-project-root>/source/google/drive`.
 - Gmail default: `<git-project-root>/source/google/mail`.
 - Slack default: `<git-project-root>/source/slack`.
@@ -32,7 +32,7 @@ Gather owns the project sync configuration and resolver:
   then source default.
 
 Gathered source collections must resolve outside `<git-project-root>/.agent-factory/`.
-Gather owns only `.agent-factory/sync.json` inside that operational work root;
+Gather owns only `.agent-factory/document/sync.json` inside that operational work root;
 the manager rejects both relative and absolute destinations that would place
 source evidence there.
 

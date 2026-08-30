@@ -20,7 +20,7 @@ from jsonschema import Draft202012Validator
 SCRIPT_ROOT = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_ROOT.parent
 SCHEMA_PATH = SKILL_ROOT / "assets" / "schema" / "sync.schema.json"
-CONFIG_RELATIVE_PATH = Path(".agent-factory/sync.json")
+CONFIG_RELATIVE_PATH = Path(".agent-factory/document/sync.json")
 SCHEMA_VERSION = "1.0.0"
 DEFAULT_DESTINATIONS = {
     "google-drive": Path("source/google/drive"),
@@ -129,13 +129,36 @@ def open_agent_factory(root_descriptor: int, *, create: bool) -> int | None:
         ) from error
 
 
+def open_config_directory(root_descriptor: int, *, create: bool) -> int | None:
+    agent_factory_descriptor = open_agent_factory(root_descriptor, create=create)
+    if agent_factory_descriptor is None:
+        return None
+    try:
+        try:
+            return os.open("document", DIRECTORY_OPEN_FLAGS, dir_fd=agent_factory_descriptor)
+        except FileNotFoundError:
+            if not create:
+                return None
+            try:
+                os.mkdir("document", mode=0o755, dir_fd=agent_factory_descriptor)
+            except FileExistsError:
+                pass
+            return os.open("document", DIRECTORY_OPEN_FLAGS, dir_fd=agent_factory_descriptor)
+        except OSError as error:
+            raise SyncConfigError(
+                f"cannot safely open Document configuration directory: {error}"
+            ) from error
+    finally:
+        os.close(agent_factory_descriptor)
+
+
 def load_config(project_root: Path) -> dict[str, Any]:
     path = config_path(project_root)
     root_descriptor = -1
     agent_factory_descriptor = -1
     try:
         root_descriptor = os.open(project_root, DIRECTORY_OPEN_FLAGS)
-        opened = open_agent_factory(root_descriptor, create=False)
+        opened = open_config_directory(root_descriptor, create=False)
         if opened is None:
             return empty_config()
         agent_factory_descriptor = opened
@@ -244,7 +267,7 @@ def write_config(project_root: Path, value: dict[str, Any]) -> None:
     temporary_name: str | None = None
     try:
         root_descriptor = os.open(project_root, DIRECTORY_OPEN_FLAGS)
-        opened = open_agent_factory(root_descriptor, create=True)
+        opened = open_config_directory(root_descriptor, create=True)
         assert opened is not None
         agent_factory_descriptor = opened
         try:

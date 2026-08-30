@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import hashlib
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -13,6 +14,12 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 EXEC_SCRIPT = ROOT / "skills" / "agent" / "scripts" / "exec.py"
 LOOP_SCRIPT = ROOT / "skills" / "agent" / "scripts" / "loop.py"
+PROMPT_ROOT = ROOT / "skills" / "agent" / "prompt"
+AGENT_SKILL = ROOT / "skills" / "agent" / "SKILL.md"
+
+
+def normalized_contract(content: str) -> str:
+    return " ".join(re.sub(r"[`*_]", "", content).lower().split())
 
 
 def load_modules():
@@ -288,6 +295,36 @@ class AgentLoopContractTests(unittest.TestCase):
         self.assertEqual(state["status"], "runtime-error")
         self.assertEqual(state["phase"], "control-plane-error")
         self.assertIsNone(state["terminalReason"])
+
+    def test_capability_prompts_route_to_convention_contracts(self) -> None:
+        main = normalized_contract((PROMPT_ROOT / "main.md").read_text(encoding="utf-8"))
+        work = normalized_contract((PROMPT_ROOT / "work.md").read_text(encoding="utf-8"))
+        self.assertRegex(
+            main,
+            r"when conducting adaptive interview.*convention skill.*references/interview\.md",
+        )
+        self.assertRegex(
+            work,
+            r"when the bounded task includes evidence exploration.*convention skill.*references/explorer\.md",
+        )
+
+    def test_child_role_prompts_preserve_execution_boundaries(self) -> None:
+        work = normalized_contract((PROMPT_ROOT / "work.md").read_text(encoding="utf-8"))
+        verification = normalized_contract(
+            (PROMPT_ROOT / "verification.md").read_text(encoding="utf-8")
+        )
+        self.assertIn("perform the bounded task delegated by main", work)
+        self.assertIn("do not verify your own work", work)
+        self.assertIn("do not coordinate another agent", work)
+        self.assertIn("return exactly one decision: pass or fail", verification)
+        self.assertIn("do not edit or repair project files", verification)
+
+    def test_role_prompt_transport_and_hosts_do_not_add_graph_nodes(self) -> None:
+        skill = normalized_contract(AGENT_SKILL.read_text(encoding="utf-8"))
+        self.assertIn("tagged role-instruction block", skill)
+        self.assertIn("does not claim a separate platform system-channel message", skill)
+        self.assertRegex(skill, r"codex cli.*exec-hosted session.*vs code extension")
+        self.assertIn("hosts, not additional agent roles", skill)
 
 
 if __name__ == "__main__":

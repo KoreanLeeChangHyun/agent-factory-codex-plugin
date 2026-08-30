@@ -5,4 +5,8 @@ __pycache__/
 # Legacy Work Unit data; remove manually after confirming it is no longer needed.
 /.agent-factory/worktree/
 /.agent-factory/agent/
+/.agent-factory/db.sqlite
+/.agent-factory/db.sqlite-journal
+/.agent-factory/db.sqlite-shm
+/.agent-factory/db.sqlite-wal
 .backup/

@@ -11,6 +11,7 @@ import os
 import queue
 import re
 import select
+import shutil
 import signal
 import stat
 import subprocess
@@ -47,6 +48,20 @@ MAX_RECEIPT_BYTES = 1024 * 1024
 PROCESS_TERM_TIMEOUT = 5.0
 PROCESS_KILL_TIMEOUT = 5.0
 CONTAINMENT_START_TIMEOUT = 5.0
+CONTAINMENT_QUERY_TIMEOUT = 2.0
+SYSTEMD_UNIT = re.compile(r"^agent-factory-[a-f0-9]{24}\.service$")
+SYSTEMD_DESCRIPTION_PREFIX = "Agent Factory containment "
+SYSTEMD_REQUIRED_OPTIONS = (
+    "--collect",
+    "--service-type=",
+    "--property=",
+    "--working-directory=",
+    "--unit=",
+    "--description=",
+    "--user",
+)
+ENVIRONMENT_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+CGROUP_ROOT = Path("/sys/fs/cgroup")
 SANDBOX_UNAVAILABLE_STDERR = (
     "fs sandbox helper failed with status",
     "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted",
@@ -143,6 +158,225 @@ def process_identity_status(identity: object) -> str:
             return "dead"
         return "unknown"
     return "match" if observed == identity else "mismatch"
+
+
+def _systemd_command(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            list(command), capture_output=True, text=True, encoding="utf-8",
+            errors="strict", timeout=CONTAINMENT_QUERY_TIMEOUT, check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired, UnicodeError) as error:
+        raise ContractError(
+            "containment_backend_unavailable", "the user systemd manager is unavailable"
+        ) from error
+
+
+def systemd_environment_supported(environment: dict[str, str] | None = None) -> bool:
+    values = os.environ if environment is None else environment
+    return hasattr(os, "memfd_create") and all(
+        ENVIRONMENT_NAME.fullmatch(name) is not None
+        and "\0" not in value
+        and "\n" not in value
+        and "\r" not in value
+        for name, value in values.items()
+    )
+
+
+def cgroup_v2_available() -> bool:
+    return (CGROUP_ROOT / "cgroup.controllers").is_file()
+
+
+def systemd_manager_usable() -> bool:
+    if sys.platform != "linux" or shutil.which("systemd-run") is None or shutil.which("systemctl") is None:
+        return False
+    if not cgroup_v2_available() or not systemd_environment_supported():
+        return False
+    try:
+        manager_probe = _systemd_command(("systemctl", "--user", "show-environment"))
+        feature_probe = _systemd_command(("systemd-run", "--help"))
+    except ContractError:
+        return False
+    return (
+        manager_probe.returncode == 0
+        and feature_probe.returncode == 0
+        and all(option in feature_probe.stdout for option in SYSTEMD_REQUIRED_OPTIONS)
+    )
+
+
+def _systemd_environment_line(name: str, value: str) -> bytes:
+    if ENVIRONMENT_NAME.fullmatch(name) is None or any(character in value for character in "\0\n\r"):
+        raise ContractError("containment_environment_invalid", "caller environment is not safely transferable")
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'{name}="{escaped}"\n'.encode("utf-8")
+
+
+def create_systemd_environment_file(environment: dict[str, str] | None = None) -> tuple[int, str]:
+    values = dict(os.environ if environment is None else environment)
+    if not systemd_environment_supported(values):
+        raise ContractError("containment_environment_invalid", "caller environment is not safely transferable")
+    try:
+        descriptor = os.memfd_create("agent-factory-environment", flags=getattr(os, "MFD_CLOEXEC", 0))
+        for name, value in sorted(values.items()):
+            remaining = memoryview(_systemd_environment_line(name, value))
+            while remaining:
+                written = os.write(descriptor, remaining)
+                if written <= 0:
+                    raise OSError("short environment write")
+                remaining = remaining[written:]
+        os.lseek(descriptor, 0, os.SEEK_SET)
+    except (OSError, UnicodeError) as error:
+        if "descriptor" in locals():
+            os.close(descriptor)
+        raise ContractError("containment_environment_unavailable", "caller environment could not be transferred") from error
+    return descriptor, f"/proc/{os.getpid()}/fd/{descriptor}"
+
+
+def systemd_unit_name(agent_id: str, run_id: str, attempt: int) -> str:
+    material = f"{agent_id}\0{run_id}\0{attempt}".encode()
+    return f"agent-factory-{hashlib.sha256(material).hexdigest()[:24]}.service"
+
+
+def validate_containment(value: object) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ContractError("containment_identity_unbound", "containment identity is not bound")
+    kind = value.get("kind")
+    if kind == "systemd-user-service":
+        expected = {"kind", "unitName", "bindingToken", "invocationId", "weakerDescendantContainment"}
+        if set(value) != expected or value.get("weakerDescendantContainment") is not False:
+            raise ContractError("containment_identity_invalid", "systemd containment identity is invalid")
+        unit = value.get("unitName")
+        token = value.get("bindingToken")
+        invocation = value.get("invocationId")
+        if (
+            not isinstance(unit, str) or not SYSTEMD_UNIT.fullmatch(unit)
+            or not isinstance(token, str) or not re.fullmatch(r"[a-f0-9]{32}", token)
+            or (invocation is not None and (not isinstance(invocation, str) or not re.fullmatch(r"[a-f0-9]{32}", invocation)))
+        ):
+            raise ContractError("containment_identity_invalid", "systemd containment identity is invalid")
+        return value
+    if kind == "process-group":
+        expected = {"kind", "identity", "weakerDescendantContainment"}
+        if set(value) != expected or value.get("weakerDescendantContainment") is not True:
+            raise ContractError("containment_identity_invalid", "fallback containment identity is invalid")
+        identity = value.get("identity")
+        if not isinstance(identity, dict) or set(identity) != {"pid", "bootId", "startTicks"}:
+            raise ContractError("containment_identity_invalid", "fallback containment identity is invalid")
+        return value
+    raise ContractError("containment_backend_invalid", "containment backend kind is invalid")
+
+
+def _parse_systemd_show(output: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line in output.splitlines():
+        key, separator, value = line.partition("=")
+        if separator:
+            values[key] = value
+    return values
+
+
+def systemd_cgroup_populated(control_group: str) -> bool:
+    if not control_group.startswith("/"):
+        raise ContractError("containment_query_invalid", "systemd returned an invalid control group")
+    relative = Path(control_group.lstrip("/"))
+    if not relative.parts or ".." in relative.parts or relative.is_absolute():
+        raise ContractError("containment_query_invalid", "systemd returned an invalid control group")
+    events_path = CGROUP_ROOT / relative / "cgroup.events"
+    try:
+        content = events_path.read_text(encoding="ascii")
+    except (OSError, UnicodeError) as error:
+        raise ContractError("containment_query_unknown", "systemd control-group population is unavailable") from error
+    populated: str | None = None
+    for line in content.splitlines():
+        key, separator, value = line.partition(" ")
+        if key == "populated" and separator:
+            populated = value
+    if populated not in {"0", "1"}:
+        raise ContractError("containment_query_invalid", "systemd control-group population is invalid")
+    return populated == "1"
+
+
+def query_systemd_containment(containment: dict[str, Any]) -> dict[str, Any]:
+    bound = validate_containment(containment)
+    if bound["kind"] != "systemd-user-service":
+        raise ContractError("containment_backend_mismatch", "containment backend does not match")
+    result = _systemd_command((
+        "systemctl", "--user", "show", bound["unitName"],
+        "--property=LoadState,ActiveState,SubState,MainPID,Description,InvocationID,ControlGroup",
+        "--no-pager",
+    ))
+    values = _parse_systemd_show(result.stdout)
+    if values.get("LoadState") == "not-found":
+        return {"active": False, "empty": True, "mainPid": None, "invocationId": None}
+    if result.returncode != 0:
+        raise ContractError("containment_query_unknown", "systemd containment query failed")
+    required = {
+        "LoadState", "ActiveState", "SubState", "MainPID", "Description",
+        "InvocationID", "ControlGroup",
+    }
+    if not required.issubset(values) or values.get("LoadState") != "loaded":
+        raise ContractError("containment_query_invalid", "systemd containment query is incomplete")
+    expected_description = SYSTEMD_DESCRIPTION_PREFIX + bound["bindingToken"]
+    if values.get("Description") != expected_description:
+        raise ContractError("containment_identity_mismatch", "systemd unit binding does not match")
+    observed_invocation = values.get("InvocationID") or None
+    recorded_invocation = bound.get("invocationId")
+    if recorded_invocation is not None and observed_invocation != recorded_invocation:
+        raise ContractError("containment_identity_mismatch", "systemd invocation identity does not match")
+    active = values.get("ActiveState") in {"activating", "active", "deactivating", "reloading"}
+    main_pid_text = values.get("MainPID", "0")
+    main_pid = int(main_pid_text) if main_pid_text.isdigit() and int(main_pid_text) > 0 else None
+    populated = systemd_cgroup_populated(values["ControlGroup"])
+    return {"active": active, "empty": not populated, "mainPid": main_pid, "invocationId": observed_invocation}
+
+
+def _systemd_signal(containment: dict[str, Any], signal_name: str) -> None:
+    status = query_systemd_containment(containment)
+    if status["empty"]:
+        return
+    bound = validate_containment(containment)
+    result = _systemd_command((
+        "systemctl", "--user", "kill", f"--signal={signal_name}",
+        "--kill-whom=all", bound["unitName"],
+    ))
+    if result.returncode != 0:
+        raise ContractError("containment_stop_failed", "systemd containment could not be stopped")
+
+
+def wait_containment_empty(containment: dict[str, Any], timeout: float) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if containment_is_empty(containment):
+            return True
+        time.sleep(0.05)
+    return containment_is_empty(containment)
+
+
+def containment_is_empty(containment: dict[str, Any]) -> bool:
+    bound = validate_containment(containment)
+    if bound["kind"] == "systemd-user-service":
+        return bool(query_systemd_containment(bound)["empty"])
+    identity = bound["identity"]
+    status = process_identity_status(identity)
+    if status in {"unknown", "mismatch"}:
+        raise ContractError("containment_identity_mismatch", "fallback containment identity does not match")
+    return status == "dead" and not process_group_exists(int(identity["pid"]))
+
+
+def request_containment_stop(containment: dict[str, Any]) -> None:
+    bound = validate_containment(containment)
+    if bound["kind"] == "systemd-user-service":
+        _systemd_signal(bound, "TERM")
+        return
+    terminate_verified_group(bound["identity"])
+
+
+def force_containment_stop(containment: dict[str, Any]) -> None:
+    bound = validate_containment(containment)
+    if bound["kind"] == "systemd-user-service":
+        _systemd_signal(bound, "KILL")
+        return
+    terminate_verified_group(bound["identity"])
 
 
 def containment_bootstrap(args: argparse.Namespace) -> int:
@@ -596,6 +830,9 @@ def create_run(
         "updatedAt": accepted_at,
         "workerPid": None,
         "workerIdentity": None,
+        "containmentAttempt": 0,
+        "containment": None,
+        "containmentLaunchDisposition": "not-launched",
         "codexPid": None,
         "codexIdentity": None,
         "lastCodexIdentity": None,
@@ -931,17 +1168,117 @@ def load_session(project_root: Path, agent_id: str) -> dict[str, Any]:
     return session
 
 
-def spawn_worker(project_root: Path, agent_id: str, run_id: str) -> int:
+def validate_state_containment_fields(state: dict[str, Any]) -> None:
+    fields = {"containmentAttempt", "containment", "containmentLaunchDisposition"}
+    present = fields.intersection(state)
+    if not present:
+        return
+    if present != fields:
+        raise ContractError("containment_state_invalid", "containment state fields are incomplete")
+    attempt = state.get("containmentAttempt")
+    disposition = state.get("containmentLaunchDisposition")
+    if not isinstance(attempt, int) or attempt < 0 or disposition not in {
+        "not-launched", "launching", "launched"
+    }:
+        raise ContractError("containment_state_invalid", "containment state fields are invalid")
+    containment = state.get("containment")
+    if containment is None:
+        if attempt != 0 or disposition != "not-launched":
+            raise ContractError("containment_identity_unbound", "launched containment identity is not bound")
+        return
+    validate_containment(containment)
+    if attempt < 1 or disposition == "not-launched":
+        raise ContractError("containment_state_invalid", "containment launch state is invalid")
+
+
+def _validate_state_containment(state: dict[str, Any]) -> dict[str, Any]:
+    validate_state_containment_fields(state)
+    containment = validate_containment(state.get("containment"))
+    if containment["kind"] == "systemd-user-service":
+        attempt = state.get("containmentAttempt")
+        if not isinstance(attempt, int) or attempt < 1 or containment["unitName"] != systemd_unit_name(
+            str(state.get("agentId")), str(state.get("runId")), attempt
+        ):
+            raise ContractError("containment_identity_mismatch", "systemd unit is not bound to this run attempt")
+    elif containment["identity"] != state.get("workerIdentity"):
+        raise ContractError("containment_identity_mismatch", "fallback containment is not bound to this worker")
+    return containment
+
+
+def _launch_systemd_worker(
+    project_root: Path,
+    agent_id: str,
+    run_id: str,
+    command: Sequence[str],
+    environment_resource: tuple[int, str],
+) -> int:
+    environment_fd, environment_path = environment_resource
+    try:
+        path = state_file(project_root, agent_id, run_id)
+        state = safe_read_json(path)
+        attempt = int(state.get("containmentAttempt", 0)) + 1
+        containment = {
+            "kind": "systemd-user-service",
+            "unitName": systemd_unit_name(agent_id, run_id, attempt),
+            "bindingToken": uuid.uuid4().hex,
+            "invocationId": None,
+            "weakerDescendantContainment": False,
+        }
+        update_json(
+            path,
+            path.parent / ".state.lock",
+            lambda value: value.update(
+                {
+                    "containmentAttempt": attempt,
+                    "containment": containment,
+                    "containmentLaunchDisposition": "launching",
+                    "status": "starting",
+                }
+            ),
+        )
+        result = _systemd_command((
+            "systemd-run", "--user", f"--unit={containment['unitName']}",
+            f"--description={SYSTEMD_DESCRIPTION_PREFIX}{containment['bindingToken']}",
+            "--collect", "--service-type=exec",
+            "--property=KillMode=control-group",
+            f"--property=TimeoutStopSec={PROCESS_TERM_TIMEOUT}s",
+            "--property=SendSIGKILL=no",
+            f"--property=EnvironmentFile={environment_path}",
+            f"--working-directory={project_root}", "--", *command,
+        ))
+    finally:
+        with contextlib.suppress(OSError):
+            os.close(environment_fd)
+    if result.returncode != 0:
+        raise ContractError(
+            "containment_launch_failed",
+            "the bound systemd service launch was not acknowledged; the run will not be replayed without reconciliation",
+        )
+    observed = query_systemd_containment(containment)
+    if observed["invocationId"] is None:
+        raise ContractError("containment_launch_ack_missing", "systemd returned no invocation identity")
+    containment = {**containment, "invocationId": observed["invocationId"]}
+    state = update_json(
+        path,
+        path.parent / ".state.lock",
+        lambda value: value.update(
+            {
+                "containment": containment,
+                "containmentLaunchDisposition": "launched",
+                "workerPid": observed["mainPid"],
+                "status": "queued",
+            }
+        ),
+    )
+    worker_pid = state.get("workerPid")
+    return worker_pid if isinstance(worker_pid, int) and worker_pid > 0 else 0
+
+
+def _launch_fallback_worker(
+    project_root: Path, agent_id: str, run_id: str, command: Sequence[str]
+) -> int:
     command = [
-        sys.executable,
-        str(Path(__file__).resolve()),
-        "_worker",
-        "--project-root",
-        str(project_root),
-        "--agent",
-        agent_id,
-        "--run-id",
-        run_id,
+        *command,
     ]
     try:
         process, identity, release_fd = spawn_contained_process(
@@ -965,6 +1302,13 @@ def spawn_worker(project_root: Path, agent_id: str, run_id: str) -> int:
                 {
                     "workerPid": process.pid,
                     "workerIdentity": identity,
+                    "containmentAttempt": int(state.get("containmentAttempt", 0)) + 1,
+                    "containment": {
+                        "kind": "process-group",
+                        "identity": identity,
+                        "weakerDescendantContainment": True,
+                    },
+                    "containmentLaunchDisposition": "launched",
                     "status": "queued",
                 }
             ),
@@ -981,6 +1325,34 @@ def spawn_worker(project_root: Path, agent_id: str, run_id: str) -> int:
             raise ContractError(error.code, error.message) from error
         raise ContractError("worker_start_failed", "background worker could not start") from error
     return process.pid
+
+
+def spawn_worker(project_root: Path, agent_id: str, run_id: str) -> int:
+    command = [
+        sys.executable,
+        str(Path(__file__).resolve()),
+        "_worker",
+        "--project-root",
+        str(project_root),
+        "--agent",
+        agent_id,
+        "--run-id",
+        run_id,
+    ]
+    if systemd_manager_usable():
+        try:
+            environment_resource = create_systemd_environment_file()
+        except ContractError as error:
+            if error.code not in {
+                "containment_environment_invalid",
+                "containment_environment_unavailable",
+            }:
+                raise
+        else:
+            return _launch_systemd_worker(
+                project_root, agent_id, run_id, command, environment_resource
+            )
+    return _launch_fallback_worker(project_root, agent_id, run_id, command)
 
 
 def submit(args: argparse.Namespace, new_agent: bool) -> int:
@@ -1916,6 +2288,9 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "updatedAt",
         "workerPid",
         "workerIdentity",
+        "containmentAttempt",
+        "containment",
+        "containmentLaunchDisposition",
         "codexPid",
         "codexIdentity",
         "lastCodexIdentity",
@@ -2070,26 +2445,48 @@ def command_cancel(args: argparse.Namespace) -> int:
         path.parent / ".state.lock",
         lambda value: value.update({"cancelRequested": True, "status": "cancelling"}),
     )
-    identities = (
-        ("Codex", state.get("codexIdentity")),
-        ("worker", state.get("workerIdentity")),
-    )
-    statuses = [(label, identity, process_identity_status(identity)) for label, identity in identities if identity is not None]
-    uncertain = [(label, status) for label, _identity, status in statuses if status in {"unknown", "mismatch"}]
-    if uncertain:
-        raise ContractError(
-            "process_identity_mismatch",
-            "managed process identity could not be verified; refusing to signal",
+    containment_value = state.get("containment")
+    if containment_value is None:
+        validate_state_containment_fields(state)
+        identities = (
+            ("Codex", state.get("codexIdentity")),
+            ("worker", state.get("workerIdentity")),
         )
-    codex_identity = state.get("codexIdentity")
-    if isinstance(codex_identity, dict) and process_identity_status(
-        codex_identity
-    ) in {"match", "dead"}:
-        terminate_verified_group(codex_identity)
-    worker_identity = state.get("workerIdentity")
-    if isinstance(worker_identity, dict) and process_identity_status(worker_identity) == "match":
-        with contextlib.suppress(ProcessLookupError):
-            os.kill(int(worker_identity["pid"]), signal.SIGTERM)
+        statuses = [(label, identity, process_identity_status(identity)) for label, identity in identities if identity is not None]
+        if any(status in {"unknown", "mismatch"} for _label, _identity, status in statuses):
+            raise ContractError(
+                "process_identity_mismatch",
+                "managed process identity could not be verified; refusing to signal",
+            )
+        if "containmentAttempt" in state and statuses:
+            raise ContractError(
+                "containment_identity_unbound",
+                "managed processes exist without a bound containment identity; refusing to signal",
+            )
+        # Migration compatibility for runs accepted before containment binding existed.
+        codex_identity = state.get("codexIdentity")
+        if isinstance(codex_identity, dict) and process_identity_status(codex_identity) in {"match", "dead"}:
+            terminate_verified_group(codex_identity)
+        worker_identity = state.get("workerIdentity")
+        if isinstance(worker_identity, dict) and process_identity_status(worker_identity) == "match":
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(int(worker_identity["pid"]), signal.SIGTERM)
+    else:
+        containment = _validate_state_containment(state)
+        if containment["kind"] == "process-group":
+            codex_identity = state.get("codexIdentity")
+            if codex_identity is not None and process_identity_status(codex_identity) in {"unknown", "mismatch"}:
+                raise ContractError(
+                    "process_identity_mismatch",
+                    "managed Codex identity could not be verified; refusing to signal",
+                )
+            if isinstance(codex_identity, dict):
+                terminate_verified_group(codex_identity)
+        request_containment_stop(containment)
+        if not wait_containment_empty(containment, PROCESS_TERM_TIMEOUT):
+            force_containment_stop(containment)
+        if not wait_containment_empty(containment, PROCESS_KILL_TIMEOUT):
+            raise ContractError("containment_not_empty", "managed containment did not become empty")
     emit(
         {
             "schemaVersion": SCHEMA_VERSION,
@@ -2135,6 +2532,7 @@ def event_stream_has_start_marker(state: dict[str, Any]) -> bool:
 def durably_never_started(state: dict[str, Any]) -> bool:
     return (
         state.get("startDisposition") == "not-started"
+        and state.get("containmentLaunchDisposition") != "launching"
         and state.get("status") in {"accepted", "queued"}
         and state.get("startedAt") is None
         and state.get("sessionId") is None
@@ -2154,11 +2552,44 @@ def command_reconcile(args: argparse.Namespace) -> int:
         session = load_session(root, agent_id)
         if not heartbeat_stale(state, session):
             continue
-        identity_statuses = [
-            process_identity_status(identity)
-            for identity in (state.get("workerIdentity"), state.get("codexIdentity"))
-            if identity is not None
-        ]
+        containment_value = state.get("containment")
+        if containment_value is not None:
+            try:
+                containment = _validate_state_containment(state)
+                if not containment_is_empty(containment):
+                    reconciled.append(
+                        {"agentId": agent_id, "runId": state["runId"], "action": "stale-alive"}
+                    )
+                    continue
+            except ContractError:
+                reconciled.append(
+                    {"agentId": agent_id, "runId": state["runId"], "action": "stale-containment-unknown"}
+                )
+                continue
+            # A positively empty bound containment is evaluated below against
+            # semantic start evidence; it is never inferred from a numeric PID.
+            identity_statuses: list[str] = ["dead"]
+        else:
+            try:
+                validate_state_containment_fields(state)
+            except ContractError:
+                reconciled.append(
+                    {"agentId": agent_id, "runId": state["runId"], "action": "stale-containment-unknown"}
+                )
+                continue
+            if "containmentAttempt" in state and (
+                state.get("workerIdentity") is not None or state.get("codexIdentity") is not None
+            ):
+                reconciled.append(
+                    {"agentId": agent_id, "runId": state["runId"], "action": "stale-containment-unknown"}
+                )
+                continue
+            # Legacy states retain their exact boot-ID/start-ticks behavior.
+            identity_statuses = [
+                process_identity_status(identity)
+                for identity in (state.get("workerIdentity"), state.get("codexIdentity"))
+                if identity is not None
+            ]
         if any(status == "match" for status in identity_statuses):
             reconciled.append(
                 {"agentId": agent_id, "runId": state["runId"], "action": "stale-alive"}

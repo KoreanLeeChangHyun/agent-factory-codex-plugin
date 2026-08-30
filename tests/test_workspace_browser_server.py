@@ -11,6 +11,7 @@ import tempfile
 import threading
 import unittest
 from unittest import mock
+import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,9 +39,15 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             )
         return names
 
-    def test_launcher_has_the_exact_path_and_executable_mode(self) -> None:
-        self.assertTrue(LAUNCHER_PATH.is_file())
-        self.assertEqual(0o755, stat.S_IMODE(LAUNCHER_PATH.stat().st_mode))
+    def test_launchers_have_exact_paths_regular_files_identical_and_executable(self) -> None:
+        root_launcher = ROOT / "workspace.sh"
+        for launcher_path in (LAUNCHER_PATH, root_launcher):
+            with self.subTest(launcher=launcher_path):
+                self.assertTrue(launcher_path.is_file())
+                self.assertFalse(launcher_path.is_symlink())
+                self.assertTrue(launcher_path.stat().st_mode & stat.S_IXUSR)
+                self.assertTrue(os.access(launcher_path, os.X_OK))
+        self.assertEqual(LAUNCHER_PATH.read_bytes(), root_launcher.read_bytes())
 
     def test_launcher_resolves_its_physical_file_and_is_self_contained(self) -> None:
         launcher = LAUNCHER_PATH.read_text(encoding="utf-8")
@@ -69,7 +76,6 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         launcher = LAUNCHER_PATH.read_text(encoding="utf-8")
         self.assertIn("Workspace tree is missing", launcher)
         self.assertIn("workspace_root.relative_to(project_root)", launcher)
-        self.assertIn("human_refined_root.relative_to(project_root)", launcher)
         self.assertIn("candidate.relative_to(root)", launcher)
 
     def test_packaged_assets_faithfully_copy_the_existing_common_shell(self) -> None:
@@ -79,27 +85,91 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
                 (ASSET_ROOT / name).read_bytes(),
             )
         for root in (ASSET_ROOT, COMMON_ROOT):
-            self.assertIn(
-                'fetch("/api/explorer-tree"',
-                (root / "app.js").read_text(encoding="utf-8"),
-            )
+            script = (root / "app.js").read_text(encoding="utf-8")
+            self.assertNotIn('fetch("/api/explorer-tree"', script)
+            self.assertNotIn('fetch("/api/project-skills"', script)
 
     def test_primary_sidebar_hosts_the_selected_activity_view(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
         self.assertIn("data-sidebar-host", html)
         self.assertEqual(SERVER.ACTIVITY_DIRECTORIES, ("explorer", "skills"))
-        for activity, label in (
-            ("explorer", "문서탐색기"),
-            ("planning", "명세서"),
-            ("skills", "프로젝트 스킬"),
-        ):
+        activities = (
+            ("schedule", "일정"),
+            ("agents", "에이전트"),
+            ("documents", "문서"),
+            ("logs", "로그"),
+            ("tests", "테스트"),
+        )
+        positions = []
+        for activity, label in activities:
             self.assertIn(f'data-activity="{activity}"', html)
             self.assertIn(f'aria-label="{label}"', html)
             self.assertIn(f'data-sidebar-view="{activity}"', html)
             self.assertIn(f'data-workspace-view="{activity}"', html)
-        self.assertEqual(html.count('data-activity="'), 3)
-        self.assertIn('role="tree"', html)
+            positions.append(html.index(f'data-activity="{activity}"'))
+        self.assertEqual(positions, sorted(positions))
+        self.assertEqual(html.count('data-activity="'), 5)
+        self.assertGreaterEqual(html.count("정의 대기"), 10)
+        self.assertNotIn('data-activity="roadmap"', html)
+        self.assertNotIn('data-activity="explorer"', html)
+        self.assertNotIn('data-activity="skills"', html)
+        self.assertNotIn('data-activity="planning"', html)
+        self.assertNotIn('role="tree"', html)
         self.assertNotIn("목차", html)
+
+    def test_activity_icons_are_distinct_accessible_inline_svg(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        nav_start = html.index('<nav class="activity-bar"')
+        nav_end = html.index("</nav>", nav_start) + len("</nav>")
+        activity_bar = ET.fromstring(html[nav_start:nav_end])
+        buttons = activity_bar.findall("./button")
+        expected = (
+            ("schedule", "일정"),
+            ("agents", "에이전트"),
+            ("documents", "문서"),
+            ("logs", "로그"),
+            ("tests", "테스트"),
+        )
+
+        signatures = []
+        for button, (activity, label) in zip(buttons, expected, strict=True):
+            self.assertEqual(activity, button.attrib["data-activity"])
+            self.assertEqual(label, button.attrib["aria-label"])
+            self.assertEqual("", "".join(button.itertext()).strip())
+
+            svg = button.find("svg")
+            self.assertIsNotNone(svg)
+            assert svg is not None
+            self.assertEqual("0 0 24 24", svg.attrib["viewBox"])
+            self.assertEqual("true", svg.attrib["aria-hidden"])
+            self.assertEqual("false", svg.attrib["focusable"])
+
+            elements = tuple(svg.iter())[1:]
+            self.assertTrue(elements)
+            self.assertFalse(
+                {"text", "image", "foreignObject"}
+                & {element.tag for element in elements}
+            )
+            signatures.append(
+                tuple(
+                    (element.tag, tuple(sorted(element.attrib.items())))
+                    for element in elements
+                )
+            )
+
+        self.assertEqual(len(expected), len(buttons))
+        self.assertEqual(len(expected), len(set(signatures)))
+        self.assertNotIn("<img", html[nav_start:nav_end].lower())
+
+        styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
+        self.assertIn(".activity-button:focus-visible", styles)
+        self.assertIn(".activity-button.is-active", styles)
+        self.assertIn("stroke: currentColor", styles)
+        self.assertNotIn(".activity-button::before", styles)
+        self.assertNotIn(".activity-button::after", styles)
+        forbidden_assets = ("icon-font", ".png", ".jpg", ".jpeg", ".gif", ".webp")
+        for forbidden in forbidden_assets:
+            self.assertNotIn(forbidden, styles.lower())
 
     def test_activity_behavior_switches_sidebar_and_workspace_context(self) -> None:
         script = (ASSET_ROOT / "app.js").read_text(encoding="utf-8")
@@ -108,19 +178,26 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn("view.dataset.sidebarView !== activity", script)
         self.assertIn("view.dataset.workspaceView !== activity", script)
         self.assertIn("sidebarTitle.textContent = activityTitles[activity]", script)
-        self.assertIn('skills: "프로젝트 스킬"', script)
-        self.assertIn('fetch("/api/project-skills"', script)
-        self.assertIn('fetch("/api/explorer-tree"', script)
-        self.assertIn("item.dataset.projectSkill", script)
+        self.assertIn('schedule: "일정"', script)
+        self.assertIn('agents: "에이전트"', script)
+        self.assertIn('tests: "테스트"', script)
+        self.assertNotIn("roadmap:", script)
+        self.assertNotIn("explorer:", script)
+        self.assertNotIn("skills:", script)
+        self.assertNotIn("fetch(", script)
 
-    def test_explorer_projection_separates_project_and_temporary_evidence(self) -> None:
+    def test_explorer_projection_separates_project_and_classified_documents(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             project_root = Path(temporary_directory)
             (project_root / "src").mkdir()
             (project_root / "src" / "main.py").write_text("private contents", encoding="utf-8")
-            evidence = project_root / SERVER.EXPLORER_EVIDENCE_RELATIVE_PATH / "research-1"
-            evidence.mkdir(parents=True)
-            (evidence / "notes.md").write_text("evidence contents", encoding="utf-8")
+            documents = project_root / SERVER.DOCUMENT_RELATIVE_PATH
+            original = documents / "original" / "research-1"
+            processed = documents / "processed"
+            original.mkdir(parents=True)
+            processed.mkdir(parents=True)
+            (original / "source.bin").write_bytes(b"source contents")
+            (processed / "notes.md").write_text("derived contents", encoding="utf-8")
             agent_runtime = project_root / ".agent-factory" / "agent" / "session"
             agent_runtime.mkdir(parents=True)
             (agent_runtime / "secret.json").write_text("runtime", encoding="utf-8")
@@ -132,18 +209,21 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             (codex_root / "config.toml").write_text("control", encoding="utf-8")
 
             payload = SERVER.discover_explorer_trees(project_root)
-            project_tree, evidence_tree = payload["trees"]
-            self.assertEqual(("project", "evidence"), (project_tree["role"], evidence_tree["role"]))
+            project_tree, document_tree = payload["trees"]
+            self.assertEqual(("project", "evidence"), (project_tree["role"], document_tree["role"]))
             self.assertIn("main.py", self._tree_names(project_tree["children"]))
             self.assertNotIn("secret.json", self._tree_names(project_tree["children"]))
             self.assertNotIn("config", self._tree_names(project_tree["children"]))
             self.assertNotIn("config.toml", self._tree_names(project_tree["children"]))
-            self.assertIn("notes.md", self._tree_names(evidence_tree["children"]))
+            document_names = self._tree_names(document_tree["children"])
+            self.assertIn("source.bin", document_names)
+            self.assertIn("notes.md", document_names)
             serialized = json.dumps(payload, ensure_ascii=False)
             self.assertNotIn("private contents", serialized)
-            self.assertNotIn("evidence contents", serialized)
+            self.assertNotIn("source contents", serialized)
+            self.assertNotIn("derived contents", serialized)
 
-    def test_explorer_projection_skips_symlinks_and_reports_missing_evidence(self) -> None:
+    def test_explorer_projection_skips_symlinks_and_reports_missing_documents(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             project_root = Path(temporary_directory)
             outside = project_root.parent / f"{project_root.name}-outside"
@@ -155,33 +235,33 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
                 self.skipTest(f"symlinks unavailable: {exc}")
             try:
                 payload = SERVER.discover_explorer_trees(project_root)
-                project_tree, evidence_tree = payload["trees"]
+                project_tree, document_tree = payload["trees"]
                 self.assertNotIn("escape", self._tree_names(project_tree["children"]))
-                self.assertEqual("missing", evidence_tree["state"])
+                self.assertEqual("missing", document_tree["state"])
             finally:
                 (project_root / "escape").unlink()
                 outside.rmdir()
 
-    def test_explorer_projection_rejects_evidence_root_symlink_escape(self) -> None:
+    def test_explorer_projection_rejects_document_root_symlink_escape(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             project_root = Path(temporary_directory)
-            outside = project_root.parent / f"{project_root.name}-evidence-outside"
+            outside = project_root.parent / f"{project_root.name}-document-outside"
             outside.mkdir()
             (outside / "secret.md").write_text("not visible", encoding="utf-8")
-            evidence_path = project_root / SERVER.EXPLORER_EVIDENCE_RELATIVE_PATH
-            evidence_path.parent.mkdir(parents=True)
+            document_path = project_root / SERVER.DOCUMENT_RELATIVE_PATH
+            document_path.parent.mkdir(parents=True)
             try:
-                os.symlink(outside, evidence_path)
+                os.symlink(outside, document_path)
             except OSError as exc:
                 (outside / "secret.md").unlink()
                 outside.rmdir()
                 self.skipTest(f"symlinks unavailable: {exc}")
             try:
-                evidence_tree = SERVER.discover_explorer_trees(project_root)["trees"][1]
-                self.assertEqual("error", evidence_tree["state"])
-                self.assertEqual([], evidence_tree["children"])
+                document_tree = SERVER.discover_explorer_trees(project_root)["trees"][1]
+                self.assertEqual("error", document_tree["state"])
+                self.assertEqual([], document_tree["children"])
             finally:
-                evidence_path.unlink()
+                document_path.unlink()
                 (outside / "secret.md").unlink()
                 outside.rmdir()
 
@@ -277,6 +357,22 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
                     (project_root / SERVER.WORKSPACE_RELATIVE_PATH / name).is_dir()
                 )
             self.assertEqual("preserve", preserved.read_text(encoding="utf-8"))
+
+    def test_init_materializes_packaged_browser_files_byte_identically(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+
+            SERVER.install_assets(project_root, ASSET_ROOT, False)
+
+            installed_root = (
+                project_root / SERVER.WORKSPACE_RELATIVE_PATH / "common"
+            )
+            for name in ("index.html", "styles.css", "app.js"):
+                self.assertTrue((installed_root / name).is_file())
+                self.assertEqual(
+                    (ASSET_ROOT / name).read_bytes(),
+                    (installed_root / name).read_bytes(),
+                )
 
     def test_init_rejects_activity_file_conflicts_before_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -426,7 +522,7 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             workspace_root = project_root / SERVER.WORKSPACE_RELATIVE_PATH
             for activity in ("common", *SERVER.ACTIVITY_DIRECTORIES):
                 (workspace_root / activity).mkdir(parents=True, exist_ok=True)
-            (project_root / SERVER.HUMAN_REFINED_RELATIVE_PATH).mkdir(parents=True)
+            (project_root / SERVER.HUMAN_SPECIFICATION_RELATIVE_PATH).mkdir(parents=True)
             addresses = [(SERVER.socket.AF_INET, ("127.0.0.1", 8000))]
 
             with (

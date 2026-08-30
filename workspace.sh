@@ -85,9 +85,9 @@ import webbrowser
 
 project_root = Path(sys.argv[1]).resolve(strict=True)
 workspace_path = project_root / ".agent-factory" / "workspace"
-human_refined_path = project_root / ".agent-factory" / "information" / "refined" / "human"
+human_specification_path = project_root / ".agent-factory" / "document" / "specification" / "human"
 project_skills_path = project_root / ".codex" / "skills"
-explorer_evidence_path = project_root / ".agent-factory" / "explorer"
+document_path = project_root / ".agent-factory" / "document"
 tree_max_depth = 5
 tree_max_entries = 120
 tree_max_response_bytes = 128 * 1024
@@ -95,9 +95,8 @@ project_tree_excluded_paths = {
     PurePosixPath(".git"),
     PurePosixPath(".codex"),
     PurePosixPath(".agent-factory/agent"),
-    PurePosixPath(".agent-factory/explorer"),
+    PurePosixPath(".agent-factory/document"),
     PurePosixPath(".agent-factory/workspace"),
-    PurePosixPath(".agent-factory/sync.json"),
 }
 try:
     workspace_root = workspace_path.resolve(strict=True)
@@ -110,18 +109,18 @@ except ValueError:
 if not workspace_root.is_dir():
     raise SystemExit(f"error: Workspace tree is not a directory: {workspace_path}")
 try:
-    human_refined_root = human_refined_path.resolve(strict=True)
-    human_refined_root.relative_to(project_root)
+    human_specification_root = human_specification_path.resolve(strict=True)
+    human_specification_root.relative_to(project_root)
 except (FileNotFoundError, ValueError):
-    raise SystemExit(f"error: Human refined tree is missing or unsafe: {human_refined_path}")
-if not human_refined_root.is_dir():
-    raise SystemExit(f"error: Human refined tree is not a directory: {human_refined_path}")
+    raise SystemExit(f"error: Human Specification tree is missing or unsafe: {human_specification_path}")
+if not human_specification_root.is_dir():
+    raise SystemExit(f"error: Human Specification tree is not a directory: {human_specification_path}")
 
 served_roots = {
     "common": workspace_root / "common",
     "explorer": workspace_root / "explorer",
     "skills": workspace_root / "skills",
-    "planning": human_refined_root,
+    "planning": human_specification_root,
 }
 if project_skills_path.exists():
     try:
@@ -250,16 +249,16 @@ def explorer_trees():
         "children": project_children,
     }
     evidence_tree = {
-        "label": "임시 Explorer 근거",
+        "label": "분류된 Document",
         "role": "evidence",
         "state": "missing",
         "children": [],
     }
-    if explorer_evidence_path.exists() or explorer_evidence_path.is_symlink():
+    if document_path.exists() or document_path.is_symlink():
         try:
-            evidence_root = explorer_evidence_path.resolve(strict=True)
+            evidence_root = document_path.resolve(strict=True)
             evidence_root.relative_to(project_root)
-            if explorer_evidence_path.is_symlink() or not evidence_root.is_dir():
+            if document_path.is_symlink() or not evidence_root.is_dir():
                 raise ValueError
             evidence_budget = {"entries": 0, "truncated": False}
             evidence_children, evidence_error = tree_children(
@@ -364,7 +363,7 @@ class Handler(BaseHTTPRequestHandler):
 
 server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
 url = f"http://127.0.0.1:{server.server_address[1]}/common/"
-print(f"Serving local Workspace UI and Human refined documents read-only at {url}")
+print(f"Serving local Workspace UI and Human Specifications read-only at {url}")
 webbrowser.open(url)
 try:
     server.serve_forever()

@@ -84,7 +84,13 @@ body {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.4;
+  stroke-width: 1.5;
+}
+
+.activity-divider {
+  width: 24px;
+  margin: 4px 0;
+  border-top: 1px solid var(--region-border);
 }
 
 .primary-sidebar {
@@ -125,6 +131,33 @@ body {
   color: var(--explorer-muted);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.oversight-sidebar {
+  padding: 16px 14px;
+  color: var(--explorer-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.oversight-sidebar p {
+  margin: 10px 0 0;
+}
+
+.oversight-sidebar code {
+  color: var(--explorer-foreground);
+}
+
+.source-state {
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid #715b32;
+  border-radius: 4px;
+  background: #302819;
+  color: #e2bd73;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .explorer-tree {
@@ -305,6 +338,27 @@ body.is-resizing-sidebar {
   max-width: 720px;
   padding: 36px clamp(24px, 5vw, 64px);
   color: var(--explorer-foreground);
+}
+
+.oversight-introduction {
+  max-width: 760px;
+  padding: 36px clamp(24px, 5vw, 64px);
+  color: var(--explorer-foreground);
+}
+
+.oversight-introduction h1 {
+  margin: 14px 0 12px;
+  font-size: clamp(22px, 3vw, 32px);
+}
+
+.oversight-introduction p {
+  margin: 0 0 10px;
+  color: var(--explorer-muted);
+  line-height: 1.65;
+}
+
+.oversight-introduction code {
+  color: #b9d7ff;
 }
 
 .explorer-introduction h1 {

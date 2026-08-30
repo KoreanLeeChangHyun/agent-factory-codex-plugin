@@ -60,7 +60,26 @@ Pass request bodies and large context through validated files beneath the run di
 
 Submit turns asynchronously. The runtime distinguishes durable acceptance, process start, heartbeat, and terminal completion. Heartbeats are supervisor observations, not semantic progress claims.
 
-On Linux, each attempt uses a private process group and records the boot ID and process start ticks with its PID. Cancellation and timeout signal only a verified managed process group. Unverifiable identity fails closed. Event and stderr logs remain bounded.
+On Linux, Worker launch negotiates containment capabilities. When the required
+commands and a responsive user manager are available, each run/launch attempt
+uses a uniquely bound transient systemd service with the Worker as its main
+process, Codex as a child, `Type=exec`, control-group termination, collection,
+the submitting process's safely transferable environment, and bounded
+TERM-to-KILL escalation. Selection checks the required command features, user
+manager, environment-transfer mechanism, and cgroup-v2 population interface.
+The runtime records the exact backend and opaque containment identity before or
+with launch acknowledgement, queries that binding before reconciliation or
+signalling, and confirms from the bound control group's population—not merely
+service state or leader PID—that the containment is empty after cancellation.
+
+When user systemd is absent or unusable, the runtime preserves the existing
+startup barrier, private session/process groups, and boot-ID/start-ticks PID
+identity validation. This fallback fails closed on unverifiable identity and
+retains conservative stale-run/non-replay behavior, but its descendant
+containment is weaker than a service control group. Systemd is a negotiated
+Linux runtime capability, not a universal requirement. The containment
+interface is the adapter boundary for a future platform backend; the current
+runtime does not claim Windows support. Event and stderr logs remain bounded.
 
 Acceptance, startup, heartbeat, and turn timeouts are distinct. Pre-start retry must be idempotent. Once process launch succeeds, an absent start event is ambiguous and must not be replayed automatically. Never retry an irreversible or externally visible action without Human authority.
 

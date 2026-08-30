@@ -141,7 +141,7 @@ class SyncManagerTests(unittest.TestCase):
     def test_destination_cannot_place_gathered_sources_in_work_root(self) -> None:
         for destination in (
             ".agent-factory",
-            ".agent-factory/information/original/google-drive",
+            ".agent-factory/document/original/google-drive",
             str(self.root / ".agent-factory" / "gathered"),
         ):
             with self.subTest(destination=destination):
@@ -172,7 +172,7 @@ class SyncManagerTests(unittest.TestCase):
             "archive/mail",
         )
         payload = json.loads(result.stdout)
-        config_path = self.root / ".agent-factory/sync.json"
+        config_path = self.root / ".agent-factory/document/sync.json"
 
         self.assertEqual(payload["configPath"], str(config_path))
         self.assertTrue(config_path.is_file())
@@ -244,7 +244,7 @@ class SyncManagerTests(unittest.TestCase):
         for name, path in documents.items():
             text = path.read_text(encoding="utf-8")
             with self.subTest(skill=name):
-                self.assertIn(".agent-factory/sync.json", text)
+                self.assertIn(".agent-factory/document/sync.json", text)
                 self.assertIn("scripts/sync.py", text)
                 self.assertIn("resolved destination", text.lower())
 

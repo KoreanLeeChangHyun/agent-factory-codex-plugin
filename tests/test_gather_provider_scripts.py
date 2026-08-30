@@ -26,6 +26,50 @@ def load_script(name: str):
 
 
 class GatherProviderScriptTests(unittest.TestCase):
+    def test_gmail_reports_resolved_destination_before_credentials_or_writes(self) -> None:
+        gmail = load_script("sync_gmail")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            client = root / "client.json"
+            client.write_text("{}", encoding="utf-8")
+            destination = root / "configured/mail"
+            with (
+                mock.patch.object(
+                    gmail,
+                    "resolve_sync_destination",
+                    return_value={
+                        "source": "google-mail",
+                        "projectRoot": str(root),
+                        "destination": str(destination),
+                        "origin": "config",
+                        "configPath": str(
+                            root / ".agent-factory/document/sync.json"
+                        ),
+                    },
+                ),
+                mock.patch.object(
+                    gmail, "load_credentials", side_effect=RuntimeError("stop")
+                ),
+                mock.patch(
+                    "sys.argv",
+                    [
+                        "sync_gmail.py",
+                        "--query",
+                        "subject:test",
+                        "--client",
+                        str(client),
+                    ],
+                ),
+                mock.patch("builtins.print") as printed,
+            ):
+                with self.assertRaisesRegex(RuntimeError, "stop"):
+                    gmail.main()
+
+            first = json.loads(printed.call_args_list[0].args[0])
+            self.assertEqual(first["event"], "destination-resolved")
+            self.assertEqual(first["destination"], str(destination))
+            self.assertFalse(destination.exists())
+
     def test_gmail_evidence_interruption_preserves_prior_complete_bytes(self) -> None:
         gmail = load_script("sync_gmail")
         support_os = sys.modules[gmail.DestinationStore.__module__].os
@@ -192,6 +236,39 @@ class GatherProviderScriptTests(unittest.TestCase):
                 (destination / "evidence/item.bin").read_bytes(), b"second"
             )
             self.assertEqual(list((destination / "evidence").glob(".gather.*")), [])
+
+    def test_destination_store_rejects_directory_swap_without_writing_outside(
+        self,
+    ) -> None:
+        support = load_script("provider_support")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            destination = root / "mail"
+            original = root / "mail-original"
+            outside = root / "outside"
+            destination.mkdir()
+            real_open = support.os.open
+            swapped = False
+
+            def swapping_open(path, flags, *args, **kwargs):
+                nonlocal swapped
+                if (
+                    path == "mail"
+                    and kwargs.get("dir_fd") is not None
+                    and not swapped
+                ):
+                    destination.rename(original)
+                    outside.mkdir()
+                    destination.symlink_to(outside, target_is_directory=True)
+                    swapped = True
+                return real_open(path, flags, *args, **kwargs)
+
+            with mock.patch.object(support.os, "open", side_effect=swapping_open):
+                with self.assertRaises(OSError):
+                    with support.DestinationStore(destination):
+                        pass
+
+            self.assertEqual(list(outside.iterdir()), [])
 
     def test_provider_sanitizers_encoding_pagination_and_provenance(self) -> None:
         discord = load_script("sync_discord")

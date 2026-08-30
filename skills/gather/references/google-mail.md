@@ -5,7 +5,7 @@
 Use this capability to gather Gmail messages and attachments visible to a real
 user account into a local workspace. Default the local destination to
 `source/google/mail` under the Git project root unless
-`<git-project-root>/.agent-factory/sync.json` or the user gives a different
+`<git-project-root>/.agent-factory/document/sync.json` or the user gives a different
 path.
 
 Keep the workflow read-only by default. Do not send, delete, archive, label, or
@@ -105,7 +105,7 @@ The script:
 
 - Loads the shared `scripts/sync.py` resolver from the loaded Gather Skill root.
 - Applies explicit `--destination`, then the `google-mail` entry in
-  `.agent-factory/sync.json`, then `source/google/mail`.
+  `.agent-factory/document/sync.json`, then `source/google/mail`.
 - Resolves relative paths from the Git top-level and prints the normalized
   resolved destination before OAuth or filesystem writes.
 - Uses `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/oauth-client.json`.
@@ -125,7 +125,7 @@ Useful query examples:
 ## Safety Rules
 
 - Use `scripts/sync.py` from the loaded Gather Skill root to inspect or set
-  project overrides; do not edit `.agent-factory/sync.json` directly.
+  project overrides; do not edit `.agent-factory/document/sync.json` directly.
 - Keep sync read-only unless the user explicitly asks for Gmail write actions.
 - Do not delete local mail snapshots unless the user explicitly asks.
 - Do not store OAuth client JSON or token JSON in the repository.
@@ -139,7 +139,7 @@ After syncing, report information already produced by the sync:
 
 - credential path used,
 - normalized resolved destination and whether it came from explicit input,
-  `.agent-factory/sync.json`, or the default,
+  `.agent-factory/document/sync.json`, or the default,
 - Gmail query used,
 - approximate message count,
 - attachment count and size if available,

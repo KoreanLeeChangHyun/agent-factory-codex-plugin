@@ -1,17 +1,34 @@
 ---
 name: workspace
-description: Provide the Human-facing Agent Factory control tower for managing project Agents, documents, and project views. Use for the local Workspace shell, navigation, browser launcher, or Human operational visibility; do not use it to define document semantics or execute Agent work.
+description: Provide the Human-facing Agent Factory control tower with exactly five top-level Activities for schedule, Agents, Documents, logs, and tests. Use for Workspace shell and navigation work; do not infer undecided Activity details or own the projected state.
 ---
 
 # Agent Factory Workspace
 
 ## Entry contract
 
-Use Workspace for the Human-facing control tower that presents and organizes
-Agents, documents, and project state. Workspace owns the browser shell,
-navigation, Activity views, local read-only serving, and the project-root
-launcher. It does not execute managed Agent work, define Document content,
-accept Specification truth, or change Document types or relationships.
+Use Workspace for the Human-facing project control tower. Its Activity Bar has
+exactly five top-level Activities in this order: 일정, 에이전트, 문서, 로그,
+테스트. No other top-level item or alias is allowed. The Human has not yet
+defined any Activity's Primary Sidebar information architecture or detailed
+capabilities; show that state honestly and do not infer a hierarchy, source,
+metric, or control. Workspace owns the browser shell, navigation, Activity
+views, local read-only serving, and project-root launcher. It does not become
+the canonical owner or executor of projected state.
+
+The browser shell has two required forms: reusable installation sources below
+`assets/browser/` and the current project's installed publication below
+`.agent-factory/workspace/common/`. Maintain `index.html`, `styles.css`, and
+`app.js` together and byte-identically; a missing or divergent form is
+incomplete. The packaged assets remain the installation source rather than a
+second runtime authority.
+
+Under the current/default local adapter, Workspace owns the maintained schema
+asset for the project-wide catalog at `assets/schema/catalog.sql`. A future
+initializer materializes that schema only at `<project-root>/.agent-factory/db.sqlite`.
+The database is a rebuildable, non-authoritative read model spanning Agent
+execution structure and Documents; visibility there transfers neither Agent
+nor Document semantics to Workspace.
 
 Keep the responsibility split explicit:
 
@@ -21,17 +38,17 @@ Keep the responsibility split explicit:
 - `document` defines and maintains Original, Processed, and Specification Documents;
 - `workspace` lets the Human navigate and manage those actors and artifacts.
 
-The two local Explorer paths have different owners and must remain distinct:
-`.agent-factory/explorer/` stores temporary Work/Explorer evidence, while
-`.agent-factory/workspace/explorer/` is the read-only Workspace File/Project
-Explorer Activity projection. The Activity discovers the project and evidence
-trees but never copies, edits, moves, deletes, promotes, or owns their contents.
+Existing local projection or discovery directories and utilities do not define
+a top-level Activity or authorize nesting under one of the five Activities.
 
 ## Reference routing
 
-Read `references/interface.md` before creating, editing, installing, or serving
-the Workspace UI. It defines the local adapter, Activity ownership, launcher,
-allowlisted roots, and presentation boundaries.
+- Read `references/activities.md` when defining or presenting the five
+  top-level Activities. It records the decided order, undecided detail, and
+  ownership boundary.
+- Read `references/interface.md` before creating, editing, installing, or
+  serving the Workspace UI. It defines the two-form publication invariant,
+  local adapter, launcher, allowlisted roots, and presentation bounds.
 
 ## Local/default structure
 
@@ -42,12 +59,20 @@ allowlisted roots, and presentation boundaries.
 └── skills/
 ```
 
-Planning reads Human-facing Specifications from
-`.agent-factory/information/refined/human/`; it does not own or mirror a
-document directory. Agent runtime state remains below `.agent-factory/agent/`,
-and temporary Work/Explorer evidence workspaces remain below
-`.agent-factory/explorer/`; the similarly named Workspace Activity directory
-is only their Human-facing read-only projection.
+Human-facing Specifications remain below
+`.agent-factory/document/specification/human/`; Workspace does not own or
+mirror that Document directory. Agent runtime state remains below
+`.agent-factory/agent/`. The five-category decision does not assign these
+stores to an Activity information architecture.
+
+The schema asset normalizes schema version metadata, Agents and resumable
+sessions, runs and turns, Work/Verification loops, graph and dispatch
+relationships, Documents and storage-independent types, representations,
+source-backed Document relationships, Agent-Document relationships, and
+Specification pair status. It deliberately stores no bodies, event streams,
+requests, results, receipts, heartbeats, or containment/recovery evidence.
+Catalog population, rebuild jobs, dual writes, query APIs, search, and screens
+are not implemented by the schema foundation.
 
 The local structure is an adapter, not a universal storage requirement. A
 resolved project server or external control surface may replace the local UI

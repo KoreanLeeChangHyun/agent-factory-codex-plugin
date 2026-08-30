@@ -46,16 +46,16 @@ class SkillMetadataTests(unittest.TestCase):
         paths = fenced_tree_paths(instructions)
         self.assertTrue(
             {
+                "<project-root>/.agent-factory/db.sqlite",
                 "<project-root>/.agent-factory/agent/<agent-id>/session.json",
                 "<project-root>/.agent-factory/agent/<agent-id>/runs/<run-id>",
-                "<project-root>/.agent-factory/explorer/<exploration-id>",
+                "<project-root>/.agent-factory/document/original",
+                "<project-root>/.agent-factory/document/processed",
+                "<project-root>/.agent-factory/document/specification/human",
+                "<project-root>/.agent-factory/document/sync.json",
                 "<project-root>/.agent-factory/workspace/common",
                 "<project-root>/.agent-factory/workspace/explorer",
-                "<project-root>/.agent-factory/information/original",
-                "<project-root>/.agent-factory/information/processed",
-                "<project-root>/.agent-factory/information/refined/human",
                 "<project-root>/.agent-factory/workspace/skills",
-                "<project-root>/.agent-factory/sync.json",
             }
             <= paths
         )
@@ -63,21 +63,35 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertTrue(
             any(
                 re.search(
-                    r"common/ owns the shared browser shell.*workspace/explorer/ owns the read-only workspace file/project explorer activity projection.*skills/ owns skill navigation",
+                    r"common/ owns the shared browser shell.*workspace/explorer/ owns an internal read-only file/project metadata projection.*skills/ owns internal read-only skill navigation",
                     paragraph,
                 )
                 for paragraph in paragraphs
             )
         )
+        normalized_instructions = " ".join(
+            instructions.casefold().replace("`", "").split()
+        )
         self.assertIn(
-            "temporary work/explorer evidence workspaces in .agent-factory/explorer/",
-            " ".join(instructions.casefold().replace("`", "").split()),
+            "temporary execution-only explorer material in the producing managed agent run",
+            normalized_instructions,
+        )
+        self.assertIn(
+            "durable explorer evidence as an original or processed document",
+            normalized_instructions,
+        )
+        self.assertIn(
+            "these stores define neither an activity nor nesting under one of the five activities",
+            normalized_instructions,
+        )
+        self.assertNotIn(
+            "workspace file/project explorer activity projection",
+            normalized_instructions,
         )
         self.assertEqual(
             instructions,
             (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(encoding="utf-8"),
         )
-        normalized_instructions = " ".join(instructions.casefold().split())
         for semantic_requirement in (
             "one semantic body",
             "ai-facing skill",
@@ -157,11 +171,38 @@ class SkillMetadataTests(unittest.TestCase):
         self.assertEqual(references, set())
         self.assertEqual(prompts, {"main.md", "work.md", "verification.md"})
 
-    def test_gather_preserves_sync_mechanisms_without_promoting_truth(self) -> None:
+    def test_public_skills_expose_only_their_owned_scripts(self) -> None:
+        expected = {
+            "agent": {"exec.py", "loop.py"},
+            "convention": {"init_agents.py"},
+            "document": set(),
+            "gather": {
+                "provider_support.py",
+                "sync.py",
+                "sync_discord.py",
+                "sync_gmail.py",
+                "sync_google_drive.py",
+                "sync_notion.py",
+                "sync_onedrive.py",
+                "sync_slack.py",
+            },
+            "workspace": {"serve.py"},
+        }
+        for skill, scripts in expected.items():
+            with self.subTest(skill=skill):
+                self.assertEqual(
+                    {path.name for path in (SKILLS / skill / "scripts").glob("*.py")},
+                    scripts,
+                )
+
+    def test_gather_preserves_shared_sync_configuration_identity(self) -> None:
         management = (
             SKILLS / "gather" / "references" / "gather-management.md"
         ).read_text(encoding="utf-8")
-        self.assertIn(".agent-factory/sync.json", management)
+        self.assertIn(".agent-factory/document/sync.json", management)
+        self.assertTrue(
+            (SKILLS / "gather" / "assets" / "schema" / "sync.schema.json").is_file()
+        )
         self.assertTrue((SKILLS / "gather" / "scripts" / "sync.py").is_file())
         self.assertTrue((SKILLS / "gather" / "scripts" / "sync_gmail.py").is_file())
 

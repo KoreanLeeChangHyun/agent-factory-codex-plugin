@@ -5,7 +5,7 @@
 Use this capability to gather Google Drive files into a local workspace or
 explain how to share Drive access for that purpose. Default the local destination to
 `source/google/drive` under the Git project root unless
-`<git-project-root>/.agent-factory/sync.json` or the user gives a different
+`<git-project-root>/.agent-factory/document/sync.json` or the user gives a different
 path.
 
 Keep the workflow read-only by default. Do not upload, delete, or modify Drive
@@ -18,7 +18,7 @@ for desktop, rclone, and manual download remain useful alternatives.
 
 - Resolve the destination through `scripts/sync.py` from the loaded Gather
   Skill root before any copy, import, or mirror. It applies explicit input, the `google-drive` entry in
-  `.agent-factory/sync.json`, then the `source/google/drive` default.
+  `.agent-factory/document/sync.json`, then the `source/google/drive` default.
 - Put original Drive materials under the normalized resolved destination.
 - Keep credentials and tokens private and outside the repository, for example:
   - `${XDG_CONFIG_HOME:-$HOME/.config}/google-api/oauth-client.json`
@@ -99,7 +99,7 @@ Interpretation:
 ## Safety Rules
 
 - Use `scripts/sync.py` from the loaded Gather Skill root to inspect or set
-  project overrides; do not edit `.agent-factory/sync.json` directly.
+  project overrides; do not edit `.agent-factory/document/sync.json` directly.
 - Check the printed normalized resolved destination before creating directories
   or copying data.
 - Store local Drive materials under the resolved destination.
@@ -242,7 +242,7 @@ After syncing, report information already produced by the sync:
 
 - source method used,
 - normalized resolved destination and whether it came from explicit input,
-  `.agent-factory/sync.json`, or the default,
+  `.agent-factory/document/sync.json`, or the default,
 - approximate file count and size,
 - any skipped Google-native files or export conversions,
 - whether credentials or tokens were created.

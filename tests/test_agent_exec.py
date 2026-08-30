@@ -71,6 +71,391 @@ class AgentExecTests(unittest.TestCase):
             {"type": "string", "const": state["resultPath"]},
         )
 
+    def _new_containment_state(self, root: Path) -> dict:
+        return self.module.create_run(
+            project_root=root, agent_id="work-agent", actor="main",
+            request=b"bounded request", session={"role": "work", "maxAttempts": 2},
+        )
+
+    def test_containment_backend_selection_is_capability_negotiated(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            environment_fd = os.open("/dev/null", os.O_RDONLY)
+
+            def launch(_root, _agent, _run, _command, resource):
+                os.close(resource[0])
+                return 31
+
+            with mock.patch.object(self.module, "systemd_manager_usable", return_value=True), mock.patch.object(
+                self.module, "create_systemd_environment_file",
+                return_value=(environment_fd, f"/proc/{os.getpid()}/fd/{environment_fd}"),
+            ), mock.patch.object(
+                self.module, "_launch_systemd_worker", side_effect=launch
+            ) as systemd_launch, mock.patch.object(self.module, "_launch_fallback_worker") as fallback:
+                self.assertEqual(self.module.spawn_worker(root, "work-agent", "run-one"), 31)
+                systemd_launch.assert_called_once()
+                fallback.assert_not_called()
+            with mock.patch.object(self.module, "systemd_manager_usable", return_value=False), mock.patch.object(
+                self.module, "_launch_fallback_worker", return_value=32
+            ) as fallback:
+                self.assertEqual(self.module.spawn_worker(root, "work-agent", "run-one"), 32)
+                fallback.assert_called_once()
+
+    def test_systemd_launch_durably_binds_service_before_ack(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            calls = []
+
+            def command(argv):
+                calls.append(tuple(argv))
+                persisted = self.module.safe_read_json(Path(state["statePath"]))
+                self.assertEqual(persisted["containmentLaunchDisposition"], "launching")
+                self.assertEqual(persisted["containment"]["kind"], "systemd-user-service")
+                if argv[0] == "systemd-run":
+                    return subprocess.CompletedProcess(argv, 0, "Running as unit\n", "")
+                token = persisted["containment"]["bindingToken"]
+                output = (
+                    "LoadState=loaded\nActiveState=active\nSubState=running\nMainPID=73\n"
+                    f"Description={self.module.SYSTEMD_DESCRIPTION_PREFIX}{token}\n"
+                    "InvocationID=0123456789abcdef0123456789abcdef\n"
+                    "ControlGroup=/user.slice/agent-factory.service\n"
+                )
+                return subprocess.CompletedProcess(argv, 0, output, "")
+
+            with mock.patch.object(self.module, "_systemd_command", side_effect=command), mock.patch.object(
+                self.module, "systemd_cgroup_populated", return_value=False
+            ):
+                environment_fd = os.open("/dev/null", os.O_RDONLY)
+                pid = self.module._launch_systemd_worker(
+                    root,
+                    "work-agent",
+                    state["runId"],
+                    ["python", "worker"],
+                    (environment_fd, f"/proc/{os.getpid()}/fd/{environment_fd}"),
+                )
+            with self.assertRaises(OSError):
+                os.fstat(environment_fd)
+            persisted = self.module.safe_read_json(Path(state["statePath"]))
+            self.assertEqual(pid, 73)
+            self.assertEqual(persisted["containmentLaunchDisposition"], "launched")
+            self.assertEqual(persisted["containment"]["invocationId"], "0123456789abcdef0123456789abcdef")
+            launch = calls[0]
+            self.assertIn("--service-type=exec", launch)
+            self.assertIn("--collect", launch)
+            self.assertIn("--property=KillMode=control-group", launch)
+            self.assertTrue(any(value.startswith("--property=EnvironmentFile=/proc/") for value in launch))
+            self.assertNotIn("--scope", launch)
+
+    def test_systemd_launch_failure_remains_ambiguously_bound(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            failed = subprocess.CompletedProcess(["systemd-run"], 1, "", "failed")
+            environment_fd = os.open("/dev/null", os.O_RDONLY)
+            with mock.patch.object(self.module, "_systemd_command", return_value=failed):
+                with self.assertRaises(self.module.ContractError) as raised:
+                    self.module._launch_systemd_worker(
+                        root,
+                        "work-agent",
+                        state["runId"],
+                        ["worker"],
+                        (environment_fd, f"/proc/{os.getpid()}/fd/{environment_fd}"),
+                    )
+            with self.assertRaises(OSError):
+                os.fstat(environment_fd)
+            persisted = self.module.safe_read_json(Path(state["statePath"]))
+            self.assertEqual(raised.exception.code, "containment_launch_failed")
+            self.assertEqual(persisted["containmentLaunchDisposition"], "launching")
+            self.assertFalse(self.module.durably_never_started(persisted))
+
+    def test_exact_systemd_unit_binding_and_invocation_are_enforced(self) -> None:
+        state = {
+            "agentId": "work-agent", "runId": "run-one", "containmentAttempt": 1,
+            "workerIdentity": None, "containmentLaunchDisposition": "launched",
+            "containment": {
+                "kind": "systemd-user-service",
+                "unitName": self.module.systemd_unit_name("other-agent", "run-one", 1),
+                "bindingToken": "a" * 32, "invocationId": None,
+                "weakerDescendantContainment": False,
+            },
+        }
+        with self.assertRaises(self.module.ContractError) as raised:
+            self.module._validate_state_containment(state)
+        self.assertEqual(raised.exception.code, "containment_identity_mismatch")
+        malformed = dict(state["containment"], unitName="not-a-bound-unit.service")
+        with self.assertRaises(self.module.ContractError):
+            self.module.validate_containment(malformed)
+        unbound = dict(state, containment=None, containmentAttempt=1, containmentLaunchDisposition="launching")
+        with self.assertRaises(self.module.ContractError) as unbound_error:
+            self.module.validate_state_containment_fields(unbound)
+        self.assertEqual(unbound_error.exception.code, "containment_identity_unbound")
+
+    def test_systemd_query_checks_binding_and_reports_emptiness(self) -> None:
+        containment = {
+            "kind": "systemd-user-service", "unitName": "agent-factory-" + "a" * 24 + ".service",
+            "bindingToken": "b" * 32, "invocationId": "c" * 32,
+            "weakerDescendantContainment": False,
+        }
+        missing = subprocess.CompletedProcess([], 1, "LoadState=not-found\n", "")
+        with mock.patch.object(self.module, "_systemd_command", return_value=missing):
+            self.assertTrue(self.module.containment_is_empty(containment))
+        mismatch = subprocess.CompletedProcess(
+            [], 0,
+            "LoadState=loaded\nActiveState=active\nSubState=running\nMainPID=9\n"
+            "Description=wrong\nInvocationID=" + "c" * 32 +
+            "\nControlGroup=/user.slice/wrong.service\n", "",
+        )
+        with mock.patch.object(self.module, "_systemd_command", return_value=mismatch):
+            with self.assertRaises(self.module.ContractError) as raised:
+                self.module.containment_is_empty(containment)
+        self.assertEqual(raised.exception.code, "containment_identity_mismatch")
+
+    def test_systemd_query_fails_closed_on_manager_failure_and_malformed_output(self) -> None:
+        containment = {
+            "kind": "systemd-user-service", "unitName": "agent-factory-" + "a" * 24 + ".service",
+            "bindingToken": "b" * 32, "invocationId": "c" * 32,
+            "weakerDescendantContainment": False,
+        }
+        failed = subprocess.CompletedProcess([], 1, "", "manager unavailable")
+        with mock.patch.object(self.module, "_systemd_command", return_value=failed):
+            with self.assertRaises(self.module.ContractError) as failure:
+                self.module.containment_is_empty(containment)
+        self.assertEqual(failure.exception.code, "containment_query_unknown")
+        malformed = subprocess.CompletedProcess([], 0, "LoadState=loaded\nActiveState=failed\n", "")
+        with mock.patch.object(self.module, "_systemd_command", return_value=malformed):
+            with self.assertRaises(self.module.ContractError) as invalid:
+                self.module.containment_is_empty(containment)
+        self.assertEqual(invalid.exception.code, "containment_query_invalid")
+
+    def test_systemd_emptiness_uses_cgroup_population_not_active_state(self) -> None:
+        containment = {
+            "kind": "systemd-user-service", "unitName": "agent-factory-" + "a" * 24 + ".service",
+            "bindingToken": "b" * 32, "invocationId": "c" * 32,
+            "weakerDescendantContainment": False,
+        }
+        output = (
+            "LoadState=loaded\nActiveState=failed\nSubState=failed\nMainPID=0\n"
+            f"Description={self.module.SYSTEMD_DESCRIPTION_PREFIX}{containment['bindingToken']}\n"
+            f"InvocationID={containment['invocationId']}\nControlGroup=/user.slice/bound.service\n"
+        )
+        result = subprocess.CompletedProcess([], 0, output, "")
+        with mock.patch.object(self.module, "_systemd_command", return_value=result), mock.patch.object(
+            self.module, "systemd_cgroup_populated", return_value=True
+        ):
+            self.assertFalse(self.module.containment_is_empty(containment))
+        with mock.patch.object(self.module, "_systemd_command", return_value=result), mock.patch.object(
+            self.module, "systemd_cgroup_populated", return_value=False
+        ):
+            self.assertTrue(self.module.containment_is_empty(containment))
+
+    def test_systemd_stop_and_force_stop_signal_the_bound_control_group(self) -> None:
+        containment = {
+            "kind": "systemd-user-service", "unitName": "agent-factory-" + "a" * 24 + ".service",
+            "bindingToken": "b" * 32, "invocationId": "c" * 32,
+            "weakerDescendantContainment": False,
+        }
+        completed = subprocess.CompletedProcess([], 0, "", "")
+        with mock.patch.object(
+            self.module, "query_systemd_containment", return_value={"empty": False}
+        ), mock.patch.object(self.module, "_systemd_command", return_value=completed) as command:
+            self.module.request_containment_stop(containment)
+            self.module.force_containment_stop(containment)
+        term = command.call_args_list[0].args[0]
+        kill = command.call_args_list[1].args[0]
+        self.assertIn("--signal=TERM", term)
+        self.assertIn("--signal=KILL", kill)
+        self.assertIn("--kill-whom=all", term)
+        self.assertIn("--kill-whom=all", kill)
+
+    def test_systemd_environment_transfer_keeps_values_out_of_argv(self) -> None:
+        environment = {"PATH": "/runtime/bin:/usr/bin", "AGENT_RUNTIME_TOKEN": "secret-value"}
+        descriptor, environment_path = self.module.create_systemd_environment_file(environment)
+        try:
+            content = os.read(descriptor, 4096).decode("utf-8")
+        finally:
+            os.close(descriptor)
+        self.assertIn('PATH="/runtime/bin:/usr/bin"', content)
+        self.assertIn('AGENT_RUNTIME_TOKEN="secret-value"', content)
+        self.assertNotIn("secret-value", environment_path)
+        self.assertTrue(environment_path.startswith(f"/proc/{os.getpid()}/fd/"))
+        self.assertFalse(self.module.systemd_environment_supported({"INVALID-NAME": "value"}))
+
+    def test_environment_acquisition_failure_selects_fallback_before_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            with mock.patch.object(self.module, "systemd_manager_usable", return_value=True), mock.patch.object(
+                self.module.os, "memfd_create", side_effect=OSError("memfd blocked")
+            ), mock.patch.object(self.module, "_launch_systemd_worker") as systemd_launch, mock.patch.object(
+                self.module, "_launch_fallback_worker", return_value=44
+            ) as fallback:
+                self.assertEqual(self.module.spawn_worker(root, "work-agent", state["runId"]), 44)
+            systemd_launch.assert_not_called()
+            fallback.assert_called_once()
+            persisted = self.module.safe_read_json(Path(state["statePath"]))
+            self.assertEqual(persisted["containmentAttempt"], 0)
+            self.assertIsNone(persisted["containment"])
+            self.assertEqual(persisted["containmentLaunchDisposition"], "not-launched")
+
+    def test_environment_write_failure_closes_descriptor(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            descriptor = os.open("/dev/null", os.O_RDONLY)
+            with mock.patch.object(self.module, "systemd_manager_usable", return_value=True), mock.patch.object(
+                self.module.os, "memfd_create", return_value=descriptor
+            ), mock.patch.object(self.module.os, "write", side_effect=OSError("write blocked")), mock.patch.object(
+                self.module, "_launch_systemd_worker"
+            ) as systemd_launch, mock.patch.object(
+                self.module, "_launch_fallback_worker", return_value=45
+            ) as fallback:
+                self.assertEqual(self.module.spawn_worker(root, "work-agent", state["runId"]), 45)
+            systemd_launch.assert_not_called()
+            fallback.assert_called_once()
+            persisted = self.module.safe_read_json(Path(state["statePath"]))
+            self.assertIsNone(persisted["containment"])
+            self.assertEqual(persisted["containmentLaunchDisposition"], "not-launched")
+            with self.assertRaises(OSError):
+                os.fstat(descriptor)
+
+    def test_systemd_launch_closes_environment_when_binding_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            descriptor = os.open("/dev/null", os.O_RDONLY)
+            failure = self.module.ContractError("state_invalid", "cannot bind")
+            with mock.patch.object(self.module, "update_json", side_effect=failure), mock.patch.object(
+                self.module, "_systemd_command"
+            ) as command:
+                with self.assertRaises(self.module.ContractError):
+                    self.module._launch_systemd_worker(
+                        root,
+                        "work-agent",
+                        state["runId"],
+                        ["worker"],
+                        (descriptor, f"/proc/{os.getpid()}/fd/{descriptor}"),
+                    )
+            command.assert_not_called()
+            with self.assertRaises(OSError):
+                os.fstat(descriptor)
+
+    def test_systemd_capability_probe_requires_commands_manager_features_cgroup_and_environment(self) -> None:
+        help_text = " ".join(self.module.SYSTEMD_REQUIRED_OPTIONS)
+        success = [
+            subprocess.CompletedProcess([], 0, "manager", ""),
+            subprocess.CompletedProcess([], 0, help_text, ""),
+        ]
+        common = (
+            mock.patch.object(self.module.shutil, "which", return_value="/usr/bin/tool"),
+            mock.patch.object(self.module, "cgroup_v2_available", return_value=True),
+            mock.patch.object(self.module, "systemd_environment_supported", return_value=True),
+        )
+        with common[0], common[1], common[2], mock.patch.object(
+            self.module, "_systemd_command", side_effect=success
+        ):
+            self.assertTrue(self.module.systemd_manager_usable())
+        with mock.patch.object(self.module.shutil, "which", return_value=None), mock.patch.object(
+            self.module, "_systemd_command"
+        ) as command:
+            self.assertFalse(self.module.systemd_manager_usable())
+            command.assert_not_called()
+        missing_feature = [success[0], subprocess.CompletedProcess([], 0, "--collect --user", "")]
+        with mock.patch.object(self.module.shutil, "which", return_value="/usr/bin/tool"), mock.patch.object(
+            self.module, "cgroup_v2_available", return_value=True
+        ), mock.patch.object(self.module, "systemd_environment_supported", return_value=True), mock.patch.object(
+            self.module, "_systemd_command", side_effect=missing_feature
+        ):
+            self.assertFalse(self.module.systemd_manager_usable())
+        unavailable = self.module.ContractError("containment_backend_unavailable", "timeout")
+        with mock.patch.object(self.module.shutil, "which", return_value="/usr/bin/tool"), mock.patch.object(
+            self.module, "cgroup_v2_available", return_value=True
+        ), mock.patch.object(self.module, "systemd_environment_supported", return_value=True), mock.patch.object(
+            self.module, "_systemd_command", side_effect=unavailable
+        ):
+            self.assertFalse(self.module.systemd_manager_usable())
+
+    def test_cancel_is_state_first_and_escalates_backend_wide(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            persisted = self.module.safe_read_json(Path(state["statePath"]))
+            persisted.update({
+                "containmentAttempt": 1,
+                "containment": {
+                    "kind": "systemd-user-service",
+                    "unitName": self.module.systemd_unit_name("work-agent", state["runId"], 1),
+                    "bindingToken": "d" * 32, "invocationId": "e" * 32,
+                    "weakerDescendantContainment": False,
+                },
+                "containmentLaunchDisposition": "launched",
+            })
+            self.module.atomic_write_json(Path(state["statePath"]), persisted)
+            args = argparse.Namespace(project_root=root, agent="work-agent", run_id=state["runId"])
+
+            def requested(_containment):
+                current = self.module.safe_read_json(Path(state["statePath"]))
+                self.assertTrue(current["cancelRequested"])
+                self.assertEqual(current["status"], "cancelling")
+
+            with mock.patch.object(self.module, "request_containment_stop", side_effect=requested) as request, mock.patch.object(
+                self.module, "wait_containment_empty", side_effect=[False, True]
+            ), mock.patch.object(self.module, "force_containment_stop") as force, mock.patch.object(self.module, "emit"):
+                self.module.command_cancel(args)
+            request.assert_called_once()
+            force.assert_called_once()
+
+    def test_fallback_launch_preserves_barrier_and_weaker_binding(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            process = mock.Mock(pid=87)
+            identity = {"pid": 87, "bootId": "f" * 36, "startTicks": 9}
+            with mock.patch.object(
+                self.module, "spawn_contained_process", return_value=(process, identity, 4)
+            ), mock.patch.object(self.module, "release_contained_process") as release:
+                self.module._launch_fallback_worker(root, "work-agent", state["runId"], ["worker"])
+            persisted = self.module.safe_read_json(Path(state["statePath"]))
+            self.assertEqual(persisted["containment"]["kind"], "process-group")
+            self.assertTrue(persisted["containment"]["weakerDescendantContainment"])
+            release.assert_called_once_with(process, identity, 4)
+
+    def test_reconcile_queries_bound_containment_before_pid_and_fails_ambiguous_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self._new_containment_state(root)
+            self.module.atomic_write_json(
+                self.module.session_file(root, "work-agent"),
+                {"agentId": "work-agent", "role": "work", "sessionId": None,
+                 "projectRoot": str(root), "heartbeatTimeout": 1},
+            )
+            heartbeat = self.module.safe_read_json(Path(state["heartbeatPath"]))
+            heartbeat["observedAt"] = "2000-01-01T00:00:00Z"
+            self.module.atomic_write_json(Path(state["heartbeatPath"]), heartbeat)
+            persisted = self.module.safe_read_json(Path(state["statePath"]))
+            persisted.update({
+                "status": "starting", "containmentAttempt": 1,
+                "containmentLaunchDisposition": "launching",
+                "containment": {
+                    "kind": "systemd-user-service",
+                    "unitName": self.module.systemd_unit_name("work-agent", state["runId"], 1),
+                    "bindingToken": "1" * 32, "invocationId": None,
+                    "weakerDescendantContainment": False,
+                },
+            })
+            self.module.atomic_write_json(Path(state["statePath"]), persisted)
+            args = argparse.Namespace(project_root=root, agent="work-agent")
+            with mock.patch.object(self.module, "containment_is_empty", return_value=True) as empty, mock.patch.object(
+                self.module, "process_identity_status"
+            ) as pid_status, mock.patch.object(self.module, "spawn_worker") as spawn, mock.patch.object(self.module, "emit") as emit:
+                self.module.command_reconcile(args)
+            empty.assert_called_once()
+            pid_status.assert_not_called()
+            spawn.assert_not_called()
+            final = self.module.safe_read_json(Path(state["statePath"]))
+            self.assertEqual(final["error"]["code"], "run_start_unknown")
+            self.assertEqual(emit.call_args.args[0]["runs"][0]["action"], "failed-not-replayable")
+
     def dispatch_args(self, directory: str, dispatch_id: str, message: str = "bounded request") -> argparse.Namespace:
         return argparse.Namespace(
             project_root=Path(directory), agent="work-agent", actor="main", message=message,
@@ -199,6 +584,8 @@ class AgentExecTests(unittest.TestCase):
                      "projectRoot": str(root), "heartbeatTimeout": 1},
                 )
                 persisted = self.module.safe_read_json(Path(state["statePath"]))
+                for field in ("containmentAttempt", "containment", "containmentLaunchDisposition"):
+                    persisted.pop(field)
                 persisted.update(updates)
                 persisted.update(
                     {
@@ -238,6 +625,8 @@ class AgentExecTests(unittest.TestCase):
             heartbeat["observedAt"] = "2000-01-01T00:00:00Z"
             self.module.atomic_write_json(Path(state["heartbeatPath"]), heartbeat)
             persisted = self.module.safe_read_json(Path(state["statePath"]))
+            for field in ("containmentAttempt", "containment", "containmentLaunchDisposition"):
+                persisted.pop(field)
             persisted.update(
                 {
                     "workerPid": 77,
@@ -420,7 +809,7 @@ class AgentExecTests(unittest.TestCase):
                 "process_identity_unavailable", "identity unavailable"
             )
             identity = {"pid": 303, "bootId": "boot", "startTicks": 9}
-            with mock.patch.object(self.module, "spawn_contained_process", return_value=(fake_process, identity, release_write)), mock.patch.object(self.module, "update_json", side_effect=failure):
+            with mock.patch.object(self.module, "systemd_manager_usable", return_value=False), mock.patch.object(self.module, "spawn_contained_process", return_value=(fake_process, identity, release_write)), mock.patch.object(self.module, "update_json", side_effect=failure):
                 with self.assertRaises(self.module.ContractError) as raised:
                     self.module.spawn_worker(root, "work-agent", state["runId"])
             self.assertEqual(raised.exception.code, "process_identity_unavailable")

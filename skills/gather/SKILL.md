@@ -33,6 +33,6 @@ copy.
 `scripts/sync.py` owns destination resolution and configuration. Provider
 syncs are `sync_google_drive.py`, `sync_gmail.py`, `sync_slack.py`,
 `sync_notion.py`, `sync_discord.py`, and `sync_onedrive.py`. Keep
-`.agent-factory/sync.json`, source identifiers, schemas, defaults, credential
+`.agent-factory/document/sync.json`, source identifiers, schemas, defaults, credential
 safety, read-only behavior, and destructive-sync confirmations as the internal
 synchronization contract.

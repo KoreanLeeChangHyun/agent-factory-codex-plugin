@@ -31,28 +31,35 @@ universal document-storage requirement:
 
 ```text
 <project-root>/.agent-factory/
+├── db.sqlite
 ├── agent/
 │   └── <agent-id>/
 │       ├── session.json
 │       └── runs/
 │           └── <run-id>/
-├── explorer/
-│   └── <exploration-id>/
-├── information/
+├── document/
 │   ├── original/
 │   ├── processed/
-│   └── refined/
-│       └── human/
-├── workspace/
+│   ├── specification/
+│   │   └── human/
+│   └── sync.json
+└── workspace/
 │   ├── common/
 │   ├── explorer/
 │   └── skills/
-└── sync.json
 ```
 
-Keep operational Agent runtime state in `agent/`, temporary Work/Explorer
-evidence workspaces in `.agent-factory/explorer/`, and Gather configuration in
-`sync.json`. Use `information/` for
+Use the exact `db.sqlite` path for the current/default local adapter's shared,
+rebuildable, non-authoritative catalog/read model across Agent execution
+structure and Documents. It does not own or replace the authoritative files or
+stores it projects. Its maintained schema asset is
+`skills/workspace/assets/schema/catalog.sql`; the database and SQLite runtime
+sidecars are local generated artifacts and must not be committed.
+
+Keep operational Agent runtime state in `agent/`. Keep temporary execution-only
+Explorer material in the producing managed Agent run. Classify durable Explorer
+evidence as an Original or Processed Document under `document/`. Keep Gather
+configuration in `document/sync.json`. Use `document/` for
 the three Document types: Original, Processed, and Specification. Their
 conceptual ordering is `Original -> Processed -> Specification`, but each arrow
 is only a possible derivation or evidence relationship. The types are not a
@@ -65,16 +72,18 @@ preserve source fidelity, identity, provenance, collection context, and a
 native or source-appropriate form instead of imposing a canonical file format.
 In this local adapter, active Processed Documents are Markdown (`.md`), while
 Processed remains a logical, storage-independent Document type. Store locally
-materialized Human-facing Specifications below `information/refined/human/`;
-the local adapter path name does not define a fourth active Document type.
+materialized Human-facing Specifications below `document/specification/human/`.
 Preserved legacy Inquery artifacts live below
-`information/processed/legacy-inquery/`; do not use them as active targets.
+`document/processed/legacy-inquery/`; do not use them as active targets.
 Within the local adapter's `workspace/`, `common/` owns the shared browser
-shell, `.agent-factory/workspace/explorer/` owns the read-only Workspace
-File/Project Explorer Activity projection, and `skills/` owns Skill navigation. The projection discovers and
-displays the project tree and temporary evidence tree without copying or
-becoming the canonical owner of either.
-Planning reads Human-facing Specifications from `information/refined/human/` rather
+shell, `.agent-factory/workspace/explorer/` owns an internal read-only
+File/Project metadata projection, and `skills/` owns internal read-only Skill
+navigation. These stores define neither an Activity nor nesting under one of
+the five Activities. The Explorer projection discovers and displays the project
+and classified Document trees without copying or becoming the canonical owner
+of either; temporary Explorer material remains in its producing managed Agent
+run.
+Workspace reads Human-facing Specifications from `document/specification/human/` rather
 than owning a document directory.
 
 A Specification is accepted and reconciled project knowledge represented as

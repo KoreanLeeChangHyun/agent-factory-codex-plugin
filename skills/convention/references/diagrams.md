@@ -118,7 +118,7 @@ flowchart LR
     accDescr: Main delegates Work, Verification returns pass or fail, and evidenced Human skip intent is applied only after current Work completes without starting another Verification.
     Explorer[Explorer<br/>accepted capability]
     ExplorerConvention[Convention reference<br/>semantic and authority boundaries]
-    Legacy[Preserved legacy Inquery data<br/>information/processed/legacy-inquery]
+    Legacy[Preserved legacy Inquery data<br/>document/processed/legacy-inquery]
     Work[Managed Work<br/>applies Explorer when needed]
     Explorer --> ExplorerConvention
     Explorer --> Work
@@ -138,9 +138,8 @@ flowchart LR
     Verification -->|fail| Work
     Verification -->|pass| End[END]
     Workspace[Workspace Skill<br/>Human control tower]
-    Workspace --> Main
-    Workspace --> Work
-    Workspace --> Planning[Human-facing Specifications]
+    Workspace --> Activities[Activity Bar top-level order<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트]
+    Activities -. sidebar, source, controls,<br/>and nesting remain undecided .-> HumanDecision[Future Human decision]
 ```
 
 ## Project Skill naming
@@ -185,7 +184,7 @@ flowchart LR
     accTitle: Storage-independent Document roles
     accDescr: Logical Document types and roles may use the local adapter or an explicitly resolved alternative while every adapter preserves the same authority and safety requirements.
     Roles[Logical Document types<br/>and document roles]
-    Roles --> Local[Current/default local adapter<br/>.agent-factory/information/{original, processed, refined}]
+    Roles --> Local[Current/default local adapter<br/>.agent-factory/document/{original, processed, specification}]
     Roles --> Alternative[Explicitly resolved alternative<br/>project server, external store,<br/>mounted filesystem, configured backend]
     Requirements[Provenance, authority, isolation,<br/>alignment, accessibility, security]
     Requirements -. required for every adapter .-> Local
@@ -198,11 +197,12 @@ flowchart LR
 ```mermaid
 flowchart LR
     accTitle: Human-facing Workspace shell and launcher
-    accDescr: Activity Bar, Primary Sidebar, and Workspace form the shell; its read-only Explorer Activity projects the project and temporary evidence trees without owning them, while the launcher is copied once locally and is not required for a server-hosted adapter.
-    Activity[Activity Bar] --> Sidebar[Primary Sidebar] --> Workspace[Workspace]
-    Evidence[Temporary Work and Explorer evidence<br/>.agent-factory/explorer/] -. metadata projection .-> ExplorerActivity[Read-only File and Project Explorer Activity<br/>.agent-factory/workspace/explorer/]
-    Project[Project tree<br/>sensitive control and runtime paths omitted] -. metadata projection .-> ExplorerActivity
-    ExplorerActivity --> Workspace
+    accDescr: The Activity Bar contains only 일정, 에이전트, 문서, 로그, and 테스트 in that order; Primary Sidebar details remain undecided; a non-visible read-only utility projects only the project and classified Original and Processed Document trees without defining an Activity or nesting, while temporary Explorer material remains only in its producing Agent run.
+    Activity[Activity Bar<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트] --> Sidebar[Primary Sidebar<br/>details Human-owned and undecided] --> Workspace[Workspace]
+    Evidence[Classified durable Original and Processed Documents<br/>.agent-factory/document/] -. read-only metadata .-> DiscoveryUtility[Non-visible read-only discovery utility<br/>.agent-factory/workspace/explorer/]
+    Project[Project tree<br/>sensitive control and runtime paths omitted] -. read-only metadata .-> DiscoveryUtility
+    DiscoveryUtility -. defines no Activity or nesting .-> Workspace
+    Temporary[Temporary Explorer material] --> RunLocal[Producing managed Agent run only]
     Asset[skills/workspace/assets/workspace.sh] -->|local copy once| Root[&lt;project-root&gt;/workspace.sh]
     Existing[Existing root workspace.sh] -. preserved even under force .-> Root
     Remote[Server-hosted Workspace] -->|selected host or adapter| Browser[Human browser]

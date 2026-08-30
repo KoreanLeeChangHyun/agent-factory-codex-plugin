@@ -11,7 +11,7 @@ Specification truth.
 Under the current/default local adapter, active Processed Documents are
 Markdown (`.md`). Processed is a logical, storage-independent Document type;
 the Markdown convention does not make the type dependent on the local adapter.
-Preserved material below `information/processed/legacy-inquery/` is historical,
+Preserved material below `document/processed/legacy-inquery/` is historical,
 evidence-only content and is not an active target or format precedent.
 
 ## Relationships and provenance
@@ -29,4 +29,3 @@ promotion from the Processed type.
 
 Explorer may create Processed Documents while performing bounded evidence work
 under Convention. Explorer does not accept or reconcile Specification truth.
-
