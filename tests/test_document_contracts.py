@@ -141,7 +141,7 @@ class DocumentContractTests(unittest.TestCase):
             for name, path in paths.items()
         }
 
-        for name in ("instructions", "bootstrap", "convention", "core_ai"):
+        for name in ("convention", "core_ai"):
             with self.subTest(contract=name):
                 content = contents[name]
                 self.assertIn("source-appropriate", content)
@@ -149,8 +149,6 @@ class DocumentContractTests(unittest.TestCase):
                 self.assertIn("legacy-inquery", content)
 
         for name in (
-            "instructions",
-            "bootstrap",
             "convention",
             "core_ai",
             "document",
@@ -179,11 +177,14 @@ class DocumentContractTests(unittest.TestCase):
         self.assertEqual(instructions_path.read_bytes(), bootstrap_path.read_bytes())
 
         instructions = " ".join(instructions_path.read_text(encoding="utf-8").split())
-        self.assertIn("`SKILL.md` is required", instructions)
-        self.assertIn("do not create empty optional directories", instructions)
+        self.assertIn(
+            "skills/convention/references/agent-factory-core.md", instructions
+        )
+        self.assertIn(
+            "skills/convention/references/directory-structure.md", instructions
+        )
 
         contracts = {
-            "instructions": instructions,
             "convention": " ".join(
                 (ROOT / "skills/convention/SKILL.md").read_text(encoding="utf-8").split()
             ),

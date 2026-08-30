@@ -12,34 +12,6 @@ SKILLS = ROOT / "skills"
 PUBLIC_SKILLS = {"agent", "convention", "document", "gather", "tool", "workspace"}
 
 
-def fenced_tree_paths(content: str) -> set[str]:
-    """Parse parent/child paths from the declared text tree."""
-    block = re.search(r"```text\n(<project-root>/\.agent-factory/.*?)\n```", content, re.S)
-    if block is None:
-        return set()
-
-    paths: set[str] = set()
-    stack: dict[int, str] = {}
-    for index, line in enumerate(block.group(1).splitlines()):
-        match = re.match(r"(?P<prefix>(?:│   |    )*)(?:├── |└── )?(?P<name>.+)", line)
-        if match is None:
-            continue
-        depth = 0 if index == 0 else len(match.group("prefix")) // 4 + 1
-        name = match.group("name").rstrip("/")
-        path = name if depth == 0 else f"{stack[depth - 1]}/{name}"
-        stack[depth] = path
-        paths.add(path)
-    return paths
-
-
-def normalized_paragraphs(content: str) -> list[str]:
-    return [
-        " ".join(re.sub(r"[`*_]", "", block).lower().split())
-        for block in re.split(r"\n\s*\n", content)
-        if block.strip()
-    ]
-
-
 class ConventionSkillMetadataTests(unittest.TestCase):
     def test_readme_declares_adopted_shared_catalog_and_authority_boundary(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -65,72 +37,29 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             with self.subTest(contract=contract):
                 self.assertIn(contract, normalized)
 
-    def test_agent_factory_project_work_root_has_explicit_ownership(self) -> None:
+    def test_agents_entrypoint_routes_to_authoritative_convention_references(self) -> None:
         instructions = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
-        paths = fenced_tree_paths(instructions)
-        self.assertTrue(
-            {
-                "<project-root>/.agent-factory/db.sqlite",
-                "<project-root>/.agent-factory/agent/<agent-id>/session.json",
-                "<project-root>/.agent-factory/agent/<agent-id>/runs/<run-id>",
-                "<project-root>/.agent-factory/document/original",
-                "<project-root>/.agent-factory/document/processed",
-                "<project-root>/.agent-factory/document/specification",
-                "<project-root>/.agent-factory/document/sync.json",
-                "<project-root>/.agent-factory/workspace/common",
-                "<project-root>/.agent-factory/workspace/explorer",
-                "<project-root>/.agent-factory/workspace/skills",
-            }
-            <= paths
-        )
-        paragraphs = normalized_paragraphs(instructions)
-        self.assertTrue(
-            any(
-                re.search(
-                    r"common/ owns the shared browser shell.*workspace/explorer/ owns an internal read-only file/project metadata projection.*skills/ owns internal read-only skill navigation",
-                    paragraph,
-                )
-                for paragraph in paragraphs
-            )
-        )
-        normalized_instructions = " ".join(
-            instructions.casefold().replace("`", "").split()
-        )
-        self.assertIn(
-            "temporary execution-only explorer material in the producing managed agent run",
-            normalized_instructions,
-        )
-        self.assertIn(
-            "durable explorer evidence as an original or processed document",
-            normalized_instructions,
-        )
-        self.assertIn(
-            "these stores define neither an activity nor nesting under one of the five activities",
-            normalized_instructions,
-        )
-        self.assertNotIn(
-            "workspace file/project explorer activity projection",
-            normalized_instructions,
-        )
         self.assertEqual(
             instructions,
             (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(encoding="utf-8"),
         )
-        for semantic_requirement in (
-            "one semantic body",
-            "ai-facing skill",
-            "human-facing korean html, css, and javascript representation",
-            "must remain semantically synchronized",
-            "one-sided change is incomplete and unacceptable",
-            "if both representations cannot be synchronized, do not report the change or run as completed",
-        ):
-            self.assertIn(semantic_requirement, normalized_instructions)
-        self.assertTrue(
-            any(
-                re.search(r"gather.*destination outside this work root", paragraph)
-                for paragraph in paragraphs
-            )
+        self.assertLessEqual(len(instructions.splitlines()), 24)
+        self.assertIn(
+            "skills/convention/references/agent-factory-core.md", instructions
         )
+        self.assertIn(
+            "skills/convention/references/directory-structure.md", instructions
+        )
+        self.assertIn("Use the relevant Agent Factory Skills", instructions)
+        self.assertIn("<plugin-root>/skills/", instructions)
+        self.assertIn("do not create or mirror them", instructions)
+        for duplicated_detail in (
+            "db.sqlite",
+            "one semantic body",
+            "Human-only skip",
+            "Google Drive and OneDrive",
+        ):
+            self.assertNotIn(duplicated_detail, instructions)
 
     def test_public_skill_directories_match_the_six_skill_contract(self) -> None:
         actual = {
