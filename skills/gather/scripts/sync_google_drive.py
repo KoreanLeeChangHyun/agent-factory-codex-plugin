@@ -6,13 +6,7 @@ import io
 import os
 from pathlib import Path
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
-
-from provider_support import DestinationStore, load_index, provenance, resolve, safe_name, save_index, write_bytes
+from provider_support import DestinationStore, load_index, provenance, read_private_json, resolve, safe_name, save_index, sync_manager, write_bytes, write_private_text
 
 SCOPE = ["https://www.googleapis.com/auth/drive.readonly"]
 EXPORTS = {
@@ -25,15 +19,22 @@ EXPORTS = {
 }
 
 
-def credentials(client, token):
-    creds = Credentials.from_authorized_user_file(str(token), SCOPE) if token.exists() else None
+def credentials(client, token, project_root):
+    client_info = read_private_json(
+        client, project_root, "Google OAuth client", required=True
+    )
+    token_info = read_private_json(token, project_root, "Google Drive OAuth token")
+
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import InstalledAppFlow
+
+    creds = Credentials.from_authorized_user_info(token_info, SCOPE) if token_info else None
     if creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
     if not creds or not creds.valid:
-        creds = InstalledAppFlow.from_client_secrets_file(str(client), SCOPE).run_local_server(port=0)
-    token.parent.mkdir(parents=True, exist_ok=True)
-    token.write_text(creds.to_json(), encoding="utf-8")
-    token.chmod(0o600)
+        creds = InstalledAppFlow.from_client_config(client_info, SCOPE).run_local_server(port=0)
+    write_private_text(token, creds.to_json(), project_root, "Google Drive OAuth token")
     return creds
 
 
@@ -53,6 +54,8 @@ def children(service, folder_id):
 
 
 def download(request):
+    from googleapiclient.http import MediaIoBaseDownload
+
     stream = io.BytesIO()
     downloader = MediaIoBaseDownload(stream, request)
     done = False
@@ -75,10 +78,15 @@ def main():
     args = parser.parse_args()
     if args.max_files < 1:
         raise SystemExit("--max-files must be positive")
-    if not args.client.is_file():
-        raise SystemExit(f"OAuth client file not found: {args.client}")
     root = resolve("google-drive", args.destination, args.project_root)
-    service = build("drive", "v3", credentials=credentials(args.client, args.token))
+    from googleapiclient.discovery import build
+
+    project_root = sync_manager.resolve_project_root(args.project_root)
+    service = build(
+        "drive",
+        "v3",
+        credentials=credentials(args.client, args.token, project_root),
+    )
     count, queue = 0, [(args.folder_id, Path())]
     with DestinationStore(root) as store:
         index = load_index(store)

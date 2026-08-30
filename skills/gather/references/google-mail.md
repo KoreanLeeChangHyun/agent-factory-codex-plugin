@@ -91,7 +91,7 @@ source/google/mail/
 Use the bundled script for repeatable imports:
 
 ```bash
-python -m pip install -r <gather-skill-directory>/scripts/requirements.txt
+python -m pip install -r <gather-skill-directory>/requirements.txt
 python <gather-skill-directory>/scripts/sync_gmail.py \
   --query "project-name or search terms" \
   --max-results 100

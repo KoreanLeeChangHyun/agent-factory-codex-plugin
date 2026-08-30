@@ -48,7 +48,8 @@ def main():
     args = parser.parse_args()
     if args.max_messages < 1:
         raise SystemExit("--max-messages must be positive")
-    token, root = require_env(args.token_env), resolve("discord", args.destination, args.project_root)
+    root = resolve("discord", args.destination, args.project_root)
+    token = require_env(args.token_env)
     headers, messages, cursor = {"Authorization": f"Bot {token}"}, [], args.before or args.after
     while len(messages) < args.max_messages:
         params = {"limit": min(100, args.max_messages-len(messages))}

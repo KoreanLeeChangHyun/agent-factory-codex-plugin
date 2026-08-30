@@ -138,6 +138,28 @@ class SyncManagerTests(unittest.TestCase):
         self.assertEqual(existing.read_text(encoding="utf-8"), "preserve")
         self.assertFalse((self.root.parent / "outside").exists())
 
+    def test_destination_cannot_place_gathered_sources_in_work_root(self) -> None:
+        for destination in (
+            ".agent-factory",
+            ".agent-factory/information/original/google-drive",
+            str(self.root / ".agent-factory" / "gathered"),
+        ):
+            with self.subTest(destination=destination):
+                result = run_manager(
+                    self.root,
+                    "resolve",
+                    "--source",
+                    "google-drive",
+                    "--destination",
+                    destination,
+                    check=False,
+                )
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("outside the project .agent-factory", result.stderr)
+
+        self.assertFalse((self.root / ".agent-factory").exists())
+
     def test_set_writes_schema_valid_config_without_creating_destination(
         self,
     ) -> None:

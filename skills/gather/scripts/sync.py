@@ -189,9 +189,20 @@ def reject_relative_symlink_escape(project_root: Path, candidate: Path) -> None:
 def normalize_destination(project_root: Path, value: str) -> Path:
     candidate = validate_destination_text(value)
     if candidate.is_absolute():
-        return candidate.resolve(strict=False)
-    reject_relative_symlink_escape(project_root, candidate)
-    return (project_root / candidate).resolve(strict=False)
+        resolved = candidate.resolve(strict=False)
+    else:
+        reject_relative_symlink_escape(project_root, candidate)
+        resolved = (project_root / candidate).resolve(strict=False)
+
+    # `.agent-factory` is the operational work root. Gather owns only its
+    # sync.json configuration there; source collections must remain in their
+    # separately resolved original-information destination.
+    work_root = (project_root / ".agent-factory").resolve(strict=False)
+    if resolved == work_root or work_root in resolved.parents:
+        raise SyncConfigError(
+            "gather destination must be outside the project .agent-factory work root"
+        )
+    return resolved
 
 
 def resolve_sync_destination(

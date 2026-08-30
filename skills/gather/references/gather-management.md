@@ -31,6 +31,16 @@ Gather owns the project sync configuration and resolver:
 - Precedence: explicit command destination, source-specific project setting,
   then source default.
 
+Gathered source collections must resolve outside `<git-project-root>/.agent-factory/`.
+Gather owns only `.agent-factory/sync.json` inside that operational work root;
+the manager rejects both relative and absolute destinations that would place
+source evidence there.
+
+OAuth client, token, and delegated-auth cache paths must also resolve outside
+the Git project. Provider scripts require regular non-symlink credential files
+and atomically publish generated token/cache content with user-only `0600`
+permissions; they do not repair or follow an unsafe existing path.
+
 Use the manager before a sync operation. It validates the Git top-level,
 validates project configuration, resolves relative destinations from that
 top-level, accepts an explicitly selected absolute destination, and prints the

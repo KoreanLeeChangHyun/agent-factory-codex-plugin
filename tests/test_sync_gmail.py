@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,7 +23,11 @@ def load_script():
     spec = importlib.util.spec_from_file_location("sync_gmail_test", SCRIPT)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.path.insert(0, str(SCRIPT.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.remove(str(SCRIPT.parent))
     return module
 
 
@@ -88,7 +93,8 @@ class GmailDestinationTests(unittest.TestCase):
             original = root / "mail-original"
             outside = root / "outside"
             destination.mkdir()
-            real_open = module.os.open
+            support_os = sys.modules[module.DestinationStore.__module__].os
+            real_open = support_os.open
             swapped = False
 
             def swapping_open(path, flags, *args, **kwargs):
@@ -104,7 +110,7 @@ class GmailDestinationTests(unittest.TestCase):
                     swapped = True
                 return real_open(path, flags, *args, **kwargs)
 
-            with mock.patch.object(module.os, "open", side_effect=swapping_open):
+            with mock.patch.object(support_os, "open", side_effect=swapping_open):
                 with self.assertRaises(OSError):
                     with module.DestinationStore(destination):
                         pass

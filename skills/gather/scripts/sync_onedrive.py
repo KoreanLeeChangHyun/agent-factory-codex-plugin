@@ -7,18 +7,23 @@ import os
 from pathlib import Path
 from urllib.parse import quote
 
-import msal
 import requests
 
-from provider_support import DestinationStore, load_index, provenance, require_env, resolve, safe_name, save_index, write_bytes
+from provider_support import DestinationStore, load_index, provenance, read_private_text, require_env, resolve, safe_name, save_index, sync_manager, write_bytes, write_private_text
 
 GRAPH = "https://graph.microsoft.com/v1.0"
 
 
-def access_token(client_id, tenant, cache_path, shared):
+def access_token(client_id, tenant, cache_path, shared, project_root):
+    cache_text = read_private_text(
+        cache_path, project_root, "OneDrive token cache"
+    )
+
+    import msal
+
     cache = msal.SerializableTokenCache()
-    if cache_path.exists():
-        cache.deserialize(cache_path.read_text(encoding="utf-8"))
+    if cache_text is not None:
+        cache.deserialize(cache_text)
     app = msal.PublicClientApplication(client_id, authority=f"https://login.microsoftonline.com/{tenant}", token_cache=cache)
     scopes = ["Files.Read.All" if shared else "Files.Read"]
     accounts = app.get_accounts()
@@ -31,9 +36,12 @@ def access_token(client_id, tenant, cache_path, shared):
         result = app.acquire_token_by_device_flow(flow)
     if "access_token" not in result:
         raise RuntimeError(result.get("error_description", "Microsoft authentication failed"))
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    cache_path.write_text(cache.serialize(), encoding="utf-8")
-    cache_path.chmod(0o600)
+    write_private_text(
+        cache_path,
+        cache.serialize(),
+        project_root,
+        "OneDrive token cache",
+    )
     return result["access_token"]
 
 
@@ -73,7 +81,14 @@ def main():
     if args.drive_id and not args.include_shared:
         raise SystemExit("--drive-id requires intentional --include-shared consent")
     root = resolve("onedrive", args.destination, args.project_root)
-    token = access_token(require_env(args.client_id_env), args.tenant, args.token_cache, args.include_shared)
+    project_root = sync_manager.resolve_project_root(args.project_root)
+    token = access_token(
+        require_env(args.client_id_env),
+        args.tenant,
+        args.token_cache,
+        args.include_shared,
+        project_root,
+    )
     drive_base = f"{GRAPH}/drives/{graph_component(args.drive_id)}" if args.drive_id else f"{GRAPH}/me/drive"
     if args.item_id:
         initial = graph(token, f"{drive_base}/items/{graph_component(args.item_id)}")

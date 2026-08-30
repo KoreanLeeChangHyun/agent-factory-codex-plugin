@@ -2,6 +2,7 @@
 """Read-only bounded Slack channel history and file downloader."""
 
 import argparse
+import copy
 import json
 from pathlib import Path
 
@@ -19,6 +20,24 @@ def api(token, method, **params):
     return body
 
 
+def sanitized_messages(messages):
+    """Remove bearer-protected download URLs from persisted API evidence."""
+    evidence = copy.deepcopy(messages)
+
+    def scrub(value):
+        if isinstance(value, dict):
+            value.pop("url_private", None)
+            value.pop("url_private_download", None)
+            for child in value.values():
+                scrub(child)
+        elif isinstance(value, list):
+            for child in value:
+                scrub(child)
+
+    scrub(evidence)
+    return evidence
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--channel-id", required=True)
@@ -32,7 +51,8 @@ def main():
     args = parser.parse_args()
     if args.max_messages < 1:
         raise SystemExit("--max-messages must be positive")
-    token, root = require_env(args.token_env), resolve("slack", args.destination, args.project_root)
+    root = resolve("slack", args.destination, args.project_root)
+    token = require_env(args.token_env)
     messages, cursor = [], None
     while len(messages) < args.max_messages:
         body = api(token, "conversations.history", channel=args.channel_id, oldest=args.oldest, latest=args.latest, limit=min(200, args.max_messages-len(messages)), cursor=cursor)
@@ -44,7 +64,7 @@ def main():
     snapshot = Path("channels") / args.channel_id / "snapshots" / selection
     with DestinationStore(root) as store:
         if args.overwrite or store.read_text(snapshot) is None:
-            write_json(store, snapshot, messages)
+            write_json(store, snapshot, sanitized_messages(messages))
         index = load_index(store)
         for message in messages:
             for item in message.get("files", []):

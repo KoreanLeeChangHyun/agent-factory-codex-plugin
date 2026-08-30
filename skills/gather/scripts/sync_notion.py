@@ -74,7 +74,8 @@ def main():
     args = parser.parse_args()
     if args.max_blocks < 1:
         raise SystemExit("--max-blocks must be positive")
-    token, root = require_env(args.token_env), resolve("notion", args.destination, args.project_root)
+    root = resolve("notion", args.destination, args.project_root)
+    token = require_env(args.token_env)
     page = notion(token, f"pages/{args.page_id}")
     blocks, queue = [], [args.page_id]
     while queue and len(blocks) < args.max_blocks:
