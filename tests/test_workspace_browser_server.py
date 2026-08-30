@@ -173,34 +173,45 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         )
         log_icon = icons_by_activity["logs"]
         log_tags = tuple(element.tag for element in tuple(log_icon.iter())[1:])
-        self.assertNotEqual(document_tags, log_tags)
         self.assertNotIn("rect", document_tags)
-        self.assertNotIn("g", document_tags)
-
-        log_rows = log_icon.findall("./g")
-        self.assertEqual(3, len(log_rows))
-        for row in log_rows:
-            self.assertEqual(["path", "path", "path"], [child.tag for child in row])
+        self.assertEqual(["path", "path"], [child.tag for child in log_icon])
+        document_path_data = {
+            child.attrib["d"]
+            for child in icons_by_activity["documents"]
+            if child.tag == "path"
+        }
+        log_path_data = {child.attrib["d"] for child in log_icon}
+        self.assertNotEqual(document_path_data, log_path_data)
+        self.assertEqual(
+            {"M12 8l0 4l2 2", "M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"},
+            log_path_data,
+        )
+        self.assertNotIn("g", log_tags)
         self.assertNotIn("rect", log_tags)
         self.assertNotIn("polyline", log_tags)
         self.assertNotIn("circle", log_tags)
-        self.assertIn("Lucide Logs", html)
+        self.assertIn("Tabler History", html)
         self.assertIn("THIRD_PARTY_NOTICES.txt", html)
+        self.assertNotIn("Lucide", html)
 
         notice = (ASSET_ROOT / "THIRD_PARTY_NOTICES.txt").read_text(
             encoding="utf-8"
         )
+        normalized_notice = " ".join(notice.split())
         for required_notice_text in (
-            "Copyright (c) 2026 Lucide Icons and Contributors",
-            "Permission to use, copy, modify, and/or distribute this software",
-            "this permission notice appear in all copies",
+            "Copyright (c) 2020-2026 Paweł Kuna",
+            "Permission is hereby granted, free of charge",
+            "to use, copy, modify, merge, publish, distribute, sublicense, and/or sell",
+            "this permission notice shall be included in all",
             'THE SOFTWARE IS PROVIDED "AS IS"',
-            "AUTHOR DISCLAIMS ALL WARRANTIES",
-            "IN NO EVENT SHALL THE AUTHOR BE LIABLE",
-            "https://lucide.dev/icons/logs",
-            "https://lucide.dev/license",
+            "WITHOUT WARRANTY OF ANY KIND",
+            "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE",
+            "https://tabler.io/icons/icon/history",
+            "https://github.com/tabler/tabler-icons/blob/main/LICENSE",
         ):
-            self.assertIn(required_notice_text, notice)
+            self.assertIn(required_notice_text, normalized_notice)
+        self.assertNotIn("Lucide", normalized_notice)
+        self.assertNotIn("ISC License", normalized_notice)
 
         styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
         self.assertIn(".activity-button:focus-visible", styles)
