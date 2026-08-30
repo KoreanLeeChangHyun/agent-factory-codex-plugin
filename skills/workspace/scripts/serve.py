@@ -26,6 +26,7 @@ PROJECT_SKILLS_RELATIVE_PATH = Path(".codex/skills")
 DOCUMENT_RELATIVE_PATH = Path(".agent-factory/document")
 PACKAGED_ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets" / "browser"
 PACKAGED_LAUNCHER = Path(__file__).resolve().parents[1] / "assets" / "workspace.sh"
+PACKAGED_WORKSPACE_IGNORE = Path(__file__).resolve().parents[1] / "assets" / "workspace.gitignore"
 PACKAGED_BROWSER_ASSET_PATHS = frozenset(
     {
         Path("index.html"),
@@ -234,6 +235,30 @@ def install_assets(
         launcher_destination.exists() or launcher_destination.is_symlink()
     )
 
+    ignore_destination = workspace_root / ".gitignore"
+    try:
+        ignore_source = PACKAGED_WORKSPACE_IGNORE.resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise ViewerError(
+            f"packaged Workspace ignore rules are missing: {PACKAGED_WORKSPACE_IGNORE}"
+        ) from exc
+    if PACKAGED_WORKSPACE_IGNORE.is_symlink() or not ignore_source.is_file():
+        raise ViewerError(
+            f"packaged Workspace ignore rules must be a regular file: {PACKAGED_WORKSPACE_IGNORE}"
+        )
+    if ignore_destination.exists() or ignore_destination.is_symlink():
+        try:
+            ignore_rule_present = (
+                not ignore_destination.is_symlink()
+                and ignore_destination.is_file()
+                and "/port.json"
+                in ignore_destination.read_text(encoding="utf-8").splitlines()
+            )
+        except (OSError, UnicodeError):
+            ignore_rule_present = False
+        if not ignore_rule_present:
+            activity_conflicts.append(ignore_destination)
+
     planned: list[tuple[Path, Path]] = []
     unchanged = 0
     conflicts: list[Path] = []
@@ -260,6 +285,8 @@ def install_assets(
 
     for activity_directory in activity_directories:
         activity_directory.mkdir(parents=True, exist_ok=True)
+    if not ignore_destination.exists():
+        _atomic_copy_new(ignore_source, ignore_destination, 0o644)
     document_root = project_root / DOCUMENT_RELATIVE_PATH
     _resolved_within(project_root, document_root, "Document directory")
     for type_root in ("original", "processed", "specification"):

@@ -241,8 +241,10 @@ python3 <installed-workspace-skill>/scripts/serve.py \
 
 Initialization copies the packaged `skills/workspace/assets/workspace.sh`
 project template to `<project-root>/workspace.sh` once; it is an asset rather than a
-Skill script to run in place. An existing root launcher is never changed, even
-by `init --force`; force is limited to differing common browser assets. For
+Skill script to run in place. It also installs the exact local `/port.json`
+ignore rule at `.agent-factory/workspace/.gitignore` when absent. An existing
+root launcher is never changed, even by `init --force`; force is limited to
+differing common browser assets. For
 the browser shell, `index.html`, `styles.css`, and `app.js` are the three core
 browser-code files. The packaged `THIRD_PARTY_NOTICES.txt` is a companion
 attribution and license asset, not a fourth browser-code file; initialization
@@ -260,7 +262,10 @@ The self-contained launcher derives the project root from its own location and
 serves only the allowlisted local UI root plus
 `.agent-factory/document/specification/`, so
 `<project-root>/workspace.sh` works from any current directory. `--port <port>` or
-`-p <port>` overrides the safe default port `8000`. `serve.py` remains the
+`-p <port>` selects an explicit port from 1 through 65535 except `8000`.
+Without an explicit value, the server reuses the project's successfully bound
+assignment from `.agent-factory/workspace/port.json`, or safely binds and
+persists another available non-`8000` loopback port. `serve.py` remains the
 internal initializer and advanced safe server; its global `--project-root`
 option can target another Git root before the `init` or `serve` subcommand.
 

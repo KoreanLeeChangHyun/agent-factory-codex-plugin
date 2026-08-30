@@ -107,6 +107,10 @@ assets. Without force, a differing installed browser file is a preflight
 conflict; with force, only differing regular common browser files are replaced
 from the packaged source. Existing path-containment, symlink, atomic-copy, and
 combined-preflight safeguards remain mandatory.
+Initialization also installs `assets/workspace.gitignore` as
+`.agent-factory/workspace/.gitignore` when absent. An existing regular ignore
+file must already contain the exact `/port.json` rule; unsafe or conflicting
+paths fail preflight and are never overwritten.
 
 For normal Human use:
 

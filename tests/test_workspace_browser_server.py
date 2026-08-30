@@ -56,6 +56,16 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             )
         return names
 
+    @staticmethod
+    def _create_servable_workspace(project_root: Path) -> Path:
+        workspace_root = project_root / SERVER.WORKSPACE_RELATIVE_PATH
+        for activity in ("common", *SERVER.ACTIVITY_DIRECTORIES):
+            (workspace_root / activity).mkdir(parents=True, exist_ok=True)
+        (project_root / SERVER.HUMAN_SPECIFICATION_RELATIVE_PATH).mkdir(
+            parents=True
+        )
+        return workspace_root
+
     def test_launchers_have_exact_paths_regular_files_identical_and_executable(self) -> None:
         root_launcher = ROOT / "workspace.sh"
         for launcher_path in (LAUNCHER_PATH, root_launcher):
@@ -84,15 +94,16 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
 
     def test_launcher_is_loopback_only_and_opens_common_by_default(self) -> None:
         launcher = LAUNCHER_PATH.read_text(encoding="utf-8")
-        self.assertIn('port=${1:-8000}', launcher)
-        self.assertIn('ThreadingHTTPServer(("127.0.0.1", port), Handler)', launcher)
+        self.assertIn('ThreadingHTTPServer(("127.0.0.1", 0), Handler)', launcher)
+        self.assertIn("candidate.server_address[1] != forbidden_port", launcher)
+        self.assertIn("publish_port_state(server.server_address[1])", launcher)
         self.assertIn('/common/"', launcher)
         self.assertNotIn("allow-non-loopback", launcher)
 
     def test_launcher_accepts_named_port_and_rejects_invalid_arguments(self) -> None:
         launcher = LAUNCHER_PATH.read_text(encoding="utf-8")
         for contract in (
-            "port=8000",
+            "port=",
             "-p|--port)",
             "-h|--help)",
             'if [ "$#" -lt 2 ]',
@@ -103,7 +114,8 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             "usage >&2",
             "exit 0",
             "exit 2",
-            'set -- "$port"',
+            "port 8000 is reserved and cannot be used",
+            'exec python3 - "$project_root" "$port"',
         ):
             with self.subTest(contract=contract):
                 self.assertIn(contract, launcher)
@@ -642,7 +654,8 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             asset_root = project_root / "packaged-assets"
             asset_root.mkdir()
             (asset_root / "index.html").write_text("asset", encoding="utf-8")
-            existing = project_root / SERVER.WORKSPACE_RELATIVE_PATH / "planning"
+            workspace_root = project_root / SERVER.WORKSPACE_RELATIVE_PATH
+            existing = workspace_root / "planning"
             existing.mkdir(parents=True)
             preserved = existing / "existing.html"
             preserved.write_text("preserve", encoding="utf-8")
@@ -659,6 +672,10 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
             self.assertTrue(specification_root.is_dir())
             self.assertFalse((specification_root / "human").exists())
             self.assertEqual("preserve", preserved.read_text(encoding="utf-8"))
+            self.assertEqual(
+                "/port.json\n",
+                (workspace_root / ".gitignore").read_text(encoding="utf-8"),
+            )
 
     def test_init_materializes_packaged_browser_files_byte_identically(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -832,39 +849,109 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         )
         self.assertTrue(args.allow_non_loopback)
 
-    def test_serve_validates_and_binds_one_resolved_address_collection(self) -> None:
+    def test_automatic_port_is_persisted_and_reused(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             project_root = Path(temporary_directory)
-            workspace_root = project_root / SERVER.WORKSPACE_RELATIVE_PATH
-            for activity in ("common", *SERVER.ACTIVITY_DIRECTORIES):
-                (workspace_root / activity).mkdir(parents=True, exist_ok=True)
-            (project_root / SERVER.HUMAN_SPECIFICATION_RELATIVE_PATH).mkdir(parents=True)
-            addresses = [(SERVER.socket.AF_INET, ("127.0.0.1", 8000))]
+            self._create_servable_workspace(project_root)
+            with mock.patch.object(
+                SERVER.ThreadingHTTPServer,
+                "serve_forever",
+                side_effect=KeyboardInterrupt,
+            ):
+                SERVER.serve(project_root, "127.0.0.1", None, False, False)
+            state_path = project_root / SERVER.PORT_STATE_RELATIVE_PATH
+            first = json.loads(state_path.read_text(encoding="utf-8"))["port"]
+            self.assertIn(first, range(1, 65536))
+            self.assertNotEqual(SERVER.FORBIDDEN_PORT, first)
 
-            with (
-                mock.patch.object(
-                    SERVER, "_resolved_addresses", return_value=addresses
-                ) as resolve,
-                mock.patch.object(
-                    SERVER.ThreadingHTTPServer, "__init__", return_value=None
-                ) as initialize,
-                mock.patch.object(
-                    SERVER.ThreadingHTTPServer,
-                    "server_address",
-                    ("127.0.0.1", 8000),
-                    create=True,
+            with mock.patch.object(
+                SERVER.ThreadingHTTPServer,
+                "serve_forever",
+                side_effect=KeyboardInterrupt,
+            ):
+                SERVER.serve(project_root, "127.0.0.1", None, False, False)
+            self.assertEqual(
+                first,
+                json.loads(state_path.read_text(encoding="utf-8"))["port"],
+            )
+
+    def test_occupied_saved_port_is_reassigned_after_successful_bind(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            self._create_servable_workspace(project_root)
+            blocker = SERVER.socket.socket(
+                SERVER.socket.AF_INET, SERVER.socket.SOCK_STREAM
+            )
+            blocker.bind(("127.0.0.1", 0))
+            blocker.listen()
+            occupied = blocker.getsockname()[1]
+            (project_root / SERVER.PORT_STATE_RELATIVE_PATH).write_text(
+                json.dumps(
+                    {"version": SERVER.PORT_STATE_VERSION, "port": occupied}
                 ),
-                mock.patch.object(
+                encoding="utf-8",
+            )
+            try:
+                with mock.patch.object(
                     SERVER.ThreadingHTTPServer,
                     "serve_forever",
                     side_effect=KeyboardInterrupt,
-                ),
-                mock.patch.object(SERVER.ThreadingHTTPServer, "server_close"),
-            ):
-                SERVER.serve(project_root, "localhost", 8000, False, False)
+                ):
+                    SERVER.serve(project_root, "127.0.0.1", None, False, False)
+            finally:
+                blocker.close()
+            reassigned = json.loads(
+                (project_root / SERVER.PORT_STATE_RELATIVE_PATH).read_text(
+                    encoding="utf-8"
+                )
+            )["port"]
+            self.assertNotEqual(occupied, reassigned)
+            self.assertNotEqual(SERVER.FORBIDDEN_PORT, reassigned)
 
-            resolve.assert_called_once_with("localhost", 8000)
-            self.assertEqual(addresses[0][1], initialize.call_args.args[0])
+    def test_explicit_port_persists_and_8000_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            self._create_servable_workspace(project_root)
+            probe = SERVER.socket.socket(
+                SERVER.socket.AF_INET, SERVER.socket.SOCK_STREAM
+            )
+            probe.bind(("127.0.0.1", 0))
+            explicit = probe.getsockname()[1]
+            probe.close()
+            if explicit == SERVER.FORBIDDEN_PORT:
+                self.skipTest("operating system selected the reserved port for the probe")
+            with mock.patch.object(
+                SERVER.ThreadingHTTPServer,
+                "serve_forever",
+                side_effect=KeyboardInterrupt,
+            ):
+                SERVER.serve(project_root, "127.0.0.1", explicit, False, False)
+            self.assertEqual(explicit, SERVER._read_port_state(project_root))
+            with self.assertRaisesRegex(SERVER.ViewerError, "reserved"):
+                SERVER.serve(project_root, "127.0.0.1", 8000, False, False)
+
+    def test_port_state_rejects_malformed_and_symlinked_files(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            state_path = project_root / SERVER.PORT_STATE_RELATIVE_PATH
+            state_path.parent.mkdir(parents=True)
+            state_path.write_text("not-json", encoding="utf-8")
+            with self.assertRaisesRegex(SERVER.ViewerError, "malformed"):
+                SERVER._read_port_state(project_root)
+            state_path.unlink()
+            target = project_root / "state-target.json"
+            target.write_text(
+                json.dumps(
+                    {"version": SERVER.PORT_STATE_VERSION, "port": 9000}
+                ),
+                encoding="utf-8",
+            )
+            try:
+                os.symlink(target, state_path)
+            except OSError as exc:
+                self.skipTest(f"symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(SERVER.ViewerError, "regular file"):
+                SERVER._read_port_state(project_root)
 
 
 if __name__ == "__main__":
