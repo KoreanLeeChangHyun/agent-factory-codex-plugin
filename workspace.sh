@@ -156,11 +156,14 @@ def read_port_state():
         payload = json.loads(port_state_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
         raise SystemExit(f"error: Workspace port state is malformed: {port_state_path}")
+    version = payload.get("version") if isinstance(payload, dict) else None
     port = payload.get("port") if isinstance(payload, dict) else None
     if (
         not isinstance(payload, dict)
         or set(payload) != {"version", "port"}
-        or payload.get("version") != 1
+        or not isinstance(version, int)
+        or isinstance(version, bool)
+        or version != 1
         or not isinstance(port, int)
         or isinstance(port, bool)
         or port not in range(1, 65536)

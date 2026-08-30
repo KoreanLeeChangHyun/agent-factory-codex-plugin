@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import stat
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -952,6 +953,39 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
                 self.skipTest(f"symlinks unavailable: {exc}")
             with self.assertRaisesRegex(SERVER.ViewerError, "regular file"):
                 SERVER._read_port_state(project_root)
+
+    def test_port_state_rejects_boolean_version(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            state_path = project_root / SERVER.PORT_STATE_RELATIVE_PATH
+            state_path.parent.mkdir(parents=True)
+            state_path.write_text(
+                json.dumps({"version": True, "port": 9000}),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(SERVER.ViewerError, "invalid data"):
+                SERVER._read_port_state(project_root)
+
+    def test_installed_launcher_rejects_boolean_state_version(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            SERVER.install_assets(project_root, ASSET_ROOT, False)
+            state_path = project_root / SERVER.PORT_STATE_RELATIVE_PATH
+            state_path.write_text(
+                json.dumps({"version": True, "port": 9000}),
+                encoding="utf-8",
+            )
+
+            completed = subprocess.run(
+                [str(project_root / "workspace.sh")],
+                cwd=project_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(0, completed.returncode)
+            self.assertIn("contains invalid data", completed.stderr)
 
 
 if __name__ == "__main__":

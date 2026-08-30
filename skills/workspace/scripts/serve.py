@@ -662,15 +662,18 @@ def _read_port_state(project_root: Path) -> int | None:
         raise ViewerError(f"Workspace port state is malformed: {state_path}") from exc
     if not isinstance(payload, dict) or set(payload) != {"version", "port"}:
         raise ViewerError(f"Workspace port state has an invalid shape: {state_path}")
+    version = payload["version"]
     port = payload["port"]
     if (
-        payload["version"] != PORT_STATE_VERSION
+        not isinstance(version, int)
+        or isinstance(version, bool)
+        or version != PORT_STATE_VERSION
         or not isinstance(port, int)
         or isinstance(port, bool)
         or port not in range(1, 65536)
         or port == FORBIDDEN_PORT
     ):
-        raise ViewerError(f"Workspace port state contains an invalid port: {state_path}")
+        raise ViewerError(f"Workspace port state contains invalid data: {state_path}")
     return port
 
 
