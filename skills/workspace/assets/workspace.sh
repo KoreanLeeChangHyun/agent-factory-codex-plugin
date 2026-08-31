@@ -70,6 +70,7 @@ import json
 import mimetypes
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 import shutil
 import sys
@@ -86,6 +87,13 @@ document_path = project_root / ".agent-factory" / "document"
 tree_max_depth = 5
 tree_max_entries = 120
 tree_max_response_bytes = 128 * 1024
+specification_source_max_bytes = 512 * 1024
+specification_meta_names = {
+    "agent-factory:specification-id",
+    "agent-factory:ai-root",
+    "agent-factory:ai-binding-entry",
+}
+specification_skill_metadata_keys = {"specification-id", "human-entry", "ai-root"}
 project_tree_excluded_paths = {
     PurePosixPath(".git"),
     PurePosixPath(".codex"),
@@ -237,6 +245,157 @@ def project_skills() -> list[dict[str, str]]:
     return skills
 
 
+class SpecificationMetaParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.values = {}
+        self.title_parts = []
+        self.in_title = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag.casefold() == "title":
+            self.in_title = True
+            return
+        if tag.casefold() != "meta":
+            return
+        attributes = {name.casefold(): value for name, value in attrs}
+        name = attributes.get("name")
+        content = attributes.get("content")
+        if name in specification_meta_names and content is not None:
+            self.values[name] = content.strip()
+
+    def handle_endtag(self, tag):
+        if tag.casefold() == "title":
+            self.in_title = False
+
+    def handle_data(self, data):
+        if self.in_title:
+            self.title_parts.append(data)
+
+    @property
+    def title(self):
+        return " ".join("".join(self.title_parts).split())
+
+
+def bounded_utf8(path: Path) -> str:
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > specification_source_max_bytes:
+        raise ValueError("unsafe Specification source")
+    return path.read_text(encoding="utf-8")
+
+
+def human_specification_metadata(path: Path):
+    parser = SpecificationMetaParser()
+    parser.feed(bounded_utf8(path))
+    if specification_meta_names - parser.values.keys():
+        raise ValueError("incomplete Specification binding")
+    return parser.values, parser.title
+
+
+def skill_binding_metadata(path: Path):
+    lines = bounded_utf8(path).splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise ValueError("missing Skill frontmatter")
+    closing = next(index for index, line in enumerate(lines[1:], 1) if line.strip() == "---")
+    values = {}
+    in_metadata = False
+    for line in lines[1:closing]:
+        if line == "metadata:":
+            in_metadata = True
+            continue
+        if in_metadata and line and not line.startswith((" ", "\t")):
+            break
+        if not in_metadata:
+            continue
+        stripped = line.strip()
+        if not stripped or ":" not in stripped:
+            continue
+        key, value = stripped.split(":", 1)
+        if key in specification_skill_metadata_keys:
+            values[key] = value.strip().strip("'\"")
+    if specification_skill_metadata_keys - values.keys():
+        raise ValueError("incomplete Skill binding")
+    return values
+
+
+def binding_path(value: str, allow_trailing_slash: bool = False) -> Path:
+    normalized = value.rstrip("/") if allow_trailing_slash else value
+    relative = Path(normalized)
+    if (
+        not normalized
+        or relative.is_absolute()
+        or ".." in relative.parts
+        or "\\" in normalized
+        or relative.as_posix() != normalized
+    ):
+        raise ValueError("invalid binding path")
+    candidate = (project_root / relative).resolve(strict=False)
+    candidate.relative_to(project_root)
+    return candidate
+
+
+def specifications():
+    items = []
+    discovered_ids = set()
+    for candidate in sorted(human_specification_root.iterdir(), key=lambda path: path.name):
+        if candidate.is_symlink() or not candidate.is_dir():
+            continue
+        entry = candidate / "index.html"
+        title = candidate.name
+        status = "misaligned"
+        try:
+            human_metadata, parsed_title = human_specification_metadata(entry)
+            title = parsed_title or title
+            specification_id = human_metadata["agent-factory:specification-id"]
+            ai_root_value = human_metadata["agent-factory:ai-root"]
+            ai_entry_value = human_metadata["agent-factory:ai-binding-entry"]
+            ai_root = binding_path(ai_root_value, allow_trailing_slash=True)
+            ai_entry = binding_path(ai_entry_value)
+            skill_metadata = skill_binding_metadata(ai_entry)
+            expected_human_entry = entry.relative_to(project_root).as_posix()
+            status = (
+                "paired"
+                if specification_id == candidate.name
+                and not ai_root.is_symlink()
+                and ai_root.is_dir()
+                and not ai_entry.is_symlink()
+                and ai_entry.is_file()
+                and ai_entry.is_relative_to(ai_root)
+                and skill_metadata["specification-id"] == specification_id
+                and skill_metadata["human-entry"] == expected_human_entry
+                and skill_metadata["ai-root"].rstrip("/") == ai_root_value.rstrip("/")
+                else "misaligned"
+            )
+        except (KeyError, OSError, UnicodeError, ValueError, StopIteration):
+            specification_id = candidate.name
+        discovered_ids.add(specification_id)
+        items.append({
+            "id": specification_id,
+            "name": title,
+            "href": f"/planning/{quote(candidate.name, safe='')}/index.html" if status == "paired" else None,
+            "status": status,
+        })
+
+    for skill_parent in (project_root / "skills", project_skills_path):
+        if not skill_parent.exists() or skill_parent.is_symlink() or not skill_parent.is_dir():
+            continue
+        for candidate in sorted(skill_parent.iterdir(), key=lambda path: path.name):
+            entry = candidate / "SKILL.md"
+            if candidate.is_symlink() or not candidate.is_dir() or not entry.is_file():
+                continue
+            try:
+                metadata = skill_binding_metadata(entry)
+                specification_id = metadata["specification-id"]
+                human_entry = binding_path(metadata["human-entry"])
+            except (KeyError, OSError, UnicodeError, ValueError, StopIteration):
+                continue
+            if specification_id in discovered_ids or human_entry.is_file():
+                continue
+            discovered_ids.add(specification_id)
+            items.append({"id": specification_id, "name": specification_id, "href": None, "status": "missing-human"})
+
+    return sorted(items, key=lambda item: (item["name"].casefold(), item["id"]))
+
+
 def project_path_is_excluded(relative_path: PurePosixPath) -> bool:
     return any(
         relative_path == excluded or excluded in relative_path.parents
@@ -347,6 +506,28 @@ class Handler(BaseHTTPRequestHandler):
         self.serve(send_body=False)
 
     def serve(self, send_body: bool) -> None:
+        if urlsplit(self.path).path == "/api/specifications":
+            try:
+                payload = json.dumps(
+                    {"specifications": specifications()},
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            except (OSError, UnicodeError, ValueError) as exc:
+                self.send_error(500, str(exc))
+                return
+            if len(payload) > tree_max_response_bytes:
+                self.send_error(500, "Specification response exceeded its deterministic size limit")
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            if send_body:
+                self.wfile.write(payload)
+            return
+
         if urlsplit(self.path).path == "/api/explorer-tree":
             payload = json.dumps(explorer_trees(), ensure_ascii=False, separators=(",", ":")).encode("utf-8")
             if len(payload) > tree_max_response_bytes:

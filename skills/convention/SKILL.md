@@ -82,9 +82,11 @@ filters, sorting, resizing/reordering, and exact ordered columns `문서 분류`
 Specification have overview and consistent explorer/tree-shaped areas for
 actual Documents. `명세 문서` is the standardized Korean display name for the
 Specification type, not a semantic type, identifier, metadata, or path rename.
-Overview content, live source/query integration, synchronization and metadata
-mutation, and the other four sidebar architectures and capabilities remain
-Human-owned and unresolved. Workspace does not own or execute underlying state.
+Specification binding discovery and same-origin Human-document viewing are a
+resolved read-only projection. Original live source/query integration,
+Processed discovery, overview content, synchronization and metadata mutation,
+and the other four sidebar architectures and capabilities remain Human-owned
+and unresolved. Workspace does not own or execute underlying state.
 Its browser shell must exist as byte-identical packaged installation sources in
 `skills/workspace/assets/browser/` and a materialized current-project copy in
 `.agent-factory/workspace/common/`; the packaged assets are the installation

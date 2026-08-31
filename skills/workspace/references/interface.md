@@ -42,6 +42,16 @@ for actual Documents. The Korean UI label is exactly `명세 문서`, while the
 semantic type, identifier, metadata, and path remain Specification and
 `specification`.
 
+The Specification region loads `/api/specifications`, which discovers the
+resolved project's Human HTML entry points and AI Skill counterparts through
+their reciprocal binding metadata. Render each `paired` Human document title
+as a same-origin link. Selecting it loads the existing
+`/planning/<id>/index.html` in the Workspace document area without copying or
+editing it. Show `misaligned` and `missing-human` entries as non-navigable error
+states, an empty result as `연결된 명세 문서가 없습니다.`, and request failure
+as `명세 문서를 불러오지 못했습니다.`. Accept only same-origin paths below
+`/planning/` in the browser.
+
 The Original search table is a read-only metadata and source-link projection.
 It does not copy, normalize, or edit Original bodies, and it does not own or
 trigger Gather synchronization. No live browser query/API/source adapter,
@@ -61,9 +71,9 @@ utilities do not authorize a top-level Activity or a data integration beyond
 this decided Document view shape.
 The Original overview content uses the compact workspace inset directly,
 without an editor header. The Document Sidebar's terminal Specification group
-has no trailing bottom divider below its unresolved connection message;
-separators between the three groups remain. These chrome decisions do not
-resolve the overview's contents.
+has no trailing bottom divider below its discovery list or visible discovery
+state; separators between the three groups remain. These chrome decisions do
+not resolve the overview's contents.
 
 Use actual SVG for every user-facing icon. Preserve semantic HTML, keyboard
 access, visible focus, readable contrast, responsive behavior, and usable

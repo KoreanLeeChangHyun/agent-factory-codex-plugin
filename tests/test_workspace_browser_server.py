@@ -67,6 +67,49 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         )
         return workspace_root
 
+    @staticmethod
+    def _create_specification_pair(
+        project_root: Path, specification_id: str, title: str
+    ) -> tuple[Path, Path]:
+        skill_root = project_root / "skills" / specification_id
+        human_root = (
+            project_root
+            / SERVER.HUMAN_SPECIFICATION_RELATIVE_PATH
+            / specification_id
+        )
+        skill_root.mkdir(parents=True)
+        human_root.mkdir(parents=True)
+        skill_entry = skill_root / "SKILL.md"
+        human_entry = human_root / "index.html"
+        skill_entry.write_text(
+            "\n".join(
+                (
+                    "---",
+                    f"name: {specification_id}",
+                    "metadata:",
+                    f"  specification-id: {specification_id}",
+                    f"  human-entry: .agent-factory/document/specification/{specification_id}/index.html",
+                    f"  ai-root: skills/{specification_id}/",
+                    "---",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        human_entry.write_text(
+            "".join(
+                (
+                    '<!doctype html><html lang="ko"><head>',
+                    f'<meta name="agent-factory:specification-id" content="{specification_id}">',
+                    f'<meta name="agent-factory:ai-root" content="skills/{specification_id}/">',
+                    f'<meta name="agent-factory:ai-binding-entry" content="skills/{specification_id}/SKILL.md">',
+                    f"<title>{title}</title></head><body></body></html>",
+                )
+            ),
+            encoding="utf-8",
+        )
+        return skill_entry, human_entry
+
     def test_launchers_have_exact_paths_regular_files_identical_and_executable(self) -> None:
         root_launcher = ROOT / "workspace.sh"
         for launcher_path in (LAUNCHER_PATH, root_launcher):
@@ -204,9 +247,11 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn('id="processed-tree-state"', document_sidebar)
         self.assertIn('id="specification-tree-state"', document_sidebar)
         self.assertEqual(
-            2,
+            1,
             document_sidebar.count("문서 연결 방식은 Human 결정을 기다리고 있습니다"),
         )
+        self.assertIn("명세 문서를 불러오는 중입니다.", document_sidebar)
+        self.assertIn("data-specification-list", document_sidebar)
         self.assertNotIn("legacy-inquery", document_sidebar)
         self.assertNotIn("notes.md", document_sidebar)
 
@@ -242,16 +287,21 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertNotIn("<button", search_view)
         self.assertIn("데이터 연결 대기", search_view)
 
-    def test_document_views_start_visible_with_plain_overview_styling(self) -> None:
+    def test_document_overviews_start_visible_and_specification_frame_starts_hidden(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
         document_view_openings = [
             line.strip()
             for line in html.splitlines()
             if "data-document-view=" in line
         ]
-        self.assertEqual(4, len(document_view_openings))
-        self.assertTrue(
-            all(" hidden" not in opening for opening in document_view_openings)
+        self.assertEqual(5, len(document_view_openings))
+        self.assertEqual(
+            1,
+            sum(" hidden" in opening for opening in document_view_openings),
+        )
+        self.assertIn(
+            'data-document-view="specification-document" hidden',
+            document_view_openings[-1],
         )
         self.assertIn(
             'class="activity-button is-active" type="button" '
@@ -265,7 +315,7 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn("height: 22px", styles)
         self.assertIn(".document-navigation:focus-within", styles)
         self.assertIn(".editor-header__tab", styles)
-        self.assertEqual(2, html.count('class="editor-header__tab"'))
+        self.assertEqual(3, html.count('class="editor-header__tab"'))
         self.assertIn("가공 문서 / 개요", html)
         self.assertIn("명세 문서 / 개요", html)
         self.assertIn(".document-view__canvas", styles)
@@ -459,7 +509,8 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertNotIn("roadmap:", script)
         self.assertNotIn("explorer:", script)
         self.assertNotIn("skills:", script)
-        self.assertNotIn("fetch(", script)
+        self.assertIn('fetch("/api/specifications"', script)
+        self.assertIn("loadSpecifications();", script)
         self.assertIn("const selectDocumentView", script)
         self.assertIn('item.setAttribute("aria-current", "page")', script)
         self.assertIn("view.hidden = view !== nextView", script)
@@ -494,7 +545,7 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn('icon.setAttribute("aria-hidden", "true")', script)
         self.assertIn('icon.setAttribute("focusable", "false")', script)
         self.assertIn("window.agentFactoryWorkspace.originalSearch.replaceRows(rows)", script)
-        self.assertNotIn("fetch(", script)
+        self.assertNotIn('fetch("/api/original', script)
 
     def test_explorer_projection_separates_project_and_classified_documents(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -640,6 +691,109 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
                 ],
             )
 
+    def test_specification_discovery_requires_reciprocal_pair_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            self._create_specification_pair(project_root, "domain-orders", "주문 도메인 명세")
+            _, misaligned_human = self._create_specification_pair(
+                project_root, "domain-payments", "결제 도메인 명세"
+            )
+            misaligned_human.write_text(
+                misaligned_human.read_text(encoding="utf-8").replace(
+                    'content="skills/domain-payments/"',
+                    'content="skills/wrong/"',
+                ),
+                encoding="utf-8",
+            )
+            missing_skill = project_root / "skills" / "domain-missing"
+            missing_skill.mkdir(parents=True)
+            (missing_skill / "SKILL.md").write_text(
+                "\n".join(
+                    (
+                        "---",
+                        "name: domain-missing",
+                        "metadata:",
+                        "  specification-id: domain-missing",
+                        "  human-entry: .agent-factory/document/specification/domain-missing/index.html",
+                        "  ai-root: skills/domain-missing/",
+                        "---",
+                    )
+                ),
+                encoding="utf-8",
+            )
+
+            specifications = {
+                item["id"]: item
+                for item in SERVER.discover_specifications(project_root)
+            }
+            self.assertEqual("paired", specifications["domain-orders"]["status"])
+            self.assertEqual(
+                "/planning/domain-orders/index.html",
+                specifications["domain-orders"]["href"],
+            )
+            self.assertEqual("주문 도메인 명세", specifications["domain-orders"]["name"])
+            self.assertEqual("misaligned", specifications["domain-payments"]["status"])
+            self.assertIsNone(specifications["domain-payments"]["href"])
+            self.assertEqual("missing-human", specifications["domain-missing"]["status"])
+            self.assertIsNone(specifications["domain-missing"]["href"])
+
+    def test_specification_api_returns_bound_human_documents(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            project_root = Path(temporary_directory)
+            common = self._create_servable_workspace(project_root) / "common"
+            self._create_specification_pair(project_root, "domain-orders", "주문 도메인 명세")
+            handler = functools.partial(
+                SERVER.WorkspaceRequestHandler,
+                served_roots={
+                    "common": common,
+                    "planning": project_root / SERVER.HUMAN_SPECIFICATION_RELATIVE_PATH,
+                },
+                project_root=project_root,
+            )
+            server = SERVER.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            thread = threading.Thread(target=server.serve_forever)
+            thread.start()
+            try:
+                connection = http.client.HTTPConnection(
+                    "127.0.0.1", server.server_address[1]
+                )
+                connection.request("GET", "/api/specifications")
+                response = connection.getresponse()
+                payload = json.loads(response.read().decode("utf-8"))
+                connection.close()
+                self.assertEqual(200, response.status)
+                self.assertEqual("nosniff", response.getheader("X-Content-Type-Options"))
+                self.assertEqual(
+                    [
+                        {
+                            "id": "domain-orders",
+                            "name": "주문 도메인 명세",
+                            "href": "/planning/domain-orders/index.html",
+                            "status": "paired",
+                        }
+                    ],
+                    payload["specifications"],
+                )
+            finally:
+                server.shutdown()
+                thread.join()
+                server.server_close()
+
+    def test_workspace_renders_discovered_specification_in_same_origin_frame(self) -> None:
+        html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
+        script = (ASSET_ROOT / "app.js").read_text(encoding="utf-8")
+        styles = (ASSET_ROOT / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("data-specification-list", html)
+        self.assertIn("data-specification-frame", html)
+        self.assertIn('data-document-view="specification-document"', html)
+        self.assertIn('fetch("/api/specifications"', script)
+        self.assertIn('resolved.pathname.startsWith("/planning/")', script)
+        self.assertIn('resolved.origin === window.location.origin', script)
+        self.assertIn('selectDocumentView("specification-document")', script)
+        self.assertIn("textContent = item.name", script)
+        self.assertIn('target !== "specification-document"', script)
+        self.assertIn(".specification-document-frame", styles)
+
     def test_packaged_and_root_launchers_expose_project_skill_projection(self) -> None:
         for launcher_path in (LAUNCHER_PATH, ROOT / "workspace.sh"):
             with self.subTest(launcher=launcher_path):
@@ -647,6 +801,7 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
                 self.assertIn('project_skills_path = project_root / ".codex" / "skills"', launcher)
                 self.assertIn('"/api/project-skills"', launcher)
                 self.assertIn('"/api/explorer-tree"', launcher)
+                self.assertIn('"/api/specifications"', launcher)
                 self.assertIn('"project-skills"', launcher)
 
     def test_init_creates_empty_activity_directories_and_preserves_content(self) -> None:

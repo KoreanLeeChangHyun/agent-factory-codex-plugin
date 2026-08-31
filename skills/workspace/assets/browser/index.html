@@ -71,7 +71,8 @@
                   <a class="document-navigation__item" href="#document-specification-overview" data-document-target="specification-overview">개요</a>
                 </nav>
                 <div class="document-tree" role="region" aria-label="명세 문서 탐색기" aria-describedby="specification-tree-state">
-                  <p class="document-tree__state" id="specification-tree-state">문서 연결 방식은 Human 결정을 기다리고 있습니다.</p>
+                  <p class="document-tree__state" id="specification-tree-state" role="status" aria-live="polite">명세 문서를 불러오는 중입니다.</p>
+                  <nav class="document-tree__list" aria-label="연결된 명세 문서" data-specification-list hidden></nav>
                 </div>
               </div>
             </section>
@@ -118,6 +119,10 @@
           <article class="document-view" id="document-specification-overview" data-document-view="specification-overview">
             <header class="editor-header"><span class="editor-header__tab">명세 문서 / 개요</span></header>
             <div class="document-view__canvas"><p class="document-view__status">상세 정의 대기</p><h1>명세 문서 개요</h1><p>명세 문서는 Human이 수락·조정한 Specification 지식이며, Human-facing 문서와 AI-facing Skill의 faithful pair를 유지합니다.</p><p>개요의 세부 내용은 Human 정의를 기다리고 있습니다.</p></div>
+          </article>
+          <article class="document-view specification-document-view" id="document-specification-document" data-document-view="specification-document" hidden>
+            <header class="editor-header"><span class="editor-header__tab" data-specification-tab>명세 문서</span></header>
+            <iframe class="specification-document-frame" title="선택한 명세 문서" data-specification-frame></iframe>
           </article>
         </section>
         <section class="workspace-view" data-workspace-view="logs" hidden><div class="oversight-introduction"><span class="source-state">정의 대기</span><h1>로그</h1><p>이 Activity의 상세 기능, 내부 구조, source와 control은 Human 결정을 기다리고 있습니다.</p></div></section>

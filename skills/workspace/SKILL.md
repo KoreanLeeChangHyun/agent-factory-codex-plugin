@@ -32,10 +32,15 @@ and persistence remain unresolved, so it exposes only a small in-browser row
 adapter and truthfully reports `데이터 연결 대기` until data is supplied.
 Processed and Specification each have `개요` and a consistent explorer/tree-shaped
 area for actual Documents. `명세 문서` is the exact Korean UI label and does
-not rename the Specification type, identifier, metadata, or path. Overview details, live Document
-discovery/source integration, and the other four Activities' sidebar
-architectures and capabilities remain Human-owned and unresolved; show those
-states honestly and do not invent hierarchy, data, metrics, or controls.
+not rename the Specification type, identifier, metadata, or path. Specification
+discovery reads reciprocal Human HTML and AI Skill binding metadata from the
+resolved project, reports `paired`, `misaligned`, or `missing-human`, and lists
+only `paired` entries as same-origin links that open the Korean HTML/CSS/JS
+representation inside the Workspace. It does not copy, generate, accept, or
+edit either representation. Processed discovery/source integration, overview
+details, and the other four Activities' sidebar architectures and capabilities
+remain Human-owned and unresolved; show those states honestly and do not invent
+hierarchy, data, metrics, or controls.
 Workspace owns the browser shell, navigation, Activity views, local read-only
 serving, and project-root launcher. It does not become the canonical owner or
 executor of projected state.
@@ -49,9 +54,9 @@ through 65535, may not be `8000`, and become the saved project assignment only
 after a successful bind. Malformed or unsafe state fails closed.
 The Original overview uses the compact content region without an editor header.
 In the Document Sidebar, the terminal Specification group has no trailing
-bottom divider below its unresolved connection message; separators between the
-three groups remain. This visual treatment does not resolve the still-undecided
-Original overview contents.
+bottom divider below its read-only discovery list or visible discovery state;
+separators between the three groups remain. This visual treatment does not
+resolve the still-undecided Original overview contents.
 
 The browser shell has two required forms: reusable installation sources below
 `assets/browser/` and the current project's installed publication below
@@ -119,6 +124,13 @@ mismatches are reported fail-closed as `misaligned`.
 An explicitly bound Skill with an unavailable declared Human entry is reported
 as `missing-human`; discovery never creates the missing Specification or a
 Skill root.
+
+The local Workspace server exposes this bounded result at
+`/api/specifications`. The browser renders the Human document title for each
+`paired` entry and loads its allowlisted `/planning/<id>/index.html` URL in the
+Workspace document area. `misaligned` and `missing-human` entries remain
+visible as non-navigable error states. The response contains binding metadata
+and links only, never Specification bodies or Skill contents.
 
 Ordinary consumer-project pairs use the exact same lowercase hyphen-case
 `<category>-<title>` identity under `.codex/skills/` and

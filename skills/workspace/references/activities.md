@@ -26,7 +26,9 @@ prominent, independently collapsible groups in exactly this order:
 2. `가공 문서`: accessible `개요` navigation and an explorer/tree-shaped area
    reserved for actual Processed Documents.
 3. `명세 문서`: accessible `개요` navigation and the same explorer/tree-shaped
-   area reserved for actual Specification Documents.
+   area. Its read-only discovery lists reciprocally `paired` Human HTML and AI
+   Skill representations and opens the existing Human document inside the
+   Workspace. `misaligned` and `missing-human` stay visible but non-navigable.
 
 `명세 문서` is the exact Korean UI spelling. It does not rename the logical
 Specification type, identifier, metadata, or path. The Original search surface is only a read-only metadata
@@ -38,6 +40,9 @@ authority and persistence remain Human-owned and unresolved. Show the truthful
 sync controls, or editing. A small in-browser row adapter is only a boundary for
 a future owner-backed loader; the implemented bounded catalog search CLI does
 not connect or resolve this Activity source. Overview contents remain unresolved.
+This unresolved source/query boundary applies to Original search and Processed
+discovery; it does not negate the explicitly resolved read-only Specification
+binding discovery endpoint.
 
 The other four Activities—Schedule, Agents, Logs, and Tests—still have no
 decided Primary Sidebar information architecture or detailed capabilities.

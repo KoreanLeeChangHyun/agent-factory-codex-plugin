@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from html.parser import HTMLParser
 from urllib.parse import quote, unquote, urlsplit
 import webbrowser
 
@@ -47,6 +48,17 @@ ACTIVITY_DIRECTORIES = ("explorer", "skills")
 TREE_MAX_DEPTH = 5
 TREE_MAX_ENTRIES = 120
 TREE_MAX_RESPONSE_BYTES = 128 * 1024
+SPECIFICATION_SOURCE_MAX_BYTES = 512 * 1024
+SPECIFICATION_META_NAMES = {
+    "agent-factory:specification-id",
+    "agent-factory:ai-root",
+    "agent-factory:ai-binding-entry",
+}
+SPECIFICATION_SKILL_METADATA_KEYS = {
+    "specification-id",
+    "human-entry",
+    "ai-root",
+}
 PROJECT_TREE_EXCLUDED_PATHS = {
     PurePosixPath(".git"),
     PurePosixPath(".codex"),
@@ -58,6 +70,42 @@ PROJECT_TREE_EXCLUDED_PATHS = {
 
 class ViewerError(RuntimeError):
     """A safe, user-facing viewer failure."""
+
+
+class _SpecificationMetaParser(HTMLParser):
+    """Read reciprocal binding metadata and a Human-facing title."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.values: dict[str, str] = {}
+        self.title_parts: list[str] = []
+        self.in_title = False
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        if tag.casefold() == "title":
+            self.in_title = True
+            return
+        if tag.casefold() != "meta":
+            return
+        attributes = {name.casefold(): value for name, value in attrs}
+        name = attributes.get("name")
+        content = attributes.get("content")
+        if name in SPECIFICATION_META_NAMES and content is not None:
+            self.values[name] = content.strip()
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() == "title":
+            self.in_title = False
+
+    def handle_data(self, data: str) -> None:
+        if self.in_title:
+            self.title_parts.append(data)
+
+    @property
+    def title(self) -> str:
+        return " ".join("".join(self.title_parts).split())
 
 
 def _is_within(parent: Path, child: Path) -> bool:
@@ -362,6 +410,179 @@ def discover_project_skills(project_root: Path) -> list[dict[str, str]]:
     return skills
 
 
+def _bounded_utf8(path: Path) -> str:
+    if path.is_symlink() or not path.is_file():
+        raise ViewerError(f"Specification source is not a safe regular file: {path}")
+    try:
+        if path.stat().st_size > SPECIFICATION_SOURCE_MAX_BYTES:
+            raise ViewerError(f"Specification source is too large: {path}")
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        raise ViewerError(f"Specification source is unreadable: {path}") from exc
+
+
+def _human_specification_metadata(path: Path) -> tuple[dict[str, str], str]:
+    parser = _SpecificationMetaParser()
+    try:
+        parser.feed(_bounded_utf8(path))
+    except ValueError as exc:
+        raise ViewerError(f"Specification binding metadata is malformed: {path}") from exc
+    if SPECIFICATION_META_NAMES - parser.values.keys():
+        raise ViewerError(f"Specification binding metadata is incomplete: {path}")
+    return parser.values, parser.title
+
+
+def _skill_binding_metadata(path: Path) -> dict[str, str]:
+    lines = _bounded_utf8(path).splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise ViewerError(f"Specification Skill frontmatter is missing: {path}")
+    try:
+        closing = next(
+            index for index, line in enumerate(lines[1:], 1) if line.strip() == "---"
+        )
+    except StopIteration as exc:
+        raise ViewerError(f"Specification Skill frontmatter is malformed: {path}") from exc
+
+    values: dict[str, str] = {}
+    in_metadata = False
+    for line in lines[1:closing]:
+        if line == "metadata:":
+            in_metadata = True
+            continue
+        if in_metadata and line and not line.startswith((" ", "\t")):
+            break
+        if not in_metadata:
+            continue
+        stripped = line.strip()
+        if not stripped or ":" not in stripped:
+            continue
+        key, value = stripped.split(":", 1)
+        if key in SPECIFICATION_SKILL_METADATA_KEYS:
+            values[key] = value.strip().strip("'\"")
+    if SPECIFICATION_SKILL_METADATA_KEYS - values.keys():
+        raise ViewerError(f"Specification Skill binding is incomplete: {path}")
+    return values
+
+
+def _binding_path(
+    project_root: Path,
+    value: str,
+    description: str,
+    *,
+    allow_trailing_slash: bool = False,
+) -> Path:
+    normalized = value.rstrip("/") if allow_trailing_slash else value
+    relative = Path(normalized)
+    if (
+        not normalized
+        or relative.is_absolute()
+        or ".." in relative.parts
+        or "\\" in normalized
+        or relative.as_posix() != normalized
+    ):
+        raise ViewerError(f"invalid {description}: {value}")
+    return _resolved_within(project_root, project_root / relative, description)
+
+
+def discover_specifications(project_root: Path) -> list[dict[str, str | None]]:
+    """Discover reciprocal Human/AI Specification pairs without copying them."""
+
+    specification_root = _resolved_within(
+        project_root,
+        project_root / HUMAN_SPECIFICATION_RELATIVE_PATH,
+        "Human Specification directory",
+    )
+    if not specification_root.exists():
+        return []
+    if specification_root.is_symlink() or not specification_root.is_dir():
+        raise ViewerError(
+            f"Human Specification path is not a safe directory: {specification_root}"
+        )
+
+    specifications: list[dict[str, str | None]] = []
+    discovered_ids: set[str] = set()
+    for candidate in sorted(specification_root.iterdir(), key=lambda path: path.name):
+        if candidate.is_symlink() or not candidate.is_dir():
+            continue
+        entry = candidate / "index.html"
+        title = candidate.name
+        status = "misaligned"
+        try:
+            human_metadata, parsed_title = _human_specification_metadata(entry)
+            title = parsed_title or title
+            specification_id = human_metadata["agent-factory:specification-id"]
+            ai_root_value = human_metadata["agent-factory:ai-root"]
+            ai_entry_value = human_metadata["agent-factory:ai-binding-entry"]
+            ai_root = _binding_path(
+                project_root,
+                ai_root_value,
+                "Specification AI root",
+                allow_trailing_slash=True,
+            )
+            ai_entry = _binding_path(
+                project_root, ai_entry_value, "Specification AI binding entry"
+            )
+            skill_metadata = _skill_binding_metadata(ai_entry)
+            expected_human_entry = entry.relative_to(project_root).as_posix()
+            status = (
+                "paired"
+                if specification_id == candidate.name
+                and not ai_root.is_symlink()
+                and ai_root.is_dir()
+                and not ai_entry.is_symlink()
+                and ai_entry.is_file()
+                and _is_within(ai_root, ai_entry)
+                and skill_metadata["specification-id"] == specification_id
+                and skill_metadata["human-entry"] == expected_human_entry
+                and skill_metadata["ai-root"].rstrip("/") == ai_root_value.rstrip("/")
+                else "misaligned"
+            )
+        except (KeyError, OSError, ValueError, ViewerError):
+            specification_id = candidate.name
+        discovered_ids.add(specification_id)
+        specifications.append(
+            {
+                "id": specification_id,
+                "name": title,
+                "href": (
+                    f"/planning/{quote(candidate.name, safe='')}/index.html"
+                    if status == "paired"
+                    else None
+                ),
+                "status": status,
+            }
+        )
+
+    for skill_parent in (project_root / "skills", project_root / PROJECT_SKILLS_RELATIVE_PATH):
+        if not skill_parent.exists() or skill_parent.is_symlink() or not skill_parent.is_dir():
+            continue
+        for candidate in sorted(skill_parent.iterdir(), key=lambda path: path.name):
+            entry = candidate / "SKILL.md"
+            if candidate.is_symlink() or not candidate.is_dir() or not entry.is_file():
+                continue
+            try:
+                metadata = _skill_binding_metadata(entry)
+                specification_id = metadata["specification-id"]
+                human_entry = _binding_path(
+                    project_root, metadata["human-entry"], "Specification Human entry"
+                )
+            except (KeyError, OSError, ValueError, ViewerError):
+                continue
+            if specification_id in discovered_ids or human_entry.is_file():
+                continue
+            discovered_ids.add(specification_id)
+            specifications.append(
+                {
+                    "id": specification_id,
+                    "name": specification_id,
+                    "href": None,
+                    "status": "missing-human",
+                }
+            )
+
+    return sorted(specifications, key=lambda item: (str(item["name"]).casefold(), str(item["id"])))
+
+
 def _project_tree_path_is_excluded(relative_path: PurePosixPath) -> bool:
     return any(
         relative_path == excluded or excluded in relative_path.parents
@@ -531,6 +752,23 @@ class WorkspaceRequestHandler(BaseHTTPRequestHandler):
         self._serve(send_body=False)
 
     def _serve(self, send_body: bool) -> None:
+        if urlsplit(self.path).path == "/api/specifications":
+            try:
+                payload = _json_response_bytes(
+                    {"specifications": discover_specifications(self.project_root)}
+                )
+            except (OSError, ViewerError) as exc:
+                self.send_error(500, str(exc))
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            if send_body:
+                self.wfile.write(payload)
+            return
+
         if urlsplit(self.path).path == "/api/explorer-tree":
             try:
                 payload = _json_response_bytes(discover_explorer_trees(self.project_root))

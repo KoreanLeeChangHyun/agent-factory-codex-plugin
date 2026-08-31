@@ -12,6 +12,10 @@ const originalSearchState = document.querySelector("[data-original-search-state]
 const originalSearchFailure = document.querySelector("[data-original-search-failure]");
 const originalTableElement = document.querySelector("[data-original-table]");
 const originalTableFallback = document.querySelector("[data-original-table-fallback]");
+const specificationList = document.querySelector("[data-specification-list]");
+const specificationTreeState = document.getElementById("specification-tree-state");
+const specificationFrame = document.querySelector("[data-specification-frame]");
+const specificationTab = document.querySelector("[data-specification-tab]");
 const minimumSidebarWidth = 180;
 const maximumSidebarWidth = 520;
 const activityTitles = {
@@ -206,6 +210,96 @@ const initializeOriginalSearch = () => {
   }
 };
 
+const specificationStatusLabel = (status) => {
+  if (status === "missing-human") return "사람용 명세 문서 없음";
+  return "바인딩 불일치";
+};
+
+const safeSpecificationHref = (value) => {
+  if (typeof value !== "string" || value.trim() === "") return null;
+  try {
+    const resolved = new URL(value, window.location.href);
+    return resolved.origin === window.location.origin && resolved.pathname.startsWith("/planning/")
+      ? resolved
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const openSpecification = (item, link) => {
+  const href = safeSpecificationHref(item.href);
+  if (!href || !specificationFrame) return;
+  document.querySelectorAll("[data-specification-link]").forEach((candidate) => {
+    const isCurrent = candidate === link;
+    candidate.classList.toggle("is-selected", isCurrent);
+    if (isCurrent) candidate.setAttribute("aria-current", "page");
+    else candidate.removeAttribute("aria-current");
+  });
+  specificationFrame.src = href.href;
+  specificationFrame.title = `${item.name} 명세 문서`;
+  if (specificationTab) specificationTab.textContent = item.name;
+  selectActivity("documents");
+  selectDocumentView("specification-document");
+};
+
+const loadSpecifications = async () => {
+  if (!specificationList || !specificationTreeState) return;
+  try {
+    const response = await fetch("/api/specifications", {
+      headers: { Accept: "application/json" },
+      credentials: "same-origin",
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    if (!payload || !Array.isArray(payload.specifications)) {
+      throw new TypeError("명세 문서 응답 형식이 올바르지 않습니다.");
+    }
+
+    specificationList.replaceChildren();
+    payload.specifications.forEach((rawItem) => {
+      const item = {
+        id: rawItem?.id == null ? "" : String(rawItem.id),
+        name: rawItem?.name == null ? "" : String(rawItem.name),
+        href: rawItem?.href,
+        status: rawItem?.status == null ? "misaligned" : String(rawItem.status),
+      };
+      const href = item.status === "paired" ? safeSpecificationHref(item.href) : null;
+      if (href) {
+        const link = document.createElement("a");
+        link.className = "document-navigation__item";
+        link.href = href.href;
+        link.textContent = item.name || item.id;
+        link.dataset.specificationLink = item.id;
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          openSpecification(item, link);
+        });
+        specificationList.append(link);
+        return;
+      }
+      const state = document.createElement("span");
+      state.className = "document-tree__item-status";
+      state.textContent = `${item.name || item.id} · ${specificationStatusLabel(item.status)}`;
+      specificationList.append(state);
+    });
+
+    if (payload.specifications.length === 0) {
+      specificationTreeState.textContent = "연결된 명세 문서가 없습니다.";
+      specificationTreeState.hidden = false;
+      specificationList.hidden = true;
+      return;
+    }
+    specificationTreeState.textContent = `명세 문서 ${payload.specifications.length}개`;
+    specificationTreeState.hidden = true;
+    specificationList.hidden = false;
+  } catch {
+    specificationList.hidden = true;
+    specificationTreeState.hidden = false;
+    specificationTreeState.textContent = "명세 문서를 불러오지 못했습니다.";
+  }
+};
+
 const selectActivity = (activity) => {
   if (!Object.hasOwn(activityTitles, activity)) return;
 
@@ -235,6 +329,12 @@ const selectDocumentView = (target) => {
     if (isCurrent) item.setAttribute("aria-current", "page");
     else item.removeAttribute("aria-current");
   });
+  if (target !== "specification-document") {
+    document.querySelectorAll("[data-specification-link]").forEach((item) => {
+      item.classList.remove("is-selected");
+      item.removeAttribute("aria-current");
+    });
+  }
   documentViews.forEach((view) => {
     view.hidden = view !== nextView;
   });
@@ -287,6 +387,7 @@ documentGroupToggles.forEach((toggle) => {
 
 selectDocumentView("original-overview");
 initializeOriginalSearch();
+loadSpecifications();
 
 if (sidebarResizer) {
   sidebarResizer.addEventListener("pointerdown", (event) => {

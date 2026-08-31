@@ -133,6 +133,15 @@ schedule data, Agent runtime state, Documents, logs, or tests. This decision
 comes from
 `.agent-factory/agent/workspace-document-work/runs/run-20260830T141127363791Z-f665d487/request.md`.
 
+The current Human decision resolves one narrower source contract: the
+Specification region must show the project's Human-facing HTML/CSS/JS
+Specifications paired with their owning AI Skills. Workspace therefore reads
+reciprocal binding metadata, reports `paired`, `misaligned`, or
+`missing-human`, lists paired Human titles, and opens their existing
+allowlisted `/planning/<id>/index.html` entries inside the Workspace. It never
+copies, generates, accepts, or edits either representation. Original live
+source/query integration and Processed discovery remain unresolved.
+
 The Workspace publication decision requires its browser code in two forms:
 reusable installation sources below `skills/workspace/assets/browser/` and the
 current project's installed publication below
@@ -533,9 +542,12 @@ resizing and reordering. Only document-name cells link to source Originals;
 provider cells combine visible provider text with decorative inline SVG.
 Processed and Specification provide overview and consistent explorer/tree
 regions for actual Documents. The UI label does not rename Specification.
-Overview content, live source/query integration, synchronization and metadata
-mutation, and the other four Activity sidebars and capabilities remain
-Human-owned and unresolved. The packaged
+Specification discovery validates reciprocal Human HTML and AI Skill binding
+metadata, renders paired Human titles, exposes mismatch and missing-Human
+states, and opens only same-origin `/planning/` entries in the Workspace.
+Original live source/query integration, Processed discovery, overview content,
+synchronization and metadata mutation, and the other four Activity sidebars
+and capabilities remain Human-owned and unresolved. The packaged
 browser presents explicit awaiting-definition or awaiting-connection states
 rather than project data or inferred source behavior.
 Workspace does not become the canonical owner or executor of schedule data,
@@ -631,9 +643,12 @@ target conceptual model:
    shapes are decided. Original search also has decided six-column ordering,
    global and per-column filtering, sorting, link/provider-cell behavior,
    responsive sizing, and Human column resizing/reordering. Its overview
-   content, live source/query integration, synchronization trigger and status,
-   metadata-mutation authority and persistence, and the other four Activities'
-   sidebar architecture and detailed capabilities remain unresolved. The Agent
+   content, Original live source/query integration, Processed discovery,
+   synchronization trigger and status, metadata-mutation authority and
+   persistence, and the other four Activities' sidebar architecture and
+   detailed capabilities remain unresolved. Specification binding discovery
+   and same-origin Human-document viewing are resolved read-only projections.
+   The Agent
    runtime has an owning local contract, but the Workspace decision does not
    define its projection.
    Catalog search screens, HTTP/general query APIs, semantic/vector search,
@@ -685,8 +700,11 @@ When changing either projection, compare both and preserve:
   overview/table/tree shapes; exact six-column Original search order and
   behavior; exact spaced Korean UI terminology without logical type,
   identifier, metadata, or path rename;
-  unresolved overview/live source-query/sync/mutation contracts and other four
-  sidebars; no aliases or inferred data behavior; the owner-mediated boundary;
+  reciprocal Specification binding discovery with paired/misaligned/
+  missing-human states and same-origin Human-document viewing; unresolved
+  Original live source-query, Processed discovery, overview, sync, mutation,
+  and other four sidebars; no aliases or inferred data behavior; the
+  owner-mediated boundary;
   and the local
   byte-identical packaged-browser-to-materialized-common publication contract,
   including the three core browser-code files and the installed, byte-identical
