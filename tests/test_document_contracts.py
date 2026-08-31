@@ -85,9 +85,10 @@ class DocumentContractTests(unittest.TestCase):
         entry = (DOCUMENT / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(entry.casefold().split())
         for term in (
-            "original (원본문서)",
-            "processed (가공문서)",
-            "specification (스펙 문서)",
+            "original (원본 문서)",
+            "processed (가공 문서)",
+            "specification (명세 문서)",
+            "exact korean terms `원본 문서`, `가공 문서`, and `명세 문서`",
             "original -> processed -> specification",
             "not a mandatory pipeline",
             "one-to-many",
@@ -705,8 +706,8 @@ class DocumentContractTests(unittest.TestCase):
         for phrase in (
             "temporary execution-only material remains in the producing managed Agent run",
             "exactly five top-level Activities in this order: 일정, 에이전트, 문서, 로그, 테스트",
-            "원본문서`, `가공문서`, and `스펙문서`",
-            "The UI label does not rename Specification",
+            "원본 문서`, `가공 문서`, and `명세 문서`",
+            "they do not rename logical types, identifiers, metadata, or paths",
             "other four Activity sidebars and capabilities remain Human-owned and unresolved",
             "both forms must exist and remain byte-identical",
             "packaged files are the reusable installation source",
@@ -744,11 +745,11 @@ class DocumentContractTests(unittest.TestCase):
         )
         for phrase in (
             "정확히 다섯 Activity",
-            "원본문서",
-            "가공문서",
-            "스펙문서",
+            "원본 문서",
+            "가공 문서",
+            "명세 문서",
             "Agent-owned db.sqlite",
-            "논리 type은 Specification",
+            "논리 type, identifier, metadata, path는 기존 Specification",
         ):
             self.assertIn(phrase, human)
         self.assertNotIn("<td>로드맵</td>", human)

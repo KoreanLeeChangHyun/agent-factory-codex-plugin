@@ -98,10 +98,10 @@ const documentNameFormatter = (cell) => {
 
 const normalizeOriginalRow = (row) => {
   if (!row || typeof row !== "object" || Array.isArray(row)) {
-    throw new TypeError("원본문서 행은 객체여야 합니다.");
+    throw new TypeError("원본 문서 행은 객체여야 합니다.");
   }
   if (row.sourceIdentity == null || String(row.sourceIdentity).trim() === "") {
-    throw new TypeError("원본문서 행에는 stable sourceIdentity가 필요합니다.");
+    throw new TypeError("원본 문서 행에는 stable sourceIdentity가 필요합니다.");
   }
   const normalized = {};
   originalSearchFields.forEach((field) => {
@@ -184,15 +184,15 @@ const initializeOriginalSearch = () => {
     const workspaceAdapter = window.agentFactoryWorkspace || {};
     workspaceAdapter.originalSearch = Object.freeze({
       replaceRows(rows) {
-        if (!Array.isArray(rows)) throw new TypeError("원본문서 행 목록은 배열이어야 합니다.");
+        if (!Array.isArray(rows)) throw new TypeError("원본 문서 행 목록은 배열이어야 합니다.");
         const normalizedRows = rows.map(normalizeOriginalRow);
         const sourceIdentities = new Set(normalizedRows.map((row) => row.sourceIdentity));
         if (sourceIdentities.size !== normalizedRows.length) {
-          throw new TypeError("원본문서 sourceIdentity는 행마다 고유해야 합니다.");
+          throw new TypeError("원본 문서 sourceIdentity는 행마다 고유해야 합니다.");
         }
         return table.replaceData(normalizedRows).then(() => {
           applyGlobalSearch();
-          setOriginalSearchState(normalizedRows.length ? `원본문서 메타데이터 ${normalizedRows.length}건 표시` : "데이터 연결 대기");
+          setOriginalSearchState(normalizedRows.length ? `원본 문서 메타데이터 ${normalizedRows.length}건 표시` : "데이터 연결 대기");
         });
       },
     });

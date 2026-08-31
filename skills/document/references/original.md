@@ -2,7 +2,7 @@
 
 ## Type contract
 
-An Original (원본문서) is source-faithful evidence. Preserve source fidelity,
+An Original (원본 문서) is source-faithful evidence. Preserve source fidelity,
 identity, provenance, collection context, and a native or source-appropriate
 form. Original Documents may use diverse source formats; never impose one
 canonical Original format.
@@ -30,4 +30,3 @@ it does not reconcile claims or promote evidence into a Specification.
 An Original created or preserved by Explorer follows the same fidelity and
 provenance rules. Explorer remains a Convention-owned capability applied in a
 bounded Work task, not a public Skill.
-

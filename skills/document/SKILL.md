@@ -14,9 +14,9 @@ metadata:
 Use this Skill to define or maintain Documents and their type-specific
 contracts. `Document` is the neutral umbrella for exactly three active types:
 
-- **Original (원본문서):** source-faithful evidence;
-- **Processed (가공문서):** transformations and derived working knowledge;
-- **Specification (스펙 문서):** accepted and reconciled project knowledge
+- **Original (원본 문서):** source-faithful evidence;
+- **Processed (가공 문서):** transformations and derived working knowledge;
+- **Specification (명세 문서):** accepted and reconciled project knowledge
   with faithful Human- and AI-facing representations.
 
 Use the conceptual ordering `Original -> Processed -> Specification`, but treat
@@ -29,6 +29,11 @@ a relationship exists.
 
 Do not introduce Refined as a fourth active Document type or combine the three
 active type names.
+
+Use the exact Korean terms `원본 문서`, `가공 문서`, and `명세 문서` in
+Human-facing text and UI. `명세 문서` is the Korean name for the existing
+Specification type; it does not rename the logical type, identifier, metadata,
+or `specification` path. This terminology is an explicit Human decision.
 
 Gather owns external synchronization and may use a connector whose lifecycle
 is prepared through Tool; Tool does not own or produce the resulting Original

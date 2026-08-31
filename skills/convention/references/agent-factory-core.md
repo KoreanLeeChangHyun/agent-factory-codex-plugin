@@ -111,12 +111,14 @@ not top-level items. This decision comes from
 `.agent-factory/agent/workspace-work/runs/run-20260830T090533619149Z-bfd9f5fa/request.md`.
 
 The superseding Document Activity decision defines only its Primary Sidebar
-and main-view shapes. It has three prominent, independently collapsible groups
-in order: `원본문서`, `가공문서`, and `스펙문서`. Original has `개요` and
+and main-view shapes. It has three prominent, independently collapsible groups.
+The current Human terminology decision standardizes their exact Korean names,
+in order, as `원본 문서`, `가공 문서`, and `명세 문서`. These names map to
+the existing Original, Processed, and Specification types; they do not rename
+logical types, identifiers, metadata, or paths. Original has `개요` and
 `문서검색`, with search selecting a semantic table shell. Processed and
 Specification each have `개요` and consistent explorer/tree-shaped regions
-reserved for actual Documents. The no-space `스펙문서` spelling is the UI
-label and does not rename the Specification type. That decision initially left
+reserved for actual Documents. The earlier decision initially left
 overview details, table columns and behavior, and discovery/source integration
 unresolved. The current Workspace contract has since fixed the Original search
 view as a compact, tab-free Tabulator 6.5.2 table with global search,
@@ -317,8 +319,11 @@ is exposed by its selected host or adapter and is not required to use
 
 ## Document model
 
-`Document` is the neutral umbrella for three active logical types: Original,
-Processed, and Specification. Their conceptual ordering is
+`Document` is the neutral umbrella for three active logical types: Original
+(`원본 문서`), Processed (`가공 문서`), and Specification (`명세 문서`).
+The exact Korean names are standardized Human-facing terminology; the English
+logical types and the `original`, `processed`, and `specification` identifiers,
+metadata, and paths remain unchanged. Their conceptual ordering is
 `Original -> Processed -> Specification`, but each arrow expresses only a
 possible derivation or evidence relationship. The ordering is not a mandatory
 pipeline, state machine, required transition, one-to-one mapping, completeness
@@ -328,7 +333,7 @@ many-to-one, or many-to-many. Preserve inspectable provenance for relationships
 that actually exist. Refined is not a fourth active type, and the three active
 type names are never combined.
 
-### Original Document (원본문서)
+### Original Document (원본 문서)
 
 Source-faithful evidence with inspectable provenance. Fidelity to the source,
 source identity, and collection context must be retained in the native or
@@ -336,7 +341,7 @@ source-appropriate form. Original Documents may have diverse formats; do not
 impose one canonical file format. Original does not mean inferior, incomplete,
 or untrusted and implies no required successor.
 
-### Processed Document (가공문서)
+### Processed Document (가공 문서)
 
 Analysis, comparison, hypotheses, research results, interview results, and
 other transformations. A Processed Document may be useful and well-supported,
@@ -349,7 +354,7 @@ Document package. Preserved historical Inquery packages use direct
 and record legacy only as status/provenance. They are not active targets or
 format precedents.
 
-### Specification (스펙 문서)
+### Specification (명세 문서)
 
 Accepted and reconciled project knowledge that preserves important provenance,
 records honest unresolved state, and defines requirements, constraints, or a
@@ -519,8 +524,8 @@ changes, and infers no push, amend, force, or history-rewrite authority.
 Workspace is the Human-facing project control tower with exactly five
 top-level Activities in this order: 일정, 에이전트, 문서, 로그, 테스트. No
 other top-level item or alias is allowed. The Document Primary Sidebar has the
-decided ordered, independently collapsible `원본문서`, `가공문서`, and
-`스펙문서` groups. Original provides overview and a compact, tab-free Tabulator
+decided ordered, independently collapsible `원본 문서`, `가공 문서`, and
+`명세 문서` groups. Original provides overview and a compact, tab-free Tabulator
 6.5.2 search view with global search, filters on all six exact ordered columns
 (`문서 분류`, `출처`, `태그`, `문서 이름`, `확장자`, `수정 일자`),
 responsive width distribution with narrow-view horizontal overflow, and Human
@@ -676,9 +681,10 @@ When changing either projection, compare both and preserve:
 - the Workspace-owned VS Code-shaped Activity Bar, Primary Sidebar, and main
   Workspace relationship; exactly five ordered top-level items labeled 일정,
   에이전트, 문서, 로그, 테스트; the ordered, independently collapsible
-  `원본문서`, `가공문서`, `스펙문서` Document groups and their decided
+  `원본 문서`, `가공 문서`, `명세 문서` Document groups and their decided
   overview/table/tree shapes; exact six-column Original search order and
-  behavior; exact no-space UI spelling without semantic type rename;
+  behavior; exact spaced Korean UI terminology without logical type,
+  identifier, metadata, or path rename;
   unresolved overview/live source-query/sync/mutation contracts and other four
   sidebars; no aliases or inferred data behavior; the owner-mediated boundary;
   and the local

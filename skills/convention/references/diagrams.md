@@ -37,9 +37,9 @@ flowchart LR
     accTitle: Agent Factory Document types
     accDescr: Document is the neutral umbrella for Original, Processed, and Specification Documents; the conceptual ordering shows only optional provenance relationships that may be absent or have any cardinality.
     D[Document<br/>neutral umbrella]
-    O[Original Document<br/>원본문서<br/>source-faithful evidence and provenance]
-    P[Processed Document<br/>가공문서<br/>analysis, comparison, hypotheses, interviews]
-    S[Specification<br/>스펙 문서<br/>accepted reconciled project knowledge]
+    O[Original Document<br/>원본 문서<br/>source-faithful evidence and provenance]
+    P[Processed Document<br/>가공 문서<br/>analysis, comparison, hypotheses, interviews]
+    S[Specification<br/>명세 문서<br/>accepted reconciled project knowledge]
     D --> O
     D --> P
     D --> S
@@ -148,7 +148,7 @@ flowchart LR
     Verification -->|pass| End[END]
     Workspace[Workspace Skill<br/>Human control tower]
     Workspace --> Activities[Activity Bar top-level order<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트]
-    Activities --> DocumentSidebar[문서 Sidebar<br/>원본문서 · 가공문서 · 스펙문서]
+    Activities --> DocumentSidebar[문서 Sidebar<br/>원본 문서 · 가공 문서 · 명세 문서]
     DocumentSidebar -. finer view details and source integration unresolved .-> HumanDecision[Future Human decision]
     Activities -. other four sidebars and controls unresolved .-> HumanDecision
 ```
@@ -210,7 +210,7 @@ flowchart LR
 flowchart LR
     accTitle: Human-facing Workspace shell and launcher
     accDescr: The Activity Bar contains only 일정, 에이전트, 문서, 로그, and 테스트 in that order; the Document sidebar has ordered Original, Processed, and Specification UI groups with decided overview, table, and tree shapes while finer details and the other four sidebars remain unresolved; a non-visible read-only utility projects only the project and classified Original and Processed Document trees without supplying the unresolved live source contract, while temporary Explorer material remains only in its producing Agent run.
-    Activity[Activity Bar<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트] --> Sidebar[문서 Primary Sidebar<br/>원본문서 · 가공문서 · 스펙문서] --> Workspace[Workspace<br/>overview · table · tree shapes]
+    Activity[Activity Bar<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트] --> Sidebar[문서 Primary Sidebar<br/>원본 문서 · 가공 문서 · 명세 문서] --> Workspace[Workspace<br/>overview · table · tree shapes]
     Activity -. other four sidebars unresolved .-> HumanDecision[Future Human decision]
     Sidebar -. details and live source integration unresolved .-> HumanDecision
     Evidence[Classified durable Original and Processed Documents<br/>.agent-factory/document/] -. read-only metadata .-> DiscoveryUtility[Non-visible read-only discovery utility<br/>.agent-factory/workspace/explorer/]

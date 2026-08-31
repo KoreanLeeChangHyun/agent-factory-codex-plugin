@@ -20,7 +20,7 @@
     <div class="meta"><span>Specification ID: workspace</span><span>AI: skills/workspace/</span><span>Human: specification/workspace/</span></div>
   </header>
   <div class="layout">
-    <nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#activities">정확히 다섯 Activity</a><a href="#documents">문서 Sidebar</a><a href="#original-search">원본문서 검색</a><a href="#launcher">프로젝트별 포트</a><a href="#projection">읽기 모델과 권위</a></nav>
+    <nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#activities">정확히 다섯 Activity</a><a href="#documents">문서 Sidebar</a><a href="#original-search">원본 문서 검색</a><a href="#launcher">프로젝트별 포트</a><a href="#projection">읽기 모델과 권위</a></nav>
     <main id="content" tabindex="-1">
       <section id="activities" data-ai-sources="skills/workspace/SKILL.md;skills/workspace/references/activities.md" aria-labelledby="activities-title">
         <p class="eyebrow">01</p><h2 id="activities-title">정확히 다섯 Activity</h2>
@@ -30,13 +30,13 @@
       </section>
       <section id="documents" data-ai-sources="skills/workspace/SKILL.md;skills/workspace/references/activities.md;skills/workspace/references/interface.md" aria-labelledby="documents-title">
         <p class="eyebrow">02</p><h2 id="documents-title">문서 Sidebar</h2>
-        <p class="lead">문서 Activity만 원본문서·가공문서·스펙문서 세 그룹의 기본 형태가 결정되어 있습니다.</p>
-        <div class="table"><table><thead><tr><th>그룹</th><th>화면</th></tr></thead><tbody><tr><th>원본문서</th><td>개요와 Tabulator 기반 문서검색</td></tr><tr><th>가공문서</th><td>개요와 explorer/tree</td></tr><tr><th>스펙문서</th><td>개요와 explorer/tree</td></tr></tbody></table></div>
-        <p class="note"><code>스펙문서</code>는 UI label이며 논리 type은 Specification입니다. 원본문서 개요는 간결한 content 영역을 직접 사용하고 editor header를 표시하지 않습니다. 문서 Sidebar에서는 마지막 스펙문서 그룹의 연결 대기 문구 아래에 끝 구분선을 표시하지 않되 세 그룹 사이의 구분선은 유지합니다. 이 화면 표현은 아직 결정되지 않은 개요 내용 자체를 정의하지 않습니다.</p>
+        <p class="lead">문서 Activity만 원본 문서·가공 문서·명세 문서 세 그룹의 기본 형태가 결정되어 있습니다.</p>
+        <div class="table"><table><thead><tr><th>그룹</th><th>화면</th></tr></thead><tbody><tr><th>원본 문서</th><td>개요와 Tabulator 기반 문서검색</td></tr><tr><th>가공 문서</th><td>개요와 explorer/tree</td></tr><tr><th>명세 문서</th><td>개요와 explorer/tree</td></tr></tbody></table></div>
+        <p class="note"><code>명세 문서</code>는 정확한 한국어 UI 명칭이며 논리 type, identifier, metadata, path는 기존 Specification과 <code>specification</code>을 유지합니다. 원본 문서 개요는 간결한 content 영역을 직접 사용하고 editor header를 표시하지 않습니다. 문서 Sidebar에서는 마지막 명세 문서 그룹의 연결 대기 문구 아래에 끝 구분선을 표시하지 않되 세 그룹 사이의 구분선은 유지합니다. 이 화면 표현은 아직 결정되지 않은 개요 내용 자체를 정의하지 않습니다.</p>
         <p class="source"><strong>AI 원문 매핑:</strong> <code>skills/workspace/SKILL.md</code>, <code>skills/workspace/references/activities.md</code>, <code>skills/workspace/references/interface.md</code></p>
       </section>
       <section id="original-search" data-ai-sources="skills/workspace/SKILL.md;skills/workspace/references/activities.md;skills/workspace/references/interface.md;skills/workspace/assets/browser/index.html;skills/workspace/assets/browser/app.js;skills/workspace/assets/browser/styles.css;skills/workspace/assets/browser/THIRD_PARTY_NOTICES.txt" aria-labelledby="original-search-title">
-        <p class="eyebrow">03</p><h2 id="original-search-title">원본문서 검색</h2>
+        <p class="eyebrow">03</p><h2 id="original-search-title">원본 문서 검색</h2>
         <p class="lead">위쪽 탭과 넓은 카드 없이 12px 안쪽 여백을 유지하는 간결한 VS Code형 표 화면입니다. 로컬에 고정한 Tabulator 6.5.2를 사용합니다.</p>
         <div class="table"><table><thead><tr><th>순서</th><th>표시 이름</th><th>동작</th></tr></thead><tbody><tr><td>1</td><td>문서 분류</td><td>정렬·열 필터</td></tr><tr><td>2</td><td>출처</td><td>실제 inline SVG와 보이는 provider 이름, 정렬·열 필터</td></tr><tr><td>3</td><td>태그</td><td>정렬·열 필터</td></tr><tr><td>4</td><td>문서 이름</td><td>header가 아닌 각 cell만 source Original 링크, 정렬·열 필터</td></tr><tr><td>5</td><td>확장자</td><td>정렬·열 필터</td></tr><tr><td>6</td><td>수정 일자</td><td>정렬·열 필터</td></tr></tbody></table></div>
         <p>보이는 여섯 metadata field 전체를 대상으로 하는 접근 가능한 전체 검색 입력이 있고, 입력은 code나 markup이 아니라 literal text로만 비교합니다. <code>fitColumns</code>와 content에 맞춘 열별 <code>widthGrow</code> 비율로 일반 desktop 너비를 여섯 열에 자동 분배하며, 열별 최소 너비와 표의 최소 너비로 실제로 좁은 화면에서는 가로 overflow를 유지합니다. Human의 열 크기 변경과 순서 변경, library가 제공하는 keyboard·focus 동작도 유지합니다. 문서 이름은 DOM API로 안전하게 만들며 <code>http:</code>과 <code>https:</code> 이외의 scheme은 링크로 만들지 않습니다. 외부 링크에는 opener와 referrer 격리를 적용하고 stable source identity를 cell에 보존합니다.</p>
@@ -54,7 +54,7 @@
         <p class="eyebrow">05</p><h2 id="projection-title">읽기 모델과 권위</h2>
         <p class="lead">Workspace는 상태를 보여 주고 owner-backed control을 연결하지만 Agent나 Document의 canonical owner가 아닙니다.</p>
         <div class="diagram" role="img" aria-label="Agent 소유 카탈로그의 읽기 전용 결과를 Workspace가 향후 표시할 수 있는 경계"><span class="node">Agent-owned db.sqlite</span><svg viewBox="0 0 40 20" aria-hidden="true"><path d="M2 10h34m-6-5 6 5-6 5"/></svg><span class="node">owner-provided read-only results</span><svg viewBox="0 0 40 20" aria-hidden="true"><path d="M2 10h34m-6-5 6 5-6 5"/></svg><span class="node">Workspace</span></div>
-        <p>카탈로그의 schema와 manager, 초기화, rebuild, status, 검색 실행, publication과 recovery는 모두 Agent가 소유합니다. Workspace의 <code>serve.py init</code>은 카탈로그를 만들지 않으며 Workspace는 DB에 직접 접근하거나 명령을 실행하지 않습니다. 향후 명시적인 Agent-owned interface가 제공하는 read-only 결과를 표시할 수 있을 뿐이며, 현재 catalog/search UI나 source/query binding은 구현되지 않았습니다. 원본문서 검색 표에도 Agent 카탈로그 CLI가 연결되어 있지 않습니다.</p>
+        <p>카탈로그의 schema와 manager, 초기화, rebuild, status, 검색 실행, publication과 recovery는 모두 Agent가 소유합니다. Workspace의 <code>serve.py init</code>은 카탈로그를 만들지 않으며 Workspace는 DB에 직접 접근하거나 명령을 실행하지 않습니다. 향후 명시적인 Agent-owned interface가 제공하는 read-only 결과를 표시할 수 있을 뿐이며, 현재 catalog/search UI나 source/query binding은 구현되지 않았습니다. 원본 문서 검색 표에도 Agent 카탈로그 CLI가 연결되어 있지 않습니다.</p>
         <p class="source"><strong>AI 원문 매핑:</strong> <code>skills/workspace/SKILL.md</code>, <code>skills/workspace/references/interface.md</code></p>
       </section>
     </main>

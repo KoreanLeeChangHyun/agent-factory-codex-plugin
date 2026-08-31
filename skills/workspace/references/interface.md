@@ -23,8 +23,8 @@ overview/dashboard, Roadmap, or alias buttons.
 
 One Activity Bar item owns one corresponding Primary Sidebar view and one main
 Workspace view. The Document sidebar contains three prominent, independently
-collapsible explorer-like groups in this order: `원본문서`, `가공문서`, and
-`스펙문서`. Original provides `개요` and `문서검색`; the search item selects a
+collapsible explorer-like groups in this order: `원본 문서`, `가공 문서`, and
+`명세 문서`. Original provides `개요` and `문서검색`; the search item selects a
 compact semantic table view with no top tab bar. It uses the locally vendored,
 exactly pinned Tabulator 6.5.2 distribution for sorting, column resize/reorder,
 global text search, and filters on every column. Its exact visible order and
@@ -38,8 +38,9 @@ The `문서 이름` header is plain text; each populated name cell is the source
 link. `출처` shows decorative inline SVG plus visible provider text so color is
 never the only distinction. Processed and Specification each provide
 `개요` and visually and semantically consistent explorer/tree-shaped regions
-for actual Documents. The UI spelling is exactly `스펙문서`, while the
-semantic type remains Specification.
+for actual Documents. The Korean UI label is exactly `명세 문서`, while the
+semantic type, identifier, metadata, and path remain Specification and
+`specification`.
 
 The Original search table is a read-only metadata and source-link projection.
 It does not copy, normalize, or edit Original bodies, and it does not own or

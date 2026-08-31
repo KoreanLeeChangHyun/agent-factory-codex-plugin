@@ -2,7 +2,7 @@
 
 ## Type contract
 
-A Processed (가공문서) contains transformations or derived working knowledge,
+A Processed (가공 문서) contains transformations or derived working knowledge,
 including analysis, comparison, hypotheses, research results, interview
 results, and conclusions. Processed material can be useful and well-supported,
 but it is non-authoritative working knowledge and is not accepted or reconciled

@@ -24,8 +24,8 @@ The plugin exposes exactly six public skills:
   independently returns pass or fail unless the Human skips it.
 - `convention`: Own and apply the Agent Factory core model plus directory,
   development, library, design, annotation, and document conventions.
-- `document`: Define and maintain Original (원본문서), Processed (가공문서),
-  and Specification (스펙 문서) Documents. The conceptual ordering
+- `document`: Define and maintain Original (원본 문서), Processed (가공 문서),
+  and Specification (명세 문서) Documents. The conceptual ordering
   `Original -> Processed -> Specification` expresses only possible derivation
   or evidence relationships; relationships may be absent, one-to-many,
   many-to-one, or many-to-many. A Specification is accepted and reconciled

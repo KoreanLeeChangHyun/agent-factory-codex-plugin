@@ -172,22 +172,22 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
     def test_document_sidebar_has_decided_groups_and_navigation(self) -> None:
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
         group_labels = (
-            '<span id="original-group-label">원본문서</span>',
-            '<span id="processed-group-label">가공문서</span>',
-            '<span id="specification-group-label">스펙문서</span>',
+            '<span id="original-group-label">원본 문서</span>',
+            '<span id="processed-group-label">가공 문서</span>',
+            '<span id="specification-group-label">명세 문서</span>',
         )
         positions = [html.index(label) for label in group_labels]
         self.assertEqual(positions, sorted(positions))
         self.assertEqual(3, html.count("data-document-group-toggle"))
         self.assertEqual(3, html.count('aria-expanded="true"'))
-        self.assertIn('aria-label="원본문서 보기"', html)
+        self.assertIn('aria-label="원본 문서 보기"', html)
         self.assertIn('data-document-target="original-overview">개요</a>', html)
         self.assertIn('data-document-target="original-search">문서검색</a>', html)
-        self.assertIn('aria-label="가공문서 보기"', html)
+        self.assertIn('aria-label="가공 문서 보기"', html)
         self.assertIn('data-document-target="processed-overview">개요</a>', html)
-        self.assertIn('aria-label="스펙문서 보기"', html)
+        self.assertIn('aria-label="명세 문서 보기"', html)
         self.assertIn('data-document-target="specification-overview">개요</a>', html)
-        self.assertNotIn("스펙 문서 보기", html)
+        self.assertNotIn("명세문서 보기", html)
 
         document_sidebar_start = html.index(
             '<div class="sidebar-view document-sidebar"'
@@ -235,7 +235,7 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn('data-original-table-fallback', search_view)
         self.assertIn('data-original-table', search_view)
         self.assertNotIn(
-            "원본문서 본문을 변경하거나 복제하지 않는 메타데이터·출처 링크 보기입니다.",
+            "원본 문서 본문을 변경하거나 복제하지 않는 메타데이터·출처 링크 보기입니다.",
             search_view,
         )
         self.assertNotIn("<select", search_view)
@@ -266,8 +266,8 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         self.assertIn(".document-navigation:focus-within", styles)
         self.assertIn(".editor-header__tab", styles)
         self.assertEqual(2, html.count('class="editor-header__tab"'))
-        self.assertIn("가공문서 / 개요", html)
-        self.assertIn("스펙문서 / 개요", html)
+        self.assertIn("가공 문서 / 개요", html)
+        self.assertIn("명세 문서 / 개요", html)
         self.assertIn(".document-view__canvas", styles)
         self.assertNotIn("linear-gradient", styles)
         self.assertNotIn("box-shadow", styles)
@@ -301,9 +301,9 @@ class WorkspaceBrowserServerTests(unittest.TestCase):
         html = (ASSET_ROOT / "index.html").read_text(encoding="utf-8")
         self.assertEqual(3, html.count("data-document-group-toggle"))
         for label_id, label in (
-            ("original-group-label", "원본문서"),
-            ("processed-group-label", "가공문서"),
-            ("specification-group-label", "스펙문서"),
+            ("original-group-label", "원본 문서"),
+            ("processed-group-label", "가공 문서"),
+            ("specification-group-label", "명세 문서"),
         ):
             label_position = html.index(f'<span id="{label_id}">{label}</span>')
             toggle_start = html.rfind(

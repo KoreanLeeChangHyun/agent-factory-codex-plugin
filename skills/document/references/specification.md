@@ -2,7 +2,7 @@
 
 ## Semantic model
 
-Treat a Specification (스펙 문서) as accepted and reconciled project knowledge:
+Treat a Specification (명세 문서) as accepted and reconciled project knowledge:
 one trustworthy semantic body with two faithful representations whose document
 store is explicitly resolved. Preserve important provenance and record honest
 unresolved state without weakening the accepted decisions and requirements.

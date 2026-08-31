@@ -15,7 +15,7 @@ Use Workspace for the Human-facing project control tower. Its Activity Bar has
 exactly five top-level Activities in this order: 일정, 에이전트, 문서, 로그,
 테스트. No other top-level item or alias is allowed. Only the Document
 Activity's Primary Sidebar is decided: three independently collapsible groups
-in the order `원본문서`, `가공문서`, `스펙문서`. Original has `개요` and
+in the order `원본 문서`, `가공 문서`, `명세 문서`. Original has `개요` and
 `문서검색`. Its compact, tab-free search view uses pinned local Tabulator
 6.5.2 with global search and per-column filters over these exact ordered Korean
 columns: `문서 분류`, `출처`, `태그`, `문서 이름`, `확장자`, `수정 일자`.
@@ -31,8 +31,8 @@ synchronization trigger and status contract, and metadata mutation authority
 and persistence remain unresolved, so it exposes only a small in-browser row
 adapter and truthfully reports `데이터 연결 대기` until data is supplied.
 Processed and Specification each have `개요` and a consistent explorer/tree-shaped
-area for actual Documents. The no-space `스펙문서` spelling is a UI label and does not
-rename the Specification type. Overview details, live Document
+area for actual Documents. `명세 문서` is the exact Korean UI label and does
+not rename the Specification type, identifier, metadata, or path. Overview details, live Document
 discovery/source integration, and the other four Activities' sidebar
 architectures and capabilities remain Human-owned and unresolved; show those
 states honestly and do not invent hierarchy, data, metrics, or controls.
