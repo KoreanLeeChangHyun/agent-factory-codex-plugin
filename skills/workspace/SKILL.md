@@ -1,6 +1,6 @@
 ---
 name: workspace
-description: Provide the Human-facing Agent Factory control tower with exactly five top-level Activities for schedule, Agents, Documents, logs, and tests. Use for Workspace shell and navigation work; do not infer undecided Activity details or own the projected state.
+description: Provide the Human-facing Agent Factory control tower with exactly six top-level Activities for schedule, Agents, Documents, external integrations, logs, and tests. Use for Workspace shell and navigation work; do not infer undecided Activity details or own the projected state.
 metadata:
   specification-id: workspace
   human-entry: .agent-factory/document/specification/workspace/index.html
@@ -11,134 +11,65 @@ metadata:
 
 ## Entry contract
 
-Use Workspace for the Human-facing project control tower. Its Activity Bar has
-exactly five top-level Activities in this order: 일정, 에이전트, 문서, 로그,
-테스트. No other top-level item or alias is allowed. Only the Document
-Activity's Primary Sidebar is decided: three independently collapsible groups
-in the order `원본 문서`, `가공 문서`, `명세 문서`. Original has `개요` and
-`문서검색`. Its compact, tab-free search view uses pinned local Tabulator
-6.5.2 with global search and per-column filters over these exact ordered Korean
-columns: `문서 분류`, `출처`, `태그`, `문서 이름`, `확장자`, `수정 일자`.
-At ordinary desktop widths, the table automatically distributes available
-width across all six columns using content-appropriate proportions. Each
-column keeps a compact minimum width so genuinely narrow views use horizontal
-overflow; Human column resizing and movement remain enabled.
-Only document-name cells link to the source Original; provider cells combine
-visible provider text with decorative inline SVG. This is a read-only
-metadata/link projection that does not copy, normalize, edit, or take ownership
-of Original bodies or Gather synchronization. Its source/query adapter,
-synchronization trigger and status contract, and metadata mutation authority
-and persistence remain unresolved, so it exposes only a small in-browser row
-adapter and truthfully reports `데이터 연결 대기` until data is supplied.
-Processed and Specification each have `개요` and a consistent explorer/tree-shaped
-area for actual Documents. `명세 문서` is the exact Korean UI label and does
-not rename the Specification type, identifier, metadata, or path. Specification
-discovery reads reciprocal Human HTML and AI Skill binding metadata from the
-resolved project, reports `paired`, `misaligned`, or `missing-human`, and lists
-only `paired` entries as same-origin links that open the Korean HTML/CSS/JS
-representation inside the Workspace. It does not copy, generate, accept, or
-edit either representation. Processed discovery/source integration, overview
-details, and the other four Activities' sidebar architectures and capabilities
-remain Human-owned and unresolved; show those states honestly and do not invent
-hierarchy, data, metrics, or controls.
-Workspace owns the browser shell, navigation, Activity views, local read-only
-serving, and project-root launcher. It does not become the canonical owner or
-executor of projected state.
-The local launcher and reusable server bind loopback only. When no port is
-specified, the first successful bind chooses an available port other than
-`8000`, records `{"version":1,"port":<port>}` atomically in generated local
-state at `.agent-factory/workspace/port.json`, and later launches reuse it when
-available. An occupied saved port is replaced only after another non-`8000`
-port has been bound successfully. Explicit `--port`/`-p` values must be from 1
-through 65535, may not be `8000`, and become the saved project assignment only
-after a successful bind. Malformed or unsafe state fails closed.
-The Original overview uses the compact content region without an editor header.
-In the Document Sidebar, the terminal Specification group has no trailing
-bottom divider below its read-only discovery list or visible discovery state;
-separators between the three groups remain. This visual treatment does not
-resolve the still-undecided Original overview contents.
+Use this Skill for the Human-facing project control tower. Its three principal
+regions are `작업 표시줄`, `기본 사이드바`, and `작업 영역` (`Activity Bar`,
+`Primary Sidebar`, and `Workspace area`). The Activity Bar has exactly these six
+top-level Activities, in order: 일정, 에이전트, 문서, 외부연동, 로그, 테스트.
+Do not add another top-level Activity or alias.
 
-The browser shell has two required forms: reusable installation sources below
-`assets/browser/` and the current project's installed publication below
-`.agent-factory/workspace/common/`. Maintain the three core browser-code files
-`index.html`, `styles.css`, and `app.js` together and byte-identically. Maintain
-any required packaged companion asset in both forms as well: the current
-`THIRD_PARTY_NOTICES.txt` carries attribution and license text, is installed by
-the initializer, and must remain byte-identical to its materialized copy. It is
-not a fourth browser-code file. A missing or divergent required form is
-incomplete. The packaged assets remain the installation source rather than a
-second runtime authority.
+Workspace is a projection and control surface. It does not own or execute Agent,
+Document, Gather, Tool, provider, credential, or catalog state. Show only
+owner-backed facts and controls, keep unresolved areas visibly unresolved, and
+never infer live state or fabricate sample data from configuration or local
+artifacts.
 
-Workspace does not own, initialize, rebuild, inspect, or execute searches
-against the Agent-owned catalog at `<project-root>/.agent-factory/db.sqlite`.
-`serve.py init` has no catalog side effect. Workspace may later present only
-Agent-provided read-only results, but no catalog/search UI or source/query
-binding is implemented and presentation transfers no catalog, Agent, or
-Document ownership.
+## Choose the work
 
-Keep the responsibility split explicit:
+Read the applicable reference completely before acting:
 
-- `agent` owns Agent roles, sessions, execution, orchestration, and results;
-- `convention` owns Agent rules, constraints, and core semantics;
-- `gather` synchronizes external sources as Original Documents;
-- `document` defines and maintains Original, Processed, and Specification Documents;
-- `tool` owns logical external tool and connector lifecycle control while its
-  host, plugin, MCP server, or project manifest remains authoritative;
-- `workspace` lets the Human navigate and manage those actors and artifacts.
+- `references/activities.md` owns the six-Activity information architecture,
+  External Integration categories, Document sidebar, discovery states, and
+  unresolved Activity scope.
+- `references/interface.md` owns the browser shell, accessibility and visual
+  behavior, Document tables and explorers, recursive Specification tabs and
+  splits, MCP runtime publication and server behavior, and storage and authority
+  boundaries.
 
-Existing local projection or discovery directories and utilities do not define
-a top-level Activity or authorize nesting under one of the five Activities.
-Tool is likewise not a sixth Activity. Any future Tool projection or control
-must remain owner-backed and must not infer an Activity placement.
+Read both when a change crosses information architecture and interface behavior.
+Do not restate their detailed contracts here.
 
-## Reference routing
+## Runtime and storage
 
-- Read `references/activities.md` when defining or presenting the five
-  top-level Activities. It records the decided order, undecided detail, and
-  ownership boundary.
-- Read `references/interface.md` before creating, editing, installing, or
-  serving the Workspace UI. It defines the two-form publication invariant,
-  local adapter, launcher, allowlisted roots, and presentation bounds.
-
-## Local/default structure
+This plugin owns the Workspace Skill and its Human Specification. The selected
+Agent Factory MCP application owns and serves the Workspace implementation:
 
 ```text
-<project-root>/.agent-factory/workspace/
-├── common/
-├── explorer/
-└── skills/
+<agent-factory-mcp>/app/                         FastAPI, MCP, and domain runtime
+<agent-factory-mcp>/static/workspace/            canonical browser assets
+<agent-factory-mcp>/tests/                       runtime contract tests
 ```
 
-Human-facing Specifications remain below
-`.agent-factory/document/specification/`; Workspace does not own or
-mirror that Document directory. Agent runtime state remains below
-`.agent-factory/agent/`. The five-category decision does not assign these
-stores to an Activity information architecture.
+In the sibling development checkout, `<agent-factory-mcp>` is `../mcp`; that
+relative path is not a universal installation requirement. Do not recreate the
+runtime under this plugin or materialize browser assets into a target project.
 
-Specification discovery uses explicit reciprocal binding metadata rather than
-directory-name conventions. Each Human Specification binds to exactly one
-Skill directory and that Skill reciprocates the same identity, Human entry,
-and AI root. A matching reciprocal locator establishes only the pair and scope,
-so semantic alignment remains `unknown` without independent evidence;
-mismatches are reported fail-closed as `misaligned`.
-An explicitly bound Skill with an unavailable declared Human entry is reported
-as `missing-human`; discovery never creates the missing Specification or a
-Skill root.
+Consumer projects do not contain `.agent-factory/workspace/`, copied Workspace
+assets, launchers, port files, or Workspace-owned projections. PostgreSQL and
+object storage are authoritative for tenant Workspace data. A client may keep
+non-authoritative installation and connection state below
+`~/.agent-factory/`, separate from project repositories. Legacy project-local
+Documents must be inventoried, backed up, and imported through the MCP
+application before their old source tree is retired; migration never implies
+permission to delete that source.
 
-The local Workspace server exposes this bounded result at
-`/api/specifications`. The browser renders the Human document title for each
-`paired` entry and loads its allowlisted `/planning/<id>/index.html` URL in the
-Workspace document area. `misaligned` and `missing-human` entries remain
-visible as non-navigable error states. The response contains binding metadata
-and links only, never Specification bodies or Skill contents.
+## Completion gate
 
-Ordinary consumer-project pairs use the exact same lowercase hyphen-case
-`<category>-<title>` identity under `.codex/skills/` and
-`.agent-factory/document/specification/`. This plugin is the explicit exception
-whose existing six distributed Skill and Specification identities remain
-single names.
+A Workspace change is complete only when:
 
-The local structure is an adapter, not a universal storage requirement. A
-resolved project server or external control surface may replace the local UI
-while preserving authority, provenance, isolation, accessibility, and
-security. Never silently select, mirror, or migrate a backend.
+- the six ordered Activities and the decided/unresolved boundary still match
+  `references/activities.md`;
+- affected browser, navigation, accessibility, security, and publication rules
+  match `references/interface.md`;
+- the selected MCP runtime's focused tests pass for affected runtime behavior;
+- no projected domain state has been invented, mutated, or taken over; and
+- this Skill and its Human Specification remain synchronized.

@@ -98,15 +98,11 @@ Agent Factory uses this project-local structure as its current/default adapter:
 │   └── <agent-id>/
 │       ├── session.json
 │       └── runs/<run-id>/
-├── document/
-│   ├── original/
-│   ├── processed/
-│   ├── specification/
-│   └── sync.json
-└── workspace/
-│   ├── common/
-│   ├── explorer/
-│   └── skills/
+└── document/
+    ├── original/
+    ├── processed/
+    ├── specification/
+    └── sync.json
 ```
 
 The exact `.agent-factory/db.sqlite` path is the shared project-wide
@@ -163,14 +159,10 @@ Preserved legacy Inquery packages live directly below `document/processed/`
 with `legacy-inquery-<legacy-id>` identities and remain Processed Documents
 whose legacy state is status/provenance metadata. Gather configuration is
 `document/sync.json`.
-`workspace/` contains the shared browser shell and control-tower UI: `common/`
-is the shared shell, `.agent-factory/workspace/explorer/` owns an internal
-read-only File/Project metadata projection, and `skills/` owns internal
-read-only Skill navigation. These stores define neither an Activity nor nesting
-under one of the five Activities. The Explorer projection distinguishes the
-project tree from classified Document trees without copying or becoming the
-canonical owner of either; temporary Explorer material remains in its producing
-managed Agent run.
+Workspace runtime state is not project-local. The separate Agent Factory MCP
+application owns its browser shell, tenant API, PostgreSQL metadata, pgvector
+indexes, and object-storage revisions. This plugin does not install a
+`.agent-factory/workspace/` tree or root launcher into consumer projects.
 Workspace reads Human-facing Specifications from the Document tree. Each
 Specification pairs one-to-one with exactly one Skill directory under the same
 stable identity. In this plugin, `skills/<skill-id>/` pairs with
@@ -272,45 +264,14 @@ The bootstrap refuses to overwrite any existing project-root `AGENTS.md`.
 This setup is plugin-provided because the plugin manifest does not inject
 project files.
 
-## Local Workspace control tower
+## Workspace control tower
 
-Resolve the installed Workspace Skill directory, then install the reusable
-Workspace browser shell and project launcher for the target Git root:
-
-```bash
-python3 <installed-workspace-skill>/scripts/serve.py \
-  --project-root <project-root> init
-```
-
-Initialization copies the packaged `skills/workspace/assets/workspace.sh`
-project template to `<project-root>/workspace.sh` once; it is an asset rather than a
-Skill script to run in place. It also installs the exact local `/port.json`
-ignore rule at `.agent-factory/workspace/.gitignore` when absent. An existing
-root launcher is never changed, even by `init --force`; force is limited to
-differing common browser assets. For
-the browser shell, `index.html`, `styles.css`, and `app.js` are the three core
-browser-code files. The packaged `THIRD_PARTY_NOTICES.txt` is a companion
-attribution and license asset, not a fourth browser-code file; initialization
-installs it with the core files, and packaged and materialized copies remain
-byte-identical. For normal use, serve the existing Workspace tree on loopback and open
-`/common/` in the default browser:
-
-```bash
-<project-root>/workspace.sh
-# or, from the project root
-./workspace.sh --port 9000
-```
-
-The self-contained launcher derives the project root from its own location and
-serves only the allowlisted local UI root plus
-`.agent-factory/document/specification/`, so
-`<project-root>/workspace.sh` works from any current directory. `--port <port>` or
-`-p <port>` selects an explicit port from 1 through 65535 except `8000`.
-Without an explicit value, the server reuses the project's successfully bound
-assignment from `.agent-factory/workspace/port.json`, or safely binds and
-persists another available non-`8000` loopback port. `serve.py` remains the
-internal initializer and advanced safe server; its global `--project-root`
-option can target another Git root before the `init` or `serve` subcommand.
+The Workspace Skill and Human Specification remain in this plugin. The
+executable Workspace has moved to the separate `agent-factory-mcp` application,
+which owns the FastAPI host, `/mcp` transport, discovery API, canonical browser
+assets, deployment adapters, and runtime tests. Configure that application with
+the target project root and open its `/workspace/` route. No browser-shell copy
+or root `workspace.sh` is installed into consumer projects.
 
 ## Development
 

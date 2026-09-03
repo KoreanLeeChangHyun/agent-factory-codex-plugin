@@ -149,7 +149,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
                 "sync_slack.py",
             },
             "tool": {"tool.py"},
-            "workspace": {"serve.py"},
+            "workspace": set(),
         }
         for skill, scripts in expected.items():
             with self.subTest(skill=skill):
