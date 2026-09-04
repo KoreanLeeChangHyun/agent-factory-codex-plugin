@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="agent-factory:document-type" content="processed">
+  <meta name="agent-factory:document-id" content="trusted-executor-cross-platform-20260828">
+  <title>신뢰 실행기와 재현성 조사</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="document-header">
+    <p class="eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4.75h10.25L19 8.5v10.75H5zM15 4.75V8.5h4M8 12h8M8 15.5h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>가공 문서 · 비권위 작업 자료</p>
+    <h1>신뢰 실행기와 재현성 조사</h1>
+    <p class="summary">서명된 실행 증거, 입력 폐쇄성, 산출물 봉인, 운영체제별 프로세스 격리를 비교한 설계 조사입니다.</p>
+  </header>
+  <div class="document-layout">
+    <nav class="toc" aria-label="문서 목차"><strong>보고서 목차</strong><ol>
+          <li><a href="#information-stage-question-and-boundary">Information stage, question, and boundary</a></li>
+          <li><a href="#executive-conclusion">Executive conclusion</a></li>
+          <li><a href="#observed-repository-and-runtime-facts">Observed repository and runtime facts</a></li>
+          <li><a href="#primary-source-constraints">Primary-source constraints</a></li>
+          <li><a href="#proposed-architecture">Proposed architecture</a></li>
+          <li><a href="#hermetic-execution-manifest-v1">Hermetic execution manifest v1</a></li>
+          <li><a href="#artifact-sealing-and-verification">Artifact sealing and verification</a></li>
+          <li><a href="#evidence-and-signing-profile">Evidence and signing profile</a></li>
+          <li><a href="#os-backend-designs">OS backend designs</a></li>
+          <li><a href="#cli-proposal">CLI proposal</a></li>
+          <li><a href="#chaos-and-adversarial-test-plan">Chaos and adversarial test plan</a></li>
+          <li><a href="#ci-and-repeated-identical-source-verification">CI and repeated identical-source verification</a></li>
+          <li><a href="#test-retirement-criteria">Test-retirement criteria</a></li>
+          <li><a href="#contradictions-and-tensions">Contradictions and tensions</a></li>
+          <li><a href="#security-assumptions">Security assumptions</a></li>
+          <li><a href="#residual-limitations-and-unresolved-human-decisions">Residual limitations and unresolved Human decisions</a></li>
+          <li><a href="#smallest-useful-follow-up">Smallest useful follow-up</a></li>
+      </ol></nav>
+    <main id="content" tabindex="-1">
+      <aside class="notice" aria-labelledby="status-title">
+        <h2 id="status-title">읽기 전 상태 확인</h2>
+        <p>이 문서는 2026-08-28의 저장소·Linux 관찰과 당시 공식 자료를 바탕으로 한 제안입니다. 구현 수락, 지원 OS, 키 보관, 출시 우선순위, 잔여 위험 수용을 결정하지 않습니다.</p>
+        <p>Windows와 macOS 백엔드는 해당 플랫폼에서 실행 검증하지 않았으며, 서명은 주장자의 신원과 변경 여부를 입증할 뿐 주장 자체의 정확성을 보증하지 않습니다.</p>
+      </aside>
+      <dl class="metadata">
+        <div><dt>문서 유형</dt><dd>가공 문서</dd></div>
+        <div><dt>근거</dt><dd>위임 요청, 저장소·Linux probe, 공식 플랫폼·SLSA·Sigstore 자료</dd></div>
+        <div><dt>변환</dt><dd>관찰, 제약, 아키텍처·manifest·CLI·test 제안</dd></div>
+        <div><dt>미해결</dt><dd>지원 정책, 신뢰 경계, key custody, 위험 수용 등 Human 결정</dd></div>
+      </dl>
+      <article class="source-body" aria-label="조사 보고서 전문">
+<h2 id="information-stage-question-and-boundary">Information stage, question, and boundary</h2>
+<p>This document is <strong>processed Explorer information</strong>, not accepted or refined
+project truth. It investigates an implementable trusted-execution design for
+Agent Factory. It does not choose acceptance, release priority, supported-OS
+policy, key custody, or residual-risk tolerance for the Human.</p>
+<p>The delegated scope covers signed executor evidence, a hermetic execution
+manifest, content-addressed artifacts, Linux cgroup v2 plus pidfd, Windows Job
+Objects, macOS containment, chaos tests, and repeat-build CI. Repository tests
+were inspected but not run. The request authorized read-only capability probes
+and bounded experiments only in this Explorer workspace; canonical project files
+were not edited by this exploration.</p>
+<p>Retrieval context: repository and local runtime inspected on 2026-08-28 KST;
+web sources retrieved on 2026-08-28. Direct links below are primary or official
+project documentation where available.</p>
+<h2 id="executive-conclusion">Executive conclusion</h2>
+<p>The design is implementable if it treats four guarantees as separate and
+independently verifiable:</p>
+<ol>
+<li><strong>Input closure</strong>: a canonical manifest identifies every permitted build
+influence, rejects undeclared inputs, and binds source, dependencies,
+toolchain, image, environment, command, and nondeterminism policies.</li>
+<li><strong>Execution containment</strong>: an OS backend owns a race-free process-tree
+lifetime and resource limits. Containment is not by itself hermeticity.</li>
+<li><strong>Artifact integrity</strong>: a deterministic, path-aware artifact index is sealed
+by digest after the process tree is empty; verification re-hashes bytes.</li>
+<li><strong>Evidence authenticity</strong>: a trusted control plane, inaccessible to the
+workload, signs an in-toto/SLSA-shaped statement binding manifest,
+execution, and artifact digests.</li>
+</ol>
+<p>Linux can provide the strongest local backend by combining a delegated cgroup
+v2 subtree with pidfds and a filesystem/network isolation mechanism. Windows
+Job Objects give robust process-tree and resource containment when the target is
+created suspended and assigned before resume. macOS has no direct Job Object or
+cgroup equivalent exposed to an ordinary CLI: a process-group backend is useful
+for best-effort cleanup, while a stronger product requires a signed App Sandbox
+and preferably an XPC service. Therefore the backend must publish an explicit
+<code>capabilityGrade</code>; it must never claim equivalent hermeticity across platforms.</p>
+<p>Cryptographic signing proves who made a claim and whether it changed. It does
+not prove the claim was accurate. SLSA requires stronger levels to generate
+provenance in a trusted control plane and keep signing material out of tenant
+build steps. The executor architecture must enforce that split rather than
+letting the executed command write or sign its own evidence.</p>
+<h2 id="observed-repository-and-runtime-facts">Observed repository and runtime facts</h2>
+<h3 id="repository-observations">Repository observations</h3>
+<ul>
+<li>The inspected revision was <code>e57f78691c01c9f4dcccb4678f0036b310fe8124</code>,
+but the working tree was already materially dirty and contained untracked
+Agent Factory work. This is important: a commit ID alone does not identify the
+code currently being inspected or executed.</li>
+<li>The public runtime is currently concentrated in
+<code>skills/agent/scripts/agent_exec.py</code>; no trusted-executor package or execution
+manifest schema exists.</li>
+<li>The current Linux-first implementation starts a bootstrap with
+<code>start_new_session=True</code>, checks that leader PID equals process-group ID,
+records <code>{pid, bootId, startTicks}</code> from <code>/proc</code>, and signals a verified
+process group TERM then KILL. It fails closed on unverifiable identity.</li>
+<li>Current run state hashes the request, limits <code>events.jsonl</code> and <code>stderr.log</code>,
+atomically clears the active Codex identity on terminal transition, and
+refuses replay after an ambiguous or observed launch. Those are useful
+foundations for a trusted executor journal, but they do not seal inputs,
+outputs, or signed provenance.</li>
+<li>Current process containment is Linux <code>/proc</code> plus process groups. There is no
+cgroup, pidfd, Windows Job Object, or macOS-specific backend.</li>
+<li><code>tests/test_agent_exec.py</code> contains 26 test methods. Relevant current coverage
+includes exact <code>/proc</code> identity and PID-reuse detection, nested process-group
+termination, leader-exit cleanup, bootstrap-barrier failures, log caps,
+atomic terminal identity clearing, and cancellation refusal on identity
+mismatch. These are unit/integration-shaped tests, not signed evidence,
+hermeticity, artifact sealing, or repeated-source reproducibility tests.</li>
+<li>No <code>.github</code> workflow was present in the inspected file inventory.</li>
+<li>No tracked submodule gitlinks or <code>.gitmodules</code> were observed.</li>
+<li>No tracked package-manager lockfile or requirements file was observed. The
+runtime imports only the Python standard library, but the Python interpreter,
+Codex executable, OS, and runner utilities remain undeclared toolchain inputs.</li>
+<li><code>.gitignore</code> exists. <code>git ls-files --others --ignored --exclude-standard</code>
+showed extensive ignored runtime material. A manifest that silently hashes
+the working directory would therefore be neither small nor policy-stable.</li>
+</ul>
+<h3 id="authorized-runtime-probes-and-bounded-experiment">Authorized runtime probes and bounded experiment</h3>
+<p>Observed environment:</p>
+<ul>
+<li>Linux <code>7.0.0-29-generic</code>, x86-64, Python <code>3.12.3</code>.</li>
+<li><code>/sys/fs/cgroup</code> reported <code>cgroup2fs</code>; <code>/proc/self/cgroup</code> reported
+<code>0::/user.slice/user-1000.slice/session-1674.scope</code>.</li>
+<li>Root cgroup controllers visible to the session were <code>cpuset cpu io memory hugetlb pids rdma misc dmem</code>, but <code>/sys/fs/cgroup</code> was not writable by this
+user. This means a backend cannot assume direct root-level delegation merely
+because cgroup v2 is mounted. It must detect a writable delegated subtree or
+obtain one from a service manager/privileged helper.</li>
+<li><code>bwrap</code> and <code>unshare</code> were installed; <code>cosign</code> was not found; <code>gh</code> was found.</li>
+</ul>
+<p>Bounded pidfd experiment:</p>
+<pre><code class="language-text">method: spawn a Python child sleeping for 30 seconds; os.pidfd_open(child_pid);
+        signal.pidfd_send_signal(pidfd, SIGTERM); wait up to 3 seconds
+observation: pidfd_open succeeded; Python exposed pidfd_send_signal;
+             child return code was -15
+limitation: proves only host API availability for one child, not cgroup
+            delegation, descendant containment, privilege isolation, or CI hosts
+</code></pre>
+<p>No repository test suite, build, server, or canonical-file mutation was run.</p>
+<h2 id="primary-source-constraints">Primary-source constraints</h2>
+<h3 id="provenance-and-signatures">Provenance and signatures</h3>
+<ul>
+<li>SLSA defines provenance as verifiable information about where, when, and how
+an artifact was produced, and recommends cryptographic digests for subjects:
+<a href="https://slsa.dev/spec/v1.2/provenance">https://slsa.dev/spec/v1.2/provenance</a> and
+<a href="https://slsa.dev/spec/v1.2/build-requirements">https://slsa.dev/spec/v1.2/build-requirements</a>.</li>
+<li>SLSA Build L2 authenticity requires signature verification and a recognizable
+builder. L3 requires provenance fields to be generated or verified by the
+trusted control plane, with signing secrets inaccessible to user-defined build
+steps. SLSA also explicitly distinguishes isolation from hermetic/no-network
+execution; the latter is not implied by Build L3:
+<a href="https://slsa.dev/spec/v1.2/build-requirements">https://slsa.dev/spec/v1.2/build-requirements</a>.</li>
+<li>SLSA verification checks the envelope signature, artifact/subject digest,
+builder identity, <code>buildType</code>, and recognized <code>externalParameters</code>; unknown
+external parameters should fail verification:
+<a href="https://slsa.dev/spec/v1.2/verifying-artifacts">https://slsa.dev/spec/v1.2/verifying-artifacts</a>.</li>
+<li>The in-toto Statement v1 binds a typed predicate to immutable subjects by
+digest: <a href="https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md">https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md</a>.
+Its envelope specification recommends DSSE and authenticates <code>payloadType</code>
+with the payload:
+<a href="https://github.com/in-toto/attestation/blob/main/spec/v1/envelope.md">https://github.com/in-toto/attestation/blob/main/spec/v1/envelope.md</a>.</li>
+<li>Sigstore Cosign can sign and verify arbitrary blobs. Its recommended bundle
+carries signature, certificate, and transparency-log proof for the public
+Sigstore service: <a href="https://docs.sigstore.dev/cosign/signing/signing_with_blobs/">https://docs.sigstore.dev/cosign/signing/signing_with_blobs/</a>
+and <a href="https://docs.sigstore.dev/cosign/verifying/verify/">https://docs.sigstore.dev/cosign/verifying/verify/</a>.</li>
+<li>GitHub artifact attestations produce signed provenance and can be verified by
+<code>gh attestation verify</code>:
+<a href="https://docs.github.com/en/actions/concepts/security/artifact-attestations">https://docs.github.com/en/actions/concepts/security/artifact-attestations</a>
+and
+<a href="https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations">https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations</a>.
+GitHub documents that its Sigstore instance differs from the public-good
+instance and has no transparency log, so the trust profile must identify
+which service produced a bundle.</li>
+</ul>
+<p><strong>Inference:</strong> use an in-toto Statement/SLSA provenance predicate as the
+interoperable outer evidence, but retain an Agent Factory predicate for exact
+containment observations and manifest bindings that generic SLSA fields do not
+model. Signing must occur after execution in the executor control plane.</p>
+<h3 id="linux-cgroup-v2-and-pidfd">Linux cgroup v2 and pidfd</h3>
+<ul>
+<li>cgroup v2 organizes processes hierarchically and distributes resources.
+Processes written to <code>cgroup.procs</code> bring their threads; children are born in
+the parent's current cgroup. Delegation restricts movement across the
+delegated boundary:
+<a href="https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html">https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html</a>.</li>
+<li>A delegated subtree requires explicit write permissions or cgroup namespace
+delegation. Controllers are top-down, and domain controllers are constrained
+by the no-internal-process rule. A nonprivileged executor must detect and
+report delegation instead of trying unsafe fallbacks.</li>
+<li><code>cgroup.kill</code> sends SIGKILL to the complete subtree, handles concurrent forks,
+and is protected against migrations. <code>pids.max</code>, <code>memory.max</code>, and <code>cpu.max</code>
+provide hard process, memory, and CPU-bandwidth limits where delegated and
+enabled. <code>cgroup.events</code>/<code>populated</code> is the right emptiness observation:
+<a href="https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html">https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html</a>.</li>
+<li>A pidfd is a stable reference to a specific process and avoids the recycled-
+PID race of <code>kill(2)</code>. It can be polled for process exit and targeted with
+<code>pidfd_send_signal(2)</code>:
+<a href="https://man7.org/linux/man-pages/man2/pidfd_open.2.html">https://man7.org/linux/man-pages/man2/pidfd_open.2.html</a> and
+<a href="https://man7.org/linux/man-pages/man2/pidfd_send_signal.2.html">https://man7.org/linux/man-pages/man2/pidfd_send_signal.2.html</a>.</li>
+<li><code>clone3(CLONE_PIDFD|CLONE_INTO_CGROUP)</code> can create the child with both a pidfd
+and initial cgroup placement, eliminating the fork-before-migration window:
+<a href="https://man7.org/linux/man-pages/man2/clone.2.html">https://man7.org/linux/man-pages/man2/clone.2.html</a>.</li>
+</ul>
+<p><strong>Inference:</strong> use cgroup membership as the process-tree ownership primitive and
+pidfd as the leader identity/liveness primitive. A pidfd alone does not refer to
+all descendants, and a process group can be escaped with a new session; neither
+substitutes for <code>cgroup.kill</code>.</p>
+<h3 id="windows-job-objects">Windows Job Objects</h3>
+<ul>
+<li>A Job Object groups processes, applies resource limits, supports nested jobs
+on Windows 8/Server 2012 and later, and can terminate the tree with
+<code>TerminateJobObject</code>. <code>JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</code> terminates all
+associated processes when the last job handle closes:
+<a href="https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects">https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects</a> and
+<a href="https://learn.microsoft.com/en-us/windows/win32/procthread/nested-jobs">https://learn.microsoft.com/en-us/windows/win32/procthread/nested-jobs</a>.</li>
+<li><code>AssignProcessToJobObject</code> applies job limits. Creating the child with
+<code>CREATE_SUSPENDED</code>, assigning it, then resuming avoids user code running before
+association:
+<a href="https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject">https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject</a>.</li>
+<li>Extended/basic limits cover job memory, per-process memory, active process
+count, CPU time, and related controls:
+<a href="https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_basic_limit_information">https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_basic_limit_information</a>.</li>
+<li>Completion-port notifications provide lifecycle and limit events, but most
+are notifications rather than guaranteed delivery. PID-bearing messages are
+vulnerable to PID reuse unless the executor retains an open process handle:
+<a href="https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_associate_completion_port">https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_associate_completion_port</a>.</li>
+</ul>
+<p><strong>Inference:</strong> the durable identity is the process handle plus Job handle, not a
+PID. Set limits and completion port while the Job is inactive; create suspended,
+assign, record handles, and only then resume. Do not enable breakaway flags.</p>
+<h3 id="macos">macOS</h3>
+<ul>
+<li>Foundation <code>Process</code> inherits environment from its launcher and can monitor a
+subprocess. Apple's docs say sandboxed child processes inherit the parent's
+sandbox and recommend XPC services for different entitlements:
+<a href="https://developer.apple.com/documentation/foundation/process">https://developer.apple.com/documentation/foundation/process</a>.</li>
+<li>App Sandbox inheritance requires code signing and exact entitlements;
+inherited static rights do not include dynamically granted rights. Apple says
+XPC is preferred for privilege separation:
+<a href="https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/EnablingAppSandbox.html">https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/EnablingAppSandbox.html</a>.</li>
+<li>XPC services are launchd-managed, tied to a client lifetime, and support
+privilege isolation:
+<a href="https://developer.apple.com/documentation/xpc">https://developer.apple.com/documentation/xpc</a>.</li>
+<li>macOS process groups distribute signals, but Apple's published interface does
+not make them a non-escapable resource container:
+<a href="https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/getpgrp.2.html">https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/getpgrp.2.html</a>.</li>
+<li>Apple warns that inherited file descriptors and environment variables,
+including dynamic-loader variables, can become attack inputs:
+<a href="https://developer.apple.com/library/archive/documentation/Security/Conceptual/SecureCodingGuide/Articles/AccessControl.html">https://developer.apple.com/library/archive/documentation/Security/Conceptual/SecureCodingGuide/Articles/AccessControl.html</a>.</li>
+</ul>
+<p><strong>Inference:</strong> an ordinary Python CLI can implement <code>setsid</code>/process-group
+cleanup plus <code>setrlimit</code> as a compatibility backend, but must label it
+<code>containmentGrade: best-effort-tree</code>; descendants can detach. Strong macOS
+isolation requires a separately signed helper/XPC product and cannot be inferred
+from the present plugin's Python script.</p>
+<h3 id="source-closure-runner-images-and-reproducibility">Source closure, runner images, and reproducibility</h3>
+<ul>
+<li><code>git ls-files</code> can enumerate tracked files and separately enumerate untracked
+and ignored files. <code>--exclude-standard</code> includes repository, info, and global
+excludes; global ignores are host-specific and therefore must not silently
+define a portable source closure: <a href="https://git-scm.com/docs/git-ls-files">https://git-scm.com/docs/git-ls-files</a>.</li>
+<li><code>.gitmodules</code> defines submodule paths/URLs and ignore behavior can hide dirty
+state, so the trusted manifest must inspect gitlinks and exact submodule HEADs
+rather than trusting default status output: <a href="https://git-scm.com/docs/gitmodules">https://git-scm.com/docs/gitmodules</a>.</li>
+<li>GitHub says hosted runner software is updated weekly and runner image labels
+can migrate. Exact build logs expose image versions and Ubuntu/Windows/macOS
+image releases provide SBOMs:
+<a href="https://docs.github.com/en/actions/concepts/runners/github-hosted-runners">https://docs.github.com/en/actions/concepts/runners/github-hosted-runners</a>,
+<a href="https://docs.github.com/en/actions/reference/security/secure-use">https://docs.github.com/en/actions/reference/security/secure-use</a>, and
+<a href="https://github.com/actions/runner-images">https://github.com/actions/runner-images</a>.</li>
+<li>GitHub recommends full-length commit SHAs because that is the immutable way to
+pin Actions: <a href="https://docs.github.com/en/actions/reference/security/secure-use">https://docs.github.com/en/actions/reference/security/secure-use</a>.</li>
+<li><code>SOURCE_DATE_EPOCH</code> gives build systems a stable source timestamp, but it does
+not virtualize all clocks:
+<a href="https://reproducible-builds.org/docs/source-date-epoch/">https://reproducible-builds.org/docs/source-date-epoch/</a>.</li>
+</ul>
+<p><strong>Inference:</strong> <code>ubuntu-latest</code>, <code>windows-latest</code>, and <code>macos-latest</code> are invalid
+hermetic image identities. Even versioned hosted labels are mutable. A run must
+record the exact observed runner image release/SBOM digest, while high-assurance
+Linux uses an OCI image pinned by digest. Equivalent Windows/macOS guarantees
+need immutable self-hosted VM image digests or must report weaker capability.</p>
+<h2 id="proposed-architecture">Proposed architecture</h2>
+<p>Keep <code>agent_exec.py</code> as the managed-session front door, but move trusted
+execution into a testable package instead of further growing the monolith:</p>
+<pre><code class="language-text">skills/agent/scripts/
+├── agent_exec.py                    # existing session/run orchestration
+└── trusted_executor/
+    ├── __init__.py
+    ├── cli.py                       # prepare/run/seal/attest/verify/probe
+    ├── schema.py                    # strict schema + semantic validation
+    ├── source.py                    # Git snapshot and ignored-input policy
+    ├── manifest.py                  # canonical bytes and executionHash
+    ├── journal.py                   # crash-safe phase transitions
+    ├── artifacts.py                 # descriptor-safe traversal and CAS
+    ├── provenance.py                # in-toto/SLSA + AF predicate
+    ├── signing.py                   # provider interface, never workload-loaded
+    └── backends/
+        ├── base.py
+        ├── linux_cgroup_pidfd.py
+        ├── windows_job.py
+        └── macos_process.py
+</code></pre>
+<p>Suggested run files, all below the existing per-run directory:</p>
+<pre><code class="language-text">execution.manifest.json    # immutable canonical input contract
+execution.state.json       # journal, not signed until terminal
+artifact.index.json        # deterministic path/type/mode/size/digest list
+provenance.statement.json  # in-toto Statement payload
+provenance.bundle.json     # DSSE/Sigstore or configured signature bundle
+verification.json          # verifier result and policy identity
+</code></pre>
+<p>The runtime should bind their absolute paths and SHA-256 values in <code>state.json</code>.
+Atomic publication should reuse the current safe-file patterns, upgraded to
+directory-fd/openat-style traversal where artifact races matter.</p>
+<h3 id="control-plane-sequence">Control-plane sequence</h3>
+<ol>
+<li><code>prepare</code>: validate strict schema with unknown keys rejected; resolve source
+into a new immutable snapshot/CAS; verify every declared digest; create an
+isolated empty output directory; compute <code>executionHash</code> over canonical
+manifest bytes.</li>
+<li><code>contain</code>: acquire OS container, configure limits, attach monitoring, and
+publish journal state <code>contained</code> before workload release.</li>
+<li><code>launch</code>: start at a barrier (Linux clone-into-cgroup or bootstrap attached
+before exec; Windows suspended and assigned to Job; macOS process group),
+persist stable OS handles/identity, then release.</li>
+<li><code>observe</code>: keep signing provider absent from child environment and handles;
+collect exit/resource/container events into a bounded log whose digest is
+later attested.</li>
+<li><code>quiesce</code>: wait for leader and full container emptiness. On timeout/cancel,
+terminate the complete container, wait boundedly, and fail if emptiness
+cannot be proven.</li>
+<li><code>seal</code>: revoke output writes by unmount/read-only transition where available;
+traverse without following symlinks; hash entries; atomically publish index
+and CAS blobs. Any mutation during sealing fails the run.</li>
+<li><code>attest</code>: trusted control plane constructs statement from its observations,
+not workload-provided JSON, then invokes isolated KMS/Sigstore/GitHub OIDC
+signing. Atomically publish bundle last.</li>
+<li><code>verify</code>: independently validate schema, signature/trust identity, manifest
+digest, artifact index root, every artifact byte, and expected builder/
+policy. Never trust <code>status: completed</code> without these checks.</li>
+</ol>
+<h3 id="capability-contract">Capability contract</h3>
+<p>Every backend returns machine-readable capabilities rather than a Boolean:</p>
+<pre><code class="language-json">{
+  &quot;processTree&quot;: &quot;kernel-enforced|best-effort&quot;,
+  &quot;stableLeaderIdentity&quot;: &quot;pidfd|handle|pid-start-time&quot;,
+  &quot;resourceLimits&quot;: [&quot;cpu&quot;, &quot;memory&quot;, &quot;pids&quot;],
+  &quot;filesystemIsolation&quot;: &quot;mount-namespace|app-sandbox|none&quot;,
+  &quot;networkIsolation&quot;: &quot;namespace-firewall|app-sandbox|none&quot;,
+  &quot;clockControl&quot;: &quot;namespace-shim|env-only|none&quot;,
+  &quot;randomnessControl&quot;: &quot;injected-api|none&quot;,
+  &quot;grade&quot;: &quot;hermetic|contained|best-effort-tree&quot;
+}
+</code></pre>
+<p>Manifest requirements are matched against observed capabilities before launch.
+Unsupported required controls fail <code>capability_unsatisfied</code>; they never degrade
+silently.</p>
+<h2 id="hermetic-execution-manifest-v1">Hermetic execution manifest v1</h2>
+<p>Use UTF-8 JSON with an exact schema and no floats. Compute
+<code>executionHash = sha256(canonicalManifestBytes)</code>. RFC 8785 JCS is an available
+canonicalization profile (<a href="https://www.rfc-editor.org/rfc/rfc8785.html">https://www.rfc-editor.org/rfc/rfc8785.html</a>), but
+DSSE should sign the exact serialized statement bytes so signature security does
+not depend on consumers independently recreating JSON formatting.</p>
+<p>Proposed semantic shape (illustrative, not accepted schema):</p>
+<pre><code class="language-json">{
+  &quot;schemaVersion&quot;: &quot;1.0.0&quot;,
+  &quot;kind&quot;: &quot;agent-factory-execution&quot;,
+  &quot;source&quot;: {
+    &quot;repository&quot;: &quot;https://example.invalid/org/repo&quot;,
+    &quot;commit&quot;: &quot;40-hex-object-id&quot;,
+    &quot;tree&quot;: &quot;git-object-id&quot;,
+    &quot;snapshot&quot;: {&quot;algorithm&quot;: &quot;sha256&quot;, &quot;digest&quot;: &quot;...&quot;},
+    &quot;worktreePolicy&quot;: &quot;committed-only&quot;,
+    &quot;untrackedPolicy&quot;: &quot;reject&quot;,
+    &quot;ignoredPolicy&quot;: &quot;exclude-and-unmount&quot;,
+    &quot;submodules&quot;: []
+  },
+  &quot;dependencies&quot;: {
+    &quot;lockfiles&quot;: [],
+    &quot;install&quot;: {&quot;argv&quot;: [], &quot;network&quot;: &quot;deny&quot;}
+  },
+  &quot;toolchain&quot;: {
+    &quot;executables&quot;: [{&quot;name&quot;: &quot;python&quot;, &quot;version&quot;: &quot;3.12.3&quot;, &quot;sha256&quot;: &quot;...&quot;}],
+    &quot;runnerImage&quot;: {&quot;kind&quot;: &quot;oci&quot;, &quot;digest&quot;: &quot;sha256:...&quot;, &quot;sbomDigest&quot;: &quot;sha256:...&quot;}
+  },
+  &quot;environment&quot;: {
+    &quot;clear&quot;: true,
+    &quot;allow&quot;: {&quot;LANG&quot;: &quot;C.UTF-8&quot;, &quot;LC_ALL&quot;: &quot;C.UTF-8&quot;, &quot;TZ&quot;: &quot;UTC&quot;, &quot;SOURCE_DATE_EPOCH&quot;: &quot;...&quot;},
+    &quot;forbidPrefixes&quot;: [&quot;LD_&quot;, &quot;DYLD_&quot;, &quot;PYTHON&quot;, &quot;NODE_OPTIONS&quot;]
+  },
+  &quot;command&quot;: {
+    &quot;argv&quot;: [&quot;python&quot;, &quot;-m&quot;, &quot;...&quot;],
+    &quot;cwd&quot;: &quot;.&quot;,
+    &quot;stdin&quot;: {&quot;mode&quot;: &quot;closed&quot;},
+    &quot;umask&quot;: &quot;0022&quot;
+  },
+  &quot;policy&quot;: {
+    &quot;network&quot;: {&quot;mode&quot;: &quot;deny&quot;},
+    &quot;time&quot;: {&quot;mode&quot;: &quot;fixed&quot;, &quot;unixSeconds&quot;: 0},
+    &quot;randomness&quot;: {&quot;mode&quot;: &quot;deterministic&quot;, &quot;seedDigest&quot;: &quot;sha256:...&quot;},
+    &quot;filesystem&quot;: {&quot;source&quot;: &quot;read-only&quot;, &quot;output&quot;: &quot;write-only-output&quot;},
+    &quot;limits&quot;: {&quot;wallSeconds&quot;: 300, &quot;cpuMicrosPerPeriod&quot;: &quot;100000/100000&quot;, &quot;memoryBytes&quot;: 1073741824, &quot;pids&quot;: 128}
+  },
+  &quot;outputs&quot;: {&quot;root&quot;: &quot;out&quot;, &quot;symlinks&quot;: &quot;reject&quot;, &quot;specialFiles&quot;: &quot;reject&quot;},
+  &quot;builder&quot;: {&quot;id&quot;: &quot;https://agent-factory.example/trusted-executor/v1&quot;, &quot;backendRequired&quot;: &quot;hermetic&quot;}
+}
+</code></pre>
+<p>Semantic rules:</p>
+<ul>
+<li><strong>Source</strong>: default to committed-only. Materialize from Git objects, not the
+mutable working tree. A <code>tracked-worktree</code> option may exist only when every
+path and byte is snapshotted and its snapshot digest becomes the source
+identity. Never mix commit identity with undeclared dirty bytes.</li>
+<li><strong>Ignored inputs</strong>: portable options are <code>reject</code>, <code>exclude-and-unmount</code>, or
+<code>include-by-digest</code>. Do not let global Git ignore configuration silently
+choose inputs. Record repository ignore-file digests separately as policy
+material. <code>exclude-and-unmount</code> is the hermetic default.</li>
+<li><strong>Submodules</strong>: enumerate gitlinks recursively with path, canonical URL,
+recorded commit, resolved tree/snapshot digest, and dirty/untracked policy.
+Fail if missing, detached at a different commit, URL-rewritten without policy,
+or recursively undeclared.</li>
+<li><strong>Lockfiles</strong>: list exact path, ecosystem, SHA-256, and required frozen/offline
+installer mode. Fail if a declared ecosystem has no accepted lockfile. An
+empty list is valid only for a declared no-external-dependency build.</li>
+<li><strong>Toolchain</strong>: digest executables and configuration, record semantic versions,
+and bind an immutable runner image digest and SBOM digest. A tag or <code>-latest</code>
+label cannot satisfy <code>backendRequired: hermetic</code>.</li>
+<li><strong>Environment</strong>: start empty and set exact allowlisted values. Locale, timezone,
+path, home/temp directories, language runtime variables, dynamic loader
+variables, and certificate stores are inputs. Secrets are prohibited from a
+reproducible job; a separate nonreproducible profile may bind secret identity
+(never plaintext) and must report the limitation.</li>
+<li><strong>Command</strong>: argv array, no implicit shell; exact cwd; closed or digest-bound
+stdin; fixed umask. Resolve executable within the sealed toolchain, not host
+<code>PATH</code> lookup.</li>
+<li><strong>Network</strong>: deny by default at the backend. An allowlist must record protocol,
+endpoint identity, DNS policy, and fetched content digest; otherwise the run
+cannot claim hermetic/reproducible status.</li>
+<li><strong>Time</strong>: fixed <code>SOURCE_DATE_EPOCH</code>, UTC, normalized output mtimes. Environment
+variables do not stop direct wall-clock syscalls; a strong claim requires
+time namespace, virtualization, or a declared deterministic shim.</li>
+<li><strong>Randomness</strong>: a seed variable does not control <code>/dev/urandom</code>, hardware RNG,
+or library behavior. A strong claim requires a controlled entropy interface
+or isolation layer. Seed material should be secret only if unpredictability,
+rather than reproducibility, is required; those goals conflict.</li>
+</ul>
+<h2 id="artifact-sealing-and-verification">Artifact sealing and verification</h2>
+<p>Define <code>artifact.index.json</code> with sorted normalized relative paths. Each entry
+contains type (<code>file</code> or permitted <code>symlink</code>), path as UTF-8/NFC, executable bit
+or normalized mode, byte size, and SHA-256. Reject absolute paths, <code>..</code>, control
+characters, duplicate case-folded names for cross-platform sets, devices,
+FIFOs, sockets, hard links unless explicitly modeled, and symlinks by default.</p>
+<p>Compute leaf bytes with unambiguous length-prefixing, for example:</p>
+<pre><code class="language-text">leaf = SHA256(&quot;AF-ARTIFACT-v1\0&quot; || len(path) || path || type || mode || size || contentSha256)
+root = SHA256(&quot;AF-ARTIFACT-SET-v1\0&quot; || leaf_1 || ... || leaf_n)
+</code></pre>
+<p>The index itself is canonicalized and hashed. Store blobs at
+<code>cas/sha256/&lt;first-two&gt;/&lt;digest&gt;</code> with create-exclusive/no-follow semantics,
+verify after copy, then rename atomically. A CAS path is an optimization, not a
+trust signal; verification always hashes bytes.</p>
+<p>Seal only after the OS container is proven empty. Open the output root once,
+walk relative to a directory handle, do not follow links, compare pre/post
+metadata around each read, and fail on replacement or mutation. Where the
+platform supports it, move output to a read-only mount before traversal. Never
+sign a pathname before hashing its opened file.</p>
+<p>Verification order:</p>
+<ol>
+<li>parse strict schemas and enforce size/count/path bounds;</li>
+<li>validate trust root, certificate identity/issuer, signature, and freshness or
+transparency proof according to the signing profile;</li>
+<li>ensure statement subject contains the artifact-set root and predicate binds
+exact <code>executionHash</code>, builder ID, backend capability digest, and journal log
+digest;</li>
+<li>recompute manifest digest from exact bytes;</li>
+<li>recompute every artifact digest and set root;</li>
+<li>evaluate expected source, builder, command/policy, and allowed external
+parameters; reject unknown parameters;</li>
+<li>report policy verification separately from cryptographic validity.</li>
+</ol>
+<h2 id="evidence-and-signing-profile">Evidence and signing profile</h2>
+<p>Use an in-toto Statement v1 whose subjects include both the artifact set and,
+optionally, individually distributed artifacts. Predicate type should be a
+versioned Agent Factory URI. The predicate can embed or reference a SLSA
+Provenance v1 mapping:</p>
+<ul>
+<li><code>buildDefinition.buildType</code>: stable Agent Factory executor v1 URI;</li>
+<li><code>externalParameters</code>: source identity plus human-selected manifest reference;</li>
+<li><code>internalParameters</code>: control-plane-only run ID, backend selection, policy;</li>
+<li><code>resolvedDependencies</code>: source snapshot, submodules, lockfiles, toolchain,
+image/SBOM;</li>
+<li><code>runDetails.builder.id</code>: exact trusted executor identity;</li>
+<li><code>runDetails.metadata</code>: invocation/start/finish and completeness flags;</li>
+<li>Agent Factory extension: <code>executionHash</code>, capability digest, terminal journal
+digest, exit status, termination cause, artifact index digest/root.</li>
+</ul>
+<p>Signing provider interface:</p>
+<ul>
+<li><code>sigstore-keyless</code>: ephemeral key via workload-identity/OIDC, Fulcio cert and
+Rekor proof; verifier pins issuer and certificate identity.</li>
+<li><code>github-attestation</code>: GitHub OIDC/attestation action; verifier pins repository,
+workflow reference, and owner. Pin every action by full commit SHA.</li>
+<li><code>kms-key</code>: asymmetric KMS signing; evidence includes key resource/version and
+algorithm. Rotation and revocation policy are external trust configuration.</li>
+<li><code>development-key</code>: local file key, always marks <code>trustProfile: development</code>
+and cannot satisfy release policy.</li>
+</ul>
+<p>The private key or OIDC token must never enter the child environment, filesystem,
+inherited handles/file descriptors, or logs. Separate builder identity from the
+Human/Agent request identity. Multiple signatures may be useful for independent
+builder and release approval, but the executor must not infer that signature as
+Human acceptance.</p>
+<h2 id="os-backend-designs">OS backend designs</h2>
+<h3 id="linux-cgroup-v2-pidfd">Linux: cgroup v2 + pidfd</h3>
+<p>Required preflight: Linux, unified cgroup v2, writable delegated subtree,
+required controllers enabled by ancestors, <code>cgroup.kill</code> availability, pidfd
+syscalls, and filesystem/network isolation provider. Record kernel release,
+cgroup mount identity, delegated path, controller set, and isolation provider.</p>
+<p>Launch design:</p>
+<ol>
+<li>create per-attempt domain cgroup below the delegated executor subtree;</li>
+<li>configure <code>pids.max</code>, <code>memory.max</code>, <code>memory.oom.group=1</code>, and <code>cpu.max</code>; record
+values read back from kernel;</li>
+<li>prefer a small native launcher using <code>clone3(CLONE_PIDFD|CLONE_INTO_CGROUP)</code>;
+otherwise use a stop/barrier bootstrap, attach its PID to <code>cgroup.procs</code>,
+verify <code>/proc/&lt;pid&gt;/cgroup</code>, obtain pidfd, then release before exec;</li>
+<li>poll pidfd for leader exit and <code>cgroup.events</code> for subtree population;</li>
+<li>TERM the pidfd leader for graceful shutdown where appropriate, then write
+<code>1</code> to <code>cgroup.kill</code> for complete forced cleanup; wait for <code>populated 0</code>;</li>
+<li>collect <code>cpu.stat</code>, <code>memory.events</code>, <code>memory.peak</code>, <code>pids.events</code>, exit status,
+and OOM evidence before removing the empty cgroup.</li>
+</ol>
+<p>Keep boot ID/start ticks as diagnostic compatibility fields, but use pidfd for
+live identity. Persisting a numeric pidfd across a supervisor crash is not
+enough because file descriptors are process-local. Crash recovery should use
+the cgroup path plus a privileged long-lived broker or fail closed and kill the
+known cgroup; it must not reconstruct identity from PID alone.</p>
+<p>cgroup is resource/process containment, not filesystem or network isolation.
+For <code>hermetic</code>, pair it with a mount/user/network namespace provider (for
+example a carefully configured bubblewrap/container) using read-only source and
+toolchain, tmpfs scratch, dedicated output, no host network, and closed inherited
+FDs. Record the provider binary/image digest and actual namespace/cgroup IDs.</p>
+<h3 id="windows-job-object">Windows: Job Object</h3>
+<p>Use a native helper because Python's standard library does not expose the full
+Job API. Hold Job and process handles in a supervisor/broker with restricted
+ACLs. Create an unnamed Job, set completion port while inactive, enable
+<code>KILL_ON_JOB_CLOSE</code>, active-process/memory/CPU limits, and explicitly prohibit
+breakaway. Create target with <code>CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT</code>
+and an explicit handle list; assign to Job; persist control-plane journal; then
+resume the primary thread.</p>
+<p>Wait on the process handle and query Job accounting. Treat completion messages
+as observations, not the sole truth; query active process count and retain
+handles because message PIDs can be reused. Cancellation uses
+<code>TerminateJobObject</code>; successful quiescence requires active process count zero.
+Nested-host constraints must be probed. If assignment fails because the runner's
+parent Job topology is incompatible, report <code>job_assignment_unsupported</code>; do
+not fall back silently.</p>
+<p>Job Objects do not provide filesystem/network hermeticity. Strong Windows runs
+need an ephemeral immutable VM/container plus firewall/network policy, read-only
+source ACLs, dedicated output ACLs, explicit environment/handle inheritance,
+and image identity. Publish <code>contained</code> rather than <code>hermetic</code> when those are
+absent.</p>
+<h3 id="macos-compatibility-and-strong-profiles">macOS: compatibility and strong profiles</h3>
+<p>Compatibility backend: spawn with a new process group/session, explicit empty
+environment, closed FDs, <code>setrlimit</code>, and a startup barrier. Store PID plus
+start-time/audit observations where available. Signal the group and enumerate
+descendants for diagnostics, but publish <code>best-effort-tree</code>; child code may
+detach into another session and resource limits do not form a non-escapable
+tree container.</p>
+<p>Strong profile (separate product work): a code-signed, sandboxed executor/XPC
+service with minimal entitlements, client code-signing requirements, explicit
+file extensions/access, no network entitlement for network-denied jobs, and
+launchd-managed lifetime. Even then, validate whether the desired arbitrary
+tool execution model is compatible with App Sandbox and code-signing rules.
+This cannot be promised by merely adding Python branches.</p>
+<p>For CI, an ephemeral macOS VM runner with image identity and external supervisor
+can improve environment freshness, but it does not convert process groups into
+kernel Job Objects. State that limitation in evidence.</p>
+<h2 id="cli-proposal">CLI proposal</h2>
+<p>Extend the managed runtime without changing its asynchronous envelope:</p>
+<pre><code class="language-text">agent_exec.py probe-executor --backend auto
+agent_exec.py prepare-execution --manifest FILE
+agent_exec.py execute --manifest FILE --signing-profile PROFILE
+agent_exec.py seal --run-id RUN_ID                 # recovery/admin, only if quiescent
+agent_exec.py verify-execution --bundle FILE --artifact-root DIR --policy FILE
+</code></pre>
+<p><code>execute</code> should normally own prepare through attest atomically. Split commands
+exist for diagnostics/recovery and enforce journal preconditions. Stable errors:</p>
+<pre><code class="language-text">manifest_invalid, undeclared_input, dirty_source, submodule_mismatch,
+lockfile_missing, toolchain_mismatch, image_identity_unpinned,
+capability_unsatisfied, containment_start_failed, containment_escape_detected,
+process_identity_lost, resource_limit_exceeded, network_policy_violation,
+output_not_quiescent, artifact_mutated, artifact_path_invalid,
+artifact_digest_mismatch, signing_identity_unavailable, signing_failed,
+signature_invalid, provenance_policy_mismatch, reproducibility_mismatch
+</code></pre>
+<p><code>agent_exec submit/send</code> can accept <code>--execution-manifest</code> and
+<code>--signing-profile</code>; existing sandbox choice remains distinct and must not be
+renamed as hermeticity. Terminal state adds evidence paths/digests only after
+verification succeeds. A run can complete execution but fail attestation; its
+overall trusted-execution status is failed, while raw observations remain for
+diagnosis.</p>
+<h2 id="chaos-and-adversarial-test-plan">Chaos and adversarial test plan</h2>
+<p>All destructive signals and mutations target only temporary per-test fixtures.
+Each test asserts both stable error and absence of collateral signaling/writes.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Fault</th>
+<th>Method</th>
+<th>Required invariant</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CR-01</td>
+<td>supervisor crash before launch</td>
+<td>kill after <code>prepared</code> journal</td>
+<td>exact run is safely resumable because no workload launch occurred</td>
+</tr>
+<tr>
+<td>CR-02</td>
+<td>crash after launch before start event</td>
+<td>kill at launch boundary</td>
+<td>run is ambiguous/non-replayable; container is reconciled or failed closed</td>
+</tr>
+<tr>
+<td>CR-03</td>
+<td>crash during sealing</td>
+<td>kill after first CAS blob</td>
+<td>no signature exists; restart re-hashes from quiescent output or fails</td>
+</tr>
+<tr>
+<td>CR-04</td>
+<td>crash after signature temp write</td>
+<td>kill before atomic rename</td>
+<td>verifier sees no terminal bundle; temp file is ignored</td>
+</tr>
+<tr>
+<td>PID-01</td>
+<td>PID reuse</td>
+<td>inject stale PID/start identity; create unrelated process</td>
+<td>no signal reaches unrelated process</td>
+</tr>
+<tr>
+<td>PID-02</td>
+<td>Linux leader exits, grandchild lives</td>
+<td>double-fork/setsid child</td>
+<td>cgroup remains populated and <code>cgroup.kill</code> removes only run subtree</td>
+</tr>
+<tr>
+<td>WIN-01</td>
+<td>child rapidly forks/exits</td>
+<td>completion-port stress</td>
+<td>Job active-count/handles establish truth despite missed notifications</td>
+</tr>
+<tr>
+<td>MAC-01</td>
+<td>child calls <code>setsid</code></td>
+<td>compatibility backend</td>
+<td>test exposes limitation and grade never claims kernel tree containment</td>
+</tr>
+<tr>
+<td>ART-01</td>
+<td>mutate file while sealing</td>
+<td>synchronized writer changes bytes/rename</td>
+<td>seal fails <code>artifact_mutated</code>; no attestation</td>
+</tr>
+<tr>
+<td>ART-02</td>
+<td>replace path with symlink</td>
+<td>rename race to outside fixture</td>
+<td>no outside read; <code>artifact_path_invalid</code>/mutation failure</td>
+</tr>
+<tr>
+<td>ART-03</td>
+<td>mutate after sealing</td>
+<td>flip one byte in distributed copy</td>
+<td>independent verify fails digest/root</td>
+</tr>
+<tr>
+<td>SIG-01</td>
+<td>forge signature</td>
+<td>alter DSSE signature</td>
+<td>cryptographic verification fails</td>
+</tr>
+<tr>
+<td>SIG-02</td>
+<td>valid signature, wrong identity</td>
+<td>sign with untrusted test key/OIDC subject</td>
+<td>policy verification fails</td>
+</tr>
+<tr>
+<td>SIG-03</td>
+<td>splice artifact/statement</td>
+<td>pair valid bundle with other artifact</td>
+<td>subject digest mismatch</td>
+</tr>
+<tr>
+<td>ENV-01</td>
+<td>undeclared env mutation</td>
+<td>vary <code>HOME</code>, locale, TZ, loader/runtime vars</td>
+<td>child sees only allowlist; executionHash unchanged or launch rejected</td>
+</tr>
+<tr>
+<td>ENV-02</td>
+<td>time mutation</td>
+<td>vary host time/timezone</td>
+<td>normalized artifact repeats or capability reports insufficient clock control</td>
+</tr>
+<tr>
+<td>ENV-03</td>
+<td>randomness mutation</td>
+<td>read uncontrolled entropy</td>
+<td>hermetic profile blocks/fails; no false reproducibility claim</td>
+</tr>
+<tr>
+<td>NET-01</td>
+<td>denied egress</td>
+<td>attempt DNS/TCP/loopback according to policy</td>
+<td>connection fails and observed policy is attested</td>
+</tr>
+<tr>
+<td>CG-01</td>
+<td>cgroup delegation missing</td>
+<td>read-only cgroup fixture/host</td>
+<td>preflight fails without process-group downgrade</td>
+</tr>
+<tr>
+<td>LIM-01</td>
+<td>fork bomb bounded</td>
+<td>tiny <code>pids.max</code> fixture</td>
+<td>fork fails, host remains healthy, <code>pids.events</code> records hit</td>
+</tr>
+<tr>
+<td>LIM-02</td>
+<td>memory limit</td>
+<td>bounded allocator in disposable fixture</td>
+<td>Job/cgroup reports limit cause; full tree becomes empty</td>
+</tr>
+</tbody>
+</table>
+<p>Signature tests use ephemeral test keys only. A chaos suite must never receive
+production KMS permissions. Artifact races should coordinate with barriers, not
+timing sleeps, to make failure deterministic.</p>
+<h2 id="ci-and-repeated-identical-source-verification">CI and repeated identical-source verification</h2>
+<p>Proposed workflows, all third-party/GitHub actions pinned to full commit SHAs:</p>
+<ol>
+<li><strong>Static/unit matrix</strong> on <code>ubuntu-24.04</code>, <code>windows-2025</code>, and <code>macos-15</code>
+(plus supported Python versions): schema validation, canonicalization golden
+vectors, artifact path/digest tests, evidence verification, journal state
+machine, and mocked backend failure classification.</li>
+<li><strong>Native containment integration</strong> per OS: Linux delegated cgroup runner,
+Windows Job tests, macOS limitation/cleanup tests. Hosted runners may lack
+cgroup delegation, so Linux strong tests should use an ephemeral self-hosted
+runner or VM explicitly configured with a delegated subtree.</li>
+<li><strong>Chaos</strong> in disposable VMs only, with strict wall/resource caps. Run fork,
+crash, PID-reuse, mutation, and signature suites. Preserve bounded diagnostic
+logs and unsigned failure evidence.</li>
+<li><strong>Reproducibility</strong>: materialize the exact same committed source snapshot
+twice into independent clean workspaces with caches disabled; use the same
+manifest, toolchain/image digest, fixed time/entropy policy, and command;
+compare <code>executionHash</code>, artifact index, set root, and every artifact digest.
+Repeat with cache enabled as an additional check; SLSA says cache must not
+affect isolated build output.</li>
+<li><strong>Cross-runner repetition</strong>: two independent runners of the same immutable
+image digest compare outputs. This detects host leakage better than two
+directories on one host.</li>
+<li><strong>Cross-platform comparison</strong>: compare only artifacts declared
+platform-independent. Platform-specific outputs use per-platform expected
+roots. A single mismatch uploads both indexes, manifests, image identities,
+and a path-level digest diff; it never overwrites the golden value.</li>
+<li><strong>Attestation job</strong>: signing runs only after all required comparisons pass,
+in a separate job/environment with minimal OIDC/KMS permission. GitHub
+artifact attestation can supplement, not replace, the executor's own
+manifest/artifact binding.</li>
+</ol>
+<p>Runner labels are scheduling hints, not image digests. Each job captures exact
+runner image version and SBOM digest from the setup metadata/release. High-
+assurance release policy should use immutable, ephemeral self-hosted VM images
+or Linux OCI images pinned by digest; hosted runner repetition can be valuable
+evidence while still reporting the weaker image guarantee.</p>
+<p>Suggested reproducibility outcome schema:</p>
+<pre><code class="language-json">{
+  &quot;sourceSnapshot&quot;: &quot;sha256:...&quot;,
+  &quot;executionHash&quot;: &quot;sha256:...&quot;,
+  &quot;runs&quot;: [{&quot;runId&quot;: &quot;...&quot;, &quot;imageDigest&quot;: &quot;...&quot;, &quot;artifactRoot&quot;: &quot;sha256:...&quot;}],
+  &quot;comparison&quot;: &quot;identical|different|not-comparable&quot;,
+  &quot;differences&quot;: [{&quot;path&quot;: &quot;...&quot;, &quot;left&quot;: &quot;sha256:...&quot;, &quot;right&quot;: &quot;sha256:...&quot;}]
+}
+</code></pre>
+<h2 id="test-retirement-criteria">Test-retirement criteria</h2>
+<p>Tests should be retired only when all of the following are recorded in the
+replacement change:</p>
+<ul>
+<li>the tested threat or contract is removed by an explicit Human-owned decision,
+or an equal/stronger test covers the same invariant on every supported backend;</li>
+<li>the replacement is linked by stable test/threat ID and demonstrates fault
+injection, not only the success path;</li>
+<li>platform coverage and capability-grade assertions are not reduced silently;</li>
+<li>at least one release cycle/defined observation window shows the replacement is
+stable (duration is Human-owned and currently unspecified);</li>
+<li>removal does not eliminate independent artifact re-hashing, signature identity
+checks, ambiguous-launch fail-closed behavior, or collateral-damage checks.</li>
+</ul>
+<p>Current <code>/proc</code> boot-ID/start-ticks tests may become diagnostic compatibility
+tests after pidfd adoption, but should not be removed until all Linux signalling
+uses pidfd/cgroup identity and crash reconciliation no longer relies on PID.
+Current process-group descendant tests remain useful for the macOS compatibility
+backend and Linux fallback refusal tests; they are not evidence that cgroup
+tests are unnecessary.</p>
+<h2 id="contradictions-and-tensions">Contradictions and tensions</h2>
+<ol>
+<li><strong>Cross-platform containment is not symmetric.</strong> Linux cgroups and Windows
+Jobs own process trees; ordinary macOS process groups do not. A single
+<code>trusted: true</code> flag would be misleading.</li>
+<li><strong>Containment is not hermeticity.</strong> cgroup/Job/process groups do not alone
+constrain source visibility, filesystem, network, clock, randomness, or
+environment. The manifest needs enforcement providers for each dimension.</li>
+<li><strong>Reproducibility and secret/unpredictable inputs conflict.</strong> Jobs that need
+live secrets, unpinned network responses, current time, or nondeterministic
+entropy cannot simultaneously claim identical-source reproducibility unless
+those influences are removed from outputs or captured/replayed under an
+explicitly weaker profile.</li>
+<li><strong>Dirty working tree versus commit identity.</strong> The current repository is
+dirty. Building the current filesystem while claiming only the inspected
+commit would be false. Snapshot dirty content explicitly or use the committed
+tree.</li>
+<li><strong>Hosted convenience versus immutable image identity.</strong> GitHub-hosted images
+are ephemeral but updated. Version capture improves provenance after the
+fact; it is not the same as selecting a preverified immutable image digest.</li>
+<li><strong>Signature validity versus evidence accuracy.</strong> A compromised or tenant-
+controlled signer can make valid false statements. Key isolation and
+control-plane measurement are mandatory to raise confidence.</li>
+<li><strong>Current Linux fail-closed portability versus requested cross-platform
+support.</strong> The present runtime deliberately reports <code>/proc</code> identity as
+unsupported elsewhere. Adding OS backends must preserve fail-closed semantics
+rather than relaxing identity globally.</li>
+</ol>
+<h2 id="security-assumptions">Security assumptions</h2>
+<ul>
+<li>The verifier's trust roots/policy are authenticated and maintained outside the
+artifact bundle.</li>
+<li>The control plane, backend helper, kernel/hypervisor, image provisioning, and
+signing service are within the trusted computing base for their claimed grade.</li>
+<li>Executed code is adversarial and can fork, detach, race output paths, flood
+logs, alter environment-dependent behavior, and attempt credential discovery.</li>
+<li>Signing credentials and OIDC tokens are unavailable to executed code and are
+issued only after policy gates where applicable.</li>
+<li>SHA-256 collision/second-preimage resistance and signature algorithm security
+hold; algorithm identifiers are explicit and downgrade is rejected.</li>
+<li>A verified artifact proves bytes and provenance policy, not semantic safety,
+absence of vulnerabilities, or Human acceptance.</li>
+<li>Local administrator/root or kernel compromise is out of scope for an
+in-process local backend; stronger adversaries require separate VM/hardware
+trust boundaries.</li>
+</ul>
+<h2 id="residual-limitations-and-unresolved-human-decisions">Residual limitations and unresolved Human decisions</h2>
+<ul>
+<li>Select supported OS versions and whether macOS <code>best-effort-tree</code> is an
+acceptable product mode or only a diagnostic mode.</li>
+<li>Select the signing trust model (public Sigstore, GitHub attestation, KMS,
+multiple signers), identity policy, rotation, revocation, offline verification,
+and transparency requirements.</li>
+<li>Decide whether release-grade hermetic execution requires self-hosted immutable
+VMs/containers and who owns those images and SBOM policy.</li>
+<li>Define accepted lockfile ecosystems, allowed network exceptions, time/random
+virtualization strength, artifact mode/symlink rules, and cross-platform path
+normalization policy.</li>
+<li>Define resource-limit defaults and acceptable containment failure behavior for
+each runner environment.</li>
+<li>Define acceptance thresholds and the observation period for test retirement.</li>
+<li>Validate Apple App Sandbox/XPC feasibility with a signed prototype on real
+macOS; this Linux exploration cannot prove entitlement or arbitrary-tool
+compatibility.</li>
+<li>Validate Windows nested Job behavior and immutable-image strategy on real
+Windows; no Windows runtime experiment was possible here.</li>
+<li>Validate cgroup delegation and <code>clone3(CLONE_INTO_CGROUP)</code> in the intended
+Linux service-manager/runner topology; this host exposed cgroup v2 but did not
+delegate a writable root to the current process.</li>
+</ul>
+<h2 id="smallest-useful-follow-up">Smallest useful follow-up</h2>
+<p>Implement a non-signing vertical prototype in a separate authorized Work task:
+strict manifest validation, committed-source snapshot digest, deterministic
+artifact index/root, independent verification, and a backend capability probe.
+Exercise it in disposable Linux/Windows/macOS CI without claiming acceptance.
+Then add Linux delegated-cgroup/pidfd containment and chaos tests before
+introducing production signing; otherwise signatures may prematurely
+authenticate inaccurate executor claims.</p>
+
+      </article>
+      <details class="source-context">
+        <summary>위임 요청 전문</summary>
+        <div class="source-body">
+<p>Investigate an implementable design for the Agent Factory plugin covering:</p>
+<ol>
+<li>executor-generated cryptographically signed evidence;</li>
+<li>a hermetic execution manifest that covers source, ignored-input policy,
+submodules, lockfiles, toolchain, environment allowlist, runner image, command,
+network/time/randomness policy;</li>
+<li>content-addressed artifact sealing and verification;</li>
+<li>a Linux cgroup v2 + pidfd execution backend;</li>
+<li>Windows Job Object and macOS process-containment backends;</li>
+<li>crash, PID reuse, artifact mutation, signature forgery, and environment
+mutation chaos tests;</li>
+<li>CI matrix and repeated identical-source reproducibility verification.</li>
+</ol>
+<p>Use current official primary sources where possible (Linux kernel/man-pages,
+Microsoft, Apple, SLSA, Sigstore, GitHub Actions). Inspect the current repository
+implementation and test structure. You are explicitly authorized to perform
+read-only runtime capability probes and bounded experiments in your isolated
+Explorer workspace, but must not edit canonical project files or run the
+repository's test suite.</p>
+<p>Produce <code>.agent-factory/document/processed/trusted-executor-cross-platform-20260828/notes.md</code>
+with observed facts, platform/API constraints, proposed module/schema/CLI design,
+security assumptions, CI strategy, test-retirement criteria, contradictions,
+and residual limitations. Include direct source URLs and clearly label
+inferences. Do not make Human-owned acceptance or risk decisions.</p>
+
+        </div>
+      </details>
+      <details class="source-context"><summary>보존된 Markdown 표현</summary><p><a href="./notes.md">notes.md</a> · <a href="./request.md">request.md</a></p></details>
+    </main>
+  </div>
+</body>
+</html>

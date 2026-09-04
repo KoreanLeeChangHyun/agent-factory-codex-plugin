@@ -1,0 +1,1 @@
+(() => { "use strict"; try { if (window.parent !== window && window.parent.location.origin === window.location.origin) document.documentElement.dataset.agentFactoryWorkspaceEmbedded = "true"; } catch { /* Keep the standalone color scheme. */ } })();

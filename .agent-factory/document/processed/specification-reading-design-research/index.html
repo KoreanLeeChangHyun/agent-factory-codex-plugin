@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="agent-factory:document-type" content="processed">
+  <meta name="agent-factory:document-id" content="specification-reading-design-research">
+  <title>명세 문서 읽기와 다이어그램 조사</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#content">본문으로 건너뛰기</a>
+  <header>
+    <h1>명세 문서 읽기와 다이어그램 조사</h1>
+    <p>사람과 AI가 같은 명세를 더 쉽게 읽도록 정보 구조와 시각 표현 원칙을 조사한 비권위 작업 자료입니다.</p>
+  </header>
+  <main id="content" tabindex="-1">
+    <aside class="status-note" aria-labelledby="status-title">
+      <h2 id="status-title">읽기 전 상태 확인</h2>
+      <p>이 문서는 공식·원저자 자료를 비교해 만든 가공 문서이며, 명세의 권위나 구현 수락을 갖지 않습니다.</p>
+      <p>자료는 일반 설계 원칙의 근거이지 Agent Factory 사용자를 대상으로 한 연구 결과가 아니며, 웹 문서의 내용과 URL은 이후 바뀔 수 있습니다.</p>
+    </aside>
+    <dl class="metadata">
+      <div><dt>문서 유형</dt><dd>가공 문서</dd></div>
+      <div><dt>근거</dt><dd>Microsoft, C4, Mermaid, Notion, Obsidian, W3C 등 공식 자료</dd></div>
+      <div><dt>변환</dt><dd>읽기 구조와 시각 표현 원칙의 비교·요약</dd></div>
+      <div><dt>미해결</dt><dd>도형 수, 상호작용, 추가 renderer의 채택 범위</dd></div>
+    </dl>
+    <section>
+      <h2>결론</h2>
+      <ol class="principles">
+        <li>AI 명세를 먼저 목적, 핵심 계약, 작업 선택, 절차, 완료 조건 순으로 정리한다.</li>
+        <li>사람용 명세는 같은 내용과 같은 순서·계층을 유지한다.</li>
+        <li>하나의 규칙은 권위 있는 위치 한 곳에만 두고 반복 대신 참조한다.</li>
+        <li>조사 과정과 채택되지 않은 제안은 명세 밖의 가공 문서에 둔다.</li>
+        <li>다이어그램은 관계를 글이나 작은 표보다 명확히 만들 때만 사용한다.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>표현 선택</h2>
+      <div class="table"><table>
+        <thead><tr><th>보여줄 관계</th><th>우선 표현</th><th>핵심 규칙</th></tr></thead>
+        <tbody>
+          <tr><td>과정·계층</td><td>Flowchart</td><td>한 방향으로 읽고 개요와 상세를 분리</td></tr>
+          <tr><td>시간 순서의 상호작용</td><td>Sequence diagram</td><td>참여자 순서를 고정하고 메시지를 동사로 표시</td></tr>
+          <tr><td>Entity와 cardinality</td><td>ERD</td><td>관계와 cardinality를 빠뜨리지 않음</td></tr>
+          <tr><td>조건·상태 전이</td><td>Decision/state flow</td><td>분기 조건과 종료 지점을 명시</td></tr>
+          <tr><td>같은 속성의 반복 비교</td><td>표</td><td>안정된 행·열 비교 축 유지</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>Notion·Obsidian에서 가져온 원칙</h2>
+      <div class="table"><table>
+        <thead><tr><th>참고 기능</th><th>명세에 적용할 원칙</th><th>적용하지 않을 것</th></tr></thead>
+        <tbody>
+          <tr><td>Notion 제목·목차</td><td>짧은 제목 계층으로 문서 윤곽과 이동 지점을 만든다.</td><td>제품 화면을 그대로 복제하지 않는다.</td></tr>
+          <tr><td>Notion 표·콜아웃</td><td>반복 비교는 표로, 중요한 경고만 절제된 콜아웃으로 표현한다.</td><td>모든 문단을 카드나 콜아웃으로 감싸지 않는다.</td></tr>
+          <tr><td>Obsidian Outline</td><td>실제 제목 계층이 곧 탐색 구조가 되게 한다.</td><td>별도 읽기 안내를 중복 작성하지 않는다.</td></tr>
+          <tr><td>Obsidian Canvas</td><td>소유권·흐름·분기는 라벨이 붙은 방향 관계로 그린다.</td><td>관계가 없는 규칙을 장식용 도형으로 만들지 않는다.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>작성 체크리스트</h2>
+      <ul class="checklist">
+        <li>그림이 답하는 질문이 하나인가?</li>
+        <li>제목에 유형과 범위가 드러나는가?</li>
+        <li><code>LR</code> 또는 <code>TB</code> 읽기 방향이 일관적인가?</li>
+        <li>도형·색·선·화살촉의 의미가 일관되고 필요한 범례가 있는가?</li>
+        <li>관계선에 방향과 구체적인 동사형 라벨이 있는가?</li>
+        <li>서로 다른 추상화 수준이나 관계 유형을 한 장에 섞지 않았는가?</li>
+        <li>색을 제거해도 의미가 유지되고 교차선이 과도하지 않은가?</li>
+        <li><code>accTitle</code>, <code>accDescr</code>, 인접한 텍스트 설명이 있는가?</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>현재 적용 상태</h2>
+      <p>위 결론은 조사 결과입니다. Human이 수락한 “AI 명세부터 정리하고 사람용 문서를 같은 구조로 동기화한다”는 방향만 실제 명세에 반영합니다. 도형 수, node 수, interactive zoom, Mermaid 이외 renderer는 아직 결정되지 않았습니다.</p>
+    </section>
+
+    <details>
+      <summary><strong>근거와 출처</strong><span>공식 문서와 원저자 자료</span></summary>
+      <ul class="sources">
+        <li><a href="https://learn.microsoft.com/azure/well-architected/architect-role/design-diagrams">Microsoft Azure · Create architecture design diagrams</a> — 방향선, 라벨, 일관된 표기, 범례, 단계적 상세화를 권고합니다.</li>
+        <li><a href="https://c4model.com/introduction">C4 model · Introduction</a> — 혼합된 추상화 수준과 불명확한 관계·읽기 순서를 흔한 문제로 설명합니다.</li>
+        <li><a href="https://c4model.com/diagrams/notation">C4 model · Notation</a> — 제목, 범위, 범례, 요소 유형·책임, 단방향 관계 라벨을 권고합니다.</li>
+        <li><a href="https://mermaid.js.org/config/accessibility.html">Mermaid · Accessibility Options</a> — <code>accTitle</code>과 <code>accDescr</code>의 SVG 접근성 연결을 설명합니다.</li>
+        <li><a href="https://www.notion.com/help/columns-headings-and-dividers">Notion · Columns, headings &amp; dividers</a> — 세 단계 제목, 제목 기반 목차, 단순 표를 설명합니다.</li>
+        <li><a href="https://www.notion.com/help/customize-and-style-your-content">Notion · Customize &amp; style content</a> — 글머리표·숫자 목록과 콜아웃 사용법을 설명합니다.</li>
+        <li><a href="https://obsidian.md/help/plugins/outline">Obsidian · Outline</a> — 제목 계층을 이용한 탐색과 재구성을 설명합니다.</li>
+        <li><a href="https://obsidian.md/help/plugins/canvas">Obsidian · Canvas</a> — 카드 그룹과 라벨이 붙은 방향 연결을 설명합니다.</li>
+        <li><a href="https://obsidian.md/help/callouts">Obsidian · Callouts</a> — 본문 흐름 안에서 목록·코드·접기 내용을 담는 콜아웃을 설명합니다.</li>
+        <li><a href="https://www.w3.org/WAI/tutorials/images/complex/">W3C WAI · Complex Images</a> — 복잡한 그림에 짧은 식별과 구조화된 긴 설명을 함께 제공하도록 안내합니다.</li>
+        <li><a href="https://graphviz.org/docs/layouts/dot/">Graphviz · dot</a> — 방향 그래프의 일관된 배치와 교차선·edge 길이 감소를 설명합니다.</li>
+        <li><a href="https://code.visualstudio.com/api/ux-guidelines/webviews">VS Code · Webviews UX Guidelines</a></li>
+        <li><a href="https://code.visualstudio.com/api/extension-guides/webview">VS Code · Webview API</a></li>
+        <li><a href="https://code.visualstudio.com/api/references/theme-color">VS Code · Theme Color</a></li>
+        <li><a href="https://carbondesignsystem.com/components/tile/usage/">IBM Carbon · Tile usage</a></li>
+        <li><a href="https://design-system.service.gov.uk/styles/spacing/">GOV.UK · Spacing</a></li>
+        <li><a href="https://design-system.service.gov.uk/styles/type-scale/">GOV.UK · Type scale</a></li>
+        <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/visual-presentation">W3C · Visual Presentation</a></li>
+        <li><a href="https://www.w3.org/WAI/WCAG22/Techniques/css/C20">W3C · Relative column widths</a></li>
+        <li><a href="https://github.com/primer/css">GitHub · Primer CSS</a></li>
+        <li><a href="https://github.com/primer/css/blob/main/DEVELOP.md">GitHub · Primer CSS structure</a></li>
+        <li><a href="https://docusaurus.io/docs/styling-layout">Docusaurus · Styling and Layout</a></li>
+      </ul>
+      <p class="limit">공식 자료는 일반 원칙과 component 사용 근거를 제공하지만 Agent Factory 사용자 연구 결과는 아닙니다. 웹 문서의 내용과 URL은 이후 바뀔 수 있습니다.</p>
+    </details>
+  </main>
+</body>
+</html>
