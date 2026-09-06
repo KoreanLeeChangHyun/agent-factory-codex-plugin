@@ -2,6 +2,8 @@
 
 Never uses the account provider. Paid/live-model testing has been retired.
 """
+import runtime_test_home  # Isolate all runtime subprocesses from the real home.
+
 import io
 import json
 import os

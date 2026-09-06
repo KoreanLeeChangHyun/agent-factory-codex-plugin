@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
+sys.dont_write_bytecode = True
 import exec as agent_exec
 
 
@@ -29,11 +30,12 @@ class AgentRuntime:
 
     def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
+        self.runtime_binding = agent_exec.runtime_paths.resolve(project_root, create=True)
         self.script = Path(agent_exec.__file__).resolve()
 
     def call(self, arguments: list[str]) -> dict[str, Any]:
         process = subprocess.run(
-            [sys.executable, str(self.script), *arguments, "--project-root", str(self.project_root)],
+            [sys.executable, str(self.script), *arguments, "--project-root", str(self.project_root), *agent_exec.runtime_paths.arguments(self.project_root)],
             cwd=self.project_root,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
@@ -109,7 +111,7 @@ def loop_directory(root: Path, work_agent: str, loop_id: str, *, create: bool = 
     agent_exec.validate_id(loop_id, agent_exec.AGENT_ID, "loop_id")
     directory = agent_exec.agent_directory(root, work_agent, create=create) / "loops" / loop_id
     if create:
-        agent_exec.ensure_directory(directory, root)
+        agent_exec.ensure_directory(directory, agent_exec.find_project_anchor(directory))
     return directory
 
 
@@ -452,7 +454,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     parser = agent_exec.JsonArgumentParser(prog="loop.py")
     commands = parser.add_subparsers(dest="command", required=True)
     start = commands.add_parser("start")
-    start.add_argument("--project-root", type=Path, default=Path.cwd())
+    agent_exec.add_project_argument(start)
     start.add_argument("--request-file", type=Path, required=True)
     start.add_argument("--work-agent", required=True)
     start.add_argument("--verification-agent", required=True)
@@ -465,7 +467,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--verification-capability-binding-file", type=Path)
     for name in ("status", "reconcile", "skip"):
         command = commands.add_parser(name)
-        command.add_argument("--project-root", type=Path, default=Path.cwd())
+        agent_exec.add_project_argument(command)
         command.add_argument("--work-agent", required=True)
         command.add_argument("--loop-id", required=True)
         if name == "skip":
@@ -482,6 +484,7 @@ def emit(value: dict[str, Any]) -> None:
 def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = build_parser().parse_args(argv)
+        agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
         handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "skip": skip_loop}
         emit(handlers[args.command](args))
         return 0

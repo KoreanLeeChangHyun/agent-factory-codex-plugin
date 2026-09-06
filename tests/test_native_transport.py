@@ -1,4 +1,6 @@
 """Subprocess transport coverage, plus separately opted-in live model evidence."""
+import runtime_test_home  # Isolate all runtime subprocesses from the real home.
+
 import io
 import json
 import os

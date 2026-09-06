@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import runtime_test_home  # Isolate all runtime subprocesses from the real home.
+
 import importlib.util
 import hashlib
 import json
@@ -68,7 +70,7 @@ class FakeRuntime:
         }
         if binding_hash is not None:
             dispatch_tuple["capabilityBindingHash"] = binding_hash
-        directory = self.root / ".agent-factory" / "agent" / values["agent_id"] / "runs" / run_id
+        directory = self.agent_exec.agent_root(self.root) / values["agent_id"] / "runs" / run_id
         directory.mkdir(parents=True, exist_ok=True)
         run = {
             "runId": run_id,
@@ -295,7 +297,7 @@ class AgentLoopContractTests(unittest.TestCase):
         self.runtime.lose_ack = True
         with self.assertRaises(self.agent_exec.ContractError):
             self.start()
-        loops = next((self.root / ".agent-factory" / "agent" / "work-agent" / "loops").iterdir())
+        loops = next((self.agent_exec.agent_root(self.root) / "work-agent" / "loops").iterdir())
         state = self.agent_exec.safe_read_json(loops / "state.json")
         dispatch_id = state["pendingDispatch"]["dispatchId"]
         state = self.reconcile({"loopId": state["loopId"]})
@@ -307,7 +309,7 @@ class AgentLoopContractTests(unittest.TestCase):
         self.runtime.fail_before_call = True
         with self.assertRaises(self.agent_exec.ContractError):
             self.start()
-        loops = next((self.root / ".agent-factory" / "agent" / "work-agent" / "loops").iterdir())
+        loops = next((self.agent_exec.agent_root(self.root) / "work-agent" / "loops").iterdir())
         persisted = self.agent_exec.safe_read_json(loops / "state.json")
         dispatch_id = persisted["pendingDispatch"]["dispatchId"]
         self.runtime.fail_before_call = False

@@ -70,9 +70,11 @@ SANDBOX_UNAVAILABLE_STDERR = (
 )
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = SKILL_ROOT / "prompt"
+sys.dont_write_bytecode = True
 sys.path.insert(0, str(SKILL_ROOT / "runtime"))
 import cloud_reporting
 import native_codex
+import paths as runtime_paths
 VALID_ROLES = {"main", "work", "verification"}
 CAPABILITY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 AUTHORITY_KINDS = {
@@ -552,6 +554,7 @@ def ensure_directory(path: Path, anchor: Path) -> None:
         relative = path.relative_to(anchor)
     except ValueError as error:
         raise ContractError("path_outside_project", "runtime path escaped the project root") from error
+    runtime_paths.inspect(anchor)
     cursor = anchor
     for part in relative.parts:
         cursor = cursor / part
@@ -602,11 +605,7 @@ def atomic_write(path: Path, content: bytes) -> None:
 
 
 def find_project_anchor(path: Path) -> Path:
-    cursor = path.resolve(strict=False)
-    for parent in (cursor, *cursor.parents):
-        if parent.name == ".agent-factory":
-            return parent.parent
-    raise ContractError("runtime_path_invalid", "runtime path is not below .agent-factory")
+    return runtime_paths.anchor(path)
 
 
 def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
@@ -617,34 +616,12 @@ def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
 
 
 def safe_read_bytes(path: Path, limit: int) -> bytes:
-    reject_symlink(path)
-    flags = os.O_RDONLY
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
     try:
-        descriptor = os.open(path, flags)
-    except FileNotFoundError as error:
-        raise ContractError("file_not_found", f"required file was not found: {path}") from error
-    try:
-        info = os.fstat(descriptor)
-        if not stat.S_ISREG(info.st_mode):
-            raise ContractError("file_invalid", f"required path is not a regular file: {path}")
-        if info.st_size > limit:
-            raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
-        chunks: list[bytes] = []
-        remaining = limit + 1
-        while remaining > 0:
-            chunk = os.read(descriptor, min(remaining, 65536))
-            if not chunk:
-                break
-            chunks.append(chunk)
-            remaining -= len(chunk)
-        content = b"".join(chunks)
-        if len(content) > limit:
-            raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
-        return content
-    finally:
-        os.close(descriptor)
+        return safe_read_caller_file(path, limit)
+    except ContractError as error:
+        if not path.exists():
+            raise ContractError("file_not_found", f"required file was not found: {path}") from error
+        raise
 
 
 def safe_read_json(path: Path) -> dict[str, Any]:
@@ -654,21 +631,22 @@ def safe_read_json(path: Path) -> dict[str, Any]:
         raise ContractError("state_invalid", f"state file is invalid: {path}") from error
     if not isinstance(value, dict):
         raise ContractError("state_invalid", f"state file is invalid: {path}")
-    return value
+    return runtime_paths.project_json(path, value)
 
 
 def agent_root(project_root: Path, create: bool = True) -> Path:
-    root = project_root / ".agent-factory" / "agent"
-    if create:
-        ensure_directory(root, project_root)
-    return root
+    binding = runtime_paths.resolve(project_root, create=create)
+    runtime_paths.require_ready(binding)
+    if not binding["registered"]:
+        raise ContractError("project_uninitialized", "project has no registered runtime; use exec.py init")
+    return Path(binding["agentsRoot"])
 
 
 def agent_directory(project_root: Path, agent_id: str, create: bool = False) -> Path:
     validate_id(agent_id, AGENT_ID, "agent_id")
     path = agent_root(project_root, create=create) / agent_id
     if create:
-        ensure_directory(path, project_root)
+        ensure_directory(path, find_project_anchor(path))
     return path
 
 
@@ -678,7 +656,7 @@ def run_directory(
     validate_id(run_id, AGENT_ID, "run_id")
     path = agent_directory(project_root, agent_id, create=create) / "runs" / run_id
     if create:
-        ensure_directory(path, project_root)
+        ensure_directory(path, find_project_anchor(path))
     return path
 
 
@@ -689,6 +667,10 @@ def file_lock(path: Path, *, blocking: bool = True) -> Iterator[None]:
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
     descriptor = os.open(path, flags, 0o600)
+    info = os.fstat(descriptor)
+    if not stat.S_ISREG(info.st_mode):
+        os.close(descriptor)
+        raise ContractError("runtime_path_unsafe", "runtime lock must be a regular file")
     stream = os.fdopen(descriptor, "a+")
     try:
         try:
@@ -992,6 +974,7 @@ def create_run(
         )
     accepted_at = now()
     state = {
+        "runtimeBinding": runtime_paths.resolve(project_root, create=True),
         "schemaVersion": SCHEMA_VERSION,
         "runId": run_id,
         "agentId": agent_id,
@@ -1231,11 +1214,11 @@ def validate_receipt(
     validate_id(run_id, AGENT_ID, "run_id")
     if state.get("agentId") != agent_id or state.get("runId") != run_id:
         raise ContractError("receipt_path_invalid", "receipt Agent/run binding is invalid")
-    managed_root = root / ".agent-factory" / "agent"
+    managed_root = agent_root(root, create=False)
     agent_path = managed_root / agent_id
     runs_path = agent_path / "runs"
     run_path = runs_path / run_id
-    for directory in (root / ".agent-factory", managed_root, agent_path, runs_path, run_path):
+    for directory in (managed_root.parent, managed_root, agent_path, runs_path, run_path):
         _require_managed_directory(directory)
     canonical = {
         "statePath": run_path / "state.json",
@@ -1409,6 +1392,7 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
         "role": role,
         "sessionId": None,
         "projectRoot": str(project_root),
+        "runtimeBinding": runtime_paths.resolve(project_root, create=True),
         "codex": codex,
         "sandbox": args.sandbox,
         "model": args.model,
@@ -1603,6 +1587,7 @@ def spawn_worker(project_root: Path, agent_id: str, run_id: str) -> int:
         sys.executable,
         str(Path(__file__).resolve()),
         "_worker",
+        *runtime_paths.arguments(project_root),
         "--project-root",
         str(project_root),
         "--agent",
@@ -1951,6 +1936,17 @@ This run has a strict capability binding at `{capability_binding_path}`. Use
 only its exact capability, authority, invocation route, target, allowed effects
 and scopes, and approval reference. Preserve its binding in the required receipt.
 """
+    migration_obligation = ""
+    with contextlib.suppress(ValueError):
+        runtime_root = runtime_paths.anchor(request_path)
+        if (runtime_root / "migration.json").exists():
+            root = runtime_paths.project_for(request_path)
+            migration_obligation = f"""
+Historical evidence paths may have moved. Resolve an exact historical path with
+`{Path(__file__).resolve()}` command `map-path --project-root {root} --path OLD_PATH`.
+Use its manifest-bound archivePath and digest; do not rewrite historical requests,
+results, receipts or their hashes. New output still belongs to this exact run.
+"""
     return f"""Act as Agent `{agent_id}` for Agent Factory.
 
 The following validated content is the complete `{role}` system-prompt source:
@@ -1963,7 +1959,7 @@ Read the delegated request from `{request_path}`. Keep its scope and authority u
 
 Write the detailed result to `{result_path}`. Then return only the compact JSON
 required by the supplied output schema. Run ID: `{run_id}`.
-{binding_obligation}{receipt_obligation}"""
+{binding_obligation}{receipt_obligation}{migration_obligation}"""
 
 
 def build_codex_command(
@@ -1973,6 +1969,8 @@ def build_codex_command(
     common = ["--json", "--output-schema", str(state["responseSchemaPath"])]
     if session.get("backend") == "app-server":
         return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"])]
+    if session["sandbox"] == "workspace-write":
+        common.extend(["-c", "sandbox_workspace_write.writable_roots=" + json.dumps([str(Path(state["statePath"]).parent)])])
     if session.get("fast") is False:
         common.extend(["-c", 'service_tier="default"'])
     if session.get("reasoningEffort"):
@@ -2535,7 +2533,7 @@ def mark_terminal(
 def worker(args: argparse.Namespace) -> int:
     project_root = resolve_project_root(args.project_root)
     state_path = state_file(project_root, args.agent, args.run_id)
-    state = safe_read_json(state_path)
+    state = find_run(project_root, args.agent, args.run_id)
     worker_identity = linux_process_identity(os.getpid())
     update_json(
         state_path,
@@ -2711,12 +2709,22 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
     if state.get("role") not in {"work", "verification"}:
         public.pop("statePath", None)
     if state.get("cloudReporting"):
-        public["reporting"] = cloud_reporting.status(reporting_runtime(), find_project_anchor(Path(state["statePath"])), state)
+        public["reporting"] = cloud_reporting.status(reporting_runtime(), runtime_paths.project_for(Path(state["statePath"])), state)
     return public
 
 
 def find_run(project_root: Path, agent_id: str, run_id: str) -> dict[str, Any]:
-    return safe_read_json(state_file(project_root, agent_id, run_id))
+    path = state_file(project_root, agent_id, run_id)
+    state = safe_read_json(path)
+    if state.get("agentId") != agent_id or state.get("runId") != run_id:
+        raise ContractError("state_invalid", "run identity does not match its managed directory")
+    for field, name in {"statePath": "state.json", "requestPath": "request.md", "resultPath": "result.md",
+                        "eventsPath": "events.jsonl", "heartbeatPath": "heartbeat.json",
+                        "responseSchemaPath": "response.schema.json", "receiptPath": "receipt.json",
+                        "receiptSchemaPath": "receipt.schema.json", "capabilityBindingPath": "capability-bindings.json"}.items():
+        if field in state and state[field] != str(path.parent / name):
+            raise ContractError("state_invalid", "run file path escaped its managed binding")
+    return state
 
 
 def command_status(args: argparse.Namespace) -> int:
@@ -2768,6 +2776,8 @@ def command_result(args: argparse.Namespace) -> int:
 
 
 def iter_agent_directories(root: Path) -> Iterator[Path]:
+    if not runtime_paths.resolve(root)["registered"]:
+        return
     agents = agent_root(root, create=False)
     if not agents.exists():
         return
@@ -3093,7 +3103,7 @@ def request_native_pause(path: Path) -> None:
 def record_goal_uncertainty(path: Path, message: str) -> None:
     fields = {"goalError": message}
     state = update_json(path, path.parent / ".state.lock", lambda value: value.update(fields))
-    target = session_file(find_project_anchor(path), str(state["agentId"]))
+    target = session_file(runtime_paths.project_for(path), str(state["agentId"]))
     update_json(target, target.parent / ".session-state.lock", lambda value: value.update(fields))
     # A full log cannot conceal the diagnostic: status/result and session are
     # authoritative fallbacks even when no more bounded events fit.
@@ -3155,6 +3165,8 @@ def command_goal(args: argparse.Namespace) -> int:
 
 def add_project_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    parser.add_argument("--runtime-home", type=Path)
+    parser.add_argument("--project-id")
 
 
 def add_request_arguments(parser: argparse.ArgumentParser) -> None:
@@ -3187,6 +3199,14 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = JsonArgumentParser(prog="exec.py")
     commands = parser.add_subparsers(dest="command", required=True)
+
+    for name in ("init", "location", "projects", "rebind", "map-path"):
+        location_parser = commands.add_parser(name)
+        add_project_argument(location_parser)
+        if name == "map-path":
+            location_parser.add_argument("--path", type=Path, required=True)
+        if name == "rebind":
+            location_parser.add_argument("--from-root", type=Path, required=True)
 
     submit_parser = commands.add_parser("submit")
     add_project_argument(submit_parser)
@@ -3283,6 +3303,22 @@ def validate_submit_options(args: argparse.Namespace) -> None:
 def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = parse_args(argv)
+        if hasattr(args, "project_root") and args.command != "rebind":
+            binding = runtime_paths.resolve(args.project_root, create=args.command == "init",
+                                            home=args.runtime_home, project_id=args.project_id)
+            os.environ["AGENT_FACTORY_HOME"] = binding["home"]
+        if args.command in {"init", "location"}:
+            emit(binding)
+            return 0
+        if args.command == "map-path":
+            emit(runtime_paths.map_evidence(args.project_root, args.path))
+            return 0
+        if args.command == "projects":
+            emit({"schemaVersion": 1, "kind": "runtime-projects", **runtime_paths.registry(Path(binding["home"]))})
+            return 0
+        if args.command == "rebind":
+            emit(runtime_paths.rebind(args.runtime_home, args.project_id, args.from_root, args.project_root))
+            return 0
         if args.command == "capabilities":
             codex = args.codex
             if args.agent:

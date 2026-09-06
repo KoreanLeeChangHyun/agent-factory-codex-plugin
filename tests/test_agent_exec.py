@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import runtime_test_home  # Isolate all runtime subprocesses from the real home.
+
 import argparse
 import io
 import importlib.util
@@ -1071,6 +1073,7 @@ class AgentExecTests(unittest.TestCase):
                     },
                     {
                         "responseSchemaPath": "/tmp/schema.json",
+                        "statePath": "/tmp/run/state.json",
                     },
                     "session-1",
                 )

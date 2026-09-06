@@ -2,6 +2,10 @@
 from __future__ import annotations
 
 import contextlib
+import fcntl
+import os
+import shutil
+import stat
 import importlib.util
 import json
 import queue
@@ -17,7 +21,7 @@ class NativeError(Exception):
     pass
 
 
-def inspect_capabilities(codex: str) -> dict:
+def _probe_capabilities(codex: str) -> dict:
     """Inspect this executable's protocol, never infer support from wrapper flags."""
     supported = {"model": True, "reasoning": True, "fast": False, "goal": False}
     reason = None
@@ -54,6 +58,92 @@ def inspect_capabilities(codex: str) -> dict:
         reason = "Installed Codex protocol lacks required native fields. Update/select Codex, then retry."
     return {"schemaVersion": "0.1.0", "kind": "execution-capabilities", "backend": "codex-app-server-stdio",
             "submit": supported, "send": dict(supported), "diagnostic": reason}
+
+
+
+# One bounded entry per operational home; account/model availability is never stored.
+CAPABILITY_CACHE_TTL = 60
+
+
+def _capability_identity(codex):
+    executable = shutil.which(codex)
+    if not executable:
+        raise OSError("Codex executable not found")
+    path = Path(executable).resolve(strict=True)
+    info = path.stat()
+    if not stat.S_ISREG(info.st_mode):
+        raise OSError("Codex executable is not a regular file")
+    return {"path": str(path), "device": info.st_dev, "inode": info.st_ino,
+            "size": info.st_size, "mtimeNs": info.st_mtime_ns, "ctimeNs": info.st_ctime_ns,
+            "codexHome": str(Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")).resolve())}
+
+
+def _cached_capabilities(paths, file, identity):
+    try:
+        value = paths.read(file)
+        if (not isinstance(value, dict) or set(value) != {"version", "identity", "created", "capabilities"}
+                or value["version"] != 1 or value["identity"] != identity
+                or type(value["created"]) not in (int, float)
+                or not 0 <= time.time() - value["created"] < CAPABILITY_CACHE_TTL):
+            return None
+        caps = value["capabilities"]
+        expected = {"model": True, "reasoning": True, "fast": True, "goal": True}
+        if (not isinstance(caps, dict) or set(caps) != {"schemaVersion", "kind", "backend", "submit", "send", "diagnostic"}
+                or caps["schemaVersion"] != "0.1.0" or caps["kind"] != "execution-capabilities"
+                or caps["backend"] != "codex-app-server-stdio" or caps["diagnostic"] is not None):
+            return None
+        for verb in ("submit", "send"):
+            fields = caps[verb]
+            if not isinstance(fields, dict) or fields != expected or any(type(v) is not bool for v in fields.values()):
+                return None
+        return caps
+    except (OSError, ValueError, TypeError, KeyError, OverflowError):
+        return None
+
+
+def inspect_capabilities(codex: str) -> dict:
+    """Reuse only recent successful protocol probes for this binary and Codex home."""
+    if os.environ.get("AF_CODEX_CAPABILITY_CACHE") == "0":
+        return _probe_capabilities(codex)
+    result = None
+    try:
+        import paths
+        identity = _capability_identity(codex)
+        directory = paths.home_path() / "cache" / "native-capabilities"
+        paths.mkdir(directory)
+        file = directory / "capabilities.json"
+        cached = _cached_capabilities(paths, file, identity)
+        if cached is not None:
+            return cached
+        # A short bounded wait coalesces ordinary concurrent probes; a stuck
+        # writer cannot add its full probe timeout to another caller's latency.
+        fd = os.open(directory / ".lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+        try:
+            info = os.fstat(fd)
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+                raise ValueError("unsafe capability cache lock")
+            deadline = time.monotonic() + .5
+            while True:
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError:
+                    if time.monotonic() >= deadline:
+                        raise OSError("capability cache lock busy")
+                    time.sleep(.01)
+            cached = _cached_capabilities(paths, file, identity)
+            if cached is not None:
+                return cached
+            result = _probe_capabilities(codex)
+            # Missing/failed/partial schemas are retried next time. A replacement
+            # during inspection cannot publish support for the old identity.
+            if result["diagnostic"] is None and _capability_identity(codex) == identity:
+                paths.write(file, {"version": 1, "identity": identity, "created": time.time(), "capabilities": result})
+            return result
+        finally:
+            os.close(fd)
+    except (OSError, ValueError, ImportError):
+        return result if result is not None else _probe_capabilities(codex)
 
 
 def service_tier(models: list[dict], model: str, fast: bool | None) -> str | None:
@@ -282,6 +372,8 @@ class Bridge:
             config["service_tier"] = "default"
         if self.session.get("reasoningEffort"):
             config["model_reasoning_effort"] = self.session["reasoningEffort"]
+        if self.session["sandbox"] == "workspace-write":
+            config["sandbox_workspace_write.writable_roots"] = [str(Path(self.state["statePath"]).parent)]
         params = {"cwd": self.session["projectRoot"], "sandbox": self.session["sandbox"],
                   "approvalPolicy": "never", "config": config,
                   "developerInstructions": prompt}
@@ -494,6 +586,7 @@ def main():
     runtime = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runtime)
     state = runtime.safe_read_json(Path(sys.argv[1]))
+    runtime.runtime_paths.bind(state["runtimeBinding"])
     session = runtime.safe_read_json(Path(state["nativeSessionPath"]))
     def process_factory():
         return subprocess.Popen([session["codex"], "app-server", "--listen", "stdio://"],

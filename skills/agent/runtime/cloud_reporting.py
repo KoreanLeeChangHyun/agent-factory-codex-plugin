@@ -16,6 +16,7 @@ import urllib.request
 import uuid
 from pathlib import Path
 from urllib.parse import urlsplit
+import paths as runtime_paths
 
 VERSION = '2026-07-28'
 IDENTIFIER = re.compile(r'[A-Za-z0-9][A-Za-z0-9_-]{0,159}')
@@ -59,7 +60,7 @@ def validate_config(value):
                 and parsed.hostname in {'127.0.0.1', '::1'}))):
         raise ReportingError('reporting_endpoint_invalid')
     credential = Path(value['credential_file'])
-    if not credential.is_absolute() or '..' in credential.parts or '.agent-factory' in credential.parts:
+    if not credential.is_absolute() or '..' in credential.parts or '.agent-factory' in credential.parts or credential.is_relative_to(runtime_paths.home_path()):
         raise ReportingError('reporting_credential_reference_invalid')
     return value
 
@@ -88,7 +89,7 @@ def sync_directory(directory):
 
 def reporting_path(rt, root, state):
     directory = rt.run_directory(root, state['agentId'], state['runId'])
-    rt.ensure_directory(directory, root)
+    rt.ensure_directory(directory, rt.find_project_anchor(directory))
     return directory / 'reporting.json'
 
 
@@ -242,7 +243,7 @@ def hook(rt, state_path, observation=None):
                     if previous is None or observation[0] > previous[0]:
                         value['reportingObservation'] = observation
                 state = rt.update_json(state_path, state_path.parent / '.state.lock', remember)
-            collect(rt, rt.find_project_anchor(state_path), state, observation)
+            collect(rt, rt.runtime_paths.project_for(state_path), state, observation)
     except Exception:
         try:
             publish(rt, state_path.parent / 'reporting-error.json', {'error': 'reporting_local_pending'})
@@ -395,7 +396,7 @@ def deliver(rt, root, state):
                 break
             try:
                 completed = subprocess.run([sys.executable, str(rt.SKILL_ROOT / 'scripts' / 'exec.py'),
-                    '_report-send', '--project-root', str(root), '--agent', state['agentId'],
+                    '_report-send', *rt.runtime_paths.arguments(root), '--project-root', str(root), '--agent', state['agentId'],
                     '--run-id', state['runId'], '--entry', str(index)],
                     stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=5, check=False)
                 output = json.loads(completed.stdout)

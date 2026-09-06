@@ -1,4 +1,6 @@
 """Independent Verification targets; no production recipient or execution required."""
+import runtime_test_home  # Isolate all runtime subprocesses from the real home.
+
 import importlib.util
 import json
 import os
@@ -144,7 +146,7 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(len(self.server.receipts), 1)
         self.assertEqual(self.server.commands[0], self.server.commands[1])
         self.assertTrue(all(r['params']['name'] in {'reporting_read', 'reporting_write'} for r in self.server.requests))
-        for path in (self.root / '.agent-factory').rglob('*'):
+        for path in rt.agent_root(self.root).parent.rglob('*'):
             if path.is_file():
                 self.assertNotIn(b'afm_first', path.read_bytes())
                 self.assertNotIn(b'afm_rotated', path.read_bytes())
@@ -223,7 +225,7 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(cloud.deliver(rt, self.root, self.state)['pending'], 0)
 
     def test_waits_for_actual_session_and_no_default_configuration(self):
-        rt.ensure_directory(self.root / '.agent-factory/agent/other/runs/run-two', self.root)
+        rt.run_directory(self.root, 'other', 'run-two', create=True)
         state = {**self.state, 'agentId': 'other', 'runId': 'run-two', 'sessionId': None}
         cloud.collect(rt, self.root, state)
         self.assertTrue(cloud.status(rt, self.root, state)['awaitingSession'])
