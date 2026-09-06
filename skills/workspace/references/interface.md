@@ -10,7 +10,7 @@
   canonical store or executor for the state it may later project.
 
 Keep common layout, interaction, and visual tokens in the selected Agent Factory
-MCP runtime's canonical `static/workspace/` package. The Activity Bar contains
+MCP runtime's canonical `static/` package. The Activity Bar contains
 exactly these six top-level items, in this order, with these Korean labels:
 
 1. 일정
@@ -237,22 +237,13 @@ Every tab is an internal drag source. Apply these tab drop rules:
 - A canceled or invalid tab drag changes nothing.
 - This remains transient viewing state and never edits the Specification.
 - Do not infer pin/preview semantics, dirty state, save/edit, group resizing, layout
-  persistence, or cross-origin loading, and do not render fake disabled controls for
+  persistence, or arbitrary cross-origin loading, and do not render fake disabled controls for
   them.
 
-- When the Workspace embeds an allowlisted same-origin Human Specification, apply an
-  explicit `data-agent-factory-workspace-embedded="true"` marker to the iframe document
-  root on load.
-- Catch unavailable document access and retain the standalone presentation; never add a
-  query or fragment, broaden the exact same-origin path rule, or weaken the read-only
-  boundary.
-- The iframe background uses `--workspace-background` before and beyond document paint.
-- Under the marker, align page, surface, muted surface, text, muted text, border, and
-  focus tokens to the neutral shell palette (`#1f1f1f`, `#181818`, `#2b2b2b`, `#cccccc`,
-  `#a0a0a0`, `#0078d4`).
-- Keep code, table, card, note, and diagram surfaces neutral and use blue only for
-  meaningful focus/accent roles.
-- Preserve standalone light/dark behavior when the marker is absent.
+- Cloud Document packages use authenticated revision-scoped delivery and an opaque-origin sandboxed Human preview. The trusted application shell and uploaded document code remain isolated; do not enable `allow-same-origin`, parent DOM/storage/cookie access or arbitrary network fetch to restore an old embedding behavior.
+- Resolve relative CSS, classic scripts, images, fonts and internal links only from the validated package inventory through the cloud preview contract. Raw member routes are attachment downloads, not same-origin HTML execution.
+- The iframe background uses `--workspace-background` before and beyond document paint. Preserve standalone light/dark rendering without relying on cross-origin DOM access or query/fragment mutation.
+- Where the document itself explicitly provides an embedded theme, align page/surface/muted surface/text/muted text/border/focus with the neutral palette (`#1f1f1f`, `#181818`, `#2b2b2b`, `#cccccc`, `#a0a0a0`, `#0078d4`). Keep code/table/card/note/diagram surfaces neutral and reserve blue for meaningful focus/accent. Do not weaken preview isolation to inject a marker from the parent.
 
 - Use the editor width efficiently.
 - Remove the fixed centered 74 rem content cap; use roughly 12–16 px desktop outer
@@ -282,8 +273,7 @@ Every tab is an internal drag source. Apply these tab drop rules:
 - The Original search table is a read-only metadata and source-link projection.
 - It does not copy, normalize, or edit Original bodies, and it does not own or trigger
   Gather synchronization.
-- No live browser query/API/source adapter, synchronization trigger or status contract,
-  or metadata edit authority and persistence has been accepted.
+- Cloud Document tools own authenticated persistence/search and collection tools own synchronization. Their availability does not itself settle the Original table loader or additional editing/synchronization UI controls.
 - The browser therefore starts in the truthful `데이터 연결 대기` state without sample records
   and exposes only `window.agentFactoryWorkspace.originalSearch.replaceRows(rows)` for a
   future owner-backed loader.
@@ -293,13 +283,14 @@ Every tab is an internal drag source. Apply these tab drop rules:
   opener/referrer isolation.
 - Global search treats input only as literal text matched against the six displayed
   fields.
-- The implemented bounded catalog search CLI does not connect this table.
-- Original overview details and the other four Activity sidebars and their detailed
+- Do not connect this table through a local catalog CLI; use only the cloud owner-backed integration when explicitly implemented.
+- The schedule sidebar and detailed planning capabilities follow `planning.md`.
+- Original overview details and Agents, logs and tests sidebars and detailed
   capabilities remain Human-owned and undecided and must say so.
 - Existing server/discovery utilities do not authorize a top-level Activity or a data
   integration beyond this decided Document view shape.
-- This unresolved boundary no longer applies to the explicitly resolved local Processed
-  package discovery endpoint.
+- This unresolved boundary no longer applies to the resolved tenant-scoped Processed
+  Document discovery.
 - The Original overview content uses the compact workspace inset directly, without an
   editor header.
 - The Document Sidebar's terminal Specification group has no trailing bottom divider
@@ -319,7 +310,7 @@ The selected Agent Factory MCP application owns the Workspace implementation,
 separately from this plugin's Skill contract.
 
 - Canonical browser assets are maintained under the MCP application's
-  `static/workspace/` directory under that application's dependency policy.
+  `static/` directory under that application's dependency policy.
 - FastAPI serves the Human shell at `/workspace/` and tenant resources below `/api/`.
 - The same application exposes the Agent Factory MCP transport at `/mcp`.
 - The runtime resolves tenant organization and workspace identity through authenticated
@@ -331,11 +322,7 @@ separately from this plugin's Skill contract.
 - Runtime source, deployment adapters, and runtime tests belong to the MCP repository.
   Do not recreate them under `skills/workspace/` or the project root.
 
-Run the MCP application from its own environment:
-
-```bash
-uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
+The cloud application's own deployment contract owns launch/restart and runtime environment. Skill authoring never authorizes deployment or restart, and the plugin provides no local Workspace launcher.
 
 - The MCP HTTP host attaches `Cache-Control: no-store`
   to every successful static-file response resolved from their allowlisted roots.
@@ -343,8 +330,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 - Do not extend this static-file freshness policy to JSON API responses or redirects.
 - Preserve `X-Content-Type-Options: nosniff`, path containment, symlink rejection, and
   traversal defenses alongside it.
-- Restart an already-running MCP application after changing server code;
-- the next browser request then fetches the current file without heuristic cache reuse.
+- Server changes take effect through that application's authorized deployment workflow; static freshness does not itself authorize restart or claim a deployed update.
 
 ## Storage and authority boundary
 
@@ -353,22 +339,10 @@ not imply acceptance, health, completion, or authority. Agent sessions,
 Original/Processed/Specification Documents, Project Skills, and Human decisions
 retain their owning stores and rules.
 
-- The exact local catalog at `<project-root>/.agent-factory/db.sqlite`, its schema,
-  manager, initialization, rebuild, status, searches, publication and recovery are
-  Agent-owned.
-- Workspace does not invoke those operations, and MCP application startup has no catalog
-  initialization side effect.
-- Workspace has no catalog/search UI, query API, or search executor.
-- It may later present read-only results supplied through an explicit Agent-owned
-  interface, but that possibility does not authorize direct database access, a
-  source/query binding, Activity behavior, or any transfer of Agent, Document, or
-  catalog ownership.
-- Apply the detailed catalog contract only from `skills/agent/SKILL.md`.
-
-- A server-hosted Workspace is exposed by its selected host or adapter and does not
-  require the local launcher.
-- The local static-file `no-store` contract does not silently select policy for another
-  host.
-- Backend configuration, identity, synchronization/conflict policy, authentication,
-  availability, and caching for that external host remain unresolved until explicitly
-  decided.
+- The cloud owns new Document index/search, shared reporting and connection/collection configuration. Workspace projects authenticated owner-backed state and does not initialize or query a project `db.sqlite`.
+- Local exec/loop, session/run/receipt/outbox/recovery data retain local authority. A cloud report or stale observation does not launch, finish, cancel or advance that graph.
+- Planning tasks, background jobs and local runtime reports are separate domains; apply `planning.md` and the advertised owner schemas without inferring cross-domain completion.
+- Use the resolved authenticated cloud connection and its current tool schemas/guides. Missing capability/account/scope remains unavailable or unresolved; never fabricate a live connection or substitute old local scripts.
+- Git-owned Skill and Korean HTML publication sources bind a reviewed repository/commit/inventory snapshot. Cloud owns accepted published Document revisions; Workspace is not a second editable truth.
+- Retain legacy source/configuration/catalog data until inventory, independent backup and verified import. Code retirement never grants data-deletion authority.
+- Concrete tenant/account/credential authority, unresolved controls and deployment/cutover remain explicit owner decisions. This contract does not claim registration, production configuration or complete migration steps 1–13.

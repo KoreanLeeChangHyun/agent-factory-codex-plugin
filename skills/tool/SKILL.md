@@ -55,28 +55,8 @@ Tool must not widen scope on its own.
   browser/runtime readiness, or health requests involving Playwright, and
   before binding its browser capability to Agent execution.
 
-## Stateless adapter
+## Cloud connections and local inspection
 
-`scripts/tool.py` is the current bounded implementation for the Git, GitHub
-CLI, Git LFS, and Playwright profiles. It emits one JSON document for
-`discover`, `inspect`, or `health`, and emits a non-executing provider route for
-state-changing lifecycle verbs. It never installs, updates, removes, connects,
-authenticates, enables, disables, runs a domain task, creates a Tool registry,
-or stores credentials.
+New provider connection/authentication work uses advertised tools on the resolved authenticated cloud MCP application. Read `agent-factory://integrations/guide`, current schemas and `references/lifecycle.md`. Cloud owns encrypted connection credentials and integration configuration; Tool keeps logical control semantics and opaque references. Missing capability, permission, account or connection remains unresolved/unavailable. Never fabricate live health or substitute a legacy provider script.
 
-Every invocation requires one stable profile and preserves an explicit
-authority kind/reference plus exact project target. Native executable and
-project-CLI adapters may inspect only bounded provider-reported facts. Plugin,
-MCP, and host capabilities remain `unknown` until their selected authority has
-a concrete adapter; their availability is never inferred from a project
-package. Machine output separates observed facts from the lifecycle route and
-records `secretMaterialStored: false`.
-
-GitHub CLI executable availability and authentication are independent facts.
-The adapter uses the provider-supported non-secret command `gh auth status
---hostname HOST --json hosts` and bounds its hosts/account projection.
-Structured authentication inspection reports `inspectionSupport` separately:
-unsupported or unparseable behavior leaves authentication `unknown`,
-while a supported structured response can report actual unauthenticated state
-as `unavailable`. The adapter never treats an older or unsupported CLI
-interface as proof that authentication is unavailable.
+For local Git, GitHub CLI, Git LFS and Playwright inspection, use the Agent's existing shell/file tools against an explicit target and the selected authority. Follow the profile references for bounded non-secret facts. Do not create a local Tool MCP/provider service. The local Tool adapter executable is retired after independently verified replacement; this grants no permission to delete user data.

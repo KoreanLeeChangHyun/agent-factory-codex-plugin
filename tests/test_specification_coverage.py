@@ -1,139 +1,57 @@
-from __future__ import annotations
+"""Exercise the owning cloud validator against the complete final distribution.
 
-import hashlib
-import html
-import importlib.util
+These structural checks deliberately do not attest Korean semantic equivalence.
+Verification must separately review the six complete Human/AI bodies.
+"""
 from pathlib import Path
-import tempfile
+import re
 import unittest
 
+from mcp_dependency import ApplicationError, fixture_pair, source_files, validate_pair
 
 ROOT = Path(__file__).resolve().parents[1]
-VERIFIER_PATH = ROOT / "skills" / "document" / "scripts" / "verify_specification_pair.py"
-SPEC = importlib.util.spec_from_file_location("specification_coverage", VERIFIER_PATH)
-assert SPEC is not None and SPEC.loader is not None
-VERIFIER = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(VERIFIER)
+NAMES = ("agent", "convention", "document", "gather", "tool", "workspace")
 
 
 class SpecificationCoverageTests(unittest.TestCase):
-    @staticmethod
-    def _sha256(value: bytes) -> str:
-        return hashlib.sha256(value).hexdigest()
+    def test_all_complete_distributable_pairs_use_owning_validator(self):
+        self.assertEqual(validate_pair.__module__, "app.modules.document.pair")
+        for name in NAMES:
+            with self.subTest(name=name):
+                files = source_files(ROOT, name)
+                result = validate_pair(files, fixture_pair(files, name), name)
+                self.assertEqual(result["coverage"], "complete")
+                self.assertEqual(result["sources"][0], f"skills/{name}/SKILL.md")
 
-    def _project(self, root: Path) -> list[Path]:
-        skill = root / "skills" / "demo"
-        (skill / "references").mkdir(parents=True)
-        (skill / "agents").mkdir()
-        (skill / "SKILL.md").write_text("# Demo\n\nKeep every rule.\n", encoding="utf-8")
-        (skill / "references" / "detail.md").write_text(
-            "# Detail\n\nPreserve the exception.\n", encoding="utf-8"
-        )
-        (skill / "agents" / "openai.yaml").write_text(
-            'interface:\n  display_name: "Demo"\n', encoding="utf-8"
-        )
-        return VERIFIER.instruction_sources(skill)
-
-    def _human(self, root: Path, sources: list[Path]) -> Path:
-        parts = ["<!doctype html><html lang=\"ko\"><body>"]
-        for source in sources:
-            data = source.read_bytes()
-            line_count = len(data.decode("utf-8").splitlines(keepends=True))
-            relative = source.relative_to(root).as_posix()
-            parts.append(
-                f'<article data-ai-source="{html.escape(relative)}" '
-                f'data-ai-sha256="{self._sha256(data)}">'
-                f'<section data-source-lines="1-{line_count}" '
-                f'data-source-sha256="{self._sha256(data)}">'
-                f"{html.escape('전체 내용을 옮긴 한국어 번역입니다.')}</section></article>"
-            )
-        parts.append("</body></html>")
-        entry = (
-            root
-            / ".agent-factory"
-            / "document"
-            / "specification"
-            / "demo"
-            / "index.html"
-        )
-        entry.parent.mkdir(parents=True)
-        entry.write_text("".join(parts), encoding="utf-8")
-        return entry
-
-    def test_complete_current_ordered_source_coverage_passes(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            sources = self._project(root)
-            self._human(root, sources)
-            self.assertEqual(
-                [source.relative_to(root).as_posix() for source in sources],
-                VERIFIER.verify_pair(root, "demo"),
-            )
-
-    def test_all_repository_specification_pairs_pass(self) -> None:
-        for specification_id in (
-            "agent",
-            "convention",
-            "document",
-            "gather",
-            "tool",
-            "workspace",
-        ):
-            with self.subTest(specification_id=specification_id):
-                self.assertTrue(VERIFIER.verify_pair(ROOT, specification_id))
-
-    def test_missing_instruction_source_fails_closed(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            sources = self._project(root)
-            self._human(root, sources[:-1])
-            with self.assertRaisesRegex(VERIFIER.VerificationError, "missing sources"):
-                VERIFIER.verify_pair(root, "demo")
-
-    def test_stale_source_hash_fails_closed(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            sources = self._project(root)
-            self._human(root, sources)
-            sources[0].write_text("# Demo\n\nChanged rule.\n", encoding="utf-8")
-            with self.assertRaisesRegex(VERIFIER.VerificationError, "stale source hash"):
-                VERIFIER.verify_pair(root, "demo")
-
-    def test_reordered_instruction_sources_fail_closed(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            sources = self._project(root)
-            self._human(root, list(reversed(sources)))
-            with self.assertRaisesRegex(VERIFIER.VerificationError, "not in AI source order"):
-                VERIFIER.verify_pair(root, "demo")
-
-    def test_non_contiguous_source_range_fails_closed(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            sources = self._project(root)
-            human = self._human(root, sources)
-            line_count = len(sources[0].read_text(encoding="utf-8").splitlines(keepends=True))
-            content = human.read_text(encoding="utf-8").replace(
-                f'data-source-lines="1-{line_count}"',
-                f'data-source-lines="2-{line_count}"',
-                1,
-            )
-            human.write_text(content, encoding="utf-8")
-            with self.assertRaisesRegex(VERIFIER.VerificationError, "non-contiguous source range"):
-                VERIFIER.verify_pair(root, "demo")
-
-    def test_empty_translation_block_fails_closed(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            sources = self._project(root)
-            human = self._human(root, sources)
-            content = human.read_text(encoding="utf-8").replace(
-                "전체 내용을 옮긴 한국어 번역입니다.", "", 1
-            )
-            human.write_text(content, encoding="utf-8")
-            with self.assertRaisesRegex(VERIFIER.VerificationError, "translated block is empty"):
-                VERIFIER.verify_pair(root, "demo")
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_source_and_translation_corruption_fail_closed(self):
+        for fault in ("missing", "added", "stale", "reordered", "gap", "empty", "duplicate", "placeholder", "reciprocal", "asset-review"):
+            with self.subTest(fault=fault):
+                files = source_files(ROOT, "document")
+                pair = fixture_pair(files, "document")
+                entry = ".agent-factory/document/specification/document/index.html"
+                html = files[entry].decode()
+                if fault == "missing":
+                    del files["skills/document/references/processed.md"]
+                elif fault == "added":
+                    files["skills/document/references/new.md"] = b"New rule\n"
+                elif fault == "stale":
+                    files["skills/document/SKILL.md"] += b"Changed rule\n"
+                elif fault == "reordered":
+                    html = html.replace('data-ai-source="skills/document/SKILL.md"', 'data-ai-source="TEMP"', 1).replace('data-ai-source="skills/document/agents/openai.yaml"', 'data-ai-source="skills/document/SKILL.md"', 1).replace('data-ai-source="TEMP"', 'data-ai-source="skills/document/agents/openai.yaml"', 1)
+                elif fault == "gap":
+                    html = html.replace('data-source-lines="1-11"', 'data-source-lines="2-11"', 1)
+                elif fault == "empty":
+                    html = re.sub(r'(<article data-source-lines="1-11"[^>]*>).*?(</article>)', r'\1\2', html, count=1, flags=re.S)
+                elif fault == "duplicate":
+                    html = html.replace('</main>', '<section data-ai-source="skills/document/SKILL.md"></section></main>')
+                elif fault == "placeholder":
+                    html = html.replace('<html ', '<html data-template-placeholder ', 1)
+                elif fault == "reciprocal":
+                    html = html.replace('name="agent-factory:specification-id" content="document"', 'name="agent-factory:specification-id" content="wrong"')
+                elif fault == "asset-review":
+                    files[".agent-factory/document/specification/document/app.js"] += b"\n// changed\n"
+                files[entry] = html.encode()
+                # Refresh synthetic review hashes except the intentionally stale asset review.
+                if fault != "asset-review": pair = fixture_pair(files, "document")
+                with self.assertRaises(ApplicationError):
+                    validate_pair(files, pair, "document")

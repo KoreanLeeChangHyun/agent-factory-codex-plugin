@@ -13,29 +13,10 @@ PUBLIC_SKILLS = {"agent", "convention", "document", "gather", "tool", "workspace
 
 
 class ConventionSkillMetadataTests(unittest.TestCase):
-    def test_readme_declares_adopted_shared_catalog_and_authority_boundary(self) -> None:
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        normalized = " ".join(readme.casefold().replace("`", "").split())
-
-        self.assertRegex(
-            readme,
-            r"(?ms)^\.agent-factory/\n├── db\.sqlite\n├── agent/",
-        )
-        for contract in (
-            "the shared project-wide catalog/read model across agent execution structure and documents",
-            "it is rebuildable and non-authoritative",
-            "agent owns the maintained ddl at skills/agent/assets/schema/catalog.sql",
-            "does not replace authoritative agent runtime files, document bodies or representations, provenance evidence, gather configuration, project skills, or faithful specification pairs",
-            "the standard-library manager at skills/agent/scripts/catalog.py provides explicit init, rebuild, status, search-agents, and search-documents operations",
-            "workspace initialization has no catalog side effect",
-            "rebuild uses bounded local agent and document metadata scans plus capped allowlisted textual document indexing, builds and checks a separate database, and atomically publishes it without replacing the last good catalog on failure",
-            "the implementation has no runtime dual write, http/general query api, catalog search screen/navigation integration, live watcher, semantic/vector search, or external-backend ingestion",
-            "the database and its sqlite journal, shm, and wal sidecars are ignored generated artifacts and must not be committed",
-            "agent execution does not depend on catalog creation, freshness, corruption, or availability",
-            "workspace may later present agent-provided read-only results, but it does not own, initialize, rebuild, inspect, or execute searches against the catalog",
-        ):
-            with self.subTest(contract=contract):
-                self.assertIn(contract, normalized)
+    def test_readme_declares_cloud_and_local_authority(self):
+        text = (ROOT / "README.md").read_text()
+        for phrase in ("cloud", "exec.py", "loop.py", "document_template", "six Skills", "Code retirement never authorizes deletion"):
+            self.assertIn(phrase, text)
 
     def test_agents_entrypoint_routes_to_authoritative_convention_references(self) -> None:
         instructions = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
@@ -130,27 +111,11 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             path.name for path in (SKILLS / "agent" / "references").glob("*.md")
         }
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}
-        self.assertEqual(references, set())
+        self.assertEqual(references, {"reporting.md"})
         self.assertEqual(prompts, {"main.md", "work.md", "verification.md"})
 
     def test_public_skills_expose_only_their_owned_scripts(self) -> None:
-        expected = {
-            "agent": {"catalog.py", "exec.py", "loop.py"},
-            "convention": {"init_agents.py"},
-            "document": set(),
-            "gather": {
-                "provider_support.py",
-                "sync.py",
-                "sync_discord.py",
-                "sync_gmail.py",
-                "sync_google_drive.py",
-                "sync_notion.py",
-                "sync_onedrive.py",
-                "sync_slack.py",
-            },
-            "tool": {"tool.py"},
-            "workspace": set(),
-        }
+        expected = {name: ({"exec.py", "loop.py"} if name == "agent" else set()) for name in PUBLIC_SKILLS}
         for skill, scripts in expected.items():
             with self.subTest(skill=skill):
                 self.assertEqual(
@@ -158,26 +123,16 @@ class ConventionSkillMetadataTests(unittest.TestCase):
                     scripts,
                 )
 
-    def test_catalog_assets_and_manager_are_agent_owned_only(self) -> None:
-        self.assertTrue((SKILLS / "agent" / "scripts" / "catalog.py").is_file())
-        self.assertTrue(
-            (SKILLS / "agent" / "assets" / "schema" / "catalog.sql").is_file()
-        )
-        self.assertFalse((SKILLS / "workspace" / "scripts" / "catalog.py").exists())
-        self.assertFalse(
-            (SKILLS / "workspace" / "assets" / "schema" / "catalog.sql").exists()
-        )
-
-    def test_gather_preserves_shared_sync_configuration_identity(self) -> None:
-        management = (
-            SKILLS / "gather" / "references" / "gather-management.md"
-        ).read_text(encoding="utf-8")
-        self.assertIn(".agent-factory/document/sync.json", management)
-        self.assertTrue(
-            (SKILLS / "gather" / "assets" / "schema" / "sync.schema.json").is_file()
-        )
-        self.assertTrue((SKILLS / "gather" / "scripts" / "sync.py").is_file())
-        self.assertTrue((SKILLS / "gather" / "scripts" / "sync_gmail.py").is_file())
+    def test_no_distributed_domain_executable_schema_or_secret_dependency(self):
+        python_files = {p.relative_to(SKILLS).as_posix() for p in SKILLS.rglob("*.py")}
+        self.assertEqual(python_files, {"agent/scripts/exec.py", "agent/scripts/loop.py", "agent/runtime/cloud_reporting.py"})
+        self.assertEqual(list(SKILLS.rglob("*.sql")), [])
+        self.assertEqual(list(SKILLS.rglob("sync.schema.json")), [])
+        self.assertEqual(list(SKILLS.rglob("requirements.txt")), [])
+        self.assertFalse(any(p.is_file() for p in (SKILLS / "document/assets/document").rglob("*")))
+        ignored = (ROOT / ".gitignore").read_text()
+        for item in ("/.agent-factory/db.sqlite", "/.agent-factory/db.sqlite-wal", "/.agent-factory/agent/"):
+            self.assertIn(item, ignored)
 
     def test_tool_is_a_logical_control_contract_without_a_local_backend(self) -> None:
         entry = (SKILLS / "tool" / "SKILL.md").read_text(encoding="utf-8")
@@ -198,7 +153,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             "requested and actually granted permission scopes",
             "tool readiness does not authorize execution",
             "tool must not widen scope on its own",
-            "no such runtime interface, registry, or state backend is implemented",
+
         ):
             self.assertIn(phrase, combined)
         self.assertFalse((ROOT / ".agent-factory" / "tool").exists())

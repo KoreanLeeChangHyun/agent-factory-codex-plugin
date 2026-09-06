@@ -14,9 +14,7 @@ the durable information and authority constraints that task must preserve.
 
 Original Documents may retain diverse native or source-appropriate formats and
 must preserve source fidelity, identity, provenance, and collection context.
-The Processed Document type remains storage-independent; when the
-current/default local adapter materializes an active Processed Document, write
-it as Markdown (`.md`). Preserved legacy Inquery artifacts are neither active
+The Processed type remains storage-independent; active output uses the accepted portable HTML/CSS/JavaScript browser package and authorized cloud Document persistence. Preserved legacy Inquery artifacts are neither active
 targets nor a format precedent.
 
 ## Provenance and authority
@@ -39,7 +37,7 @@ targets nor a format precedent.
   not Explorer.
 
 Durable Explorer output must be classified as an Original or Processed
-Document and stored under the resolved Document root. Temporary execution-only
+Document and uploaded through the resolved authenticated cloud Document tools with its own authority. Temporary execution-only
 material belongs to the producing managed Agent run; Explorer has no standalone
 storage root.
 

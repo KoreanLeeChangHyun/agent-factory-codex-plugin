@@ -1,44 +1,13 @@
 # Gather OneDrive
 
-Use `scripts/sync_onedrive.py` to collect one selected file or folder into the
-resolved `onedrive` destination (default `source/microsoft/onedrive`). It uses
-Microsoft Graph `/content` downloads and records source IDs, web URLs, hashes,
-sizes, timestamps, and local paths in `index.jsonl`. It does not upload, move,
-rename, share, or delete DriveItems.
+Read `gather-management.md` and the authenticated server's integrations guide and schemas first. Use its collection tools with a Tool-resolved connection; this reference specifies source semantics, not a local provider command.
 
-## Connection And Authentication
+## Selection and fidelity
 
-Register a public-client/native application in Microsoft Entra, enable device
-code flow, and put its application/client ID in `ONEDRIVE_CLIENT_ID`. The script
-uses MSAL delegated device-code authentication with `Files.Read`. It requests
-the broader `Files.Read.All` only when the Human intentionally passes
-`--include-shared` to access shared files. Tenant admins may still require
-consent according to policy. The refreshable MSAL cache defaults outside the
-repository to `${XDG_CONFIG_HOME:-$HOME/.config}/agent-factory/onedrive-token-cache.json`
-with user-only permissions.
+Select exactly one `item_id` or relative `path`, optional recursion and all bounds. Require `Files.Read`; `include_shared=true` deliberately requests `Files.Read.All` and is required with explicit `drive_id`. Resolve Human/admin consent before broadening access. Cloud OAuth replaces local MSAL/device-code caches for new work. Preserve original Graph file bytes, IDs, web URLs, timestamps and hashes. Remote-item shortcuts retain metadata plus a limitation. Never upload, move, rename, share or delete DriveItems. Do not send Graph credentials to content redirect/CDN targets.
 
-Gather declares the selected item/folder/drive, recursion and count bounds,
-`Files.Read` as the minimum scope, whether `Files.Read.All` and Human/admin
-approval are actually required, and the read-only intent. Tool must report the
-requested and granted scopes separately and must not widen them. The bundled
-script's MSAL and token-cache behavior remains an observed implementation
-coupling until concrete Tool connection/token and Gather capability/scope
-interfaces exist and migration is separately authorized and verified.
+## Connection and result
 
-See Microsoft's [delegated auth flow](https://learn.microsoft.com/en-us/graph/auth-v2-user),
-[permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference),
-and [DriveItem content download](https://learn.microsoft.com/en-us/graph/api/driveitem-get-content?view=graph-rest-1.0).
+Use the server-advertised authentication route through Tool. Credentials remain in the cloud credential authority; do not put tokens in prompts, command arguments, repository files, receipts or source metadata. Distinguish requested scope, observed grant, account health, selection access and stale/unknown state. Missing capability or permission stops dependent collection without a local-script fallback.
 
-```bash
-export ONEDRIVE_CLIENT_ID='application-client-id'
-python <gather-skill-directory>/scripts/sync_onedrive.py \
-  --path 'Projects/Example' --recursive --max-files 500
-```
-
-Alternatively select exactly one `--item-id`. Confirm the selection, recursion,
-limit, requested permission, and resolved destination before authentication.
-The script percent-encodes IDs as Graph path components and encodes each
-`--path` component independently while preserving its `/` separators.
-Do not use `--include-shared` unless shared-file collection is intended. For a
-shared drive outside the user's own drive, pair it with an explicit
-`--drive-id`; this deliberately selects the `/drives/{drive-id}` Graph route.
+Inspect cloud collection status and persisted results, including partial results, conversions and coverage limitations. Preserve collection/run/source identity across retries. Cancellation retains evidence. New local sync configuration and provider services are outside this contract; local provider executables are retired after independently verified cloud replacement.

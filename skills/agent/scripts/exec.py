@@ -19,6 +19,7 @@ import sys
 import threading
 import time
 import uuid
+from types import SimpleNamespace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, IO, Iterator, Sequence
@@ -69,6 +70,9 @@ SANDBOX_UNAVAILABLE_STDERR = (
 )
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = SKILL_ROOT / "prompt"
+sys.path.insert(0, str(SKILL_ROOT / "runtime"))
+import cloud_reporting
+import native_codex
 VALID_ROLES = {"main", "work", "verification"}
 CAPABILITY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 AUTHORITY_KINDS = {
@@ -76,6 +80,11 @@ AUTHORITY_KINDS = {
     "host-capability", "external-provider",
 }
 CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
+
+
+def reporting_runtime():
+    """Expose runtime primitives also when a host loads this file without registration."""
+    return SimpleNamespace(**globals())
 
 
 class ContractError(Exception):
@@ -674,7 +683,7 @@ def run_directory(
 
 
 @contextlib.contextmanager
-def file_lock(path: Path) -> Iterator[None]:
+def file_lock(path: Path, *, blocking: bool = True) -> Iterator[None]:
     reject_symlink(path)
     flags = os.O_RDWR | os.O_CREAT
     if hasattr(os, "O_NOFOLLOW"):
@@ -684,14 +693,14 @@ def file_lock(path: Path) -> Iterator[None]:
     try:
         try:
             if fcntl is not None:
-                fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB))
             else:
                 stream.seek(0)
                 if stream.read(1) == "":
                     stream.write("\0")
                     stream.flush()
                 stream.seek(0)
-                msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK if blocking else msvcrt.LK_NBLCK, 1)
         except (BlockingIOError, OSError) as error:
             raise ContractError("lock_busy", "session is busy") from error
         yield
@@ -829,7 +838,18 @@ def read_capability_bindings(path: Path | None) -> tuple[dict[str, Any] | None, 
     return validated, canonical
 
 
-def safe_read_caller_file(path: Path, limit: int) -> bytes:
+def result_file_identity(info) -> dict[str, int]:
+    return {key: getattr(info, key) for key in
+            ("st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")}
+
+
+def safe_hash_caller_file(path: Path, expected_identity=None) -> str:
+    """Hash a stable regular file through safe traversal, using bounded memory."""
+    return safe_read_caller_file(path, None, digest_only=True, expected_identity=expected_identity)
+
+
+def safe_read_caller_file(path: Path, limit: int | None, *, private: bool = False,
+                          digest_only: bool = False, expected_identity=None) -> bytes | str:
     """Read an explicit caller file without following any path component."""
     if ".." in path.parts:
         raise ContractError("capability_binding_invalid", "capability binding path contains traversal")
@@ -862,8 +882,27 @@ def safe_read_caller_file(path: Path, limit: int) -> bytes:
         os.close(descriptor)
         descriptor = file_descriptor
         info = os.fstat(descriptor)
+        if private and (info.st_uid != os.getuid() or info.st_mode & 0o077):
+            raise ContractError("reporting_file_unsafe", "Reporting file must be owned by this user and private")
         if not stat.S_ISREG(info.st_mode):
             raise ContractError("capability_binding_invalid", "capability binding is not a regular file")
+        if digest_only:
+            identity = result_file_identity(info)
+            if expected_identity is not None and identity != expected_identity:
+                raise ContractError("reporting_result_changed", "Reporting result identity changed")
+            hasher = hashlib.sha256()
+            remaining = info.st_size + 1
+            count = 0
+            while remaining > 0:
+                chunk = os.read(descriptor, min(remaining, 65536))
+                if not chunk:
+                    break
+                hasher.update(chunk)
+                count += len(chunk)
+                remaining -= len(chunk)
+            if count != info.st_size or result_file_identity(os.fstat(descriptor)) != identity:
+                raise ContractError("reporting_result_changed", "Reporting result changed during capture")
+            return hasher.hexdigest()
         if info.st_size > limit:
             raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
         chunks: list[bytes] = []
@@ -900,6 +939,10 @@ def create_run(
     dispatch_id: str | None = None,
     dispatch_operation: str | None = None,
     capability_bindings: bytes | None = None,
+    reporting_config: dict[str, Any] | None = None,
+    reporting_loop_id: str | None = None,
+    execution_options: dict[str, Any] | None = None,
+    goal_action: str | None = None,
 ) -> dict[str, Any]:
     run_id = new_run_id()
     directory = run_directory(project_root, agent_id, run_id, create=True)
@@ -979,6 +1022,13 @@ def create_run(
         "unread": False,
         "error": None,
     }
+    if execution_options:
+        state["executionOptions"] = execution_options
+    if goal_action:
+        state["goalAction"] = goal_action
+    if reporting_config is not None:
+        state["cloudReporting"] = reporting_config
+        state["reportingLoopId"] = reporting_loop_id
     if dispatch_id is not None:
         state["dispatchId"] = dispatch_id
         state["dispatchTuple"] = {
@@ -990,6 +1040,13 @@ def create_run(
             "verifiedWorkRunId": verified_work_run_id,
             "operation": dispatch_operation,
         }
+        if execution_options:
+            state["dispatchTuple"]["executionOptions"] = execution_options
+        if goal_action:
+            state["dispatchTuple"]["goalAction"] = goal_action
+        if reporting_config is not None:
+            state["dispatchTuple"]["reportingConfigHash"] = cloud_reporting.digest(reporting_config)
+            state["dispatchTuple"]["reportingLoopId"] = reporting_loop_id
         if capability_binding_hash is not None:
             state["dispatchTuple"]["capabilityBindingHash"] = capability_binding_hash
     if role in {"work", "verification"}:
@@ -1021,6 +1078,7 @@ def create_run(
             "observedAt": accepted_at,
         },
     )
+    cloud_reporting.hook(reporting_runtime(), directory / "state.json")
     return state
 
 
@@ -1338,6 +1396,12 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
         codex = resolved
     else:
         codex = str(Path(codex).resolve(strict=True))
+    options = requested_execution(args)
+    if options.get("fast") is True or options.get("goalMode") is True:
+        capabilities = native_codex.inspect_capabilities(codex)
+        for key, field in (("fast", "fast"), ("goalMode", "goal")):
+            if options.get(key) is True and not capabilities["submit"][field]:
+                raise ContractError("native_unsupported", capabilities["diagnostic"] or f"Native {field} unsupported")
     created_at = now()
     session = {
         "schemaVersion": SCHEMA_VERSION,
@@ -1348,6 +1412,7 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
         "codex": codex,
         "sandbox": args.sandbox,
         "model": args.model,
+        "reasoningEffort": getattr(args, "reasoning_effort", None),
         "heartbeatInterval": args.heartbeat_interval,
         "heartbeatTimeout": args.heartbeat_timeout,
         "startTimeout": args.start_timeout,
@@ -1604,6 +1669,21 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             "receipt_binding_invalid",
             "verified Work run binding is valid only for Verification runs",
         )
+    reporting_config = cloud_reporting.read_config(reporting_runtime(), getattr(args, "reporting_config", None))
+    reporting_loop_id = getattr(args, "reporting_loop_id", None)
+    if reporting_loop_id is not None:
+        if reporting_config is None or not cloud_reporting.IDENTIFIER.fullmatch(reporting_loop_id):
+            raise ContractError("reporting_binding_invalid", "Loop reporting requires configuration and a valid identity")
+    if reporting_config is not None and not cloud_reporting.IDENTIFIER.fullmatch(args.agent):
+        raise ContractError("reporting_binding_invalid", "Agent identity is unsupported by the reporting recipient")
+    execution_options = requested_execution(args)
+    goal_action = getattr(args, "goal_action", None)
+    if role != "main" and (execution_options.get("goalMode") is True or goal_action):
+        raise ContractError("goal_role_invalid", "Native Goal continuation is Main-only; Work and Verification remain bounded")
+    if execution_options.get("goalMode") is True and new_agent and "goalObjective" not in execution_options:
+        if len(request_text) > 4000:
+            raise ContractError("goal_objective_invalid", "Supply --goal-objective with 1–4000 characters for this longer request")
+        execution_options["goalObjective"] = request_text
     operation = "submit" if new_agent else "send"
     request_hash = hashlib.sha256(request).hexdigest()
     dispatch_tuple = {
@@ -1615,6 +1695,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "verifiedWorkRunId": verified_work_run_id,
         "operation": operation,
     }
+    if execution_options:
+        dispatch_tuple["executionOptions"] = execution_options
+    if goal_action:
+        dispatch_tuple["goalAction"] = goal_action
+    if reporting_config is not None:
+        dispatch_tuple["reportingConfigHash"] = cloud_reporting.digest(reporting_config)
+        dispatch_tuple["reportingLoopId"] = reporting_loop_id
     if capability_binding_hash is not None:
         dispatch_tuple["capabilityBindingHash"] = capability_binding_hash
     agent_path = agent_directory(project_root, args.agent, create=True)
@@ -1713,6 +1800,16 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             )
         else:
             session = load_session(project_root, args.agent)
+        if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent)):
+            raise ContractError("session_busy", "An accepted or active run already owns this exact session")
+        effective = {**session, **execution_options}
+        if effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
+            capabilities = native_codex.inspect_capabilities(str(session["codex"]))
+            required = {"fast": effective.get("fast") is True and goal_action in (None, "resume", "reopen"),
+                        "goal": effective.get("goalMode") is True or bool(goal_action)}
+            for field, needed in required.items():
+                if needed and not capabilities["send"][field]:
+                    raise ContractError("native_unsupported", capabilities["diagnostic"] or f"Native {field} unsupported")
         state = create_run(
             project_root=project_root,
             agent_id=args.agent,
@@ -1724,6 +1821,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             dispatch_id=dispatch_id,
             dispatch_operation=operation,
             capability_bindings=capability_bindings,
+            reporting_config=reporting_config,
+            reporting_loop_id=reporting_loop_id,
+            execution_options=execution_options,
+            goal_action=goal_action,
         )
         worker_pid = spawn_worker(project_root, args.agent, state["runId"])
     document = {
@@ -1801,6 +1902,8 @@ class Heartbeat:
                 "observedAt": now(),
             }
         atomic_write_json(self.path, value)
+        fact = "process_alive" if process_identity_status(value.get("codexIdentity")) == "match" else "unreachable"
+        cloud_reporting.hook(reporting_runtime(), self.state_path, (value["observedAt"], fact))
 
 
 class AttemptFailure(Exception):
@@ -1868,6 +1971,14 @@ def build_codex_command(
 ) -> list[str]:
     codex = str(session["codex"])
     common = ["--json", "--output-schema", str(state["responseSchemaPath"])]
+    if session.get("backend") == "app-server":
+        return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"])]
+    if session.get("fast") is False:
+        common.extend(["-c", 'service_tier="default"'])
+    if session.get("reasoningEffort"):
+        common.extend(["-c", "model_reasoning_effort=" + json.dumps(session["reasoningEffort"])])
+    # Bounded roles must never inherit native goal auto-continuation from config.
+    common.extend(["-c", "features.goals=false"])
     model = session.get("model")
     if model:
         common.extend(["--model", str(model)])
@@ -2055,6 +2166,30 @@ def run_codex_attempt(
     request = safe_read_bytes(Path(state["requestPath"]), MAX_REQUEST_BYTES)
     if hashlib.sha256(request).hexdigest() != state.get("requestHash"):
         raise AttemptFailure("request_changed", "managed request content changed", False)
+    execution = state.get("executionOptions", {})
+    session = dict(session)
+    for key in ("model", "reasoningEffort", "fast", "goalMode"):
+        if key in execution:
+            session[key] = execution[key]
+    if session.get("backend") == "app-server" or session.get("fast") is True or session.get("goalMode") is True or state.get("goalAction"):
+        session["backend"] = "app-server"
+    # Legacy explicit off is applied as a config override by build_codex_command.
+    if session.get("backend") == "app-server":
+        session["nativeCapabilities"] = native_codex.inspect_capabilities(str(session["codex"]))["send"]
+        state["nativeSessionPath"] = str(state_path.parent / "native-session.json")
+        objective = execution.get("goalObjective")
+        if session.get("goalMode") is True and not objective and not session.get("goal"):
+            text = request.decode("utf-8")
+            if len(text) > 4000:
+                raise AttemptFailure("goal_objective_invalid", "Supply --goal-objective with 1–4000 characters", False)
+            objective = text
+        if objective:
+            state["goalObjective"] = objective
+        atomic_write_json(Path(state["nativeSessionPath"]), session)
+        update_json(state_path, state_path.parent / ".state.lock", lambda value: value.update({
+            "nativeSessionPath": state["nativeSessionPath"], "goalObjective": objective, "backend": "app-server",
+            "goal": session.get("goal"), "goalError": session.get("goalError"),
+            "nativeGoalExpected": session.get("goalMode") is True or bool(session.get("goal"))}))
     existing_session = session.get("sessionId")
     command = build_codex_command(session, state, existing_session)
     stderr_path = state_path.parent / "stderr.log"
@@ -2084,6 +2219,16 @@ def run_codex_attempt(
         raise AttemptFailure(
             "codex_start_failed", "codex exec could not start", False
         ) from error
+    def stop_attempt():
+        if session.get("backend") == "app-server":
+            try:
+                request_native_pause(state_path)
+                wait_native_pause(state_path)
+            except Exception:
+                with contextlib.suppress(Exception):
+                    record_goal_uncertainty(state_path, "Native pause could not be confirmed; refresh Goal before reopening")
+        terminate_attempt_group(process, codex_identity)
+
     release_attempted = False
     try:
         update_json(
@@ -2121,7 +2266,7 @@ def run_codex_attempt(
         )
         raise AttemptFailure(code, message, False, False) from error
     if process.stdin is None or process.stdout is None or process.stderr is None:
-        terminate_attempt_group(process, codex_identity)
+        stop_attempt()
         raise AttemptFailure(
             "codex_start_failed", "codex exec pipes are unavailable", False, True
         )
@@ -2144,7 +2289,7 @@ def run_codex_attempt(
         process.stdin.write(prompt)
         process.stdin.close()
     except (BrokenPipeError, OSError, UnicodeError) as error:
-        terminate_attempt_group(process, codex_identity)
+        stop_attempt()
         raise AttemptFailure(
             "codex_write_failed", "codex exec rejected the prompt", False, True
         ) from error
@@ -2166,16 +2311,16 @@ def run_codex_attempt(
     try:
         while True:
             if cancel_requested(state_path, cancel_event):
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure("cancelled", "run was cancelled", started, True)
             current = time.monotonic()
             if not started and current >= start_deadline:
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "start_timeout", "codex exec sent no start ACK", False, True
                 )
             if current >= turn_deadline:
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "turn_timeout", "codex exec exceeded its turn timeout", started, True
                 )
@@ -2184,17 +2329,17 @@ def run_codex_attempt(
             except queue.Empty:
                 continue
             if kind == "error":
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "event_read_failed", "codex event stream failed", started, True
                 )
             if kind == "stderr_error":
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "stderr_log_failed", "Codex stderr log could not be persisted", started, True
                 )
             if kind == "stderr_overflow":
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "stderr_log_limit_exceeded",
                     "Codex stderr exceeded the per-run byte limit",
@@ -2212,12 +2357,12 @@ def run_codex_attempt(
                     break
                 continue
             if line is None or len(line.encode()) > MAX_EVENT_BYTES:
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "event_invalid", "codex emitted an invalid event", started, True
                 )
             if not append_event(Path(state["eventsPath"]), line):
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "event_log_limit_exceeded",
                     "Codex events exceeded the per-run byte limit",
@@ -2227,24 +2372,29 @@ def run_codex_attempt(
             try:
                 event = json.loads(line)
             except json.JSONDecodeError as error:
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "event_invalid", "codex emitted malformed JSONL", started, True
                 ) from error
             if not isinstance(event, dict):
-                terminate_attempt_group(process, codex_identity)
+                stop_attempt()
                 raise AttemptFailure(
                     "event_invalid", "codex emitted an invalid event", started, True
                 )
+            if event.get("type") == "error" and session.get("backend") == "app-server":
+                stop_attempt()
+                raise AttemptFailure("native_backend_error", str(event.get("message", "Native Codex error")), started, True)
+            if event.get("type") == "goal.error":
+                record_goal_uncertainty(state_path, str(event.get("message", "Native Goal state unconfirmed")))
             if event.get("type") == "thread.started":
                 observed = event.get("thread_id")
                 if not isinstance(observed, str) or not SESSION_ID.fullmatch(observed):
-                    terminate_attempt_group(process, codex_identity)
+                    stop_attempt()
                     raise AttemptFailure(
                         "session_invalid", "codex returned an invalid session", started, True
                     )
                 if existing_session is not None and observed != existing_session:
-                    terminate_attempt_group(process, codex_identity)
+                    stop_attempt()
                     raise AttemptFailure(
                         "session_mismatch", "codex resumed a different session", started, True
                     )
@@ -2266,13 +2416,10 @@ def run_codex_attempt(
                         }
                     ),
                 )
-                if existing_session is None:
-                    session_path = session_file(project_root, str(state["agentId"]))
-                    session = update_json(
-                        session_path,
-                        session_path.parent / ".session-state.lock",
-                        lambda value: value.update({"sessionId": observed}),
-                    )
+                session_path = session_file(project_root, str(state["agentId"]))
+                saved = {key: session[key] for key in ("model", "reasoningEffort", "fast", "goalMode", "backend") if key in session}
+                saved["sessionId"] = observed
+                update_json(session_path, session_path.parent / ".session-state.lock", lambda value: value.update(saved))
             item = event.get("item") if event.get("type") == "item.completed" else None
             if isinstance(item, dict) and item.get("type") in (None, "agent_message"):
                 text = item.get("text")
@@ -2280,13 +2427,14 @@ def run_codex_attempt(
                     final_messages.append(text)
         return_code = process.wait(timeout=10)
     except subprocess.TimeoutExpired as error:
-        terminate_attempt_group(process, codex_identity)
+        stop_attempt()
         raise AttemptFailure(
             "codex_exit_timeout", "codex exec did not exit", started, True
         ) from error
     # The leader may exit while descendants keep its isolated process group.
     # Contain that group before validating or returning any post-exit outcome.
-    terminate_attempt_group(process, codex_identity)
+    stop_attempt()
+    cloud_reporting.hook(reporting_runtime(), state_path, (now(), "process_exited"))
     if return_code != 0:
         raise AttemptFailure(
             "codex_failed", f"codex exec exited with {return_code}", started, True
@@ -2320,16 +2468,31 @@ def run_codex_attempt(
         or result_info.st_size == 0
     ):
         raise AttemptFailure("result_file_invalid", "Agent result path is unsafe", True)
+    validated_receipt = None
     if terminal["status"] == "completed" and state.get("role") in {"work", "verification"}:
         try:
-            validate_receipt(
-                project_root,
-                state,
-                agent_id=expected_agent_id,
-                run_id=expected_run_id,
-            )
+            validated_receipt = validate_receipt(
+                project_root, state, agent_id=expected_agent_id, run_id=expected_run_id)
         except ContractError as error:
             raise AttemptFailure(error.code, error.message, True) from error
+    if state.get("cloudReporting"):
+        intent = {"status": terminal["status"], "run_id": state["runId"],
+                  "agent_id": state["agentId"], "session_id": active_session,
+                  "request_sha256": state["requestHash"], "role": state["role"],
+                  "result_identity": result_file_identity(result_info),
+                  "receipt_sha256": cloud_reporting.digest(validated_receipt) if validated_receipt else None}
+        # Retain in the attempt object too: worker's authoritative terminal write
+        # includes this intent even if its earlier standalone publication fails.
+        state["reportingSemanticIntent"] = intent
+        for _ in range(2):
+            try:
+                update_json(state_path, state_path.parent / ".state.lock",
+                            lambda value: value.update({"reportingSemanticIntent": intent,
+                                "reportingCaptureError": "reporting_capture_pending"}))
+                cloud_reporting.sync_directory(state_path.parent)
+                break
+            except Exception:
+                continue
     return str(terminal["status"]), active_session
 
 
@@ -2340,6 +2503,7 @@ def mark_terminal(
     *,
     attempt: int | None = None,
     start_disposition: str | None = None,
+    semantic_intent: dict[str, Any] | None = None,
 ) -> None:
     def change(value: dict[str, Any]) -> None:
         value.update(
@@ -2352,12 +2516,20 @@ def mark_terminal(
                 "error": error,
             }
         )
+        if semantic_intent is not None:
+            value["reportingSemanticIntent"] = semantic_intent
+            if not value.get("reportingSemanticResult"):
+                value["reportingCaptureError"] = "reporting_capture_pending"
         if attempt is not None:
             value["attempt"] = attempt
         if start_disposition is not None:
             value["startDisposition"] = start_disposition
 
     update_json(state_path, state_path.parent / ".state.lock", change)
+    if semantic_intent is not None:
+        with contextlib.suppress(OSError):
+            cloud_reporting.sync_directory(state_path.parent)
+    cloud_reporting.hook(reporting_runtime(), state_path)
 
 
 def worker(args: argparse.Namespace) -> int:
@@ -2398,17 +2570,19 @@ def worker(args: argparse.Namespace) -> int:
             while int(state.get("attempt", 0)) < max_attempts:
                 attempt = int(state.get("attempt", 0)) + 1
                 try:
+                    attempt_state = safe_read_json(state_path)
                     terminal_status, _session_id = run_codex_attempt(
                         project_root=project_root,
                         session=load_session(project_root, args.agent),
-                        state=safe_read_json(state_path),
+                        state=attempt_state,
                         attempt=attempt,
                         heartbeat=heartbeat,
                         cancel_event=cancel_event,
                         expected_agent_id=args.agent,
                         expected_run_id=args.run_id,
                     )
-                    mark_terminal(state_path, terminal_status)
+                    mark_terminal(state_path, terminal_status,
+                                  semantic_intent=attempt_state.get("reportingSemanticIntent"))
                     heartbeat.update(
                         status=terminal_status, attempt=attempt, codex_pid=None
                     )
@@ -2499,6 +2673,12 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "startDisposition",
         "maxAttempts",
         "sessionId",
+        "executionOptions",
+        "backend",
+        "goal",
+        "goalObservedAt",
+        "goalError",
+        "goalControl",
         "requestPath",
         "statePath",
         "resultPath",
@@ -2530,6 +2710,8 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
     public = {key: state.get(key) for key in keys if key in state}
     if state.get("role") not in {"work", "verification"}:
         public.pop("statePath", None)
+    if state.get("cloudReporting"):
+        public["reporting"] = cloud_reporting.status(reporting_runtime(), find_project_anchor(Path(state["statePath"])), state)
     return public
 
 
@@ -2675,6 +2857,8 @@ def command_cancel(args: argparse.Namespace) -> int:
         path.parent / ".state.lock",
         lambda value: value.update({"cancelRequested": True, "status": "cancelling"}),
     )
+    if state.get("backend") == "app-server":
+        wait_native_pause(path)
     containment_value = state.get("containment")
     if containment_value is None:
         validate_state_containment_fields(state)
@@ -2885,6 +3069,90 @@ def command_reconcile(args: argparse.Namespace) -> int:
     return 0
 
 
+def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
+    options = {}
+    for argument, key in (("model", "model"), ("reasoning_effort", "reasoningEffort"), ("fast", "fast"), ("goal_mode", "goalMode"), ("goal_objective", "goalObjective")):
+        value = getattr(args, argument, None)
+        if value is not None:
+            options[key] = value
+    objective = options.get("goalObjective")
+    if objective is not None:
+        if not isinstance(objective, str) or not objective.strip() or len(objective) > 4000:
+            raise ContractError("goal_objective_invalid", "Goal objective must contain 1–4000 characters")
+        if options.get("goalMode") is False:
+            raise ContractError("goal_objective_invalid", "An objective cannot be combined with --no-goal-mode")
+        options["goalMode"] = True
+    return options
+
+
+def request_native_pause(path: Path) -> None:
+    update_json(path, path.parent / ".state.lock", lambda value: value.update({
+        "goalControl": {"id": str(uuid.uuid4()), "action": "pause"}}))
+
+
+def record_goal_uncertainty(path: Path, message: str) -> None:
+    fields = {"goalError": message}
+    state = update_json(path, path.parent / ".state.lock", lambda value: value.update(fields))
+    target = session_file(find_project_anchor(path), str(state["agentId"]))
+    update_json(target, target.parent / ".session-state.lock", lambda value: value.update(fields))
+    # A full log cannot conceal the diagnostic: status/result and session are
+    # authoritative fallbacks even when no more bounded events fit.
+    with contextlib.suppress(Exception):
+        append_event(Path(state["eventsPath"]), json.dumps({"type": "goal.error", "message": message}) + "\n")
+
+
+def wait_native_pause(path: Path) -> None:
+    # Give the live RPC owner a bounded opportunity before ordinary containment
+    # termination. Never open a competing app-server against an active thread.
+    deadline = time.monotonic() + 3
+    while time.monotonic() < deadline:
+        state = safe_read_json(path)
+        if state.get("goalError"):
+            return
+        if state.get("goal") and state["goal"].get("status") != "active":
+            return
+        if not state.get("goal") and (state.get("goalObservedAt") or not state.get("nativeGoalExpected")):
+            return
+        time.sleep(0.05)
+    record_goal_uncertainty(path, "Native pause unconfirmed after containment stop; refresh Goal before reopening")
+
+
+def command_goal(args: argparse.Namespace) -> int:
+    root = resolve_project_root(args.project_root)
+    session = load_session(root, args.agent)
+    if session["role"] != "main":
+        raise ContractError("goal_role_invalid", "Goal controls belong to Main")
+    if args.action == "get":
+        emit({"kind": "goal", "agentId": args.agent, "sessionId": session.get("sessionId"),
+              "goal": session.get("goal"), "observedAt": session.get("goalObservedAt"),
+              "error": session.get("goalError"), "source": "last-native-observation"})
+        return 0
+    if not session.get("sessionId"):
+        raise ContractError("session_missing", "Start a Main session with a Goal first")
+    directory = agent_directory(root, args.agent)
+    with file_lock(directory / ".dispatch.lock"):
+        active = [state for state in iter_run_states(root, args.agent) if state.get("status") in ACTIVE_STATES]
+        if active:
+            if len(active) != 1 or args.action in ("resume", "reopen"):
+                raise ContractError("session_busy", "Pause the active run before reopening Goal")
+            state = active[0]
+            if state.get("backend") != "app-server":
+                raise ContractError("goal_unavailable", "The active run does not own a native Goal connection")
+            path = Path(state["statePath"])
+            control = {"id": str(uuid.uuid4()), "action": "get" if args.action == "refresh" else args.action}
+            update_json(path, path.parent / ".state.lock", lambda value: value.update({"goalControl": control}))
+            emit({"kind": "goal-control", "status": "accepted", "agentId": args.agent, "runId": state["runId"], **control})
+            return 0
+    # Reuse managed acceptance, locks, process containment, events and run results.
+    if args.action in ("resume", "reopen") and not session.get("goal"):
+        raise ContractError("goal_missing", "Goal was cleared; send a new objective with Goal enabled")
+    send_args = parse_args(["send", "--project-root", str(root), "--agent", args.agent,
+                           "--actor", "human", "--message", "Continue the existing native Goal through the Main → Work → Verification graph.",
+                           *(["--goal-mode"] if args.action in ("resume", "reopen") else ["--no-goal-mode"] if args.action in ("clear", "cancel", "disable") else [])])
+    send_args.goal_action = "get" if args.action == "refresh" else args.action
+    return submit(send_args, False)
+
+
 def add_project_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
 
@@ -2894,6 +3162,11 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     request.add_argument("--request-file", type=Path)
     request.add_argument("--message")
     parser.add_argument("--actor", choices=ACTORS, default="main")
+    parser.add_argument("--model")
+    parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
+    parser.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--goal-mode", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--goal-objective", help="Native persisted objective, 1–4000 characters; omitted on send preserves the existing objective")
     parser.add_argument(
         "--receipt-request-hash",
         help="SHA-256 identity the role receipt must bind (defaults to this run request)",
@@ -2902,6 +3175,8 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         "--verified-work-run-id",
         help="exact Work run checked by a Verification Agent (required for Verification runs)",
     )
+    parser.add_argument("--reporting-config", type=Path, help="Explicit private cloud recipient configuration; per run")
+    parser.add_argument("--reporting-loop-id", help="Exact owning loop identity for cloud reporting")
     parser.add_argument("--dispatch-id", help="idempotency key scoped to this managed Agent")
     parser.add_argument(
         "--capability-binding-file", type=Path,
@@ -2920,7 +3195,6 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     submit_parser.add_argument("--role", required=True)
     submit_parser.add_argument("--codex", default="codex")
     submit_parser.add_argument("--sandbox", choices=SANDBOXES, default=DEFAULT_SANDBOX)
-    submit_parser.add_argument("--model")
     submit_parser.add_argument("--heartbeat-interval", type=float, default=5.0)
     submit_parser.add_argument("--heartbeat-timeout", type=float, default=20.0)
     submit_parser.add_argument("--start-timeout", type=float, default=60.0)
@@ -2945,6 +3219,16 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         if name == "result":
             command_parser.add_argument("--ack", action="store_true")
 
+    capability_parser = commands.add_parser("capabilities")
+    add_project_argument(capability_parser)
+    capability_parser.add_argument("--codex", default="codex")
+    capability_parser.add_argument("--agent")
+
+    goal_parser = commands.add_parser("goal")
+    add_project_argument(goal_parser)
+    goal_parser.add_argument("--agent", required=True)
+    goal_parser.add_argument("action", choices=("get", "refresh", "pause", "cancel", "clear", "disable", "resume", "reopen"))
+
     list_parser = commands.add_parser("list")
     add_project_argument(list_parser)
 
@@ -2956,6 +3240,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     reconcile_parser = commands.add_parser("reconcile")
     add_project_argument(reconcile_parser)
     reconcile_parser.add_argument("--agent")
+
+    for name in ("reporting-deliver", "_report-send"):
+        reporting_parser = commands.add_parser(name, help="Deliver pending reports" if name == "reporting-deliver" else argparse.SUPPRESS)
+        add_project_argument(reporting_parser)
+        reporting_parser.add_argument("--agent", required=True)
+        reporting_parser.add_argument("--run-id", required=True)
+        if name == "_report-send":
+            reporting_parser.add_argument("--entry", type=int, required=True)
 
     worker_parser = commands.add_parser("_worker", help=argparse.SUPPRESS)
     add_project_argument(worker_parser)
@@ -2991,6 +3283,14 @@ def validate_submit_options(args: argparse.Namespace) -> None:
 def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = parse_args(argv)
+        if args.command == "capabilities":
+            codex = args.codex
+            if args.agent:
+                codex = load_session(resolve_project_root(args.project_root), args.agent)["codex"]
+            emit(native_codex.inspect_capabilities(codex))
+            return 0
+        if args.command == "goal":
+            return command_goal(args)
         if args.command == "submit":
             validate_submit_options(args)
             return submit(args, True)
@@ -3008,6 +3308,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             return command_cancel(args)
         if args.command == "reconcile":
             return command_reconcile(args)
+        if args.command in {"reporting-deliver", "_report-send"}:
+            try:
+                root = resolve_project_root(args.project_root)
+                state = find_run(root, args.agent, args.run_id)
+                if not state.get("cloudReporting"):
+                    emit({"reporting": None})
+                elif args.command == "_report-send":
+                    emit({"ack": cloud_reporting.send_one(reporting_runtime(), root, state, args.entry)})
+                else:
+                    emit({"reporting": cloud_reporting.deliver(reporting_runtime(), root, state)})
+                return 0
+            except Exception:
+                emit({"reporting": {"pending": True, "error": "reporting_delivery_pending"}})
+                return 1
         if args.command == "_worker":
             return worker(args)
         if args.command == "_bootstrap":

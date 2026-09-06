@@ -525,6 +525,11 @@ class AgentExecTests(unittest.TestCase):
     def test_identical_requests_with_distinct_dispatches_create_distinct_runs_and_send_deduplicates(self) -> None:
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(self.module, "spawn_worker", return_value=123) as spawn, mock.patch.object(self.module, "emit") as emit:
             self.module.submit(self.dispatch_args(directory, "dispatch-submit"), True)
+            initial = emit.call_args.args[0]
+            with self.assertRaises(self.module.ContractError) as busy:
+                self.module.submit(self.dispatch_args(directory, "dispatch-busy"), False)
+            self.assertEqual(busy.exception.code, "session_busy")
+            self.module.mark_terminal(self.module.state_file(Path(directory), "work-agent", initial["runId"]), "completed")
             send_one = self.dispatch_args(directory, "dispatch-send-one")
             send_two = self.dispatch_args(directory, "dispatch-send-two")
             outputs = []
@@ -532,6 +537,7 @@ class AgentExecTests(unittest.TestCase):
                 emit.reset_mock()
                 self.module.submit(values, False)
                 outputs.append(emit.call_args.args[0])
+                self.module.mark_terminal(self.module.state_file(Path(directory), "work-agent", outputs[-1]["runId"]), "completed")
             self.assertEqual(outputs[0]["runId"], outputs[1]["runId"])
             self.assertNotEqual(outputs[0]["runId"], outputs[2]["runId"])
             self.assertTrue(outputs[1]["deduplicated"])
@@ -1087,6 +1093,7 @@ class AgentExecTests(unittest.TestCase):
                         "--json",
                         "--output-schema",
                         "/tmp/schema.json",
+                        "-c", "features.goals=false",
                         "session-1",
                         "-",
                     ],

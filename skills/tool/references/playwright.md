@@ -81,17 +81,8 @@ browser cache, or credential store. Project manifests, package managers,
 Playwright providers, operating systems, hosts, plugins, and MCP servers remain
 authoritative for the facts and operations they expose.
 
-## Implemented inspection route
+## Local inspection route
 
-Use `python3 skills/tool/scripts/tool.py {discover,inspect,health} --profile
-playwright.browser --target <existing-project-directory>`. For a project-CLI
-authority, the adapter reports recognized local manifest/lockfile paths and a
-resolved local or PATH Playwright CLI version when available. Browser binaries,
-system dependencies, compatibility, permissions, and health remain `unknown`
-unless their provider reports them; no browser is launched as a health check.
+Use the Agent's existing shell/file tools against an explicit project and authority, without a local MCP/provider service; the former local Tool adapter is retired. Inspect recognized manifests/lockfiles and the resolved local or PATH CLI version when available. Do not launch a browser to claim health. Browser binaries, system dependencies, compatibility and permissions remain unknown unless the provider reports them.
 
-An explicit plugin, MCP, or host-capability authority/reference is preserved
-without probing or substituting a project package. Lifecycle mutation verbs
-return only `provider-route-required`, `performed: false`, and required Human
-approval metadata; they do not download browsers, alter packages or system
-dependencies, clear caches, or perform page actions.
+An explicit plugin, MCP or host capability keeps its own authority/reference without substitution by a project package. Route lifecycle mutations to that owner only within the exact authorized scope. Upload required non-secret evidence through cloud Document tools; resolve sensitive artifact handling before transfer. Missing capability fails honestly without downloading browsers, changing packages or clearing caches as an inspection side effect.

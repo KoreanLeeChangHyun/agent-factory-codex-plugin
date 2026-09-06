@@ -1,253 +1,39 @@
-# Document Adapter Initialization and Migration
+# Cloud Document adapter and migration
 
-## Status and provenance
+## Authority and routes
 
-This reference records the Human-accepted design contract for Document adapter
-initialization and physical adapter/layout migration. The decision provenance is
-the request for run
-`run-20260830T135328504819Z-24544fc7`, informed by the inspected research in:
+The Human-selected Agent Factory cloud MCP application owns new persistence, immutable revision publication, document configuration and search. Local shell/file tools inspect Git and prepare authorized evidence; they do not become a local Document backend or MCP/provider service. Read advertised schemas before invocation. Missing authentication, tenant binding, permissions or capability stops the dependent action honestly. Do not invent account IDs or credentials.
 
-- `.agent-factory/agent/llm-document-migration-research-work/runs/run-20260830T120924336762Z-baf502df/result.md`;
-- `.agent-factory/agent/llm-document-migration-research-verification/runs/run-20260830T121153644328Z-74da6e41/result.md`;
-- `.agent-factory/agent/document-adapter-research-work/runs/run-20260830T104413341447Z-8d6c2e2e/result.md`;
-- `.agent-factory/agent/document-adapter-research-verification/runs/run-20260830T104605228230Z-56eeb996/result.md`.
+Use `document_read` for metadata, revisions, provenance and bounded downloads; `document_import` for byte-preserving imports and complete Specification packages; `document_write` for advertised metadata/provenance operations; `document_search` for bounded lexical retrieval; `document_index` for a selected revision. Package manifests, exact members and isolated Human previews are revision-scoped authenticated server delivery routes; use the server's returned routes and current guide. Do not infer a nonexistent package-member MCP tool or construct an arbitrary object-store URL.
 
-This is a documentation-first contract. No manager, proposal schema, compiled
-intermediate representation (IR), manifest, migration registry, command
-spelling, approval threshold, backend capability interface, or recovery
-implementation is established by this reference. Operation labels below are
-conceptual/internal vocabulary, not accepted CLI names.
+## Import and publication
 
-## Ownership and distinct kinds of work
+Bind schema version, exact tenant/Document identity, invariant `document_type`, source identity, collection context, filename/MIME, size/digest and expected revision from inspected evidence. New identities use expected revision zero; updates use the exact current revision. Preserve the same idempotency key and exact request after unknown acknowledgement. A changed payload under the same key conflicts; a new key does not bypass slug or revision conflicts. Read and reconcile conflicts without silent overwrite, resurrection or type promotion.
 
-Initialization and physical migration are capabilities inside the public
-`document` Skill. Do not create another public Skill or Agent role for them.
-Keep three concerns distinct:
+Native files stay byte-identical. ZIP paths must be safe relative paths without traversal, links, special files or collisions; use advertised package/byte limits. Do not extract arbitrary archives into project files. Preserve source inventory, provenance and limitations. A format transformation is separately authorized semantic Document work, not physical migration.
 
-- **Initialize:** establish the resolved adapter's required empty or compatible
-  physical structure and version metadata deterministically and idempotently.
-- **Physical migrate:** change an existing adapter, layout, locator, or
-  representation placement while preserving Document identity, type,
-  provenance, authority, and pair bindings.
-- **Semantic Document work:** classify, transform, reconcile, accept, or author
-  knowledge under the Original, Processed, and Specification contracts.
+For content beyond inline limits, call `document_prepare_upload` with exact import metadata, size and digest. Upload raw bytes only to its relative path on the already resolved server with the required existing authentication and upload capability, never a token-bearing URL. Call `document_finalize_upload` for the same upload ID. Read current schemas for expiry and retry. Resume exact metadata/intent after unknown delivery; never delete staging after ambiguous commit. Finalization checks bytes, pair and revision preconditions before publishing.
 
-A physical migration preserves every Document's `documentType`. It never
-performs or implies `Original -> Processed -> Specification` promotion. A
-format or path change does not change type. A real transformation creates the
-appropriate Document result and inspectable provenance under separately
-authorized semantic Document work; Specification acceptance remains a Human
-decision reflected in both representations.
+A Specification publishes one complete ZIP containing exactly one AI root and one Human root, reciprocal package-relative metadata, Git repository/commit, content inventory and review evidence bound to both representation hashes. Server publication stages immutable bytes, reads them back for digest comparison, then commits revision, current pointer, index and idempotency receipt transactionally. Object storage and database are not one transaction; retained staging after failure is recovery evidence. Preserve the prior publication on failure. Hash coverage and `review_attested` do not constitute independent semantic acceptance.
 
-## LLM boundary
+## Reading and search
 
-An LLM is optional and belongs only to advisory or authoring Work. No LLM is
-required for deterministic initialization. An LLM must not control locks,
-hashes, copying, moving, overwrite, deletion, state transitions, commit,
-cutover, integrity verdicts, or recovery.
+Cloud lexical search is bounded, tenant-scoped and independent of embeddings. Read the current Document after discovery to inspect its revision, provenance and authority. Search hits, indexing or a rendered browser page do not establish acceptance, completeness or semantic truth. Unsupported binary text extraction must remain explicit.
 
-Within bounded Work, an LLM may propose:
+Human package preview is isolated in an opaque-origin sandbox. Use validated package-relative assets; do not grant same-origin application access, credential access or arbitrary network fetching to document code. Raw member downloads do not execute HTML on the application origin. Preserve readable Korean baseline content and local assets even when a dynamic renderer is unsupported.
 
-- legacy Document classification, with evidence and alternatives;
-- provenance candidates that cite existing identities or source locations;
-- difficult format-transformation drafts while retaining the original;
-- semantic reconciliation of supported claims and conflicts;
-- synchronized Specification drafts for the Human and AI representations.
+## Physical migration and recovery
 
-Uncertainty must remain `unknown` or `requiresDecision`; do not guess it into a
-type, provenance relationship, authority state, or destructive policy.
+Initialization and migration remain Document capabilities, separate from classification, transformation and acceptance. Preserve every Document's identity, `documentType`, provenance, authority and Specification binding. Legacy local direct packages and sync configuration are retained source inputs, not new consumer runtime stores. `db.sqlite` is a legacy non-authoritative projection, never a migration manifest, journal or recovery authority.
 
-Raw LLM output is always a non-executable proposal. Schema-shaped output is
-not enough: OpenAI notes that Structured Outputs can enforce schema adherence
-while mistakes may remain in the values
-([official explanation](https://openai.com/index/introducing-structured-outputs-in-the-api/)).
-Alembic similarly describes autogenerated migrations as candidates that require
-manual review and cannot reliably identify changes such as renames
-([official documentation](https://alembic.sqlalchemy.org/en/latest/autogenerate.html)).
-These external facts ground the separation; the fail-closed requirements below
-are Agent Factory's normative contract.
+Inventory source and destination first; retain an independent backup. A deterministic operation must bind a closed versioned allowlist of identities, locators, ordered effects, inventories/hashes, sizes, revisions, authority references, conflicts, pair groups, postconditions and recovery behavior. Revalidate current state immediately before execution. Raw model prose, code, SQL, shell fragments or schema-shaped proposals never grant executable authority. Advisory classification/provenance/reconciliation may leave `unknown` or `requiresDecision`.
 
-## Proposal compilation and closed plan
+Reject stale plans, unsafe paths/symlinks, collisions, unsupported versions/capabilities, unverifiable writers, insufficient or overbroad scope, missing provenance/authority, type changes and partial or semantically unaligned pairs. Initialization preserves existing content and is idempotent. Stage and validate before publication; a single-file rename does not imply cross-backend or pair atomicity. If atomic pair publication cannot be guaranteed, preserve prior authority and retain recoverable staging.
 
-Never execute prose, shell fragments, SQL, code, wildcards, arbitrary paths,
-free-form tool calls, or any other raw model output. A deterministic compiler
-must translate an admissible proposal into a closed, versioned, deterministic
-plan/IR before execution. The compiler must reject unknown fields and
-operations and allowlist, bind, and validate at least:
+Verify imported identity, type, provenance, bytes, pair and history independently before cutover. Copy success alone is not integrity, acceptance or cutover. Exact Human authority is required for destructive effects, overwrite, source retirement or deletion; code retirement does not authorize deleting user data. Recovery uses validated state/journal evidence, preferably idempotent resume or roll-forward where rollback safety is unproven. Do not rewrite history/hashes to conceal corruption or roll back over newer accepted writes.
 
-- plan, manager, registry, source, target, and root identities and versions;
-- ordered operations and contained input/output locators;
-- Document identity and invariant `documentType`;
-- current-state, inventory, hash, size, version, and conditional-write
-  preconditions;
-- exact effects, conflicts, pair groups, and authority references;
-- postconditions and deterministic validation for each operation;
-- reversibility, irreversible boundaries, staging, and recovery behavior;
-- expiry or other stale-plan conditions and the plan's own digest.
+## Responsibility and remaining deployment work
 
-A plan is evidence of intended effects, not authority to apply them. Terraform
-documents the useful separation between previewing a plan and applying a saved
-plan, while also warning that a saved plan can become stale when state changes
-([plan](https://developer.hashicorp.com/terraform/cli/commands/plan),
-[apply](https://developer.hashicorp.com/terraform/cli/commands/apply)). Agent
-Factory therefore requires current-state revalidation immediately before any
-bounded execution.
+Main resolves authority and integrates; Work authors or invokes authorized deterministic operations without verifying itself; independent Verification assesses evidence and returns failures to the same Work. A deterministic server integrity check does not replace that role. Gather owns bounded external collection, Tool logical connection lifecycle, Agent local exec/loop and receipts, Workspace projections, and Convention shared rules. No additional Skill or Agent role is introduced.
 
-## Deterministic manager contract
-
-A deterministic manager may initialize or migrate only a resolved source and
-target, only within the compiled plan, and only after current-state
-revalidation and any required Human authority. Conceptual operations may
-include initialize, inspect/plan, migrate, integrity-check, and recover. An
-integrity-check is a deterministic adapter check, not the Agent graph's
-independent Verification role.
-
-### Initialize
-
-Initialization must be reproducible, non-destructive, and idempotent:
-
-1. bind the explicit project root and resolved adapter without guessing an
-   external backend;
-2. reject path escape, symlink traversal, incompatible ownership or
-   permissions, and an unverifiable competing writer;
-3. create only allowlisted missing structure for an empty or explicitly
-   compatible layout and preserve every existing Document body;
-4. treat a matching initialized state as a deterministic no-op and report
-   incompatible, newer, or unknown state without rewriting it;
-5. do not create, transform, or take ownership of `document/sync.json`.
-
-Git documents re-running `git init` as safe in an existing repository without
-overwriting existing content ([official documentation](https://git-scm.com/docs/git-init));
-Agent Factory adopts the non-destructive/idempotent principle, not Git's storage
-model.
-
-### Inspect and compile a plan
-
-Inspection is read-only. Bind a full source inventory and relevant version or
-conditional-write tokens. Detect collisions, case/Unicode ambiguity, symlinks,
-missing or conflicting provenance, unsupported metadata, insufficient
-capabilities or scope, stale or unknown versions, destination pre-existence,
-and Specification pair mismatch. Leave an unresolved classification or policy
-as `unknown` or `requiresDecision`. Do not include delete, overwrite, or
-cutover merely because it may be convenient.
-
-### Migrate and publish
-
-Before changing state, reacquire the required lock or lease, revalidate every
-bound identity, inventory, hash, version, capability, and authority reference,
-and publish recoverable staging/journal evidence. Copy and validate content in
-staging before publication. A filesystem or backend capability must be proven,
-not assumed; a single-file rename does not imply multi-file atomicity or
-cross-backend rollback.
-
-Publish a Specification's Human and AI representations as one migration and
-authoring group. Both must be staged and shown semantically aligned. A
-one-sided result is incomplete. If the selected adapter cannot guarantee atomic
-pair publication, retain the prior canonical authority and stop in a
-recoverable staged state rather than exposing or declaring a partial pair.
-
-External cutover is separate from copy completion. It requires the resolved
-authority policy and any required Human approval, plus final current-state and
-integrity checks. Do not delete or demote the source merely because bytes were
-copied.
-
-### Integrity-check and recover
-
-A deterministic integrity-check compares the plan, inventory, identities,
-types, provenance, representation/pair bindings, history, hashes, authority,
-and recovery markers. Execution success is not an integrity verdict; Flyway
-and AWS DMS likewise expose validation as a distinct comparison step
-([Flyway](https://documentation.red-gate.com/flyway/reference/commands/validate),
-[AWS DMS](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Validating.html)).
-
-Recovery must operate from validated journal and state evidence. Prefer an
-idempotent resume or roll-forward where rollback safety is not proven. Never
-rewrite history or checksums to fit observed corruption, automatically roll
-back after new writes on a cut-over target, or delete staged/source data merely
-to make state appear clean. Surface the recoverable state and required Human
-decision.
-
-## Fail-closed conditions
-
-Compilation, apply, publication, cutover, or completion must stop when any of
-the following is present:
-
-- a stale plan or changed source/target inventory, version, hash, registry, or
-  conditional-write token;
-- an unknown operation or field, unallowlisted effect, arbitrary executable
-  content, unresolved path, path escape, symlink, or unverifiable lock;
-- a collision, incompatible existing destination, or missing explicit policy;
-- missing identity, provenance, pair binding, validation, recovery, or
-  authority evidence required by the operation;
-- a requested or effective `documentType` change, inferred derivation,
-  acceptance, or promotion;
-- destructive, overwrite, irreversible, or cutover behavior lacking exact
-  Human authority where required;
-- insufficient or overbroad granted scope, unsupported backend capabilities,
-  hash/inventory mismatch, or unknown/newer layout;
-- a one-sided or semantically unaligned Specification change;
-- an attempt to use `.agent-factory/db.sqlite` as authority, manifest, journal,
-  or recovery source.
-
-## Agent graph and authority
-
-Apply the existing graph without adding a migration role:
-
-```text
-Main -> Work -> Verification
-          ^          |
-          +-- fail --+
-                     +-- pass / Human skip -> END
-```
-
-- Main interviews the Human, resolves decisions and authority, orchestrates,
-  and integrates results; Main performs no Work or Verification.
-- Work may perform LLM advisory/authoring and, as a separate bounded action,
-  invoke deterministic execution only with the authority attached to that
-  request. LLM authorship never expands execution authority.
-- Verification independently checks the resulting evidence. A failure returns
-  to the same Work Agent. A pass or evidenced Human skip ends the graph.
-
-The deterministic integrity-check supplies evidence to Work and Verification;
-it does not replace Verification or authorize a Work Agent to verify itself.
-
-## Cross-Skill boundaries
-
-- **Gather** continues to own external source selection, bounded read-only
-  synchronization, Original output, resolved destination, and
-  `document/sync.json`. Adapter migration neither reinterprets sync state nor
-  moves credentials.
-- **Tool** continues to own the logical connector lifecycle and report actual
-  granted scope while the selected host/provider remains authoritative. It
-  stores no credentials and grants no migration authority.
-- **Agent** continues to own capability binding, execution authority, graph
-  orchestration, and receipts.
-- **Workspace** may project read-only state and route an owner-authorized
-  control, but owns neither migration state nor Document semantics.
-- **Convention** continues to own shared safety, least privilege, approval,
-  and Agent Factory core semantics.
-- `<project-root>/.agent-factory/db.sqlite` remains a rebuildable,
-  non-authoritative Agent-owned catalog implementation. It cannot replace authoritative
-  Document bodies, manifests, plans, journals, provenance, or recovery evidence.
-
-## Unresolved design and implementation
-
-The following remain unimplemented or unresolved and must not be presented as
-accepted detail:
-
-- manager/API location and exact command names or CLI spelling;
-- proposal and compiled-IR schemas, manifest/history/journal formats and paths,
-  migration identifiers, registry rules, and hash/semantic-revision rules;
-- stable Document identity assignment and legacy baseline procedure;
-- approval thresholds, evidence formats, cutover authority, retention,
-  rollback windows, source archive/deletion policy, and conflict policy;
-- minimum external-backend capabilities and preservation requirements for
-  permissions, ACLs, ownership, timestamps, and other metadata;
-- filesystem/platform support and the exact durability guarantees of each
-  adapter;
-- recovery implementation and operational runbooks;
-- the machine evidence used to establish semantic alignment of a Specification
-  pair.
-
-Until these are separately decided, implemented, and checked, this reference
-defines design constraints only.
+The cloud choice is accepted; actual tenant/account IDs, credential authority, retention/deletion policy and unresolved conflicts must still be explicitly resolved. Advertised capability is checked at use time. This contract does not apply migrations, register workers, configure accounts, deploy, restart or attest complete steps 1–13. Earlier migration design provenance remains in run `run-20260830T135328504819Z-24544fc7` and the document-adapter/llm-document-migration research run records; the current cloud migration request supersedes its unresolved-backend/local-manager routing.

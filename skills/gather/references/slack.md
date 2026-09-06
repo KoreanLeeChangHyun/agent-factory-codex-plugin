@@ -1,34 +1,13 @@
 # Gather Slack
 
-Use `scripts/sync_slack.py` to collect a bounded channel history plus attached
-files into the resolved `slack` destination (default `source/slack`). It saves
-the API message representation under a boundary-specific file in
-`channels/<channel-id>/snapshots/`,
-downloads original file bytes, and maintains `index.jsonl` with source IDs,
-channel/message identity, hashes, sizes, and local paths. It never posts,
-changes, or deletes Slack content.
+Read `gather-management.md` and the authenticated server's integrations guide and schemas first. Use its collection tools with a Tool-resolved connection; this reference specifies source semantics, not a local provider command.
 
-## Connection And Authentication
+## Selection and fidelity
 
-Create or use a Slack app, install it to the workspace with OAuth v2, and keep
-the resulting bot token outside the repository in `SLACK_BOT_TOKEN`. Grant
-`files:read` plus the history scope matching the selected conversation type
-(`channels:history`, `groups:history`, `im:history`, or `mpim:history`). Invite
-the bot to private or otherwise membership-restricted conversations. Do not add
-write scopes. See Slack's [OAuth v2 setup](https://api.slack.com/authentication/oauth-v2),
-[`conversations.history`](https://api.slack.com/methods/conversations.history),
-and [`files.info`](https://api.slack.com/methods/files.info).
+Require `channel_id`, exact `channel_type`, optional `oldest`/`latest`, bounds and attachment intent. Request the matching history scope (`channels:history`, `groups:history`, `im:history` or `mpim:history`), and `files:read` for attachments. Channel membership remains provider-owned. Preserve message API evidence and original `files.info` downloads. Thread replies are not traversed; report messages with replies as a coverage limitation. Never post, edit or delete content. Private download URLs and tokens are not provenance.
 
-```bash
-export SLACK_BOT_TOKEN='xoxb-...'
-python <gather-skill-directory>/scripts/sync_slack.py \
-  --channel-id C0123456789 --oldest 1767225600 --max-messages 200
-```
+## Connection and result
 
-Use `--latest` as another Slack timestamp boundary. Confirm the selected
-channel, bounds, and resolved destination before sync. Private download URLs
-are used with the bearer token and are not written to the index. Keep tokens
-out of shell history where possible and unset them afterward. Different
-boundary/count selections retain separate snapshots. An existing snapshot and
-indexed file are retained by default; pass `--overwrite` only to intentionally
-replace evidence for that same selection and refresh already indexed files.
+Use the server-advertised authentication route through Tool. Credentials remain in the cloud credential authority; do not put tokens in prompts, command arguments, repository files, receipts or source metadata. Distinguish requested scope, observed grant, account health, selection access and stale/unknown state. Missing capability or permission stops dependent collection without a local-script fallback.
+
+Inspect cloud collection status and persisted results, including partial results, conversions and coverage limitations. Preserve collection/run/source identity across retries. Cancellation retains evidence. New local sync configuration and provider services are outside this contract; local provider executables are retired after independently verified cloud replacement.

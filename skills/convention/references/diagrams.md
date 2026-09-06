@@ -25,10 +25,7 @@ control.
 
 ## Agent Factory core sources
 
-These Mermaid sources are the AI-readable equivalents of the important visual
-relationships rendered with semantic HTML and inline SVG in the paired Korean
-browser document. Keep labels and relationships aligned when either
-representation changes.
+These Mermaid sources define the important relationships for the paired Korean browser document. Provide accessible visual projections for all nine core diagrams using semantic HTML and inline SVG, while retaining their complete ordered Korean source and readable fallback meaning. Visual projections are required, not optional; they must remain readable standalone and in the isolated cloud preview without external dependencies. Keep labels and relationships aligned when either representation changes.
 
 ## Document types
 
@@ -70,7 +67,7 @@ flowchart LR
     Document --> Specification[Specifications]
     Human -->|grounded decisions| Document
     Specification --> HumanView[Korean browser document]
-    Specification --> AIView[English AI-facing Skill]
+    Specification --> AIView[AI-facing Skill]
     Workspace[Human control tower] -->|navigates| HumanView
     Workspace -->|manages views of| Agent
     Convention -. cross-cutting constraints .-> Gather
@@ -147,10 +144,10 @@ flowchart LR
     Verification -->|fail| Work
     Verification -->|pass| End[END]
     Workspace[Workspace Skill<br/>Human control tower]
-    Workspace --> Activities[Activity Bar top-level order<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트]
+    Workspace --> Activities[Activity Bar top-level order<br/>1 일정 · 2 에이전트 · 3 문서 · 4 외부연동 · 5 로그 · 6 테스트]
     Activities --> DocumentSidebar[문서 Sidebar<br/>원본 문서 · 가공 문서 · 명세 문서]
     DocumentSidebar -. finer view details and source integration unresolved .-> HumanDecision[Future Human decision]
-    Activities -. other four sidebars and controls unresolved .-> HumanDecision
+    Activities -. Agents, logs and tests details unresolved .-> HumanDecision
 ```
 
 ## Project Skill naming
@@ -193,32 +190,30 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    accTitle: Storage-independent Document roles
-    accDescr: Logical Document types and roles may use the local adapter or an explicitly resolved alternative while every adapter preserves the same authority and safety requirements.
-    Roles[Logical Document types<br/>and document roles]
-    Roles --> Local[Current/default local adapter<br/>.agent-factory/document/{original, processed, specification}]
-    Roles --> Alternative[Explicitly resolved alternative<br/>project server, external store,<br/>mounted filesystem, configured backend]
-    Requirements[Provenance, authority, isolation,<br/>alignment, accessibility, security]
-    Requirements -. required for every adapter .-> Local
-    Requirements -. required for every adapter .-> Alternative
-    Alternative -. integration policy unresolved .-> Decisions[Configuration, identity, sync/conflicts,<br/>authentication, availability, caching]
+    accTitle: Cloud Document authority and source packages
+    accDescr: Cloud owns accepted published revisions; Git source packages bind a reviewed complete pair and local run data remains operational evidence.
+    Git[Git Skill and Korean HTML authoring source] --> Snapshot[Repository, commit, inventory and pair review]
+    Snapshot --> Cloud[Authenticated cloud Document publication]
+    Cloud --> Revision[Accepted immutable complete-pair revision]
+    Cloud --> Types[Original, Processed, Specification: invariant types]
+    Local[Local Agent run and outbox] -->|authorized required evidence upload| Cloud
+    Legacy[Preserved legacy source data] -->|inventory, backup, verified import| Cloud
+    Legacy -. no deletion authority from code retirement .-> Human[Human decision]
 ```
 
-## Human-facing Workspace shell and launcher
+## Human-facing cloud Workspace
 
 ```mermaid
 flowchart LR
-    accTitle: Human-facing Workspace shell and launcher
-    accDescr: The Activity Bar contains only 일정, 에이전트, 문서, 로그, and 테스트 in that order; the Document sidebar has ordered Original, Processed, and Specification UI groups with decided overview, table, and tree shapes while finer details and the other four sidebars remain unresolved; a non-visible read-only utility projects only the project and classified Original and Processed Document trees without supplying the unresolved live source contract, while temporary Explorer material remains only in its producing Agent run.
-    Activity[Activity Bar<br/>1 일정 · 2 에이전트 · 3 문서 · 4 로그 · 5 테스트] --> Sidebar[문서 Primary Sidebar<br/>원본 문서 · 가공 문서 · 명세 문서] --> Workspace[Workspace<br/>overview · table · tree shapes]
-    Activity -. other four sidebars unresolved .-> HumanDecision[Future Human decision]
-    Sidebar -. details and live source integration unresolved .-> HumanDecision
-    Evidence[Classified durable Original and Processed Documents<br/>.agent-factory/document/] -. read-only metadata .-> DiscoveryUtility[Non-visible read-only discovery utility<br/>.agent-factory/workspace/explorer/]
-    Project[Project tree<br/>sensitive control and runtime paths omitted] -. read-only metadata .-> DiscoveryUtility
-    DiscoveryUtility -. defines no Activity or nesting .-> Workspace
-    Temporary[Temporary Explorer material] --> RunLocal[Producing managed Agent run only]
-    Asset[skills/workspace/assets/workspace.sh] -->|local copy once| Root[&lt;project-root&gt;/workspace.sh]
-    Existing[Existing root workspace.sh] -. preserved even under force .-> Root
-    Remote[Server-hosted Workspace] -->|selected host or adapter| Browser[Human browser]
-    Root -. not required remotely .-> Remote
+    accTitle: Cloud Workspace projection and local execution authority
+    accDescr: Six Activities project cloud domain state; local exec and loop own execution while cloud reporting never dispatches or completes it.
+    Activity[Activity Bar: 일정, 에이전트, 문서, 외부연동, 로그, 테스트] --> Sidebar[Primary Sidebar] --> View[Workspace area]
+    Documents[Authenticated cloud Document revisions] -->|isolated Human preview| View
+    Integrations[Cloud connection and collection state] -->|owner-backed facts| View
+    Planning[Cloud planning tasks: separate from background jobs] --> View
+    Exec[Local exec.py process, session, run] --> Reports[Cloud shared reporting]
+    Loop[Local loop.py transitions and END] -. retains sole graph authority .-> Exec
+    Reports -->|projection, never execution control| View
+    Runtime[Separate MCP application] -->|canonical shell; no project copy| View
+    Unresolved[Human-owned undecided controls] -. remain unresolved .-> Sidebar
 ```

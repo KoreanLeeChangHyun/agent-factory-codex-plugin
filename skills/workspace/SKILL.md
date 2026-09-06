@@ -36,6 +36,8 @@ Read the applicable reference completely before acting:
   boundaries.
 
 Read both when a change crosses information architecture and interface behavior.
+For the accepted development schedule model, views, storage and controls, also
+read `references/planning.md`. It supersedes older schedule-unresolved wording.
 Do not restate their detailed contracts here.
 
 ## Runtime and storage
@@ -45,7 +47,7 @@ Agent Factory MCP application owns and serves the Workspace implementation:
 
 ```text
 <agent-factory-mcp>/app/                         FastAPI, MCP, and domain runtime
-<agent-factory-mcp>/static/workspace/            canonical browser assets
+<agent-factory-mcp>/static/            canonical browser assets
 <agent-factory-mcp>/tests/                       runtime contract tests
 ```
 
@@ -61,6 +63,8 @@ non-authoritative installation and connection state below
 Documents must be inventoried, backed up, and imported through the MCP
 application before their old source tree is retired; migration never implies
 permission to delete that source.
+
+New domain operations use the resolved authenticated cloud MCP tools and current server schemas/guides. Document tools own persistence/search/publication, integration/collection tools own connections and gathering, and reporting tools own shared run reports. Local exec/loop retains graph authority; cloud planning tasks and background jobs are separate. Missing tools, account or scope fails honestly without a legacy script or local-service fallback. Git owns this Skill and Korean HTML publication source; cloud owns accepted complete-pair revisions bound to the repository, commit and inventory. These source locators are not consumer runtime paths.
 
 ## Completion gate
 

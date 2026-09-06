@@ -1,32 +1,13 @@
 # Gather Discord
 
-Use `scripts/sync_discord.py` to collect bounded message history from one
-channel into the resolved `discord` destination (default `source/discord`). It
-saves a boundary-specific message API representation under
-`channels/<channel-id>/snapshots/`, downloads original attachment bytes, and
-maintains `index.jsonl` with IDs, hashes, message/channel provenance, sizes, and
-local paths. It never sends, edits, reacts to, or deletes messages.
+Read `gather-management.md` and the authenticated server's integrations guide and schemas first. Use its collection tools with a Tool-resolved connection; this reference specifies source semantics, not a local provider command.
 
-## Connection And Authentication
+## Selection and fidelity
 
-Create a Discord application and bot, install it in the selected server, and
-grant only `VIEW_CHANNEL` and `READ_MESSAGE_HISTORY` for the target channel.
-Store the bot token outside the repository in `DISCORD_BOT_TOKEN`; never place
-it in config, arguments, or the index. Confirm the bot can see the channel.
-See Discord's [API reference](https://docs.discord.com/developers/reference)
-and [message resource](https://docs.discord.com/developers/resources/message).
+Require `channel_id`, optionally one of `before` or `after`, bounds and attachment intent. The bot needs VIEW_CHANNEL and READ_MESSAGE_HISTORY; privileged message-content intent can limit visible content. Empty content is not proof of full access. Preserve message API evidence and original attachment bytes. Signed attachment/proxy URLs expire and are redacted from stored evidence. Never send, edit, react to or delete messages.
 
-```bash
-export DISCORD_BOT_TOKEN='...'
-python <gather-skill-directory>/scripts/sync_discord.py \
-  --channel-id CHANNEL_ID --before MESSAGE_ID --max-messages 200
-```
+## Connection and result
 
-`--before` and `--after` are mutually exclusive bounded selectors. Confirm the
-channel, boundary, count, and resolved destination. Discord attachment URLs are
-signed and expire; the script consumes them promptly from freshly fetched
-messages and removes both attachment and proxy URLs from saved API evidence.
-Different boundary/count selections retain separate snapshots. An existing
-snapshot and indexed attachment are retained by default; `--overwrite`
-intentionally replaces evidence for that same selection and refreshes already
-indexed attachments.
+Use the server-advertised authentication route through Tool. Credentials remain in the cloud credential authority; do not put tokens in prompts, command arguments, repository files, receipts or source metadata. Distinguish requested scope, observed grant, account health, selection access and stale/unknown state. Missing capability or permission stops dependent collection without a local-script fallback.
+
+Inspect cloud collection status and persisted results, including partial results, conversions and coverage limitations. Preserve collection/run/source identity across retries. Cancellation retains evidence. New local sync configuration and provider services are outside this contract; local provider executables are retired after independently verified cloud replacement.

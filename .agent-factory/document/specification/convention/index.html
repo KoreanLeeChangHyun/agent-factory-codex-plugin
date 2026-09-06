@@ -1,10 +1,787 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="agent-factory:specification-id" content="convention"><meta name="agent-factory:ai-root" content="skills/convention/"><meta name="agent-factory:ai-binding-entry" content="skills/convention/SKILL.md"><title>공통 규칙과 코어 모델</title><link rel="stylesheet" href="./styles.css"><script src="./app.js" defer></script></head><body><a class="skip" href="#content">본문으로 건너뛰기</a><header><p class="eyebrow">Agent Factory · convention</p><h1>공통 규칙과 코어 모델</h1><p>여섯 public Skill이 함께 지켜야 할 안전·구조·설계 규칙과 Explorer·Interview 역량 경계를 사람이 찾기 쉽게 정리합니다.</p><div class="meta"><span>Specification ID: convention</span><span>AI: skills/convention/</span><span>Human: specification/convention/</span></div></header><div class="layout"><nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#model">코어 책임 지도</a><a href="#structure">구조와 소유권</a><a href="#workspace-search">원본 문서 검색 결정</a><a href="#commit">Main 직접 커밋</a><a href="#testing">집중 테스트 범위</a><a href="#explicit-input">명시적 Human 입력</a><a href="#design">사람과 AI가 함께 읽는 표현</a></nav><main id="content" tabindex="-1">
-<section id="model" data-ai-sources="skills/convention/SKILL.md;skills/convention/references/agent-factory-core.md;skills/convention/references/explorer.md;skills/convention/references/interview.md" aria-labelledby="model-title"><p class="eyebrow">01</p><h2 id="model-title">코어 책임 지도</h2><p class="lead">Convention은 실행자가 아니라 모든 Skill에 적용되는 공통 의미와 제약의 소유자입니다.</p><div class="cards"><article class="card"><h3>문서 모델</h3><p>원본 문서(Original), 가공 문서(Processed), 명세 문서(Specification)의 느슨한 관계</p></article><article class="card"><h3>역량 경계</h3><p>Explorer와 Interview는 public Skill이 아닌 적용 역량</p></article><article class="card"><h3>공통 안전</h3><p>최소 권한, 승인, provenance, 정직한 미해결 상태</p></article></div><p>공식 한국어 명칭은 원본 문서, 가공 문서, 명세 문서이며 기존 논리 유형과 식별자·metadata·경로는 바꾸지 않습니다.</p><p>공유 로컬 카탈로그는 Agent 구현 소유이며 Workspace는 Agent-provided read-only 결과를 표시할 수 있을 뿐 직접 명령을 실행하지 않습니다. Convention은 이 cross-cutting 소유 규칙만 유지하고 상세 명령과 schema·검색·복구 계약은 Agent Specification에 둡니다.</p><p class="source"><strong>AI 원문 매핑:</strong> <code>skills/convention/SKILL.md</code>, <code>skills/convention/references/agent-factory-core.md</code>, <code>skills/convention/references/explorer.md</code>, <code>skills/convention/references/interview.md</code></p></section>
-<section id="structure" data-ai-sources="skills/convention/SKILL.md;skills/convention/references/agent-factory-core.md;skills/convention/references/directory-structure.md;skills/convention/references/development.md;skills/convention/references/testing.md;skills/convention/references/libraries.md" aria-labelledby="structure-title"><p class="eyebrow">02</p><h2 id="structure-title">구조와 소유권</h2><p class="lead">플러그인 distributed Skill과 소비자 Project Skill, runtime, Document, Workspace를 서로 다른 권위 영역으로 유지합니다.</p><div class="table"><table><thead><tr><th>영역</th><th>소유 경로 또는 계약</th></tr></thead><tbody><tr><th>보편 Specification pair</th><td>같은 stable identity 아래 resolved AI 표현과 resolved Human 표현을 각각 정확히 하나씩 연결</td></tr><tr><th>Plugin local-adapter 예외</th><td><code>skills/&lt;single-name&gt;/</code> ↔ <code>document/specification/&lt;single-name&gt;/</code></td></tr><tr><th>Consumer local-adapter pair</th><td><code>.codex/skills/&lt;category&gt;-&lt;title&gt;/</code> ↔ <code>document/specification/&lt;category&gt;-&lt;title&gt;/</code></td></tr><tr><th>운영 상태</th><td><code>.agent-factory/agent/</code></td></tr><tr><th>Document package</th><td><code>document/&lt;type&gt;/&lt;document-id&gt;/</code></td></tr></tbody></table></div><p>외부 backend가 명시적으로 resolve되면 locator는 달라질 수 있지만 1:1 pair와 stable identity는 유지합니다. Project Skill은 <code>SKILL.md</code>가 필수이고 <code>agents/</code>, <code>assets/</code>, <code>references/</code>, <code>scripts/</code>는 내용이 있을 때만 둡니다. 각 local Document type root의 즉시 하위 디렉터리 하나가 Document 하나이며 producer·category·legacy wrapper를 두지 않습니다.</p><p>Workspace의 명세 문서 영역은 reciprocal Human HTML·AI Skill binding을 읽기 전용으로 검증해 paired·misaligned·missing-human 상태를 표시하고, paired Human 문서를 같은 origin의 Workspace 안에서 엽니다. Original live source/query와 Processed discovery는 계속 미결정입니다.</p><p class="source"><strong>AI 원문 매핑:</strong> <code>skills/convention/SKILL.md</code>, <code>skills/convention/references/agent-factory-core.md</code>, <code>skills/convention/references/directory-structure.md</code>, <code>skills/convention/references/development.md</code>, <code>skills/convention/references/testing.md</code>, <code>skills/convention/references/libraries.md</code></p></section>
-<section id="workspace-search" data-ai-sources="skills/convention/references/agent-factory-core.md" aria-labelledby="workspace-search-title"><p class="eyebrow">03</p><h2 id="workspace-search-title">원본 문서 검색의 여섯 열과 동작은 결정됐습니다</h2><p class="lead">간결하고 tab이 없는 Tabulator 6.5.2 표는 전역 검색과 모든 열 필터를 제공하며 열 순서는 고정된 계약입니다.</p><div class="table"><table><thead><tr><th>순서</th><th>열</th></tr></thead><tbody><tr><td>1</td><td>문서 분류</td></tr><tr><td>2</td><td>출처</td></tr><tr><td>3</td><td>태그</td></tr><tr><td>4</td><td>문서 이름</td></tr><tr><td>5</td><td>확장자</td></tr><tr><td>6</td><td>수정 일자</td></tr></tbody></table></div><p>사람은 열 크기와 순서를 조절할 수 있고 좁은 화면은 가로 overflow를 사용합니다. 문서 이름 cell만 원본 링크이며 출처 cell은 보이는 provider 이름과 장식용 inline SVG를 함께 표시합니다. 원본 문서 개요 내용, live source/query 연결, 동기화 trigger·상태, metadata mutation 권한·저장 방식, 나머지 네 Activity는 아직 미결정입니다.</p><p class="source"><strong>AI 원문 매핑:</strong> <code>skills/convention/references/agent-factory-core.md</code></p></section>
-<section id="commit" data-ai-sources="skills/convention/SKILL.md;skills/convention/references/development.md;skills/convention/references/agent-factory-core.md" aria-labelledby="commit-title"><p class="eyebrow">03</p><h2 id="commit-title">검증 뒤 커밋은 Main이 직접 수행합니다</h2><p class="lead">독립 Verification pass 또는 현재 Work 완료 뒤 근거 있는 Human skip이 적용된 다음, Main이 별도 commit Work turn 없이 승인된 ordinary Git commit을 결과 통합·게시로 직접 빠르게 수행합니다.</p><div class="cards"><article class="card"><h3>graph 보존</h3><p>Human만 authorization reference와 decision evidence를 갖춘 skip intent를 다음 Verification 시작 전에 기록할 수 있습니다. 기록 자체는 transition이나 completion이 아니며 현재 initial/revision Work 완료 뒤 적용될 때 다음 Verification 없이 END에 도달합니다. 커밋은 Work·Verification·새 Agent role·새 graph node가 아니고 Work와 Verification은 커밋하지 않습니다.</p></article><article class="card"><h3>exact-path staging</h3><p>Main은 latest Work result·receipt, Verification pass receipt 또는 Human-skip evidence, 현재 status·diff를 확인해 해당 결과에 결속된 정확한 경로만 stage합니다. 관련 없는 dirty·untracked·generated·runtime 변경은 제외하고 Specification pair는 완전하게 유지합니다.</p></article><article class="card"><h3>권한 경계</h3><p>ordinary commit 권한에서 push, amend, force, history rewrite, reset, restore, delete 또는 다른 repository mutation을 추론하지 않습니다. 정확한 안전 staging이 불가능하면 범위를 넓히지 않고 obstruction을 보고합니다.</p></article></div><p class="source"><strong>AI 원문 매핑:</strong> <code>skills/convention/SKILL.md</code>, <code>skills/convention/references/development.md</code>, <code>skills/convention/references/agent-factory-core.md</code></p></section>
-<section id="testing" data-ai-sources="skills/convention/SKILL.md;skills/convention/references/testing.md" aria-labelledby="testing-title"><p class="eyebrow">03</p><h2 id="testing-title">영향받은 domain의 최소 테스트</h2><p class="lead">구현, 유지보수 또는 Verification에서는 소유 component와 변경된 contract에 해당하는 가장 작은 focused test set을 선택합니다.</p><div class="cards"><article class="card"><h3>소유 경계에 맞춤</h3><p>소유 프로젝트의 runner·framework·component 경계·test 구성을 따르며 특정 command나 directory layout을 보편 규칙으로 만들지 않습니다.</p></article><article class="card"><h3>확대 조건</h3><p>focused evidence에서 cross-domain 영향을 보일 때 또는 Human이 더 넓은 범위를 명시적으로 요청할 때만 넓힙니다. repository-wide full suite는 Human이 명시적으로 요청한 경우에만 실행합니다.</p></article><article class="card"><h3>독립 Verification</h3><p>focused 범위 규칙은 독립적인 Verification role을 합치거나 대체하거나 생략하지 않습니다. Verification도 같은 확대 조건 아래 가장 작은 관련 범위를 독립적으로 확인합니다.</p></article></div><p class="source"><strong>AI 원문 매핑:</strong> <code>skills/convention/SKILL.md</code>, <code>skills/convention/references/testing.md</code></p></section>
-<section id="explicit-input" data-ai-sources="skills/convention/SKILL.md;skills/convention/references/explicit-human-input.md;skills/convention/assets/AGENTS.md" aria-labelledby="explicit-input-title"><p class="eyebrow">04</p><h2 id="explicit-input-title">명시되지 않은 결정은 반드시 묻고 기다립니다</h2><p class="lead">요구사항, 선택, 범위, 권한, 인수 기준은 Human이 직접 말했거나 이미 수락된 Specification이 모호함 없이 정한 경우에만 명시적인 것으로 취급합니다.</p><div class="cards"><article class="card"><h3>추론하지 않음</h3><p>필수 부분이 명시되지 않았다면 추론, 발명, 묵시적 기본값 적용을 하지 않고 가정을 결정처럼 제시하지 않습니다. 침묵, 모호함, 관행, 선례, 그럴듯한 선호, 이의 없음은 명시적 결정이 아닙니다.</p></article><article class="card"><h3>사실과 선택을 구분</h3><p>repository 조사와 evidence gathering은 관찰 가능한 사실을 밝힐 수 있지만 빠진 Human 결정을 만들어내지 못합니다.</p></article><article class="card"><h3>역할 경계</h3><p>Main만 Human에게 질문하고 답을 기다립니다. Work와 Verification은 미해결 질문을 Main에 보고하고 영향을 받는 결정을 통과하지 않습니다. Explorer는 사실 증거를 수집할 수 있지만 Human-owned choice로 바꾸거나 Human을 interview·impersonate하지 않으며, Interview는 Main만 수행합니다.</p></article><article class="card"><h3>필요 시 찾는 프로젝트 진입점</h3><p>배포되는 <code>AGENTS.md</code>는 Skill의 필요 시 선택·로드 동작을 중복하거나 선제 로드를 강제하지 않습니다. 관련 Agent Factory Skill을 사용하라는 안내와 코어 개념·디렉터리 구조의 기준 경로만 제공하며, 세부 계약은 각 소유 Skill에 둡니다.</p></article></div><p>Main, Work, Verification, Explorer, Interview 전체에 적용합니다. 이 규칙은 새 Agent role, public Skill, capability를 만들지 않으며 기존 안전, 권한, Specification pair, managed graph 계약도 약화하지 않습니다.</p><p class="source"><strong>AI 원문 매핑:</strong> <code>skills/convention/SKILL.md</code>, <code>skills/convention/references/explicit-human-input.md</code>, <code>skills/convention/assets/AGENTS.md</code></p></section>
-<section id="design" data-ai-sources="skills/convention/references/design.md;skills/convention/references/svg-icon.md;skills/convention/references/diagrams.md;skills/convention/references/annotation.md" aria-labelledby="design-title"><p class="eyebrow">05</p><h2 id="design-title">사람과 AI가 함께 읽는 표현</h2><p class="lead">사람용 화면은 접근성·가독성을 우선하고, AI용 문서는 정확한 규칙과 provenance를 보존합니다.</p><div class="flow"><article class="step"><strong>Human</strong>한국어 설명·표·도식</article><article class="step"><strong>Source mapping</strong>정확한 Skill/reference 경로</article><article class="step"><strong>AI</strong>명확한 계약</article></div><p class="source"><strong>AI 원문 매핑:</strong> <code>skills/convention/references/design.md</code>, <code>skills/convention/references/svg-icon.md</code>, <code>skills/convention/references/diagrams.md</code>, <code>skills/convention/references/annotation.md</code></p></section>
-</main></div><footer>이 문서는 <code>skills/convention/</code>의 의미를 사람 중심으로 재구성한 표현입니다. 원문을 그대로 복사하지 않으며 양쪽 의미 변경은 함께 반영해야 합니다.</footer></body></html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="agent-factory:specification-id" content="convention"><meta name="agent-factory:ai-root" content="skills/convention/"><meta name="agent-factory:ai-binding-entry" content="skills/convention/SKILL.md"><title>공통 규칙과 코어 모델</title><link rel="stylesheet" href="./styles.css"><script src="./app.js" defer></script></head><body><a class="skip" href="#content">본문으로 건너뛰기</a><header><p class="eyebrow">Agent Factory · convention</p><h1>공통 규칙과 코어 모델</h1><div class="meta"><span>명세 ID: convention</span><span>AI 소스: skills/convention/</span><span>Human 소스: specification/convention/</span></div></header><div class="layout"><nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#source-1">Agent Factory Convention</a><a href="#source-2">호출 메타데이터</a><a href="#source-3">프로젝트 지시 템플릿</a><a href="#source-4">Agent Factory 코어 모델</a><a href="#source-5">주석 규칙</a><a href="#source-6">디자인 규칙</a><a href="#source-7">개발 규칙</a><a href="#source-8">도식</a><a href="#source-9">행동 도식</a><a href="#source-10">ERD 도식</a><a href="#source-11">시퀀스 도식</a><a href="#source-12">소스·로컬 런타임·클라우드 배치</a><a href="#source-13">명시적 Human 입력 규칙</a><a href="#source-14">Explorer 역량 규칙</a><a href="#source-15">Interview 역량 규칙</a><a href="#source-16">권장 라이브러리</a><a href="#source-17">SVG 아이콘만 사용</a><a href="#source-18">테스트 규칙</a></nav><main id="content" tabindex="-1">
+<section id="source-1" data-ai-source="skills/convention/SKILL.md" data-ai-sha256="77e14764c6042190c8e83eb5c8c7f07c4280feccc341562a3fe33d702f56a79f">
+<article data-source-lines="1-11" data-source-sha256="01281dd0278e301a9f2d1f19c34cac9fcd54887b337f2c13625c7b8bd7808acf">
+<p>메타데이터: 이름과 명세 식별자는 convention이며, Human 진입점은 .agent-factory/document/specification/convention/index.html, AI 루트는 skills/convention/ 이다. 이 메타데이터는 배포 소스 패키지 안의 상호 연결을 보존한다.</p>
+<p>설명 메타데이터: Agent Factory 코어 모델과 프로젝트 구조·개발·테스트·라이브러리·디자인·주석·문서 유형·Skill 소유권의 공통 규칙을 적용한다.</p>
+<h2>Agent Factory Convention</h2>
+</article>
+<article data-source-lines="12-21" data-source-sha256="039a4cbbc4c51dedacfd092de2850aa47986a55bb2d399222999efd85d49b0fc">
+<h3>진입 계약</h3>
+<p>Agent Factory 코어 개념과 프로젝트 구조·개발·테스트·라이브러리·디자인·주석·문서 유형·권위·Skill 소유권의 공통 규칙에 적용한다. 작업 전에 해당 참조를 모두 읽는다.</p>
+<p>공개 배포 Skill은 agent, convention, document, gather, tool, workspace 여섯 개다. Explorer와 Interview는 Agent 역할이 적용하는 Convention 소유 역량이며 추가 공개 Skill·역할이 아니다. Main은 조율하고 Work는 자가 검증·커밋 없이 제한 작업을 수행하며 Verification은 수정 없이 독립 확인한다. 독립 통과 또는 Work 완료 뒤 적용된 근거 있는 Human skip만 END에 도달한다. Main만 정확한 검증·생략 결과 경로의 승인된 일반 Git 커밋을 통합하며 push·amend·역사 변경·무관한 변경 권한은 생기지 않는다.</p>
+<p>저장소와 독립적인 문서 유형은 Original, Processed, Specification 세 개다. 개념 순서는 가능한 파생·증거만 나타내며 파이프라인·성숙도·필수 전환·완전성·자동 승격이 아니다. 관계는 없거나 어떤 대응 수든 가능하며 실제 이력을 보존한다. 원본은 기본·출처 적합 형식의 충실도·식별자를 보존한다. 가공은 비권위적 변환 작업 지식이며 수락된 이동 가능한 HTML·CSS·JavaScript 패키지를 쓴다. 기존 Inquery 패키지는 비활성 가공 증거이며 다른 유형·활성 형식 선례가 아니다.</p>
+<p>모든 명세는 안정적 식별자 하나 아래 AI Skill 하나와 한국어 Human HTML·CSS·JavaScript 본문 하나를 갖는다. 정확한 출처·연속 줄 해시로 전체 의미·순서·계층·이력을 보존한다. 부분·한쪽만·오래됨·중복·재정렬·요약·오역 쌍은 완료할 수 없다. 독립 의미 검토와 해시 범위는 별개다. Document가 완전한 쌍 게시·이관 계약을 소유한다.</p>
+</article>
+<article data-source-lines="22-33" data-source-sha256="0cc8f0443c439527ecc35067ab99196fcc3baac3cbbb991d2d50c9adc72ce829">
+<h3>클라우드와 로컬 소유권</h3>
+<p>Human이 선택한 클라우드 MCP 애플리케이션이 새 문서 저장·검색·게시, 연결·인증·수집 설정, 공유 보고와 Workspace 구현을 소유한다. 새 도메인 작업은 인증된 도구가 제공하는 스키마·안내를 읽고 해당 도구를 쓴다. 역량·연결·테넌트·범위가 없으면 정직하게 실패를 보고한다. 기존 로컬 스크립트 우회, 계정 ID 발명, 로컬 MCP·공급자 서비스 생성을 하지 않는다.</p>
+<p>로컬 exec.py, loop.py, 역할 프롬프트와 최소 런타임 의존성은 로컬 세션·프로세스와 실행 사실·그래프 전환·영수증의 권위를 유지한다. 로컬 실행·발신함·복구 상태는 로컬에 남는다. 제한된 Git·도구 조사에는 기존 셸·파일 도구를 쓰고 필요한 증거를 승인된 클라우드 Document 도구로 업로드한다. 공유 보고는 로컬 실행을 시작·완료하지 않는다. 계획 작업 상태는 백그라운드 작업·런타임 관찰과 별개다.</p>
+<p>Git은 배포 Skill 작성 소스를 소유한다. 플러그인의 skills/&lt;id&gt;/와 .agent-factory/document/specification/&lt;id&gt;/는 상호 게시 소스 패키지이며 소비자 로컬 런타임 저장소나 독립 편집 클라우드 진실이 아니다. 여섯 이름·메타데이터 식별자를 유지하고 저장소 .codex/에 복제하지 않는다. 소비자 Project Skill은 Human이 확인한 &lt;category&gt;-&lt;title&gt; 이름을 보존한다. 소스 패키지·설치 Skill·클라우드 리비전 위치를 구분한다. 게시된 완전한 쌍은 Git 저장소·정확한 커밋·목록·검토된 표현 해시에 결속되며 클라우드가 수락된 불변 리비전을 소유한다.</p>
+<p>새 카탈로그·검색과 문서·동기화 설정은 클라우드 소유다. 남아 있는 .agent-factory/db.sqlite, 기존 로컬 문서·동기화 설정은 가져오기가 독립 검증될 때까지 이관 입력이다. 로컬 도메인 실행 파일은 퇴역했고 재사용 Document 저작 자원은 MCP 패키지 소유다. 목록화·독립 백업·가져오기 검증 전까지 데이터를 보존하며 코드 폐기는 삭제 권한이 아니다. 계약 변경에서 등록·설정 계정·배포·전체 이관 완료를 주장하지 않는다.</p>
+<p>Workspace는 일정, 에이전트, 문서, 외부연동, 로그, 테스트 순서의 정확히 여섯 Activity를 가진 Human 관제탑이다. 상세 수락 구조·계획·Human 소유 미결정은 Workspace 참조가 소유한다. MCP 애플리케이션이 셸·자산을 소유하므로 소비자 프로젝트에 브라우저 런타임을 복사하지 않는다. Tool은 논리 생명주기 경로를 소유하고 실제 호스트·공급자·클라우드 자격증명 권위는 상태를 유지한다. Tool 준비 상태는 실행 권한·자동 범위 확대를 주지 않는다.</p>
+</article>
+<article data-source-lines="34-48" data-source-sha256="71d302889b9ddd5b958eb9a6665e01eb7e200d36bcba8809bcfca6b78e14e3d6">
+<h3>참조 안내</h3>
+<ul>
+<li>references/agent-factory-core.md: 코어 역할·권위·문서·쌍·엔지니어링 계층·수락 결정.</li>
+<li>references/directory-structure.md: 소스·설치·로컬 런타임·클라우드 소유 경로.</li>
+<li>references/development.md: 제한 변경과 Main 소유 Git 게시.</li>
+<li>references/testing.md: 집중 테스트 범위와 독립 Verification.</li>
+<li>references/explicit-human-input.md: 필요한 미결정 Human 선택과 역할 경계.</li>
+<li>references/libraries.md: 의존성 선택과 렌더러 경계.</li>
+<li>references/design.md: Human 인터페이스·문서 디자인.</li>
+<li>references/annotation.md: 주석·문서화·추적 가능한 TODO.</li>
+<li>references/svg-icon.md: 실제 SVG 아이콘.</li>
+<li>references/diagrams.md: 근거 있는 ERD·행동·시퀀스 도식 및 그 안에서 안내하는 중첩 참조.</li>
+<li>references/explorer.md: 제한 증거 탐색과 이력.</li>
+<li>references/interview.md: Main의 적응형 Human 질문.</li>
+</ul>
+</article>
+<article data-source-lines="49-51" data-source-sha256="32e501918d7ba72e145cd679ec7553ce590332066f1675876306c43194802e01">
+<h3>초기 설치 소스</h3>
+<p>assets/AGENTS.md는 프로젝트 지시 템플릿으로 남는다. 승인된 최초 설치에는 기존 파일 도구를 사용해 없는 프로젝트 AGENTS.md에 한 번만 복사하고 기존 파일은 보존한다. 로컬 초기화 관리자는 퇴역했다. 플러그인 매니페스트는 프로젝트 파일을 직접 주입하지 않는다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/SKILL.md</code></p>
+</section>
+<section id="source-2" data-ai-source="skills/convention/agents/openai.yaml" data-ai-sha256="16cd7beb612102c5854fa74a28a4e836c793b2c2f53313173fdb9977d94e7a13">
+<article data-source-lines="1-4" data-source-sha256="16cd7beb612102c5854fa74a28a4e836c793b2c2f53313173fdb9977d94e7a13">
+<h2>호출 인터페이스 메타데이터</h2>
+<p>interface.display_name은 Agent Factory Convention다.</p>
+<p>interface.short_description: Agent Factory 코어·공통 규칙을 적용한다.</p>
+<p>interface.default_prompt: $convention으로 관련 코어·구조·개발·라이브러리·디자인·주석 규칙을 적용한다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/agents/openai.yaml</code></p>
+</section>
+<section id="source-3" data-ai-source="skills/convention/assets/AGENTS.md" data-ai-sha256="438c2861a2609dd51f5bd442fe98613aecf5b8005fc8e7dc042fa8cc2d1744d5">
+<article data-source-lines="1-17" data-source-sha256="438c2861a2609dd51f5bd442fe98613aecf5b8005fc8e7dc042fa8cc2d1744d5">
+<h2>프로젝트 지시 템플릿</h2>
+<p>INSTRUCTIONS 안의 agent-factory 지시: 작업에 필요할 때 관련 Agent Factory Skill을 사용한다. 상세 계약은 소유 Skill에 있으며 여기 복제하지 않는다.</p>
+<p>참조 위치:</p>
+<ul>
+<li>코어 개념·역할·권위·공유 불변 조건: skills/convention/references/agent-factory-core.md</li>
+<li>프로젝트 배치·소유 경계: skills/convention/references/directory-structure.md</li>
+</ul>
+<p>이 저장소는 Agent Factory 플러그인이다. 배포 Skill은 &lt;plugin-root&gt;/skills/에 유지하고 저장소 .codex/ 아래 생성·복제하지 않는다. agent-factory 및 INSTRUCTIONS 태그로 지시 범위를 닫는다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/assets/AGENTS.md</code></p>
+</section>
+<section id="source-4" data-ai-source="skills/convention/references/agent-factory-core.md" data-ai-sha256="72bf0813fef1dfc7c2fcab1a231145c97063b2f2c72ee87f1059729429e6217a">
+<article data-source-lines="1-2" data-source-sha256="615e17afdb16c6c1fd5929e842947b0151157b3868969a89e105e3d71bed67b3">
+<h2>Agent Factory 코어 모델</h2>
+</article>
+<article data-source-lines="3-30" data-source-sha256="391764536bbcb02190ce507ff6005c59566d6c507c737177dd4e9bfb353f016f">
+<h3>권위와 식별자</h3>
+<p>공개 배포 Skill은 agent, convention, document, gather, tool, workspace 여섯 개이며 코어 역량은 이 여섯 개와 Explorer·Interview를 합한 여덟 개다. Explorer·Interview는 Agent 역할이 적용하는 Convention 소유 역량으로 공개 Skill·추가 Agent 노드가 아니다.</p>
+<p>명세 하나는 안정적 식별자 하나 아래 확인된 AI Skill 하나와 한국어 Human 브라우저 문서 하나를 갖는 수락 의미 본문이다. 구체 위치는 어댑터가 확인하며 외부 백엔드는 일대일 쌍을 유지하면서 다른 위치를 쓸 수 있다. 두 표현은 동일한 출처 순서·계층·의미·식별자·이력을 보존한다. 상호 메타데이터만으로 정렬을 증명하지 못한다. 한쪽 변경은 미완료·허용 불가이며 완료로 보고하지 않는다. 부분·오래됨·재정렬·중복·요약·오역도 실패 처리한다.</p>
+<p>이 저장소의 convention 쌍은 다음과 같다.</p>
+<pre><code class="language-text">skills/convention/
+.agent-factory/document/specification/convention/</code></pre>
+<p>저장소 로컬 .codex/skills/ 복제본을 만들지 않는다. 탐색·표·도식은 전체 Human 번역을 보완할 수 있지만 대체·반복하지 못한다.</p>
+</article>
+<article data-source-lines="31-36" data-source-sha256="9f836f1ffeb04dea4f9168c67f0c30b2728f64466a1b4b6d16e90111f2ac9c79">
+<h3>Project Skill 이름</h3>
+<p>일반 소비자 프로젝트 쌍은 Skill 이름과 쌍 표현에 Human이 확인한 소문자 하이픈 &lt;category&gt;-&lt;title&gt; 식별자 하나를 사용한다. 설치 Skill은 &lt;project-root&gt;/.codex/skills/&lt;category&gt;-&lt;title&gt;/에 둘 수 있다. 기존 .agent-factory/document/specification/&lt;category&gt;-&lt;title&gt;/ Human 소스 패키지는 이관 입력이며 새 소비자 런타임 루트가 아니다. 게시 Human 리비전 위치는 클라우드가 확인한다.</p>
+<p>분류·제목을 추론하거나 수락 식별자를 일괄 변경하지 않는다. 플러그인은 명시적인 단일 이름 예외다. 소스·설치·게시 위치에서 일대일 쌍을 보존한다.</p>
+</article>
+<article data-source-lines="37-58" data-source-sha256="78fb07f57272b5746b02a3dc1aff610f8b4215588bc96ea8ec3428372947e2e6">
+<h3>문서와 저장</h3>
+<p>Document는 정확히 세 저장 독립 유형을 포괄한다.</p>
+<ul>
+<li>원본 문서(Original): 기본·출처 적합 형식의 출처 충실 증거.</li>
+<li>가공 문서(Processed): 변환된 비권위적 작업 지식.</li>
+<li>명세 문서(Specification): 위 동기화 Human·AI 쌍을 가진 수락·조정 프로젝트 지식.</li>
+</ul>
+<p>Original -&gt; Processed -&gt; Specification은 가능한 증거·파생 관계만 표현한다. 파이프라인·상태 기계·성숙도·필수 전환·완전성·일대일 대응이 아니다. 관계는 임의 대응 수를 갖거나 없을 수 있고 실제 관계에만 이력을 기록한다. Refined는 네 번째 유형이 아니다.</p>
+<p>활성 가공·Human 명세는 이동 가능한 index.html, styles.css, app.js 패키지를 공유하지만 권위·AI 쌍을 공유하지 않는다. 역사적 legacy-inquery-*는 비활성 가공 증거로 남는다.</p>
+<p>Human이 선택한 클라우드 MCP 애플리케이션이 새 문서 저장·검색·게시, 연결·인증·수집 설정, 공유 보고·Workspace를 소유한다. Git이 배포 Skill 작성을 소유한다. 로컬 버전 관리 한국어 HTML은 쌍 게시 소스이며 소비자 백엔드·독립 편집 클라우드 진실이 아니다. 게시 완전 쌍은 Git 저장소·정확한 커밋·내용 목록·검토된 표현 해시에 결속된다. 상호 메타데이터·안정 식별자를 유지하며 소스 패키지·설치 Skill·클라우드 리비전 위치를 구분한다.</p>
+<p>로컬 exec·loop·프롬프트·최소 런타임 의존성은 프로세스·세션·실행·그래프 권위를 유지한다. 실행·발신함·복구는 로컬에 남고 기존 셸·파일 도구로 조사하며 승인된 클라우드 도구로 필요한 영속 증거를 전달한다. 제공된 인증 스키마·안내를 먼저 읽는다. 역량·연결·테넌트·범위가 없으면 정직하게 실패를 보고하며 로컬 MCP·공급자 서비스를 만들거나 계정을 추론하지 않는다. 기존 데이터·설정·카탈로그는 목록화·독립 백업·가져오기 검증까지 보존한다. 로컬 도메인 실행 파일은 검증된 대체 구현 이후 퇴역했다. 코드 폐기는 Human 데이터 삭제를 허용하지 않는다. 클라우드 선택은 수락됐지만 실제 테넌트·계정·자격증명 식별자와 미해결 파괴·충돌 결정은 Human 소유다.</p>
+</article>
+<article data-source-lines="59-72" data-source-sha256="6624ecaff0501eeaa79119f6b8406b78c8386bd5c0858fa0b9f919eac6c808ff">
+<h3>어댑터 경계</h3>
+<p>문서 어댑터 초기화·물리 이관은 공개 document Skill 소유이며 의미 분류·변환·조정·수락과 별개다. 물리 이관은 documentType·식별자·이력·권위·명세 쌍을 보존한다.</p>
+<p>LLM 출력은 자문·작성용이며 실행 내용이 아니다. 결정적 관리자는 현재 상태·필요 Human 권위를 재확인한 뒤 폐쇄된 버전별 허용 계획·IR만 실행할 수 있다. 오래된 계획·경로 탈출·심볼릭 링크·미해결 충돌·미지원 작업·유형 승격·미승인 파괴·무결성 불일치는 실패한다. 명세 쌍은 복구 가능한 그룹 하나로 게시한다.</p>
+</article>
+<article data-source-lines="73-98" data-source-sha256="0f01c33f6b197383cba371b83ed4876e4e759a5b51c37bfa8a06e2a12aa78107">
+<h3>역량 소유권</h3>
+<ul>
+<li>Gather는 제한 외부 출처를 선택·동기화해 원본으로 만들며 충실도·식별자·이력·목적지·읽기 의도를 보존한다.</li>
+<li>Tool은 논리 발견·생명주기·연결·범위·상태·역량 메타데이터를 관리한다. 각 호스트·플러그인·MCP 서버·프로젝트 매니페스트·공급자는 권위를 유지한다. 비밀을 저장하거나 Agent·Gather 작업을 실행하지 않는다.</li>
+<li>Explorer는 Work의 제한 증거 탐색을 수행하고 원본·가공 증거를 만들 수 있다. Human 인터뷰·명세 수락은 하지 않는다.</li>
+<li>Interview는 Human 대화에서 Main이 수행하는 적응형 질문이다. 기본으로 가공 지식을 만들고 권위·수락을 부여하지 못한다.</li>
+<li>Document는 세 문서 유형과 확인 대상의 의미 작업을 소유한다.</li>
+<li>Convention은 코어 모델·공통 규칙을 소유한다.</li>
+<li>Agent는 Main -&gt; Work -&gt; Verification 그래프·역량 결속·로컬 사실·전환·영수증을 소유한다.</li>
+<li>Workspace는 Human 관제탑이며 소유자 근거 상태만 투영한다.</li>
+</ul>
+<p>연결 기반 수집에서 Gather는 역량·정확한 출처 한도·확인 목적지·최소 요청 범위·Human 또는 관리자 승인을 선언한다. Tool은 확대 없이 연결 상태·실제 허용 범위를 보고한다. 새 공급자 작업은 클라우드 Tool 연결·인증 도구와 Gather 수집 도구가 소유하고 공급자 실행 파일은 퇴역했고 기존 토큰 캐시는 해당 자격증명 권위에 남는다. Tool은 범위를 자동 확대하거나 .agent-factory/tool/을 만들지 않는다. Workspace는 외부연동 투영을 소유하고 실제 공급자·클라우드 자격증명 권위는 상태를 유지한다.</p>
+</article>
+<article data-source-lines="99-128" data-source-sha256="daf2de135b9574dd5030ac93ecd8e10961d360575d07c3c07030911fb32ec452">
+<h3>Agent 그래프와 엔지니어링 계층</h3>
+<p>Main은 Human 인터뷰·권위 확인·분해·제한 위임·검증 결과 통합·승인된 제한 Git 게시를 소유한다. Work는 실행하지만 검증·커밋하지 않는다. Verification은 최신 Work를 독립 확인하고 수정하지 않으며 실패를 같은 Work 세션으로 돌린다. Verification 통과 또는 현재 Work 완료 뒤 근거 있는 Human skip이 적용될 때만 그래프가 끝난다.</p>
+<p>Main은 해당 결과 경로만 스테이징하고 커밋 요청에서 push·amend·force·역사 변경·reset·restore·삭제를 추론하지 않는다. Human 소유 우선순위·마감·담당자·수락·위험 수용·완료는 명시 결정까지 미해결이다.</p>
+<p>Human skip 의도는 다음 Verification 시작 전에 Human 행위자·권한 참조·결정 증거를 기록한다. 기록은 전환·완료가 아니다. 현재 최초·수정 Work 완료 뒤 적용되어 다음·추가 Verification 없이 END로 간다. 비Human skip은 실패한다.</p>
+<p>Agent 엔지니어링은 다섯 중첩 범위로 확장된다.</p>
+<ol>
+<li>Prompt Engineering: 모델 상호작용 하나를 형성한다.</li>
+<li>Context Engineering: 제한 증거·도구 맥락을 조립한다.</li>
+<li>Loop Engineering: 반복·피드백·중단·복구를 통제한다.</li>
+<li>Agent Graph Engineering: Human·Agent·작업·도구·상태·증거를 조율한다.</li>
+<li>Agentic Engineering: 전체 생명주기·안전·평가·관찰 가능성·거버넌스를 통제한다.</li>
+</ol>
+</article>
+<article data-source-lines="129-150" data-source-sha256="d7f91ccf53c915bbfca28cf34eb8cae540567ac50e612d6187e6e7e703ca3a8a">
+<h3>카탈로그와 Workspace</h3>
+<p>새 카탈로그·검색·공유 보고는 클라우드 소유다. 로컬 db.sqlite는 보존된 기존 비권위 데이터이며 새 작업 경로가 아니다. 보고 작업 상태·프로세스 관찰·계획 작업은 로컬 실행·루프를 실행하거나 완료하지 않는다. 소유 스키마를 읽고 신선도·의미 결과·그래프 END를 구분한다.</p>
+<p>Workspace는 작업 표시줄 -&gt; 기본 사이드바 -&gt; 작업 영역과 일정, 에이전트, 문서, 외부연동, 로그, 테스트 순서의 정확히 여섯 Activity를 쓴다. 외부연동 사이드바 목적 그룹 순서는 웹·리서치, 문서·파일, 메일·메시지, 일정·회의, 지식·업무관리, 개발·운영, 데이터·비즈니스다. 문서 사이드바는 원본 문서·가공 문서·명세 문서를 쓰며 논리 유형·식별자·메타데이터·경로를 바꾸지 않는다. 상세 정보 구조는 skills/workspace/references/activities.md, 브라우저·탭·분할·실행기·게시·보안은 skills/workspace/references/interface.md 소유다. 미해결 실시간 연동·원본 출처와 질의 동작·변경 권위·Activity 세부를 발명하지 않는다.</p>
+<p>MCP 애플리케이션은 Workspace FastAPI 런타임·MCP 전송·발견 경로·배포 어댑터·테스트·static/workspace/의 정식 브라우저 자산을 소유한다. 플러그인은 Workspace Skill·Human 명세 계약을 유지한다. 소비자는 문서 백엔드·셸 복사본·루트 실행기 없이 자체 Skill 설치·로컬 실행 데이터를 유지한다.</p>
+</article>
+<article data-source-lines="151-167" data-source-sha256="dd8729b0fd0557a6a99a158be1354b0ad95958490768b054f11ed3de652d0b2d">
+<h3>결정 출처와 현재 상태</h3>
+<p>정확한 여섯 Skill 결정은 .agent-factory/agent/six-skill-core-sync-work-20260830/runs/run-20260830T103238358728Z-5e61ab5d/request.md에 있다. 현재 통합 표현은 skills/convention/references/agent-factory-core.md다.</p>
+<p>위 계약은 관리 실행 요청의 코어 모델·Inquery 폐기·Main 조율·문서 유형과 루트·Project Skill 이름·여섯 Skill·Workspace Activity와 문서 열람·어댑터 이관·카탈로그 소유와 검색·Git 게시 결정을 통합한다. 상세 이력은 .agent-factory/agent/*/runs/*/request.md에서 조회 가능하고 소유 명세가 정확한 운영 규칙을 유지한다.</p>
+<p>최신 클라우드 이관 요청은 이전 미결정 백엔드·로컬 카탈로그·공급자 스크립트 경로를 대체한다. 형제 MCP 소스 모듈·안내가 문서·연동·보고 역량을 설명하지만 계약 작성은 등록·실제 계정·배포·1–13단계 완료를 보증하지 않는다.</p>
+</article>
+<article data-source-lines="168-173" data-source-sha256="38bb2cfb84d3533958a9261f6463352de5e46f3ca8a27cc9e241c519755aacbc">
+<h3>미해결 아키텍처 결정</h3>
+<p>로드맵 우선순위·마감·담당자·수락·완료·위험 수용을 발명하지 않는다. Workspace의 최신 수락 activities.md·interface.md·planning.md가 정보 구조·공통 작업 용어·계획 가져오기를 소유한다. 에이전트·로그·테스트 사이드바 세부, 개요 내용, 외부 분류 탐색은 추후 명시 해결 전까지 Human 소유다. 원본 표는 전역·열별 필터·정렬·출처 이름 링크와 공급자 셀·Human 열 크기와 순서 조정을 유지하며 열 순서는 문서 분류, 출처, 태그, 문서 이름, 확장자, 수정 일자다. 브라우저 라이브러리 선택은 클라우드 애플리케이션 의존성 정책 소유다.</p>
+<p>구체 테넌트·계정·자격증명 권위·실제 연결·등록·배포·데이터 전환과 보존·삭제·미해결 충돌에는 소유 증거·결정이 필요하다. 클라우드 구현 자체로 모든 UI 제어·제삼자 호스트 생명주기·의미 수락이 해결되지 않는다.</p>
+</article>
+<article data-source-lines="174-180" data-source-sha256="b681ff9282a390bb7b8a895e23e05695ef782f18e820c65fe2aee787551f0bca">
+<h3>표현 정렬 확인 항목</h3>
+<p>한쪽 표현이 바뀌면 전체 순서 출처 목록을 확인하고 Human·AI 본문을 두 언어 의미로 독립 비교한다. 도메인 세부는 코어에 복사하지 않고 소유 명세를 사용한다. 누락·오래됨·재정렬·중복·의미 불일치 범위는 실패 처리한다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/agent-factory-core.md</code></p>
+</section>
+<section id="source-5" data-ai-source="skills/convention/references/annotation.md" data-ai-sha256="f2f63e21304890d18ea85fe9f6707c8bca6e6a7e24d7fd3de5497dc3b54a1cf1">
+<article data-source-lines="1-5" data-source-sha256="835fc94b433f53f73417c5c55a21c38baf820319a5acafc9da5141207a9f8c9f">
+<h2>주석 규칙</h2>
+<p>코드 주석·문서 주석·TODO를 생성·변경·검토할 때 적용한다.</p>
+</article>
+<article data-source-lines="6-19" data-source-sha256="f7569a6bfe0d7438f2b318d7f0fcb701383c8cbee5b4d3ef6e15b5c700c98d1c">
+<h3>코드 주석 규칙</h3>
+<ul>
+<li>코드 자체로 드러나지 않는 의도·제약·부작용·예외 결정을 설명한다.</li>
+<li>코드 동작을 자연어로 반복하지 않는다.</li>
+<li>공개 API에는 언어의 표준 문서 형식을 쓴다.</li>
+<li>코드 변경 때 관련 주석·문서를 확인한다.</li>
+<li>코드와 모순되거나 검증 근거가 없는 주석을 없애거나 고친다.</li>
+<li>모든 TODO에 이유와 완료 조건 또는 추적 가능한 이슈를 포함한다.</li>
+<li>비활성 코드를 주석에 남기지 않고 버전 관리 이력을 이용한다.</li>
+<li>주석보다 명확한 이름·작은 단위·타입 정보·테스트를 우선한다.</li>
+<li>주석 수보다 정확성과 정보 가치를 우선한다.</li>
+</ul>
+</article>
+<article data-source-lines="20-27" data-source-sha256="dc1905385666f352fbecf99800bfb84f5b932f51fb2616a4d62ee06e1a04d0f4">
+<h3>근거</h3>
+<p>코드로 표현하기 어려운 이유를 설명하고 구현과 정렬하며 자명한 작업을 반복하지 않아야 한다는 일반 지침을 따른다.</p>
+<ul>
+<li>Google Engineering Practices 코드 검토: https://google.github.io/eng-practices/review/reviewer/looking-for.html</li>
+<li>Python PEP 8 주석: https://peps.python.org/pep-0008/#comments</li>
+</ul>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/annotation.md</code></p>
+</section>
+<section id="source-6" data-ai-source="skills/convention/references/design.md" data-ai-sha256="7a482d7724e120beec4c58e54af08a13a7077d8e0e8b789bd3a1a5569a7a6297">
+<article data-source-lines="1-6" data-source-sha256="e1d718c1be0575c2ed0155d620b65632bc2ca96972042eb010da0fba040b02fd">
+<h2>디자인 규칙</h2>
+<p>Human 인터페이스·브라우저 문서에 적용한다. 소유 제품의 기존 디자인 체계가 있으면 유지한다. 이는 Agent Factory 기본 규칙이지 무관한 화면을 바꿀 권한이 아니다.</p>
+</article>
+<article data-source-lines="7-23" data-source-sha256="f2cde52635da82f0344d8ff5a0ee912552b1357b34d542770dd6cd4ba3db35f3">
+<h3>인터페이스 기준</h3>
+<ul>
+<li>의미 HTML과 명확한 정보 계층을 사용한다.</li>
+<li>키보드 접근·보이는 포커스·읽을 만한 대비·반응형 동작을 보존한다.</li>
+<li>핵심 내용은 JavaScript 없이 읽혀야 한다. JavaScript는 이해의 필수가 아닌 점진 상호작용에 사용한다.</li>
+<li>이동 가능한 브라우저 문서 의존성은 로컬·상대 경로로 둔다.</li>
+<li>의미에는 보이는 텍스트, 모든 사용자 아이콘에는 실제 SVG를 쓴다. 아이콘 생성·변경·검토 때 svg-icon.md를 읽는다.</li>
+<li>관계를 이해하는 데 실질적으로 도움 될 때만 도식·흐름·그래프·표를 쓴다. AI Mermaid 소스와 Human 시각 표현이 함께 있으면 정렬한다. ERD·게임 행동·시퀀스·Agent Factory 코어 도식 생성·변경·검토에는 diagrams.md를 읽는다.</li>
+</ul>
+</article>
+<article data-source-lines="24-35" data-source-sha256="f8f2b1268668dd0578464a5627b008a4a7183cbc1da9b0901dfa66b59454827b">
+<h3>대상별 디자인</h3>
+<p>Workspace의 VS Code 형태 Activity Bar -&gt; Primary Sidebar -&gt; Workspace 배치는 해당 인터페이스 결정이며 보편 디자인 체계가 아니다. 그 화면은 skills/workspace/references/interface.md를, Human 명세는 한국어·쌍 요구를 포함한 skills/document/references/specification.md를 따른다.</p>
+<p>프로젝트 증거·Human 지시 없이 셸 전용 배치·시각 토큰·탐색 모델을 다른 제품 화면에 복사하지 않는다.</p>
+</article>
+<article data-source-lines="36-45" data-source-sha256="70e53a223878487dfa4d6f1845b3188b147811b415984468c8e1030a0aed0c46">
+<h3>근거</h3>
+<p>접근성 기본은 WCAG 2.2·WAI 지침을 따른다. 기능은 키보드로 조작 가능하고 포커스가 보여야 하며 글·제어에 충분한 대비가 필요하다. 점진 강화는 쓸 수 있는 기본 내용 위에 풍부한 동작을 추가한다.</p>
+<ul>
+<li>W3C WCAG: https://www.w3.org/TR/wcag/</li>
+<li>WAI 접근성 원칙: https://www.w3.org/WAI/fundamentals/accessibility-principles/</li>
+<li>점진 강화: https://www.w3.org/wiki/Graceful_degradation_versus_progressive_enhancement</li>
+</ul>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/design.md</code></p>
+</section>
+<section id="source-7" data-ai-source="skills/convention/references/development.md" data-ai-sha256="9f03548ea790984025c7f67c7f4cadd988eaa9ac9d557d5e72fde5c66599d27d">
+<article data-source-lines="1-6" data-source-sha256="8cf590e759ed25ea6ef9fcdff4158f776cebe8b5520bc1e1f797cd9fc74aec6e">
+<h2>개발 규칙</h2>
+<p>Agent Factory와 소비자 프로젝트의 구현·유지보수에 공통 적용한다. 더 강한 프로젝트 규칙이 명시적으로 정해졌으면 이를 따른다.</p>
+</article>
+<article data-source-lines="7-21" data-source-sha256="0dcc4e91222de59745769c0e4338451d39431923de3cd611aed47093b7a499b4">
+<h3>변경 경계</h3>
+<ul>
+<li>변경 전에 소유 구성요소·호출자·기존 패턴을 조사한다.</li>
+<li>각 변경은 요청 동작에 한정된 독립 단위로 유지한다. 무관한 Human 작업·공개 계약·저장 권위·수락 식별자를 보존한다.</li>
+<li>함께 처리하면 검토·복구를 어렵게 하는 넓은 형식 정리·이름 변경·리팩터링은 동작 변경과 분리한다.</li>
+<li>현재 로컬 어댑터·프레임워크·구현 세부를 보편 아키텍처 규칙으로 만들지 않는다.</li>
+<li>배포 Skill·소비자 Project Skill·런타임 상태·출처 모음·명세를 선언된 소유 경계에 둔다. 경로 변경에는 directory-structure.md를 읽는다.</li>
+</ul>
+</article>
+<article data-source-lines="22-36" data-source-sha256="8430f7c8ef15172d4615089fafec1494a4129a87f9eb0c68a02ddd5f11166bc4">
+<h3>구현 선택</h3>
+<ul>
+<li>수락 요구를 만족하고 기존 코드에 맞는 가장 작고 유지 가능한 구현을 우선한다.</li>
+<li>병렬 추상화를 추가하기 전에 기존 추상화를 재사용한다. 현재 스택·표준 라이브러리로 충분하면 의존성을 추가하지 않고 선택 시 libraries.md를 읽는다.</li>
+<li>파일 대상·어댑터 선택을 명시한다. 저장 백엔드를 조용히 선택·복제·이관·확대하지 않는다.</li>
+<li>초기화·틀 생성은 기본적으로 기존 파일을 보존한다. 덮어쓰기·병합·강제 동작은 정확한 대상에 명시적으로 정의한다.</li>
+<li>생성·복사 자산과 재사용 소스를 구분하고 둘을 유지할 때 동기화 계약을 기록한다.</li>
+</ul>
+</article>
+<article data-source-lines="37-47" data-source-sha256="f3646ebca3fc1942a3a5c27ba3732cdd0bd68da629b98556686641c8a7b2c7b4">
+<h3>유지보수성</h3>
+<ul>
+<li>이름·인터페이스를 소유 도메인과 일치시킨다.</li>
+<li>재사용 실행 동작은 스크립트에, 상당한 조건별 지침은 집중 참조에 두며 진입점마다 복제하지 않는다.</li>
+<li>코드 변경에 영향받는 문서·주석을 갱신한다. 주석·문서 주석·TODO는 annotation.md를 읽는다.</li>
+<li>관찰 동작을 수락 결정·추론 상태·미해결 질문과 구분해 보고한다.</li>
+</ul>
+</article>
+<article data-source-lines="48-67" data-source-sha256="32fa7feb5d219f1f5cc4d5041ad2be0f3d747138ff341948e4a9c5f4c4321129">
+<h3>Git 커밋 게시</h3>
+<ul>
+<li>승인된 Git 커밋은 Work·Verification이 아닌 Main 소유의 제한 결과 통합·게시다. Work와 Verification은 커밋하지 않는다.</li>
+<li>독립 Verification 통과 또는 현재 Work 완료 후 근거 있는 Human skip 적용 뒤에만 Main이 신속히 직접 커밋한다. 별도 커밋 Work 턴을 위임하거나 Main -&gt; Work -&gt; Verification에 커밋 노드·역할을 추가하지 않는다.</li>
+<li>스테이징 전 Main은 최신 Work 결과·영수증, Verification 통과 영수증 또는 Human skip 근거, 현재 Git 상태·차이를 조사한다. 해당 결과의 정확한 경로만 스테이징한다. 무관한 dirty·untracked·generated·runtime 변경을 제외하고 명세의 완전한 동기화 Human·AI 쌍을 보존한다.</li>
+<li>커밋 요청은 정확한 범위의 일반 커밋만 허용한다. push·amend·force·역사 변경·reset·restore·삭제·무관한 변경 포함 권한을 추론하지 않는다. 안전한 정확 스테이징·일반 커밋이 불가능하면 범위를 넓히지 않고 장애를 보고한다.</li>
+</ul>
+</article>
+<article data-source-lines="68-75" data-source-sha256="05d81d6b85561c2be33c5f4d438c5360f6e6aba95efa8c99a57bab424febaeb7">
+<h3>근거</h3>
+<p>Google 엔지니어링 지침은 변경 하나를 자체 완결 관심사 하나로 유지하고 큰 리팩터링을 기능·버그 수정과 분리하도록 권한다. 검토는 부분적 완벽함보다 전체 유지보수성에 초점을 둔다.</p>
+<ul>
+<li>작은 CL: https://google.github.io/eng-practices/review/developer/small-cls.html</li>
+<li>코드 검토 관점: https://google.github.io/eng-practices/review/reviewer/looking-for.html</li>
+</ul>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/development.md</code></p>
+</section>
+<section id="source-8" data-ai-source="skills/convention/references/diagrams.md" data-ai-sha256="d69e4f903157a6d6c8079064722ccaaa4dcd8eb54aa8ffd09867ed609edb7b3c">
+<article data-source-lines="1-6" data-source-sha256="27603c7c8bd0ac12f3c53c2e659faadad26a51e65492870ac48ae59d19a12500">
+<h2>도식</h2>
+<p>유지하는 기본 표현은 Mermaid 소스다. Mermaid.js는 libraries.md의 의존성·런타임 경계 아래 Human SVG 렌더러로만 사용한다.</p>
+</article>
+<article data-source-lines="7-25" data-source-sha256="f1d321e4efebed710900a22b4aa23f4c2b97d309ebf2612849c2f17be9172b7b">
+<h3>도식 종류 안내</h3>
+<ul>
+<li>엔터티·속성·키·관계·대응 수는 diagrams/erd.md를 읽는다.</li>
+<li>게임 몬스터·NPC·보스 행동은 diagrams/behavior.md를 읽는다.</li>
+<li>행위자·시스템 사이 시간순 상호작용은 diagrams/sequence.md를 읽는다.</li>
+</ul>
+<p>설명 관계에 맞는 종류 하나를 고른다. 데이터 구조·결정 행동·시간 상호작용을 너무 섞어 주 읽기 방향이 불명확하면 분리한다. 도식은 근거 지식의 투영이며 자체로 런타임 동작·데이터 권위·수락·구현 완료를 성립시키지 않는다.</p>
+<p>모든 도식에는 간결한 accTitle과 색·기하에 의존하지 않고 중요 관계를 전달하는 accDescr을 넣는다. 레이블은 안정 도메인 용어로 유지하고 버전 관리 소스를 읽기 쉽게 둔다.</p>
+</article>
+<article data-source-lines="26-29" data-source-sha256="e706ec5ce7b9fc378a24dbbfc49da8d199e0e00468585e695bd42e406765f8dd">
+<h3>Agent Factory 코어 소스</h3>
+<p>이 Mermaid 소스는 짝 한국어 브라우저 문서의 중요 관계를 정의한다. 아홉 코어 도식 모두에 의미 HTML과 인라인 SVG로 접근 가능한 시각 표현을 제공하고, 완전한 순서 있는 한국어 소스와 읽을 수 있는 대체 의미를 유지한다. 시각 표현은 선택이 아닌 필수이며 외부 의존성 없이 독립 브라우저와 격리된 클라우드 미리보기에서 읽을 수 있어야 한다. 한쪽이 바뀌면 레이블·관계를 정렬한다.</p>
+</article>
+<article data-source-lines="30-47" data-source-sha256="fd6049769d0be983e14a1c4c2acfed8d1fbeb0e2469691ad580a496079bd3fc5">
+<h3>문서 유형</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-1" aria-describedby="diagram-description-1"><figcaption id="diagram-title-1">Agent Factory 문서 유형</figcaption><p id="diagram-description-1">Document는 원본·가공·명세의 중립 포괄명이며 개념 순서는 없거나 어떤 대응 수든 가능한 선택 출처 관계만 나타낸다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">Document<br>중립 포괄명</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Original Document<br>원본 문서<br>출처 충실 증거와 이력</span></li><li class="relation-row"><span class="relation-node">Document<br>중립 포괄명</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Processed Document<br>가공 문서<br>분석·비교·가설·인터뷰</span></li><li class="relation-row"><span class="relation-node">Document<br>중립 포괄명</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Specification<br>명세 문서<br>수락·조정 프로젝트 지식</span></li><li class="relation-row relation-optional"><span class="relation-node">Original Document<br>원본 문서<br>출처 충실 증거와 이력</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>가능한 파생 또는 증거</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Processed Document<br>가공 문서<br>분석·비교·가설·인터뷰</span></li><li class="relation-row relation-optional"><span class="relation-node">Processed Document<br>가공 문서<br>분석·비교·가설·인터뷰</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>가능한 파생 또는 증거</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Specification<br>명세 문서<br>수락·조정 프로젝트 지식</span></li><li class="relation-row relation-optional"><span class="relation-node">Original Document<br>원본 문서<br>출처 충실 증거와 이력</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>가능한 파생 또는 증거</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Specification<br>명세 문서<br>수락·조정 프로젝트 지식</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: Agent Factory 문서 유형
+    accDescr: Document는 원본·가공·명세의 중립 포괄명이며 개념 순서는 없거나 어떤 대응 수든 가능한 선택 출처 관계만 나타낸다.
+    D[Document&lt;br/&gt;중립 포괄명]
+    O[Original Document&lt;br/&gt;원본 문서&lt;br/&gt;출처 충실 증거와 이력]
+    P[Processed Document&lt;br/&gt;가공 문서&lt;br/&gt;분석·비교·가설·인터뷰]
+    S[Specification&lt;br/&gt;명세 문서&lt;br/&gt;수락·조정 프로젝트 지식]
+    D --&gt; O
+    D --&gt; P
+    D --&gt; S
+    O -. 가능한 파생 또는 증거 .-&gt; P
+    P -. 가능한 파생 또는 증거 .-&gt; S
+    O -. 가능한 파생 또는 증거 .-&gt; S</code></pre></details>
+</article>
+<article data-source-lines="48-87" data-source-sha256="531d803cfdd1712f34e5ee008b5e06ca19db45c437811736dabce6428de1523a">
+<h3>코어 역량 연결</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-2" aria-describedby="diagram-description-2"><figcaption id="diagram-title-2">Agent Factory 코어 역량 연결</figcaption><p id="diagram-description-2">Gather·Tool·Explorer·Interview·Document·Convention·Agent·Workspace는 입력·출력·실행·생명주기·권위 관계가 구별된다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">분산 클라우드 출처</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Gather</span></li><li class="relation-row"><span class="relation-node">호스트·플러그인·MCP<br>프로젝트 매니페스트</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Tool 생명주기 제어</span></li><li class="relation-row"><span class="relation-node">Gather</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>역량·최소 범위<br>승인 필요·선택 한도 선언</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Tool 생명주기 제어</span></li><li class="relation-row"><span class="relation-node">Tool 생명주기 제어</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결 준비<br>실제 허용 범위</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Gather</span></li><li class="relation-row"><span class="relation-node">Gather</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>동기화</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">원본 문서</span></li><li class="relation-row"><span class="relation-node">웹·코드·문서</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Explorer</span></li><li class="relation-row"><span class="relation-node">원본 문서</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Explorer</span></li><li class="relation-row"><span class="relation-node">Explorer</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>생성 또는 보존</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">원본 문서</span></li><li class="relation-row"><span class="relation-node">Explorer</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>생성</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">가공 문서</span></li><li class="relation-row"><span class="relation-node">Human 지식</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Interview</span></li><li class="relation-row"><span class="relation-node">Interview</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>생성</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">가공 문서</span></li><li class="relation-row"><span class="relation-node">Document<br>세 유형 정의</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">원본 문서</span></li><li class="relation-row"><span class="relation-node">Document<br>세 유형 정의</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">가공 문서</span></li><li class="relation-row"><span class="relation-node">Document<br>세 유형 정의</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">명세</span></li><li class="relation-row"><span class="relation-node">Human 지식</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>근거 결정</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Document<br>세 유형 정의</span></li><li class="relation-row"><span class="relation-node">명세</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">한국어 브라우저 문서</span></li><li class="relation-row"><span class="relation-node">명세</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">AI Skill</span></li><li class="relation-row"><span class="relation-node">Human 관제탑</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>탐색</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">한국어 브라우저 문서</span></li><li class="relation-row"><span class="relation-node">Human 관제탑</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>화면 관리</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Agent</span></li><li class="relation-row relation-optional"><span class="relation-node">Convention</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 제약</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Gather</span></li><li class="relation-row relation-optional"><span class="relation-node">Convention</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 제약</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Tool 생명주기 제어</span></li><li class="relation-row relation-optional"><span class="relation-node">Convention</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 제약</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Explorer</span></li><li class="relation-row relation-optional"><span class="relation-node">Convention</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 제약</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Interview</span></li><li class="relation-row relation-optional"><span class="relation-node">Convention</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 제약</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Document<br>세 유형 정의</span></li><li class="relation-row relation-optional"><span class="relation-node">Convention</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 제약</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 관제탑</span></li><li class="relation-row relation-optional"><span class="relation-node">Agent</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 실행</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Gather</span></li><li class="relation-row relation-optional"><span class="relation-node">Tool 생명주기 제어</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>역량 준비<br>실행 권한 아님</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Agent</span></li><li class="relation-row relation-optional"><span class="relation-node">Agent</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 실행</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Explorer</span></li><li class="relation-row relation-optional"><span class="relation-node">Agent</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 실행</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Interview</span></li><li class="relation-row relation-optional"><span class="relation-node">Agent</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>공통 실행</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Document<br>세 유형 정의</span></li><li class="relation-row relation-optional"><span class="relation-node">Agent</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>관리 상태 노출</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 관제탑</span></li><li class="relation-row relation-optional"><span class="relation-node">Tool 생명주기 제어</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>Activity를 만들지 않음</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 관제탑</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: Agent Factory 코어 역량 연결
+    accDescr: Gather·Tool·Explorer·Interview·Document·Convention·Agent·Workspace는 입력·출력·실행·생명주기·권위 관계가 구별된다.
+    Sources[분산 클라우드 출처] --&gt; Gather
+    Authorities[호스트·플러그인·MCP&lt;br/&gt;프로젝트 매니페스트] --&gt; Tool[Tool 생명주기 제어]
+    Gather --&gt;|역량·최소 범위&lt;br/&gt;승인 필요·선택 한도 선언| Tool
+    Tool --&gt;|연결 준비&lt;br/&gt;실제 허용 범위| Gather
+    Gather --&gt;|동기화| Original[원본 문서]
+    WebCodeDocs[웹·코드·문서] --&gt; Explorer
+    Original --&gt; Explorer
+    Explorer --&gt;|생성 또는 보존| Original
+    Explorer --&gt;|생성| Processed[가공 문서]
+    Human[Human 지식] --&gt; Interview
+    Interview --&gt;|생성| Processed
+    Document[Document&lt;br/&gt;세 유형 정의] --&gt; Original
+    Document --&gt; Processed
+    Document --&gt; Specification[명세]
+    Human --&gt;|근거 결정| Document
+    Specification --&gt; HumanView[한국어 브라우저 문서]
+    Specification --&gt; AIView[AI Skill]
+    Workspace[Human 관제탑] --&gt;|탐색| HumanView
+    Workspace --&gt;|화면 관리| Agent
+    Convention -. 공통 제약 .-&gt; Gather
+    Convention -. 공통 제약 .-&gt; Tool
+    Convention -. 공통 제약 .-&gt; Explorer
+    Convention -. 공통 제약 .-&gt; Interview
+    Convention -. 공통 제약 .-&gt; Document
+    Convention -. 공통 제약 .-&gt; Workspace
+    Agent -. 공통 실행 .-&gt; Gather
+    Tool -. 역량 준비&lt;br/&gt;실행 권한 아님 .-&gt; Agent
+    Agent -. 공통 실행 .-&gt; Explorer
+    Agent -. 공통 실행 .-&gt; Interview
+    Agent -. 공통 실행 .-&gt; Document
+    Agent -. 관리 상태 노출 .-&gt; Workspace
+    Tool -. Activity를 만들지 않음 .-&gt; Workspace</code></pre></details>
+</article>
+<article data-source-lines="88-101" data-source-sha256="231959ef12a10826027457327220aa25bedc574e2689cbbc3bc516146f7e8dc0">
+<h3>Agent 엔지니어링 계층</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-3" aria-describedby="diagram-description-3"><figcaption id="diagram-title-3">Agent 엔지니어링 범위 계층</figcaption><p id="diagram-description-3">Prompt·Context·Loop·Agent Graph·Agentic Engineering은 한 턴에서 전체 운영 생명주기로 범위가 넓어진다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">Agentic Engineering<br>식별자·권위·안전·평가<br>관찰 가능성·거버넌스</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Agent Graph Engineering<br>Agent·Human·작업·도구·상태·증거</span></li><li class="relation-row"><span class="relation-node">Agent Graph Engineering<br>Agent·Human·작업·도구·상태·증거</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Loop Engineering<br>반복·피드백·수렴·중단·복구</span></li><li class="relation-row"><span class="relation-node">Loop Engineering<br>반복·피드백·수렴·중단·복구</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Context Engineering<br>선택·조립·출처·격리</span></li><li class="relation-row"><span class="relation-node">Context Engineering<br>선택·조립·출처·격리</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Prompt Engineering<br>턴별 지시·출력 계약</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart TB
+    accTitle: Agent 엔지니어링 범위 계층
+    accDescr: Prompt·Context·Loop·Agent Graph·Agentic Engineering은 한 턴에서 전체 운영 생명주기로 범위가 넓어진다.
+    Agentic[Agentic Engineering&lt;br/&gt;식별자·권위·안전·평가&lt;br/&gt;관찰 가능성·거버넌스]
+    Graph[Agent Graph Engineering&lt;br/&gt;Agent·Human·작업·도구·상태·증거]
+    Loop[Loop Engineering&lt;br/&gt;반복·피드백·수렴·중단·복구]
+    Context[Context Engineering&lt;br/&gt;선택·조립·출처·격리]
+    Prompt[Prompt Engineering&lt;br/&gt;턴별 지시·출력 계약]
+    Agentic --&gt; Graph --&gt; Loop --&gt; Context --&gt; Prompt</code></pre></details>
+</article>
+<article data-source-lines="102-118" data-source-sha256="796b88672e0aab1a876c3f4364840fe9f7577c5495caf2b8ce9edbe50695b00d">
+<h3>쌍 표현 정렬</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-4" aria-describedby="diagram-description-4"><figcaption id="diagram-title-4">명세 쌍 의미 정렬</figcaption><p id="diagram-description-4">Skill 디렉터리 하나와 Human 중심 한국어 명세 디렉터리 하나가 상호 식별자·위치를 공유하고 의미를 정렬한다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">명세 의미 본문 하나<br>결정·관계<br>관찰·미해결 질문</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 투영<br>한국어 HTML·CSS·JavaScript<br>확인 문서 저장소</span></li><li class="relation-row"><span class="relation-node">명세 의미 본문 하나<br>결정·관계<br>관찰·미해결 질문</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">AI 투영<br>Skill 디렉터리 하나<br>skills/skill-id/</span></li><li class="relation-row relation-optional"><span class="relation-node">Human 투영<br>한국어 HTML·CSS·JavaScript<br>확인 문서 저장소</span><span class="relation-link"><span class="sr-only">양방향 관계: </span><span>의미 정렬</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M5 12H75M16 3L5 12L16 21M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">AI 투영<br>Skill 디렉터리 하나<br>skills/skill-id/</span></li><li class="relation-row relation-optional"><span class="relation-node">상호 메타데이터<br>SKILL.md와 index.html</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>정확한 식별자·위치</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 투영<br>한국어 HTML·CSS·JavaScript<br>확인 문서 저장소</span></li><li class="relation-row relation-optional"><span class="relation-node">상호 메타데이터<br>SKILL.md와 index.html</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>범위</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">AI 투영<br>Skill 디렉터리 하나<br>skills/skill-id/</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: 명세 쌍 의미 정렬
+    accDescr: Skill 디렉터리 하나와 Human 중심 한국어 명세 디렉터리 하나가 상호 식별자·위치를 공유하고 의미를 정렬한다.
+    HumanView[Human 투영&lt;br/&gt;한국어 HTML·CSS·JavaScript&lt;br/&gt;확인 문서 저장소]
+    Core[명세 의미 본문 하나&lt;br/&gt;결정·관계&lt;br/&gt;관찰·미해결 질문]
+    AIView[AI 투영&lt;br/&gt;Skill 디렉터리 하나&lt;br/&gt;skills/skill-id/]
+    Binding[상호 메타데이터&lt;br/&gt;SKILL.md와 index.html]
+    Core --&gt; HumanView
+    Core --&gt; AIView
+    HumanView &lt;-. 의미 정렬 .-&gt; AIView
+    Binding -. 정확한 식별자·위치 .-&gt; HumanView
+    Binding -. 범위 .-&gt; AIView</code></pre></details>
+</article>
+<article data-source-lines="119-152" data-source-sha256="4b4806db1b0c86a8c53a7590d5f431e5264552a24f7082dc91e19e5d4900d087">
+<h3>현재 구현 관계</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-5" aria-describedby="diagram-description-5"><figcaption id="diagram-title-5">현재 Agent Factory 실행 관계</figcaption><p id="diagram-description-5">Main이 Work에 위임하고 Verification은 pass·fail을 반환한다. 근거 있는 Human skip은 현재 Work 완료 후에만 적용되며 다른 Verification을 시작하지 않는다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">Explorer<br>수락 역량</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Convention 참조<br>의미·권위 경계</span></li><li class="relation-row"><span class="relation-node">Explorer<br>수락 역량</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">관리 Work<br>필요 시 Explorer 적용</span></li><li class="relation-row relation-optional"><span class="relation-node">관리 Work<br>필요 시 Explorer 적용</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>이관·삭제하지 않음</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">보존 기존 Inquery 데이터<br>document/processed/legacy-inquery</span></li><li class="relation-row"><span class="relation-node">Interview<br>수락 역량</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Convention 참조<br>의미·권위 경계</span></li><li class="relation-row"><span class="relation-node">Interview<br>수락 역량</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Main<br>Human 인터페이스·Interview<br>조율·통합</span></li><li class="relation-row"><span class="relation-node">Main<br>Human 인터페이스·Interview<br>조율·통합</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">관리 Work<br>필요 시 Explorer 적용</span></li><li class="relation-row"><span class="relation-node">관리 Work<br>필요 시 Explorer 적용</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">현재 Work 완료<br>근거 Human skip 대기?</span></li><li class="relation-row relation-optional"><span class="relation-node">Human</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>근거 통제 의도 기록<br>전환·완료 아님</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 전용 skip 의도</span></li><li class="relation-row relation-optional"><span class="relation-node">Human 전용 skip 의도</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>현재 최초·수정 Work<br>완료 뒤에만 평가</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">현재 Work 완료<br>근거 Human skip 대기?</span></li><li class="relation-row"><span class="relation-node">현재 Work 완료<br>근거 Human skip 대기?</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>아니오</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">관리 Verification<br>pass 또는 fail</span></li><li class="relation-row"><span class="relation-node">현재 Work 완료<br>근거 Human skip 대기?</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>예: 다음·추가 Verification 시작 안 함</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">END</span></li><li class="relation-row"><span class="relation-node">관리 Verification<br>pass 또는 fail</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>fail</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">관리 Work<br>필요 시 Explorer 적용</span></li><li class="relation-row"><span class="relation-node">관리 Verification<br>pass 또는 fail</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>pass</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">END</span></li><li class="relation-row"><span class="relation-node">Workspace Skill<br>Human 관제탑</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">최상위 Activity 순서<br>1 일정 · 2 에이전트 · 3 문서 · 4 외부연동 · 5 로그 · 6 테스트</span></li><li class="relation-row"><span class="relation-node">최상위 Activity 순서<br>1 일정 · 2 에이전트 · 3 문서 · 4 외부연동 · 5 로그 · 6 테스트</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">문서 사이드바<br>원본 문서 · 가공 문서 · 명세 문서</span></li><li class="relation-row relation-optional"><span class="relation-node">문서 사이드바<br>원본 문서 · 가공 문서 · 명세 문서</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>상세 화면·출처 연동 미해결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">향후 Human 결정</span></li><li class="relation-row relation-optional"><span class="relation-node">최상위 Activity 순서<br>1 일정 · 2 에이전트 · 3 문서 · 4 외부연동 · 5 로그 · 6 테스트</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>에이전트·로그·테스트 세부 미해결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">향후 Human 결정</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: 현재 Agent Factory 실행 관계
+    accDescr: Main이 Work에 위임하고 Verification은 pass·fail을 반환한다. 근거 있는 Human skip은 현재 Work 완료 후에만 적용되며 다른 Verification을 시작하지 않는다.
+    Explorer[Explorer&lt;br/&gt;수락 역량]
+    ExplorerConvention[Convention 참조&lt;br/&gt;의미·권위 경계]
+    Legacy[보존 기존 Inquery 데이터&lt;br/&gt;document/processed/legacy-inquery]
+    Work[관리 Work&lt;br/&gt;필요 시 Explorer 적용]
+    Explorer --&gt; ExplorerConvention
+    Explorer --&gt; Work
+    Work -. 이관·삭제하지 않음 .-&gt; Legacy
+    Interview[Interview&lt;br/&gt;수락 역량]
+    InterviewConvention[Convention 참조&lt;br/&gt;의미·권위 경계]
+    Main[Main&lt;br/&gt;Human 인터페이스·Interview&lt;br/&gt;조율·통합]
+    Verification[관리 Verification&lt;br/&gt;pass 또는 fail]
+    Interview --&gt; InterviewConvention
+    Interview --&gt; Main
+    Main --&gt; Work
+    Work --&gt; SkipDecision{현재 Work 완료&lt;br/&gt;근거 Human skip 대기?}
+    Human[Human] -. 근거 통제 의도 기록&lt;br/&gt;전환·완료 아님 .-&gt; SkipIntent[Human 전용 skip 의도]
+    SkipIntent -. 현재 최초·수정 Work&lt;br/&gt;완료 뒤에만 평가 .-&gt; SkipDecision
+    SkipDecision --&gt;|아니오| Verification
+    SkipDecision --&gt;|예: 다음·추가 Verification 시작 안 함| End
+    Verification --&gt;|fail| Work
+    Verification --&gt;|pass| End[END]
+    Workspace[Workspace Skill&lt;br/&gt;Human 관제탑]
+    Workspace --&gt; Activities[최상위 Activity 순서&lt;br/&gt;1 일정 · 2 에이전트 · 3 문서 · 4 외부연동 · 5 로그 · 6 테스트]
+    Activities --&gt; DocumentSidebar[문서 사이드바&lt;br/&gt;원본 문서 · 가공 문서 · 명세 문서]
+    DocumentSidebar -. 상세 화면·출처 연동 미해결 .-&gt; HumanDecision[향후 Human 결정]
+    Activities -. 에이전트·로그·테스트 세부 미해결 .-&gt; HumanDecision</code></pre></details>
+</article>
+<article data-source-lines="153-175" data-source-sha256="ae33c6a0a06fa3f765c8cf6cbbfd2ec4da7fdea9837fe87ebffbceedd9765725">
+<h3>Project Skill 이름</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-6" aria-describedby="diagram-description-6"><figcaption id="diagram-title-6">Project Skill 이름 식별자</figcaption><p id="diagram-description-6">분류·이름이 Project Skill 식별자 하나를 이루며 소유 디렉터리·SKILL.md name과 정확히 일치한다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">category<br>발견 분류</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Project Skill 이름<br>&lt;category&gt;-&lt;name&gt;</span></li><li class="relation-row"><span class="relation-node">-</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Project Skill 이름<br>&lt;category&gt;-&lt;name&gt;</span></li><li class="relation-row"><span class="relation-node">name<br>제한 지식·역량</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Project Skill 이름<br>&lt;category&gt;-&lt;name&gt;</span></li><li class="relation-row"><span class="relation-node">Project Skill 이름<br>&lt;category&gt;-&lt;name&gt;</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">소유 맥락 디렉터리<br>정확히 &lt;category&gt;-&lt;name&gt;</span></li><li class="relation-row"><span class="relation-node">Project Skill 이름<br>&lt;category&gt;-&lt;name&gt;</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">SKILL.md frontmatter<br>name: &lt;category&gt;-&lt;name&gt;</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: Project Skill 이름 식별자
+    accDescr: 분류·이름이 Project Skill 식별자 하나를 이루며 소유 디렉터리·SKILL.md name과 정확히 일치한다.
+    Category[category&lt;br/&gt;발견 분류]
+    Separator["-"]
+    Name[name&lt;br/&gt;제한 지식·역량]
+    SkillName[Project Skill 이름&lt;br/&gt;&amp;lt;category&amp;gt;-&amp;lt;name&amp;gt;]
+    Directory[소유 맥락 디렉터리&lt;br/&gt;정확히 &amp;lt;category&amp;gt;-&amp;lt;name&amp;gt;]
+    Frontmatter[SKILL.md frontmatter&lt;br/&gt;name: &amp;lt;category&amp;gt;-&amp;lt;name&amp;gt;]
+    Category --&gt; SkillName
+    Separator --&gt; SkillName
+    Name --&gt; SkillName
+    SkillName --&gt; Directory
+    SkillName --&gt; Frontmatter</code></pre></details>
+<p>소유 맥락이 두 부분 형식을 요구하는 새 이름에 적용한다. 기존 수락 식별자는 보존하며 일괄 이름 변경 권한이 아니다.</p>
+</article>
+<article data-source-lines="176-188" data-source-sha256="c022a3f2ee9f71c0607b1063fafb2262dedd8ec5761237962fb2d552c9e1b29a">
+<h3>Skill 소유권</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-7" aria-describedby="diagram-description-7"><figcaption id="diagram-title-7">배포·Project Skill 소유권</figcaption><p id="diagram-description-7">플러그인은 skills 아래 배포 Skill을, 별도 소비자 프로젝트는 자체 .codex/skills 바로 아래 명세 Project Skill을 소유한다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">Agent Factory 플러그인 저장소</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">배포 플러그인 Skill<br>&lt;plugin-root&gt;/skills/</span></li><li class="relation-row"><span class="relation-node">배포 플러그인 Skill<br>&lt;plugin-root&gt;/skills/</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">배포 Skill 하나<br>skills/skill-id/</span></li><li class="relation-row"><span class="relation-node">배포 Skill 하나<br>skills/skill-id/</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 명세 하나<br>document/specification/skill-id/</span></li><li class="relation-row"><span class="relation-node">별도 소비자 프로젝트</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">명세 Project Skill<br>&lt;project-root&gt;/.codex/skills/&lt;category&gt;-&lt;name&gt;/</span></li><li class="relation-row relation-optional"><span class="relation-node">배포 플러그인 Skill<br>&lt;plugin-root&gt;/skills/</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>이 저장소에 복제하지 않음</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">저장소 로컬 .codex/skills/ 없음</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: 배포·Project Skill 소유권
+    accDescr: 플러그인은 skills 아래 배포 Skill을, 별도 소비자 프로젝트는 자체 .codex/skills 바로 아래 명세 Project Skill을 소유한다.
+    Plugin[Agent Factory 플러그인 저장소] --&gt; Distributed[배포 플러그인 Skill&lt;br/&gt;&amp;lt;plugin-root&amp;gt;/skills/]
+    Distributed --&gt; Core[배포 Skill 하나&lt;br/&gt;skills/skill-id/]
+    Core --&gt; BindingOwner[Human 명세 하나&lt;br/&gt;document/specification/skill-id/]
+    Consumer[별도 소비자 프로젝트] --&gt; ProjectSkill[명세 Project Skill&lt;br/&gt;&amp;lt;project-root&amp;gt;/.codex/skills/&amp;lt;category&amp;gt;-&amp;lt;name&amp;gt;/]
+    Distributed -. 이 저장소에 복제하지 않음 .-&gt; NoCodex[저장소 로컬 .codex/skills/ 없음]</code></pre></details>
+</article>
+<article data-source-lines="189-203" data-source-sha256="c0ffad4cc5a8bb0c7dcda31a8c80cacc91c245f1971e38ac20f910d369b11be4">
+<h3>저장 독립 문서 역할</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-8" aria-describedby="diagram-description-8"><figcaption id="diagram-title-8">클라우드 문서 권위와 소스 패키지</figcaption><p id="diagram-description-8">클라우드는 수락 게시 리비전을 소유하고 Git 소스는 검토 완전 쌍에 결속되며 로컬 실행 데이터는 운영 증거로 남는다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">Git Skill·한국어 HTML 작성 소스</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">저장소·커밋·목록·쌍 검토</span></li><li class="relation-row"><span class="relation-node">저장소·커밋·목록·쌍 검토</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">인증 클라우드 Document 게시</span></li><li class="relation-row"><span class="relation-node">인증 클라우드 Document 게시</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">수락 불변 완전 쌍 리비전</span></li><li class="relation-row"><span class="relation-node">인증 클라우드 Document 게시</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Original·Processed·Specification: 불변 유형</span></li><li class="relation-row"><span class="relation-node">로컬 Agent 실행·발신함</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>승인된 필수 증거 업로드</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">인증 클라우드 Document 게시</span></li><li class="relation-row"><span class="relation-node">보존 기존 출처 데이터</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>목록·백업·검증 가져오기</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">인증 클라우드 Document 게시</span></li><li class="relation-row relation-optional"><span class="relation-node">보존 기존 출처 데이터</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>코드 폐기에 삭제 권한 없음</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">Human 결정</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: 클라우드 문서 권위와 소스 패키지
+    accDescr: 클라우드는 수락 게시 리비전을 소유하고 Git 소스는 검토 완전 쌍에 결속되며 로컬 실행 데이터는 운영 증거로 남는다.
+    Git[Git Skill·한국어 HTML 작성 소스] --&gt; Snapshot[저장소·커밋·목록·쌍 검토]
+    Snapshot --&gt; Cloud[인증 클라우드 Document 게시]
+    Cloud --&gt; Revision[수락 불변 완전 쌍 리비전]
+    Cloud --&gt; Types[Original·Processed·Specification: 불변 유형]
+    Local[로컬 Agent 실행·발신함] --&gt;|승인된 필수 증거 업로드| Cloud
+    Legacy[보존 기존 출처 데이터] --&gt;|목록·백업·검증 가져오기| Cloud
+    Legacy -. 코드 폐기에 삭제 권한 없음 .-&gt; Human[Human 결정]</code></pre></details>
+</article>
+<article data-source-lines="204-219" data-source-sha256="d980756db29f49653ba93f20baf8512d4f2697d7229c9a6b46859226e546d0e2">
+<h3>Human 클라우드 Workspace</h3>
+<figure class="core-visual" aria-labelledby="diagram-title-9" aria-describedby="diagram-description-9"><figcaption id="diagram-title-9">클라우드 Workspace 투영·로컬 실행 권위</figcaption><p id="diagram-description-9">여섯 Activity는 클라우드 상태를 투영하고 로컬 exec·loop는 실행을 소유하며 보고는 실행을 발송·완료하지 않는다.</p><ol class="relation-map"><li class="relation-row"><span class="relation-node">작업 표시줄: 일정, 에이전트, 문서, 외부연동, 로그, 테스트</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">기본 사이드바</span></li><li class="relation-row"><span class="relation-node">기본 사이드바</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">작업 영역</span></li><li class="relation-row"><span class="relation-node">인증 클라우드 문서 리비전</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>격리 Human 미리보기</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">작업 영역</span></li><li class="relation-row"><span class="relation-node">클라우드 연결·수집 상태</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>소유자 근거 사실</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">작업 영역</span></li><li class="relation-row"><span class="relation-node">클라우드 계획 작업: 백그라운드 작업과 별개</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">작업 영역</span></li><li class="relation-row"><span class="relation-node">로컬 exec.py 프로세스·세션·실행</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>연결</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">클라우드 공유 보고</span></li><li class="relation-row relation-optional"><span class="relation-node">로컬 loop.py 전환·END</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>유일 그래프 권위 유지</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">로컬 exec.py 프로세스·세션·실행</span></li><li class="relation-row"><span class="relation-node">클라우드 공유 보고</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>투영이며 실행 제어 아님</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">작업 영역</span></li><li class="relation-row"><span class="relation-node">별도 MCP 애플리케이션</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>정식 셸·프로젝트 복사 없음</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">작업 영역</span></li><li class="relation-row relation-optional"><span class="relation-node">Human 소유 미결정 제어</span><span class="relation-link"><span class="sr-only">다음 대상으로 향하는 관계: </span><span>미해결 유지</span><svg class="relation-arrow" viewBox="0 0 80 24" aria-hidden="true" focusable="false"><path d="M3 12H75M64 3L75 12L64 21" fill="none" stroke="currentColor" stroke-width="2"></path></svg></span><span class="relation-node">기본 사이드바</span></li></ol></figure><details class="diagram-source"><summary>한국어 Mermaid 원문과 대체 표현</summary><pre><code class="language-mermaid">flowchart LR
+    accTitle: 클라우드 Workspace 투영·로컬 실행 권위
+    accDescr: 여섯 Activity는 클라우드 상태를 투영하고 로컬 exec·loop는 실행을 소유하며 보고는 실행을 발송·완료하지 않는다.
+    Activity[작업 표시줄: 일정, 에이전트, 문서, 외부연동, 로그, 테스트] --&gt; Sidebar[기본 사이드바] --&gt; View[작업 영역]
+    Documents[인증 클라우드 문서 리비전] --&gt;|격리 Human 미리보기| View
+    Integrations[클라우드 연결·수집 상태] --&gt;|소유자 근거 사실| View
+    Planning[클라우드 계획 작업: 백그라운드 작업과 별개] --&gt; View
+    Exec[로컬 exec.py 프로세스·세션·실행] --&gt; Reports[클라우드 공유 보고]
+    Loop[로컬 loop.py 전환·END] -. 유일 그래프 권위 유지 .-&gt; Exec
+    Reports --&gt;|투영이며 실행 제어 아님| View
+    Runtime[별도 MCP 애플리케이션] --&gt;|정식 셸·프로젝트 복사 없음| View
+    Unresolved[Human 소유 미결정 제어] -. 미해결 유지 .-&gt; Sidebar</code></pre></details>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/diagrams.md</code></p>
+</section>
+<section id="source-9" data-ai-source="skills/convention/references/diagrams/behavior.md" data-ai-sha256="e831c7aa47877c9171944fa3ceb07c8ffa33fb7b126eaf400157c9ef06205ac2">
+<article data-source-lines="1-5" data-source-sha256="b7c1358b23013bf754b52dbf19dbc5025bf29dc11a1777106ad50e4e823215f1">
+<h2>행동 도식</h2>
+<p>게임 몬스터·NPC·보스의 결정 패턴을 문서화한다. 의도·관찰 행동을 시각화하며 실행 게임 AI가 아니다.</p>
+</article>
+<article data-source-lines="6-19" data-source-sha256="217a5c3b5f2808d12df377ef677c05066df64730acf28f40ac5f96d58e8b4a9f">
+<h3>형태 선택</h3>
+<ul>
+<li>유한 상태 기계는 Mermaid stateDiagram-v2로 상태·이벤트·가드·전환·초기·종료·보스 단계를 나타낸다.</li>
+<li>Behavior Tree는 Mermaid flowchart로 Root·Selector·Sequence·Condition·Action과 이해에 필요한 Success·Failure·Running 결과를 나타낸다.</li>
+<li>플레이어·NPC·보스·환경·게임 시스템 사이 상호작용 시간 순서가 주 질문이면 sequenceDiagram을 쓴다.</li>
+</ul>
+<p>제어 노드·평가 의미를 명시하지 않은 일반 순서도를 Behavior Tree라고 하지 않는다. 경계를 이름 붙이지 않고 FSM·Behavior Tree 표기를 합치지 않는다.</p>
+</article>
+<article data-source-lines="20-31" data-source-sha256="67d5279ff9b2757940d844035acb006cfa360da7df7debc6a0288abde1650b99">
+<h3>내용 규칙</h3>
+<ul>
+<li>게임 설계·코드의 도메인 용어로 상태·행동을 이름 붙인다.</li>
+<li>전환을 일으키는 이벤트·가드를 표시하며 임계값·확률·재사용 대기·우선순위·단계 조건을 발명하지 않는다.</li>
+<li>조건·행동, 인터럽트·일반 전환을 구분한다.</li>
+<li>이해에 영향 주는 반복·종료 행동은 명시한다.</li>
+<li>구현 관찰을 희망 설계·미해결 행동과 구분한다.</li>
+<li>행동·핵심 분기를 설명하는 accTitle·accDescr을 넣는다.</li>
+</ul>
+</article>
+<article data-source-lines="32-43" data-source-sha256="7cee3a56fa1b8dcfb1c8c4bb288d6e7e774627c9505be5615a7b4bb81a4110b5">
+<h3>런타임 경계</h3>
+<p>Mermaid.js는 문서만 렌더한다. Behavior Tree 엔진·FSM 런타임·계획기·결정 엔진·시뮬레이터·디버거·원격 측정 뷰어·실행 진실의 출처가 아니다. 별도 조사 증거 없이 그래프가 게임에서 실행되거나 현재 빌드와 같거나 런타임 논리와 동기화됐다고 주장하지 않는다.</p>
+<p>향후 시각 노드 편집·실시간 시뮬레이션·추적·코드 생성이 필요하면 별도 도구·아키텍처 결정으로 해결한다. 이 문서 규칙을 엔진 계약으로 확대하지 않는다.</p>
+</article>
+<article data-source-lines="44-48" data-source-sha256="86e5fa4ec06054f62c6e91c75cd212fdea0d1aa1da07f0f46fd0a333941cfea8">
+<h3>공식 구문 참조</h3>
+<ul>
+<li>상태 도식: https://mermaid.js.org/syntax/stateDiagram</li>
+<li>흐름도: https://mermaid.js.org/syntax/flowchart</li>
+<li>시퀀스: https://mermaid.js.org/syntax/sequenceDiagram</li>
+</ul>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/diagrams/behavior.md</code></p>
+</section>
+<section id="source-10" data-ai-source="skills/convention/references/diagrams/erd.md" data-ai-sha256="f4eb77105e26af80f2ea06737b553ca593d4ce35612491d33bd14f4046ab73c2">
+<article data-source-lines="1-19" data-source-sha256="cf13ebdcd9dce1bfe5f2fcdaaa25643e3dba77c009c5ba5d7af4c051e805dffd">
+<h2>ERD 도식</h2>
+<p>주 관계가 데이터 엔터티 사이일 때 Mermaid erDiagram을 사용한다.</p>
+<ul>
+<li>수락 도메인·스키마 증거의 단수형 안정 엔터티 이름을 쓴다.</li>
+<li>식별자·조인을 이해하는 데 실질적으로 도움 될 때 기본키·외래키를 표시한다.</li>
+<li>관계를 이름 붙이고 대응 수·선택성을 명시한다.</li>
+<li>개념·논리·물리 ERD를 구분하며 추론 개념 모델을 구현 DB 스키마로 제시하지 않는다.</li>
+<li>완전 물리 스키마를 명시 요구하지 않으면 목적에 필요한 속성만 포함한다.</li>
+<li>이름만으로 테이블·키·제약·관계를 발명하지 않는다.</li>
+<li>엔터티·주요 대응 수를 설명하는 accTitle·accDescr을 넣는다.</li>
+</ul>
+<p>렌더링 도식보다 이관·스키마 파일·수락 명세의 권위를 유지한다. 코드·DB에서 도출하면 출처 이력을 기록한다.</p>
+</article>
+<article data-source-lines="20-22" data-source-sha256="f14736b6b71ab361e8175cda202e62e897c717914c14d8b63b76d0b3d987ae2c">
+<h3>공식 구문 참조</h3>
+<ul>
+<li>Mermaid 엔터티 관계: https://mermaid.js.org/syntax/entityRelationshipDiagram</li>
+</ul>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/diagrams/erd.md</code></p>
+</section>
+<section id="source-11" data-ai-source="skills/convention/references/diagrams/sequence.md" data-ai-sha256="3c0ef97b0525d44adf319c18b493d80abfe6387fe252b5116bfef8db9395f473">
+<article data-source-lines="1-23" data-source-sha256="1eb2a19b5aafcf8c0af72d876ac7a8051f79c013338587f836a3917176101bc1">
+<h2>시퀀스 도식</h2>
+<p>주 관계가 참여자 사이 시간순 교환일 때 Mermaid sequenceDiagram을 쓴다.</p>
+<ul>
+<li>안정 행위자·구성요소·서비스·게임 시스템 역할로 참여자를 이름 붙인다.</li>
+<li>메시지는 시간순이며 필요한 경우 호출·응답·비동기 신호를 구분한다.</li>
+<li>조건에 근거가 있고 이해를 도울 때만 alt·opt·loop·병렬 구간을 쓴다.</li>
+<li>책임·수명을 명확하게 할 때만 활성 구간을 표시한다.</li>
+<li>도메인 상태 변경은 메시지 레이블·연결 행동 도식에 두며 시퀀스를 두 번째 상태 기계로 만들지 않는다.</li>
+<li>증거에 없는 시간 보장·재시도·동시성·소유권·실패 처리를 발명하지 않는다.</li>
+<li>참여자·상호작용 목표·주요 분기를 설명하는 accTitle·accDescr을 넣는다.</li>
+</ul>
+<p>게임 문서에서는 플레이어 발견·보스 단계 조율·애니메이션 이벤트·피해 처리·환경 트리거에 쓴다. 주제가 행위자 간 교환보다 하나의 결정 패턴이면 behavior.md를 쓴다.</p>
+</article>
+<article data-source-lines="24-26" data-source-sha256="7730c9b498620fa7738f9a7af9d9cb2b012819c58d68a57c6bb8700ef059a9d7">
+<h3>공식 구문 참조</h3>
+<ul>
+<li>Mermaid 시퀀스: https://mermaid.js.org/syntax/sequenceDiagram</li>
+</ul>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/diagrams/sequence.md</code></p>
+</section>
+<section id="source-12" data-ai-source="skills/convention/references/directory-structure.md" data-ai-sha256="65c47a97155c5c2b2300b3d21130cef7ee13619cd2873c8c7b83309cf605fcbb">
+<article data-source-lines="1-2" data-source-sha256="5f164da2d9387c290b9eb2285f8ec5e506a267ed445c02c7028f68236351307e">
+<h2>소스·로컬 런타임·클라우드 배치</h2>
+</article>
+<article data-source-lines="3-8" data-source-sha256="d3aef9ed368e6bfe7210ce09262fa5ab52d04e34bf06ce8e1f1eed7ca5ca5c1c">
+<h3>배포 소스와 설치</h3>
+<p>플러그인의 여섯 배포 Skill은 &lt;plugin-root&gt;/skills/&lt;id&gt;/ 아래 두며 저장소 .codex/에 복제하지 않는다. 각각 &lt;plugin-root&gt;/.agent-factory/document/specification/&lt;id&gt;/의 버전 관리 한국어 게시 소스와 짝을 이룬다. 상호 메타데이터는 패키지 상대 위치이며 여섯 단일 이름 식별자를 보존한다. 이는 소스 패키지이며 소비자 문서 백엔드 루트가 아니다.</p>
+<p>일반 소비자의 자체 Project Skill은 .codex/skills/ 아래 수락된 소문자 하이픈 &lt;category&gt;-&lt;title&gt; 식별자를 쓴다. 소스 패키지·설치 Skill·클라우드 불변 리비전 위치는 따로 확인해 표현 하나를 결속하며 여러 편집 진실을 만들지 않는다. Git이 배포 작성을 소유하고 클라우드 게시는 저장소·정확한 커밋·전체 목록·검토된 완전 Human·AI 쌍에 결속된다. 개발 형제 경로 ../mcp를 설치 경로로 고정하지 않는다.</p>
+</article>
+<article data-source-lines="9-20" data-source-sha256="f827a97a811e3afc7f934eeb4ff177299ef35de1e5618f9d5d1ec44fd498d561">
+<h3>로컬 Agent 런타임</h3>
+<pre><code class="language-text">&lt;project-root&gt;/.agent-factory/agent/&lt;agent-id&gt;/
+  session.json
+  runs/&lt;run-id&gt;/</code></pre>
+<p>Agent가 운영 세션·실행 상태·요청·결과·영수증·하트비트와 이벤트·로컬 보고 발신함과 확인·복구를 소유한다. 기존 exec·loop 진입점·필수 지원 모듈·확장 경로와 배치 호환성을 유지한다. 실행 전용 임시 Explorer 자료는 생성 실행에 남으며 독립 루트가 없다. 자격증명은 소유 권위에 남고 런타임 증거나 버전 관리에 들어가지 않는다.</p>
+<p>기존 셸·파일 도구로 제한된 로컬 Git·도구를 조사하고 승인된 클라우드 업로드에 필요한 증거를 준비한다. 로컬 MCP·공급자·문서 서비스를 추가하지 않는다.</p>
+</article>
+<article data-source-lines="21-26" data-source-sha256="5b755c5be8514dc7eeb24f647585f28f024bf7726cf8da91aa6da89c3c6a730a">
+<h3>클라우드 소유 도메인</h3>
+<p>선택된 인증 Agent Factory MCP 애플리케이션이 새 문서 저장·메타데이터·불변 본문 리비전·색인과 검색·연결과 인증·수집 설정·공유 보고·Workspace를 소유한다. PostgreSQL은 테넌트 메타데이터, 객체 저장소는 불변 문서 바이트를 소유한다. 런타임 소스·의존성 매니페스트·브라우저 자산·배포·테스트는 그 애플리케이션 소유다. Workspace는 프로젝트 .agent-factory/workspace/, 실행기·포트 파일·브라우저 셸 복사본을 만들지 않는다. 비권위적 클라이언트 설치·연결 캐시는 저장소 밖 ~/.agent-factory/에 둘 수 있다.</p>
+<p>새 로컬 db.sqlite, 문서·동기화 설정이나 .agent-factory/tool/ 저장소를 만들지 않는다. 실제 호스트·플러그인·MCP 서버·패키지 매니페스트·자격증명 권위가 각 상태를 유지한다. 제공된 인증 스키마·안내를 읽고 선택 역량·계정·권한이 없으면 정직하게 실패를 보고한다.</p>
+</article>
+<article data-source-lines="27-32" data-source-sha256="a409fb7bc3b34b9beff6bd442fa065ff6946942602bbb0fc75e9bf3ec946d01d">
+<h3>기존 출처와 이관</h3>
+<p>기존 로컬 .agent-factory/document/{original,processed,specification}/, document/sync.json, 출처 모음, SQLite와 보조 파일은 목록화·독립 백업·가져오기 검증까지 이관 입력으로 보존한다. 기존 직접 패키지는 바로 아래 디렉터리 하나가 문서 하나이며 내부 파일·하위 디렉터리는 그 문서에 속하고 생산자·분류 래퍼는 식별자가 아니다. processed/legacy-inquery-&lt;legacy-id&gt;/는 legacy 상태·이력을 가진 비활성 가공 증거이며 다른 유형·활성 작업 공간이 아니다.</p>
+<p>원본은 다양한 기본·출처 적합 바이트를 보존한다. 활성 가공은 이동 가능한 index.html, styles.css, app.js 패키지를 쓰며 Human 명세와 형식이 같아도 AI Skill 쌍·명세 권위는 생기지 않는다. 물리 이관은 유형·식별자·이력·쌍을 보존하고 루트는 흐름·승격을 뜻하지 않는다. 코드·스크립트 폐기는 Human 데이터·출처·자격증명·백업 삭제를 허용하지 않는다. 전환·파괴 작업·미해결 충돌 정책은 정확한 Human 권위를 유지한다.</p>
+</article>
+<article data-source-lines="33-35" data-source-sha256="ebc2fc6bc04cb360d3c970391b4020cdf8c8763f08c433266034972fa0d16b02">
+<h3>생태계 경계</h3>
+<p>이 소유 배치는 보편 애플리케이션 소스 트리가 아니다. 소유 생태계가 수락한 배치·의존성 안내를 따른다. 예를 들어 Python 패키징은 가져오기·설치 절충이 다른 src·flat 배치를 제공한다. 근거: https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/ . Agent Factory 런타임 경로를 무관한 애플리케이션 코드에 강요하지 않는다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/directory-structure.md</code></p>
+</section>
+<section id="source-13" data-ai-source="skills/convention/references/explicit-human-input.md" data-ai-sha256="fec706f72856b7d19578efc3ec6149e85b6347143c156cf64d8eac4e2ce28480">
+<article data-source-lines="1-2" data-source-sha256="14d907643003e2161e1fdb0e11417970bbf338085d0c08b01ecb264210191870">
+<h2>명시적 Human 입력 규칙</h2>
+</article>
+<article data-source-lines="3-14" data-source-sha256="4f30c38975a2e2584a83798212a58a57a006e82965ae5862ebdde1743c3a511c">
+<h3>명시성 경계</h3>
+<p>요구·선택·범위·권한 부여·인수 기준은 Human이 실제로 말했거나 이미 수락한 명세가 모호함 없이 결정한 경우만 명시적으로 취급한다.</p>
+<p>필수 부분이 명시되지 않았으면 추론·발명·묵시적 기본값·가정을 결정처럼 제시하지 않는다. Human에게 묻고 답을 기다린 뒤 해당 결정을 통과한다. 침묵·모호함·관행·선례·그럴듯한 선호·이의 없음은 명시적 결정이 아니다.</p>
+</article>
+<article data-source-lines="15-36" data-source-sha256="a8c53a0532e2f223fa8d7f7231081c01395800712858a9dcc41b82215f47a8ba">
+<h3>증거와 역할</h3>
+<p>저장소 조사·증거 수집은 관찰 사실을 밝힐 수 있지만 빠진 Human 결정을 만들어내지 못한다. 발견한 사실과 Human 소유 선택을 구분한다.</p>
+<p>Main·Work·Verification·Explorer·Interview에 적용한다.</p>
+<ul>
+<li>Main은 필요한 빠진 결정을 Human에게 묻고 답을 기다린다.</li>
+<li>Work·Verification은 미해결 질문을 Main에게 보고하며 Human에게 직접 묻거나 해당 결정을 통과하지 않는다.</li>
+<li>Explorer는 관찰 사실의 증거를 수집할 수 있지만 Human 소유 선택으로 바꾸거나 Human을 인터뷰·사칭하지 않는다.</li>
+<li>Interview는 Main만 수행하며 직접 Human 발언·증거·해석·미해결 공백을 구분한다.</li>
+</ul>
+<p>새 Agent 역할·공개 Skill·역량을 만들지 않으며 기존 안전·권위·명세 쌍·관리 그래프 계약을 약화하지 않는다.</p>
+</article>
+<article data-source-lines="37-40" data-source-sha256="89a22247e8ab7d94bdae61c30c2b47c257974056747dd5d2f090eb7756c0ed34">
+<h3>출처</h3>
+<p>이 공통 규칙은 Human 위임 요청 .agent-factory/agent/explicit-human-input-work-20260831/runs/run-20260830T174409464808Z-330b0066/request.md에서 왔다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/explicit-human-input.md</code></p>
+</section>
+<section id="source-14" data-ai-source="skills/convention/references/explorer.md" data-ai-sha256="66965719dcc903d4802d3bb78e225a64682414cb527bdd93bd08e7516d963deb">
+<article data-source-lines="1-2" data-source-sha256="7ba5e88bda06186d59267711a6e07c11f2b65a366f60f7da02f08395b1ea6fec">
+<h2>Explorer 역량 규칙</h2>
+</article>
+<article data-source-lines="3-19" data-source-sha256="2ea88562f7bfbb6cd128d44dab0f040d074559fdae3e500d7ea0557d98ae7da5">
+<h3>역량 경계</h3>
+<p>Explorer는 Agent Factory의 증거 탐색 역량이다. 웹·코드·문서·데이터·원본·가공 문서를 분석·연구한다. 출처에 충실한 원본을 보존하고 가공 비교·분석·가설·결론을 만들 수 있다. 명세 진실을 수락·조정하거나 그 수준으로 승격하지 않는다.</p>
+<p>Explorer는 공개 배포 Skill·Agent 역할이 아니다. Agent 그래프 아래 Work가 제한 작업으로 수행하며 이 참조가 영속 정보·권위 제약을 소유한다.</p>
+<p>원본은 다양한 기본·출처 적합 형식을 유지할 수 있으며 충실도·식별자·이력·수집 맥락을 보존해야 한다. 가공 유형은 저장소와 독립적이다. 활성 출력은 수락된 이동 가능한 HTML·CSS·JavaScript 브라우저 패키지와 승인된 클라우드 Document 저장을 쓴다. 기존 Inquery 산출물은 활성 대상·형식 선례가 아니다.</p>
+</article>
+<article data-source-lines="20-48" data-source-sha256="a38ba4dc78b2677addbaa797fdd7a664d6d0ffbc25a1fbcee8955d8b92a15839">
+<h3>출처 이력과 권위</h3>
+<ul>
+<li>나중에 조회할 수 있을 만큼 출처 식별자·위치·취득 맥락·중요 제약을 보존한다.</li>
+<li>관찰·분석·가설·결론·모순·제약을 구분한다.</li>
+<li>위임 질문·범위·제약·완료 조건·증거 경계를 보존한다.</li>
+<li>Human 소유 제품 방향·우선순위·승인·수락·완료·위험 허용을 선택하지 않는다.</li>
+<li>탐색이 결론을 뒷받침한다는 이유만으로 정식 프로젝트 사실·명세를 수정하지 않는다.</li>
+<li>Explorer 출력을 Project Skill·Human 명세로 취급하지 않는다.</li>
+<li>Human을 인터뷰·사칭하지 않는다.</li>
+<li>프로젝트 테스트·검증기·빌드·서버·런타임 조사와 다른 검증은 명시적 Human 승인을 받은 Verification 역할 소유이며 Explorer의 일이 아니다.</li>
+</ul>
+<p>영속 결과는 원본·가공 문서로 분류하고 자체 권한으로 확인된 인증 클라우드 Document 도구를 통해 업로드한다. 실행 전용 임시 자료는 생성 관리 실행에 남으며 Explorer 독립 루트는 없다.</p>
+<p>직접 .agent-factory/document/processed/legacy-inquery-&lt;legacy-id&gt;/ 패키지는 역사적 읽기 전용 증거인 가공 문서다. Legacy는 유형·래퍼가 아닌 상태·이력 메타데이터다. 위임 범위가 요구할 때만 조회하며 활성 작업 공간·쓰기 대상으로 쓰지 않는다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/explorer.md</code></p>
+</section>
+<section id="source-15" data-ai-source="skills/convention/references/interview.md" data-ai-sha256="cf59641a2ee4f8f0d38ab3baeeb773d9d43eb69f06c6141f7bac495378cfb95e">
+<article data-source-lines="1-2" data-source-sha256="f3d6d5b5a4b60e7cdbec049ecd7cc198eed5ee4b2ce6056018abfc270422e6f9">
+<h2>Interview 역량 규칙</h2>
+</article>
+<article data-source-lines="3-13" data-source-sha256="f53390602650bdd7ccdbb2d22e82f2a030581a2ae8daca5be057b68f94289048">
+<h3>역량 경계</h3>
+<p>Interview는 현재 Main 대화에서 적응형 질문으로 AI와 Human 사이의 중요한 정보 공백을 줄인다. 기본 결과는 가공 문서이며 독립적으로 명세 진실로 승격하지 않는다.</p>
+<p>Interview는 공개 배포 Skill·관리 Exec 역할이 아니다. skills/agent/의 Main이 수행을 소유하며 이 참조는 영속 정보·Human 권위 제약을 소유한다.</p>
+</article>
+<article data-source-lines="14-33" data-source-sha256="9e8ee0509df25a118e88e99c025e6fef1ee5fc6f9892da43e343853932d08407">
+<h3>정보와 권위</h3>
+<ul>
+<li>가용 맥락으로 Human 지식·요구·결정의 중요한 공백을 해소할 수 없을 때만 사용한다.</li>
+<li>일반 답변을 인터뷰로 대체하거나 외부 사람을 설문하거나 Human을 사칭하는 Exec Agent를 실행하지 않는다.</li>
+<li>직접 Human 발언·명시 결정을 Explorer 증거·Main 재진술과 해석·가정·모순·미해결 공백과 구분한다.</li>
+<li>침묵·모호함·이의 없음은 승인이 아니다.</li>
+<li>Human은 인터뷰를 생략·연기·정정·축소·중단할 수 있다.</li>
+<li>비밀번호·토큰·비밀키 등 비밀을 요구하지 않는다. 다른 민감 정보도 필요하고 승인된 경우만 묻는다.</li>
+<li>Human이 대상을 요청하거나 이미 승인된 소유 흐름이 산출물을 요구하지 않으면 결과는 대화에 둔다.</li>
+</ul>
+<p>Main은 Work가 Explorer로 외부 배경을 수집하는 동안 Interview를 멈추거나 순서를 조정한 뒤 증거를 통합해 Human 대화를 재개할 수 있다. Work는 Explorer를 대신해 Human에게 인터뷰 질문을 하거나 Human을 사칭하지 않는다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/interview.md</code></p>
+</section>
+<section id="source-16" data-ai-source="skills/convention/references/libraries.md" data-ai-sha256="e3167942f43df4ee5a632944373df144c1cd71c6105aebc9c45bd563661a4b21">
+<article data-source-lines="1-2" data-source-sha256="93d8d8fb55b1c30a40643f5b8bf47d3cc6262a8adb2e12947c214ba1703f695f">
+<h2>권장 라이브러리</h2>
+</article>
+<article data-source-lines="3-23" data-source-sha256="0ede3d63eee8a06dd214ef10c3cfc9771cf56395f8b8ce5728429b11455e3851">
+<h3>선택 정책</h3>
+<p>보편 패키지 목록이 아닌 의존성 선택 규칙이다. 소유 프로젝트의 기존 의존성·프레임워크를 먼저 따른다. 요구 결과를 실질적으로 개선하고 유지보수·라이선스·런타임·배포 비용이 정당할 때만 추가한다.</p>
+<p>우선순위는 다음과 같다.</p>
+<ol>
+<li>이미 역량을 제공하는 프로젝트 의존성.</li>
+<li>충분한 언어·플랫폼 표준 라이브러리.</li>
+<li>호환 라이선스의 집중적이고 유지되는 의존성.</li>
+<li>작고 프로젝트 특유인 동작이며 결함·유지 위험과 추가 의존성 공급망 비용을 비교한 뒤의 직접 구현.</li>
+</ol>
+<p>수락된 이관 결정 없이 같은 역할의 중복 라이브러리를 넣지 않는다. 버전·의존성 선언은 소유 프로젝트의 기본 매니페스트에 두며 Convention에 버전 추천을 복사하지 않는다.</p>
+</article>
+<article data-source-lines="24-42" data-source-sha256="e62db8e3538ad4244b975962a9d924940390874ec512ac9a0087da233ba18277">
+<h3>Agent Factory 기본값</h3>
+<ul>
+<li>필요한 동작을 제공하면 로컬 초기화·서빙·저장소 유틸리티에 Python 표준 라이브러리를 우선한다.</li>
+<li>이동 가능한 Human 문서·기본 Workspace 셸은 의미 HTML·CSS·바닐라 JavaScript를 우선한다. 의존성은 로컬 상대 경로에 두고 JavaScript는 점진 강화에 쓴다.</li>
+<li>조회·버전 관리 가능한 ERD·게임 행동·시퀀스에는 Mermaid.js를 기본 JavaScript 렌더러로 사용한다. Mermaid 소스가 유지 산출물이며 SVG는 투영이다.</li>
+<li>기존 프로젝트 SVG 자산을 먼저 재사용한다. 실제 SVG를 렌더하고 출처·라이선스가 호환될 때만 유지되는 아이콘 라이브러리를 허용한다.</li>
+</ul>
+<p>명시적 Human 선택·더 강한 프로젝트 규칙을 덮어쓰지 않는다. 다른 Agent가 일관되게 적용해야 하는 프로젝트별 라이브러리 결정은 소유 명세·Project Skill에 기록한다.</p>
+</article>
+<article data-source-lines="43-64" data-source-sha256="cbb4cd253e7dc1784a562947fc9bdb34b04cded3d62276012105bee503e1e815">
+<h3>Mermaid.js 경계</h3>
+<p>Mermaid.js는 문서 렌더러이며 게임 AI 런타임·Behavior Tree 엔진·결정 엔진·시뮬레이터·디버거가 아니다. 포함됐다고 행동 그래프의 실행성이나 게임 런타임과 동기화를 추론하지 않는다.</p>
+<p>브라우저 통합 시 다음을 적용한다.</p>
+<ul>
+<li>CDN 대신 로컬 상대 의존성으로 제공한다.</li>
+<li>명시 보안 검토가 다른 설정을 승인하지 않으면 기본 securityLevel: "strict"를 유지한다.</li>
+<li>폐기된 mermaid.init 대신 mermaid.run을 쓴다.</li>
+<li>작성 도식에 accTitle·accDescr을 넣는다.</li>
+<li>JavaScript가 없어도 읽을 수 있는 소스·의미 설명을 남긴다.</li>
+<li>소유 프로젝트 의존성 매니페스트·벤더 자산 기록에 선택 버전·출처·라이선스·갱신 방법을 선언한다.</li>
+</ul>
+<p>이 규칙은 렌더러를 선택할 뿐 Mermaid.js 설치·벤더링·업그레이드를 수행하지 않는다.</p>
+</article>
+<article data-source-lines="65-76" data-source-sha256="f34cb8afb346964bbb37e8bff345757ed84cfaf52faff4fb7bb37fe12e3a0654">
+<h3>근거</h3>
+<p>기존 의존성·표준 라이브러리를 먼저 확인하라는 OpenSSF 지침을 따르되 성숙한 기능을 재구현하면 자체 결함이 생길 수 있음을 인정한다. 직접 의존성 채택 전 평가하고 올바른 출처에서 가져와 프로젝트 패키지 관리자로 관리하며 갱신 가능하게 유지한다.</p>
+<ul>
+<li>OpenSSF 업데이트 단순화: https://best.openssf.org/Simplifying-Software-Component-Updates</li>
+<li>OpenSSF 보안 개발 간결 안내: https://best.openssf.org/Concise-Guide-for-Developing-More-Secure-Software.html</li>
+<li>Mermaid 사용·보안: https://mermaid.js.org/config/usage</li>
+<li>Mermaid 접근성: https://mermaid.js.org/config/accessibility</li>
+</ul>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/libraries.md</code></p>
+</section>
+<section id="source-17" data-ai-source="skills/convention/references/svg-icon.md" data-ai-sha256="3459e9c066458ddd7a3bf0cb5032fa582eb2a681db6a3e205780e72d937b04d1">
+<article data-source-lines="1-2" data-source-sha256="09c2fc8194d8a3ea0bcfb1e4c9e4a6f983cfd39bc9b1625a9950d3c67c53592d">
+<h2>SVG 아이콘만 사용</h2>
+</article>
+<article data-source-lines="3-15" data-source-sha256="7498ac3e153d21b0811cb9a90af990276fd357455a54e182ea36e34ea42cef9c">
+<h3>규칙</h3>
+<p>모든 사용자 아이콘에 SVG를 쓴다.</p>
+<p>다음으로 아이콘을 구현하지 않는다.</p>
+<ul>
+<li>Emoji.</li>
+<li>갈매기표·불릿·삼각형·글리프 같은 Unicode 기호.</li>
+<li>아이콘 폰트.</li>
+<li>아이콘처럼 사용하는 텍스트 레이블.</li>
+<li>CSS만으로 만든 기하 도형.</li>
+<li>PNG·JPG·GIF·WebP 등 래스터 이미지.</li>
+</ul>
+</article>
+<article data-source-lines="16-28" data-source-sha256="1dfc118e86d54b1a7078b5248ee3248f91abc8dfe493706c1bcadbdad5105ec6">
+<h3>허용 SVG 형식</h3>
+<p>다음 중 하나를 쓴다.</p>
+<ul>
+<li>HTML의 인라인 &lt;svg&gt;.</li>
+<li>실제 &lt;svg&gt; 요소를 렌더하는 프레임워크 구성요소.</li>
+<li>기존 코드가 지원하면 &lt;img src="...svg"&gt;, &lt;use href="..."&gt; 또는 동등한 방식의 .svg 자산 참조.</li>
+<li>SVG 출력을 만드는 유지 중인 SVG 아이콘 라이브러리.</li>
+</ul>
+<p>더 강한 로컬 SVG 자산·심볼 패턴이 없으면 작은 애플리케이션 UI 제어에는 인라인 SVG를 우선한다.</p>
+</article>
+<article data-source-lines="29-37" data-source-sha256="79ffbae3bf4ecfb973f6ab49401a7821beb2f512d173df79df481a9297cd2ba3">
+<h3>작업 흐름</h3>
+<ol>
+<li>편집 전 대상 UI·기존 아이콘 패턴을 조사한다.</li>
+<li>변경 영역의 모든 아이콘 유사 글리프·CSS 도형을 SVG로 바꾼다.</li>
+<li>접근 가능한 이름은 SVG 내부뿐 아니라 상호작용 요소에 둔다.</li>
+<li>장식 SVG는 aria-hidden="true", focusable="false"로 표시한다.</li>
+<li>보이는 텍스트와 아이콘 마크업을 분리한다.</li>
+<li>최종 DOM·소스에서 변경 아이콘이 SVG인지 확인한다.</li>
+</ol>
+</article>
+<article data-source-lines="38-51" data-source-sha256="865c67ee591e68ea84d66113d86a4de0409e639e8432d9f76a6376af26b52ab3">
+<h3>프런트엔드 확인</h3>
+<p>UI 검토·구현 시 다음을 특히 살핀다.</p>
+<ul>
+<li>›, ⌄, ▸, ▾, ▲, ▼, ←, → 등의 갈매기표 문자.</li>
+<li>아이콘으로 쓰는 ... 버튼 레이블.</li>
+<li>실제 SVG 출력이 없는 CSS ::before·::after 아이콘.</li>
+<li>아이콘 폰트 클래스 이름.</li>
+<li>실제 인라인 SVG가 더 명확하고 조사하기 쉬운 위치에 쓰는 Data URI 마스크.</li>
+</ul>
+<p>변경 아이콘 영역에 있으면 Human이 아이콘 작업을 명시 제외하지 않은 한 SVG로 바꾼다.</p>
+</article>
+<article data-source-lines="52-56" data-source-sha256="009cfecc612b22138ff09a10ecd4ca52c0c53d86715d796629e46f698eddcc82">
+<h3>출처와 라이선스</h3>
+<p>기존 프로젝트 SVG를 먼저 쓴다. 외부 아이콘 세트에서 경로를 가져오면 라이선스가 요구하는 경우 관련 산출물·코드 주석에 출처·라이선스를 기록한다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/svg-icon.md</code></p>
+</section>
+<section id="source-18" data-ai-source="skills/convention/references/testing.md" data-ai-sha256="da5e27b051122e3cebefa1c269839d76b7ab919512ff03cf9fd739459af9dc01">
+<article data-source-lines="1-5" data-source-sha256="ecebe987bda9cc964e7e8660cb7214c9bbbf0aecfaf6b19441f1506f223b5b19">
+<h2>테스트 규칙</h2>
+<p>구현·유지보수·Verification이 테스트를 선택하거나 실행할 때 적용한다.</p>
+</article>
+<article data-source-lines="6-17" data-source-sha256="6277bae492f8406132ee16ac18f839ff6cdaa284f86718f876572e61d13de4ed">
+<h3>집중 실행</h3>
+<ul>
+<li>실행을 최소화하고 소유 구성요소·변경 계약의 가장 작은 관련 집중 테스트 집합을 실행한다.</li>
+<li>소유 프로젝트의 기존 실행기·프레임워크·구성요소 경계·테스트 조직에서 범위를 확인한다. 특정 실행기·프레임워크·명령·디렉터리는 보편 규칙이 아니다.</li>
+<li>집중 증거가 도메인 간 영향을 보이거나 Human이 넓은 검사를 명시적으로 요청한 경우만 확대한다.</li>
+<li>Human의 명시 요청 없이는 저장소 전체 또는 다른 전체 테스트를 실행하지 않는다.</li>
+</ul>
+</article>
+<article data-source-lines="18-26" data-source-sha256="8d22ef28cd163f13e735eb83bf6a94ca8146bafeacde58345fdc3f5a007f1baf">
+<h3>Agent 그래프 경계</h3>
+<p>집중 범위는 Agent Factory 독립 Verification을 합치거나 대체·생략하지 않는다. Verification은 Work 결과를 독립 확인하고 변경 구성요소·계약의 가장 작은 관련 테스트를 선택한다. 확대 규칙도 동일하다. 집중 증거가 도메인 간 영향을 보이거나 Human이 넓은 범위를 명시 요청할 때만 확대하며 전체 실행에는 명시적 Human 요청이 필요하다.</p>
+</article>
+<p class="source">AI 원문: <code>skills/convention/references/testing.md</code></p>
+</section>
+</main></div><footer>이 문서는 <code>skills/convention/</code>의 전체 지시 소스를 한국어로 표현한 게시 소스입니다. 독립 의미 검토와 클라우드 게시 상태는 별도 증거로 확인합니다.</footer></body></html>

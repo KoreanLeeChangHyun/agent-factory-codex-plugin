@@ -53,11 +53,7 @@ specific Work or Verification task, supplies execution authority, and records
 the resulting receipt. Tool may report capability and health metadata, but it
 does not dispatch the task or claim its result.
 
-The current stateless adapter at `skills/tool/scripts/tool.py` routes lifecycle
-mutations without performing them. Its `provider-route-required` result is not
-approval, readiness, or evidence that the provider supports the operation.
-Agent runtime binding is supplied separately through
-`--capability-binding-file`; Tool does not create or persist that run record.
+Local inspection uses existing Agent shell/file tools and preserves the profile's exact authority. Cloud connection operations use the authenticated server's advertised tools and schemas. A route, `performed: false`, or configured entry is not evidence of execution, approval or readiness. Agent runtime binding remains separate through `--capability-binding-file`; Tool does not create that run record.
 
 ## Gather connector handshake
 
@@ -74,10 +70,10 @@ granted scope, availability/health, and an opaque credential reference when
 the provider uses one. Gather then performs and receipts the bounded sync under
 its own fidelity, identity, provenance, and Original Document contract.
 
-Current Google Drive and OneDrive scripts still contain provider-specific
-authentication and token-cache lifecycle behavior inside `skills/gather/`.
-That is an observed coupling, not the target ownership boundary. Do not move
-it until a concrete Tool connection/token lifecycle interface and Gather
-capability/scope request interface exist, preserve compatibility, and have
-separately authorized migration and verification. No such runtime interface,
-registry, or state backend is implemented by this Skill.
+## Authenticated cloud lifecycle
+
+Read `agent-factory://integrations/guide` and current tool schemas. Resolve an existing authorized organization, Workspace, provider connection and account. Use the server's existing connection API for connection creation; do not invent a tool name. `integration_inspect` returns cached metadata unless live inspection is explicitly requested. Keep health, scope-inspection support, requested scopes, observed grants, observation time and staleness separate. Unsupported permission enumeration or transient failure means unknown, not unauthenticated.
+
+Use `integration_oauth_begin` for explicitly approved provider/account/scopes and the server's configured callback or advertised `integration_oauth_complete` flow. Preserve single-use state, initiating user and tenant binding; the cloud owns client secrets, exchange and encrypted refresh credentials. Use protected Human secret entry for token providers; `integration_token_set` stores a token but does not prove live access, and token-bearing tool arguments can be recorded in client transcripts. Do not ask an Agent to relay secrets through prompts or shell arguments. Never invent a credential store or silently switch accounts/scopes.
+
+Connection readiness is not collection authorization. Gather creates and starts its own immutable bounded cloud collections after capability binding. New connection and collection configuration is cloud-owned; legacy local OAuth/device-code/token caches are retained migration inputs only. Local provider and Tool executables are retired after independently verified replacement. Do not infer deployed registration, configured credentials, consent or live provider access from this contract.

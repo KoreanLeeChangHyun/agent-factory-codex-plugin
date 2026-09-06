@@ -1,124 +1,35 @@
-# Recommended Directory Structure
+# Source, local runtime and cloud layout
 
-Use this structure as Agent Factory's current/default local adapter:
+## Distributable source and installation
+
+Keep this plugin's six distributed Skills under `<plugin-root>/skills/<id>/`, never a repository-local `.codex/` mirror. Each pairs with version-controlled Korean publication source at `<plugin-root>/.agent-factory/document/specification/<id>/`. Reciprocal metadata is package-relative and preserves the six single-name identities. These are source packages, not consumer Document backend roots.
+
+An ordinary consumer's own Project Skill uses the accepted lowercase hyphen-case `<category>-<title>` identity under its `.codex/skills/`. Source-package, installed Skill and cloud immutable-revision locators are resolved separately and bind one representation, not multiple editable truths. Git owns distributable authoring; cloud publication binds repository, exact commit, full inventory and reviewed complete Human/AI pair. Do not hardcode the development sibling `../mcp` as an installed path.
+
+## Local Agent runtime
 
 ```text
-<project-root>/.agent-factory/
-├── db.sqlite
-├── agent/
-│   └── <agent-id>/
-│       ├── session.json
-│       └── runs/
-│           └── <run-id>/
-└── document/
-    ├── original/
-    ├── processed/
-    ├── specification/
-    └── sync.json
+<project-root>/.agent-factory/agent/<agent-id>/
+  session.json
+  runs/<run-id>/
 ```
 
-## Ownership
+Agent owns operational sessions, run state, requests, results, receipts, heartbeat/events, local reporting outbox/acknowledgements and recovery. Keep existing exec/loop entry points, required support modules and extension path/layout compatibility. Temporary execution-only Explorer material stays in its producing run; Explorer has no standalone root. Credentials remain with their owning authority and never enter runtime evidence or source control.
 
-### Catalog
+Use existing shell/file tools for bounded local Git/tool inspection and prepare required evidence for authorized cloud upload. Do not add a local MCP/provider or Document service.
 
-- `db.sqlite` is the exact current/default local path for the Agent-owned,
-  project-wide, rebuildable, non-authoritative catalog/read model across Agent
-  execution structure and Documents. It does not replace or move any owning
-  file or store. The database and its SQLite runtime sidecars are local
-  generated artifacts and must not be committed.
+## Cloud-owned domains
 
-### Agent and Explorer
+The selected authenticated Agent Factory MCP application owns new Document persistence, metadata, immutable body revisions, index/search, connection/authentication and collection configuration, shared reporting and Workspace. PostgreSQL owns tenant metadata; object storage owns immutable Document bytes. Runtime source, dependency manifests, browser assets, deployment and tests belong to that application. Workspace creates no project-local `.agent-factory/workspace/`, launcher, port file or browser-shell copy. Non-authoritative client installation/connection cache may live below `~/.agent-factory/` outside repositories.
 
-- `agent/` owns operational Agent sessions and run records.
-- Temporary execution-only Explorer material belongs to its producing managed
-  Agent run. Durable Explorer evidence is classified as an Original or
-  Processed Document; Explorer has no standalone storage root.
+Do not create new local `db.sqlite`, document/sync configuration or `.agent-factory/tool/` stores. Actual hosts, plugins, MCP servers, package manifests and credential authorities retain their own state. Read advertised authenticated schemas/guides and fail honestly when the selected capability, account or permission is absent.
 
-### Documents
+## Legacy source and migration
 
-- `document/` owns the local adapter roots for the three loosely related
-  active Document types: Original, Processed, and Specification.
-- Preserve Original Documents in diverse native or source-appropriate formats.
-- Under this local adapter, active Processed Documents use the same Human-facing
-  `index.html`, `styles.css`, and `app.js` browser package shape as Specifications.
-- Shared format grants neither a paired AI-facing Skill nor Specification
-  authority.
-- Every immediate child directory of each type root is exactly one stable
-  Document package. Internal files and directories belong to that package.
-- Producer, category, and legacy wrapper layers are not allowed.
-- Preserved historical Inquery packages use direct
-  `document/processed/legacy-inquery-<legacy-id>/` identities and remain
-  Processed.
-- Legacy is status/provenance metadata. Do not use these packages as active
-  targets or format precedents.
-- Put locally materialized Human-facing Specifications in
-  `document/specification/`.
-- The roots impose no pipeline, transition sequence, maturity scale, or mapping
-  cardinality among Documents.
+Retain old local `.agent-factory/document/{original,processed,specification}/`, `document/sync.json`, source collections, SQLite and sidecars as migration inputs until inventory, independent backup and verified import. Legacy direct package identity means one immediate child directory per Document; internal files/subdirectories belong to it and producer/category wrappers are not identities. Historical `processed/legacy-inquery-<legacy-id>/` remains inactive Processed evidence with legacy status/provenance, never another type or active workspace.
 
-### Workspace runtime
+Original preserves diverse native/source-appropriate bytes. Active Processed uses a portable `index.html`, `styles.css`, `app.js` package; sharing that shape with Human Specifications creates neither a paired AI Skill nor Specification authority. Physical migration preserves type, identity, provenance and pair; no roots imply a pipeline or promotion. Code/script retirement never authorizes deleting Human data, source, credentials or backups. Cutover, destructive actions and unresolved conflict policy retain exact Human authority.
 
-- Do not create a project-local `.agent-factory/workspace/` directory.
-- The separate Agent Factory MCP application owns the Human control-tower
-  runtime, canonical browser shell, tenant API, PostgreSQL metadata, pgvector
-  indexes, and object-storage revisions.
-- Client installation and connection cache may live below
-  `~/.agent-factory/`; it is non-authoritative and outside project repositories.
-- Legacy project-local Documents are removed only after a verified import and
-  an independently retained backup.
+## Ecosystem boundary
 
-### Gather and Tool
-
-- `document/sync.json` holds Gather configuration, not gathered source collections.
-- Tool has no current/default local-adapter responsibility directory. Do not
-  create `.agent-factory/tool/`; each host, plugin, MCP server, project
-  manifest, or explicitly selected provider remains authoritative, and Tool
-  registry/state storage is unresolved.
-
-### Skill and Specification pairs
-
-- Keep plugin distributed Skills below `<plugin-root>/skills/`.
-- Under this current/default local adapter, in an ordinary consumer project keep the
-  paired Project Skill and Human Specification directories under the exact same
-  lowercase hyphen-case identity: `<project-root>/.codex/skills/<category>-<title>/` and
-  `<project-root>/.agent-factory/document/specification/<category>-<title>/`.
-- This plugin is the explicit exception whose accepted single-name pairs remain
-  unchanged.
-- Neither Skill root belongs below `.agent-factory/`, and Gather writes source
-  collections only to its explicitly resolved destination outside this work root.
-
-- In this plugin repository, every `skills/<skill-id>/` directory has exactly one
-  Human-facing `.agent-factory/document/specification/<skill-id>/` pair.
-- Each is linked through reciprocal metadata and renders the complete Korean translation
-  in source order with exact source mappings inside that Skill.
-- Supplementary navigation and visualizations may improve Human readability but never
-  replace, summarize, omit, merge, or reorder translated content.
-- The Human representation neither copies the source tree as navigation nor creates a
-  repository-local `.codex/skills/` mirror.
-
-### Adapter boundary
-
-- This layout is a local adapter, not a universal storage requirement.
-- An explicitly selected project server or external document store may replace a
-  document root while preserving provenance, authority, isolation, semantic alignment,
-  accessibility, and security.
-- Do not silently choose, mirror, or migrate a backend.
-- Keep Agent runtime state under the declared local runtime contract unless that
-  contract is separately changed.
-
-Agent owns the catalog schema, manager, and complete operational contract under
-`skills/agent/`. Convention records only that cross-cutting ownership boundary;
-the detailed command, safety, search, and indexing rules belong to the Agent
-Specification.
-
-### Ecosystem boundary
-
-- Directory layouts outside this Agent Factory adapter remain technology- and
-  distribution-specific.
-- For example, Python's official packaging guide presents `src` and flat layouts as
-  alternatives with different import and installation tradeoffs rather than one
-  universal tree.
-- Follow the owning ecosystem's official layout guidance instead of projecting this
-  adapter onto application source code:
-
-- [Python Packaging User Guide: src layout vs flat layout](https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/)
+This ownership layout is not a universal application source tree. Follow each owning ecosystem's accepted layout and dependency guidance. Python packaging, for example, offers src and flat layouts with different import/installation tradeoffs: [Python Packaging User Guide](https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/). Do not project Agent Factory runtime paths onto unrelated application code.

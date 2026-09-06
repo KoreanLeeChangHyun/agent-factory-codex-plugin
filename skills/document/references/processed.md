@@ -1,36 +1,13 @@
 # Processed Document
 
-## Type contract
+## Type and representation
 
-A Processed (가공 문서) contains transformations or derived working knowledge,
-including analysis, comparison, hypotheses, research results, interview
-results, and conclusions. Processed material can be useful and well-supported,
-but it is non-authoritative working knowledge and is not accepted or reconciled
-Specification truth.
+A Processed (가공 문서) contains analysis, comparison, hypotheses, research/interview results and conclusions derived through transformation. It remains non-authoritative working knowledge even when well supported; it is not accepted Specification truth.
 
-Under the current/default local adapter, active Processed Documents are
-Markdown (`.md`). Processed is a logical, storage-independent Document type;
-the Markdown convention does not make the type dependent on the local adapter.
-Every immediate child directory below the local `document/processed/` root is
-one Processed Document package. Its files and internal subdirectories are
-representations within that package; do not add a producer, category, or legacy
-wrapper layer. Preserved historical Inquery packages use explicit
-`legacy-inquery-<legacy-id>` identities directly below the Processed root. They
-remain Processed Documents, with legacy recorded as status/provenance metadata,
-and are not active targets or format precedents.
+Active Processed Documents use a portable `index.html`, `styles.css`, `app.js` browser package, following the latest accepted core model. Shared format with a Human Specification grants neither Specification authority nor a paired AI Skill. The logical type is storage-independent; new persistence is cloud-owned through the Document adapter contract. Historical `legacy-inquery-<legacy-id>` packages remain inactive Processed evidence with legacy status/provenance, not a fourth type, wrapper or active format precedent.
 
 ## Relationships and provenance
 
-Use the conceptual ordering `Original -> Processed -> Specification` only to
-show possible derivation or evidence relationships. A Processed Document may
-exist without an Original relationship or without producing a Specification.
-Relationships may be absent, one-to-many, many-to-one, or many-to-many.
+`Original -> Processed -> Specification` means possible derivation/evidence, never a mandatory transition. A Processed Document may lack an Original input or never produce a Specification. Relationships may be absent, one-to-many, many-to-one or many-to-many.
 
-Preserve inspectable provenance for actual inputs, transformations, evidence,
-and limitations. Keep observations, analysis, hypotheses, conclusions,
-contradictions, and unresolved questions distinguishable. Do not infer
-completeness, acceptance, authority, a required transition, or automatic
-promotion from the Processed type.
-
-Explorer may create Processed Documents while performing bounded evidence work
-under Convention. Explorer does not accept or reconcile Specification truth.
+Preserve actual inputs, transformations, evidence and limitations. Distinguish observations, analysis, hypotheses, conclusions, contradictions and unresolved questions. Infer neither completeness, acceptance, authority nor automatic promotion from type. Explorer may create Processed evidence under Convention but cannot accept or reconcile Specification truth.

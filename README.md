@@ -30,11 +30,7 @@ The plugin exposes exactly six public skills:
   or evidence relationships; relationships may be absent, one-to-many,
   many-to-one, or many-to-many. A Specification is accepted and reconciled
   project knowledge and uses paired Korean
-  Human-readable HTML/CSS/JavaScript and AI-readable Skill views. Project
-  Skill/Specification pairs use the exact lowercase hyphen-case identity
-  `<category>-<title>` in both `.codex/skills/` and
-  `.agent-factory/document/specification/`; the Skill frontmatter `name` also
-  matches. This plugin's six accepted single-name distributed pairs are the
+  Human-readable HTML/CSS/JavaScript and AI-readable Skill views. Consumer Project Skill/Specification pairs preserve the exact lowercase hyphen-case identity `<category>-<title>` in Skill name and reciprocal publication metadata; installed and cloud locators are resolved separately. This plugin's six accepted single-name distributed pairs are the
   explicit exception.
 - `gather`: Select and synchronize bounded external sources as Original
   Documents while preserving fidelity, provenance, identity, and resolved
@@ -84,125 +80,56 @@ Document type.
 
 Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
 `agents/openai.yaml`, and detailed capability guidance in `references/`.
-Executable managers, schemas, assets, and tests remain inside the owning skill
-when that domain needs them.
+New domain implementations, schemas and runtime tests belong to the cloud application. Only local exec/loop and minimum support remain runtime dependencies of the plugin; local domain executables, catalog/sync schemas and provider dependencies are retired.
 
-## Project-local Agent Factory data
+## Cloud domains and local execution
 
-Agent Factory uses this project-local structure as its current/default adapter:
+The Human-selected Agent Factory MCP application owns new Document persistence,
+search and complete-pair publication; connections, authentication and bounded
+collection; shared reporting; and the Workspace implementation. Read its
+advertised authenticated tool schemas and guides before invoking domain tools.
+Missing tools, connection, tenant or scope must be reported honestly. Do not
+substitute retained local scripts, create new local domain configuration or add
+a local MCP/provider service.
 
-```text
-.agent-factory/
-├── db.sqlite
-├── agent/
-│   └── <agent-id>/
-│       ├── session.json
-│       └── runs/<run-id>/
-└── document/
-    ├── original/
-    ├── processed/
-    ├── specification/
-    └── sync.json
-```
+The plugin retains six Skills, the three role prompts, local `exec.py`/`loop.py`
+and minimum runtime dependencies. Existing extension command paths and layouts
+remain compatible. Local sessions, process/run facts, graph transitions,
+receipts, reporting outbox and recovery remain under
+`.agent-factory/agent/<agent-id>/`. Cloud reports never launch, resume, cancel
+or finish local runs; process exit and stale reporting do not imply semantic
+completion or graph END. Use existing shell/file tools for bounded local Git
+and tool inspection, and authorized Document tools to upload required evidence.
 
-The exact `.agent-factory/db.sqlite` path is the shared project-wide
-catalog/read model across Agent execution structure and Documents. It is
-rebuildable and non-authoritative. Agent owns the maintained DDL at
-`skills/agent/assets/schema/catalog.sql`. The catalog does
-not replace authoritative Agent runtime files, Document bodies or
-representations, provenance evidence, Gather configuration, Project Skills, or
-faithful Specification pairs.
+Document tools include `document_import`, `document_read`, `document_write`,
+`document_search`, `document_index`, `document_prepare_upload` and
+`document_finalize_upload`; package members and isolated Human previews use
+revision-scoped authenticated delivery routes. Connections and bounded Gather
+collections follow `agent-factory://integrations/guide`; shared reporting uses
+`reporting_read`, `reporting_write`, `reporting_search` and
+`agent-factory://reporting/cloud-guide`. Development planning follows the
+Workspace planning contract and `agent-factory://planning/import-guide`,
+separately from background jobs and runtime reporting.
 
-The standard-library manager at `skills/agent/scripts/catalog.py` provides
-explicit `init`, `rebuild`, `status`, `search-agents`, and `search-documents`
-operations. Workspace initialization has no catalog side effect; rebuild uses bounded local Agent and
-Document metadata scans plus capped allowlisted textual Document indexing,
-builds and checks a separate database, and atomically publishes it without
-replacing the last good catalog on failure. `init` leaves the current schema
-unchanged, automatically rebuild-migrates supported schema versions 1 and 2
-from authoritative files, and rejects missing, unparseable, unsupported, or
-future versions without replacing the prior database. Run:
+Git owns distributable Skill authoring. This plugin's `skills/<id>/` and
+`.agent-factory/document/specification/<id>/` are reciprocal publication-source
+packages. The Korean HTML is version-controlled publication source, not a
+consumer local backend or a second independently editable cloud truth. Exactly
+one complete Korean Human representation pairs with exactly one AI Skill under
+the same stable identity. Preserve complete source-order translation and source
+hash coverage; publish a reviewed snapshot bound to Git repository, exact
+commit, full content inventory and both representation hashes. Cloud owns its
+accepted immutable published revision. Source-package, installed Skill and
+cloud revision locators are distinct and must be resolved explicitly.
 
-```bash
-python3 skills/agent/scripts/catalog.py --project-root . init
-python3 skills/agent/scripts/catalog.py --project-root . rebuild
-python3 skills/agent/scripts/catalog.py --project-root . status
-python3 skills/agent/scripts/catalog.py --project-root . search-agents completed --limit 20
-python3 skills/agent/scripts/catalog.py --project-root . search-documents '한국어 검색' --limit 20
-```
-
-Search treats each bounded Unicode query as literal text, including ordinary
-hyphenated identifiers, Korean, spaces, punctuation, and quotes; it does not
-expose raw FTS5 expressions. A manager-generated final-token prefix supports
-attached suffixes such as `검색과`, while the complete user input remains
-escaped and SQL remains parameterized. It uses read-only FTS5 queries over
-authorized Agent structure and bounded local textual Document representations. The
-implementation has no runtime dual write, HTTP/general query API, catalog
-search screen/navigation integration, live watcher, semantic/vector search, or
-external-backend ingestion. The
-database and its SQLite journal, SHM, and WAL sidecars are ignored generated
-artifacts and must not be committed. Agent execution does not depend on catalog
-creation, freshness, corruption, or availability. Workspace may later present
-Agent-provided read-only results, but it does not own, initialize, rebuild,
-inspect, or execute searches against the catalog.
-
-`agent/` contains managed Codex session and run state.
-Temporary execution-only Explorer material stays in the producing managed Agent
-run. Durable Explorer evidence is classified as an Original or Processed
-Document. `document/` contains
-the local roots for Original, Processed, and Specification Documents; locally
-materialized Human-facing Specifications
-live below `document/specification/`. Every immediate child directory of a
-Document type root is one stable Document package; package-internal files and
-directories are allowed, but producer/category/legacy wrappers are not.
-Preserved legacy Inquery packages live directly below `document/processed/`
-with `legacy-inquery-<legacy-id>` identities and remain Processed Documents
-whose legacy state is status/provenance metadata. Gather configuration is
-`document/sync.json`.
-Workspace runtime state is not project-local. The separate Agent Factory MCP
-application owns its browser shell, tenant API, PostgreSQL metadata, pgvector
-indexes, and object-storage revisions. This plugin does not install a
-`.agent-factory/workspace/` tree or root launcher into consumer projects.
-Workspace reads Human-facing Specifications from the Document tree. Each
-Specification pairs one-to-one with exactly one Skill directory under the same
-stable identity. In this plugin, `skills/<skill-id>/` pairs with
-`.agent-factory/document/specification/<skill-id>/`; the Korean view is
-organized for Human readability and maps material sections to exact sources in
-that Skill instead of copying its directory or raw text. This repository does
-not create or mirror `.codex/skills/`. Consumer-project Skill roots may instead
-be below that project's `.codex/skills/`; ordinary consumer pairs use the exact
-same lowercase hyphen-case `<category>-<title>` identity at
-`.codex/skills/<category>-<title>/` and
-`.agent-factory/document/specification/<category>-<title>/`. This plugin is the
-explicit exception whose six accepted single-name pairs remain unchanged.
-
-The information roots are logical roles. A project may explicitly resolve them
-to a project server or other external backend without weakening provenance,
-authority, isolation, semantic alignment, accessibility, or security. Agent
-Factory does not silently select a backend or claim a remote implementation.
-`sync.json` contains Gather destination configuration, and gathered source
-collections remain at their resolved destinations outside `.agent-factory/`.
-Tool has no `.agent-factory/tool/` directory: its registry/state backend and
-concrete provider adapters remain unresolved. Hosts, plugins, MCP servers, and
-project manifests remain authoritative, and credentials or tokens never belong
-in the repository or Specification. Tool also does not add a sixth Workspace
-Activity; the Activity Bar contract remains exactly five items.
-
-The implemented Tool adapter is stateless and machine-readable:
-
-```bash
-python3 skills/tool/scripts/tool.py inspect --profile git.cli --target .
-python3 skills/tool/scripts/tool.py health --profile github.cli --hostname github.com --target .
-python3 skills/tool/scripts/tool.py discover --profile git-lfs.cli --target .
-python3 skills/tool/scripts/tool.py inspect --profile playwright.browser \
-  --authority-kind project-cli --target .
-```
-
-`discover`, `inspect`, and `health` run bounded read-only provider inspection.
-Lifecycle mutation verbs return a provider route with `performed: false`; the
-adapter never installs, authenticates, downloads browsers, alters repositories,
-or creates a Tool state directory. Explicit plugin, MCP, or host authority is
-preserved and reported `unknown` when no concrete provider adapter exists.
+New catalog/search and document/sync configuration are cloud-owned. Retained
+local `db.sqlite`, old Document roots, `document/sync.json` and gathered collections
+are migration inputs until import is independently verified. Preserve source data until inventoried, independently
+backed up and verified imported. Code retirement never authorizes deletion of
+Human data, source, credentials or backups. Actual tenant/account IDs and
+credential authority are never silently selected. Contract/source availability
+does not establish registration, configured accounts, deployment or
+completion of the active migration steps 1–13.
 
 Managed Agent runs accept a strict binding file on `exec.py submit`/`send`.
 The graph launcher accepts separate role-scoped binding files on `loop.py
@@ -253,24 +180,19 @@ workflows are under `skills/`.
 After installing or updating the plugin, start a new Codex thread so newly
 loaded skills and tools are available.
 
-Convention bundles `assets/AGENTS.md` and a copy-once project bootstrap:
-
-```bash
-python3 <installed-convention-skill>/scripts/init_agents.py \
-  --project-root <project-root>
-```
-
-The bootstrap refuses to overwrite any existing project-root `AGENTS.md`.
-This setup is plugin-provided because the plugin manifest does not inject
-project files.
+Convention retains `assets/AGENTS.md` as a copy-once project instruction template.
+Use existing file tools only for an authorized absent target; preserve any
+existing project `AGENTS.md`. The bootstrap manager and local domain scripts are retired. New Specification
+authoring uses the authenticated MCP `document_template` manifest and bounded
+version-bound member delivery, preserving all template bytes and licenses.
+The six existing Human packages retain their standalone representation assets.
 
 ## Workspace control tower
 
 The Workspace Skill and Human Specification remain in this plugin. The
 executable Workspace has moved to the separate `agent-factory-mcp` application,
 which owns the FastAPI host, `/mcp` transport, discovery API, canonical browser
-assets, deployment adapters, and runtime tests. Configure that application with
-the target project root and open its `/workspace/` route. No browser-shell copy
+assets, deployment adapters, and runtime tests. Resolve the authenticated organization/Workspace in that application and open its `/workspace/` route. No browser-shell copy
 or root `workspace.sh` is installed into consumer projects.
 
 ## Development
@@ -297,3 +219,15 @@ not guaranteed yet.
 ## License
 
 MIT License. See [LICENSE](LICENSE).
+
+Development checks for final pairs use the owning `agent-factory-mcp` Python
+package, not a plugin validator copy. Independent Verification can use the MCP
+development environment and run `python -m pytest ../plugin/tests` from the MCP
+checkout, with `AGENT_FACTORY_MCP_SOURCE` set to that checkout when it is not the
+usual sibling. An installed MCP development dependency also works. Missing
+required dependencies fail explicitly. The distribution and test migration map
+is maintained in [cloud-retirement.md](docs/cloud-retirement.md).
+
+Native local execution: [Fast and Goal runtime guide](docs/native-fast-goal.md)
+explains installed-backend detection, exact-session settings, Goal lifecycle,
+and recovery limits.

@@ -92,6 +92,9 @@ class AgentRuntime:
             arguments.extend(["--verified-work-run-id", verified_work_run_id])
         if capability_binding_file is not None:
             arguments.extend(["--capability-binding-file", str(capability_binding_file)])
+        reporting = execution.get("reportingConfigs", {}).get(role)
+        if reporting:
+            arguments.extend(["--reporting-config", reporting["path"], "--reporting-loop-id", execution["reportingLoopId"]])
         return self.call(arguments)
 
     def status(self, agent_id: str, run_id: str) -> dict[str, Any]:
@@ -193,6 +196,11 @@ def complete_pending_dispatch(
     except agent_exec.ContractError as error:
         if error.code != "dispatch_not_found":
             raise
+        reporting = state["execution"].get("reportingConfigs", {}).get(pending["role"])
+        if reporting:
+            config = agent_exec.cloud_reporting.read_config(agent_exec, Path(reporting["path"]))
+            if agent_exec.cloud_reporting.digest(config) != reporting["hash"]:
+                raise agent_exec.ContractError("reporting_binding_invalid", "Loop reporting configuration changed")
         acknowledgement = runtime.dispatch(
             operation=pending["operation"],
             agent_id=pending["agentId"],
@@ -217,6 +225,10 @@ def complete_pending_dispatch(
         "verifiedWorkRunId": pending["verifiedWorkRunId"],
         "operation": pending["operation"],
     }
+    reporting = state["execution"].get("reportingConfigs", {}).get(pending["role"])
+    if reporting:
+        expected_tuple["reportingConfigHash"] = reporting["hash"]
+        expected_tuple["reportingLoopId"] = state["loopId"]
     if pending.get("capabilityBindingHash") is not None:
         expected_tuple["capabilityBindingHash"] = pending["capabilityBindingHash"]
     if run.get("dispatchId") != pending["dispatchId"] or run.get("dispatchTuple") != expected_tuple:
@@ -276,6 +288,13 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
             "path": str(binding_path) if binding_path else None,
             "hash": binding_hash,
         }
+    reporting_configs = {}
+    for role in ("work", "verification"):
+        config = agent_exec.cloud_reporting.read_config(agent_exec, getattr(args, f"{role}_reporting_config", None))
+        if config is not None:
+            config_path = directory / f"{role}-reporting-config.json"
+            agent_exec.cloud_reporting.publish(agent_exec, config_path, config)
+            reporting_configs[role] = {"path": str(config_path), "hash": agent_exec.cloud_reporting.digest(config)}
     created = now()
     path = directory / "state.json"
     state = {
@@ -303,6 +322,9 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "createdAt": created,
         "updatedAt": created,
     }
+    if reporting_configs:
+        state["execution"]["reportingConfigs"] = reporting_configs
+        state["execution"]["reportingLoopId"] = loop_id
     agent_exec.atomic_write_json(path, state)
     dispatch(state, path, AgentRuntime(root), role="work", request_file=original)
     return public_state(state, state["currentChild"])
@@ -437,6 +459,8 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--codex", default="codex")
     start.add_argument("--sandbox", choices=agent_exec.SANDBOXES, default=agent_exec.DEFAULT_SANDBOX)
     start.add_argument("--model")
+    start.add_argument("--work-reporting-config", type=Path)
+    start.add_argument("--verification-reporting-config", type=Path)
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
     for name in ("status", "reconcile", "skip"):

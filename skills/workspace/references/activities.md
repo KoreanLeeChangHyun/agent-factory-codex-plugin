@@ -64,9 +64,7 @@ and does not own Gather synchronization.
 
 Processed and Specification each contain `개요` followed immediately by a
 visible `탐색기` parent row. Actual Document lists or truthful states appear
-nested under that parent. Processed discovery lists immediate local packages and
-opens a safe same-origin `index.html` when present; missing entries remain
-visible as `missing-entry`.
+nested under that parent. Processed discovery reads authorized tenant Document records and their immutable revisions, never a project-local scan. An absent browser entry remains visibly unavailable; use the authenticated package preview when available.
 
 Specification discovery compares reciprocal Human/AI binding metadata and
 reports `paired`, `misaligned`, or `missing-human`. Only paired entries are
@@ -74,25 +72,29 @@ navigable. Selecting one opens or activates its Human browser document in a
 read-only editor group. The explorer is an actual tree and supports click as the
 non-drag fallback.
 
-The detailed row geometry, short-title behavior, same-origin allowlists,
+The detailed row geometry, short-title behavior, authenticated revision delivery and isolated preview,
 keyboard model, tabs, close behavior, drag-and-drop, recursive splits, empty
 states, iframe handling, and cleanup rules belong only to
 `references/interface.md`.
 
+## Development schedule
+
+The schedule Activity is resolved as domain -> feature -> implementation issue
+planning, with a domain/feature sidebar and timeline/detail Workspace views.
+Apply the complete model and interaction contract in `planning.md`.
+
 ## Resolved and unresolved scope
 
-Resolved scope is limited to the six top-level labels and order, the seven
-External Integration categories, and the Document sidebar structure and
-read-only discovery shapes above.
+Resolved scope includes the six top-level labels and order, seven External Integration categories, Document sidebar/read-only discovery shapes, accepted planning in `planning.md`, and cloud-backed domain routing. Cloud implementation alone does not authorize new UI controls or fill undecided navigation.
 
 The following remain Human-owned and unresolved:
 
-- schedules, Agents, logs, and tests sidebar architecture and detailed
+- Agents, logs, and tests sidebar architecture and detailed
   capabilities;
 - overview content;
 - live Original source/query integration;
-- synchronization triggers and status;
-- metadata mutation authority and persistence;
+- additional synchronization UI triggers and status presentation beyond the cloud collection contract;
+- additional metadata-edit UI controls beyond the authenticated cloud Document contract;
 - External Integration category navigation, child sources, and lifecycle
   controls beyond an owner-backed projection.
 
@@ -102,7 +104,7 @@ records, metrics, controls, accounts, connection health, or capabilities.
 ## Authority boundary
 
 Workspace presents owner-backed state and routes authorized controls; it does
-not become the canonical owner. Agent owns execution and the catalog, Document
+not become the canonical owner. Agent owns local execution/graph and receipts; the cloud owns shared reporting/search. Document
 owns Documents, Gather owns external synchronization, Tool owns logical external
 tool/connector lifecycle, and each provider remains authoritative. Existing
 local discovery directories or utilities do not create an Activity or authorize

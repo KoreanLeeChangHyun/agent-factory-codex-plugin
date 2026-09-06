@@ -11,138 +11,29 @@ metadata:
 
 ## Entry contract
 
-Use this Skill to define or maintain Documents and their type-specific
-contracts. `Document` is the neutral umbrella for exactly three active types:
+Define, author, inspect and maintain exactly three logical Document types: Original (원본 문서), source-faithful evidence; Processed (가공 문서), transformed non-authoritative working knowledge; Specification (명세 문서), accepted and reconciled knowledge with one faithful Korean Human browser representation and one AI Skill under one stable identity. Never introduce a fourth type or retired role.
 
-- **Original (원본 문서):** source-faithful evidence;
-- **Processed (가공 문서):** transformations and derived working knowledge;
-- **Specification (명세 문서):** accepted and reconciled project knowledge
-  with faithful Human- and AI-facing representations.
-
-Use the conceptual ordering `Original -> Processed -> Specification`, but treat
-each arrow only as a possible derivation or evidence relationship. This is not
-a mandatory pipeline, state machine, required transition, one-to-one mapping,
-completeness or maturity claim, or automatic promotion mechanism. A Document
-may remain in one type without producing another. Relationships may be absent,
-one-to-many, many-to-one, or many-to-many. Preserve inspectable provenance when
-a relationship exists.
-
-Do not introduce Refined as a fourth active Document type or combine the three
-active type names.
-
-Use the exact Korean terms `원본 문서`, `가공 문서`, and `명세 문서` in
-Human-facing text and UI. `명세 문서` is the Korean name for the existing
-Specification type; it does not rename the logical type, identifier, metadata,
-or `specification` path. This terminology is an explicit Human decision.
-
-Gather owns external synchronization and may use a connector whose lifecycle
-is prepared through Tool; Tool does not own or produce the resulting Original
-Document. Document owns the definitions of all three types and work on
-already-resolved Document targets. Explorer may create
-Original or Processed Documents as bounded Work evidence, but it is a
-Convention-owned capability, not a public Skill, and it does not accept or
-reconcile Specification truth.
-
-Ground every material claim in explicit Human instruction, accepted project
-decisions, or inspected project evidence. Leave Human-owned priority,
-deadline, owner, acceptance, risk acceptance, and completion state unresolved
-unless the Human has decided them.
+`Original -> Processed -> Specification` expresses possible evidence/derivation only, not a required pipeline, promotion, maturity, completeness or one-to-one mapping. Relationships may be absent or many-to-many. Preserve inspectable provenance for actual relationships. Human-owned priority, dates, owner, acceptance, completion and risk acceptance require explicit decisions.
 
 ## Reference routing
 
-- `references/original.md`: Read completely whenever creating, changing,
-  inspecting, or reasoning about an Original Document. It owns source fidelity,
-  identity, provenance, collection context, source-appropriate formats, and
-  the boundary with Gather.
-- `references/processed.md`: Read completely whenever creating, changing,
-  inspecting, or reasoning about a Processed Document. It owns transformations,
-  derived working knowledge, non-authoritative status, provenance
-  relationships, and the local-adapter Markdown convention.
-- `references/specification.md`: Read completely whenever creating, editing,
-  redesigning, inspecting, or verifying a Specification. It owns accepted and
-  reconciled project knowledge, honest unresolved state, the packaged browser
-  template, the mandatory faithful Human/AI pair, and the complete AI-facing
-  Project Skill representation contract.
-- `references/adapter.md`: Read completely for any Document adapter
-  initialization, inspection/planning, physical layout or backend migration,
-  integrity-check, or recovery design or work. It distinguishes deterministic
-  physical control from semantic Document work and defines the LLM boundary,
-  closed plan/IR, fail-closed manager, pair publication, and ownership rules.
+Read each applicable reference completely:
 
-## Initialization and migration
+- `references/original.md`: source fidelity, identity and collection context.
+- `references/processed.md`: transformation, browser representation and non-authority.
+- `references/specification.md`: complete Korean/AI pair, source inventory, identity and publication.
+- `references/adapter.md`: cloud persistence, import, search, delivery, physical migration and recovery.
 
-Initialization and physical adapter/layout migration remain capabilities of
-this public Skill, not another Skill or Agent role. Initialization is
-deterministic and needs no LLM. Physical migration preserves `documentType`
-and never implies `Original -> Processed -> Specification` promotion. An LLM
-may advise on ambiguous classification, provenance, difficult transformations,
-semantic reconciliation, or synchronized Specification drafts, but its raw
-output is never executable. Only an allowlisted, versioned deterministic plan
-compiled and validated from a proposal may reach a deterministic manager after
-current-state revalidation and required Human authority. Keep uncertainty
-`unknown` or `requiresDecision` and apply the complete contract in
-`references/adapter.md`.
+## Ownership and execution
 
-## Specification pair
+The selected authenticated cloud MCP application owns new Document persistence, revision publication, indexing/search and document configuration. Read its advertised schemas and guides before using `document_import`, `document_read`, `document_write`, `document_search`, `document_index`, `document_prepare_upload` or `document_finalize_upload`. Resolve the actual authorized tenant and target; missing tools, connection or rights fail honestly without a local-backend fallback. Development implementation guides at `../mcp/docs/cloud-documents.md` are source-checkout locators, not installation requirements.
 
-A Specification is one semantic body with exactly one resolved Human-facing
-representation and exactly one resolved AI-facing Skill representation under
-the same stable identity. Always keep the two representations semantically
-synchronized. A one-sided change is incomplete and unacceptable; if
-synchronization cannot be achieved, do not report the change or run as
-completed. The Human-facing representation is HTML, CSS, and JavaScript and
-must be authored in Korean. Its AI-facing representation need not be Korean.
+Gather owns external selection and collection through cloud integrations; Document owns work on resolved Document targets. Explorer is a Convention-owned Work capability and may produce Original or Processed evidence without accepting Specification truth. Tool resolves capability/connection lifecycle; Agent owns execution authority, local sessions, graph and receipts. Workspace presents owner-backed state and never becomes an independent Document store.
 
-The one-to-one pair is storage-independent; each adapter resolves the two
-concrete locators. Under the current/default local adapter, each representation
-is a directory. In this plugin, `skills/<skill-id>/` pairs with
-`.agent-factory/document/specification/<skill-id>/`. In a consumer project
-using that adapter, the pair uses the exact lowercase hyphen-case
-`<category>-<title>` identity on both sides:
-`.codex/skills/<category>-<title>/` pairs with
-`.agent-factory/document/specification/<category>-<title>/`. This plugin is the
-explicit exception whose accepted single-name identities remain unchanged. An
-explicitly resolved external backend may use different locators, but it must
-preserve the same stable identity and exact one-to-one pair. Never aggregate
-several Skills into one Specification, pair one Skill with several
-Specifications, or mechanically copy a Skill tree into the Human view. Map
-each material Human section to exact sources within its paired Skill.
+## Publication source and completion
 
-## Boundaries
+Git owns distributable Skill authoring source. This plugin keeps its six stable pairs at `skills/<id>/` and `.agent-factory/document/specification/<id>/`; the version-controlled Korean HTML is publication source. These package-relative reciprocal locators are not consumer runtime paths or an independently editable second cloud truth. A published snapshot binds the Git repository, exact commit, content inventory and both representation hashes; cloud owns the accepted immutable published revision.
 
-Keep Explorer working material, Documents, paired Skills, and managed Agent
-session state in separate logical roles and resolved stores.
-`.agent-factory/` is the current/default local document adapter, not a
-universal canonical backend. An explicitly resolved project server, external
-store, mounted filesystem, or other backend is permitted, but do not silently
-choose, mirror, migrate, or claim implementation of one. Preserve Document
-type, provenance, authority, isolation, semantic alignment, accessibility, and
-security regardless of storage.
+Keep exactly one AI Skill and one Korean HTML/CSS/JavaScript representation per identity. Translate the complete AI instruction inventory in source order and hierarchy with exact source/line hashes. Hash coverage cannot prove meaning; obtain independent semantic review and preserve its authority evidence. A one-sided, partial, stale, reordered, duplicated, summarized or mistranslated pair is incomplete and must not be reported completed.
 
-Locally materialized Human-facing Specifications live below
-`.agent-factory/document/specification/`. The Human-facing control tower and
-browser navigation belong to `workspace`, not Document. Do not silently
-promote Explorer material, recreate retired schema/profile/manager machinery,
-or introduce Intake, Work Unit, Work Package, Project Core, Recording Agent, or
-platform subagent concepts.
-
-Under the current local adapter, each immediate directory below
-`document/original/`, `document/processed/`, or `document/specification/` is
-exactly one Document package with that directory's stable identity. Internal
-files and subdirectories belong to that package; producer, category, and legacy
-wrapper layers are not Document packages. Preserved legacy Inquery packages
-use direct `legacy-inquery-<legacy-id>` identities below `processed/` and remain
-Processed Documents whose historical status is metadata, not another type.
-
-For a new Specification, use the reusable files in `assets/document/` as the
-starting point and follow the copy-once and placeholder-refinement workflow in
-`references/specification.md`. The template is a flexible baseline for
-Specifications, not a schema for every Document.
-
-## Workspace projection
-
-Every Human-facing Specification remains directly readable from its HTML entry
-point. The `workspace` Skill may discover, navigate, and render Documents for
-Human management, but that projection does not own their semantics, change
-their type, or replace a Specification's required paired AI-facing
-representation.
+Local execution-only evidence, run records, outbox and recovery remain local. Upload required durable evidence through authorized cloud Document tools. Preserve legacy local Documents, `db.sqlite` and sync configuration until inventoried, backed up and independently verified imported; code retirement grants no data-deletion permission. This contract does not claim registration, configured accounts, deployment or full migration completion.
