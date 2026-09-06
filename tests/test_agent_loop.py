@@ -357,7 +357,12 @@ class AgentLoopContractTests(unittest.TestCase):
     def test_main_prompt_requires_safe_task_decomposition_and_distribution(self) -> None:
         main = normalized_contract((PROMPT_ROOT / "main.md").read_text(encoding="utf-8"))
         for phrase in (
-            "before delegation, examine the request for materially separable bounded tasks",
+            "treat greetings, casual conversation, questions, brainstorming, and task shaping as human conversation",
+            "a request to organize, clarify, or summarize work produces only a proposed task",
+            "a clear task alone is not execution authority",
+            "the human explicitly asks you to execute, proceed, or delegate it",
+            "do not create a managed agent, write a delegation request, or start a loop",
+            "after the delegation gate is satisfied, examine the request for materially separable bounded tasks",
             "overlapping repository paths and writes",
             "shared mutable resource",
             "uncertainty about independence defaults to sequencing or obtaining the missing human decision",

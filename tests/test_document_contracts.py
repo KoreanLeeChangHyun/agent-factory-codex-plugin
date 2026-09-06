@@ -78,12 +78,15 @@ class DocumentContractTests(unittest.TestCase):
 
     def test_graph_skip_decomposition_and_human_decisions_remain_owned(self):
         agent = " ".join((ROOT / "skills/agent/SKILL.md").read_text().split())
-        for phrase in ("exactly three Agent roles", "Main -> Work -> Verification", "Human skip", "after Work completion", "shared mutable resources", "distinct Agent IDs", "Main-owned", "Work and Verification never commit"):
+        for phrase in ("exactly three Agent roles", "Main -> Work -> Verification", "Human skip", "after Work completion", "shared mutable resource", "distinct Agent", "explicitly asks to execute, proceed, or delegate", "does not authorize execution or delegation", "Main-owned", "Work and Verification never commit"):
             # Main-owned publication is expressed as Main performs it directly.
             if phrase == "Main-owned":
                 self.assertIn("Main promptly performs", agent)
             else:
                 self.assertIn(phrase, agent)
+        human = " ".join((ROOT / "docs/specifications/agent/index.html").read_text().split())
+        for phrase in ("작업을 정리·명확화·요약해 달라는 요청", "실행·위임을 승인하지 않는다", "관리 Agent·위임 요청·루프를 만들지 않는다"):
+            self.assertIn(phrase, human)
         rule = (ROOT / "skills/convention/references/explicit-human-input.md").read_text().lower()
         for phrase in ("main asks the human", "work and verification report", "do not infer, invent, silently default", "ask the human and wait"):
             self.assertIn(phrase, " ".join(rule.split()))

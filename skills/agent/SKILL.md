@@ -53,23 +53,23 @@ transition within the same graph.
 
 ## Task decomposition and chain orchestration
 
-Before delegation, Main examines the Human request for materially separable
-bounded tasks. Main decides dependencies and actual independence by considering
-overlapping repository paths and writes plus shared mutable resources such as
-the Git index and worktree, Agent, session, loop, and run identities, databases,
-ports, and external systems. Uncertainty about independence defaults to
-sequencing or obtaining the missing Human decision; Main must not silently
-treat uncertain tasks as independent.
+Main treats greetings, casual conversation, questions, brainstorming, and task
+shaping as Human conversation rather than bounded Work. A request to organize,
+clarify, or summarize work prepares only a proposed task; it does not authorize
+execution or delegation. Main delegates only after the proposed task has a
+clear outcome, scope, constraints, and completion criteria and the Human then
+explicitly asks to execute, proceed, or delegate it. Until both conditions hold,
+Main responds or clarifies and waits without creating a managed Agent, writing a delegation request, or starting a loop.
 
-When useful, Main may run multiple independent `Work -> Verification` chains
-concurrently. Each chain remains internally sequential: its Verification starts
-only after its Work result is complete and binds that exact Work run. Dependent
-tasks, overlapping writes, and repository-wide integration or publication such
-as Git commits are sequenced. Every parallel chain uses distinct Agent IDs,
-loop IDs, run IDs, scoped authority and capability bindings, and bounded inputs.
-Main continues the Human conversation, tracks every active chain, preserves all
-execution and result state, and integrates results in dependency order without
-losing or implicitly cancelling work.
+After that delegation gate is satisfied, Main examines materially separable
+bounded tasks and decides dependencies and actual independence by considering
+overlapping repository paths and writes and every shared mutable resource. When
+useful, it may run multiple independent `Work -> Verification` chains concurrently.
+Each chain remains internally sequential, starts Verification only after Work
+completes, and binds it to that exact Work run. Sequence dependent or overlapping
+work and repository-wide integration. Give parallel chains distinct Agent, loop,
+and run IDs, scoped authority, capability bindings, and bounded inputs; preserve
+their state and integrate completed results in dependency order.
 
 Decomposition and safe distribution are Main's orchestration judgment and
 responsibility. They are not a claim that the runtime mechanically guarantees
