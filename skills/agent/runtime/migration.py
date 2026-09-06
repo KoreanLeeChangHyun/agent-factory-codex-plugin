@@ -57,6 +57,145 @@ def inventory(roots):
     return files, directories
 
 
+def runtime_owner():
+    import importlib.util
+    module = globals().get('_runtime_owner')
+    if module is None:
+        spec = importlib.util.spec_from_file_location('migration_runtime_owner', Path(__file__).parents[1] / 'scripts/exec.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        globals()['_runtime_owner'] = module
+    return module
+
+
+def writer_free(state):
+    """Stale status is not liveness; unknown identity is never writer exclusion."""
+    rt = runtime_owner()
+    observed = False
+    for key, pid_key in (('workerIdentity', 'workerPid'), ('codexIdentity', 'codexPid')):
+        identity = state.get(key)
+        if identity is not None:
+            observed = True
+            status = rt.process_identity_status(identity)
+            if status in {'match', 'unknown'}:
+                raise ValueError('live or unverifiable managed process blocks migration')
+        elif state.get(pid_key):
+            raise ValueError('unbound legacy PID requires authoritative reconciliation')
+    containment = state.get('containment')
+    if containment is not None:
+        observed = True
+        try:
+            if not rt.containment_is_empty(containment):
+                raise ValueError('populated containment blocks migration')
+        except rt.ContractError as error:
+            raise ValueError('unverifiable containment blocks migration') from error
+    if state.get('status') in ACTIVE and not observed:
+        raise ValueError('active record lacks authoritative writer exclusion')
+
+
+def tree(root):
+    """Complete relative inventory, including empty directories and object identity."""
+    root = paths.absolute(root)
+    paths.inspect(root)
+    files, directories, identities = {}, set(), {}
+    for directory, names, members in os.walk(root, followlinks=False):
+        names.sort(); members.sort()
+        here = Path(directory)
+        info = paths.inspect(here)
+        relative = here.relative_to(root).as_posix()
+        directories.add(relative)
+        identities[relative] = [info.st_dev, info.st_ino]
+        for name in names:
+            if not stat.S_ISDIR(paths.inspect(here / name).st_mode):
+                raise ValueError('unsafe directory inventory')
+        for name in members:
+            target = here / name
+            data = read_bytes(target)
+            key = target.relative_to(root).as_posix()
+            files[key] = {'size': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+            info = target.lstat()
+            identities[key] = [info.st_dev, info.st_ino]
+    return files, directories, identities
+
+
+def expected_tree(files):
+    directories = {'.'}
+    for name in files:
+        directories.update(parent.as_posix() for parent in Path(name).parents)
+    return directories
+
+
+def bounded_tree(root, files, directories=None, *, partial=False, identities=None):
+    expected_dirs = expected_tree(files) if directories is None else set(directories)
+    actual, dirs, ids = tree(root)
+    if not set(actual).issubset(files) or not dirs.issubset(expected_dirs):
+        raise ValueError('foreign file or directory in migration tree')
+    if not partial and (set(actual) != set(files) or dirs != expected_dirs):
+        raise ValueError('migration tree inventory is incomplete')
+    if any(proof != files[name] for name, proof in actual.items()):
+        raise ValueError('migration tree bytes changed')
+    if identities is not None and any(ids[name] != identities.get(name) for name in ids):
+        raise ValueError('migration tree object was replaced')
+    return actual, dirs, ids
+
+
+def source_expected(plan, binding):
+    source = Path(binding['projectRoot']) / '.agent-factory'
+    files = {Path(name).relative_to(source).as_posix(): proof for name, proof in plan['files'].items() if Path(name).is_relative_to(source)}
+    dirs = {Path(name).relative_to(source).as_posix() for name in plan['directories'] if Path(name).is_relative_to(source)}
+    return files, dirs
+
+
+def copied_inventory(plan):
+    journal = paths.read(area(plan) / 'journal.json')
+    archive_files, archive_dirs = {}, {'.'}
+    backup_files, backup_dirs = {}, {'.'}
+    projection_files, projection_dirs = {}, {'.'}
+    for binding in plan['projects']:
+        files, dirs = source_expected(plan, binding)
+        member = binding['projectId']
+        archive_dirs.update({member, *(member + '/' + name for name in dirs if name != '.')})
+        backup_dirs.update({member, *(member + '/' + name for name in dirs if name != '.')})
+        archive_files.update({member + '/' + name: proof for name, proof in files.items()})
+        backup_files.update({member + '/' + name: proof for name, proof in files.items()})
+        source = Path(binding['projectRoot']) / '.agent-factory'
+        projection = {member + '/' + Path(name).relative_to(source).as_posix(): proof
+                      for name, proof in plan['files'].items()
+                      if name in plan['mapping'] and Path(name).is_relative_to(source)}
+        projection_files.update(projection)
+        projection_dirs.update(expected_tree(projection))
+    bounded_tree(area(plan) / 'archive', archive_files, archive_dirs)
+    bounded_tree(Path(journal['backup']) / plan['planId'], backup_files, backup_dirs)
+    bounded_tree(area(plan) / 'projection', projection_files, projection_dirs)
+    return journal
+
+
+def publication_inventory(plan, binding, *, complete):
+    """Allow only manifest files and a bounded interrupted-copy prefix."""
+    root = Path(binding['agentsRoot'])
+    expected = {Path(target).relative_to(root).as_posix(): plan['files'][source]
+                for source, target in plan['mapping'].items() if Path(target).is_relative_to(root)}
+    actual, directories, _ = tree(root)
+    for name in list(actual):
+        path = Path(name)
+        if not path.name.startswith('.') or not path.name.endswith('.staging'):
+            continue
+        final = path.with_name(path.name[1:-len('.staging')]).as_posix()
+        if complete or final not in expected or final in actual:
+            raise ValueError('unowned activation staging file')
+        source = next(Path(item) for item, target in plan['mapping'].items()
+                      if Path(target) == root / final)
+        if not read_bytes(source).startswith(read_bytes(root / name)):
+            raise ValueError('activation staging prefix changed')
+        del actual[name]
+    if not set(actual).issubset(expected) or not directories.issubset(expected_tree(expected)):
+        raise ValueError('foreign file or directory in activation tree')
+    if any(proof != expected[name] for name, proof in actual.items()):
+        raise ValueError('activation bytes changed')
+    if complete and (set(actual) != set(expected) or directories != expected_tree(expected)):
+        raise ValueError('activation inventory is incomplete')
+
+
 def quiet(plan):
     """Fail closed on active records, held locks, and legacy process identities."""
     handles = []
@@ -67,19 +206,14 @@ def quiet(plan):
                 fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
                 handles.append(fd)
                 fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            if path.name == 'state.json' and '/agent/' in str(path):
+            if path.name == 'state.json' and any(part in {'agent', 'agents'} for part in path.parts):
                 try:
                     state = json.loads(read_bytes(path))
                 except (ValueError, UnicodeError):
                     continue  # Recorded archive-only, never semantically promoted.
                 if not isinstance(state, dict):
                     continue
-                if state.get('status') in ACTIVE:
-                    raise ValueError('active legacy run blocks migration')
-                for field in ('workerPid', 'codexPid'):
-                    pid = state.get(field)
-                    if isinstance(pid, int) and pid > 0 and Path(f'/proc/{pid}').exists():
-                        raise ValueError('legacy process identity must be reconciled before migration')
+                writer_free(state)
         yield
     finally:
         for fd in handles:
@@ -223,11 +357,16 @@ def reject_credentials(plan):
                 raise ValueError('raw credential fields block archive duplication')
 
 
-def copy(plan, backup):
+def validate_backup(plan, backup):
     backup = paths.absolute(backup)
     home = Path(plan['home'])
     if backup.is_relative_to(home) or home.is_relative_to(backup) or any(backup.is_relative_to(b['projectRoot']) or Path(b['projectRoot']).is_relative_to(backup) for b in plan['projects']):
         raise ValueError('backup must be independent of home and source projects')
+    return backup
+
+
+def copy(plan, backup):
+    backup = validate_backup(plan, backup)
     with quiet(plan):
         unchanged(plan)
         reject_credentials(plan)
@@ -256,43 +395,83 @@ def copy(plan, backup):
 def eligible(plan):
     """Deterministic byte evidence; this is not independent semantic acceptance."""
     unchanged(plan)
-    journal = paths.read(area(plan) / 'journal.json')
-    for directory in plan['directories']:
-        member = archive_member(plan, directory)
-        for target in (area(plan) / 'archive' / member, Path(journal['backup']) / plan['planId'] / member):
-            if not stat.S_ISDIR(paths.inspect(target).st_mode):
-                raise ValueError('archive directory inventory mismatch')
-    for filename, proof in plan['files'].items():
-        member = archive_member(plan, filename)
-        targets = [area(plan) / 'archive' / member, Path(journal['backup']) / plan['planId'] / member]
-        if filename in plan['mapping']:
-            targets.append(area(plan) / 'projection' / member)
-        for target in targets:
-            data = read_bytes(target)
-            if len(data) != proof['size'] or hashlib.sha256(data).hexdigest() != proof['sha256']:
-                raise ValueError('archive or independent backup mismatch')
+    copied_inventory(plan)
     return {'kind': 'migration-eligibility', 'planId': plan['planId'], 'eligible': True, 'independentlyVerified': False}
+
+
+def copy_binding(plan, backup=None):
+    if backup is None:
+        backup = copied_inventory(plan)['backup']
+    else:
+        backup = str(validate_backup(plan, backup))
+    return {'planId': plan['planId'], 'home': plan['home'], 'backup': backup,
+            'sourceInventoryHash': digest({'files': plan['files'], 'directories': plan['directories']}),
+            'projectionHash': digest({destination: plan['files'][source] for source, destination in plan['mapping'].items()})}
+
+
+def managed_completion(state_path, role):
+    rt = runtime_owner()
+    state_path = paths.absolute(state_path)
+    raw = rt.safe_read_json(state_path)
+    bound = paths.bind(raw['runtimeBinding'])
+    root = Path(bound['projectRoot'])
+    state = rt.find_run(root, raw['agentId'], raw['runId'])
+    if state['statePath'] != str(state_path) or state['role'] != role or state['status'] != 'completed' or not state.get('finishedAt') or not state.get('sessionId') or state.get('startDisposition') != 'started':
+        raise ValueError('migration gate requires an actually completed managed role run')
+    session = rt.load_session(root, state['agentId'])
+    if session['sessionId'] != state['sessionId'] or session['role'] != role:
+        raise ValueError('completion session/role binding mismatch')
+    request = read_bytes(Path(state['requestPath']))
+    if hashlib.sha256(request).hexdigest() != state['requestHash']:
+        raise ValueError('completion request bytes mismatch')
+    capability = None
+    if state.get('capabilityBindingPath'):
+        capability = rt.safe_read_json(Path(state['capabilityBindingPath']))
+    expected = rt.receipt_schema_document(role=role, run_id=state['runId'],
+        request_hash=state.get('receiptRequestHash') or state['requestHash'],
+        verified_work_run_id=state.get('verifiedWorkRunId'), capability_bindings=capability)
+    if rt.safe_read_json(Path(state['receiptSchemaPath'])) != expected:
+        raise ValueError('managed role receipt schema mismatch')
+    receipt = rt.validate_receipt(root, state, agent_id=state['agentId'], run_id=state['runId'])
+    response = rt.safe_read_json(Path(state['responseSchemaPath']))
+    if response.get('properties', {}).get('resultPath') != {'type': 'string', 'const': state['resultPath']}:
+        raise ValueError('completion response schema mismatch')
+    result = read_bytes(Path(state['resultPath']))
+    events = read_bytes(Path(state['eventsPath']))
+    if len(events) > rt.MAX_EVENTS_BYTES:
+        raise ValueError('completion events exceed bound')
+    terminal = False
+    for line in events.splitlines():
+        event = json.loads(line)
+        item = event.get('item', {})
+        if event.get('type') == 'item.completed' and item.get('type') == 'agent_message':
+            try:
+                terminal = json.loads(item['text']) == {'status': 'completed', 'resultPath': state['resultPath']}
+            except (ValueError, KeyError):
+                terminal = False
+    if not terminal:
+        raise ValueError('managed terminal output is absent or mismatched')
+    return state, receipt, json.loads(request), json.loads(result)
 
 
 def gate(plan, evidence):
     record = paths.read(paths.absolute(evidence))
-    expected = {'schemaVersion', 'kind', 'planId', 'decision', 'verifierRunId', 'verificationReceiptPath', 'verificationReceiptHash', 'copyWorkRequestPath', 'copyWorkReceiptPath', 'copyWorkReceiptHash'}
-    if set(record) != expected or record['schemaVersion'] != 1 or record['kind'] != 'migration-verification' or record['planId'] != plan['planId'] or record['decision'] != 'pass':
-        raise ValueError('independent migration verification evidence is missing or mismatched')
-    receipt_bytes = read_bytes(paths.absolute(record['verificationReceiptPath']))
-    receipt = json.loads(receipt_bytes)
-    if hashlib.sha256(receipt_bytes).hexdigest() != record['verificationReceiptHash'] or receipt.get('kind') != 'verification-receipt' or receipt.get('decision') != 'pass' or receipt.get('runId') != record['verifierRunId'] or receipt.get('findings') != []:
-        raise ValueError('independent Verification pass receipt mismatch')
-    request = read_bytes(paths.absolute(record['copyWorkRequestPath']))
-    work_bytes = read_bytes(paths.absolute(record['copyWorkReceiptPath']))
-    work = json.loads(work_bytes)
-    request_hash = hashlib.sha256(request).hexdigest()
-    if (plan['planId'].encode() not in request or hashlib.sha256(work_bytes).hexdigest() != record['copyWorkReceiptHash']
-            or work.get('kind') != 'work-receipt' or work.get('outcome') != 'implemented'
-            or work.get('requestHash') != request_hash or receipt.get('verifiedRequestHash') != request_hash
-            or receipt.get('verifiedWorkRunId') != work.get('runId')
-            or work.get('tests') != {'run': False, 'reason': 'work-agent-prohibited'}):
-        raise ValueError('Verification does not bind the exact plan-specific copy Work result')
+    if set(record) != {'schemaVersion', 'kind', 'workStatePath', 'verificationStatePath'} or record['schemaVersion'] != 2 or record['kind'] != 'migration-verification':
+        raise ValueError('unsupported independent migration gate')
+    binding = copy_binding(plan)
+    work, work_receipt, work_request, work_result = managed_completion(record['workStatePath'], 'work')
+    check, receipt, request, result = managed_completion(record['verificationStatePath'], 'verification')
+    if work['agentId'] == check['agentId'] or work['sessionId'] == check['sessionId']:
+        raise ValueError('copy and independent Verification must have distinct role sessions')
+    if work_request != {'schemaVersion': 1, 'kind': 'migration-copy-request', 'binding': binding} or work_result != {'schemaVersion': 1, 'kind': 'migration-copy-result', 'binding': binding}:
+        raise ValueError('copy Work does not bind exact source/projection/backup evidence')
+    verification = {'schemaVersion': 1, 'binding': binding, 'workRunId': work['runId'],
+                    'workRequestHash': work['requestHash'],
+                    'workResultHash': hashlib.sha256(read_bytes(Path(work['resultPath']))).hexdigest()}
+    if request != {**verification, 'kind': 'migration-verification-request'} or result != {**verification, 'kind': 'migration-verification-result', 'decision': 'pass'}:
+        raise ValueError('independent request/result does not bind copied inventory')
+    if receipt['decision'] != 'pass' or receipt['verifiedWorkRunId'] != work['runId'] or receipt['verifiedRequestHash'] != work['requestHash'] or check.get('verifiedWorkRunId') != work['runId'] or work_receipt['requestHash'] != work['requestHash']:
+        raise ValueError('independent pass does not bind exact copy Work')
     return record
 
 
@@ -305,14 +484,19 @@ def activate(plan, evidence):
         for binding in plan['projects']:
             destination = Path(binding['agentsRoot'])
             marker = Path(binding['runtimeRoot']) / 'migration.json'
+            expected_marker = {'schemaVersion': 1, 'planId': plan['planId'],
+                               'planPath': str(work / 'plan.json')}
             if marker.exists():
-                if paths.read(marker).get('planId') != plan['planId']:
-                    raise ValueError('another migration is active')
+                if paths.read(marker) != expected_marker:
+                    raise ValueError('migration marker is invalid or belongs to another plan')
+                publication_inventory(plan, binding, complete=True)
             elif any(destination.iterdir()):
                 pending = Path(binding['runtimeRoot']) / 'migration-pending.json'
                 if not pending.exists() or paths.read(pending) != {'planId': plan['planId']}:
                     raise ValueError('destination contains runtime work')
         journal = paths.read(work / 'journal.json')
+        for binding in plan['projects']:
+            publication_inventory(plan, binding, complete=journal['phase'] == 'activated')
         if journal['phase'] == 'activated':
             return {'kind': 'migration-activation', 'planId': plan['planId'], 'phase': 'activated'}
         paths.write(work / 'journal.json', {**journal, 'phase': 'activating'})
@@ -333,6 +517,15 @@ def activate(plan, evidence):
                     member = archive_member(plan, filename)
                     copy_member(work / 'projection' / member, Path(plan['mapping'][filename]), proof)
             paths.write(marker, {'schemaVersion': 1, 'planId': plan['planId'], 'planPath': str(work / 'plan.json')})
+        # Publication may have changed after preflight. Do not publish the
+        # activated journal until every project is complete and still closed.
+        for binding in plan['projects']:
+            marker = Path(binding['runtimeRoot']) / 'migration.json'
+            expected_marker = {'schemaVersion': 1, 'planId': plan['planId'],
+                               'planPath': str(work / 'plan.json')}
+            if paths.read(marker) != expected_marker:
+                raise ValueError('migration marker changed during activation')
+            publication_inventory(plan, binding, complete=True)
         paths.write(work / 'journal.json', {**journal, 'phase': 'activated'})
     return {'kind': 'migration-activation', 'planId': plan['planId'], 'phase': 'activated'}
 
@@ -341,35 +534,97 @@ def retire(plan, evidence, authority):
     if not authority.strip():
         raise ValueError('exact source-retirement authority reference is required')
     gate(plan, evidence)
-    journal = paths.read(area(plan) / 'journal.json')
+    journal_path = area(plan) / 'journal.json'
+    journal = copied_inventory(plan)
     if journal['phase'] not in {'activated', 'retiring', 'retired'}:
         raise ValueError('activation must precede retirement')
-    if journal['phase'] == 'retired':
-        return journal
-    # Rename each unchanged source atomically before deletion. A retry never guesses
-    # whether a changed/new .agent-factory tree is the retired source.
-    with quiet(plan) if journal['phase'] == 'activated' else contextlib.nullcontext():
-        if journal['phase'] == 'activated':
-            eligible(plan)
-            paths.write(area(plan) / 'journal.json', {**journal, 'phase': 'retiring', 'authority': authority})
+    if journal['phase'] == 'activated':
+        unchanged(plan)
+        journal['retirement'] = {}
         for binding in plan['projects']:
             source = Path(binding['projectRoot']) / '.agent-factory'
+            files, dirs = source_expected(plan, binding)
+            _, _, identities = bounded_tree(source, files, dirs)
             tomb = source.with_name('.agent-factory-retired-' + plan['planId'])
-            if source.exists():
-                if tomb.exists():
-                    raise ValueError('retirement source reappeared or conflicts')
+            if tomb.exists() or tomb.is_symlink():
+                raise ValueError('unowned retirement tombstone exists')
+            journal['retirement'][binding['projectId']] = {'identities': identities, 'renamed': False,
+                'deleted': [], 'pending': None, 'complete': False}
+        journal.update(phase='retiring', authority=authority)
+        paths.write(journal_path, journal)
+    if journal.get('authority') != authority or set(journal.get('retirement', {})) != {b['projectId'] for b in plan['projects']}:
+        raise ValueError('retirement journal/authority is missing or mismatched')
+    # Never recursively remove a source or tombstone. Every unlink/rmdir has a
+    # durable intent, exact bytes and inode binding; retries permit only that gap.
+    for binding in plan['projects']:
+        record = journal['retirement'][binding['projectId']]
+        source = Path(binding['projectRoot']) / '.agent-factory'
+        tomb = source.with_name('.agent-factory-retired-' + plan['planId'])
+        files, dirs = source_expected(plan, binding)
+        if record['complete']:
+            if source.exists() or tomb.exists() or source.is_symlink() or tomb.is_symlink():
+                raise ValueError('retired source reappeared')
+            continue
+        if source.exists() and (record['renamed'] or tomb.exists()):
+            raise ValueError('retirement source reappeared or conflicts')
+        current = tomb if tomb.exists() else source
+        remaining_files = {k: v for k, v in files.items() if k not in record['deleted']}
+        remaining_dirs = dirs - set(record['deleted'])
+        pending = record['pending']
+        if pending and (current / pending).is_symlink():
+            raise ValueError('retirement target was replaced by a link')
+        if pending and not (current / pending).exists():
+            remaining_files.pop(pending, None); remaining_dirs.discard(pending)
+            record['deleted'].append(pending); record['pending'] = None
+            paths.write(journal_path, journal)
+        if not remaining_dirs:
+            if source.exists() or tomb.exists():
+                raise ValueError('foreign tree at retired path')
+            record['complete'] = True; paths.write(journal_path, journal)
+            continue
+        bounded_tree(current, remaining_files, remaining_dirs, identities=record['identities'])
+        # Acquire surviving legacy locks; use original archived process records
+        # as well when the operational state file has already been deleted.
+        mapped = dict(plan)
+        mapped['files'] = {str(current / name): proof for name, proof in remaining_files.items()}
+        with quiet(mapped):
+            for name in files:
+                if name.endswith('/state.json') and '/runs/' in name:
+                    archived = area(plan) / 'archive' / binding['projectId'] / name
+                    try:
+                        writer_free(json.loads(read_bytes(archived)))
+                    except (ValueError, UnicodeError):
+                        source_root = Path(binding['projectRoot']) / '.agent-factory'
+                        if not any(name.startswith(Path(item['path']).relative_to(source_root).as_posix() + '/')
+                                   for item in plan['archiveOnly']
+                                   if Path(item['path']).is_relative_to(source_root)):
+                            raise
+            if current == source:
                 os.rename(source, tomb)
-            if tomb.exists():
-                # All source bytes remain in independent backup and home archive.
-                paths.inspect(tomb)
-                shutil.rmtree(tomb)
-        paths.write(area(plan) / 'journal.json', {**journal, 'phase': 'retired', 'authority': authority})
+                current = tomb
+            record['renamed'] = True; paths.write(journal_path, journal)
+            order = sorted(remaining_files) + sorted(remaining_dirs, key=lambda n: (len(Path(n).parts), n), reverse=True)
+            for name in order:
+                bounded_tree(current, remaining_files, remaining_dirs, identities=record['identities'])
+                record['pending'] = name; paths.write(journal_path, journal)
+                target = current / name
+                info = target.lstat()
+                if [info.st_dev, info.st_ino] != record['identities'].get(name):
+                    raise ValueError('retirement target object was replaced')
+                if name in remaining_files:
+                    target.unlink(); remaining_files.pop(name)
+                else:
+                    target.rmdir(); remaining_dirs.remove(name)
+                record['deleted'].append(name); record['pending'] = None
+                paths.write(journal_path, journal)
+            record['complete'] = True; paths.write(journal_path, journal)
+    journal['phase'] = 'retired'; paths.write(journal_path, journal)
     return {'kind': 'migration-retirement', 'planId': plan['planId'], 'phase': 'retired'}
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['inventory', 'plan', 'copy', 'verify-eligible', 'activate', 'retire'])
+    parser.add_argument('command', choices=['inventory', 'plan', 'copy-request', 'copy', 'verify-eligible', 'activate', 'retire'])
     parser.add_argument('--project-root', action='append', default=[])
     parser.add_argument('--runtime-home')
     parser.add_argument('--plan', type=Path)
@@ -392,7 +647,10 @@ def main(argv=None):
         else:
             plan = validate(paths.read(args.plan))
             with paths.lock(Path(plan['home']) / 'migrations'):
-                if args.command == 'copy': result = copy(plan, args.backup)
+                if args.command == 'copy-request':
+                    result = {'schemaVersion': 1, 'kind': 'migration-copy-request',
+                              'binding': copy_binding(plan, args.backup)}
+                elif args.command == 'copy': result = copy(plan, args.backup)
                 elif args.command == 'verify-eligible': result = eligible(plan)
                 elif args.command == 'activate': result = activate(plan, args.evidence)
                 else: result = retire(plan, args.evidence, args.authority_reference or '')

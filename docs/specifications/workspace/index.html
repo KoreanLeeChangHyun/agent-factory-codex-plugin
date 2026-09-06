@@ -12,9 +12,9 @@
   <script src="./app.js" defer></script>
 </head>
 <body><a class="skip" href="#content">본문으로 건너뛰기</a><header><p class="eyebrow">Agent Factory · workspace</p><h1>Human 관제탑과 개발 계획</h1><div class="meta"><span>명세 ID: workspace</span><span>AI 소스: skills/workspace/</span><span>Human 소스: specification/workspace/</span></div></header><div class="layout"><nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#source-1">Agent Factory Workspace</a><a href="#source-2">호출 메타데이터</a><a href="#source-3">Workspace 활동</a><a href="#source-4">Workspace 인터페이스</a><a href="#source-5">개발 계획: 2026-09-05 수락</a></nav><main id="content" tabindex="-1">
-<section id="source-1" data-ai-source="skills/workspace/SKILL.md" data-ai-sha256="a41f9aae911c71505b9e8cdb9d2f498cdf94476fd33c1d735d4eab1f4e9f46a9">
-<article data-source-lines="1-11" data-source-sha256="c577566a945bc586a8d6321abad081003cf5e73806b6aebd2eab1eb965b25708">
-<p>메타데이터 이름: workspace. 설명: 일정·에이전트·문서·외부연동·로그·테스트의 정확히 여섯 최상위 Activity를 가진 Human 관제탑을 제공한다. 셸·탐색 작업에 사용하며 미결정 세부를 추론하거나 투영 상태를 소유하지 않는다. 명세 ID는 workspace, Human 진입점은 .agent-factory/document/specification/workspace/index.html, AI 루트는 skills/workspace/다.</p>
+<section id="source-1" data-ai-source="skills/workspace/SKILL.md" data-ai-sha256="44ce87654695036df7f164315825618da94069d934a2f94c9cef14e3cef52844">
+<article data-source-lines="1-11" data-source-sha256="c55b0448cb2d4601c49f8cd4fc0fb5afc252b5b2f8fd281e94c1a89f47adfb5f">
+<p>메타데이터 이름: workspace. 설명: 일정·에이전트·문서·외부연동·로그·테스트의 정확히 여섯 최상위 Activity를 가진 Human 관제탑을 제공한다. 셸·탐색 작업에 사용하며 미결정 세부를 추론하거나 투영 상태를 소유하지 않는다. 명세 ID는 workspace, Human 진입점은 docs/specifications/workspace/index.html, AI 루트는 skills/workspace/다.</p>
 <h2>Agent Factory Workspace</h2>
 </article>
 <article data-source-lines="12-25" data-source-sha256="82b9d7e6f104e89513fdc5bf74f88e23636a82260627e24a158ca8fb72ff8194">
@@ -369,7 +369,7 @@
 </article>
 <p class="source">AI 원문: <code>skills/workspace/references/interface.md</code></p>
 </section>
-<section id="source-5" data-ai-source="skills/workspace/references/planning.md" data-ai-sha256="9fd0df66d3a94e9b215a472df4a6d2c0a522fe8564ff311df57410d9c9c165a5">
+<section id="source-5" data-ai-source="skills/workspace/references/planning.md" data-ai-sha256="98046584625b9a63123b581edc5564ec16c973f23bd094cb29f035024fe9b2f9">
 <article data-source-lines="1-7" data-source-sha256="97262881ec8291a840f21ac9fc3298f1be6a82b7f59c3d9bff34633364c303c0">
 <h2>개발 계획: 2026-09-05 수락</h2>
 <p>Human은 기존 작업 표시줄 -&gt; 기본 사이드바 -&gt; 작업 영역 셸의 일정 Activity 구현을 수락했다. 개발 계획만 해결하며 다른 Activity·백그라운드 작업 예약은 바꾸지 않는다. 선택 MCP가 테넌트 PostgreSQL 계획 기록을 소유한다.</p>
@@ -428,11 +428,14 @@
 <p>작업 이름에는 *와 HTML required를 적용하고 폼에서 * 필수 항목을 설명한다. 날짜 등 선택 항목에는 별도 선택 문구나 별표를 붙이지 않는다. API·MCP 안내, 패키지 안내 문서, 검사와 Human·AI 명세를 일치시킨다.</p>
 <p>타임라인 위치·너비는 서버의 style-src self 보안 정책 아래에서도 적용되어야 한다. HTML style 속성 대신 개별 CSSOM 속성으로 수치 위치·너비를 지정한다. 날짜 눈금·오늘 설명은 간결한 헤더에 두고 출시 날짜는 화면 요약에 표시하며 본문 기준선이 작업 기간·출처 설명을 가리지 않게 한다. 브라우저 검사도 같은 보안 정책에서 실제 배치 치수를 확인한다.</p>
 </article>
-<article data-source-lines="178-198" data-source-sha256="9f4c813b490934643190eac560498c661920e6714014a05c268fa77a6db8212e">
+<article data-source-lines="178-216" data-source-sha256="f60c2fb2a4c9cb9ababa655b554cd9b68174db469647e3ea6d53c01f138497f7">
 <h3>전체 일정 디자인: 2026-09-06 수락</h3>
 <p>GitHub Projects 로드맵, Notion의 표와 타임라인 분리, Jira의 상하위 일정 막대를 참고한다. 왼쪽 고정 작업 열은 넓은 화면 280px·좁은 화면 220px로 두고 이름·상태와 기간을 두 줄로 표시한다. 하위 작업은 들여쓰기한다. 날짜가 없으면 왼쪽에 기간 미정만 쓰며 오른쪽 날짜 영역은 비운다. 최상위 출처는 직접 지정·집계·직접 지정·집계 조합 배지로 간결하게 표시하고 title에 날짜별 설명을 제공한다. 상세 화면에는 날짜별 출처를 계속 표시한다.</p>
 <p>최상위 요약 막대와 하위 일반 막대는 같은 날짜 축을 사용한다. 날짜 하나만 알면 정확한 날짜를 접근성 이름에 포함한 점으로 표시하며 기간을 추정하지 않는다. 충돌 기간에는 잘못된 막대를 그리지 않고 화면 밖 날짜에는 이동 동작을 제공한다. 헤더는 52px로 낮추며 오늘 설명과 얇은 본문 선, 요약의 출시 날짜와 별도 얇은 선, 날짜에 맞춘 옅은 세로 안내선을 둔다. CSP를 지키는 개별 CSSOM 위치 계산·키보드 동작·막대 접근성 상태·영역별 스크롤을 유지한다.</p>
 <p>참고: <a href="https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-roadmap-layout">GitHub Projects</a>, <a href="https://www.notion.com/help/timelines">Notion Timeline</a>, <a href="https://support.atlassian.com/jira-software-cloud/docs/what-is-the-timeline-and-how-do-i-use-it/">Jira Timeline</a>.</p>
+<p>일반 타임라인 행은 이름 20px·기간 18px와 작은 여백으로 약 44px로 유지한다. 경고가 있으면 늘어날 수 있다. 날짜가 모두 없는 편집 가능 작업의 기간 미정은 키보드로 누를 수 있는 버튼이며 기존 편집창을 열고 날짜 입력에 초점을 둔다. 조회자는 일반 문구로 본다. 기존 저장·취소·검증·리비전·재조회 동작을 사용한다.</p>
+<p>전체 일정 화면은 제목·조작부·기간 요약 아래 남은 작업 영역 높이를 타임라인이 채우는 세로 레이아웃을 사용한다. 타임라인이 남은 세로 스크롤을 소유하며 캔버스·날짜 안내선·오늘과 출시 기준선을 하단까지 잇는다. 타임라인 아래에 별도 빈 영역을 만드는 화면 높이 기반 최대 높이는 제거한다. 상세·가져오기 화면은 일반 문서 스크롤을 유지한다.</p>
+<p>전체 맞춤을 끈 기본 보기에서는 알려진 모든 작업 기간과 출시 목표일까지 날짜 캔버스에 포함한다. 선택한 주·월 단위의 간격을 유지한 채 캔버스 폭을 늘리고, 추가 기간은 타임라인 내부 가로 스크롤로 탐색한다. 전체 맞춤을 켰을 때만 전체 기간을 현재 작업 영역 폭에 압축한다.</p>
 </article>
 <p class="source">AI 원문: <code>skills/workspace/references/planning.md</code></p>
 </section>

@@ -75,6 +75,7 @@ sys.path.insert(0, str(SKILL_ROOT / "runtime"))
 import cloud_reporting
 import native_codex
 import paths as runtime_paths
+import permissions as runtime_permissions
 VALID_ROLES = {"main", "work", "verification"}
 CAPABILITY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 AUTHORITY_KINDS = {
@@ -1381,7 +1382,7 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
         codex = str(Path(codex).resolve(strict=True))
     options = requested_execution(args)
     if options.get("fast") is True or options.get("goalMode") is True:
-        capabilities = native_codex.inspect_capabilities(codex)
+        capabilities = native_codex.inspect_capabilities(codex, refresh=True, runtime_home=runtime_paths.resolve(project_root, create=True)["home"])
         for key, field in (("fast", "fast"), ("goalMode", "goal")):
             if options.get(key) is True and not capabilities["submit"][field]:
                 raise ContractError("native_unsupported", capabilities["diagnostic"] or f"Native {field} unsupported")
@@ -1969,6 +1970,8 @@ def build_codex_command(
     common = ["--json", "--output-schema", str(state["responseSchemaPath"])]
     if session.get("backend") == "app-server":
         return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"])]
+    if session["sandbox"] == "read-only":
+        common.extend(runtime_permissions.arguments(Path(state["statePath"]).parent))
     if session["sandbox"] == "workspace-write":
         common.extend(["-c", "sandbox_workspace_write.writable_roots=" + json.dumps([str(Path(state["statePath"]).parent)])])
     if session.get("fast") is False:
@@ -1986,8 +1989,7 @@ def build_codex_command(
             "exec",
             "--cd",
             str(session["projectRoot"]),
-            "--sandbox",
-            str(session["sandbox"]),
+            *([] if session["sandbox"] == "read-only" else ["--sandbox", str(session["sandbox"])]),
             *common,
             "-",
         ]
@@ -1996,8 +1998,7 @@ def build_codex_command(
         "exec",
         "--cd",
         str(session["projectRoot"]),
-        "--sandbox",
-        str(session["sandbox"]),
+        *([] if session["sandbox"] == "read-only" else ["--sandbox", str(session["sandbox"])]),
         "resume",
         *common,
         session_id,
@@ -2722,7 +2723,7 @@ def find_run(project_root: Path, agent_id: str, run_id: str) -> dict[str, Any]:
                         "eventsPath": "events.jsonl", "heartbeatPath": "heartbeat.json",
                         "responseSchemaPath": "response.schema.json", "receiptPath": "receipt.json",
                         "receiptSchemaPath": "receipt.schema.json", "capabilityBindingPath": "capability-bindings.json"}.items():
-        if field in state and state[field] != str(path.parent / name):
+        if state.get(field) is not None and state[field] != str(path.parent / name):
             raise ContractError("state_invalid", "run file path escaped its managed binding")
     return state
 

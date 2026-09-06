@@ -43,14 +43,23 @@ for name in ('TurnStartParams', 'ThreadStartParams', 'ThreadResumeParams'):
         self.cache = self.root / 'runtime/cache/native-capabilities/capabilities.json'
 
     def probe(self):
-        return native.inspect_capabilities(str(self.binary))
+        return native.inspect_capabilities(str(self.binary), refresh=True,
+                                           runtime_home=self.root / 'runtime')
 
     def count(self):
         return len((self.root / 'probes').read_text().splitlines())
 
     def child(self):
-        source = 'import sys; sys.path.insert(0, sys.argv[1]); import native_codex; native_codex.inspect_capabilities(sys.argv[2])'
-        return subprocess.Popen([sys.executable, '-c', source, str(Path(native.__file__).parent), str(self.binary)], env=dict(os.environ))
+        source = 'import sys; sys.path.insert(0, sys.argv[1]); import native_codex; native_codex.inspect_capabilities(sys.argv[2], refresh=True, runtime_home=sys.argv[3])'
+        return subprocess.Popen([sys.executable, '-c', source, str(Path(native.__file__).parent),
+                                 str(self.binary), str(self.root / 'runtime')], env=dict(os.environ))
+
+    def test_pure_query_does_not_create_or_change_runtime_home(self):
+        runtime_home = self.root / 'runtime'
+        before = runtime_home.exists()
+        result = native.inspect_capabilities(str(self.binary), runtime_home=self.root / 'runtime')
+        self.assertTrue(result['submit']['fast'])
+        self.assertEqual(before, runtime_home.exists())
 
     def test_calls_and_processes_reuse_success(self):
         first = self.probe()

@@ -21,7 +21,7 @@ except ImportError as exc:
 def fixture_pair(files, name, ai=None, human=None):
     """Synthetic review input for structural tests; never publication/semantic evidence."""
     ai = ai or f"skills/{name}"
-    human = human or f".agent-factory/document/specification/{name}"
+    human = human or f"docs/specifications/{name}"
     return Pair(specification_id=name, ai_root=ai, human_root=human,
                 git_repository="https://example.invalid/structural-test", git_commit="0" * 40,
                 review={"reviewer": "structural-test-fixture", "evidence": "Synthetic test only; independent semantic review remains required.",
@@ -31,7 +31,7 @@ def fixture_pair(files, name, ai=None, human=None):
 
 def source_files(root, name):
     result = {}
-    for prefix in (f"skills/{name}", f".agent-factory/document/specification/{name}"):
+    for prefix in (f"skills/{name}", f"docs/specifications/{name}"):
         for path in (root / prefix).rglob("*"):
             if "__pycache__" in path.parts or path.suffix in {".pyc", ".pyo"}:
                 continue

@@ -3,7 +3,7 @@ name: workspace
 description: Provide the Human-facing Agent Factory control tower with exactly six top-level Activities for schedule, Agents, Documents, external integrations, logs, and tests. Use for Workspace shell and navigation work; do not infer undecided Activity details or own the projected state.
 metadata:
   specification-id: workspace
-  human-entry: .agent-factory/document/specification/workspace/index.html
+  human-entry: docs/specifications/workspace/index.html
   ai-root: skills/workspace/
 ---
 

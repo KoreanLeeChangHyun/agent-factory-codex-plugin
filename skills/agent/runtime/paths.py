@@ -228,14 +228,16 @@ def rebind(home, identity, old_root, new_root):
             raise ValueError('rebind source mismatch or destination already registered')
         runtime = base / 'projects' / identity
         # Never move a live session to a different working directory.
-        states = list((runtime / 'agents').glob('*/runs/*/state.json')) + list((runtime / 'agents').glob('*/loops/*/state.json'))
-        for state in states:
-            if read(state).get('status') in {'active', 'accepted', 'queued', 'starting', 'running', 'cancelling'}:
-                raise ValueError('active runs block project rebind')
-        history = read(runtime / 'relocation.json')['fromRoots'] if (runtime / 'relocation.json').exists() else []
-        write(runtime / 'relocation.json', {'schemaVersion': 1, 'fromRoots': list(dict.fromkeys([*history, old])), 'projectRoot': new})
-        value['projects'][identity] = new
-        write(base / 'registry.json', value)
+        import migration
+        members = {str(path): {} for path in (runtime / 'agents').rglob('*') if path.is_file()}
+        with migration.quiet({'files': members}):
+            for state_path in (runtime / 'agents').glob('*/loops/*/state.json'):
+                if read(state_path).get('status') == 'active':
+                    raise ValueError('unfinished loop blocks project rebind')
+            history = read(runtime / 'relocation.json')['fromRoots'] if (runtime / 'relocation.json').exists() else []
+            write(runtime / 'relocation.json', {'schemaVersion': 1, 'fromRoots': list(dict.fromkeys([*history, old])), 'projectRoot': new})
+            value['projects'][identity] = new
+            write(base / 'registry.json', value)
     _BINDINGS.pop(old, None)
     _BINDINGS.pop(new, None)
     return resolve(Path(new), home=base, project_id=identity)
@@ -263,17 +265,41 @@ def project_json(path, value):
             raise ValueError('invalid migration overlay')
         plan = migration.validate(read(expected), historical=True)
         mapping = plan['mapping']
-    def transform(item, key=''):
-        if isinstance(item, dict):
-            # Credential references, report recipient and immutable dispatch hashes
-            # retain their original exact values; only filesystem locators map.
-            return {k: transform(v, k) for k, v in item.items()}
-        if isinstance(item, list):
-            return [transform(v, key) for v in item]
-        if isinstance(item, str) and (key.endswith('Path') or key in {'path', 'const'}):
-            return mapping.get(item, item)
+    import copy
+    result = copy.deepcopy(value)
+    def locator(item):
+        if not isinstance(item, str) or not marker.exists():
+            return item
+        candidate = absolute(item)
+        for project in sorted(plan['projects'], key=lambda p: len(p['projectRoot']), reverse=True):
+            old = Path(project['projectRoot']) / '.agent-factory' / 'agent'
+            if not candidate.is_relative_to(old):
+                continue
+            rel = candidate.relative_to(old)
+            # Root-bound Agent locators, including not-yet-created outputs.
+            if len(rel.parts) < 2 or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,63}', rel.parts[0]):
+                raise ValueError('invalid legacy Agent locator')
+            return str(Path(project['agentsRoot']) / rel)
         return item
-    result = transform(value)
+    fields = {'statePath', 'requestPath', 'resultPath', 'eventsPath', 'heartbeatPath',
+              'responseSchemaPath', 'receiptPath', 'receiptSchemaPath', 'capabilityBindingPath',
+              'nativeSessionPath', 'originalRequestPath'}
+    for key in fields.intersection(result):
+        result[key] = locator(result[key])
+    if path.name == 'response.schema.json':
+        field = result.get('properties', {}).get('resultPath', {})
+        if 'const' in field:
+            field['const'] = locator(field['const'])
+    if '/loops/' in str(path):
+        pending_dispatch = result.get('pendingDispatch')
+        if isinstance(pending_dispatch, dict):
+            for key in ('requestPath', 'capabilityBindingPath'):
+                if key in pending_dispatch:
+                    pending_dispatch[key] = locator(pending_dispatch[key])
+        for collection in (result.get('capabilityBindings', {}), result.get('execution', {}).get('reportingConfigs', {})):
+            for entry in collection.values():
+                if isinstance(entry, dict) and 'path' in entry:
+                    entry['path'] = locator(entry['path'])
     if path.name in {'session.json', 'native-session.json'} or '/loops/' in str(path):
         relocation = runtime / 'relocation.json'
         if relocation.exists():

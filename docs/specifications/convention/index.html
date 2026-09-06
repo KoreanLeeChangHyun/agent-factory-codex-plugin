@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="agent-factory:specification-id" content="convention"><meta name="agent-factory:ai-root" content="skills/convention/"><meta name="agent-factory:ai-binding-entry" content="skills/convention/SKILL.md"><title>공통 규칙과 코어 모델</title><link rel="stylesheet" href="./styles.css"><script src="./app.js" defer></script></head><body><a class="skip" href="#content">본문으로 건너뛰기</a><header><p class="eyebrow">Agent Factory · convention</p><h1>공통 규칙과 코어 모델</h1><div class="meta"><span>명세 ID: convention</span><span>AI 소스: skills/convention/</span><span>Human 소스: specification/convention/</span></div></header><div class="layout"><nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#source-1">Agent Factory Convention</a><a href="#source-2">호출 메타데이터</a><a href="#source-3">프로젝트 지시 템플릿</a><a href="#source-4">Agent Factory 코어 모델</a><a href="#source-5">주석 규칙</a><a href="#source-6">디자인 규칙</a><a href="#source-7">개발 규칙</a><a href="#source-8">도식</a><a href="#source-9">행동 도식</a><a href="#source-10">ERD 도식</a><a href="#source-11">시퀀스 도식</a><a href="#source-12">소스·로컬 런타임·클라우드 배치</a><a href="#source-13">명시적 Human 입력 규칙</a><a href="#source-14">Explorer 역량 규칙</a><a href="#source-15">Interview 역량 규칙</a><a href="#source-16">권장 라이브러리</a><a href="#source-17">SVG 아이콘만 사용</a><a href="#source-18">테스트 규칙</a></nav><main id="content" tabindex="-1">
-<section id="source-1" data-ai-source="skills/convention/SKILL.md" data-ai-sha256="77e14764c6042190c8e83eb5c8c7f07c4280feccc341562a3fe33d702f56a79f">
-<article data-source-lines="1-11" data-source-sha256="01281dd0278e301a9f2d1f19c34cac9fcd54887b337f2c13625c7b8bd7808acf">
-<p>메타데이터: 이름과 명세 식별자는 convention이며, Human 진입점은 .agent-factory/document/specification/convention/index.html, AI 루트는 skills/convention/ 이다. 이 메타데이터는 배포 소스 패키지 안의 상호 연결을 보존한다.</p>
+<section id="source-1" data-ai-source="skills/convention/SKILL.md" data-ai-sha256="4905c8d87ddd190b5c1371f1786c0f1711aac7e4951514376a6e363d146668ad">
+<article data-source-lines="1-11" data-source-sha256="7117ec3ec0bdb3273005445a9e8d7e1762ad2c7a4828887d7d25e8b27fd6ed37">
+<p>메타데이터: 이름과 명세 식별자는 convention이며, Human 진입점은 docs/specifications/convention/index.html, AI 루트는 skills/convention/ 이다. 이 메타데이터는 배포 소스 패키지 안의 상호 연결을 보존한다.</p>
 <p>설명 메타데이터: Agent Factory 코어 모델과 프로젝트 구조·개발·테스트·라이브러리·디자인·주석·문서 유형·Skill 소유권의 공통 규칙을 적용한다.</p>
 <h2>Agent Factory Convention</h2>
 </article>
@@ -13,11 +13,11 @@
 <p>저장소와 독립적인 문서 유형은 Original, Processed, Specification 세 개다. 개념 순서는 가능한 파생·증거만 나타내며 파이프라인·성숙도·필수 전환·완전성·자동 승격이 아니다. 관계는 없거나 어떤 대응 수든 가능하며 실제 이력을 보존한다. 원본은 기본·출처 적합 형식의 충실도·식별자를 보존한다. 가공은 비권위적 변환 작업 지식이며 수락된 이동 가능한 HTML·CSS·JavaScript 패키지를 쓴다. 기존 Inquery 패키지는 비활성 가공 증거이며 다른 유형·활성 형식 선례가 아니다.</p>
 <p>모든 명세는 안정적 식별자 하나 아래 AI Skill 하나와 한국어 Human HTML·CSS·JavaScript 본문 하나를 갖는다. 정확한 출처·연속 줄 해시로 전체 의미·순서·계층·이력을 보존한다. 부분·한쪽만·오래됨·중복·재정렬·요약·오역 쌍은 완료할 수 없다. 독립 의미 검토와 해시 범위는 별개다. Document가 완전한 쌍 게시·이관 계약을 소유한다.</p>
 </article>
-<article data-source-lines="22-33" data-source-sha256="0cc8f0443c439527ecc35067ab99196fcc3baac3cbbb991d2d50c9adc72ce829">
+<article data-source-lines="22-33" data-source-sha256="fe431a1496385c0c7fa6fe8eef2fd6fb542b37eaf0f9c2a3a048b9c36e817d27">
 <h3>클라우드와 로컬 소유권</h3>
 <p>Human이 선택한 클라우드 MCP 애플리케이션이 새 문서 저장·검색·게시, 연결·인증·수집 설정, 공유 보고와 Workspace 구현을 소유한다. 새 도메인 작업은 인증된 도구가 제공하는 스키마·안내를 읽고 해당 도구를 쓴다. 역량·연결·테넌트·범위가 없으면 정직하게 실패를 보고한다. 기존 로컬 스크립트 우회, 계정 ID 발명, 로컬 MCP·공급자 서비스 생성을 하지 않는다.</p>
 <p>로컬 exec.py, loop.py, 역할 프롬프트와 최소 런타임 의존성은 로컬 세션·프로세스와 실행 사실·그래프 전환·영수증의 권위를 유지한다. 로컬 실행·발신함·복구 상태는 로컬에 남는다. 제한된 Git·도구 조사에는 기존 셸·파일 도구를 쓰고 필요한 증거를 승인된 클라우드 Document 도구로 업로드한다. 공유 보고는 로컬 실행을 시작·완료하지 않는다. 계획 작업 상태는 백그라운드 작업·런타임 관찰과 별개다.</p>
-<p>Git은 배포 Skill 작성 소스를 소유한다. 플러그인의 skills/&lt;id&gt;/와 .agent-factory/document/specification/&lt;id&gt;/는 상호 게시 소스 패키지이며 소비자 로컬 런타임 저장소나 독립 편집 클라우드 진실이 아니다. 여섯 이름·메타데이터 식별자를 유지하고 저장소 .codex/에 복제하지 않는다. 소비자 Project Skill은 Human이 확인한 &lt;category&gt;-&lt;title&gt; 이름을 보존한다. 소스 패키지·설치 Skill·클라우드 리비전 위치를 구분한다. 게시된 완전한 쌍은 Git 저장소·정확한 커밋·목록·검토된 표현 해시에 결속되며 클라우드가 수락된 불변 리비전을 소유한다.</p>
+<p>Git은 배포 Skill 작성 소스를 소유한다. 플러그인의 skills/&lt;id&gt;/와 docs/specifications/&lt;id&gt;/는 상호 게시 소스 패키지이며 소비자 로컬 런타임 저장소나 독립 편집 클라우드 진실이 아니다. 여섯 이름·메타데이터 식별자를 유지하고 저장소 .codex/에 복제하지 않는다. 소비자 Project Skill은 Human이 확인한 &lt;category&gt;-&lt;title&gt; 이름을 보존한다. 소스 패키지·설치 Skill·클라우드 리비전 위치를 구분한다. 게시된 완전한 쌍은 Git 저장소·정확한 커밋·목록·검토된 표현 해시에 결속되며 클라우드가 수락된 불변 리비전을 소유한다.</p>
 <p>새 카탈로그·검색과 문서·동기화 설정은 클라우드 소유다. 남아 있는 .agent-factory/db.sqlite, 기존 로컬 문서·동기화 설정은 가져오기가 독립 검증될 때까지 이관 입력이다. 로컬 도메인 실행 파일은 퇴역했고 재사용 Document 저작 자원은 MCP 패키지 소유다. 목록화·독립 백업·가져오기 검증 전까지 데이터를 보존하며 코드 폐기는 삭제 권한이 아니다. 계약 변경에서 등록·설정 계정·배포·전체 이관 완료를 주장하지 않는다.</p>
 <p>Workspace는 일정, 에이전트, 문서, 외부연동, 로그, 테스트 순서의 정확히 여섯 Activity를 가진 Human 관제탑이다. 상세 수락 구조·계획·Human 소유 미결정은 Workspace 참조가 소유한다. MCP 애플리케이션이 셸·자산을 소유하므로 소비자 프로젝트에 브라우저 런타임을 복사하지 않는다. Tool은 논리 생명주기 경로를 소유하고 실제 호스트·공급자·클라우드 자격증명 권위는 상태를 유지한다. Tool 준비 상태는 실행 권한·자동 범위 확대를 주지 않는다.</p>
 </article>
@@ -66,17 +66,17 @@
 </article>
 <p class="source">AI 원문: <code>skills/convention/assets/AGENTS.md</code></p>
 </section>
-<section id="source-4" data-ai-source="skills/convention/references/agent-factory-core.md" data-ai-sha256="72bf0813fef1dfc7c2fcab1a231145c97063b2f2c72ee87f1059729429e6217a">
+<section id="source-4" data-ai-source="skills/convention/references/agent-factory-core.md" data-ai-sha256="6edd6e4c343edf6d97c37378dad370fcca597d2125e014666993bea0a3b080e6">
 <article data-source-lines="1-2" data-source-sha256="615e17afdb16c6c1fd5929e842947b0151157b3868969a89e105e3d71bed67b3">
 <h2>Agent Factory 코어 모델</h2>
 </article>
-<article data-source-lines="3-30" data-source-sha256="391764536bbcb02190ce507ff6005c59566d6c507c737177dd4e9bfb353f016f">
+<article data-source-lines="3-30" data-source-sha256="aa6530b47a86be4ac580f97483bdce389b61f4c691f948e5b5302c4d2b382810">
 <h3>권위와 식별자</h3>
 <p>공개 배포 Skill은 agent, convention, document, gather, tool, workspace 여섯 개이며 코어 역량은 이 여섯 개와 Explorer·Interview를 합한 여덟 개다. Explorer·Interview는 Agent 역할이 적용하는 Convention 소유 역량으로 공개 Skill·추가 Agent 노드가 아니다.</p>
 <p>명세 하나는 안정적 식별자 하나 아래 확인된 AI Skill 하나와 한국어 Human 브라우저 문서 하나를 갖는 수락 의미 본문이다. 구체 위치는 어댑터가 확인하며 외부 백엔드는 일대일 쌍을 유지하면서 다른 위치를 쓸 수 있다. 두 표현은 동일한 출처 순서·계층·의미·식별자·이력을 보존한다. 상호 메타데이터만으로 정렬을 증명하지 못한다. 한쪽 변경은 미완료·허용 불가이며 완료로 보고하지 않는다. 부분·오래됨·재정렬·중복·요약·오역도 실패 처리한다.</p>
 <p>이 저장소의 convention 쌍은 다음과 같다.</p>
 <pre><code class="language-text">skills/convention/
-.agent-factory/document/specification/convention/</code></pre>
+docs/specifications/convention/</code></pre>
 <p>저장소 로컬 .codex/skills/ 복제본을 만들지 않는다. 탐색·표·도식은 전체 Human 번역을 보완할 수 있지만 대체·반복하지 못한다.</p>
 </article>
 <article data-source-lines="31-36" data-source-sha256="9f836f1ffeb04dea4f9168c67f0c30b2728f64466a1b4b6d16e90111f2ac9c79">
@@ -544,18 +544,18 @@
 </article>
 <p class="source">AI 원문: <code>skills/convention/references/diagrams/sequence.md</code></p>
 </section>
-<section id="source-12" data-ai-source="skills/convention/references/directory-structure.md" data-ai-sha256="65c47a97155c5c2b2300b3d21130cef7ee13619cd2873c8c7b83309cf605fcbb">
+<section id="source-12" data-ai-source="skills/convention/references/directory-structure.md" data-ai-sha256="46be5e0ed861faa39047f894843bb1e70de44eec020d538edf863fc658b2bf8a">
 <article data-source-lines="1-2" data-source-sha256="5f164da2d9387c290b9eb2285f8ec5e506a267ed445c02c7028f68236351307e">
 <h2>소스·로컬 런타임·클라우드 배치</h2>
 </article>
-<article data-source-lines="3-8" data-source-sha256="d3aef9ed368e6bfe7210ce09262fa5ab52d04e34bf06ce8e1f1eed7ca5ca5c1c">
+<article data-source-lines="3-8" data-source-sha256="e0ce00812cb2c5ce06dcb0914496a41fe89ce95899429db3bab37c3c9cfad25d">
 <h3>배포 소스와 설치</h3>
-<p>플러그인의 여섯 배포 Skill은 &lt;plugin-root&gt;/skills/&lt;id&gt;/ 아래 두며 저장소 .codex/에 복제하지 않는다. 각각 &lt;plugin-root&gt;/.agent-factory/document/specification/&lt;id&gt;/의 버전 관리 한국어 게시 소스와 짝을 이룬다. 상호 메타데이터는 패키지 상대 위치이며 여섯 단일 이름 식별자를 보존한다. 이는 소스 패키지이며 소비자 문서 백엔드 루트가 아니다.</p>
+<p>플러그인의 여섯 배포 Skill은 &lt;plugin-root&gt;/skills/&lt;id&gt;/ 아래 두며 저장소 .codex/에 복제하지 않는다. 각각 &lt;plugin-root&gt;/docs/specifications/&lt;id&gt;/의 버전 관리 한국어 게시 소스와 짝을 이룬다. 상호 메타데이터는 패키지 상대 위치이며 여섯 단일 이름 식별자를 보존한다. 이는 소스 패키지이며 소비자 문서 백엔드 루트가 아니다.</p>
 <p>일반 소비자의 자체 Project Skill은 .codex/skills/ 아래 수락된 소문자 하이픈 &lt;category&gt;-&lt;title&gt; 식별자를 쓴다. 소스 패키지·설치 Skill·클라우드 불변 리비전 위치는 따로 확인해 표현 하나를 결속하며 여러 편집 진실을 만들지 않는다. Git이 배포 작성을 소유하고 클라우드 게시는 저장소·정확한 커밋·전체 목록·검토된 완전 Human·AI 쌍에 결속된다. 개발 형제 경로 ../mcp를 설치 경로로 고정하지 않는다.</p>
 </article>
-<article data-source-lines="9-20" data-source-sha256="f827a97a811e3afc7f934eeb4ff177299ef35de1e5618f9d5d1ec44fd498d561">
+<article data-source-lines="9-20" data-source-sha256="538150fbcf1cad86d243399e764ff7b3b7030116c2852708da9fa520d7f9ae24">
 <h3>로컬 Agent 런타임</h3>
-<pre><code class="language-text">&lt;project-root&gt;/.agent-factory/agent/&lt;agent-id&gt;/
+<pre><code class="language-text">&lt;runtime-home&gt;/projects/&lt;project-id&gt;/agents/&lt;agent-id&gt;/
   session.json
   runs/&lt;run-id&gt;/</code></pre>
 <p>Agent가 운영 세션·실행 상태·요청·결과·영수증·하트비트와 이벤트·로컬 보고 발신함과 확인·복구를 소유한다. 기존 exec·loop 진입점·필수 지원 모듈·확장 경로와 배치 호환성을 유지한다. 실행 전용 임시 Explorer 자료는 생성 실행에 남으며 독립 루트가 없다. 자격증명은 소유 권위에 남고 런타임 증거나 버전 관리에 들어가지 않는다.</p>
@@ -604,7 +604,7 @@
 </article>
 <p class="source">AI 원문: <code>skills/convention/references/explicit-human-input.md</code></p>
 </section>
-<section id="source-14" data-ai-source="skills/convention/references/explorer.md" data-ai-sha256="66965719dcc903d4802d3bb78e225a64682414cb527bdd93bd08e7516d963deb">
+<section id="source-14" data-ai-source="skills/convention/references/explorer.md" data-ai-sha256="7d3ef08efb1c480656b4ebdcdf14245b276b5ca89f715273beff7bf650acb84e">
 <article data-source-lines="1-2" data-source-sha256="7ba5e88bda06186d59267711a6e07c11f2b65a366f60f7da02f08395b1ea6fec">
 <h2>Explorer 역량 규칙</h2>
 </article>
@@ -614,7 +614,7 @@
 <p>Explorer는 공개 배포 Skill·Agent 역할이 아니다. Agent 그래프 아래 Work가 제한 작업으로 수행하며 이 참조가 영속 정보·권위 제약을 소유한다.</p>
 <p>원본은 다양한 기본·출처 적합 형식을 유지할 수 있으며 충실도·식별자·이력·수집 맥락을 보존해야 한다. 가공 유형은 저장소와 독립적이다. 활성 출력은 수락된 이동 가능한 HTML·CSS·JavaScript 브라우저 패키지와 승인된 클라우드 Document 저장을 쓴다. 기존 Inquery 산출물은 활성 대상·형식 선례가 아니다.</p>
 </article>
-<article data-source-lines="20-48" data-source-sha256="a38ba4dc78b2677addbaa797fdd7a664d6d0ffbc25a1fbcee8955d8b92a15839">
+<article data-source-lines="20-48" data-source-sha256="abf6560e8f11a082844a27dba4b68e862dc49692efe97de2923edcb1216f829d">
 <h3>출처 이력과 권위</h3>
 <ul>
 <li>나중에 조회할 수 있을 만큼 출처 식별자·위치·취득 맥락·중요 제약을 보존한다.</li>
@@ -627,7 +627,7 @@
 <li>프로젝트 테스트·검증기·빌드·서버·런타임 조사와 다른 검증은 명시적 Human 승인을 받은 Verification 역할 소유이며 Explorer의 일이 아니다.</li>
 </ul>
 <p>영속 결과는 원본·가공 문서로 분류하고 자체 권한으로 확인된 인증 클라우드 Document 도구를 통해 업로드한다. 실행 전용 임시 자료는 생성 관리 실행에 남으며 Explorer 독립 루트는 없다.</p>
-<p>직접 .agent-factory/document/processed/legacy-inquery-&lt;legacy-id&gt;/ 패키지는 역사적 읽기 전용 증거인 가공 문서다. Legacy는 유형·래퍼가 아닌 상태·이력 메타데이터다. 위임 범위가 요구할 때만 조회하며 활성 작업 공간·쓰기 대상으로 쓰지 않는다.</p>
+<p>직접 docs/archive/processed/legacy-inquery-&lt;legacy-id&gt;/ 패키지는 역사적 읽기 전용 증거인 가공 문서다. Legacy는 유형·래퍼가 아닌 상태·이력 메타데이터다. 위임 범위가 요구할 때만 조회하며 활성 작업 공간·쓰기 대상으로 쓰지 않는다.</p>
 </article>
 <p class="source">AI 원문: <code>skills/convention/references/explorer.md</code></p>
 </section>

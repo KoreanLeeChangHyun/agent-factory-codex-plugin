@@ -2,14 +2,14 @@
 
 ## Distributable source and installation
 
-Keep this plugin's six distributed Skills under `<plugin-root>/skills/<id>/`, never a repository-local `.codex/` mirror. Each pairs with version-controlled Korean publication source at `<plugin-root>/.agent-factory/document/specification/<id>/`. Reciprocal metadata is package-relative and preserves the six single-name identities. These are source packages, not consumer Document backend roots.
+Keep this plugin's six distributed Skills under `<plugin-root>/skills/<id>/`, never a repository-local `.codex/` mirror. Each pairs with version-controlled Korean publication source at `<plugin-root>/docs/specifications/<id>/`. Reciprocal metadata is package-relative and preserves the six single-name identities. These are source packages, not consumer Document backend roots.
 
 An ordinary consumer's own Project Skill uses the accepted lowercase hyphen-case `<category>-<title>` identity under its `.codex/skills/`. Source-package, installed Skill and cloud immutable-revision locators are resolved separately and bind one representation, not multiple editable truths. Git owns distributable authoring; cloud publication binds repository, exact commit, full inventory and reviewed complete Human/AI pair. Do not hardcode the development sibling `../mcp` as an installed path.
 
 ## Local Agent runtime
 
 ```text
-<project-root>/.agent-factory/agent/<agent-id>/
+<runtime-home>/projects/<project-id>/agents/<agent-id>/
   session.json
   runs/<run-id>/
 ```

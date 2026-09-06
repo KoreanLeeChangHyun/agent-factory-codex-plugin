@@ -1078,29 +1078,18 @@ class AgentExecTests(unittest.TestCase):
                     "session-1",
                 )
 
-                self.assertEqual(
-                    command[:7],
-                    [
-                        "codex",
-                        "exec",
-                        "--cd",
-                        "/tmp/project",
-                        "--sandbox",
-                        sandbox,
-                        "resume",
-                    ],
-                )
-                self.assertEqual(
-                    command[7:],
-                    [
-                        "--json",
-                        "--output-schema",
-                        "/tmp/schema.json",
-                        "-c", "features.goals=false",
-                        "session-1",
-                        "-",
-                    ],
-                )
+                prefix = ["codex", "exec", "--cd", "/tmp/project"]
+                if sandbox != 'read-only': prefix += ['--sandbox', sandbox]
+                prefix += ['resume']
+                self.assertEqual(command[:len(prefix)], prefix)
+                grant = []
+                if sandbox == 'workspace-write':
+                    grant = ['-c', 'sandbox_workspace_write.writable_roots=["/tmp/run"]']
+                elif sandbox == 'read-only':
+                    grant = self.module.runtime_permissions.arguments(Path('/tmp/run'))
+                    self.assertNotIn('--sandbox', command)
+                self.assertEqual(command[len(prefix):], ['--json','--output-schema','/tmp/schema.json',
+                    *grant, '-c','features.goals=false','session-1','-'])
                 self.assertNotIn(
                     "--dangerously-bypass-approvals-and-sandbox", command
                 )

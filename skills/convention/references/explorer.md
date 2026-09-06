@@ -41,7 +41,7 @@ Document and uploaded through the resolved authenticated cloud Document tools wi
 material belongs to the producing managed Agent run; Explorer has no standalone
 storage root.
 
-Direct `.agent-factory/document/processed/legacy-inquery-<legacy-id>/`
+Direct `docs/archive/processed/legacy-inquery-<legacy-id>/`
 packages contain historical, read-only, evidence-only Processed Documents.
 Legacy is status/provenance metadata, not a Document type or wrapper. Inspect
 these packages only when the delegated scope requires it, and never use them as

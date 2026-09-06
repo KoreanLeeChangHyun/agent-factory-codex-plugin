@@ -17,7 +17,7 @@
 | 항목 | 이전 원천·권위 | 이전 후 권위·보존 |
 | --- | --- | --- |
 | Original/Processed | `.agent-factory/document/{original,processed}/`의 직접 자식 패키지, 기존 타입·출처·바이트 | cloud immutable revision; PostgreSQL 메타데이터와 object storage 바이트. 로컬 원본은 보존 |
-| 배포 Skill/Human 명세 | `skills/<id>/`와 버전 관리되는 `.agent-factory/document/specification/<id>/`; Git 저작 권위 | Git는 계속 배포 소스 권위. 검토된 양쪽 snapshot의 cloud accepted revision이 게시 권위. 설치 복사본은 독립 편집 가능한 진실이 아님 |
+| 배포 Skill/Human 명세 | `skills/<id>/`와 버전 관리되는 `docs/specifications/<id>/`; Git 저작 권위 | Git는 계속 배포 소스 권위. 검토된 양쪽 snapshot의 cloud accepted revision이 게시 권위. 설치 복사본은 독립 편집 가능한 진실이 아님 |
 | 소비자 Project Skill | 확정된 `.codex/skills/<category>-<title>/` 등 AI locator | 설치·소스·cloud locator를 명시적으로 연결. 이 플러그인에 `.codex/` Skill 미러를 만들지 않음 |
 | 수집 설정 | `document/sync.json`, 공급자별 선택·결과 메타데이터 | 계정/암호화 credential connection + 독립 immutable collection + run/checkpoint/source mapping |
 | SQLite catalog | `.agent-factory/db.sqlite` 및 WAL/SHM; 비권위 projection | 새 검색은 cloud Document/reporting. catalog는 legacy 백업·참조이며 import journal이 아님 |
@@ -302,7 +302,7 @@ delivery는 선택된 recipient에 대한 외부 write 권한하에 수행한다
 
 | 단계 | 유지되는 구현·테스트·문서 | 현재 근거와 최종 수락 증거 |
 | --- | --- | --- |
-| 1 계약·pair | [Skills](../skills/), [Human 소스](../.agent-factory/document/specification/), [명세 계약](../skills/document/references/specification.md) | Contracts 독립 pass; 이번 퇴역의 의미·소스맵 변경은 재검토 대기. |
+| 1 계약·pair | [Skills](../skills/), [Human 소스](../docs/specifications/), [명세 계약](../skills/document/references/specification.md) | Contracts 독립 pass; 이번 퇴역의 의미·소스맵 변경은 재검토 대기. |
 | 2 CRUD·upload | [guide](../../mcp/docs/cloud-documents.md), [base tests](../../mcp/tests/test_cloud_documents.py), [delivery tests](../../mcp/tests/test_cloud_document_delivery.py), [HTTP tests](../../mcp/tests/test_cloud_document_delivery_http.py) | Platform 실제 인증 HTTP/MCP·대형 native/pair 전달·격리 preview 통과. 현재 template 전달은 독립 검증 대기. |
 | 3 scope·auth | [authorization](../../mcp/config/authorization.md), [MCP auth](../../mcp/app/mcp/auth.py), [server](../../mcp/app/mcp/server.py) | Platform scope·RBAC·RLS·token 비확대·교차 Workspace 거부 통과. 운영 tenant/계정 설정은 미실행. |
 | 4 legacy import | [importer](../../mcp/app/modules/document/legacy_import.py), [legacy tests](../../mcp/tests/test_legacy_document_import.py), [cloud service](../../mcp/app/modules/document/cloud_service.py) | Domain 및 platform 격리 import/replay/conflict·바이트 근거 유지. 실제 사용자 전체 데이터 가져오기는 미실행. |

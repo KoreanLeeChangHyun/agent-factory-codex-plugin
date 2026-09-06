@@ -101,7 +101,7 @@ def _cached_capabilities(paths, file, identity):
         return None
 
 
-def inspect_capabilities(codex: str) -> dict:
+def inspect_capabilities(codex: str, *, refresh: bool = False, runtime_home=None) -> dict:
     """Reuse only recent successful protocol probes for this binary and Codex home."""
     if os.environ.get("AF_CODEX_CAPABILITY_CACHE") == "0":
         return _probe_capabilities(codex)
@@ -109,12 +109,14 @@ def inspect_capabilities(codex: str) -> dict:
     try:
         import paths
         identity = _capability_identity(codex)
-        directory = paths.home_path() / "cache" / "native-capabilities"
-        paths.mkdir(directory)
+        directory = paths.home_path(runtime_home) / "cache" / "native-capabilities"
         file = directory / "capabilities.json"
         cached = _cached_capabilities(paths, file, identity)
         if cached is not None:
             return cached
+        if not refresh:
+            return _probe_capabilities(codex)
+        paths.mkdir(directory)
         # A short bounded wait coalesces ordinary concurrent probes; a stuck
         # writer cannot add its full probe timeout to another caller's latency.
         fd = os.open(directory / ".lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
@@ -374,7 +376,10 @@ class Bridge:
             config["model_reasoning_effort"] = self.session["reasoningEffort"]
         if self.session["sandbox"] == "workspace-write":
             config["sandbox_workspace_write.writable_roots"] = [str(Path(self.state["statePath"]).parent)]
-        params = {"cwd": self.session["projectRoot"], "sandbox": self.session["sandbox"],
+        if self.session["sandbox"] == "read-only":
+            config.update(self.runtime.runtime_permissions.config(Path(self.state["statePath"]).parent))
+        params = {"cwd": self.session["projectRoot"],
+                  **({"permissions": self.runtime.runtime_permissions.profile(Path(self.state["statePath"]).parent)[0]} if self.session["sandbox"] == "read-only" else {"sandbox": self.session["sandbox"]}),
                   "approvalPolicy": "never", "config": config,
                   "developerInstructions": prompt}
         if self.session.get("model"):

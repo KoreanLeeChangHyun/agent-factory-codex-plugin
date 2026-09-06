@@ -55,7 +55,7 @@ Workspace authorization. It introduces no static mount or executable HTML
 response; uploaded-package attachment/member delivery and isolated preview CSP
 are unchanged. See the [delivery guide](../../mcp/docs/cloud-documents.md).
 
-The six existing `.agent-factory/document/specification/<id>/` packages preserve
+The six existing `docs/specifications/<id>/` packages preserve
 all standalone CSS/JS/vendor assets. Their HTML semantic edits match the changed
 AI instructions and source maps. No Human package was overwritten with template
 bytes, and no hash refresh stands in for independent semantic review.

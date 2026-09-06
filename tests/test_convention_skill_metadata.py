@@ -20,10 +20,12 @@ class ConventionSkillMetadataTests(unittest.TestCase):
 
     def test_agents_entrypoint_routes_to_authoritative_convention_references(self) -> None:
         instructions = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
-        self.assertEqual(
-            instructions,
-            (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(encoding="utf-8"),
-        )
+        template = (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(encoding="utf-8")
+        for target in ("skills/convention/references/agent-factory-core.md", "skills/convention/references/directory-structure.md"):
+            self.assertIn(target, template)
+            self.assertIn(target, instructions)
+        self.assertIn("docs/specifications/", instructions)
+        self.assertIn("skills/agent/runtime/paths.py", instructions)
         self.assertLessEqual(len(instructions.splitlines()), 24)
         self.assertIn(
             "skills/convention/references/agent-factory-core.md", instructions
@@ -77,7 +79,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
                 self.assertEqual(
                     {
                         "specification-id": name,
-                        "human-entry": f".agent-factory/document/specification/{name}/index.html",
+                        "human-entry": f"docs/specifications/{name}/index.html",
                         "ai-root": f"skills/{name}/",
                     },
                     metadata["metadata"],
@@ -111,7 +113,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             path.name for path in (SKILLS / "agent" / "references").glob("*.md")
         }
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}
-        self.assertEqual(references, {"reporting.md"})
+        self.assertEqual(references, {"reporting.md", "home-runtime.md"})
         self.assertEqual(prompts, {"main.md", "work.md", "verification.md"})
 
     def test_public_skills_expose_only_their_owned_scripts(self) -> None:
@@ -125,7 +127,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
 
     def test_no_distributed_domain_executable_schema_or_secret_dependency(self):
         python_files = {p.relative_to(SKILLS).as_posix() for p in SKILLS.rglob("*.py")}
-        self.assertEqual(python_files, {"agent/scripts/exec.py", "agent/scripts/loop.py", "agent/runtime/cloud_reporting.py"})
+        self.assertEqual(python_files, {"agent/scripts/exec.py", "agent/scripts/loop.py", "agent/runtime/cloud_reporting.py", "agent/runtime/paths.py", "agent/runtime/migration.py", "agent/runtime/native_codex.py", "agent/runtime/permissions.py"})
         self.assertEqual(list(SKILLS.rglob("*.sql")), [])
         self.assertEqual(list(SKILLS.rglob("sync.schema.json")), [])
         self.assertEqual(list(SKILLS.rglob("requirements.txt")), [])

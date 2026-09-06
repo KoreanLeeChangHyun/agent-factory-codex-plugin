@@ -3,7 +3,7 @@ name: convention
 description: Apply Agent Factory's core model and cross-cutting conventions for project structure, development, testing, libraries, design, annotations, Document types, and Skill ownership.
 metadata:
   specification-id: convention
-  human-entry: .agent-factory/document/specification/convention/index.html
+  human-entry: docs/specifications/convention/index.html
   ai-root: skills/convention/
 ---
 
@@ -25,7 +25,7 @@ The Human-selected cloud MCP application owns new Document persistence/search/pu
 
 Local `exec.py`, `loop.py`, role prompts and minimum runtime dependencies remain authoritative for local sessions, process/run facts, graph transitions and receipts. Local run, outbox and recovery state remains local. Use existing shell/file tools for bounded local Git/tool inspection and upload required evidence through authorized cloud Document tools. Shared reports never launch or finish local execution. Planning task state remains separate from background jobs and runtime observations.
 
-Git owns distributable Skill authoring source. This plugin's `skills/<id>/` and `.agent-factory/document/specification/<id>/` are reciprocal publication-source packages, not consumer local runtime stores or independently editable cloud truth. Keep the six names and metadata identities; do not mirror into this repository's `.codex/`. Consumer Project Skills preserve the Human-resolved `<category>-<title>` name. Distinguish source-package, installed Skill and cloud revision locators. A published complete pair binds Git repository, exact commit, inventory and reviewed representation hashes; cloud owns its accepted immutable revision.
+Git owns distributable Skill authoring source. This plugin's `skills/<id>/` and `docs/specifications/<id>/` are reciprocal publication-source packages, not consumer local runtime stores or independently editable cloud truth. Keep the six names and metadata identities; do not mirror into this repository's `.codex/`. Consumer Project Skills preserve the Human-resolved `<category>-<title>` name. Distinguish source-package, installed Skill and cloud revision locators. A published complete pair binds Git repository, exact commit, inventory and reviewed representation hashes; cloud owns its accepted immutable revision.
 
 Cloud owns new catalog/search and document/sync configuration. Retained `.agent-factory/db.sqlite`, legacy local Documents and sync config are migration inputs until import is independently verified. Local domain executables are retired; reusable Document authoring resources belong to the MCP package. Preserve data until inventoried, independently backed up and verified imported; code retirement is never deletion authority. Do not claim registration, configured accounts, deployment or full migration completion from a contract change.
 

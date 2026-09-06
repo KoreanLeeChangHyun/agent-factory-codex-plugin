@@ -21,14 +21,14 @@ class DocumentContractTests(unittest.TestCase):
         self.assertFalse((ROOT / ".codex/skills").exists())
         for name in NAMES:
             with self.subTest(name=name):
-                package = ROOT / ".agent-factory/document/specification" / name
+                package = ROOT / "docs/specifications" / name
                 html = (package / "index.html").read_text()
                 ai = (ROOT / "skills" / name / "SKILL.md").read_text()
                 parser = Tags(); parser.feed(html)
                 self.assertIn(("html", {"lang": "ko"}), parser.tags)
                 for key, value in (("specification-id", name), ("ai-root", f"skills/{name}/"), ("ai-binding-entry", f"skills/{name}/SKILL.md")):
                     self.assertIn(("meta", {"name": f"agent-factory:{key}", "content": value}), parser.tags)
-                for value in (f"specification-id: {name}", f"ai-root: skills/{name}/", f"human-entry: .agent-factory/document/specification/{name}/index.html"):
+                for value in (f"specification-id: {name}", f"ai-root: skills/{name}/", f"human-entry: docs/specifications/{name}/index.html"):
                     self.assertIn(value, ai)
                 self.assertNotIn("[[", html)
                 self.assertFalse(any("data-template-placeholder" in attrs for _, attrs in parser.tags))
@@ -61,7 +61,7 @@ class DocumentContractTests(unittest.TestCase):
             self.assertIn(phrase, entry)
         for phrase in ("one semantic body", "independent semantic review", "source order", "hierarchy", "data-source-lines", "data-source-sha256", "document_template", "64 KiB", "license notices", "validate_pair", "category>-<title", "readable baseline without JavaScript", "exact commit", "one complete AI root", "one complete Human root", "failures preserve prior accepted authority"):
             self.assertIn(phrase, contract)
-        human = (ROOT / ".agent-factory/document/specification/document/index.html").read_text()
+        human = (ROOT / "docs/specifications/document/index.html").read_text()
         for phrase in ("document_template", "64 KiB", "라이선스", "validate_pair", "독립 Verification", "misaligned"):
             self.assertIn(phrase, human)
 
@@ -72,7 +72,7 @@ class DocumentContractTests(unittest.TestCase):
         workspace = (ROOT / "skills/workspace/SKILL.md").read_text()
         for phrase in ("cloud", "PostgreSQL", "object storage", "Missing tools, account or scope", "Local exec/loop retains graph authority"):
             self.assertIn(phrase, workspace)
-        human = (ROOT / ".agent-factory/document/specification/workspace/index.html").read_text()
+        human = (ROOT / "docs/specifications/workspace/index.html").read_text()
         for label in ("일정", "에이전트", "문서", "외부연동", "로그", "테스트"):
             self.assertIn(label, human)
 
@@ -105,5 +105,5 @@ class DocumentContractTests(unittest.TestCase):
         for phrase in ("accTitle", "accDescr", "Mermaid"):
             self.assertIn(phrase, diagrams)
         for name in NAMES:
-            human = (ROOT / ".agent-factory/document/specification" / name / "index.html").read_text()
+            human = (ROOT / "docs/specifications" / name / "index.html").read_text()
             self.assertIn(f'data-ai-source="skills/{name}/SKILL.md"', human)

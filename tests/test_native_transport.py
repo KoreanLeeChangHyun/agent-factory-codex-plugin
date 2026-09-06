@@ -21,13 +21,13 @@ class RevisionContracts(unittest.TestCase):
     def test_legacy_off_overrides_config_on_initial_and_exact_resume(self):
         for thread in (None, 'exact-thread'):
             session = {'codex': 'codex', 'sandbox': 'read-only', 'projectRoot': '/tmp', 'fast': False}
-            command = runtime.build_codex_command(session, {'responseSchemaPath': '/tmp/schema'}, thread)
+            command = runtime.build_codex_command(session, {'responseSchemaPath': '/tmp/schema', 'statePath':'/tmp/run/state.json'}, thread)
             self.assertIn('service_tier="default"', command)
             self.assertIn('features.goals=false', command)
             if thread:
                 self.assertEqual(command[-2], thread)
             session.pop('fast')
-            self.assertNotIn('service_tier="default"', runtime.build_codex_command(session, {'responseSchemaPath': '/tmp/schema'}, thread))
+            self.assertNotIn('service_tier="default"', runtime.build_codex_command(session, {'responseSchemaPath': '/tmp/schema', 'statePath':'/tmp/run/state.json'}, thread))
 
     def test_fast_without_goal_schema_never_calls_goal(self):
         with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):

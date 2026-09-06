@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="agent-factory:specification-id" content="document"><meta name="agent-factory:ai-root" content="skills/document/"><meta name="agent-factory:ai-binding-entry" content="skills/document/SKILL.md"><title>문서 유형과 쌍 게시</title><link rel="stylesheet" href="./styles.css"><script src="./app.js" defer></script></head><body><a class="skip" href="#content">본문으로 건너뛰기</a><header><p class="eyebrow">Agent Factory · document</p><h1>문서 유형과 쌍 게시</h1><div class="meta"><span>명세 ID: document</span><span>AI 소스: skills/document/</span><span>Human 소스: specification/document/</span></div></header><div class="layout"><nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#source-1">Agent Factory Document</a><a href="#source-2">호출 메타데이터</a><a href="#source-3">클라우드 문서 어댑터와 이관</a><a href="#source-4">원본 문서</a><a href="#source-5">가공 문서</a><a href="#source-6">명세 문서</a></nav><main id="content" tabindex="-1">
-<section id="source-1" data-ai-source="skills/document/SKILL.md" data-ai-sha256="e20b4a03f5972ec6750facaeef24387f04b63967c98af12b403d292c9b29a881">
-<article data-source-lines="1-11" data-source-sha256="bc94b70f78cdcfb999657237fcc9b634f842c8313d75fbe866f6be65511dcdeb">
-<p>메타데이터: 이름과 명세 식별자는 document이며, Human 진입점은 .agent-factory/document/specification/document/index.html, AI 루트는 skills/document/ 이다. 이 메타데이터는 배포 소스 패키지 안의 상호 연결을 보존한다.</p>
+<section id="source-1" data-ai-source="skills/document/SKILL.md" data-ai-sha256="3923171302058791bd05376009f80de378e04de1f5f2226de929ffe7a517cea8">
+<article data-source-lines="1-11" data-source-sha256="95b76ca37d64daf788abf9416e244e2ef460203a42a33e3b3c6c8d0af4d9243e">
+<p>메타데이터: 이름과 명세 식별자는 document이며, Human 진입점은 docs/specifications/document/index.html, AI 루트는 skills/document/ 이다. 이 메타데이터는 배포 소스 패키지 안의 상호 연결을 보존한다.</p>
 <p>설명 메타데이터: 느슨한 출처 관계·유형별 권위를 보존하며 원본·가공·명세를 정의·생성·편집·조회·관리한다.</p>
 <h2>Agent Factory Document</h2>
 </article>
@@ -26,9 +26,9 @@
 <p>선택된 인증 클라우드 MCP 애플리케이션이 새 문서 저장, 리비전 게시, 색인·검색과 문서 설정을 소유한다. document_import, document_read, document_write, document_search, document_index, document_prepare_upload 또는 document_finalize_upload를 쓰기 전에 제공된 스키마·안내를 읽는다. 실제 승인된 테넌트와 대상을 확인하며 도구·연결·권한이 없으면 로컬 백엔드로 우회하지 않고 실패를 보고한다. ../mcp/docs/cloud-documents.md는 개발 소스 위치이며 설치 필수 경로가 아니다.</p>
 <p>Gather는 클라우드 연동을 통한 외부 선택·수집을 소유하고 Document는 확인된 문서 대상의 작업을 소유한다. Explorer는 Convention 소유 Work 역량으로 명세를 수락하지 않고 원본·가공 증거를 만들 수 있다. Tool은 역량·연결 생명주기를 확인하고 Agent는 실행 권한, 로컬 세션, 그래프와 영수증을 소유한다. Workspace는 소유자 근거가 있는 상태를 표시하며 독립 문서 저장소가 되지 않는다.</p>
 </article>
-<article data-source-lines="33-39" data-source-sha256="f58a77993c2650017e3925d420bed56d50b44a60ba2a5e974a74ad0250f58589">
+<article data-source-lines="33-39" data-source-sha256="0f5904235e1201a70bf281eb4a81a5e477fb0b937d92b9d0f507a93f41b376ac">
 <h3>게시 소스와 완료</h3>
-<p>Git은 배포 Skill 작성 소스를 소유한다. 이 플러그인의 여섯 안정적 쌍은 skills/&lt;id&gt;/와 .agent-factory/document/specification/&lt;id&gt;/에 있으며 버전 관리되는 한국어 HTML은 게시 소스다. 패키지 상대 상호 위치는 소비자 런타임 경로나 독립 편집 가능한 두 번째 클라우드 진실이 아니다. 게시 스냅샷은 Git 저장소, 정확한 커밋, 내용 목록과 두 표현 해시에 결속되며 클라우드는 수락된 불변 게시 리비전을 소유한다.</p>
+<p>Git은 배포 Skill 작성 소스를 소유한다. 이 플러그인의 여섯 안정적 쌍은 skills/&lt;id&gt;/와 docs/specifications/&lt;id&gt;/에 있으며 버전 관리되는 한국어 HTML은 게시 소스다. 패키지 상대 상호 위치는 소비자 런타임 경로나 독립 편집 가능한 두 번째 클라우드 진실이 아니다. 게시 스냅샷은 Git 저장소, 정확한 커밋, 내용 목록과 두 표현 해시에 결속되며 클라우드는 수락된 불변 게시 리비전을 소유한다.</p>
 <p>식별자별 AI Skill 하나와 한국어 HTML·CSS·JavaScript 표현 하나를 유지한다. 전체 AI 지시 목록을 출처 순서·계층대로 번역하고 정확한 출처·줄 해시를 붙인다. 해시 범위는 의미를 증명하지 않으므로 독립 의미 검토와 권위 증거를 보존한다. 한쪽만 변경되거나 부분·오래됨·순서 변경·중복·요약·오역이 있는 쌍은 미완료이며 완료로 보고하지 않는다.</p>
 <p>로컬 실행 전용 증거, 실행 기록, 발신함과 복구는 로컬에 남는다. 필요한 영속 증거는 승인된 클라우드 문서 도구로 업로드한다. 기존 로컬 문서, db.sqlite와 동기화 설정은 목록화·백업·독립 가져오기 검증 전까지 보존한다. 코드 폐기는 데이터 삭제 권한이 아니다. 이 계약은 등록, 설정된 계정, 배포 또는 전체 이관 완료를 주장하지 않는다.</p>
 </article>
@@ -115,7 +115,7 @@
 </article>
 <p class="source">AI 원문: <code>skills/document/references/processed.md</code></p>
 </section>
-<section id="source-6" data-ai-source="skills/document/references/specification.md" data-ai-sha256="db833f8025b406d9ecb9020f40a0a7a8ee9b8d4df7af58a57b921adb563d0c65">
+<section id="source-6" data-ai-source="skills/document/references/specification.md" data-ai-sha256="0b0bc0e17e3faf95a1df65b2f3347925fa7539ee06ddf6c628a5a45ddb6ae494">
 <article data-source-lines="1-2" data-source-sha256="0a5422328d18968de108ecb806e1e2a9bf26dc92098c105773d7a6aad28ada57">
 <h2>명세 문서</h2>
 </article>
@@ -124,9 +124,9 @@
 <p>명세 문서(Specification)는 수락·조정된 프로젝트 지식이다. AI Skill 하나와 한국어 Human HTML·CSS·JavaScript 표현 하나가 안정적 식별자 하나 아래 의미 본문 하나를 이룬다. 중요한 출처 이력과 정직한 미해결 상태를 보존한다. 독립 Human 페이지, 여러 Skill의 집합, 무관한 선택 Project Skill 또는 Workspace 탐색은 쌍을 대신하지 못한다.</p>
 <p>두 표현은 완전한 주장·결정·요구·관계·범위·출처 순서·계층을 동일하게 보존해야 한다. 모든 의미 편집은 반대쪽 대응 편집을 포함한다. 한쪽만 있거나 누락·오래됨·순서 변경·중복·요약·오역이 있는 쌍은 실패 처리하며 완료로 보고할 수 없다. 해시·시각·상호 메타데이터는 번역 충실도나 수락을 증명하지 않으므로 독립 의미 검토가 필요하다. 조회 자체는 편집 권한이 아니다.</p>
 </article>
-<article data-source-lines="9-16" data-source-sha256="c07d787e56c2653b42d17477e968a132566c6c1852799cdd404a6052695a4c0e">
+<article data-source-lines="9-16" data-source-sha256="80f470832da62e58a91db7be7dde93459dffa0af78e058cf533fa7ced3db3ace">
 <h3>식별자와 작성 소스</h3>
-<p>Git이 배포 Skill 작성을 소유한다. 플러그인의 여섯 단일 이름 식별자와 skills/&lt;id&gt;/ ↔ .agent-factory/document/specification/&lt;id&gt;/ 소스 쌍을 보존한다. 저장소의 .codex/에 복제하지 않는다. 일반 소비자 Project Skill은 Human이 확인한 소문자 하이픈 형식 &lt;category&gt;-&lt;title&gt; 식별자를 사용하며 Skill name·쌍 식별자가 일치해야 한다. 기존 식별자를 보존하고 모호한 분류·제목을 만들거나 일괄 이름 변경하지 않는다.</p>
+<p>Git이 배포 Skill 작성을 소유한다. 플러그인의 여섯 단일 이름 식별자와 skills/&lt;id&gt;/ ↔ docs/specifications/&lt;id&gt;/ 소스 쌍을 보존한다. 저장소의 .codex/에 복제하지 않는다. 일반 소비자 Project Skill은 Human이 확인한 소문자 하이픈 형식 &lt;category&gt;-&lt;title&gt; 식별자를 사용하며 Skill name·쌍 식별자가 일치해야 한다. 기존 식별자를 보존하고 모호한 분류·제목을 만들거나 일괄 이름 변경하지 않는다.</p>
 <p>소비자는 자체 .codex/skills/&lt;category&gt;-&lt;title&gt;/에 AI Skill을 설치할 수 있다. 설치 경로, Git 소스 패키지 경로와 게시 클라우드 리비전 위치는 같은 결속 표현의 서로 다른 위치이며 독립 편집 가능한 진실이 아니다. 새 소비자 Human 문서 저장은 클라우드 소유다. 플러그인의 게시 소스 배치를 복제하려 소비자 로컬 문서 백엔드를 만들지 않는다.</p>
 <p>패키지 상대 상호 메타데이터를 보존한다. Skill은 metadata.specification-id, human-entry, ai-root를, Human은 agent-factory:specification-id, agent-factory:ai-root, agent-factory:ai-binding-entry를 사용한다. ID와 확인된 위치는 양방향 일치해야 한다. 게시 스냅샷은 Git 저장소·정확한 커밋·파일 목록에 결속되며 소스를 덮어쓰거나 클라우드 편집을 조용히 Git 정본으로 만들지 않는다. 의미 변경 요청은 소유 소스에서 조정하고 새 검토 쌍으로 게시한다.</p>
 </article>

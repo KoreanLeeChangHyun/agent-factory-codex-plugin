@@ -93,10 +93,9 @@ substitute retained local scripts, create new local domain configuration or add
 a local MCP/provider service.
 
 The plugin retains six Skills, the three role prompts, local `exec.py`/`loop.py`
-and minimum runtime dependencies. Existing extension command paths and layouts
-remain compatible. Local sessions, process/run facts, graph transitions,
+and minimum runtime dependencies. The extension discovers runtime locations through the machine contract. Local sessions, process/run facts, graph transitions,
 receipts, reporting outbox and recovery remain under
-`.agent-factory/agent/<agent-id>/`. Cloud reports never launch, resume, cancel
+`~/.agent-factory/projects/<project-id>/agents/<agent-id>/`. Cloud reports never launch, resume, cancel
 or finish local runs; process exit and stale reporting do not imply semantic
 completion or graph END. Use existing shell/file tools for bounded local Git
 and tool inspection, and authorized Document tools to upload required evidence.
@@ -112,7 +111,7 @@ Workspace planning contract and `agent-factory://planning/import-guide`,
 separately from background jobs and runtime reporting.
 
 Git owns distributable Skill authoring. This plugin's `skills/<id>/` and
-`.agent-factory/document/specification/<id>/` are reciprocal publication-source
+`docs/specifications/<id>/` are reciprocal publication-source
 packages. The Korean HTML is version-controlled publication source, not a
 consumer local backend or a second independently editable cloud truth. Exactly
 one complete Korean Human representation pairs with exactly one AI Skill under
@@ -231,3 +230,5 @@ is maintained in [cloud-retirement.md](docs/cloud-retirement.md).
 Native local execution: [Fast and Goal runtime guide](docs/native-fast-goal.md)
 explains installed-backend detection, exact-session settings, Goal lifecycle,
 and recovery limits.
+
+Use `skills/agent/scripts/exec.py init --project-root /absolute/project` for explicit setup. `AGENT_FACTORY_HOME` selects an alternate private home without changing Codex home. Installation limits and the gated physical-migration procedure are in [home-runtime-migration.md](docs/home-runtime-migration.md). No physical cutover is implied by the source change.

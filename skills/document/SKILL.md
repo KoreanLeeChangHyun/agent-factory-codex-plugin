@@ -3,7 +3,7 @@ name: document
 description: Define, create, edit, inspect, or maintain Agent Factory Original, Processed, and Specification Documents while preserving loose provenance relationships and type-specific authority.
 metadata:
   specification-id: document
-  human-entry: .agent-factory/document/specification/document/index.html
+  human-entry: docs/specifications/document/index.html
   ai-root: skills/document/
 ---
 
@@ -32,7 +32,7 @@ Gather owns external selection and collection through cloud integrations; Docume
 
 ## Publication source and completion
 
-Git owns distributable Skill authoring source. This plugin keeps its six stable pairs at `skills/<id>/` and `.agent-factory/document/specification/<id>/`; the version-controlled Korean HTML is publication source. These package-relative reciprocal locators are not consumer runtime paths or an independently editable second cloud truth. A published snapshot binds the Git repository, exact commit, content inventory and both representation hashes; cloud owns the accepted immutable published revision.
+Git owns distributable Skill authoring source. This plugin keeps its six stable pairs at `skills/<id>/` and `docs/specifications/<id>/`; the version-controlled Korean HTML is publication source. These package-relative reciprocal locators are not consumer runtime paths or an independently editable second cloud truth. A published snapshot binds the Git repository, exact commit, content inventory and both representation hashes; cloud owns the accepted immutable published revision.
 
 Keep exactly one AI Skill and one Korean HTML/CSS/JavaScript representation per identity. Translate the complete AI instruction inventory in source order and hierarchy with exact source/line hashes. Hash coverage cannot prove meaning; obtain independent semantic review and preserve its authority evidence. A one-sided, partial, stale, reordered, duplicated, summarized or mistranslated pair is incomplete and must not be reported completed.
 

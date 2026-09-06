@@ -196,3 +196,21 @@ CSSOM geometry, keyboard actions, status text in bar labels, and scoped scrollin
 Reference evidence: https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-roadmap-layout
 https://www.notion.com/help/timelines
 https://support.atlassian.com/jira-software-cloud/docs/what-is-the-timeline-and-how-do-i-use-it/
+
+Keep ordinary timeline rows near 44px with a 20px task-name line, 18px period
+line and compact padding. Warnings may expand a row. When both dates are missing
+and the user can edit, render 기간 미정 as a keyboard-operable button opening
+the existing task editor with the date input focused. Viewers see plain text.
+Use normal save/cancel, validation, revision and reload behavior.
+
+In the entire-plan view, make the timeline a column layout that fills the
+Workspace area's remaining height below its heading, controls and range summary.
+The timeline owns that remaining vertical scroll area; its canvas, date guides
+and today/launch markers extend to the bottom. Remove viewport-based maximum
+heights that leave a second empty region below the timeline. Detail and import
+views retain their ordinary document scrolling.
+
+Outside 전체 맞춤, include the complete known schedule and launch target in the
+date canvas. Preserve the selected week/month scale by growing the canvas width,
+and let the timeline's own scroller expose the additional horizontal range.
+전체 맞춤 alone compresses that complete range to the available Workspace width.

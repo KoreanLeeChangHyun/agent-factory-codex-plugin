@@ -8,7 +8,7 @@ Both representations must preserve the same complete claims, decisions, requirem
 
 ## Identity and authoring source
 
-Git owns distributable Skill authoring. In this plugin preserve the six single-name identities and source pairs `skills/<id>/` with `.agent-factory/document/specification/<id>/`. Never mirror them into this repository's `.codex/`. Ordinary consumer Project Skills use the Human-resolved lowercase hyphen-case `<category>-<title>` identity, matching Skill `name` and paired identity; preserve accepted identities and do not invent ambiguous category/title or bulk-rename them.
+Git owns distributable Skill authoring. In this plugin preserve the six single-name identities and source pairs `skills/<id>/` with `docs/specifications/<id>/`. Never mirror them into this repository's `.codex/`. Ordinary consumer Project Skills use the Human-resolved lowercase hyphen-case `<category>-<title>` identity, matching Skill `name` and paired identity; preserve accepted identities and do not invent ambiguous category/title or bulk-rename them.
 
 A consumer may install the AI Skill under its own `.codex/skills/<category>-<title>/`. An installation path, a Git source-package path and a published cloud revision locator are different locators for the same bound representation, not independently editable truths. New consumer Human document persistence is cloud-owned; do not create a consumer local Document backend to reproduce this plugin's publication-source layout.
 

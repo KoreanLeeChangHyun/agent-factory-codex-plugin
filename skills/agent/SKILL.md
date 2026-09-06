@@ -3,7 +3,7 @@ name: agent
 description: Run the Agent Factory Main, Work, and Verification graph from a CLI or hosted interface with managed Codex exec sessions for delegated roles.
 metadata:
   specification-id: agent
-  human-entry: .agent-factory/document/specification/agent/index.html
+  human-entry: docs/specifications/agent/index.html
   ai-root: skills/agent/
 ---
 
@@ -83,7 +83,7 @@ also be exec-hosted. Preserve the exact Codex session identifier so later turns
 resume the same role session. Do not use `resume --last` and do not run
 concurrent turns in one session.
 
-Store operational state below `<project-root>/.agent-factory/agent/<agent-id>/`. Each request has a separate `runs/<run-id>/` directory containing its request, state, heartbeat, event stream, response schema, result, and role receipt. Keep runtime state separate from Skills and project information.
+Store operational state below `<runtime-home>/projects/<project-id>/agents/<agent-id>/`. Each request has a separate `runs/<run-id>/` directory containing its request, state, heartbeat, event stream, response schema, result, and role receipt. Keep runtime state separate from Skills and project information.
 
 Pass request bodies and large context through validated files beneath the run directory. Reject traversal, symlinks, and unexpected file types. Publish runtime files atomically.
 
@@ -114,7 +114,7 @@ Acceptance, startup, heartbeat, and turn timeouts are distinct. Pre-start retry 
 
 ## Runtime commands
 
-Use `scripts/exec.py` for individual managed sessions: `submit`, `send`, `status`, `result`, `inbox`, `list`, `cancel`, and `reconcile`.
+Read `references/home-runtime.md` for home initialization, project binding and gated legacy migration. Use `scripts/exec.py` for individual managed sessions: `submit`, `send`, `status`, `result`, `inbox`, `list`, `cancel`, and `reconcile`.
 
 Use `scripts/loop.py` for the Work/Verification cycle:
 

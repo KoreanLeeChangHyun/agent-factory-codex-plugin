@@ -338,7 +338,8 @@ class ReportingTests(unittest.TestCase):
         with patch.object(rt, 'safe_hash_caller_file', side_effect=AssertionError('hook hashed result')) as hashing, \
              patch.object(rt, 'validate_receipt', side_effect=AssertionError('hook validated receipt')) as receipt, \
              patch.object(cloud, 'prepare_semantic', side_effect=AssertionError('hook prepared semantics')) as preparing, \
-             patch.object(rt.os, 'open', side_effect=observe_open):
+             patch.object(rt.os, 'open', side_effect=observe_open) as opened_mock, \
+             patch.object(rt.os, 'supports_dir_fd', rt.os.supports_dir_fd | {opened_mock}):
             heartbeat._write()
             heartbeat.update(status='completed', attempt=1, codex_pid=None)
             rt.mark_terminal(Path(state['statePath']), 'completed')

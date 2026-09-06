@@ -28,7 +28,7 @@ class SpecificationCoverageTests(unittest.TestCase):
             with self.subTest(fault=fault):
                 files = source_files(ROOT, "document")
                 pair = fixture_pair(files, "document")
-                entry = ".agent-factory/document/specification/document/index.html"
+                entry = "docs/specifications/document/index.html"
                 html = files[entry].decode()
                 if fault == "missing":
                     del files["skills/document/references/processed.md"]
@@ -49,7 +49,7 @@ class SpecificationCoverageTests(unittest.TestCase):
                 elif fault == "reciprocal":
                     html = html.replace('name="agent-factory:specification-id" content="document"', 'name="agent-factory:specification-id" content="wrong"')
                 elif fault == "asset-review":
-                    files[".agent-factory/document/specification/document/app.js"] += b"\n// changed\n"
+                    files["docs/specifications/document/app.js"] += b"\n// changed\n"
                 files[entry] = html.encode()
                 # Refresh synthetic review hashes except the intentionally stale asset review.
                 if fault != "asset-review": pair = fixture_pair(files, "document")

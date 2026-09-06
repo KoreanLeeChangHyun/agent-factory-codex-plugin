@@ -21,7 +21,7 @@ This repository's `convention` pair is:
 
 ```text
 skills/convention/
-.agent-factory/document/specification/convention/
+docs/specifications/convention/
 ```
 
 Do not create a repository-local `.codex/skills/` mirror. Navigation, tables,

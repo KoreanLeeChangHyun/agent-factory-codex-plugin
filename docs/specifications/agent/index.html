@@ -2,9 +2,9 @@
 <html lang="ko">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="agent-factory:specification-id" content="agent"><meta name="agent-factory:ai-root" content="skills/agent/"><meta name="agent-factory:ai-binding-entry" content="skills/agent/SKILL.md"><title>에이전트 실행과 보고</title><link rel="stylesheet" href="./styles.css"><script src="./app.js" defer></script></head>
 <body><a class="skip" href="#content">본문으로 건너뛰기</a><header><p class="eyebrow">Agent Factory · agent</p><h1>에이전트 실행과 보고</h1><div class="meta"><span>명세 ID: agent</span><span>AI 소스: skills/agent/</span><span>Human 소스: specification/agent/</span></div></header><div class="layout"><nav aria-label="문서 목차"><strong>이 문서에서 보기</strong><a href="#source-1">Agent Factory 에이전트</a><a href="#source-2">호출 메타데이터</a><a href="#source-3">Main Agent</a><a href="#source-4">Verification Agent</a><a href="#source-5">Work Agent</a><a href="#source-6">로컬 실행과 클라우드 보고</a></nav><main id="content" tabindex="-1">
-<section id="source-1" data-ai-source="skills/agent/SKILL.md" data-ai-sha256="8229cc8d09fe13965a3a487d613bbf2e695f0d65b9172d83c2bccb998dcf62d0">
-<article data-source-lines="1-11" data-source-sha256="b9b2d72e50eb2a53eb828e22fba169050796ec517c066d1451449b7041b8ec06">
-<p>메타데이터 이름·명세 식별자: agent. 설명: CLI 또는 호스팅 인터페이스에서 위임 역할의 관리 Codex exec 세션으로 Agent Factory Main·Work·Verification 그래프를 실행한다. Human 진입점은 .agent-factory/document/specification/agent/index.html, AI 루트는 skills/agent/다.</p>
+<section id="source-1" data-ai-source="skills/agent/SKILL.md" data-ai-sha256="31f7b45b3a276ddee7b1eefdf7e0b1be0e71c2c1ca0f105e1169314fced7d613">
+<article data-source-lines="1-11" data-source-sha256="6323ddd33479eb39e4e74098402d2fa55c649a0184d821bafc65304dbeac8807">
+<p>메타데이터 이름·명세 식별자: agent. 설명: CLI 또는 호스팅 인터페이스에서 위임 역할의 관리 Codex exec 세션으로 Agent Factory Main·Work·Verification 그래프를 실행한다. Human 진입점은 docs/specifications/agent/index.html, AI 루트는 skills/agent/다.</p>
 <h2>Agent Factory 에이전트</h2>
 </article>
 <article data-source-lines="12-34" data-source-sha256="4e8328fc8a98d4e06bdbe937f3eb80f7e1ea22fd5a11890fe5afdec9064864e2">
@@ -35,18 +35,19 @@
 <p>유용하면 여러 독립 Work -&gt; Verification 체인을 동시에 실행할 수 있다. 각 체인은 내부 순차이며 Work 완료 후에만 정확한 그 실행에 결속한 Verification을 시작한다. 의존 작업·겹치는 쓰기·Git 커밋 같은 저장소 전체 통합·게시는 순차 처리한다. 병렬 체인은 각각 다른 Agent·루프·실행 ID, 제한 권위·역량 결속·입력을 사용한다. Main은 대화를 계속하고 모든 활성 체인·실행과 결과 상태를 보존하며 작업을 잃거나 묵시 취소하지 않고 의존 순서대로 통합한다.</p>
 <p>분해·안전 배분은 Main의 조율 판단·책임이다. 런타임의 기계적 충돌 방지 보장·새 역할과 노드·최대 병렬화 요구가 아니다.</p>
 </article>
-<article data-source-lines="79-114" data-source-sha256="d831c0dbd6d9f6cc8857b9741e60a0228719ba56a9d52560fe5fbdddb28efc6a">
+<article data-source-lines="79-114" data-source-sha256="c210a2b996213d33e6c52e7a004e64de07706a358597d5730ab1259f478c853e">
 <h3>관리 세션</h3>
 <p>위임 Work·Verification은 scripts/exec.py로 시작하며 Main도 exec 호스팅할 수 있다. 정확한 Codex 세션 ID를 보존해 이후 같은 역할 세션을 재개한다. resume --last를 쓰거나 같은 세션에서 동시 턴을 실행하지 않는다.</p>
-<p>운영 상태는 &lt;project-root&gt;/.agent-factory/agent/&lt;agent-id&gt;/에 둔다. 요청별 runs/&lt;run-id&gt;/에 요청·상태·하트비트·이벤트 스트림·응답 스키마·결과·역할 영수증을 둔다. 런타임 상태를 Skill·프로젝트 정보와 분리한다.</p>
+<p>운영 상태는 &lt;runtime-home&gt;/projects/&lt;project-id&gt;/agents/&lt;agent-id&gt;/에 둔다. 요청별 runs/&lt;run-id&gt;/에 요청·상태·하트비트·이벤트 스트림·응답 스키마·결과·역할 영수증을 둔다. 런타임 상태를 Skill·프로젝트 정보와 분리한다.</p>
 <p>요청 본문·큰 맥락은 실행 디렉터리의 검증 파일로 전달한다. 경로 탈출·심볼릭 링크·예상 밖 파일 유형을 거부하고 런타임 파일을 원자 게시한다.</p>
 <p>턴을 비동기 제출한다. 런타임은 영속 수락·프로세스 시작·하트비트·종료 완료를 구분한다. 하트비트는 감독 관찰이며 의미 진행 주장이 아니다.</p>
 <p>Linux Worker 시작은 격리 역량을 협상한다. 필요한 명령·응답하는 사용자 관리자가 있으면 실행·시작 시도별 고유 결속 임시 systemd 서비스를 사용한다. Worker는 주 프로세스, Codex는 자식이며 Type=exec, 제어 그룹 종료·수거, 제출 프로세스의 안전하게 전달 가능한 환경, 제한 TERM→KILL 확대를 사용한다. 선택은 명령 기능·사용자 관리자·환경 전달 수단·cgroup-v2 구성원 인터페이스를 확인한다. 런타임은 시작 확인 전 또는 동시에 정확한 백엔드·불투명 격리 ID를 기록하고 조정·신호 전 결속을 조회한다. 취소 후 비어 있음은 서비스 상태·리더 PID만이 아닌 결속 제어 그룹 구성원으로 확인한다.</p>
 <p>사용자 systemd가 없거나 쓸 수 없으면 기존 시작 장벽·비공개 세션과 프로세스 그룹·boot-ID/start-ticks PID 검증을 유지한다. 이 대체 경로는 식별자 불명에서 실패 처리하고 보수적인 오래된 실행·비재실행 동작을 유지하지만 자손 격리는 서비스 제어 그룹보다 약하다. Systemd는 협상되는 Linux 역량이며 보편 필수가 아니다. 격리 인터페이스는 미래 플랫폼 백엔드 경계이고 현재 Windows 지원을 주장하지 않는다. 이벤트·stderr 로그는 제한한다.</p>
 <p>수락·시작·하트비트·턴 시간 제한은 별개다. 시작 전 재시도는 멱등적이어야 한다. 프로세스 시작 성공 뒤 시작 이벤트가 없으면 불명확하므로 자동 재실행하지 않는다. Human 권위 없이 비가역·외부 가시 작업을 재시도하지 않는다.</p>
 </article>
-<article data-source-lines="115-134" data-source-sha256="4b84bfcde6975479578fa772ab1bff3b4d69d3741ae4beefa5de3dc3290a42ba">
+<article data-source-lines="115-134" data-source-sha256="ee8c20bf0bc9c5318043d2145521a74e45dea74106e598fa84bb56a0a6ea0da5">
 <h3>런타임 명령</h3>
+<p>홈 초기화·프로젝트 결속·단계별 레거시 이전은 references/home-runtime.md를 읽는다.</p>
 <p>개별 관리 세션은 scripts/exec.py의 submit, send, status, result, inbox, list, cancel, reconcile을 사용한다.</p>
 <p>Work·Verification 주기는 scripts/loop.py를 사용한다.</p>
 <ul>
@@ -139,6 +140,25 @@
 <p>변경 경로·완료 작업·제약·미해결 Human 소유 결정을 보고한다.</p>
 </article>
 <p class="source">AI 원문: <code>skills/agent/prompt/work.md</code></p>
+</section>
+<section id="source-home-runtime" data-ai-source="skills/agent/references/home-runtime.md" data-ai-sha256="ca6678b926edd854632432dedc39e8d249ca9992c09c84b8f4d4fc79fcf64f03">
+<article data-source-lines="1-29" data-source-sha256="ca6678b926edd854632432dedc39e8d249ca9992c09c84b8f4d4fc79fcf64f03">
+<h2>홈 런타임 저장소</h2>
+<h3>위치와 식별자</h3>
+<p>runtime/paths.py가 로컬 경로 해석을 소유한다. 실행 호스트는 기본 ~/.agent-factory 또는 명시적 절대 경로 AGENT_FACTORY_HOME을 사용한다. Codex는 자체 홈과 자격 증명을 유지한다. 코드 projectRoot는 정규 작업 트리 작업 디렉터리로 유지되고 runtimeRoot는 별도다. 새로운 체크아웃 .agent-factory 표식·런타임·문서 백엔드·카탈로그·심볼릭 링크 대체 경로를 만들지 않는다.</p>
+<p>비공개 버전 관리 홈 레지스트리는 각 정규 작업 트리 경로에 무작위의 안정된 project-&lt;32 hex&gt; 식별자를 부여한다. 같은 원격 저장소라도 별도 복사본과 Git 작업 트리는 서로 다른 식별자를 받는다. projects/&lt;project-id&gt;/agents/&lt;agent-id&gt;/에 세션·실행·루프를 두며 각 실행이 자체 발신함을 소유한다. 초기화는 잠금·소유자 전용 디렉터리와 파일·한 번만 만드는 레이아웃 메타데이터를 사용한다. 안전하지 않은 링크·지원하지 않는 레이아웃 버전·모호한 결속은 실패 처리한다.</p>
+<p>exec.py init --project-root PROJECT는 첫 제출 및 확장 연결과 같은 도우미로 명시적으로 초기화한다. location과 projects는 버전 있는 기계 판독 위치와 등록을 반환한다. list·기능 검사·상태 탐색은 없는 저장소를 초기화하거나 변경하지 않는다. 감독자·Worker·루프 자식·네이티브 브리지·보고 전송자는 해석된 홈/프로젝트 결속을 유지한다. 읽기 전용 역할은 Codex가 지원하는 이름 있는 권한 프로필을 사용한다. /는 읽을 수 있고 정확한 관리 실행 디렉터리만 쓸 수 있으며 샌드박스 도구의 네트워크를 끄고 작업 공간 샌드박스 플래그로 코드 루트를 넓히지 않는다. workspace-write 역할은 명시적인 코드 루트 동작을 유지한다. Linux에서 이 분할 정책은 레거시 Landlock 정책으로 의미를 유지하며 왕복할 수 없어 Codex의 bubblewrap 백엔드가 필요하다. 호스트가 bubblewrap 사용자 네임스페이스 설정을 거부하면 Codex는 실패 처리한다. 더 넓은 레거시 정책으로 바꾸지 않는다. 백엔드 협상은 https://github.com/openai/codex/blob/main/codex-rs/linux-sandbox/README.md 에, 현재 Codex 설정 계약은 https://learn.chatgpt.com/docs/config-file/config-reference 에 있다.</p>
+<p>식별자를 유지하는 명시적 위치 변경에는 exec.py rebind --runtime-home HOME --project-id ID --from-root OLD --project-root NEW를 사용한다. 이전 레지스트리 결속이 일치해야 하고 새 코드 디렉터리는 존재하며 미등록이어야 한다. 활성 실행은 재결속을 막는다. 재결속은 별도 프로젝트를 병합하거나 충돌하는 이력을 선택하지 않는다. 명시적 재결속 뒤 클라이언트를 다시 시작한다. 이미 연결된 클라이언트는 고정된 결속을 유지하고 레지스트리 결속 변경 시 실패해야 한다.</p>
+<h3>설치와 연결</h3>
+<p>지원되는 설정 진입점은 python3 /absolute/installed/plugin/skills/agent/scripts/exec.py init --project-root /absolute/code/worktree다. 플러그인 체크아웃 밖에서도 작동하며 승인된 관리 설치/설정 흐름에서 사용할 수 있다. 기본 마켓플레이스 설치는 임의의 설치 후 명령을 실행하지 않는다. 매니페스트는 초기화 훅을 제공하지 않으며 플러그인 설치가 훅을 자동 신뢰하지 않는다. 캐시 버전 변경·재설치·설정된 자격 증명 변경은 런타임 초기화에 포함되지 않는다. VS Code 작업 공간 확장 호스트는 SSH/컨테이너 호스트를 포함해 자체 홈을 해석하며 UI 호스트의 홈은 관계없다. 한 연결은 검증된 결속과 파일 시스템 이벤트 서명을 캐시하고 초기화 실패는 캐시를 비운다.</p>
+<h3>결정적 레거시 이전</h3>
+<p>runtime/migration.py는 inventory·plan·copy-request·copy·verify-eligible·activate·retire를 제공한다. 각 레거시 상위/플러그인/확장/MCP 프로젝트를 별도 반복 --project-root로 전달하며 중첩 프로젝트가 하나의 식별자라고 추론하지 않는다. 계획은 전체 파일 목록·크기·SHA-256 해시·디렉터리 목록·홈/프로젝트 레지스트리 결속·정확한 운영 위치 매핑·잘못된 비활성 기록의 정직한 보관 전용 분류를 결속한다. copy-request는 Work가 복사하기 전에 선택한 독립 백업과 결정적 원본/투영 해시를 결속한다. 계획은 데이터이며 실행 가능한 모델 출력이 아니다.</p>
+<p>복사는 원래 요청·결과·영수증·이벤트 및 기타 레거시 바이트를 홈 이전 보관소와 홈/원본 프로젝트 모두 밖의 독립 백업에 유지한다. Agent 런타임 기록만 별도 운영 투영을 받는다. 레거시 문서와 SQLite는 보관하며 로컬 도메인 백엔드로 승격하지 않는다. 추적된 Human 명세 저작 소스는 docs/specifications/&lt;id&gt;/에, 추적된 역사적 가공 문서 증거는 원래 바이트와 Git 이력을 유지하며 docs/archive/processed/에 둔다. 추적되지 않은 런타임·원시 비밀·자격 증명 캐시를 Git에 추가하지 않는다.</p>
+<p>원본 변경·안전하지 않은 경로 탐색/링크/특수 파일·활성 상태 또는 검증 불가능한 부팅 ID/시작 틱 프로세스 식별자·채워진 격리 영역·점유 작성자 잠금·목적지 충돌은 이전을 거부한다. 복사는 의도를 저널에 기록하고 동일 재시도를 지원한다. 보관소·백업·투영·활성화 트리는 빈 디렉터리까지 포함한 전체 허용 목록으로 검사하며 외부 파일과 교체된 inode는 실패 처리한다. 운영 JSON 판독기는 존재하지 않는 선택적 출력 경로를 포함해 알려진 파일 시스템 위치 필드만 가장 긴 프로젝트 루트 결속 접두사로 해석한다. 역사적 요청 식별자·영수증 해시·세션/실행/루프 ID·보고 수신자·임의 페이로드 문자열·발신함 명령은 다시 쓰지 않는다. exec.py map-path --project-root PROJECT --path OLD_PATH는 전체 프로젝트 간 매니페스트로 정확한 역사적 증거 경로를 보관 경로와 바이트 해시로 해석하며 관리 프롬프트가 이 경로를 안내한다. 보관소는 불변 역사적 증거로 유지되며 잘못된 기록에 조작된 의미 완료를 부여하지 않는다.</p>
+<p>verify-eligible은 결정적 바이트 적격성만 제공한다. 독립 Verification은 복사 상태·유효/무효 영수증·프로젝트 간 증거 매핑·정확한 세션 계속·그래프 pass/fail/skip·보고 복구를 검토해야 한다. 활성화는 실제 완료된 관리 Work와 Verification 상태 파일을 지목하는 버전 2 봉투만 받는다. 정규 실행/세션 소유권·정확한 요청/결과/응답/영수증 스키마와 해시·종료 이벤트·서로 다른 역할 세션·Verification의 엄격한 pass 영수증·정확한 계획/홈/백업/원본/투영 결속을 다시 검증한다. 선택한 JSON 키·파일명·결속되지 않은 추가 필드는 이 계약을 대신할 수 없다. 활성화는 복구 가능한 저널로 운영 투영을 게시하며 부분 게시는 복구까지 사용을 막는다. 원본 폐기에는 이미 승인된 정확한 원본 폐기 참조와 변경되지 않은 원본/보관소/백업/투영 증거가 추가로 필요하다. 각 재시도는 작성자 배제와 전체 허용 목록을 다시 검사하고 inode에 결속된 unlink/rmdir 의도 하나씩을 영속하며 외부 또는 교체된 원본/묘비 내용을 거부한다. 승인된 폐기에는 실제 검증 증거가 필요하며 새 권한 요청이 필요한 것은 아니다. Main이 제어를 이전하고 독립 검증이 폐기를 허용할 때까지 고정된 이전 부트스트랩 런타임과 그 활성 기록을 유지한다.</p>
+<h3>권위와 한계</h3>
+<p>이 저장소 계약은 클라우드 도메인 권위·여섯 Skill 식별자·Main -&gt; Work -&gt; Verification 그래프를 바꾸지 않는다. Work는 구현과 테스트를 작성하되 실행·Agent 조율·커밋·배포·물리적 전환을 하지 않는다. Verification 뒤 통합은 Main이 소유한다. 코드 변경이나 복사 성공은 물리적 이전·독립 수락·클라우드 가져오기·설치·배포를 입증하지 않는다.</p>
+</article>
 </section>
 <section id="source-6" data-ai-source="skills/agent/references/reporting.md" data-ai-sha256="234d70ffc883a683ac343cc93f5792e5b5f8d0f15c92653886987c1a5a9c8161">
 <article data-source-lines="1-2" data-source-sha256="1510005a57ffc410e8c392f8f00e2f2045c3f53b260b60abe3a3837928a85d81">
