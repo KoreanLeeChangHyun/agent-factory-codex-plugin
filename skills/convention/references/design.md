@@ -1,44 +1,36 @@
-# Design Convention
+# Design
 
-Use this reference for Human-facing interfaces and browser documents. Preserve
-the owning product's established design system when it exists; these rules are
-the Agent Factory baseline, not permission to restyle unrelated surfaces.
+Preserve the product's established design system; this baseline does not
+authorize restyling unrelated surfaces.
 
-## Interface baseline
+## Interfaces
 
-- Use semantic HTML and a clear information hierarchy.
-- Preserve keyboard access, visible focus, readable contrast, and responsive
-  behavior.
-- Keep essential content readable without JavaScript. Use JavaScript for
-  progressive interaction rather than as a prerequisite for comprehension.
-- Keep browser-document dependencies local and relative when the artifact must
-  remain portable.
-- Use visible text for meaning and actual SVG for every user-facing icon. Read
-  `svg-icon.md` whenever icons are created, changed, or reviewed.
-- Use diagrams, flows, graphs, or tables only when they make relationships
-  materially easier to understand. Keep AI-readable Mermaid sources aligned
-  with Human-facing visual representations when both exist. Read `diagrams.md`
-  whenever ERD, game-behavior, sequence, or Agent Factory core diagrams are
-  created, changed, or reviewed.
+- Use semantic HTML, clear hierarchy, keyboard access, visible focus, readable
+  contrast and responsive layout.
+- Keep essential content readable without JavaScript; progressively enhance
+  interaction. Portable browser documents use local, relative dependencies.
+- Use visuals only when they clarify relationships. For diagrams, read
+  `diagrams.md`; keep maintained source and rendered views aligned.
+- Match language/detail to the reader. Read authenticated MCP Workspace or
+  Document guides for those surfaces; do not export their layout/navigation
+  conventions to other products without evidence or Human direction.
 
-## Scope-specific design
+## SVG icons
 
-Workspace's VS Code-shaped `Activity Bar -> Primary Sidebar -> Workspace`
-layout is an MCP application interface decision, not a universal design
-system. Read the authenticated MCP Workspace guide for that surface. Read the
-authenticated MCP Document publication guide for Human-facing Specification
-documents when publishing through that application. Use language and detail appropriate to the reader.
+- Every user-facing icon must render actual SVG: inline markup, a component,
+  referenced `.svg`/`use` asset or compatible SVG library. Prefer existing project
+  patterns; otherwise use inline SVG for compact controls.
+- No emoji, Unicode/icon glyphs, icon fonts, text posing as icons, CSS-only
+  geometry or raster icons. Keep visible labels separate.
+- Inspect touched icon areas, including chevrons, ellipsis buttons, pseudo-elements
+  and masks; replace non-SVG icons unless the Human excludes icon work. Verify
+  actual SVG output in source/DOM.
+- Put accessible names on interactive elements. Decorative SVG uses
+  `aria-hidden="true"` and `focusable="false"`.
+- Reuse project assets first; record external source/license where required.
 
-Do not copy a shell-specific layout, visual token, or navigation model into a
-different product surface without project evidence or Human direction.
+## Sources
 
-## Evidence basis
-
-The accessibility baseline follows WCAG 2.2 and WAI guidance: functionality
-must remain keyboard-operable, keyboard focus must be visible, and text and
-controls need sufficient contrast. Progressive enhancement starts from usable
-baseline content before adding richer behavior:
-
-- [W3C: Web Content Accessibility Guidelines 2.2](https://www.w3.org/TR/wcag/)
-- [W3C WAI: Accessibility Principles](https://www.w3.org/WAI/fundamentals/accessibility-principles/)
+- [WCAG 2.2](https://www.w3.org/TR/wcag/)
+- [WAI: Accessibility principles](https://www.w3.org/WAI/fundamentals/accessibility-principles/)
 - [W3C: Progressive enhancement](https://www.w3.org/wiki/Graceful_degradation_versus_progressive_enhancement)

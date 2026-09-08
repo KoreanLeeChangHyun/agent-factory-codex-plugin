@@ -1,75 +1,59 @@
-# Development Convention
+# Development
 
-Use these shared rules for implementation and maintenance work in Agent Factory
-and its consumer projects. Follow a stronger project-local convention when one
-has been explicitly established.
+Follow stronger established project conventions.
 
-## Change boundaries
+## Changes
 
-- Inspect the owning component, its callers, and its established patterns
-  before changing it.
-- Keep each change self-contained and bounded to the requested behavior.
-  Preserve unrelated Human work, public contracts, storage authority, and
-  accepted identities.
-- Separate broad formatting, renaming, or refactoring from a behavioral change
-  when combining them would obscure review or recovery.
-- Do not turn a current local adapter, framework, or implementation detail into
-  a universal architecture rule.
-- Keep distributed plugin Skills, consumer Project Skills, runtime state,
-  source collections, and Specifications in their declared ownership
-  boundaries. Read `directory-structure.md` when a change affects paths.
+- Inspect the owning component, callers and existing patterns; keep changes
+  bounded. Preserve unrelated work, public contracts and accepted identities.
+- Separate broad formatting/refactoring when it would obscure behavioral review.
+- Reuse existing abstractions and the smallest maintainable implementation.
+  Use `libraries.md` for dependencies and `directory-structure.md` for paths.
+- Resolve filesystem targets and adapters explicitly; never silently broaden,
+  mirror or migrate storage. Initialization preserves files unless exact
+  overwrite/merge behavior is authorized.
+- Distinguish generated/copied assets from reusable source; document their sync
+  contract. Keep reusable code in scripts and conditional guidance in references.
+- Keep domain names/interfaces consistent; separate observed facts, accepted
+  decisions, inferences and unresolved questions. Local implementations are not
+  universal architecture rules.
 
-## Implementation choices
+## Technical documentation
 
-- Prefer the smallest maintainable implementation that satisfies the accepted
-  requirement and fits the existing codebase.
-- Reuse an established abstraction before adding a parallel one. Avoid a new
-  dependency when the current stack or standard library is sufficient; read
-  `libraries.md` when selecting one.
-- Make filesystem targets and adapter choices explicit. Do not silently select,
-  mirror, migrate, or broaden a storage backend.
-- Preserve existing files by default in initialization and scaffolding flows.
-  Define overwrite, merge, or force behavior explicitly and scope it to exact
-  targets.
-- Keep generated or copied assets distinguishable from their reusable source
-  and document the synchronization contract when both are maintained.
+- Use sections/subsections for topics and deeper headings only for distinct subtopics.
+- Use bullets for parallel rules and numbered lists for ordered procedures.
+- Use tables actively for comparisons and mappings with shared dimensions,
+  such as roles, ownership, options and reference purposes.
+- Use diagrams actively to explain flows, structures and relationships;
+  follow [diagrams.md](diagrams.md) for diagram selection and authoring.
+- Keep each item focused; use short introductory prose only when it adds context.
+- Consolidate duplicates in the owning document; preserve constraints and update callers.
+- Store generated documents using [MCP/docs routing](directory-structure.md#ai-generated-documents).
 
-## Maintainability
+## Comments and TODOs
 
-- Keep names and interfaces consistent with their owning domain.
-- Put reusable executable behavior in scripts and substantial conditional
-  guidance in focused references rather than duplicating it across entry
-  points.
-- Update documentation and annotations affected by the code change. Read
-  `annotation.md` when comments, documentation comments, or TODOs are involved.
-- Report observed behavior separately from accepted decisions, inferred state,
-  and unresolved questions.
+- Explain non-obvious intent, constraints, side effects and exceptional decisions;
+  do not narrate code. Prefer clear names, types and small units.
+- Use language-standard public API documentation; update or remove inaccurate,
+  unsupported comments when code changes. Keep inactive code in Git history.
+- Each TODO needs a reason and completion condition or traceable issue.
 
-## Git commit publication
+## Tests
 
-- Treat an authorized Git commit as Main-owned narrow result integration and
-  publication, not as Work or Verification. Work and Verification never
-  commit.
-- Main commits promptly and directly only after independent Verification
-  passes, or after an evidenced Human skip is applied following completion of
-  the current Work turn. Do not delegate a separate commit Work turn and do
-  not add a commit node or role to `Main -> Work -> Verification`.
-- Before staging, Main inspects the latest Work result and receipt, the
-  Verification pass receipt or Human-skip evidence, and current repository
-  status and diff. Stage only the exact paths bound to that verified or
-  skipped result. Exclude unrelated dirty, untracked, generated, or runtime
-  changes.
-- A commit request authorizes only the resulting ordinary commit within its
-  exact scope. Do not infer authorization to push, amend, force, rewrite
-  history, reset, restore, delete, or include unrelated changes. If exact safe
-  staging or ordinary commit cannot be completed, Main reports the obstruction
-  instead of broadening the commit.
+- Read `testing.md` for test organization, focused execution and Verification boundaries.
 
-## Evidence basis
+## Git publication
 
-Google's engineering practices recommend one self-contained concern per change
-and separating substantial refactoring from feature or bug-fix work. They also
-frame review around system-wide maintainability rather than local perfection:
+- Main directly makes authorized ordinary commits after independent pass or
+  evidenced Human skip applied after Work completion. Work/Verification never
+  commit; add no commit turn, role or graph node.
+- Inspect Work result/receipt, pass/skip evidence and current status/diff. Stage
+  only bound paths, excluding unrelated dirty, untracked, generated and runtime data.
+- Commit authority grants no push, amend, force, history rewrite, reset, restore
+  or delete. Report staging/commit obstructions without expanding scope.
 
-- [Google Engineering Practices: Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
-- [Google Engineering Practices: What to look for in a code review](https://google.github.io/eng-practices/review/reviewer/looking-for.html)
+## Sources
+
+- [Google: Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
+- [Google: Code review](https://google.github.io/eng-practices/review/reviewer/looking-for.html)
+- [PEP 8: Comments](https://peps.python.org/pep-0008/#comments)

@@ -90,9 +90,9 @@ collections follow `agent-factory://integrations/guide`; shared reporting uses
 Workspace planning contract and `agent-factory://planning/import-guide`,
 separately from background jobs and runtime reporting.
 
-Git maintains Agent instructions under `skills/<id>/` and independent Korean
-references under `docs/specifications/<id>/`. Cloud publication follows the
-current authenticated MCP schema and preserves actual provenance.
+Git maintains Agent instructions under `skills/<id>/`. Human-facing Document
+publication belongs to the MCP application and follows its current authenticated
+schema while preserving actual provenance.
 
 New catalog/search and document/sync configuration are cloud-owned. Retained
 local `db.sqlite`, old Document roots, `document/sync.json` and gathered collections
@@ -157,7 +157,6 @@ Use existing file tools only for an authorized absent target; preserve any
 existing project `AGENTS.md`. The bootstrap manager and local domain scripts are retired. New Specification
 authoring uses the authenticated MCP `document_template` manifest and bounded
 version-bound member delivery, preserving all template bytes and licenses.
-The two existing Korean reference documents retain their standalone assets.
 
 ## Workspace control tower
 
@@ -191,22 +190,36 @@ not guaranteed yet.
 
 MIT License. See [LICENSE](LICENSE).
 
-Focused plugin checks use Python with `pytest` and `PyYAML`:
+Install test dependencies with `python3 -m pip install -r requirements-test.txt`.
+
+Tests are grouped by purpose: `tests/contracts/` for package and reference
+contracts, `tests/runtime/` for runtime behavior, and `tests/integration/` for
+installation and cross-component scenarios. Keep test filenames as
+`test_<name>.py`; shared helpers belong in `tests/support/` and standalone
+performance tools in `tests/benchmarks/`. Run the relevant files with pytest
+from the repository root; `pytest.ini` provides the shared import paths.
 
 ```bash
-python3 -m pytest tests/test_convention_skill_metadata.py tests/test_distribution.py tests/test_reference_contracts.py
+python3 -m pytest tests/contracts/test_convention_skill_metadata.py tests/integration/test_distribution.py
 ```
 
-These checks cover Skill metadata, routed references, isolated installation and
-existing reference-document assets. The distribution and test
-migration map is maintained in [cloud-retirement.md](docs/cloud-retirement.md).
+These checks cover Skill metadata, routed references, and isolated installation.
 
-Native local execution: [Fast and Goal runtime guide](docs/native-fast-goal.md)
-explains installed-backend detection, exact-session settings, Goal lifecycle,
-and recovery limits.
+When a full suite is requested, run it in parallel with bounded worker count:
 
-Use `skills/agent/scripts/exec.py init --project-root /absolute/project` for explicit setup. `AGENT_FACTORY_HOME` selects an alternate private home without changing Codex home. Installation limits and the gated physical-migration procedure are in [home-runtime-migration.md](docs/home-runtime-migration.md). No physical cutover is implied by the source change.
+```bash
+python3 -m pytest tests -n auto --maxprocesses=4 --dist=worksteal
+```
 
-The Human-selected, not-yet-implemented direction for a smaller plugin and a
-project-specialized working Agent is recorded in
-[project-specialist-direction.md](docs/project-specialist-direction.md).
+Small focused runs stay serial to avoid worker startup overhead. Use `-n 0`
+for serial comparison or diagnosis. Each worker gets a temporary runtime home;
+fixtures own their temporary files and dynamically allocated ports. Installed
+Codex permission tests remain opt-in with `AF_VERIFY_LOCAL_CODEX=1`.
+
+Native local execution guidance lives in
+[`skills/agent/references/native-fast-goal.md`](skills/agent/references/native-fast-goal.md).
+
+Use `skills/agent/scripts/exec.py init --project-root /absolute/project` for explicit setup. `AGENT_FACTORY_HOME` selects an alternate private home without changing Codex home. Installation limits and the gated physical-migration procedure are in [`skills/agent/references/home-runtime.md`](skills/agent/references/home-runtime.md). No physical cutover is implied by the source change.
+
+The project-specialized Work direction and its unresolved design choices live in
+[`skills/agent/references/project-specialist.md`](skills/agent/references/project-specialist.md).

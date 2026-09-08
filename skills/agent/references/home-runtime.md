@@ -1,29 +1,202 @@
-# Home runtime storage
+# Local Agent Runtime
 
-## Location and identity
+## Storage and identity
 
-`runtime/paths.py` owns local path resolution. The executing host uses `~/.agent-factory` by default, or the explicit absolute `AGENT_FACTORY_HOME`. Codex retains its own home and credentials. Code `projectRoot` remains the canonical worktree working directory; `runtimeRoot` is separate. No new checkout `.agent-factory` marker, runtime, document backend, catalog or symlink fallback is created.
-
-The private versioned home registry assigns a random stable `project-<32 hex>` identity to each canonical worktree path. Separate copies and Git worktrees receive separate identities even with the same remote. `projects/<project-id>/agents/<agent-id>/` contains sessions, runs and loops; each run owns its outbox. Initialization uses locks, owner-only directories/files and copy-once layout metadata. Unsafe links, unsupported layout versions and ambiguous bindings fail closed.
-
-`exec.py init --project-root PROJECT` explicitly initializes through the same helper used by first submit and extension connection. `location` and `projects` return machine-readable versioned locations and registrations; `list`, capability inspection and status discovery do not initialize or mutate missing storage. Supervisor, Worker, loop children, native bridge and reporting sender preserve the resolved home/project binding. Read-only roles use Codex's supported named permission profile: `/` is readable, only the exact managed run directory is writable, network is disabled, and no workspace sandbox flag widens the code root. Workspace-write roles retain their explicit code-root behavior. On Linux this split policy requires Codex's bubblewrap backend because it cannot round-trip through the legacy Landlock policy; Codex fails closed when the host denies bubblewrap user-namespace setup. Do not replace it with a wider legacy policy. Codex documents this backend negotiation at https://github.com/openai/codex/blob/main/codex-rs/linux-sandbox/README.md and the configuration contract at https://learn.chatgpt.com/docs/config-file/config-reference.
-
-Use `exec.py rebind --runtime-home HOME --project-id ID --from-root OLD --project-root NEW` for an explicit relocation that preserves identity. The old registry binding must match, the new code directory must exist and be unregistered, and active runs block rebinding. Rebinding does not merge separate projects or choose between conflicting histories. Restart clients after explicit rebinding; an already connected client remains pinned and must fail if its registry binding changes.
+- **Resolver:** `runtime/paths.py`; host default `~/.agent-factory` or explicit
+  absolute `AGENT_FACTORY_HOME`. Codex keeps its own home/credentials.
+- **Roots:** canonical worktree `projectRoot` differs from `runtimeRoot`.
+  Create no checkout `.agent-factory` marker/runtime/backend/catalog or symlink fallback.
+- **Registry:** private/versioned; random stable `project-<32 hex>` per canonical
+  worktree path. Copies/worktrees have distinct IDs even with the same remote.
+- **Layout:** `projects/<project-id>/agents/<agent-id>/` holds sessions/runs/loops;
+  each run owns its outbox. Locks, owner-only permissions and copy-once metadata
+  protect initialization. Unsafe links, unsupported versions or ambiguous bindings fail closed.
 
 ## Installation and connection
 
-A supported setup entry is `python3 /absolute/installed/plugin/skills/agent/scripts/exec.py init --project-root /absolute/code/worktree`. It works outside the plugin checkout and is usable by an authorized managed installation/setup workflow. Stock marketplace installation does not execute an arbitrary post-install command. The manifest supplies no initialization hook, and installing a plugin does not automatically trust hooks. No cachebuster, reinstall or configured credential change is part of runtime initialization. VS Code's workspace extension host resolves its own home, including SSH/container hosts; the UI host's home is irrelevant. One connection caches the validated binding and filesystem event signature; failed initialization clears that cache.
+### Initialization
 
-## Deterministic legacy migration
+1. Initialize with `exec.py init --project-root PROJECT`; first submit and
+   extension connection use the same helper. An installed entry is
+   `python3 /absolute/installed/plugin/skills/agent/scripts/exec.py init --project-root /absolute/code/worktree`.
+2. Inspect versioned locations/registrations with `location` and `projects`.
+   `list`, capability inspection and status discovery never initialize missing storage.
+3. Preserve the resolved binding across supervisor, Worker, loop children, native
+   bridge and reporting sender.
 
-`runtime/migration.py` provides `inventory`, `plan`, `copy-request`, `copy`, `verify-eligible`, `activate` and `retire`. Pass each legacy parent/plugin/extension/MCP project with a separate repeated `--project-root`; never infer that nested projects are one identity. A plan binds the complete file inventory, sizes and SHA-256 hashes, directory inventory, home/project registry bindings, exact operational locator mapping and honestly archive-only malformed inactive records. `copy-request` binds the chosen independent backup and deterministic source/projection hashes before Work performs the copy. A plan is data, not executable model output.
+- Marketplace installation runs no arbitrary post-install command; the manifest
+  supplies no initialization hook and installation does not trust hooks.
+- Initialization requires no cachebuster, reinstall or credential change.
+- VS Code uses the workspace extension host's home, including SSH/containers,
+  not the UI host's. Connections cache validated binding/filesystem event signature;
+  failed initialization clears it.
 
-Copy keeps original request/result/receipt/events and other legacy bytes in the home migration archive and an independent backup outside both home and source projects. Only Agent runtime records receive a separate operational projection. Legacy Documents and SQLite stay archived and are never promoted into a local domain backend. Tracked Human Specification authoring lives at `docs/specifications/<id>/`; tracked historical Processed evidence lives at `docs/archive/processed/` with its original bytes and Git history. Never add untracked runtime, raw secrets or credential caches to Git.
+### Permissions
 
-Source changes, unsafe traversal/links/special files, active or unverifiable boot-ID/start-ticks process identities, populated containment, held writer locks and destination conflicts refuse migration. Copy journals its intent and supports identical retries. Archive, backup, projection and activation are checked as complete allowlisted trees, including empty directories; foreign files and replacement inodes fail closed. The operational JSON reader resolves only known filesystem locator fields, including absent optional output paths, by the longest root-bound project prefix without rewriting historical request identity, receipt hashes, session/run/loop IDs, reporting recipients, arbitrary payload strings or outbox commands. `exec.py map-path --project-root PROJECT --path OLD_PATH` resolves an exact historical evidence path through the full cross-project manifest to its archive path and byte digest; managed prompts describe this route. The archive remains the immutable historical evidence; invalid records do not acquire a fabricated semantic completion.
+- **Read-only roles:** named Codex profile; `/` readable, exact managed run directory
+  writable, network disabled. No workspace sandbox flag widens the code root.
+- **Workspace-write roles:** retain explicit code-root behavior.
+- **Linux:** split permissions require bubblewrap; legacy Landlock cannot represent
+  them. Denied user-namespace setup fails closed; never substitute a wider policy.
+- **References:** [sandbox backend](https://github.com/openai/codex/blob/main/codex-rs/linux-sandbox/README.md),
+  [configuration](https://learn.chatgpt.com/docs/config-file/config-reference).
 
-`verify-eligible` supplies deterministic byte eligibility only. Independent Verification must review the copied state, valid/invalid receipts, cross-project evidence mapping, exact-session continuation, graph pass/fail/skip and reporting recovery. Activation accepts only a version-2 envelope naming actual completed managed Work and Verification state files. It revalidates canonical run/session ownership, exact request/result/response/receipt schemas and hashes, terminal events, distinct role sessions, Verification's strict pass receipt, and the exact plan/home/backup/source/projection binding. Selected JSON keys, filenames or extra unbound fields cannot substitute for these contracts. Activation publishes the operational projection with a recoverable journal; partial publication blocks use until recovery. Retirement additionally requires the exact already-authorized source-retirement reference and unchanged source/archive/backup/projection evidence. Each retry rechecks writer exclusion and the full allowlist, persists one inode-bound unlink/rmdir intent, and refuses foreign or replaced source/tombstone content. Approved retirement needs actual verification evidence, not another permission request. Preserve the pinned old bootstrap runtime and its active records until Main has moved control and independent validation allows retirement.
+### Relocation
 
-## Authority and limits
+1. Use `exec.py rebind --runtime-home HOME --project-id ID --from-root OLD --project-root NEW`.
+2. Require matching old binding, an existing unregistered destination and no active runs.
+3. Restart clients. Existing clients stay pinned and must fail on registry change.
 
-This storage contract changes no cloud domain authority, two-Skill identity or Main -> Work -> Verification graph. Work authors implementation and tests without running them, coordinating Agents, committing, deploying or doing physical cutover. Main owns integration after Verification. A code change or successful copy does not establish physical migration, independent acceptance, cloud import, installation or deployment.
+- Rebinding preserves identity; it neither merges projects nor resolves conflicting histories.
+
+## Managed execution
+
+### Prompts and sessions
+
+- Only `main`, `work`, `verification` roles exist; sources are `prompt/main.md`,
+  `prompt/work.md`, `prompt/verification.md` relative to the Skill root.
+- Every initial/resumed exec turn validates and injects the complete selected
+  prompt as a tagged `codex exec` stdin block, not a platform system message.
+- Use `scripts/exec.py` for delegated roles; Main may also be exec-hosted.
+  Resume exact session IDs; no `resume --last` or concurrent turns per session.
+
+### Run files and retries
+
+- `runs/<run-id>/` owns request/state/heartbeat/events/response schema/result/receipt;
+  keep operational data separate from Skills/project information.
+- Pass large context/requests through validated run files. Reject traversal,
+  symlinks and unexpected file types; publish atomically and bound event/stderr logs.
+- Submit asynchronously; persist dispatch intent/tuple first. Reconcile ambiguous
+  acknowledgement with the same dispatch ID, without replacement dispatch.
+  Separate acceptance, startup, heartbeat and turn timeouts;
+  distinguish durable acceptance, start, observed heartbeat and terminal completion.
+- Pre-start retries are idempotent. After successful launch, missing start events
+  are ambiguous; no automatic replay. External/irreversible retries need Human authority.
+
+### CLI and receipts
+
+- `scripts/exec.py`: `submit`, `send`, `status`, `result`, `inbox`, `list`,
+  `cancel`, `reconcile`.
+- `scripts/loop.py`: `start`, `status`, `reconcile` (one transition),
+  `skip --actor human --authorization-reference REF --decision-evidence TEXT`.
+  Missing skip evidence or non-Human actors fail closed. Timing and END follow
+  [the Agent graph](../SKILL.md#roles-and-graph).
+- Completed runs publish validated `receipt.json` beside `result.md`.
+- Work receipts identify the request, changed paths and addressed finding IDs
+  for revisions.
+- Verification uses `--verified-work-run-id`; its receipt binds the exact Work
+  run and original request. `pass` has no findings; `fail` has actionable findings.
+- Exec owns process/session/run facts; loop alone owns transitions and END.
+
+### Linux containment
+
+#### Systemd backend
+
+1. Check command features, responsive user manager, safe environment transfer and
+   cgroup-v2 population access.
+2. Use a unique transient service per run/attempt: Worker main process, Codex child,
+   `Type=exec`, group termination, collection, safely transferable submitter environment,
+   bounded TERM-to-KILL escalation.
+3. Record backend/opaque containment identity by launch acknowledgement; query
+   that binding before reconciliation/signalling.
+4. Confirm cancellation from empty bound cgroup population, not service state or leader PID.
+
+#### Fallback
+
+- Without usable user systemd, retain startup barrier, private sessions/process
+  groups and boot-ID/start-ticks checks. Fail closed on unverifiable identity;
+  preserve conservative stale-run/non-replay behavior.
+- Descendant containment is weaker. Systemd is optional; the adapter allows future
+  backends but claims no Windows support.
+
+## Capability bindings
+
+### Authority and configuration
+
+- MCP Tool owns discovery/lifecycle; readiness grants no execution authority.
+  Agent binds authority/capabilities to requests/receipts. Preserve selected
+  host/plugin/MCP/manifest authority; copy neither registry nor credentials.
+- Individual runs: `exec.py --capability-binding-file`.
+- Loops: separate `--work-capability-binding-file` and
+  `--verification-capability-binding-file`; never forward bindings between roles.
+- Strict versioned schema: 1–32 unique capability IDs, authority kind/reference,
+  invocation route, exact target, allowed effects/scopes, nullable approval reference;
+  no credential/token fields. Reject unknown fields and invalid bounds.
+
+### Validation
+
+1. Open without resolving/following file or parent symlinks. Unsupported traversal,
+   unsafe parents, replacement races, non-regular files and oversized content fail closed.
+2. Open final component nonblocking; verify a regular descriptor, then read bounded
+   bytes from that same descriptor. FIFOs/sockets/devices cannot block dispatch.
+3. Canonicalize/copy into the run; hash into the immutable dispatch tuple and expose
+   canonical path/hash in status.
+4. Require ordered `capabilityOutcomes`, one per binding: request hash, run ID,
+   capability ID, authority, target and `succeeded`, `failed`, `unknown` or `not-invoked`.
+5. Re-read/hash canonical bindings; reject omitted, reordered, widened or substituted outcomes.
+
+## Legacy migration
+
+### 1. Inventory and plan
+
+- `runtime/migration.py` provides `inventory`, `plan`, `copy-request`, `copy`,
+  `verify-eligible`, `activate`, `retire`.
+- Pass each parent/plugin/extension/MCP project as a separate `--project-root`;
+  nesting does not merge identities.
+- Bind complete file/directory inventory, sizes/SHA-256, registry bindings and exact
+  operational locator mapping. Mark malformed inactive records archive-only.
+- `copy-request` binds independent backup and deterministic source/projection hashes
+  before Work copies. Plans are data, not executable model output.
+
+### 2. Copy and map
+
+- Preserve legacy bytes, including requests/results/receipts/events, in the home
+  archive and independent backup outside home/source projects. Only Agent runtime
+  records receive operational projections.
+- Documents/SQLite remain archived, never local domain backends. Human Specifications
+  and historical Documents belong to MCP or selected archival authority, not this plugin.
+  Never add raw Documents, untracked runtime, secrets or credential caches to Git.
+- Refuse changed sources, unsafe traversal/links/special files, active/unverifiable
+  boot-ID/start-ticks identities, populated containment, writer locks or conflicts.
+- Journal copy intent; identical retries are supported. Check complete allowlisted
+  archive/backup/projection/activation trees, including empty directories; reject
+  foreign files and replacement inodes.
+- Resolve only known JSON filesystem locator fields, including absent optional
+  outputs, by longest root-bound prefix. Preserve historical request identity,
+  receipt hashes, session/run/loop IDs, recipients, payload strings and outbox commands.
+- `exec.py map-path --project-root PROJECT --path OLD_PATH` uses the cross-project
+  manifest to return archive path/byte digest. Prompts describe this route;
+  archives remain immutable and invalid records gain no fabricated completion.
+
+### 3. Verify and activate
+
+- `verify-eligible` proves byte eligibility only. Independent Verification reviews
+  copied state, valid/invalid receipts, cross-project mapping, exact-session continuation,
+  graph pass/fail/skip and reporting recovery.
+- Activation requires a version-2 envelope naming actual completed managed Work and
+  Verification states. Revalidate ownership, exact request/result/response/receipt
+  schemas/hashes, terminal events, distinct sessions, strict pass receipt and exact
+  plan/home/backup/source/projection binding. Unbound fields/filenames are insufficient.
+- Publish operational projection with a recoverable journal; partial activation
+  blocks use until recovery.
+
+### 4. Retire
+
+- Require exact already-authorized retirement reference and unchanged source/archive/
+  backup/projection evidence. Recheck writer exclusion/allowlists on every retry;
+  persist one inode-bound unlink/rmdir intent and reject foreign/replaced source/tombstones.
+- Existing authorization needs actual verification evidence, not another permission request.
+- Keep pinned bootstrap runtime/active records until Main transfers control and
+  independent validation permits retirement.
+
+### Authority
+
+- Preserve [the Agent role boundaries](../SKILL.md#roles-and-graph) and
+  [Convention domain authority](../../convention/references/agent-factory-core.md).
+- Code changes/copies prove no physical migration, acceptance, cloud import,
+  installation or deployment.
+
+## Optional cloud reporting
+
+- Follow [reporting.md](reporting.md) for role-specific configuration, outbox
+  delivery, recovery and cloud reporting evidence.

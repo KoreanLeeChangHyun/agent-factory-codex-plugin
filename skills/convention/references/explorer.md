@@ -1,48 +1,27 @@
-# Explorer Capability Convention
+# Explorer
 
-## Capability boundary
+## Role and scope
 
-Explorer is the Agent Factory evidence-exploration capability. It analyzes and
-researches web, code, Documents, data, Original Documents, and Processed
-Documents. It may preserve source-faithful Original Documents and create
-Processed comparisons, analysis, hypotheses, and conclusions. It never accepts,
-reconciles, or promotes output to Specification truth.
+- Convention-owned evidence capability performed by bounded Work; no extra Skill/role.
+- Explore web, code, Documents and data. Preserve delegated question, scope,
+  constraints, completion condition and evidence boundary.
+- May preserve Original or produce Processed comparisons/analysis/hypotheses/conclusions.
+  Never accept, reconcile or promote Specification truth or modify canonical facts.
+- No Human interviewing/impersonation or decisions on direction, priority,
+  approval, acceptance, completion or risk tolerance.
+- Tests, validators, builds, servers, runtime probes and other verification belong
+  to explicitly Human-authorized Verification, not Explorer.
 
-Explorer is not a public distributed Skill or Agent role. Its evidence work is
-performed as a bounded task by Work under the Agent graph; this reference owns
-the durable information and authority constraints that task must preserve.
+## Evidence and storage
 
-Original Documents may retain diverse native or source-appropriate formats and
-must preserve source fidelity, identity, provenance, and collection context.
-The Processed type remains storage-independent; active output uses the accepted portable HTML/CSS/JavaScript browser package and authorized cloud Document persistence. Preserved legacy Inquery artifacts are neither active
-targets nor a format precedent.
-
-## Provenance and authority
-
-- Preserve source identity, location, retrieval context, and material
-  limitations closely enough for later inspection.
-- Keep observations, analysis, hypotheses, conclusions, contradictions, and
-  limitations distinguishable.
-- Preserve the delegated question, scope, constraints, completion condition,
-  and evidence boundary.
-- Do not choose Human-owned product direction, priority, approval, acceptance,
-  completion, or risk tolerance.
-- Do not modify canonical project facts or Specifications merely
-  because exploration supports a conclusion.
-- Do not treat Explorer output as a Project Skill or Human-facing
-  Specification.
-- Explorer does not interview or impersonate the Human.
-- Project tests, validators, builds, servers, runtime probes, and other
-  verification belong to an explicitly Human-authorized Verification role,
-  not Explorer.
-
-Durable Explorer output must be classified as an Original or Processed
-Document and uploaded through the resolved authenticated cloud Document tools with its own authority. Temporary execution-only
-material belongs to the producing managed Agent run; Explorer has no standalone
-storage root.
-
-Direct `docs/archive/processed/legacy-inquery-<legacy-id>/`
-packages contain historical, read-only, evidence-only Processed Documents.
-Legacy is status/provenance metadata, not a Document type or wrapper. Inspect
-these packages only when the delegated scope requires it, and never use them as
-active workspaces or write targets.
+- Preserve source identity/location, retrieval/collection context, fidelity and limitations.
+- Distinguish observations, analysis, hypotheses, conclusions and contradictions.
+- Original uses native/appropriate formats. Active Processed uses portable
+  HTML/CSS/JavaScript; type remains storage-independent. Neither is a Project Skill
+  or Human Specification.
+- Classify durable output as Original/Processed; follow
+  [MCP/docs storage](directory-structure.md#ai-generated-documents) under its own authority.
+  Temporary material stays in its producing run.
+- No standalone Explorer root. Legacy Inquery is read-only, inactive Processed evidence
+  in Git history/selected archives; inspect only within delegated scope. Legacy is
+  status/provenance, never a type, wrapper, format precedent or active write target.
