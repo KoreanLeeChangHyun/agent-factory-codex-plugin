@@ -1,6 +1,6 @@
 # Cloud source retirement
 
-The plugin distributes six Skills, three Agent role prompts, `exec.py`, `loop.py`
+The plugin distributes two Skills, three Agent role prompts, `exec.py`, `loop.py`
 and `runtime/cloud_reporting.py`. The runtime paths and optional reporting flags
 are preserved. Cloud reporting remains explicit and optional. Source retirement
 does not change local execution, graph transitions, receipts or extension entry
@@ -18,14 +18,14 @@ prior evidence, not a pass claim for the retirement changes.
 | Retired source / former tests | Final owner and meaningful replacement coverage | Intentionally retired behavior |
 | --- | --- | --- |
 | `skills/agent/scripts/catalog.py`, `assets/schema/catalog.sql`; `test_agent_catalog_manager.py`, `test_agent_catalog_schema.py` | [Document service tests](../../mcp/tests/test_cloud_documents.py): literal Korean/identifier queries, scoped escaped search, atomic import/replay/conflict, pair binding and old-publication preservation; [reporting tests](../../mcp/tests/test_cloud_reporting.py): Agent/run/task/log/test scoped literal retrieval and immutable binding; [real DB tests](../../mcp/tests/test_cloud_platform_integration.py): RLS, races, binary inventory, search, previous accepted bytes; [legacy importer tests](../../mcp/tests/test_legacy_document_import.py): deterministic recursive package inventory, source untouched and symlink rejection | Local SQLite v1/v2/v3 initialization/migration, FTS5 grammar, project-root resolver, local rebuild/sidecar replacement, SQL index layout and local scan caps. Existing SQLite and sidecars remain untouched. Cloud schema/migrations and bounded package/source identities replace new local catalog creation. |
-| `skills/convention/scripts/init_agents.py` | Final metadata tests retain six-Skill routing and `assets/AGENTS.md` equality; authorized file tools copy the text only to an absent target | Local initialization manager; no overwrite/merge authority is added |
-| `skills/document/scripts/verify_specification_pair.py`; former `test_specification_coverage.py` loader | Final `test_specification_coverage.py` imports [owning validator](../../mcp/app/modules/document/pair.py), checks all six complete inventories and rejects missing/added/stale/reordered/duplicate sources, gaps, empty translation, placeholders, reciprocal mismatch and stale asset review | Distributed validator executable and separate local parser. Structural fixture review is explicitly synthetic; six-pair independent Korean semantic review remains required |
+| `skills/convention/scripts/init_agents.py` | Final metadata tests retain two-Skill routing and `assets/AGENTS.md` equality; authorized file tools copy the text only to an absent target | Local initialization manager; no overwrite/merge authority is added |
+| Former `skills/document/scripts/verify_specification_pair.py`, `test_specification_coverage.py`, `tests/mcp_dependency.py` | Plugin checks cover Skill structure and isolated installation independently of Korean references. Cloud publication validation remains owned by the MCP application | Mandatory AI/Korean pairing, translation coverage, reciprocal metadata and cross-representation hash gates; plugin test dependency on the cloud pair validator |
 | `skills/gather/scripts/sync.py`, `assets/schema/sync.schema.json`; `test_gather_sync_manager.py` | [collection tests](../../mcp/tests/test_cloud_integrations_collections.py): independent selection sharing a connection, immutable bounds, persisted cursor/replay, durable results, storage-failure recovery, cross-workspace/requester denial; [real DB integration](../../mcp/tests/test_cloud_platform_integration.py): actual persistence, job authority/cancel/recovery | Local `sync.json` setters, Git-root discovery, destination precedence and local destination directory races. Existing config/source data stays intact; new destination is the resolved cloud Workspace |
 | All six `skills/gather/scripts/sync_{discord,gmail,google_drive,notion,onedrive,slack}.py`, `provider_support.py`, `requirements.txt`; `test_gather_provider_scripts.py` | [provider tests](../../mcp/tests/test_cloud_integrations_providers.py): native Drive exports/folder pagination, Gmail raw EML/attachments, Slack private-URL redaction, Notion nested/fresh files, numeric Discord pagination, OneDrive redirects/cursor host restrictions, no credential forwarding, selection and byte limits, Retry-After/cancellation, sanitization/provenance; [collection tests](../../mcp/tests/test_cloud_integrations_collections.py): encrypted refresh, classified health errors, object-readback failure before cursor advance, crash reservation recovery | Project destination resolver, external local secret-file modes/atomic replacement, device-token cache writes and filesystem directory-swap writer. Cloud encryption and object-storage durability replace these implementations; provider fidelity/security cases remain server-owned |
-| `skills/tool/scripts/tool.py`; `test_tool_adapters.py` | Final `test_tool_contracts.py` preserves exact host authority, Git/GitHub/LFS/Playwright profiles, unknown/unsupported/unauthenticated distinctions, structured non-secret inspection and readiness/execution separation; [integration collection tests](../../mcp/tests/test_cloud_integrations_collections.py) preserve actual cloud health classification and encrypted credentials | Local JSON adapter registry, subprocess wrappers and route-only mutation wrappers. Existing Agent shell/file tools perform bounded local inspection; cloud owns connection operations |
-| Obsolete local ownership assertions in `test_convention_skill_metadata.py` and `test_document_contracts.py` | Final tests retain singular metadata, all six public Skills, role prompts, reference inventory, full reciprocal Korean packages/local dependencies, Document types/authority, exact six Activities, independent testing/Human decisions, source-backed diagrams and MCP ownership | Five-Activity assertions, zero Agent references, local catalog/sync inventory, old plural source-map attributes and exactly-three-template-files claim |
+| Former `skills/tool/scripts/tool.py`; `test_tool_adapters.py` and `test_tool_contracts.py` | [Integration collection tests](../../mcp/tests/test_cloud_integrations_collections.py) preserve actual cloud health classification and encrypted credentials; current MCP schemas own Tool lifecycle details | Local JSON adapter registry, subprocess wrappers, route-only mutation wrappers, and the public Tool Skill. Existing Agent shell/file tools perform bounded local inspection; cloud owns connection operations |
+| Obsolete local ownership assertions in `test_convention_skill_metadata.py` and `test_reference_contracts.py` | Final tests retain singular metadata, both public Skills, role prompts, reference inventory, optional Korean reference assets/local dependencies, Document types/authority, exact six Activities, independent testing/Human decisions, source-backed diagrams and MCP ownership | Six-Skill distribution, five-Activity assertions, zero Agent references, local catalog/sync inventory, old plural source-map attributes and exactly-three-template-files claim |
 
-`test_distribution.py` stages the final Skills and six Human packages and exercises
+`test_distribution.py` stages only the final Skills and exercises
 exec/loop imports from an unrelated consumer directory without creating runtime data.
 The extension locator remains `skills/agent/scripts/exec.py` in
 `extension/src/infrastructure/agent-factory/plugin-locator.ts`; no extension source
@@ -44,8 +44,7 @@ to [MCP packaged resources](../../mcp/app/resources/document_template/), includi
 `index.html`, `app.js`, `styles.css`, `library.css`, both vendor libraries and all
 license notices. The complete byte inventory is
 [document_template_inventory.json](../../mcp/app/resources/document_template_inventory.json).
-These are reusable authoring baseline resources, not accepted Human/AI pairs or
-an authenticated browser shell. The cloud's existing `static/` and
+These are reusable authoring baseline resources, not an authenticated browser shell. The cloud's existing `static/` and
 `template/workspace/` continue to own Workspace runtime UI.
 
 `document_template` is discoverable through authenticated MCP tool listing. It
@@ -55,23 +54,23 @@ Workspace authorization. It introduces no static mount or executable HTML
 response; uploaded-package attachment/member delivery and isolated preview CSP
 are unchanged. See the [delivery guide](../../mcp/docs/cloud-documents.md).
 
-The six existing `docs/specifications/<id>/` packages preserve
-all standalone CSS/JS/vendor assets. Their HTML semantic edits match the changed
-AI instructions and source maps. No Human package was overwritten with template
-bytes, and no hash refresh stands in for independent semantic review.
+The two existing `docs/specifications/<id>/` documents preserve their standalone
+CSS/JS/vendor assets as optional Korean references. They are maintained
+independently from Skill instructions. Source-line maps, reciprocal bindings
+and the mandatory translation/hash gate were retired by Human direction on
+2026-09-09.
 
 ## Verification handoff
 
-Work did not run checks. Independent Verification owns plugin validation,
-focused plugin tests, new MCP template/auth tests, MCP registration and wheel
-resource tests, six-pair Korean semantic review and changed-path integration.
-Use the MCP development dependencies; `AGENT_FACTORY_MCP_SOURCE` can select a
-non-sibling source checkout. Missing dependency is an explicit error, never a
-silent skip. The fixture hashes in structural tests are not publication evidence.
+Plugin checks cover metadata, routed references, optional reference assets and
+isolated runtime entry points using Python, pytest and PyYAML. They do not
+require the MCP development package or Korean semantic-equivalence review.
+Cloud template/authentication, registration, resource and publication checks
+remain owned by the MCP application and are separate from Skill completion.
 
 If Plugin Creator requires the outer directory to match manifest name, stage
-source into a uniquely owned temporary `agent-factory/` directory. Include all
-six Human source packages and runtime dependencies; exclude generated data.
+source into a uniquely owned temporary `agent-factory/` directory. Include required
+Skill runtime dependencies; exclude generated data.
 Do not rename this repository, reinstall the runtime or edit marketplace config.
 Live credentials, deployment, real account trials and data cutover require their
 own exact targets and authority; they do not block completion of code retirement.
@@ -103,5 +102,5 @@ The Workspace Activity heading/navigation is now Korean while preserving the
 technical Workspace identity and mapped source order. Placeholder checks inspect
 HTML attributes and keep explanatory prose; an actual-attribute negative fixture
 and the unchanged server validator preserve rejection coverage. This corrective
-Work has not run tests or claimed a pass. All six complete pairs and diagram
-relationships still require independent final semantic review.
+Work has not run tests or claimed a pass. This historical handoff does not reinstate the retired AI/Korean synchronization
+gate; current Skill and diagram changes are reviewed within their own scope.

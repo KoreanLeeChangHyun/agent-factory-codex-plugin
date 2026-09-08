@@ -58,7 +58,7 @@ has been explicitly established.
   Verification pass receipt or Human-skip evidence, and current repository
   status and diff. Stage only the exact paths bound to that verified or
   skipped result. Exclude unrelated dirty, untracked, generated, or runtime
-  changes, and preserve a Specification's complete synchronized Human/AI pair.
+  changes.
 - A commit request authorizes only the resulting ordinary commit within its
   exact scope. Do not infer authorization to push, amend, force, rewrite
   history, reset, restore, delete, or include unrelated changes. If exact safe

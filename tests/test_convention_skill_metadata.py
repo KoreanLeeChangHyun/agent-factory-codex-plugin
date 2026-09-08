@@ -9,13 +9,13 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
-PUBLIC_SKILLS = {"agent", "convention", "document", "gather", "tool", "workspace"}
+PUBLIC_SKILLS = {"agent", "convention"}
 
 
 class ConventionSkillMetadataTests(unittest.TestCase):
     def test_readme_declares_cloud_and_local_authority(self):
         text = (ROOT / "README.md").read_text()
-        for phrase in ("cloud", "exec.py", "loop.py", "document_template", "six Skills", "Code retirement never authorizes deletion"):
+        for phrase in ("cloud", "exec.py", "loop.py", "document_template", "two Skills", "Code retirement never authorizes deletion"):
             self.assertIn(phrase, text)
 
     def test_agents_entrypoint_routes_to_authoritative_convention_references(self) -> None:
@@ -44,7 +44,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         ):
             self.assertNotIn(duplicated_detail, instructions)
 
-    def test_public_skill_directories_match_the_six_skill_contract(self) -> None:
+    def test_public_skill_directories_match_the_two_skill_contract(self) -> None:
         actual = {
             path.name
             for path in SKILLS.iterdir()
@@ -65,6 +65,10 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             "projects",
             "rules",
             "work-units",
+            "document",
+            "gather",
+            "tool",
+            "workspace",
         ):
             with self.subTest(removed=removed):
                 self.assertFalse((SKILLS / removed).exists())
@@ -79,8 +83,6 @@ class ConventionSkillMetadataTests(unittest.TestCase):
                 self.assertEqual(
                     {
                         "specification-id": name,
-                        "human-entry": f"docs/specifications/{name}/index.html",
-                        "ai-root": f"skills/{name}/",
                     },
                     metadata["metadata"],
                 )
@@ -135,64 +137,6 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         ignored = (ROOT / ".gitignore").read_text()
         for item in ("/.agent-factory/db.sqlite", "/.agent-factory/db.sqlite-wal", "/.agent-factory/agent/"):
             self.assertIn(item, ignored)
-
-    def test_tool_is_a_logical_control_contract_without_a_local_backend(self) -> None:
-        entry = (SKILLS / "tool" / "SKILL.md").read_text(encoding="utf-8")
-        lifecycle = (
-            SKILLS / "tool" / "references" / "lifecycle.md"
-        ).read_text(encoding="utf-8")
-        combined = " ".join((entry + lifecycle).casefold().split())
-        for authority_marker in (
-            "host",
-            "plugin",
-            "mcp server",
-            "project manifest",
-        ):
-            with self.subTest(authority_marker=authority_marker):
-                self.assertIn(authority_marker, combined)
-        for phrase in (
-            "credential reference",
-            "requested and actually granted permission scopes",
-            "tool readiness does not authorize execution",
-            "tool must not widen scope on its own",
-
-        ):
-            self.assertIn(phrase, combined)
-        self.assertFalse((ROOT / ".agent-factory" / "tool").exists())
-
-    def test_tool_routes_distinct_git_profiles_without_owning_state(self) -> None:
-        entry = (SKILLS / "tool" / "SKILL.md").read_text(encoding="utf-8")
-        git_profiles = (
-            SKILLS / "tool" / "references" / "git.md"
-        ).read_text(encoding="utf-8")
-        normalized_profiles = " ".join(git_profiles.casefold().split())
-        self.assertIn("`references/git.md`", entry)
-        for profile_id in ("git.cli", "github.cli", "git-lfs.cli"):
-            with self.subTest(profile_id=profile_id):
-                self.assertIn(f"`{profile_id}`", git_profiles)
-                self.assertIn(f"`{profile_id}.inspect`", git_profiles)
-                self.assertIn(f"`{profile_id}.execute`", git_profiles)
-        for boundary in (
-            "tool readiness never authorizes agent execution",
-            "do not use a token-printing operation as a health check",
-            "repository activation/configuration",
-        ):
-            self.assertIn(boundary, normalized_profiles)
-
-    def test_tool_routes_playwright_profile_without_conflating_readiness(self) -> None:
-        entry = (SKILLS / "tool" / "SKILL.md").read_text(encoding="utf-8")
-        playwright = (
-            SKILLS / "tool" / "references" / "playwright.md"
-        ).read_text(encoding="utf-8")
-        self.assertIn("`references/playwright.md`", entry)
-        for identifier in (
-            "playwright.browser",
-            "playwright.browser.inspect",
-            "playwright.browser.execute",
-        ):
-            with self.subTest(identifier=identifier):
-                self.assertIn(f"`{identifier}`", playwright)
-
 
 if __name__ == "__main__":
     unittest.main()

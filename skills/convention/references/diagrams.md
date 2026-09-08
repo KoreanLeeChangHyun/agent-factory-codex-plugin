@@ -25,7 +25,7 @@ control.
 
 ## Agent Factory core sources
 
-These Mermaid sources define the important relationships for the paired Korean browser document. Provide accessible visual projections for all nine core diagrams using semantic HTML and inline SVG, while retaining their complete ordered Korean source and readable fallback meaning. Visual projections are required, not optional; they must remain readable standalone and in the isolated cloud preview without external dependencies. Keep labels and relationships aligned when either representation changes.
+These Mermaid sources explain Agent Factory relationships. Use diagrams when they clarify a relationship. Keep any rendered diagram faithful to its own source and provide accessible fallback meaning.
 
 ## Document types
 
@@ -66,8 +66,8 @@ flowchart LR
     Document --> Processed
     Document --> Specification[Specifications]
     Human -->|grounded decisions| Document
-    Specification --> HumanView[Korean browser document]
-    Specification --> AIView[AI-facing Skill]
+    Specification -. optional reference .-> HumanView[Human reference document]
+    Specification -. informs .-> AIView[AI-facing Skill]
     Workspace[Human control tower] -->|navigates| HumanView
     Workspace -->|manages views of| Agent
     Convention -. cross-cutting constraints .-> Gather
@@ -99,21 +99,17 @@ flowchart TB
     Agentic --> Graph --> Loop --> Context --> Prompt
 ```
 
-## Paired representation alignment
+## Skill and reference documents
 
 ```mermaid
 flowchart LR
-    accTitle: Specification pair semantic alignment
-    accDescr: One Skill directory and one Human-centered Korean Specification directory share reciprocal identity and locators while remaining semantically aligned.
-    HumanView[Human-facing projection<br/>Korean HTML, CSS, JavaScript<br/>resolved document store]
-    Core[One Specification semantic body<br/>decisions, relationships,<br/>observations, unresolved questions]
-    AIView[AI-facing projection<br/>one Skill directory<br/>skills/skill-id/]
-    Binding[Reciprocal metadata<br/>SKILL.md and index.html]
-    Core --> HumanView
-    Core --> AIView
-    HumanView <-. semantic alignment .-> AIView
-    Binding -. exact identity and locators .-> HumanView
-    Binding -. scope .-> AIView
+    accTitle: Independent Skill and reference maintenance
+    accDescr: Accepted project knowledge informs AI instructions and optional Human references; each is maintained for its reader.
+    Knowledge[Accepted project knowledge]
+    AI[AI Skill instructions<br/>skills/skill-id/]
+    Human[Optional Korean reference<br/>docs/specifications/skill-id/]
+    Knowledge -->|Agent instructions| AI
+    Knowledge -. reader-focused explanation .-> Human
 ```
 
 ## Current implementation relationships
@@ -143,7 +139,7 @@ flowchart LR
     SkipDecision -->|yes: start no next or additional Verification| End
     Verification -->|fail| Work
     Verification -->|pass| End[END]
-    Workspace[Workspace Skill<br/>Human control tower]
+    Workspace[MCP Workspace domain<br/>Human control tower]
     Workspace --> Activities[Activity Bar top-level order<br/>1 일정 · 2 에이전트 · 3 문서 · 4 외부연동 · 5 로그 · 6 테스트]
     Activities --> DocumentSidebar[문서 Sidebar<br/>원본 문서 · 가공 문서 · 명세 문서]
     DocumentSidebar -. finer view details and source integration unresolved .-> HumanDecision[Future Human decision]
@@ -181,7 +177,7 @@ flowchart LR
     accDescr: The plugin owns distributed Skills under skills while separate consumer projects own Specification Project Skills directly under their own .codex skills root.
     Plugin[Agent Factory plugin repository] --> Distributed[Distributed plugin Skills<br/>&lt;plugin-root&gt;/skills/]
     Distributed --> Core[One distributed Skill<br/>skills/skill-id/]
-    Core --> BindingOwner[One Human Specification<br/>document/specification/skill-id/]
+    Plugin -. optional independent reference .-> HumanReference[Korean reference documents<br/>docs/specifications/skill-id/]
     Consumer[Separate consumer project] --> ProjectSkill[Specification Project Skill<br/>&lt;project-root&gt;/.codex/skills/&lt;category&gt;-&lt;name&gt;/]
     Distributed -. never mirrored into this repository .-> NoCodex[No repository-local .codex/skills/]
 ```
@@ -191,10 +187,10 @@ flowchart LR
 ```mermaid
 flowchart LR
     accTitle: Cloud Document authority and source packages
-    accDescr: Cloud owns accepted published revisions; Git source packages bind a reviewed complete pair and local run data remains operational evidence.
-    Git[Git Skill and Korean HTML authoring source] --> Snapshot[Repository, commit, inventory and pair review]
+    accDescr: Cloud owns accepted published revisions; Git owns Skill authoring and local run data remains operational evidence.
+    Git[Git Skill and optional reference authoring] --> Snapshot[Authorized publication content]
     Snapshot --> Cloud[Authenticated cloud Document publication]
-    Cloud --> Revision[Accepted immutable complete-pair revision]
+    Cloud --> Revision[Accepted immutable revision]
     Cloud --> Types[Original, Processed, Specification: invariant types]
     Local[Local Agent run and outbox] -->|authorized required evidence upload| Cloud
     Legacy[Preserved legacy source data] -->|inventory, backup, verified import| Cloud

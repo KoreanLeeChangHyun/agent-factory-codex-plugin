@@ -24,11 +24,10 @@ the Agent Factory baseline, not permission to restyle unrelated surfaces.
 ## Scope-specific design
 
 Workspace's VS Code-shaped `Activity Bar -> Primary Sidebar -> Workspace`
-layout is a Workspace interface decision, not a universal design system. Apply
-`skills/workspace/references/interface.md` for that surface. Apply
-`skills/document/references/specification.md` for Human-facing
-Specification documents, including their Korean-language and paired-document
-requirements.
+layout is an MCP application interface decision, not a universal design
+system. Read the authenticated MCP Workspace guide for that surface. Read the
+authenticated MCP Document publication guide for Human-facing Specification
+documents when publishing through that application. Use language and detail appropriate to the reader.
 
 Do not copy a shell-specific layout, visual token, or navigation model into a
 different product surface without project evidence or Human direction.

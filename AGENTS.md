@@ -12,7 +12,7 @@ Reference locations:
 
 This repository is the Agent Factory plugin. Keep its distributed Skills below
 `<plugin-root>/skills/`; do not create or mirror them below this repository's
-`.codex/`. Human publication sources are under `docs/specifications/`;
+`.codex/`. Optional Korean reference documents are under `docs/specifications/`;
 tracked historical evidence is under `docs/archive/`. Runtime paths are resolved
 by `skills/agent/runtime/paths.py` outside the checkout.
 </agent-factory>

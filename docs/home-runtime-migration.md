@@ -121,8 +121,7 @@ python3 -m unittest discover -s tests -p 'test_agent_cloud_reporting.py'
 python3 -m unittest discover -s tests -p 'test_native_codex.py'
 python3 -m unittest discover -s tests -p 'test_native_transport.py'
 python3 -m unittest discover -s tests -p 'test_distribution.py'
-python3 -m unittest discover -s tests -p 'test_document_contracts.py'
-python3 -m unittest discover -s tests -p 'test_specification_coverage.py'
+python3 -m unittest discover -s tests -p 'test_reference_contracts.py'
 python3 -m unittest discover -s tests -p 'test_convention_skill_metadata.py'
 # Explicit opt-in: real installed native host, owned loopback mock provider only
 AF_VERIFY_LOCAL_CODEX=1 python3 -m unittest discover -s tests -p 'test_home_runtime.py'
@@ -131,4 +130,4 @@ AF_VERIFY_LOCAL_CODEX=1 python3 -m unittest discover -s tests -p 'test_installed
 node --test test/unit/runtime-adapter.test.mjs
 ```
 
-The paired specification coverage tests require the existing explicit MCP development dependency described in `tests/mcp_dependency.py`. Hash coverage does not establish Korean semantic equivalence; independently review the changed complete pairs. No full-suite result is claimed.
+Check the affected runtime behavior and Skill contracts.

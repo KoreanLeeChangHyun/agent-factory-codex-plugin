@@ -1,5 +1,7 @@
 # 클라우드 이전·전환·복구 운영 절차
 
+현재 플러그인의 Skill과 한국어 문서는 독립 관리한다. 클라우드 게시·이관에는 해당 MCP 서비스의 현재 인증 스키마를 적용한다.
+
 이 문서는 Human이 승인한 1–13단계 클라우드 아키텍처를 운영 환경에 적용하기 위한 실행 전 검토본이다. 작성일은 2026-09-06이다. 작성 Work는 테스트·검증·배포·공급자 호출·DB 변경·실제 전환을 실행하지 않았다. 아래 명령은 대상과 권한이 확정된 운영자 및 독립 Verification이 수행할 예시다. 코드 존재, 단위 테스트 통과, 운영 전환 완료를 구별한다.
 
 개발 체크아웃의 `../../mcp/` 링크는 이 문서에서 본 형제 서버 저장소다. 설치 환경에서는 선택한 인증 서버의 광고 스키마·패키지 리소스를 사용한다. 이 상대 경로나 `/tmp` handoff는 설치 의존성이 아니다. platform/contracts의 독립 검증은 통과했고 아래 ledger에 기록했다. 최종 retirement 변경은 별도 독립 검증 대상이며 최종 commit·image digest·설치 패키지에 대해 통합 조건을 확인한다. 불일치는 해당 동작의 개방을 막는 사유이며 기존 수락 데이터나 실행 상태를 바꿀 이유가 아니다.
@@ -58,7 +60,7 @@ python -m app.modules.document.legacy_import --help
 python -m app.modules.document.legacy_import --source "$AF_SOURCE" --manifest "$AF_BACKUP/legacy-documents.json"
 ```
 
-`--apply` 없는 명령은 원천 목록화다. [기존 migration 문서](../../mcp/config/migration.md)의 `--apply --organization-id --workspace-id --user-id`는 DB/object를 직접 변경하는 별도 경로다. 아래 authenticated import의 reviewed pair/idempotency 계약을 우회하는 대안으로 쓰지 않는다. 목록 도구가 legacy 표현만 다루면 양쪽 Git publication source와 실행 복구 목록을 별도로 더한다.
+`--apply` 없는 명령은 원천 목록화다. [기존 migration 문서](../../mcp/config/migration.md)의 `--apply --organization-id --workspace-id --user-id`는 DB/object를 직접 변경하는 별도 경로다. 아래 authenticated import의 reviewed pair/idempotency 계약을 우회하는 대안으로 쓰지 않는다. 목록 도구가 legacy 표현만 다루면 Git 게시 소스와 실행 복구 목록을 별도로 더한다.
 
 ## 3. 배포 전 독립 리허설과 통합 개방 조건
 
@@ -88,7 +90,7 @@ alembic -c config/alembic.ini upgrade head
 
 개방 전 독립 Verification은 [platform guide의 격리 harness](../../mcp/docs/cloud-platform.md)를 바탕으로 disposable DB와 provider fixture에서 계획한 최대 동시 collection 수·실제 프로세스별 pool 설정을 재현한다. collection이 claim/권한/domain/계정 guard를 점유한 동안 취소 요청과 fresh 재인가 probe, API/스케줄러/control 요청을 겹쳐 실행한다. pool checkout timeout이나 연결 고갈로 취소·재인가가 막히지 않고, 취소가 durable Job/collection 상태에 반영되며, 이미 저장된 Original과 checkpoint가 보존되고, 종료 후 연결이 반환되는 증거를 남긴다. 실제 설정·동시 실행 수·최대 연결 사용량·대기/timeout·취소 결과를 기록하며 부족하면 동시성을 낮추거나 전체 DB 예산 안에서 pool을 조정한 뒤 재리허설한다. 이 문서 Work는 해당 리허설을 실행하지 않았다.
 
-리허설에는 실제 여섯 Skill pair의 모든 파일, 8 MiB 이상 package, native PDF/DOCX/image, Unicode 경로, 잘못된 ZIP, stale review, 교차 tenant, token 회전, upload expiry를 넣는다. vendor나 필수 파일을 빼서 작은 fixture에 맞추지 않는다. [browser suite](../../mcp/tests/browser/cloud-document-delivery.cjs) 외에 통합 앱 header도 확인한다. sandbox는 `allow-scripts`만 허용하고 `allow-same-origin`은 금지한다. wrapper의 `frame-src blob:`, `connect-src 'none'`, `frame-ancestors 'self'`, `X-Frame-Options: SAMEORIGIN`을 보존한다. parent DOM·cookie·storage·network·top navigation 차단과 한글 본문·상대 CSS/JS·탭·SVG·링크 읽기를 함께 시험한다. 외부 dependency, 동적 import/fetch, eval, iframe/srcset 제한은 바이트 손실과 구별해 기록한다.
+리허설에는 실제 게시 대상의 모든 파일, 8 MiB 이상 package, native PDF/DOCX/image, Unicode 경로, 잘못된 ZIP, stale review, 교차 tenant, token 회전, upload expiry를 넣는다. vendor나 필수 파일을 빼서 작은 fixture에 맞추지 않는다. [browser suite](../../mcp/tests/browser/cloud-document-delivery.cjs) 외에 통합 앱 header도 확인한다. sandbox는 `allow-scripts`만 허용하고 `allow-same-origin`은 금지한다. wrapper의 `frame-src blob:`, `connect-src 'none'`, `frame-ancestors 'self'`, `X-Frame-Options: SAMEORIGIN`을 보존한다. parent DOM·cookie·storage·network·top navigation 차단과 한글 본문·상대 CSS/JS·탭·SVG·링크 읽기를 함께 시험한다. 외부 dependency, 동적 import/fetch, eval, iframe/srcset 제한은 바이트 손실과 구별해 기록한다.
 
 ## 4. Document import와 수락 바이트 대조
 
@@ -153,15 +155,9 @@ curl --fail --silent --show-error --request PUT \
 
 같은 key와 정확히 같은 요청은 원래 receipt로 복구한다. 어느 필드든 바뀌면 conflict다. 새 key는 기존 slug나 stale revision을 우회하지 못하며 삭제된 대상을 retry로 살리지 않는다. 충돌은 최신 revision/provenance를 읽고 의도된 새 revision인지 결정한 후 새 요청으로 처리한다. 불명확한 commit 뒤 staging object를 삭제하지 않는다.
 
-### 완전한 명세 pair 게시
+### 문서 게시
 
-[Specification 계약](../skills/document/references/specification.md)과 [package validator](../../mcp/app/modules/document/package.py)를 따른다. 여섯 stable ID 각각 AI root 하나와 Human root 하나만 담은 ZIP을 만든다. reciprocal locator와 `SKILL.md`, Human `index.html/styles.css/app.js`, 내부 자산 전부를 유지한다. 실제 Git 저장소·검토된 commit과 inventory를 묶으며 dirty 소스를 다른 commit snapshot이라고 표기하지 않는다.
-
-`SKILL.md` 먼저, 나머지 Markdown과 `agents/` YAML을 정렬해 전부 수록한다. `lang=ko`, reciprocal metadata, `data-ai-source/data-ai-sha256`, 연속 `data-source-lines/data-source-sha256`이 원천 모든 줄을 정확히 한 번 같은 순서·계층으로 대응해야 한다. frontmatter/YAML도 제외하지 않는다. coverage 뒤 독립 검토자가 한국어의 주장·명령·예외·관계·권한·완료 조건을 대조한다. 누락·요약·재배열·중복·오역은 게시 중단 사유다.
-
-`pair` 필드는 `specification_id`, `ai_root`, `human_root`, `git_repository`, `git_commit`, `review`다. `review`는 `reviewer/evidence/authority_reference/ai_sha256/human_sha256/verdict`를 요구하고 verdict 값은 `aligned`다. 각 root의 모든 파일 상대 경로→파일 SHA-256 mapping을 Python `json.dumps(..., sort_keys=True, separators=(',', ':'))`의 기본 ASCII escaping으로 직렬화한 UTF-8 bytes의 SHA-256이 representation hash다. 검토 후 바이트가 바뀌면 다시 검토한다. 없는 reviewer/승인/attestation을 만들지 않는다. 의미 검토가 없으면 게시만 보류하고 소스와 준비 결과를 보존한다.
-
-서버는 전체 pair를 고유 immutable object로 쓰고 readback hash를 비교한 뒤 revision/current pointer/index/idempotency receipt를 한 DB transaction으로 게시한다. object와 DB는 하나의 transaction이 아니다. 실패 시 이전 accepted pointer를 유지하고 orphan staging은 복구 증거로 보존한다. `review_attested`는 제출 검토 기록이며 자동 의미 수락이 아니다. metadata create 또는 한쪽 revision upload로 우회하지 않는다.
+게시할 문서와 리비전을 명시하고 [MCP Document 가이드](../../mcp/docs/cloud-documents.md)의 현재 스키마를 따른다. Skill과 한국어 참고 문서는 각각의 범위에 맞게 게시한다. 서비스가 지원하지 않는 형식은 보고하고 원본을 보존한다. 실제 Git commit·출처·승인 근거를 기록하며 이전 수락 리비전과 복구 증거를 유지한다.
 
 ### 수락 대조·검색
 
@@ -173,7 +169,7 @@ receipt의 Document ID/revision을 manifest에 연결한다. `document_read`의 
 
 ## 5. Legacy gather를 connection·collection으로 전환
 
-남아 있는 `skills/gather/assets/schema/sync.schema.json`은 legacy 목록 판독 근거로만 사용한다. 퇴역 후에는 보존된 commit/backup으로 읽고 runtime 의존성을 만들지 않는다. [cloud Selection](../../mcp/app/modules/integration/cloud_schemas.py)과 [수집 가이드](../../mcp/docs/cloud-integrations.md)가 새 계약이다.
+퇴역한 `skills/gather/` 자료가 필요하면 보존된 commit/backup에서만 읽고 runtime 의존성을 만들지 않는다. [cloud Selection](../../mcp/app/modules/integration/cloud_schemas.py)과 [수집 가이드](../../mcp/docs/cloud-integrations.md)가 새 계약이다.
 
 legacy 선택마다 provider·계정·root/query/channel·recursion·기간·attachments·page/count/bytes·기존 cursor/결과·fidelity 제한을 기록한다. 같은 계정은 connection을 공유할 수 있지만 다른 선택은 각각 collection으로 만든다. 선택은 불변이고 변경 시 새 collection이 필요하다. local destination은 보내지 않고 확정 workspace Original로 resolve한다. legacy cursor를 API input으로 업로드하거나 공유 connection cursor 하나로 모든 선택을 합치지 않는다.
 
@@ -302,7 +298,7 @@ delivery는 선택된 recipient에 대한 외부 write 권한하에 수행한다
 
 | 단계 | 유지되는 구현·테스트·문서 | 현재 근거와 최종 수락 증거 |
 | --- | --- | --- |
-| 1 계약·pair | [Skills](../skills/), [Human 소스](../docs/specifications/), [명세 계약](../skills/document/references/specification.md) | Contracts 독립 pass; 이번 퇴역의 의미·소스맵 변경은 재검토 대기. |
+| 1 계약·pair | [Skills](../skills/), [Human 소스](../docs/specifications/), [MCP 명세 계약](../../mcp/docs/cloud-documents.md) | Contracts 독립 pass; 현재 변경은 해당 산출물 범위에서 검토. |
 | 2 CRUD·upload | [guide](../../mcp/docs/cloud-documents.md), [base tests](../../mcp/tests/test_cloud_documents.py), [delivery tests](../../mcp/tests/test_cloud_document_delivery.py), [HTTP tests](../../mcp/tests/test_cloud_document_delivery_http.py) | Platform 실제 인증 HTTP/MCP·대형 native/pair 전달·격리 preview 통과. 현재 template 전달은 독립 검증 대기. |
 | 3 scope·auth | [authorization](../../mcp/config/authorization.md), [MCP auth](../../mcp/app/mcp/auth.py), [server](../../mcp/app/mcp/server.py) | Platform scope·RBAC·RLS·token 비확대·교차 Workspace 거부 통과. 운영 tenant/계정 설정은 미실행. |
 | 4 legacy import | [importer](../../mcp/app/modules/document/legacy_import.py), [legacy tests](../../mcp/tests/test_legacy_document_import.py), [cloud service](../../mcp/app/modules/document/cloud_service.py) | Domain 및 platform 격리 import/replay/conflict·바이트 근거 유지. 실제 사용자 전체 데이터 가져오기는 미실행. |
@@ -311,7 +307,7 @@ delivery는 선택된 recipient에 대한 외부 write 권한하에 수행한다
 | 7 공급자 인증 | [guide](../../mcp/docs/cloud-integrations.md), [MCP integration](../../mcp/app/mcp/integrations.py) | Platform callback·현재 권한 및 domain 암호화/refresh·mock/TLS 근거 통과. 실계정 인증은 미실행. |
 | 8 Worker | [handler](../../mcp/app/worker/integration_handlers.py), [tasks](../../mcp/app/worker/tasks.py), [policy](../../mcp/config/workers.md) | Platform 실제 Job 권위/RLS·동시성·cancel/retry/recovery와 유지된 OS kill/restart 근거 통과. 운영 pool 크기는 대상별 별도 리허설. |
 | 9 여섯 공급자 | [provider tests](../../mcp/tests/test_cloud_integrations_providers.py), [guide](../../mcp/docs/cloud-integrations.md) | 여섯 공급자 API shape·native fidelity·redaction·bounds·exhaustion fixture 근거 유지. 실계정 수집은 미실행. |
-| 10 원자적 pair 게시 | [pair 계약](../skills/document/references/specification.md), [tests](../../mcp/tests/test_cloud_documents.py), [delivery](../../mcp/app/modules/document/delivery_service.py) | Contracts 의미 검토 및 platform의 pair 실패 시 prior publication 보존 통과. 이번 쌍 revision의 의미 검토·게시 승인은 별도. |
+| 10 원자적 pair 게시 | [MCP pair 계약](../../mcp/docs/cloud-documents.md), [tests](../../mcp/tests/test_cloud_documents.py), [delivery](../../mcp/app/modules/document/delivery_service.py) | Contracts 의미 검토 및 platform의 pair 실패 시 prior publication 보존 통과. 현재 리비전의 게시 승인은 별도. |
 | 11 reporting | [runtime](../skills/agent/runtime/cloud_reporting.py), [local tests](../tests/test_agent_cloud_reporting.py), [recipient tests](../../mcp/tests/test_cloud_reporting.py), [guide](../../mcp/docs/cloud-reporting.md) | Local 97 tests+독립 probe pass; platform 실제 DB/auth/transport/reporting 근거 유지. 선택적 실제 recipient 설정/전달은 미실행. |
 | 12 퇴역 | [Agent](../skills/agent/SKILL.md), [README](../README.md), [layout](../skills/convention/references/directory-structure.md) | 소스 퇴역·MCP template 이동·테스트 소유권 갱신 구현. 최종 retirement Verification 대기. 사용자 원본 삭제 없음. |
 | 13 release·복구 | [deployment tests](../../mcp/tests/test_deployment.py), [migration tests](../../mcp/tests/integration/test_migrations.py), [browser](../../mcp/tests/browser/cloud-document-delivery.cjs), [operations](../../mcp/config/operations.md), 이 문서 | Schema 0021 단일 head와 격리 upgrade/downgrade/re-upgrade, wheel/resource 및 통합 리허설 근거 유지. 최종 retirement 검증과 운영 별도 backup 복원·배포·실전환은 미실행. |

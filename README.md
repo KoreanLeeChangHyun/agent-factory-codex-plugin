@@ -10,40 +10,20 @@ Agent Factory is a Codex plugin for Human-directed software delivery. Main is
 the Human-facing Interview, orchestration, and integration layer; it routes
 bounded tasks, including research and implementation, to Work and independent
 checking to Verification unless the Human skips it. The plugin supports
-evidence exploration, defines three Document types, maintains paired
-Specifications, gathers distributed source material without promoting it to
-trusted truth, and provides a logical lifecycle contract for Agent-usable
-external tools and connectors.
+evidence exploration and applies shared project conventions. Document,
+Gather, Tool, and Workspace capabilities are provided by the resolved Agent
+Factory MCP application rather than by plugin Skills.
 
 ## Included skills
 
-The plugin exposes exactly six public skills:
+The plugin exposes exactly two public skills:
 
 - `agent`: Run the exact `Main -> Work -> Verification` graph through managed
   sessions. Main orchestrates, Work performs the bounded task, and Verification
   independently returns pass or fail unless the Human skips it.
 - `convention`: Own and apply the Agent Factory core model plus directory,
-  development, library, design, annotation, and document conventions.
-- `document`: Define and maintain Original (원본 문서), Processed (가공 문서),
-  and Specification (명세 문서) Documents. The conceptual ordering
-  `Original -> Processed -> Specification` expresses only possible derivation
-  or evidence relationships; relationships may be absent, one-to-many,
-  many-to-one, or many-to-many. A Specification is accepted and reconciled
-  project knowledge and uses paired Korean
-  Human-readable HTML/CSS/JavaScript and AI-readable Skill views. Consumer Project Skill/Specification pairs preserve the exact lowercase hyphen-case identity `<category>-<title>` in Skill name and reciprocal publication metadata; installed and cloud locators are resolved separately. This plugin's six accepted single-name distributed pairs are the
-  explicit exception.
-- `gather`: Select and synchronize bounded external sources as Original
-  Documents while preserving fidelity, provenance, identity, and resolved
-  destinations. It uses connector capability prepared through Tool without
-  transferring synchronization ownership.
-- `tool`: Provide one logical lifecycle and control contract for Agent-usable
-  external tools and connectors: discovery, install/update/remove routing,
-  connection/auth lifecycle, opaque credential references, requested/granted
-  scopes, health, enablement, and capability metadata. The authoritative host,
-  plugin, MCP server, or project manifest remains the source of truth.
-- `workspace`: Provide the Human-facing control tower for navigating and
-  managing Agents, documents, and project views without replacing their owning
-  stores or authority.
+  development, library, design, annotation, Document-type, authority, and
+  cross-cutting integration conventions.
 
 Evidence exploration is a capability Work may use while performing its bounded
 task, and Interview remains Main's adaptive Human-facing capability. Neither is
@@ -63,8 +43,8 @@ not mirror them into a repository-local `.codex/`. A separate project that uses
 the plugin stores its own Project Skills below `.codex/skills/` in that project.
 
 Gathered collections remain Original Documents, and Work's exploration results
-remain Original or Processed Documents. Gather owns external synchronization;
-Document defines all three types. The conceptual ordering does not imply
+remain Original or Processed Documents. The MCP application owns external
+collection and Document operations. The conceptual ordering does not imply
 completeness, maturity, a required transition, or automatic promotion;
 Original is source-faithful evidence and is authority-neutral: its type alone
 does not decide authority or trust. Processed remains non-authoritative working
@@ -72,27 +52,27 @@ knowledge. No mandatory
 Original-to-Processed-to-Specification pipeline exists. Operational Agent sessions
 and temporary exploration workspaces remain operational, while Original,
 Processed, and Human-facing Specifications occupy distinct logical roles.
-AI-facing Specifications remain in Skills. Tool manages connector lifecycle
-semantics without storing credentials or taking over Gather's source-selection,
-destination, sync, or provenance contract. Agent retains capability binding,
-execution authority, and receipts. Refined is not a fourth active
+AI-facing Specifications remain in Skills. MCP integration capabilities manage
+connections without exposing credentials or taking over external provider
+authority. Agent retains capability binding, execution authority, and receipts.
+Refined is not a fourth active
 Document type.
 
-Each plugin skill keeps its entry contract in `SKILL.md`, UI metadata in
+Each of the two plugin Skills keeps its entry contract in `SKILL.md`, UI metadata in
 `agents/openai.yaml`, and detailed capability guidance in `references/`.
 New domain implementations, schemas and runtime tests belong to the cloud application. Only local exec/loop and minimum support remain runtime dependencies of the plugin; local domain executables, catalog/sync schemas and provider dependencies are retired.
 
 ## Cloud domains and local execution
 
 The Human-selected Agent Factory MCP application owns new Document persistence,
-search and complete-pair publication; connections, authentication and bounded
+search and publication; connections, authentication and bounded
 collection; shared reporting; and the Workspace implementation. Read its
 advertised authenticated tool schemas and guides before invoking domain tools.
 Missing tools, connection, tenant or scope must be reported honestly. Do not
 substitute retained local scripts, create new local domain configuration or add
 a local MCP/provider service.
 
-The plugin retains six Skills, the three role prompts, local `exec.py`/`loop.py`
+The plugin retains two Skills, the three role prompts, local `exec.py`/`loop.py`
 and minimum runtime dependencies. The extension discovers runtime locations through the machine contract. Local sessions, process/run facts, graph transitions,
 receipts, reporting outbox and recovery remain under
 `~/.agent-factory/projects/<project-id>/agents/<agent-id>/`. Cloud reports never launch, resume, cancel
@@ -110,16 +90,9 @@ collections follow `agent-factory://integrations/guide`; shared reporting uses
 Workspace planning contract and `agent-factory://planning/import-guide`,
 separately from background jobs and runtime reporting.
 
-Git owns distributable Skill authoring. This plugin's `skills/<id>/` and
-`docs/specifications/<id>/` are reciprocal publication-source
-packages. The Korean HTML is version-controlled publication source, not a
-consumer local backend or a second independently editable cloud truth. Exactly
-one complete Korean Human representation pairs with exactly one AI Skill under
-the same stable identity. Preserve complete source-order translation and source
-hash coverage; publish a reviewed snapshot bound to Git repository, exact
-commit, full content inventory and both representation hashes. Cloud owns its
-accepted immutable published revision. Source-package, installed Skill and
-cloud revision locators are distinct and must be resolved explicitly.
+Git maintains Agent instructions under `skills/<id>/` and independent Korean
+references under `docs/specifications/<id>/`. Cloud publication follows the
+current authenticated MCP schema and preserves actual provenance.
 
 New catalog/search and document/sync configuration are cloud-owned. Retained
 local `db.sqlite`, old Document roots, `document/sync.json` and gathered collections
@@ -184,12 +157,11 @@ Use existing file tools only for an authorized absent target; preserve any
 existing project `AGENTS.md`. The bootstrap manager and local domain scripts are retired. New Specification
 authoring uses the authenticated MCP `document_template` manifest and bounded
 version-bound member delivery, preserving all template bytes and licenses.
-The six existing Human packages retain their standalone representation assets.
+The two existing Korean reference documents retain their standalone assets.
 
 ## Workspace control tower
 
-The Workspace Skill and Human Specification remain in this plugin. The
-executable Workspace has moved to the separate `agent-factory-mcp` application,
+The Workspace domain belongs to the separate `agent-factory-mcp` application,
 which owns the FastAPI host, `/mcp` transport, discovery API, canonical browser
 assets, deployment adapters, and runtime tests. Resolve the authenticated organization/Workspace in that application and open its `/workspace/` route. No browser-shell copy
 or root `workspace.sh` is installed into consumer projects.
@@ -219,16 +191,22 @@ not guaranteed yet.
 
 MIT License. See [LICENSE](LICENSE).
 
-Development checks for final pairs use the owning `agent-factory-mcp` Python
-package, not a plugin validator copy. Independent Verification can use the MCP
-development environment and run `python -m pytest ../plugin/tests` from the MCP
-checkout, with `AGENT_FACTORY_MCP_SOURCE` set to that checkout when it is not the
-usual sibling. An installed MCP development dependency also works. Missing
-required dependencies fail explicitly. The distribution and test migration map
-is maintained in [cloud-retirement.md](docs/cloud-retirement.md).
+Focused plugin checks use Python with `pytest` and `PyYAML`:
+
+```bash
+python3 -m pytest tests/test_convention_skill_metadata.py tests/test_distribution.py tests/test_reference_contracts.py
+```
+
+These checks cover Skill metadata, routed references, isolated installation and
+existing reference-document assets. The distribution and test
+migration map is maintained in [cloud-retirement.md](docs/cloud-retirement.md).
 
 Native local execution: [Fast and Goal runtime guide](docs/native-fast-goal.md)
 explains installed-backend detection, exact-session settings, Goal lifecycle,
 and recovery limits.
 
 Use `skills/agent/scripts/exec.py init --project-root /absolute/project` for explicit setup. `AGENT_FACTORY_HOME` selects an alternate private home without changing Codex home. Installation limits and the gated physical-migration procedure are in [home-runtime-migration.md](docs/home-runtime-migration.md). No physical cutover is implied by the source change.
+
+The Human-selected, not-yet-implemented direction for a smaller plugin and a
+project-specialized working Agent is recorded in
+[project-specialist-direction.md](docs/project-specialist-direction.md).

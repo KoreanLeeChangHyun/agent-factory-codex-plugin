@@ -17,8 +17,6 @@ class DistributionTests(unittest.TestCase):
             installed = base / "agent-factory"
             shutil.copytree(ROOT / "skills", installed / "skills",
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
-            shutil.copytree(ROOT / "docs/specifications",
-                            installed / "docs/specifications")
             cwd = base / "consumer"; cwd.mkdir()
             env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "AGENT_FACTORY_HOME": str(base / "runtime-home")}
             env.pop("PYTHONPATH", None)
@@ -38,5 +36,4 @@ class DistributionTests(unittest.TestCase):
             self.assertTrue((base / "runtime-home/registry.json").is_file())
             self.assertFalse((cwd / ".agent-factory").exists())
             self.assertTrue((installed / "skills/agent/runtime/cloud_reporting.py").is_file())
-            for name in ("agent", "convention", "document", "gather", "tool", "workspace"):
-                self.assertTrue((installed / "docs/specifications" / name / "app.js").is_file())
+            self.assertFalse((installed / "docs").exists())

@@ -31,7 +31,7 @@ Apply this rule across Main, Work, Verification, Explorer, and Interview:
   direct Human statement, evidence, interpretation, and an unresolved gap.
 
 This rule creates no Agent role, public Skill, or capability. It does not
-weaken existing safety, authority, Specification-pair, or managed graph
+weaken existing safety, authority, Document provenance, or managed graph
 contracts.
 
 ## Provenance

@@ -26,4 +26,4 @@ Source changes, unsafe traversal/links/special files, active or unverifiable boo
 
 ## Authority and limits
 
-This storage contract changes no cloud domain authority, six-Skill identity or Main -> Work -> Verification graph. Work authors implementation and tests without running them, coordinating Agents, committing, deploying or doing physical cutover. Main owns integration after Verification. A code change or successful copy does not establish physical migration, independent acceptance, cloud import, installation or deployment.
+This storage contract changes no cloud domain authority, two-Skill identity or Main -> Work -> Verification graph. Work authors implementation and tests without running them, coordinating Agents, committing, deploying or doing physical cutover. Main owns integration after Verification. A code change or successful copy does not establish physical migration, independent acceptance, cloud import, installation or deployment.

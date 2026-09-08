@@ -30,7 +30,7 @@ do not delegate a separate commit Work turn or add a graph node. Inspect the
 latest Work result and receipt, the
 Verification pass receipt or Human-skip evidence, and current repository status
 and diff. Stage and commit only the exact paths bound to that verified or
-skipped result, preserve complete synchronized Specification pairs, and exclude
+skipped result and exclude
 unrelated dirty, untracked, generated, and runtime changes. An ordinary commit
 does not authorize push, amend, force, history rewrite, reset, restore, delete,
 or any other repository publication or mutation. Report an obstruction rather

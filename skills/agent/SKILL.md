@@ -3,8 +3,6 @@ name: agent
 description: Run the Agent Factory Main, Work, and Verification graph from a CLI or hosted interface with managed Codex exec sessions for delegated roles.
 metadata:
   specification-id: agent
-  human-entry: docs/specifications/agent/index.html
-  ai-root: skills/agent/
 ---
 
 # Agent Factory Agent
@@ -143,8 +141,8 @@ a separate commit Work turn.
 Before staging, Main inspects the latest Work result and receipt, the
 Verification pass receipt or Human-skip evidence, and the current repository
 status and diff. It stages and commits only the exact paths bound to that
-verified or skipped result, preserves complete synchronized Specification
-pairs, and excludes unrelated dirty, untracked, generated, and runtime changes.
+verified or skipped result and excludes unrelated dirty, untracked, generated,
+and runtime changes.
 Work and Verification never commit. Ordinary commit authority does not imply
 push, amend, force, history rewrite, reset, restore, delete, or any other
 repository publication or mutation. If exact safe staging or the ordinary
@@ -171,14 +169,14 @@ never create a replacement intent for an ambiguous acknowledgement.
 
 Every Verification dispatch supplies `--verified-work-run-id`. Failed findings return to the same Work session, and the next check uses the same Verification session.
 
-## Tool boundary
+## MCP capability boundary
 
-Tool owns logical discovery and lifecycle control for external tools and
-connectors, but readiness does not authorize their use. Agent owns binding a
-specific capability to a Work or Verification request, the authority for that
-execution, and the resulting execution receipt. Preserve the authoritative
-host, plugin, MCP server, or project manifest selected through Tool; do not
-copy its registry or credentials into Agent runtime state.
+The MCP Tool domain owns logical discovery and lifecycle control for external
+tools and connectors, but readiness does not authorize their use. Agent owns
+binding a specific capability to a Work or Verification request, the authority
+for that execution, and the resulting execution receipt. Preserve the
+authoritative host, plugin, MCP server, or project manifest selected through
+MCP; do not copy its registry or credentials into Agent runtime state.
 
 Main may bind capabilities to an individual managed Work or Verification run
 with `exec.py --capability-binding-file`. `loop.py start` keeps least privilege
@@ -206,4 +204,4 @@ When a run has bindings, its role receipt must carry one ordered
 hash, exact run ID, capability ID, authority, and target and records only
 `succeeded`, `failed`, `unknown`, or `not-invoked`. Receipt validation re-reads
 and hashes the canonical binding and rejects omitted, reordered, widened, or
-substituted outcomes. Tool readiness still grants no execution authority.
+substituted outcomes. MCP readiness still grants no execution authority.

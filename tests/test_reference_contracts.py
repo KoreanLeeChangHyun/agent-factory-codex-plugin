@@ -1,11 +1,10 @@
-"""Final publication-source contracts; independent semantic review is still required."""
+"""Optional reference assets and the plugin's owned domain boundaries."""
 from html.parser import HTMLParser
 from pathlib import Path
 import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-NAMES = ("agent", "convention", "document", "gather", "tool", "workspace")
 
 
 class Tags(HTMLParser):
@@ -16,20 +15,15 @@ class Tags(HTMLParser):
         self.tags.append((tag, dict(attrs)))
 
 
-class DocumentContractTests(unittest.TestCase):
-    def test_reciprocal_identity_complete_local_assets_and_korean_baseline(self):
+class ReferenceContractTests(unittest.TestCase):
+    def test_existing_reference_documents_have_local_assets_and_korean_baseline(self):
         self.assertFalse((ROOT / ".codex/skills").exists())
-        for name in NAMES:
-            with self.subTest(name=name):
-                package = ROOT / "docs/specifications" / name
+        for entry in sorted((ROOT / "docs/specifications").glob("*/index.html")):
+            with self.subTest(document=entry.parent.name):
+                package = entry.parent
                 html = (package / "index.html").read_text()
-                ai = (ROOT / "skills" / name / "SKILL.md").read_text()
                 parser = Tags(); parser.feed(html)
                 self.assertIn(("html", {"lang": "ko"}), parser.tags)
-                for key, value in (("specification-id", name), ("ai-root", f"skills/{name}/"), ("ai-binding-entry", f"skills/{name}/SKILL.md")):
-                    self.assertIn(("meta", {"name": f"agent-factory:{key}", "content": value}), parser.tags)
-                for value in (f"specification-id: {name}", f"ai-root: skills/{name}/", f"human-entry: docs/specifications/{name}/index.html"):
-                    self.assertIn(value, ai)
                 self.assertNotIn("[[", html)
                 self.assertFalse(any("data-template-placeholder" in attrs for _, attrs in parser.tags))
                 for asset in ("styles.css", "app.js"):
@@ -54,27 +48,18 @@ class DocumentContractTests(unittest.TestCase):
             parser = Tags(); parser.feed(markup)
             self.assertTrue(any("data-template-placeholder" in attrs for _, attrs in parser.tags))
 
-    def test_document_semantics_and_publication_review_are_explicit(self):
-        entry = (ROOT / "skills/document/SKILL.md").read_text()
-        contract = (ROOT / "skills/document/references/specification.md").read_text()
+    def test_document_semantics_and_mcp_ownership_are_explicit(self):
+        contract = (ROOT / "skills/convention/SKILL.md").read_text()
+        core = (ROOT / "skills/convention/references/agent-factory-core.md").read_text()
         for phrase in ("Original", "Processed", "Specification", "provenance", "cloud"):
-            self.assertIn(phrase, entry)
-        for phrase in ("one semantic body", "independent semantic review", "source order", "hierarchy", "data-source-lines", "data-source-sha256", "document_template", "64 KiB", "license notices", "validate_pair", "category>-<title", "readable baseline without JavaScript", "exact commit", "one complete AI root", "one complete Human root", "failures preserve prior accepted authority"):
             self.assertIn(phrase, contract)
-        human = (ROOT / "docs/specifications/document/index.html").read_text()
-        for phrase in ("document_template", "64 KiB", "라이선스", "validate_pair", "독립 Verification", "misaligned"):
-            self.assertIn(phrase, human)
+        for phrase in ("exactly two public distributed Skills", "MCP Document domain", "MCP Gather domain", "MCP Tool domain", "MCP Workspace domain"):
+            self.assertIn(phrase, core)
 
     def test_six_activities_cloud_ownership_and_legacy_preservation(self):
         core = (ROOT / "skills/convention/SKILL.md").read_text()
         for phrase in ("일정, 에이전트, 문서, 외부연동, 로그, 테스트", "Local `exec.py`, `loop.py`", "code retirement is never deletion authority", "Explorer and Interview", "not extra public Skills or roles"):
             self.assertIn(phrase, core)
-        workspace = (ROOT / "skills/workspace/SKILL.md").read_text()
-        for phrase in ("cloud", "PostgreSQL", "object storage", "Missing tools, account or scope", "Local exec/loop retains graph authority"):
-            self.assertIn(phrase, workspace)
-        human = (ROOT / "docs/specifications/workspace/index.html").read_text()
-        for label in ("일정", "에이전트", "문서", "외부연동", "로그", "테스트"):
-            self.assertIn(label, human)
 
     def test_graph_skip_decomposition_and_human_decisions_remain_owned(self):
         agent = " ".join((ROOT / "skills/agent/SKILL.md").read_text().split())
@@ -84,9 +69,6 @@ class DocumentContractTests(unittest.TestCase):
                 self.assertIn("Main promptly performs", agent)
             else:
                 self.assertIn(phrase, agent)
-        human = " ".join((ROOT / "docs/specifications/agent/index.html").read_text().split())
-        for phrase in ("작업을 정리·명확화·요약해 달라는 요청", "실행·위임을 승인하지 않는다", "관리 Agent·위임 요청·루프를 만들지 않는다"):
-            self.assertIn(phrase, human)
         rule = (ROOT / "skills/convention/references/explicit-human-input.md").read_text().lower()
         for phrase in ("main asks the human", "work and verification report", "do not infer, invent, silently default", "ask the human and wait"):
             self.assertIn(phrase, " ".join(rule.split()))
@@ -107,6 +89,3 @@ class DocumentContractTests(unittest.TestCase):
         diagrams = (convention / "references/diagrams.md").read_text()
         for phrase in ("accTitle", "accDescr", "Mermaid"):
             self.assertIn(phrase, diagrams)
-        for name in NAMES:
-            human = (ROOT / "docs/specifications" / name / "index.html").read_text()
-            self.assertIn(f'data-ai-source="skills/{name}/SKILL.md"', human)
