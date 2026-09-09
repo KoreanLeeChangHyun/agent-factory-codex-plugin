@@ -143,7 +143,9 @@ class AgentExecTests(unittest.TestCase):
                 return subprocess.CompletedProcess(argv, 0, output, "")
 
             with mock.patch.object(self.module, "_systemd_command", side_effect=command), mock.patch.object(
-                self.module, "systemd_cgroup_populated", return_value=False
+                self.module.process_containment, "_systemd_command", side_effect=command
+            ), mock.patch.object(
+                self.module.process_containment, "systemd_cgroup_populated", return_value=False
             ):
                 environment_fd = os.open("/dev/null", os.O_RDONLY)
                 pid = self.module._launch_systemd_worker(
@@ -217,7 +219,7 @@ class AgentExecTests(unittest.TestCase):
             "weakerDescendantContainment": False,
         }
         missing = subprocess.CompletedProcess([], 1, "LoadState=not-found\n", "")
-        with mock.patch.object(self.module, "_systemd_command", return_value=missing):
+        with mock.patch.object(self.module.process_containment, "_systemd_command", return_value=missing):
             self.assertTrue(self.module.containment_is_empty(containment))
         mismatch = subprocess.CompletedProcess(
             [], 0,
@@ -225,7 +227,7 @@ class AgentExecTests(unittest.TestCase):
             "Description=wrong\nInvocationID=" + "c" * 32 +
             "\nControlGroup=/user.slice/wrong.service\n", "",
         )
-        with mock.patch.object(self.module, "_systemd_command", return_value=mismatch):
+        with mock.patch.object(self.module.process_containment, "_systemd_command", return_value=mismatch):
             with self.assertRaises(self.module.ContractError) as raised:
                 self.module.containment_is_empty(containment)
         self.assertEqual(raised.exception.code, "containment_identity_mismatch")
@@ -237,12 +239,12 @@ class AgentExecTests(unittest.TestCase):
             "weakerDescendantContainment": False,
         }
         failed = subprocess.CompletedProcess([], 1, "", "manager unavailable")
-        with mock.patch.object(self.module, "_systemd_command", return_value=failed):
+        with mock.patch.object(self.module.process_containment, "_systemd_command", return_value=failed):
             with self.assertRaises(self.module.ContractError) as failure:
                 self.module.containment_is_empty(containment)
         self.assertEqual(failure.exception.code, "containment_query_unknown")
         malformed = subprocess.CompletedProcess([], 0, "LoadState=loaded\nActiveState=failed\n", "")
-        with mock.patch.object(self.module, "_systemd_command", return_value=malformed):
+        with mock.patch.object(self.module.process_containment, "_systemd_command", return_value=malformed):
             with self.assertRaises(self.module.ContractError) as invalid:
                 self.module.containment_is_empty(containment)
         self.assertEqual(invalid.exception.code, "containment_query_invalid")
@@ -259,12 +261,12 @@ class AgentExecTests(unittest.TestCase):
             f"InvocationID={containment['invocationId']}\nControlGroup=/user.slice/bound.service\n"
         )
         result = subprocess.CompletedProcess([], 0, output, "")
-        with mock.patch.object(self.module, "_systemd_command", return_value=result), mock.patch.object(
-            self.module, "systemd_cgroup_populated", return_value=True
+        with mock.patch.object(self.module.process_containment, "_systemd_command", return_value=result), mock.patch.object(
+            self.module.process_containment, "systemd_cgroup_populated", return_value=True
         ):
             self.assertFalse(self.module.containment_is_empty(containment))
-        with mock.patch.object(self.module, "_systemd_command", return_value=result), mock.patch.object(
-            self.module, "systemd_cgroup_populated", return_value=False
+        with mock.patch.object(self.module.process_containment, "_systemd_command", return_value=result), mock.patch.object(
+            self.module.process_containment, "systemd_cgroup_populated", return_value=False
         ):
             self.assertTrue(self.module.containment_is_empty(containment))
 
@@ -276,8 +278,8 @@ class AgentExecTests(unittest.TestCase):
         }
         completed = subprocess.CompletedProcess([], 0, "", "")
         with mock.patch.object(
-            self.module, "query_systemd_containment", return_value={"empty": False}
-        ), mock.patch.object(self.module, "_systemd_command", return_value=completed) as command:
+            self.module.process_containment, "query_systemd_containment", return_value={"empty": False}
+        ), mock.patch.object(self.module.process_containment, "_systemd_command", return_value=completed) as command:
             self.module.request_containment_stop(containment)
             self.module.force_containment_stop(containment)
         term = command.call_args_list[0].args[0]
@@ -366,31 +368,31 @@ class AgentExecTests(unittest.TestCase):
             subprocess.CompletedProcess([], 0, help_text, ""),
         ]
         common = (
-            mock.patch.object(self.module.shutil, "which", return_value="/usr/bin/tool"),
-            mock.patch.object(self.module, "cgroup_v2_available", return_value=True),
-            mock.patch.object(self.module, "systemd_environment_supported", return_value=True),
+            mock.patch.object(self.module.process_containment.shutil, "which", return_value="/usr/bin/tool"),
+            mock.patch.object(self.module.process_containment, "cgroup_v2_available", return_value=True),
+            mock.patch.object(self.module.process_containment, "systemd_environment_supported", return_value=True),
         )
         with common[0], common[1], common[2], mock.patch.object(
-            self.module, "_systemd_command", side_effect=success
+            self.module.process_containment, "_systemd_command", side_effect=success
         ):
             self.assertTrue(self.module.systemd_manager_usable())
-        with mock.patch.object(self.module.shutil, "which", return_value=None), mock.patch.object(
-            self.module, "_systemd_command"
+        with mock.patch.object(self.module.process_containment.shutil, "which", return_value=None), mock.patch.object(
+            self.module.process_containment, "_systemd_command"
         ) as command:
             self.assertFalse(self.module.systemd_manager_usable())
             command.assert_not_called()
         missing_feature = [success[0], subprocess.CompletedProcess([], 0, "--collect --user", "")]
-        with mock.patch.object(self.module.shutil, "which", return_value="/usr/bin/tool"), mock.patch.object(
-            self.module, "cgroup_v2_available", return_value=True
-        ), mock.patch.object(self.module, "systemd_environment_supported", return_value=True), mock.patch.object(
-            self.module, "_systemd_command", side_effect=missing_feature
+        with mock.patch.object(self.module.process_containment.shutil, "which", return_value="/usr/bin/tool"), mock.patch.object(
+            self.module.process_containment, "cgroup_v2_available", return_value=True
+        ), mock.patch.object(self.module.process_containment, "systemd_environment_supported", return_value=True), mock.patch.object(
+            self.module.process_containment, "_systemd_command", side_effect=missing_feature
         ):
             self.assertFalse(self.module.systemd_manager_usable())
         unavailable = self.module.ContractError("containment_backend_unavailable", "timeout")
-        with mock.patch.object(self.module.shutil, "which", return_value="/usr/bin/tool"), mock.patch.object(
-            self.module, "cgroup_v2_available", return_value=True
-        ), mock.patch.object(self.module, "systemd_environment_supported", return_value=True), mock.patch.object(
-            self.module, "_systemd_command", side_effect=unavailable
+        with mock.patch.object(self.module.process_containment.shutil, "which", return_value="/usr/bin/tool"), mock.patch.object(
+            self.module.process_containment, "cgroup_v2_available", return_value=True
+        ), mock.patch.object(self.module.process_containment, "systemd_environment_supported", return_value=True), mock.patch.object(
+            self.module.process_containment, "_systemd_command", side_effect=unavailable
         ):
             self.assertFalse(self.module.systemd_manager_usable())
 
@@ -793,7 +795,7 @@ class AgentExecTests(unittest.TestCase):
 
     def test_linux_process_identity_matches_exact_start_and_detects_pid_reuse(self) -> None:
         expected = {"pid": 41, "bootId": "boot", "startTicks": 99}
-        with mock.patch.object(self.module, "linux_process_identity", return_value=expected):
+        with mock.patch.object(self.module.process_containment, "linux_process_identity", return_value=expected):
             self.assertEqual(self.module.process_identity_status(expected), "match")
             self.assertEqual(
                 self.module.process_identity_status(
@@ -1000,7 +1002,7 @@ class AgentExecTests(unittest.TestCase):
                 return process
 
             try:
-                with mock.patch.object(self.module, "CONTAINMENT_START_TIMEOUT", 0.5), mock.patch.object(self.module, "PROCESS_TERM_TIMEOUT", 0.05), mock.patch.object(self.module.subprocess, "Popen", side_effect=nonready_bootstrap), mock.patch.object(self.module.os, "killpg", wraps=real_killpg) as killpg:
+                with mock.patch.object(self.module.process_containment, "CONTAINMENT_START_TIMEOUT", 0.5), mock.patch.object(self.module.process_containment, "PROCESS_TERM_TIMEOUT", 0.05), mock.patch.object(self.module.process_containment.subprocess, "Popen", side_effect=nonready_bootstrap), mock.patch.object(self.module.process_containment.os, "killpg", wraps=real_killpg) as killpg:
                     with self.assertRaises(self.module.ContractError) as raised:
                         self.module.spawn_contained_process(["ignored"])
                 self.assertEqual(raised.exception.code, "containment_start_failed")
@@ -1053,7 +1055,7 @@ class AgentExecTests(unittest.TestCase):
                 return process
 
             try:
-                with mock.patch.object(self.module, "PROCESS_TERM_TIMEOUT", 0.05), mock.patch.object(self.module.subprocess, "Popen", side_effect=nonexiting_bootstrap), mock.patch.object(self.module.os, "killpg", wraps=real_killpg) as killpg:
+                with mock.patch.object(self.module.process_containment, "PROCESS_TERM_TIMEOUT", 0.05), mock.patch.object(self.module.process_containment.subprocess, "Popen", side_effect=nonexiting_bootstrap), mock.patch.object(self.module.process_containment.os, "killpg", wraps=real_killpg) as killpg:
                     process, identity, release_fd = self.module.spawn_contained_process(
                         ["ignored"]
                     )
@@ -1079,14 +1081,14 @@ class AgentExecTests(unittest.TestCase):
     def test_aggregate_event_and_stderr_caps_never_grow_past_limit(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             event_path = Path(directory) / "events.jsonl"
-            with mock.patch.object(self.module, "MAX_EVENTS_BYTES", 8):
+            with mock.patch.object(self.module.process_transport, "MAX_EVENTS_BYTES", 8):
                 self.assertTrue(self.module.append_event(event_path, "1234"))
                 self.assertFalse(self.module.append_event(event_path, "56789"))
             self.assertEqual(event_path.stat().st_size, 4)
 
             stderr_path = Path(directory) / "stderr.log"
             output = self.module.queue.Queue()
-            with mock.patch.object(self.module, "MAX_STDERR_BYTES", 4):
+            with mock.patch.object(self.module.process_transport, "MAX_STDERR_BYTES", 4):
                 self.module.stream_stderr(io.StringIO("12345"), stderr_path, output)
             self.assertEqual(output.get_nowait()[0], "stderr_overflow")
             self.assertEqual(stderr_path.read_bytes(), b"")
