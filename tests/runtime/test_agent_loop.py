@@ -67,6 +67,7 @@ class FakeRuntime:
             dispatch_tuple["capabilityBindingHash"] = binding_hash
         directory = self.agent_exec.agent_root(self.root) / values["agent_id"] / "runs" / run_id
         directory.mkdir(parents=True, exist_ok=True)
+        session_id = f"session-{values['agent_id']}"
         run = {
             "runId": run_id,
             "agentId": values["agent_id"],
@@ -81,13 +82,16 @@ class FakeRuntime:
             "resultPath": str(directory / "result.md"),
             "receiptPath": str(directory / "receipt.json"),
             "receiptSchemaPath": str(directory / "receipt.schema.json"),
+            "sessionId": session_id,
         }
         self.agent_exec.atomic_write_json(directory / "state.json", run)
         self.agent_exec.atomic_write_json(directory / "receipt.schema.json", {})
         session = self.agent_exec.session_file(self.root, values["agent_id"])
         session.parent.mkdir(parents=True, exist_ok=True)
         if not session.exists():
-            self.agent_exec.atomic_write_json(session, {"role": values["role"]})
+            self.agent_exec.atomic_write_json(
+                session, {"role": values["role"], "sessionId": session_id}
+            )
         self.runs[(values["agent_id"], run_id)] = run
         self.dispatches.append(values)
         if self.lose_ack:
@@ -151,12 +155,14 @@ class AgentLoopContractTests(unittest.TestCase):
         self.runtime_patch.start()
         self.addCleanup(self.runtime_patch.stop)
 
-    def start(self):
-        args = self.agent_loop.build_parser().parse_args([
+    def start(self, extra: list[str] | None = None):
+        arguments = [
             "start", "--project-root", str(self.root), "--request-file", str(self.request),
             "--work-agent", "work-agent", "--verification-agent", "verification-agent",
             "--codex", "/bin/true",
-        ])
+        ]
+        arguments.extend(extra or [])
+        args = self.agent_loop.build_parser().parse_args(arguments)
         return self.agent_loop.start_loop(args)
 
     def reconcile(self, started):
@@ -165,6 +171,24 @@ class AgentLoopContractTests(unittest.TestCase):
             "--loop-id", started["loopId"],
         ])
         return self.agent_loop.reconcile_loop(args)
+
+    def recover_receipt(self, started):
+        args = self.agent_loop.build_parser().parse_args([
+            "recover-receipt", "--project-root", str(self.root),
+            "--work-agent", "work-agent", "--loop-id", started["loopId"],
+        ])
+        return self.agent_loop.recover_receipt(args)
+
+    def fail_work_receipt(self, started, code="receipt_path_contract_invalid", message=None):
+        run = self.runtime.runs[("work-agent", started["latestWorkRunId"])]
+        run.update({
+            "status": "failed",
+            "error": {
+                "code": code,
+                "message": message or "changedPaths must contain only project-root-relative paths",
+            },
+        })
+        return self.reconcile(started)
 
     def test_legacy_execution_upgrade_binds_current_authority_without_rewriting_child(self) -> None:
         started = self.start()
@@ -380,6 +404,199 @@ class AgentLoopContractTests(unittest.TestCase):
         self.assertEqual(state["status"], "runtime-error")
         self.assertEqual(state["phase"], "control-plane-error")
         self.assertIsNone(state["terminalReason"])
+
+    def test_receipt_recovery_preserves_failed_run_and_reaches_verification(self) -> None:
+        state = self.start()
+        failed_run_id = state["latestWorkRunId"]
+        failed = dict(self.runtime.runs[("work-agent", failed_run_id)])
+        state = self.fail_work_receipt(state)
+
+        state = self.recover_receipt(state)
+        recovery_run_id = state["latestWorkRunId"]
+        self.assertNotEqual(recovery_run_id, failed_run_id)
+        self.assertEqual(self.runtime.runs[("work-agent", failed_run_id)], {
+            **failed,
+            "status": "failed",
+            "error": {
+                "code": "receipt_path_contract_invalid",
+                "message": "changedPaths must contain only project-root-relative paths",
+            },
+        })
+        recovery = state["receiptRecovery"]
+        self.assertEqual(recovery["failedWorkRunId"], failed_run_id)
+        self.assertEqual(recovery["recoveryWorkRunId"], recovery_run_id)
+        dispatched = self.runtime.dispatches[-1]
+        self.assertEqual(dispatched["operation"], "send")
+        stored = self.agent_exec.safe_read_json(Path(state["statePath"]))
+        self.assertEqual(dispatched["request_hash"], stored["originalRequestHash"])
+        self.assertEqual(dispatched["execution"]["executionPolicy"], stored["execution"]["executionPolicy"])
+        recovery_request = Path(recovery["requestPath"]).read_text(encoding="utf-8")
+        self.assertIn("Do not repeat any already performed tool effect", recovery_request)
+        self.assertIn(f"Failed Work run: {failed_run_id}", recovery_request)
+
+        self.runtime.complete_work("work-agent", recovery_run_id)
+        state = self.reconcile(state)
+        self.assertEqual(state["currentChild"]["role"], "verification")
+        verification = self.runtime.runs[("verification-agent", state["latestVerificationRunId"])]
+        self.assertEqual(verification["verifiedWorkRunId"], recovery_run_id)
+        dispatch_count = len(self.runtime.dispatches)
+        repeated = self.recover_receipt(state)
+        self.assertEqual(repeated["latestVerificationRunId"], state["latestVerificationRunId"])
+        self.assertEqual(len(self.runtime.dispatches), dispatch_count)
+
+    def test_receipt_recovery_preserves_valid_capability_evidence(self) -> None:
+        binding = self.root / "binding.json"
+        binding.write_text(json.dumps({
+            "schemaVersion": "0.1.0",
+            "bindings": [{
+                "capabilityId": "git.cli.inspect",
+                "authority": {"kind": "native-executable", "reference": "executable:git"},
+                "invocationRoute": "git", "exactTarget": str(self.root),
+                "allowedEffects": [], "allowedScopes": ["repository:read"],
+                "approvalReference": None,
+            }],
+        }), encoding="utf-8")
+        state = self.fail_work_receipt(self.start([
+            "--work-capability-binding-file", str(binding),
+        ]))
+        recovered = self.recover_receipt(state)
+        stored = self.agent_exec.safe_read_json(Path(recovered["statePath"]))
+        self.assertEqual(
+            str(self.runtime.dispatches[-1]["capability_binding_file"]),
+            stored["capabilityBindings"]["work"]["path"],
+        )
+        recovery_run = self.runtime.runs[("work-agent", recovered["latestWorkRunId"])]
+        request = self.agent_loop.verification_request(
+            stored, recovery_run, Path(recovered["statePath"]).parent
+        ).read_text(encoding="utf-8")
+        self.assertIn(stored["receiptRecovery"]["failedReceiptPath"], request)
+
+    def test_receipt_recovery_preserves_revision_findings(self) -> None:
+        state = self.start()
+        self.runtime.complete_work("work-agent", state["latestWorkRunId"])
+        state = self.reconcile(state)
+        self.runtime.complete_verification(
+            "verification-agent", state["latestVerificationRunId"], "fail"
+        )
+        state = self.reconcile(state)
+        state = self.fail_work_receipt(state)
+
+        recovered = self.recover_receipt(state)
+        request = Path(recovered["receiptRecovery"]["requestPath"]).read_text(encoding="utf-8")
+        self.assertIn('Required addressed finding IDs: ["finding-1"]', request)
+        self.runtime.complete_work(
+            "work-agent", recovered["latestWorkRunId"], ["finding-1"]
+        )
+        reconciled = self.reconcile(recovered)
+        self.assertEqual(reconciled["currentChild"]["role"], "verification")
+
+    def test_receipt_recovery_reuses_durable_dispatch_after_ack_loss(self) -> None:
+        state = self.fail_work_receipt(self.start())
+        self.runtime.lose_ack = True
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.recover_receipt(state)
+        dispatch_count = len(self.runtime.dispatches)
+        stored = self.agent_exec.safe_read_json(Path(state["statePath"]))
+        dispatch_id = stored["pendingDispatch"]["dispatchId"]
+
+        recovered = self.recover_receipt(stored)
+        self.assertEqual(len(self.runtime.dispatches), dispatch_count)
+        self.assertEqual(
+            self.runtime.runs[("work-agent", recovered["latestWorkRunId"])]["dispatchId"],
+            dispatch_id,
+        )
+
+    def test_legacy_changed_path_error_remains_recoverable_without_capabilities(self) -> None:
+        state = self.fail_work_receipt(
+            self.start(), "receipt_invalid", "changedPaths must be bounded relative paths"
+        )
+        failed_run_id = state["latestWorkRunId"]
+        recovered = self.recover_receipt(state)
+        self.assertEqual(recovered["receiptRecovery"]["failedWorkRunId"], failed_run_id)
+
+    def test_receipt_recovery_fails_closed_for_active_unsafe_or_wrong_session(self) -> None:
+        active = self.start()
+        with self.assertRaises(self.agent_exec.ContractError) as unavailable:
+            self.recover_receipt(active)
+        self.assertEqual(unavailable.exception.code, "receipt_recovery_unavailable")
+
+        unsafe = self.fail_work_receipt(active, "sandbox_unavailable")
+        with self.assertRaises(self.agent_exec.ContractError) as rejected:
+            self.recover_receipt(unsafe)
+        self.assertEqual(rejected.exception.code, "receipt_recovery_unsafe")
+
+        receipt_error = {
+            "code": "receipt_path_contract_invalid",
+            "message": "changedPaths must contain only project-root-relative paths",
+        }
+        run = self.runtime.runs[("work-agent", unsafe["latestWorkRunId"])]
+        run["error"] = receipt_error
+        path = Path(unsafe["statePath"])
+        stored = self.agent_exec.safe_read_json(path)
+        stored["controlPlaneError"] = receipt_error
+        self.agent_exec.atomic_write_json(path, stored)
+        session_path = self.agent_exec.session_file(self.root, "work-agent")
+        session = self.agent_exec.safe_read_json(session_path)
+        session["sessionId"] = "different-session"
+        self.agent_exec.atomic_write_json(session_path, session)
+        with self.assertRaises(self.agent_exec.ContractError) as mismatch:
+            self.recover_receipt(stored)
+        self.assertEqual(mismatch.exception.code, "receipt_recovery_session_invalid")
+
+    def test_receipt_recovery_rejects_test_and_capability_evidence_failures(self) -> None:
+        state = self.fail_work_receipt(
+            self.start(), "receipt_tests_invalid", "Work receipt must prove Work ran no tests"
+        )
+        with self.assertRaises(self.agent_exec.ContractError) as tests_error:
+            self.recover_receipt(state)
+        self.assertEqual(tests_error.exception.code, "receipt_recovery_unsafe")
+
+        failed_run = self.runtime.runs[("work-agent", state["latestWorkRunId"])]
+        capability_error = {
+            "code": "receipt_capability_invalid",
+            "message": "capability outcome binding is invalid",
+        }
+        failed_run["error"] = capability_error
+        path = Path(state["statePath"])
+        stored = self.agent_exec.safe_read_json(path)
+        stored["controlPlaneError"] = capability_error
+        self.agent_exec.atomic_write_json(path, stored)
+        before = dict(failed_run)
+        with self.assertRaises(self.agent_exec.ContractError) as capability:
+            self.recover_receipt(stored)
+        self.assertEqual(capability.exception.code, "receipt_recovery_unsafe")
+        self.assertEqual(failed_run, before)
+
+    def test_rejected_legacy_recovery_does_not_publish_policy_or_change_bytes(self) -> None:
+        state = self.start()
+        path = Path(state["statePath"])
+        stored = self.agent_exec.safe_read_json(path)
+        self.assertTrue((path.parent / ".loop.lock").is_file())
+        policy_path = Path(stored["execution"]["executionPolicyPath"])
+        policy_path.unlink()
+        stored["execution"] = {
+            "codex": "/bin/true", "sandbox": "danger-full-access", "model": None,
+        }
+        self.agent_exec.atomic_write_json(path, stored)
+        directory = path.parent
+        before_files = {
+            item.relative_to(directory): item.read_bytes()
+            for item in directory.rglob("*") if item.is_file()
+        }
+        before_directories = {
+            item.relative_to(directory) for item in directory.rglob("*") if item.is_dir()
+        }
+
+        with self.assertRaises(self.agent_exec.ContractError) as rejected:
+            self.recover_receipt(stored)
+        self.assertEqual(rejected.exception.code, "receipt_recovery_unavailable")
+        self.assertEqual(before_files, {
+            item.relative_to(directory): item.read_bytes()
+            for item in directory.rglob("*") if item.is_file()
+        })
+        self.assertEqual(before_directories, {
+            item.relative_to(directory) for item in directory.rglob("*") if item.is_dir()
+        })
 
 
 if __name__ == "__main__":

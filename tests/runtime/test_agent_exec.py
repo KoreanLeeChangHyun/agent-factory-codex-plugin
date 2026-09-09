@@ -1229,6 +1229,49 @@ class AgentExecTests(unittest.TestCase):
 
         self.assertEqual(raised.exception.code, "receipt_tests_invalid")
 
+    def test_work_changed_paths_schema_prompt_and_runtime_share_project_contract(self) -> None:
+        schema = self.module.receipt_schema_document(
+            role="work", run_id="run-one", request_hash="a" * 64,
+            verified_work_run_id=None,
+        )
+        changed = schema["properties"]["changedPaths"]
+        self.assertIn("Project-root-relative", changed["description"])
+        self.assertIn("pattern", changed["items"])
+        prompt = self.module.build_prompt(
+            agent_id="work-agent", role="work", request_path=Path("request.md"),
+            result_path=Path("result.md"), run_id="run-one",
+            receipt_path=Path("receipt.json"),
+            receipt_schema_path=Path("receipt.schema.json"),
+        )
+        self.assertIn("relative to the project root", prompt)
+        self.assertIn("empty `changedPaths` array", prompt)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self.module.create_run(
+                project_root=root, agent_id="work-agent", actor="main",
+                request=b"bounded request", session={"role": "work", "maxAttempts": 1},
+            )
+            receipt = {
+                "schemaVersion": "0.1.0", "kind": "work-receipt",
+                "runId": state["runId"], "requestHash": state["requestHash"],
+                "outcome": "implemented", "changedPaths": [],
+                "addressedFindingIds": [],
+                "tests": {"run": False, "reason": "work-agent-prohibited"},
+            }
+            Path(state["resultPath"]).write_text("runtime artifacts only\n", encoding="utf-8")
+            Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
+            self.assertEqual(
+                self.module.validate_receipt(root, state, agent_id="work-agent", run_id=state["runId"])["changedPaths"],
+                [],
+            )
+            for invalid in (str(Path(state["resultPath"])), "../outside.txt"):
+                receipt["changedPaths"] = [invalid]
+                Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
+                with self.assertRaises(self.module.ContractError) as raised:
+                    self.module.validate_receipt(root, state, agent_id="work-agent", run_id=state["runId"])
+                self.assertEqual(raised.exception.code, "receipt_path_contract_invalid")
+
     def test_capability_binding_is_copied_and_receipt_outcome_is_exact(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1273,7 +1316,7 @@ class AgentExecTests(unittest.TestCase):
             Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
             with self.assertRaises(self.module.ContractError) as raised:
                 self.module.validate_receipt(root, state, agent_id="work-agent", run_id=state["runId"])
-            self.assertEqual(raised.exception.code, "receipt_binding_invalid")
+            self.assertEqual(raised.exception.code, "receipt_capability_invalid")
 
     def test_verification_receipt_enforces_unique_ids_and_decision_consistency(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -1359,6 +1402,20 @@ class AgentExecTests(unittest.TestCase):
                 )
 
         self.assertEqual(raised.exception.code, "receipt_path_invalid")
+
+    def test_missing_receipt_has_recoverable_publication_error(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = self.module.create_run(
+                project_root=root, agent_id="work-agent", actor="main",
+                request=b"bounded request", session={"role": "work", "maxAttempts": 1},
+            )
+            Path(state["resultPath"]).write_text("result\n", encoding="utf-8")
+            with self.assertRaises(self.module.ContractError) as raised:
+                self.module.validate_receipt(
+                    root, state, agent_id="work-agent", run_id=state["runId"]
+                )
+        self.assertEqual(raised.exception.code, "receipt_missing")
 
     def test_receipt_rejects_symlinked_run_component(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

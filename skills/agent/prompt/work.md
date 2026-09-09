@@ -18,4 +18,7 @@
 ## Report
 
 - Changed paths and completed work.
+- Receipt `changedPaths` are project-root-relative project paths only. Report
+  runtime-only artifacts in the detailed result and use an empty array when the
+  project was untouched.
 - Limitations and unresolved Human decisions.

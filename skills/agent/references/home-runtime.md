@@ -122,6 +122,8 @@ to locate; this inventory does not prove its version or complete sandbox works.
   symlinks and unexpected file types; publish atomically and bound event/stderr logs.
 - Submit asynchronously; persist dispatch intent/tuple first. Reconcile ambiguous
   acknowledgement with the same dispatch ID, without replacement dispatch.
+- Create each loop's lock with the loop itself; later rejected control-plane
+  operations must not create or alter loop artifacts.
   Separate acceptance, startup, heartbeat and turn timeouts;
   distinguish durable acceptance, start, observed heartbeat and terminal completion.
 - Pre-start retries are idempotent. After successful launch, missing start events
@@ -132,12 +134,24 @@ to locate; this inventory does not prove its version or complete sandbox works.
 - `scripts/exec.py`: `submit`, `send`, `status`, `result`, `inbox`, `list`,
   `cancel`, `reconcile`.
 - `scripts/loop.py`: `start`, `status`, `reconcile` (one transition),
+  `recover-receipt`,
   `skip --actor human --authorization-reference REF --decision-evidence TEXT`.
   Missing skip evidence or non-Human actors fail closed. Timing and END follow
   [the Agent graph](../SKILL.md#roles-and-graph).
 - Completed runs publish validated `receipt.json` beside `result.md`.
-- Work receipts identify the request, changed paths and addressed finding IDs
-  for revisions.
+- Work receipts identify the request, project-root-relative changed paths and
+  addressed finding IDs for revisions. Runtime-only artifacts remain in the
+  detailed result; `changedPaths` is empty when the project was untouched.
+- `recover-receipt` is an explicit, allowlisted recovery for a loop stopped on a
+  deterministic Work receipt missing, format or changed-path-contract failure.
+  Test-proof, core/capability-binding, and unsafe path failures are not recoverable.
+  It preserves the failed run and
+  loop, resumes the exact Work session in a fresh run through durable dispatch,
+  and retains original request, findings, capability and execution-policy
+  bindings, and passes preserved failed-run evidence to Verification. Its request
+  forbids repeating completed effects; active, ambiguous,
+  unsafe and non-receipt failures fail closed. Reconcile the recovered Work to
+  start independent Verification only after it actually completes.
 - Verification uses `--verified-work-run-id`; its receipt binds the exact Work
   run and original request. `pass` has no findings; `fail` has actionable findings.
 - Exec owns process/session/run facts; loop alone owns transitions and END.

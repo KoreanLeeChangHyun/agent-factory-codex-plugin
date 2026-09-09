@@ -34,6 +34,7 @@ except ImportError:  # Windows
 SCHEMA_VERSION = "0.1.0"
 AGENT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 ROLE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
+CHANGED_PATH_PATTERN = r"^(?!/)(?!.*(?:^|/)\.\.(?:/|$))[^\r\n]+$"
 SESSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 DISPATCH_ID = re.compile(r"^dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SANDBOXES = ("read-only", "workspace-write", "danger-full-access")
@@ -1125,7 +1126,15 @@ def receipt_schema_document(
             "outcome": {"const": "implemented"},
             "changedPaths": {
                 "type": "array",
-                "items": {"type": "string", "minLength": 1},
+                "description": (
+                    "Project-root-relative paths changed by Work. Runtime-only "
+                    "artifacts belong in result.md and do not appear here."
+                ),
+                "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": CHANGED_PATH_PATTERN,
+                },
                 "uniqueItems": True,
             },
             "addressedFindingIds": {
@@ -1245,20 +1254,20 @@ def validate_receipt(
     _require_managed_file(canonical["statePath"])
     _require_managed_file(canonical["resultPath"])
     _require_managed_file(canonical["receiptSchemaPath"])
-    _require_managed_file(canonical["receiptPath"])
+    _require_managed_file(canonical["receiptPath"], allow_missing=True)
     receipt_path = canonical["receiptPath"]
     try:
         receipt = json.loads(safe_read_bytes(receipt_path, MAX_RECEIPT_BYTES))
     except FileNotFoundError as error:
         raise ContractError("receipt_missing", "Agent did not publish its receipt") from error
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ContractError("receipt_invalid", "Agent receipt is malformed JSON") from error
+        raise ContractError("receipt_format_invalid", "Agent receipt is malformed JSON") from error
     except ContractError as error:
         if error.code == "file_not_found":
             raise ContractError("receipt_missing", "Agent did not publish its receipt") from error
         raise ContractError("receipt_path_invalid", "Agent receipt path is unsafe") from error
     if not isinstance(receipt, dict):
-        raise ContractError("receipt_invalid", "Agent receipt must be a JSON object")
+        raise ContractError("receipt_format_invalid", "Agent receipt must be a JSON object")
     expected_hash = state.get("receiptRequestHash") or state.get("requestHash")
     binding_document = None
     binding_hash = state.get("capabilityBindingHash")
@@ -1283,10 +1292,15 @@ def validate_receipt(
     if role == "work":
         tests = receipt.get("tests")
         if not isinstance(tests, dict):
-            raise ContractError("receipt_invalid", "receipt tests proof is missing")
-        _exact_keys(tests, {"run", "reason"}, "tests")
+            raise ContractError("receipt_tests_invalid", "receipt tests proof is missing")
+        if set(tests) != {"run", "reason"}:
+            raise ContractError("receipt_tests_invalid", "receipt tests proof has unknown or missing fields")
         if tests != {"run": False, "reason": "work-agent-prohibited"}:
             raise ContractError("receipt_tests_invalid", "Work receipt must prove Work ran no tests")
+        if binding_document is not None and (
+            ("capabilityOutcomes" in receipt) != ("capabilityOutcomes" in expected_fields)
+        ):
+            raise ContractError("receipt_capability_invalid", "work receipt omitted capability outcomes")
         _exact_keys(receipt, expected_fields, "work receipt")
         if (
             receipt.get("schemaVersion") != SCHEMA_VERSION
@@ -1296,11 +1310,7 @@ def validate_receipt(
             or receipt.get("outcome") != "implemented"
         ):
             raise ContractError("receipt_binding_invalid", "work receipt binding is invalid")
-        changed = _string_list(receipt.get("changedPaths"), "changedPaths")
-        for changed_path in changed:
-            candidate = Path(changed_path)
-            if candidate.is_absolute() or ".." in candidate.parts:
-                raise ContractError("receipt_invalid", "changedPaths must be bounded relative paths")
+        work_changed_paths = _string_list(receipt.get("changedPaths"), "changedPaths")
         _string_list(receipt.get("addressedFindingIds"), "addressedFindingIds")
     else:
         expected_fields = {
@@ -1357,12 +1367,13 @@ def validate_receipt(
         outcomes = receipt.get("capabilityOutcomes")
         bindings = binding_document["bindings"]
         if not isinstance(outcomes, list) or len(outcomes) != len(bindings):
-            raise ContractError("receipt_invalid", "capability outcomes must match bound capabilities")
+            raise ContractError("receipt_capability_invalid", "capability outcomes must match bound capabilities")
         for outcome, binding in zip(outcomes, bindings):
             expected_outcome_fields = {"requestHash", "runId", "capabilityId", "authority", "exactTarget", "outcome"}
             if not isinstance(outcome, dict):
-                raise ContractError("receipt_invalid", "capability outcome must be an object")
-            _exact_keys(outcome, expected_outcome_fields, "capability outcome")
+                raise ContractError("receipt_capability_invalid", "capability outcome must be an object")
+            if set(outcome) != expected_outcome_fields:
+                raise ContractError("receipt_capability_invalid", "capability outcome has unknown or missing fields")
             if (
                 outcome.get("requestHash") != expected_hash
                 or outcome.get("runId") != state.get("runId")
@@ -1371,7 +1382,18 @@ def validate_receipt(
                 or outcome.get("exactTarget") != binding["exactTarget"]
                 or outcome.get("outcome") not in CAPABILITY_OUTCOMES
             ):
-                raise ContractError("receipt_binding_invalid", "capability outcome binding is invalid")
+                raise ContractError("receipt_capability_invalid", "capability outcome binding is invalid")
+    if role == "work":
+        for changed_path in work_changed_paths:
+            candidate = Path(changed_path)
+            if (
+                re.fullmatch(CHANGED_PATH_PATTERN, changed_path) is None
+                or candidate.is_absolute() or ".." in candidate.parts
+            ):
+                raise ContractError(
+                    "receipt_path_contract_invalid",
+                    "changedPaths must contain only project-root-relative paths",
+                )
     return validated_receipt
 
 
@@ -1968,6 +1990,12 @@ For a `completed` result, also write the role-specific machine receipt to
 must bind this run and request exactly and contain no unknown fields. A
 completed run with a missing or invalid receipt will fail at the runtime
 boundary.
+"""
+        if role == "work":
+            receipt_obligation += """
+In a Work receipt, `changedPaths` contains only paths changed inside the project,
+relative to the project root. Record run-directory and other runtime-only artifacts
+in `result.md`; if the project was untouched, use an empty `changedPaths` array.
 """
     binding_obligation = ""
     if capability_binding_path is not None:
