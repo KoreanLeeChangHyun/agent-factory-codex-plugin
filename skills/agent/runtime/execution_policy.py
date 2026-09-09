@@ -154,10 +154,14 @@ def _rollout_policy(thread_id):
     context = _last_context(filename)
     if not isinstance(context, dict):
         raise PolicyError("policy_invalid", "parent turn_context is invalid")
-    # Legacy sandbox summaries cannot represent arbitrary named filesystem rules.
-    if any(context.get(key) is not None for key in ("permissions", "permission_profile", "file_system_sandbox_policy")):
-        raise PolicyError("policy_unsupported", "parent uses a permission profile without a canonical managed snapshot")
     sandbox = dict(context.get("sandbox_policy") or {})
+    profile = context.get("permission_profile")
+    # Stock disabled enforcement is exactly representable by full access. Named
+    # profiles and richer filesystem rules still require a managed snapshot.
+    disabled_full_access = profile == {"type": "disabled"} and sandbox.get("type") == "danger-full-access"
+    if (profile is not None and not disabled_full_access
+            or any(context.get(key) is not None for key in ("permissions", "file_system_sandbox_policy"))):
+        raise PolicyError("policy_unsupported", "parent uses a permission profile without a canonical managed snapshot")
     if sandbox.get("type") == "workspace-write":
         sandbox["writable_roots"] = [*sandbox.get("writable_roots", []), _path(context.get("cwd"))]
     return normalize({"schemaVersion": 1, "sandboxPolicy": sandbox, "approvalPolicy": context.get("approval_policy")})

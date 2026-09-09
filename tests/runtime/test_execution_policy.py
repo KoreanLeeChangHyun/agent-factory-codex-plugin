@@ -255,3 +255,34 @@ class ExecutionPolicyTests(unittest.TestCase):
             "type": "workspaceWrite", "writableRoots": [str(self.root), str(run)],
             "networkAccess": True, "excludeTmpdirEnvVar": True, "excludeSlashTmp": True}})
         self.assertNotIn("permissionProfile", policy.command_params(value, run))
+
+    def _parent_rollout_profile(self, profile, sandbox, **extra):
+        thread = "12345678-1234-1234-1234-123456789abc"
+        os.environ.update(CODEX_HOME=str(self.root), CODEX_THREAD_ID=thread)
+        sessions = self.root / "sessions"
+        sessions.mkdir(exist_ok=True)
+        rollout = sessions / f"rollout-2026-09-09-{thread}.jsonl"
+        context = {"sandbox_policy": {"type": sandbox}, "approval_policy": "never",
+                   "permission_profile": profile, "permissions": None,
+                   "file_system_sandbox_policy": None, **extra}
+        rollout.write_text(json.dumps({"type": "turn_context", "payload": context}) + "\n")
+
+    def test_stock_disabled_parent_profile_preserves_full_access(self):
+        self._parent_rollout_profile({"type": "disabled"}, "danger-full-access")
+        with mock.patch.object(policy, "_configured_policy") as fallback:
+            self.assertEqual(policy.resolve(args(), self.root), snapshot())
+        fallback.assert_not_called()
+
+    def test_disabled_parent_profile_cannot_override_restricted_sandbox(self):
+        self._parent_rollout_profile({"type": "disabled"}, "read-only")
+        with self.assertRaisesRegex(policy.PolicyError, "policy_unsupported"):
+            policy.resolve(args(), self.root)
+
+    def test_unknown_or_richer_parent_profile_remains_unsupported(self):
+        for profile, extra in (({"type": "custom"}, {}),
+                               ({"type": "disabled", "filesystem": {}}, {}),
+                               ({"type": "disabled"}, {"permissions": {}}),
+                               ({"type": "disabled"}, {"file_system_sandbox_policy": {}})):
+            self._parent_rollout_profile(profile, "danger-full-access", **extra)
+            with self.subTest(profile=profile, extra=extra), self.assertRaisesRegex(policy.PolicyError, "policy_unsupported"):
+                policy.resolve(args(), self.root)
