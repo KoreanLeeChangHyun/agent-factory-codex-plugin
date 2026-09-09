@@ -30,7 +30,9 @@ metadata:
 - CLI (default), exec and VS Code expose the same Main role.
 - Parallelize only independent paths, writes and shared resources. Give chains
   distinct Agent/loop/run IDs, bounded inputs, authority and capabilities.
-  Main sequences dependencies/integration and owns conflict avoidance.
+  Main sequences dependencies/integration and owns conflict avoidance. Use one
+  shared checkout without separate Git worktrees; follow Convention's
+  [shared checkout coordination](../convention/references/development.md#shared-checkout-coordination).
 
 ## Execution and shared contracts
 

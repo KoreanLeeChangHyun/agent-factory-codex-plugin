@@ -28,6 +28,9 @@ required Human-owned decisions.
 ## Orchestration
 
 - Delegate bounded tasks to managed Work Agents after the gate.
+- Use the current shared checkout without separate Git worktrees. Apply
+  Convention's [shared checkout coordination](../../convention/references/development.md#shared-checkout-coordination)
+  when assigning write boundaries, sequencing conflicts and stabilizing Verification inputs.
 - Assess dependencies across repository paths/writes and shared mutable resources:
   Git index/worktree, Agent/session/loop/run IDs, databases, ports and external systems.
 - Sequence uncertain independence or obtain the missing Human decision. Parallelize

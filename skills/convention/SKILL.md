@@ -22,7 +22,7 @@ Read the matching references before acting.
 
 - `references/agent-factory-core.md`: roles, authority, Document types, decisions.
 - `references/directory-structure.md`: source, installation, runtime, MCP/docs document storage, migration.
-- `references/development.md`: changes, technical documentation, comments, commits.
+- `references/development.md`: shared checkout boundaries, changes, technical documentation, comments, commits.
 - `references/testing.md`: test organization, selection, parallel execution and execution boundaries.
 - `references/explicit-human-input.md`: missing Human decisions.
 - `references/libraries.md`: dependencies, renderers.

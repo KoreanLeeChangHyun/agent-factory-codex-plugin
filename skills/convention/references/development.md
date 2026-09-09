@@ -18,6 +18,19 @@ Follow stronger established project conventions.
   decisions, inferences and unresolved questions. Local implementations are not
   universal architecture rules.
 
+## Shared checkout coordination
+
+- Use the current shared checkout; do not create or switch to separate Git
+  worktrees for Agent tasks.
+- Main assigns each Work a bounded set of files/modules and shared interfaces
+  before dispatch. Run independent scopes in parallel; sequence overlapping
+  writes, shared dependency changes and repository-wide integration.
+- Main holds the verified code and its dependencies stable during Verification.
+  Coordinate writes explicitly; the runtime does not enforce file ownership.
+- Main integrates completed changes in dependency order and schedules the
+  relevant combined-state checks through Verification. Sequence Git index and
+  commit operations in the shared checkout.
+
 ## Technical documentation
 
 - Use sections/subsections for topics and deeper headings only for distinct subtopics.
