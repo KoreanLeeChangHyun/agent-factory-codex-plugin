@@ -82,11 +82,14 @@ class AgentRuntime:
             "--receipt-request-hash", request_hash,
             "--dispatch-id", dispatch_id,
         ]
+        if execution.get("executionPolicyPath"):
+            if agent_exec.safe_read_json(Path(execution["executionPolicyPath"])) != execution["executionPolicy"]:
+                raise agent_exec.ContractError("execution_policy_mismatch", "Loop execution policy snapshot changed")
+            arguments.extend(["--execution-policy-file", execution["executionPolicyPath"]])
         if operation == "submit":
             arguments.extend([
                 "--role", role,
                 "--codex", str(execution["codex"]),
-                "--sandbox", str(execution["sandbox"]),
             ])
             if execution.get("model"):
                 arguments.extend(["--model", str(execution["model"])])
@@ -122,6 +125,36 @@ def state_path(root: Path, work_agent: str, loop_id: str) -> Path:
 def read_state(root: Path, work_agent: str, loop_id: str) -> tuple[Path, dict[str, Any]]:
     path = state_path(root, work_agent, loop_id)
     return path, agent_exec.safe_read_json(path)
+
+
+def upgrade_execution_policy(state: dict[str, Any], path: Path, args: argparse.Namespace, root: Path) -> None:
+    """Upgrade only operational loop metadata using current authority."""
+    execution = state.get("execution")
+    if not isinstance(execution, dict):
+        raise agent_exec.ContractError("loop_state_invalid", "Loop execution settings are missing")
+    if execution.get("executionPolicy") is not None and execution.get("executionPolicyPath"):
+        return
+    policy_args = argparse.Namespace(**vars(args))
+    policy_args.codex = execution.get("codex", "codex")
+    if getattr(policy_args, "sandbox", None) is None:
+        policy_args.sandbox = execution.get("sandbox")
+    if execution.get("executionPolicy") is None:
+        policy = agent_exec.resolve_execution_policy(policy_args, root)
+    else:
+        try:
+            policy = agent_exec.execution_policy.normalize(execution["executionPolicy"])
+        except ValueError as error:
+            raise agent_exec.ContractError("execution_policy_invalid", str(error)) from error
+    if execution.get("sandbox") is not None and execution["sandbox"] != policy["sandboxPolicy"]["type"]:
+        raise agent_exec.ContractError("execution_policy_mismatch", "Legacy loop sandbox differs from current authorized policy")
+    policy_path = path.parent / "execution-policy.json"
+    agent_exec.atomic_write_json(policy_path, policy)
+    execution.update(executionPolicy=policy, executionPolicyPath=str(policy_path))
+    if isinstance(state.get("pendingDispatch"), dict):
+        # An already accepted historical run retains its original immutable tuple.
+        state["pendingDispatch"]["legacyPolicyUnbound"] = True
+    state["updatedAt"] = now()
+    agent_exec.atomic_write_json(path, state)
 
 
 def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -227,6 +260,12 @@ def complete_pending_dispatch(
         "verifiedWorkRunId": pending["verifiedWorkRunId"],
         "operation": pending["operation"],
     }
+    if "executionPolicy" in state["execution"] and not (
+        pending.get("legacyPolicyUnbound") and "executionPolicy" not in run.get("dispatchTuple", {})
+    ):
+        expected_tuple["executionPolicy"] = state["execution"]["executionPolicy"]
+    if pending["operation"] == "submit" and state["execution"].get("model"):
+        expected_tuple["executionOptions"] = {"model": state["execution"]["model"]}
     reporting = state["execution"].get("reportingConfigs", {}).get(pending["role"])
     if reporting:
         expected_tuple["reportingConfigHash"] = reporting["hash"]
@@ -275,6 +314,9 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     directory = loop_directory(root, args.work_agent, loop_id, create=True)
     original = directory / "original-request.md"
     agent_exec.atomic_write(original, request)
+    policy = agent_exec.resolve_execution_policy(args, root)
+    policy_path = directory / "execution-policy.json"
+    agent_exec.atomic_write_json(policy_path, policy)
     capability_bindings: dict[str, dict[str, str | None]] = {}
     for role in ("work", "verification"):
         _binding_document, binding_bytes = agent_exec.read_capability_bindings(
@@ -320,7 +362,8 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "pendingDispatch": None,
         "controlPlaneError": None,
         "terminalReason": None,
-        "execution": {"codex": args.codex, "sandbox": args.sandbox, "model": args.model},
+        "execution": {"codex": args.codex, "model": args.model,
+                      "executionPolicy": policy, "executionPolicyPath": str(policy_path)},
         "createdAt": created,
         "updatedAt": created,
     }
@@ -361,6 +404,7 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
         state = agent_exec.safe_read_json(path)
         if state["status"] == "completed":
             return public_state(state)
+        upgrade_execution_policy(state, path, args, root)
         runtime = AgentRuntime(root)
         if isinstance(state.get("pendingDispatch"), dict):
             child = complete_pending_dispatch(state, path, runtime)
@@ -459,7 +503,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--work-agent", required=True)
     start.add_argument("--verification-agent", required=True)
     start.add_argument("--codex", default="codex")
-    start.add_argument("--sandbox", choices=agent_exec.SANDBOXES, default=agent_exec.DEFAULT_SANDBOX)
+    agent_exec.execution_policy.add_policy_arguments(start)
     start.add_argument("--model")
     start.add_argument("--work-reporting-config", type=Path)
     start.add_argument("--verification-reporting-config", type=Path)
@@ -468,6 +512,8 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     for name in ("status", "reconcile", "skip"):
         command = commands.add_parser(name)
         agent_exec.add_project_argument(command)
+        if name == "reconcile":
+            agent_exec.execution_policy.add_policy_arguments(command)
         command.add_argument("--work-agent", required=True)
         command.add_argument("--loop-id", required=True)
         if name == "skip":

@@ -9,7 +9,34 @@ from pathlib import Path
 from home_fixtures import HomeRuntimeFixture, RUNTIME, migration, paths
 
 FAKE = r'''#!/usr/bin/env python3
-import json, os, pathlib, sys
+import json, os, pathlib, subprocess, sys
+if 'app-server' in sys.argv:
+    for line in sys.stdin:
+        message = json.loads(line)
+        if 'id' not in message:
+            continue
+        method = message.get('method')
+        if method == 'initialize':
+            result = {}
+        elif method == 'command/exec':
+            params = message['params']
+            # This fixture models only its explicit full-access execution mode.
+            if params.get('permissionProfile') != ':danger-full-access':
+                print(json.dumps({'id': message['id'], 'error': {'code': -32602, 'message': 'fixture supports full access only'}}), flush=True)
+                continue
+            completed = subprocess.run(params['command'], cwd=params['cwd'], capture_output=True,
+                                       text=True, timeout=min(params.get('timeoutMs', 7000) / 1000, 7))
+            result = {'exitCode': completed.returncode, 'stdout': completed.stdout, 'stderr': completed.stderr}
+            evidence_path = pathlib.Path(os.environ['AF_FAKE_PREFLIGHT_HISTORY'])
+            evidence = json.loads(evidence_path.read_text()) if evidence_path.exists() else []
+            evidence.append({'permissionProfile': params['permissionProfile'], 'exitCode': completed.returncode,
+                             'evidence': json.loads(completed.stdout) if completed.returncode == 0 else completed.stderr})
+            evidence_path.write_text(json.dumps(evidence))
+        else:
+            print(json.dumps({'id': message['id'], 'error': {'code': -32601, 'message': 'unsupported fixture method'}}), flush=True)
+            continue
+        print(json.dumps({'id': message['id'], 'result': result}), flush=True)
+    sys.exit(0)
 schema = pathlib.Path(sys.argv[sys.argv.index('--output-schema')+1])
 run = schema.parent
 contract = json.loads((run/'receipt.schema.json').read_text())
@@ -43,7 +70,8 @@ class MigratedGraphTests(HomeRuntimeFixture, unittest.TestCase):
         self.new = RUNTIME.parent/'scripts'
         self.fake = self.base/'fake-codex'; self.fake.write_text(FAKE); self.fake.chmod(0o700)
         self.history = self.base/'fake-history.json'
-        self.env = {**os.environ,'AF_FAKE_HISTORY':str(self.history), 'PYTHONDONTWRITEBYTECODE':'1'}
+        self.preflights = self.base/'fake-preflight-history.json'
+        self.env = {**os.environ,'AF_FAKE_HISTORY':str(self.history), 'AF_FAKE_PREFLIGHT_HISTORY':str(self.preflights), 'PYTHONDONTWRITEBYTECODE':'1'}
         request = self.base/'request.md'; request.write_text('bounded migration fixture')
         self.request = request
 
@@ -64,7 +92,7 @@ class MigratedGraphTests(HomeRuntimeFixture, unittest.TestCase):
                 try: migration.writer_free(raw)
                 except ValueError: time.sleep(.05); continue
                 return
-            self.assertNotIn(state['status'], {'failed','cancelled','needs-human-decision'})
+            self.assertNotIn(state['status'], {'failed','cancelled','needs-human-decision'}, json.dumps(state))
             time.sleep(.05)
         self.fail('fake managed child did not complete')
 
@@ -92,6 +120,21 @@ class MigratedGraphTests(HomeRuntimeFixture, unittest.TestCase):
         records = json.loads(self.history.read_text())
         self.assertEqual([r['role'] for r in records],['work','verification','work','verification'])
         self.assertEqual([r['resume'] for r in records],[None,None,'exact-work-session','exact-verification-session'])
+        operational = json.loads(Path(state['statePath']).read_text())
+        execution = operational['execution']
+        policy = execution['executionPolicy']
+        self.assertEqual(policy['sandboxPolicy']['type'], 'danger-full-access')
+        self.assertEqual(json.loads(Path(execution['executionPolicyPath']).read_text()), policy)
+        for role in ('work', 'verification'):
+            session = json.loads((Path(paths.resolve(self.root)['agentsRoot']) / role / 'session.json').read_text())
+            self.assertEqual(session['executionPolicy'], policy)
+        preflights = json.loads(self.preflights.read_text())
+        self.assertEqual(len(preflights), 2)
+        for preflight in preflights:
+            self.assertEqual(preflight['permissionProfile'], ':danger-full-access')
+            self.assertEqual(preflight['exitCode'], 0)
+            self.assertEqual(preflight['evidence']['checks'], {
+                'requestRead': True, 'projectDirectoryRead': True, 'runWrite': True, 'projectWrite': 'allowed'})
         migration.copied_inventory(plan)  # Runtime mutation must never alter archive/projection.
 
     def test_human_skip_after_migrated_work_starts_no_verification(self):
@@ -102,4 +145,6 @@ class MigratedGraphTests(HomeRuntimeFixture, unittest.TestCase):
         state = self.command(self.new,'loop.py','reconcile','--work-agent','work','--loop-id',state['loopId'])
         self.assertEqual(state['status'],'completed')
         self.assertEqual(len(json.loads(self.history.read_text())),1)
+        operational = json.loads(Path(state['statePath']).read_text())
+        self.assertEqual(operational['execution']['executionPolicy']['sandboxPolicy']['type'], 'danger-full-access')
         migration.copied_inventory(plan)

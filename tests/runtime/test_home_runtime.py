@@ -231,10 +231,10 @@ class HomeRuntimeTests(HomeRuntimeFixture, unittest.TestCase):
         runtime = importlib.util.module_from_spec(spec); spec.loader.exec_module(runtime)
         state = runtime.create_run(project_root=self.root, agent_id='work', actor='main',
             request=b'bounded', session={'role':'work', 'maxAttempts':1})
-        session = {'codex':'fixture-codex', 'projectRoot':str(self.root), 'sandbox':'read-only'}
+        session = {'codex':'fixture-codex', 'projectRoot':str(self.root), 'sandbox':'read-only', 'executionPolicy':runtime_test_home.policy('read-only')}
         for identity in (None, 'exact-thread'):
             command = runtime.build_codex_command(session, state, identity)
-            expected = permissions.arguments(Path(state['statePath']).parent)
+            expected = runtime.execution_policy.arguments(runtime.execution_policy.session_policy(session), Path(state['statePath']).parent)
             self.assertTrue(all(item in command for item in expected))
             self.assertNotIn('--sandbox', command)
             self.assertNotIn('--last', command)

@@ -33,9 +33,20 @@
 
 ### Permissions
 
-- **Read-only roles:** named Codex profile; `/` readable, exact managed run directory
-  writable, network disabled. No workspace sandbox flag widens the code root.
-- **Workspace-write roles:** retain explicit code-root behavior.
+- **Inheritance:** children inherit the parent's filesystem, network and approval
+  policy; no separate child sandbox default. Persist the resolved policy in session,
+  run and dispatch identity; reject mismatched policies when resuming a session.
+- **Sources:** managed parent snapshot first, then the exact external Codex
+  `CODEX_THREAD_ID` turn context. Without a parent, resolve explicit inputs or the
+  selected Codex's effective configuration; fail if authority is unavailable.
+  Never infer permission from a project directory.
+- **Explicit inputs:** `--execution-policy-file`, or `--sandbox` with
+  `--approval-policy`, `--[no-]network-access` and repeated `--writable-root`.
+  Explicit child inputs must match the parent's resolved policy.
+- **Run output:** derive exact managed-run write access from the persisted policy;
+  a read-only code root stays read-only. Preserve inherited network access.
+- **Background approval:** forward the selected approval policy; interactive
+  approval requests require Human handling and are never automatically granted.
 - **Linux:** split permissions require bubblewrap; legacy Landlock cannot represent
   them. Denied user-namespace setup fails closed; never substitute a wider policy.
 - **References:** [sandbox backend](https://github.com/openai/codex/blob/main/codex-rs/linux-sandbox/README.md),
@@ -61,6 +72,10 @@ to locate; this inventory does not prove its version or complete sandbox works.
 - `sandboxReadiness: unknown` is intentional: locating a binary, an enabled
   AppArmor setting, or a successful system helper probe is not a Codex sandbox pass.
   Codex may use a bundled helper, so missing system bubblewrap is not conclusive.
+- Every managed attempt preflights the **selected Codex executable and policy**
+  before launching the Agent: read the request and write inside the exact run
+  directory. Record evidence as `executionPreflight`; failure ends the run before
+  launch. Do not retry with broader permissions or substitute a host helper probe.
 - An observed filesystem-helper initialization failure is reported as
   `sandbox_unavailable`, including nonzero exec exits and app-server error events.
   Unrelated command failures retain their original classification. A structured failed

@@ -61,6 +61,8 @@ class FakeRuntime:
             "verifiedWorkRunId": values["verified_work_run_id"],
             "operation": values["operation"],
         }
+        if "executionPolicy" in values["execution"]:
+            dispatch_tuple["executionPolicy"] = values["execution"]["executionPolicy"]
         if binding_hash is not None:
             dispatch_tuple["capabilityBindingHash"] = binding_hash
         directory = self.agent_exec.agent_root(self.root) / values["agent_id"] / "runs" / run_id
@@ -163,6 +165,32 @@ class AgentLoopContractTests(unittest.TestCase):
             "--loop-id", started["loopId"],
         ])
         return self.agent_loop.reconcile_loop(args)
+
+    def test_legacy_execution_upgrade_binds_current_authority_without_rewriting_child(self) -> None:
+        started = self.start()
+        path = Path(started["statePath"])
+        stored = self.agent_exec.safe_read_json(path)
+        child_before = dict(self.runtime.runs[(started["currentChild"]["agentId"], started["currentChild"]["runId"])])
+        stored["execution"] = {"codex": "/bin/true", "sandbox": "danger-full-access", "model": None}
+        self.agent_exec.atomic_write_json(path, stored)
+        self.reconcile(started)
+        execution = self.agent_exec.safe_read_json(path)["execution"]
+        self.assertEqual(execution["executionPolicy"], runtime_test_home.policy("danger-full-access"))
+        self.assertEqual(self.agent_exec.safe_read_json(Path(execution["executionPolicyPath"])), execution["executionPolicy"])
+        self.assertEqual(self.runtime.runs[(started["currentChild"]["agentId"], started["currentChild"]["runId"])], child_before)
+
+    def test_legacy_execution_upgrade_fails_without_mutating_state_on_invalid_authority(self) -> None:
+        started = self.start()
+        path = Path(started["statePath"])
+        stored = self.agent_exec.safe_read_json(path)
+        stored["execution"] = {"codex": "/bin/true", "sandbox": "danger-full-access", "model": None}
+        self.agent_exec.atomic_write_json(path, stored)
+        before = path.read_bytes()
+        with mock.patch.dict(self.agent_exec.os.environ, {"AGENT_FACTORY_EXECUTION_POLICY": "invalid"}):
+            with self.assertRaises(self.agent_exec.ContractError) as raised:
+                self.reconcile(started)
+        self.assertEqual(raised.exception.code, "execution_policy_invalid")
+        self.assertEqual(path.read_bytes(), before)
 
     def test_complete_graph_reuses_work_and_verification_sessions(self) -> None:
         state = self.start()
@@ -297,6 +325,24 @@ class AgentLoopContractTests(unittest.TestCase):
         self.reconcile(state)
         self.assertEqual(len(self.runtime.dispatches), 1)
         self.assertEqual(self.runtime.runs[("work-agent", state["latestWorkRunId"])]["dispatchId"], dispatch_id)
+
+    def test_legacy_pending_ack_recovers_original_tuple_without_redispatch(self) -> None:
+        self.runtime.lose_ack = True
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.start()
+        directory = next((self.agent_exec.agent_root(self.root) / "work-agent" / "loops").iterdir())
+        path = directory / "state.json"
+        stored = self.agent_exec.safe_read_json(path)
+        stored["execution"] = {"codex": "/bin/true", "sandbox": "danger-full-access", "model": None}
+        child = next(iter(self.runtime.runs.values()))
+        child["dispatchTuple"].pop("executionPolicy")
+        original_tuple = dict(child["dispatchTuple"])
+        self.agent_exec.atomic_write_json(path, stored)
+        recovered = self.reconcile({"loopId": stored["loopId"]})
+        self.assertEqual(len(self.runtime.dispatches), 1)
+        self.assertEqual(child["dispatchTuple"], original_tuple)
+        self.assertEqual(recovered["currentChild"]["runId"], child["runId"])
+        self.assertIsNone(recovered["pendingDispatch"])
 
     def test_crash_before_call_reuses_durable_dispatch_id(self) -> None:
         self.runtime.fail_before_call = True

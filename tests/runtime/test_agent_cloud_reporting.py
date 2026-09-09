@@ -292,6 +292,7 @@ class ReportingTests(unittest.TestCase):
         process.stderr = io.StringIO()
         process.wait.return_value = 0
         session = {'codex': 'codex', 'projectRoot': str(self.root), 'sandbox': 'workspace-write',
+                   'executionPolicy': runtime_test_home.policy('workspace-write', self.root),
                    'sessionId': 'session-one', 'startTimeout': 5, 'turnTimeout': 5}
         rt.atomic_write_json(rt.session_file(self.root, state['agentId']), session)
         identity = {'pid': 101, 'bootId': 'fixture', 'startTicks': 7}
@@ -304,7 +305,8 @@ class ReportingTests(unittest.TestCase):
                 failures.append(True)
                 raise OSError('afm_DO_NOT_STORE_DIAGNOSTIC')
             return update(path, lock, change)
-        with patch.object(rt, 'spawn_contained_process', return_value=(process, identity, 55)) as spawn, \
+        with patch.object(rt.execution_preflight, 'check', return_value={'passed': True}), \
+             patch.object(rt, 'spawn_contained_process', return_value=(process, identity, 55)) as spawn, \
              patch.object(rt, 'release_contained_process'), patch.object(rt, 'terminate_attempt_group'), \
              patch.object(rt, 'update_json', side_effect=transient_intent_write):
             outcome, session_id = rt.run_codex_attempt(project_root=self.root, session=session, state=state,

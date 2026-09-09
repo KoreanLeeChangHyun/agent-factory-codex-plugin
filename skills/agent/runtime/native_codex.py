@@ -374,13 +374,11 @@ class Bridge:
             config["service_tier"] = "default"
         if self.session.get("reasoningEffort"):
             config["model_reasoning_effort"] = self.session["reasoningEffort"]
-        if self.session["sandbox"] == "workspace-write":
-            config["sandbox_workspace_write.writable_roots"] = [str(Path(self.state["statePath"]).parent)]
-        if self.session["sandbox"] == "read-only":
-            config.update(self.runtime.runtime_permissions.config(Path(self.state["statePath"]).parent))
+        policy = self.runtime.execution_policy.session_policy(self.session)
+        config.update(self.runtime.execution_policy.config(policy, Path(self.state["statePath"]).parent))
         params = {"cwd": self.session["projectRoot"],
-                  **({"permissions": self.runtime.runtime_permissions.profile(Path(self.state["statePath"]).parent)[0]} if self.session["sandbox"] == "read-only" else {"sandbox": self.session["sandbox"]}),
-                  "approvalPolicy": "never", "config": config,
+                  **({"permissions": config["default_permissions"]} if "default_permissions" in config else {"sandbox": policy["sandboxPolicy"]["type"]}),
+                  "approvalPolicy": policy["approvalPolicy"], "config": config,
                   "developerInstructions": prompt}
         if self.session.get("model"):
             params["model"] = self.session["model"]

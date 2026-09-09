@@ -20,7 +20,7 @@ from native_fixtures import native, runtime, native_fixture
 class RevisionContracts(unittest.TestCase):
     def test_legacy_off_overrides_config_on_initial_and_exact_resume(self):
         for thread in (None, 'exact-thread'):
-            session = {'codex': 'codex', 'sandbox': 'read-only', 'projectRoot': '/tmp', 'fast': False}
+            session = {'codex': 'codex', 'sandbox': 'read-only', 'executionPolicy': runtime_test_home.policy('read-only'), 'projectRoot': '/tmp', 'fast': False}
             command = runtime.build_codex_command(session, {'responseSchemaPath': '/tmp/schema', 'statePath':'/tmp/run/state.json'}, thread)
             self.assertIn('service_tier="default"', command)
             self.assertIn('features.goals=false', command)

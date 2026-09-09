@@ -71,7 +71,7 @@ class FakeRpc:
 
 def native_fixture(root, *, fast=None, goal=True, existing=True, action=None, statuses=("complete",), mismatch=False):
     session = {"role": "main", "maxAttempts": 1, "codex": "codex", "projectRoot": str(root),
-               "sandbox": "read-only", "startTimeout": 20, "goalMode": goal, "fast": fast,
+               "sandbox": "read-only", "executionPolicy": runtime_test_home.policy("read-only"), "startTimeout": 20, "goalMode": goal, "fast": fast,
                "model": "model-one", "reasoningEffort": "high", "sessionId": "thread-exact" if existing else None}
     state = runtime.create_run(project_root=root, agent_id="main-test", actor="human", request=b"finish", session=session)
     runtime.atomic_write_json(runtime.session_file(root, "main-test"), session)

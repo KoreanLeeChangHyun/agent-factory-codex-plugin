@@ -775,12 +775,13 @@ class AgentExecTests(unittest.TestCase):
                 "codex": "codex",
                 "projectRoot": str(root),
                 "sandbox": "workspace-write",
+                "executionPolicy": runtime_test_home.policy("workspace-write", root),
                 "sessionId": None,
                 "startTimeout": 5,
                 "turnTimeout": 5,
             }
             identity = {"pid": 101, "bootId": "boot", "startTicks": 7}
-            with mock.patch.object(self.module, "spawn_contained_process", return_value=(fake_process, identity, 55)), mock.patch.object(self.module, "release_contained_process"), mock.patch.object(self.module, "terminate_attempt_group") as terminate:
+            with mock.patch.object(self.module.execution_preflight, "check", return_value={"passed": True}), mock.patch.object(self.module, "spawn_contained_process", return_value=(fake_process, identity, 55)), mock.patch.object(self.module, "release_contained_process"), mock.patch.object(self.module, "terminate_attempt_group") as terminate:
                 with self.assertRaises(self.module.AttemptFailure) as raised:
                     self.module.run_codex_attempt(
                         project_root=root,
@@ -817,13 +818,14 @@ class AgentExecTests(unittest.TestCase):
                 "codex": "codex",
                 "projectRoot": str(root),
                 "sandbox": "workspace-write",
+                "executionPolicy": runtime_test_home.policy("workspace-write", root),
                 "sessionId": None,
                 "startTimeout": 5,
                 "turnTimeout": 5,
             }
             heartbeat = mock.Mock()
             heartbeat.update.side_effect = failure
-            with mock.patch.object(self.module, "spawn_contained_process", return_value=(fake_process, identity, release_write)):
+            with mock.patch.object(self.module.execution_preflight, "check", return_value={"passed": True}), mock.patch.object(self.module, "spawn_contained_process", return_value=(fake_process, identity, release_write)):
                 with self.assertRaises(self.module.AttemptFailure) as raised:
                     self.module.run_codex_attempt(
                         project_root=root,
@@ -1039,13 +1041,14 @@ class AgentExecTests(unittest.TestCase):
                 "codex": "codex",
                 "projectRoot": "/tmp/project",
                 "sandbox": "danger-full-access",
+                "executionPolicy": runtime_test_home.policy("danger-full-access"),
             },
-            {"responseSchemaPath": "/tmp/schema.json"},
+            {"responseSchemaPath": "/tmp/schema.json", "statePath": "/tmp/run/state.json"},
             None,
         )
 
-        self.assertIn("--sandbox", command)
-        self.assertIn("danger-full-access", command)
+        self.assertNotIn("--sandbox", command)
+        self.assertTrue(any("danger-full-access" in item for item in command))
         self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", command)
 
     def test_submit_defaults_new_session_sandbox_and_preserves_explicit_overrides(self) -> None:
@@ -1053,7 +1056,7 @@ class AgentExecTests(unittest.TestCase):
 
         self.assertEqual(
             self.module.parse_args(base).sandbox,
-            "danger-full-access",
+            None,
         )
         for sandbox in self.module.SANDBOXES:
             with self.subTest(sandbox=sandbox):
@@ -1070,6 +1073,7 @@ class AgentExecTests(unittest.TestCase):
                         "codex": "codex",
                         "projectRoot": "/tmp/project",
                         "sandbox": sandbox,
+                        "executionPolicy": runtime_test_home.policy(sandbox, "/tmp/project"),
                     },
                     {
                         "responseSchemaPath": "/tmp/schema.json",
@@ -1078,16 +1082,10 @@ class AgentExecTests(unittest.TestCase):
                     "session-1",
                 )
 
-                prefix = ["codex", "exec", "--cd", "/tmp/project"]
-                if sandbox != 'read-only': prefix += ['--sandbox', sandbox]
-                prefix += ['resume']
+                prefix = ["codex", "exec", "--cd", "/tmp/project", "resume"]
                 self.assertEqual(command[:len(prefix)], prefix)
-                grant = []
-                if sandbox == 'workspace-write':
-                    grant = ['-c', 'sandbox_workspace_write.writable_roots=["/tmp/run"]']
-                elif sandbox == 'read-only':
-                    grant = self.module.runtime_permissions.arguments(Path('/tmp/run'))
-                    self.assertNotIn('--sandbox', command)
+                policy = runtime_test_home.policy(sandbox, "/tmp/project")
+                grant = self.module.execution_policy.arguments(policy, Path('/tmp/run'))
                 self.assertEqual(command[len(prefix):], ['--json','--output-schema','/tmp/schema.json',
                     *grant, '-c','features.goals=false','session-1','-'])
                 self.assertNotIn(

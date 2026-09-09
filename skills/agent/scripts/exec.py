@@ -37,7 +37,7 @@ ROLE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 SESSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 DISPATCH_ID = re.compile(r"^dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SANDBOXES = ("read-only", "workspace-write", "danger-full-access")
-DEFAULT_SANDBOX = "danger-full-access"
+DEFAULT_SANDBOX = None
 ACTORS = ("main", "human")
 ACTIVE_STATES = {"accepted", "queued", "starting", "running", "cancelling"}
 TERMINAL_STATES = {"completed", "needs-human-decision", "failed", "cancelled"}
@@ -70,6 +70,8 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(SKILL_ROOT / "runtime"))
 import sandbox_diagnostics
 import permissions as runtime_permissions
+import execution_policy
+import preflight as execution_preflight
 
 # Diagnostic/refusal paths must load even where POSIX runtime imports cannot.
 if sys.platform == "linux":
@@ -1014,6 +1016,8 @@ def create_run(
     }
     if execution_options:
         state["executionOptions"] = execution_options
+    if "executionPolicy" in session:
+        state["executionPolicy"] = session["executionPolicy"]
     if goal_action:
         state["goalAction"] = goal_action
     if reporting_config is not None:
@@ -1030,6 +1034,8 @@ def create_run(
             "verifiedWorkRunId": verified_work_run_id,
             "operation": dispatch_operation,
         }
+        if "executionPolicy" in session:
+            state["dispatchTuple"]["executionPolicy"] = session["executionPolicy"]
         if execution_options:
             state["dispatchTuple"]["executionOptions"] = execution_options
         if goal_action:
@@ -1376,6 +1382,8 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
         raise ContractError("agent_exists", "Agent already exists; use send")
     role = validate_id(args.role, ROLE_ID, "role")
     role_path(role)
+    if not hasattr(args, "resolved_execution_policy"):
+        args.resolved_execution_policy = resolve_execution_policy(args, project_root)
     codex = args.codex
     if os.sep not in codex:
         from shutil import which
@@ -1401,7 +1409,8 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
         "projectRoot": str(project_root),
         "runtimeBinding": runtime_paths.resolve(project_root, create=True),
         "codex": codex,
-        "sandbox": args.sandbox,
+        "sandbox": args.resolved_execution_policy["sandboxPolicy"]["type"],
+        "executionPolicy": args.resolved_execution_policy,
         "model": args.model,
         "reasoningEffort": getattr(args, "reasoning_effort", None),
         "heartbeatInterval": args.heartbeat_interval,
@@ -1652,6 +1661,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         role_path(role)
     else:
         role = load_session(project_root, args.agent).get("role")
+    stored_session = None if new_agent else load_session(project_root, args.agent)
+    policy = resolve_execution_policy(args, project_root, stored_session)
+    args.resolved_execution_policy = policy
     if role == "verification" and verified_work_run_id is None:
         raise ContractError(
             "receipt_binding_invalid",
@@ -1687,6 +1699,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "receiptRequestHash": receipt_request_hash or request_hash,
         "verifiedWorkRunId": verified_work_run_id,
         "operation": operation,
+        "executionPolicy": policy,
     }
     if execution_options:
         dispatch_tuple["executionOptions"] = execution_options
@@ -1793,8 +1806,15 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             )
         else:
             session = load_session(project_root, args.agent)
+        if ("executionPolicy" in session and execution_policy.session_policy(session) != policy) or (
+            "executionPolicy" not in session and session.get("sandbox") != policy["sandboxPolicy"]["type"]
+        ):
+            raise ContractError("execution_policy_mismatch", "Stored session and requested execution policy differ")
         if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent)):
             raise ContractError("session_busy", "An accepted or active run already owns this exact session")
+        if "executionPolicy" not in session:
+            session = {**session, "executionPolicy": policy, "executionPolicySource": "legacy"}
+            atomic_write_json(session_file(project_root, args.agent), session)
         effective = {**session, **execution_options}
         if effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
             capabilities = native_codex.inspect_capabilities(str(session["codex"]))
@@ -1977,10 +1997,8 @@ def build_codex_command(
     common = ["--json", "--output-schema", str(state["responseSchemaPath"])]
     if session.get("backend") == "app-server":
         return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"])]
-    if session["sandbox"] == "read-only":
-        common.extend(runtime_permissions.arguments(Path(state["statePath"]).parent))
-    if session["sandbox"] == "workspace-write":
-        common.extend(["-c", "sandbox_workspace_write.writable_roots=" + json.dumps([str(Path(state["statePath"]).parent)])])
+    policy = execution_policy.session_policy(session)
+    common.extend(execution_policy.arguments(policy, Path(state["statePath"]).parent))
     if session.get("fast") is False:
         common.extend(["-c", 'service_tier="default"'])
     if session.get("reasoningEffort"):
@@ -1996,7 +2014,6 @@ def build_codex_command(
             "exec",
             "--cd",
             str(session["projectRoot"]),
-            *([] if session["sandbox"] == "read-only" else ["--sandbox", str(session["sandbox"])]),
             *common,
             "-",
         ]
@@ -2005,7 +2022,6 @@ def build_codex_command(
         "exec",
         "--cd",
         str(session["projectRoot"]),
-        *([] if session["sandbox"] == "read-only" else ["--sandbox", str(session["sandbox"])]),
         "resume",
         *common,
         session_id,
@@ -2207,6 +2223,27 @@ def run_codex_attempt(
         raise AttemptFailure("request_changed", "managed request content changed", False)
     execution = state.get("executionOptions", {})
     session = dict(session)
+    try:
+        if "executionPolicy" not in session:
+            raise ValueError("Legacy queued run lacks a verified permission snapshot; resubmit with current parent or explicit policy")
+        stored_policy = execution_policy.session_policy(session)
+        policy = execution_policy.normalize(state["executionPolicy"]) if "executionPolicy" in state else stored_policy
+        if policy != stored_policy:
+            raise ValueError("Run and session execution policies differ")
+    except ValueError as error:
+        raise AttemptFailure("execution_policy_mismatch", str(error), False) from error
+    session["executionPolicy"] = policy
+    try:
+        checked = execution_preflight.check(str(session["codex"]), policy, project_root, state_path.parent, Path(state["requestPath"]))
+    except Exception as error:
+        checked = {"passed": False, "error": str(error)}
+    if not isinstance(checked, dict):
+        checked = {"passed": False, "error": "Invalid execution preflight response"}
+    state["executionPolicy"] = policy
+    state["executionPreflight"] = checked
+    update_json(state_path, state_path.parent / ".state.lock", lambda value: value.update({"executionPreflight": checked, "executionPolicy": policy}))
+    if checked.get("passed") is not True:
+        raise AttemptFailure("execution_preflight_failed", str(checked.get("error") or checked.get("diagnostic") or "Execution policy preflight failed"), False)
     for key in ("model", "reasoningEffort", "fast", "goalMode"):
         if key in execution:
             session[key] = execution[key]
@@ -2243,6 +2280,8 @@ def run_codex_attempt(
     try:
         process, codex_identity, release_fd = spawn_contained_process(
             command,
+            env={**os.environ, "AGENT_FACTORY_EXECUTION_POLICY": json.dumps(policy, sort_keys=True),
+                 "AGENT_FACTORY_PARENT_STATE": str(state_path)},
             cwd=project_root,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -2647,7 +2686,7 @@ def worker(args: argparse.Namespace) -> int:
                         )
                         heartbeat.update(status="cancelled", attempt=attempt, codex_pid=None)
                         return 1
-                    if failure.started or failure.launched or attempt >= max_attempts:
+                    if failure.started or failure.launched or attempt >= max_attempts or failure.code in {"execution_preflight_failed", "execution_policy_mismatch"}:
                         mark_terminal(
                             state_path,
                             "failed",
@@ -2717,6 +2756,8 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "maxAttempts",
         "sessionId",
         "executionOptions",
+        "executionPolicy",
+        "executionPreflight",
         "backend",
         "goal",
         "goalObservedAt",
@@ -3124,6 +3165,22 @@ def command_reconcile(args: argparse.Namespace) -> int:
     return 0
 
 
+def resolve_execution_policy(args: argparse.Namespace, project_root: Path, session: dict[str, Any] | None = None) -> dict[str, Any]:
+    try:
+        stored = execution_policy.session_policy(session) if session is not None and "executionPolicy" in session else None
+        policy_args = argparse.Namespace(**vars(args))
+        if session is not None and session.get("codex"):
+            policy_args.codex = session["codex"]
+        policy = execution_policy.resolve(policy_args, project_root, fallback_policy=stored)
+        if stored is not None and policy != stored:
+            raise ContractError("execution_policy_mismatch", "Stored session and parent/requested policy differ; use a new authorized session")
+        if session is not None and stored is None and session.get("sandbox") != policy["sandboxPolicy"]["type"]:
+            raise ContractError("execution_policy_mismatch", "Legacy session sandbox differs from current authorized policy")
+        return policy
+    except (ValueError, OSError) as error:
+        raise ContractError("execution_policy_invalid", str(error)) from error
+
+
 def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
     options = {}
     for argument, key in (("model", "model"), ("reasoning_effort", "reasoningEffort"), ("fast", "fast"), ("goal_mode", "goalMode"), ("goal_objective", "goalObjective")):
@@ -3261,7 +3318,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     submit_parser.add_argument("--agent", required=True)
     submit_parser.add_argument("--role", required=True)
     submit_parser.add_argument("--codex", default="codex")
-    submit_parser.add_argument("--sandbox", choices=SANDBOXES, default=DEFAULT_SANDBOX)
+    execution_policy.add_policy_arguments(submit_parser)
     submit_parser.add_argument("--heartbeat-interval", type=float, default=5.0)
     submit_parser.add_argument("--heartbeat-timeout", type=float, default=20.0)
     submit_parser.add_argument("--start-timeout", type=float, default=60.0)
@@ -3272,6 +3329,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     add_project_argument(send_parser)
     add_request_arguments(send_parser)
     send_parser.add_argument("--agent", required=True)
+    execution_policy.add_policy_arguments(send_parser)
 
     for name in ("status", "result", "cancel"):
         command_parser = commands.add_parser(name)
