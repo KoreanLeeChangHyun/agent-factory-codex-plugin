@@ -545,6 +545,47 @@ class AgentExecTests(unittest.TestCase):
             self.assertTrue(outputs[1]["deduplicated"])
             self.assertEqual(spawn.call_count, 3)
 
+    def test_idle_send_changes_only_next_run_policy_and_keeps_dispatch_history(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, mock.patch.dict(os.environ, {key: value for key, value in os.environ.items() if key not in {"AGENT_FACTORY_EXECUTION_POLICY", "AGENT_FACTORY_PARENT_STATE", "CODEX_THREAD_ID"}}, clear=True), mock.patch.object(self.module, "spawn_worker", return_value=123) as spawn, mock.patch.object(self.module, "emit") as emit:
+            root = Path(directory)
+            initial_args = self.dispatch_args(directory, "dispatch-policy-initial")
+            initial_args.sandbox = "workspace-write"
+            initial_args.approval_policy = "never"
+            self.module.submit(initial_args, True)
+            first = emit.call_args.args[0]
+            first_path = Path(first["statePath"])
+            old_policy = self.module.safe_read_json(first_path)["executionPolicy"]
+            changed = self.dispatch_args(directory, "dispatch-policy-change")
+            changed.sandbox = "danger-full-access"
+            changed.approval_policy = "never"
+            with self.assertRaises(self.module.ContractError) as busy:
+                self.module.submit(changed, False)
+            self.assertEqual(busy.exception.code, "session_busy")
+            self.assertEqual(self.module.load_session(root, "work-agent")["executionPolicy"], old_policy)
+            self.module.mark_terminal(first_path, "completed")
+            historical = first_path.read_bytes()
+            self.module.submit(changed, False)
+            second = emit.call_args.args[0]
+            second_path = Path(second["statePath"])
+            new_policy = self.module.safe_read_json(second_path)["executionPolicy"]
+            self.assertEqual(new_policy["sandboxPolicy"]["type"], "danger-full-access")
+            self.assertEqual(self.module.load_session(root, "work-agent")["executionPolicy"], new_policy)
+            self.assertEqual(first_path.read_bytes(), historical)
+            self.assertEqual(self.module.safe_read_json(second_path)["dispatchTuple"]["executionPolicy"], new_policy)
+            self.module.submit(changed, False)
+            self.assertTrue(emit.call_args.args[0]["deduplicated"])
+            self.assertEqual(spawn.call_count, 2)
+            self.module.mark_terminal(second_path, "completed")
+            keep = self.dispatch_args(directory, "dispatch-policy-keep")
+            keep.sandbox = None
+            self.module.submit(keep, False)
+            current = emit.call_args.args[0]
+            self.assertEqual(self.module.safe_read_json(Path(current["statePath"]))["executionPolicy"], new_policy)
+            self.assertEqual(first_path.read_bytes(), historical)
+            with mock.patch.object(self.module.native_codex, "inspect_capabilities", return_value={"submit": {}, "send": {}}):
+                self.module.main(["capabilities", "--project-root", directory, "--agent", "work-agent"])
+            self.assertEqual(emit.call_args.args[0]["executionMode"], "danger-full-access")
+
     def test_crash_after_creation_before_ack_is_adopted_by_exact_dispatch(self) -> None:
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(self.module, "spawn_worker", return_value=123), mock.patch.object(self.module, "emit", side_effect=RuntimeError("lost ack")):
             with self.assertRaises(RuntimeError):

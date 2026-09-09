@@ -121,6 +121,22 @@ class ExecutionPolicyTests(unittest.TestCase):
         with self.assertRaises(policy.PolicyError):
             policy.resolve(args(), self.root, fallback_policy=snapshot())
 
+    def test_explicit_idle_selection_can_replace_fallback_without_weakening_parent(self):
+        old = snapshot("read-only")
+        selected = policy.resolve(args("--sandbox", "danger-full-access", "--approval-policy", "never"), self.root,
+                                  fallback_policy=old, allow_session_change=True)
+        self.assertEqual(selected, snapshot())
+        self.assertEqual(policy.resolve(args(), self.root, fallback_policy=old, allow_session_change=True), old)
+        with self.assertRaisesRegex(policy.PolicyError, "policy_parent_mismatch"):
+            policy.resolve(args("--sandbox", "danger-full-access"), self.root, fallback_policy=old, allow_session_change=True)
+        os.environ[policy.SNAPSHOT_ENV] = json.dumps(old)
+        with self.assertRaisesRegex(policy.PolicyError, "policy_parent_mismatch"):
+            policy.resolve(args("--sandbox", "danger-full-access", "--approval-policy", "never"), self.root,
+                           fallback_policy=old, allow_session_change=True)
+        os.environ[policy.SNAPSHOT_ENV] = json.dumps(selected)
+        self.assertEqual(policy.resolve(args("--sandbox", "danger-full-access", "--approval-policy", "never"), self.root,
+                                        fallback_policy=old, allow_session_change=True), selected)
+
     def test_readonly_config_grants_only_exact_run_and_keeps_snapshot(self):
         value = snapshot("read-only", network_access=True)
         original = copy.deepcopy(value)

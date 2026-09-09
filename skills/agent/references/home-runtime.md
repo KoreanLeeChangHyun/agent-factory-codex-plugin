@@ -35,7 +35,13 @@
 
 - **Inheritance:** children inherit the parent's filesystem, network and approval
   policy; no separate child sandbox default. Persist the resolved policy in session,
-  run and dispatch identity; reject mismatched policies when resuming a session.
+  run and dispatch identity. Historical run and dispatch policies remain immutable.
+- **Next-turn changes:** an idle `send` may explicitly select a complete policy file
+  or sandbox/approval pair for its new run; persist that current session policy under
+  dispatch/session locks. Omitted inputs keep the current stored policy. Reject active
+  session changes and partial mismatched overrides. Children still match their parent
+  exactly; no automatic widening or fallback. Preflight the selected policy before launch.
+  `capabilities --agent` exposes optional canonical `executionMode` for the stored policy.
 - **Sources:** managed parent snapshot first, then the exact external Codex
   `CODEX_THREAD_ID` turn context. Without a parent, resolve explicit inputs or the
   selected Codex's effective configuration; fail if authority is unavailable.

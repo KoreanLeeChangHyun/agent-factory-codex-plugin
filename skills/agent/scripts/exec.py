@@ -1712,6 +1712,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         dispatch_tuple["capabilityBindingHash"] = capability_binding_hash
     agent_path = agent_directory(project_root, args.agent, create=True)
     with file_lock(agent_path / ".dispatch.lock"):
+        if not new_agent:
+            policy = resolve_execution_policy(args, project_root, load_session(project_root, args.agent))
+            args.resolved_execution_policy = policy
+            dispatch_tuple["executionPolicy"] = policy
         reservation_path: Path | None = None
         if new_agent and dispatch_id is not None:
             reservation_path = dispatch_reservation_file(
@@ -1783,6 +1787,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
                 raise ContractError("dispatch_id_collision", "dispatch identifier is not unique")
             if matches:
                 state = matches[0]
+                if not new_agent and all(getattr(args, name, None) is None for name in (
+                    "sandbox", "approval_policy", "execution_policy_file", "network_access", "writable_root"
+                )) and "executionPolicy" in state:
+                    dispatch_tuple["executionPolicy"] = execution_policy.normalize(state["executionPolicy"])
                 if state.get("dispatchTuple") != dispatch_tuple:
                     raise ContractError("dispatch_id_collision", "dispatch identifier was used with a different immutable tuple")
                 emit({
@@ -1806,15 +1814,14 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             )
         else:
             session = load_session(project_root, args.agent)
-        if ("executionPolicy" in session and execution_policy.session_policy(session) != policy) or (
-            "executionPolicy" not in session and session.get("sandbox") != policy["sandboxPolicy"]["type"]
-        ):
-            raise ContractError("execution_policy_mismatch", "Stored session and requested execution policy differ")
         if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent)):
             raise ContractError("session_busy", "An accepted or active run already owns this exact session")
-        if "executionPolicy" not in session:
-            session = {**session, "executionPolicy": policy, "executionPolicySource": "legacy"}
-            atomic_write_json(session_file(project_root, args.agent), session)
+        policy_changed = "executionPolicy" not in session or execution_policy.session_policy(session) != policy
+        if policy_changed:
+            if "executionPolicy" in session and not execution_policy.has_explicit_policy(args):
+                raise ContractError("execution_policy_mismatch", "Changing an idle session policy requires a complete explicit policy")
+            session = {**session, "executionPolicy": policy, "sandbox": policy["sandboxPolicy"]["type"],
+                       "executionPolicySource": "explicit" if execution_policy.has_explicit_policy(args) else "legacy"}
         effective = {**session, **execution_options}
         if effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
             capabilities = native_codex.inspect_capabilities(str(session["codex"]))
@@ -1839,6 +1846,11 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             execution_options=execution_options,
             goal_action=goal_action,
         )
+        if policy_changed:
+            update_json(session_file(project_root, args.agent), agent_path / ".session-state.lock", lambda value: value.update({
+                "executionPolicy": policy, "sandbox": policy["sandboxPolicy"]["type"],
+                "executionPolicySource": session["executionPolicySource"],
+            }))
         worker_pid = spawn_worker(project_root, args.agent, state["runId"])
     document = {
             "schemaVersion": SCHEMA_VERSION,
@@ -3171,10 +3183,10 @@ def resolve_execution_policy(args: argparse.Namespace, project_root: Path, sessi
         policy_args = argparse.Namespace(**vars(args))
         if session is not None and session.get("codex"):
             policy_args.codex = session["codex"]
-        policy = execution_policy.resolve(policy_args, project_root, fallback_policy=stored)
-        if stored is not None and policy != stored:
-            raise ContractError("execution_policy_mismatch", "Stored session and parent/requested policy differ; use a new authorized session")
-        if session is not None and stored is None and session.get("sandbox") != policy["sandboxPolicy"]["type"]:
+        policy = execution_policy.resolve(policy_args, project_root, fallback_policy=stored, allow_session_change=session is not None)
+        if stored is not None and policy != stored and not execution_policy.has_explicit_policy(args):
+            raise ContractError("execution_policy_mismatch", "Changing an idle session policy requires a complete explicit policy")
+        if session is not None and stored is None and session.get("sandbox") != policy["sandboxPolicy"]["type"] and not execution_policy.has_explicit_policy(args):
             raise ContractError("execution_policy_mismatch", "Legacy session sandbox differs from current authorized policy")
         return policy
     except (ValueError, OSError) as error:
@@ -3430,9 +3442,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.command == "capabilities":
             codex = args.codex
+            session = None
             if args.agent:
-                codex = load_session(resolve_project_root(args.project_root), args.agent)["codex"]
-            emit(native_codex.inspect_capabilities(codex))
+                session = load_session(resolve_project_root(args.project_root), args.agent)
+                codex = session["codex"]
+            capabilities = dict(native_codex.inspect_capabilities(codex))
+            if session is not None and "executionPolicy" in session:
+                capabilities["executionMode"] = execution_policy.session_policy(session)["sandboxPolicy"]["type"]
+            emit(capabilities)
             return 0
         if args.command == "goal":
             return command_goal(args)

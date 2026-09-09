@@ -276,7 +276,14 @@ def add_policy_arguments(parser):
     parser.add_argument("--writable-root", action="append", default=None)
 
 
-def resolve(args, project_root, *, fallback_policy=None):
+def has_explicit_policy(args):
+    """A full policy file or sandbox/approval pair authorizes a next-run selection."""
+    return bool(getattr(args, "execution_policy_file", None)) or (
+        getattr(args, "sandbox", None) is not None and getattr(args, "approval_policy", None) is not None
+    )
+
+
+def resolve(args, project_root, *, fallback_policy=None, allow_session_change=False):
     project_root = _path(project_root)
     parent = None
     snapshot = os.environ.get(SNAPSHOT_ENV)
@@ -294,7 +301,8 @@ def resolve(args, project_root, *, fallback_policy=None):
     selected = normalize(_read(policy_file)) if policy_file else parent
     if parent is not None and selected != parent:
         raise PolicyError("policy_parent_mismatch", "explicit policy differs from inherited parent permissions")
-    if fallback_policy is not None:
+    changing_session = allow_session_change and has_explicit_policy(args)
+    if fallback_policy is not None and not changing_session:
         fallback = normalize(fallback_policy)
         if selected is not None and selected != fallback:
             raise PolicyError("policy_parent_mismatch", "saved execution policy differs from parent or explicit policy")
