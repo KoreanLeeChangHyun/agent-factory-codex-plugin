@@ -81,6 +81,7 @@ class AgentRuntime:
         verified_work_run_id: str | None,
         execution: dict[str, Any],
         capability_binding_file: Path | None,
+        human_approval_policy: str,
     ) -> dict[str, Any]:
         arguments = [
             operation,
@@ -88,6 +89,7 @@ class AgentRuntime:
             "--request-file", str(request_file),
             "--receipt-request-hash", request_hash,
             "--dispatch-id", dispatch_id,
+            "--human-approval-policy", human_approval_policy,
         ]
         if execution.get("executionPolicyPath"):
             if agent_exec.safe_read_json(Path(execution["executionPolicyPath"])) != execution["executionPolicy"]:
@@ -279,6 +281,7 @@ def complete_pending_dispatch(
                 Path(pending["capabilityBindingPath"])
                 if pending.get("capabilityBindingPath") else None
             ),
+            human_approval_policy="required",
         )
         run = runtime.status(pending["agentId"], str(acknowledgement["runId"]))
     expected_tuple = {
@@ -289,6 +292,7 @@ def complete_pending_dispatch(
         "receiptRequestHash": pending["receiptRequestHash"],
         "verifiedWorkRunId": pending["verifiedWorkRunId"],
         "operation": pending["operation"],
+        "humanApprovalPolicy": "required",
     }
     if "executionPolicy" in state["execution"] and not (
         pending.get("legacyPolicyUnbound") and "executionPolicy" not in run.get("dispatchTuple", {})
@@ -302,7 +306,12 @@ def complete_pending_dispatch(
         expected_tuple["reportingLoopId"] = state["loopId"]
     if pending.get("capabilityBindingHash") is not None:
         expected_tuple["capabilityBindingHash"] = pending["capabilityBindingHash"]
-    if run.get("dispatchId") != pending["dispatchId"] or run.get("dispatchTuple") != expected_tuple:
+    actual_tuple = run.get("dispatchTuple")
+    if isinstance(actual_tuple, dict) and "humanApprovalPolicy" not in actual_tuple:
+        # Historical managed runs predate this tuple field; omission represented
+        # the only then-supported behavior, which is today's required default.
+        actual_tuple = {**actual_tuple, "humanApprovalPolicy": "required"}
+    if run.get("dispatchId") != pending["dispatchId"] or actual_tuple != expected_tuple:
         raise agent_exec.ContractError("dispatch_binding_invalid", "managed run does not match durable dispatch intent")
     role = pending["role"]
     run_id = str(run["runId"])

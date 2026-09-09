@@ -60,6 +60,7 @@ class FakeRuntime:
             "receiptRequestHash": values["request_hash"],
             "verifiedWorkRunId": values["verified_work_run_id"],
             "operation": values["operation"],
+            "humanApprovalPolicy": values["human_approval_policy"],
         }
         if "executionPolicy" in values["execution"]:
             dispatch_tuple["executionPolicy"] = values["execution"]["executionPolicy"]
@@ -349,6 +350,43 @@ class AgentLoopContractTests(unittest.TestCase):
         self.reconcile(state)
         self.assertEqual(len(self.runtime.dispatches), 1)
         self.assertEqual(self.runtime.runs[("work-agent", state["latestWorkRunId"])]["dispatchId"], dispatch_id)
+
+    def test_dispatch_binds_required_human_approval_policy(self) -> None:
+        state = self.start()
+        dispatched = self.runtime.dispatches[-1]
+        run = self.runtime.runs[("work-agent", state["latestWorkRunId"])]
+        self.assertEqual(dispatched["human_approval_policy"], "required")
+        self.assertEqual(run["dispatchTuple"]["humanApprovalPolicy"], "required")
+
+    def test_legacy_pending_ack_without_human_approval_policy_is_adopted(self) -> None:
+        self.runtime.lose_ack = True
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.start()
+        directory = next((self.agent_exec.agent_root(self.root) / "work-agent" / "loops").iterdir())
+        stored = self.agent_exec.safe_read_json(directory / "state.json")
+        child = next(iter(self.runtime.runs.values()))
+        child["dispatchTuple"].pop("humanApprovalPolicy")
+
+        recovered = self.reconcile({"loopId": stored["loopId"]})
+
+        self.assertEqual(len(self.runtime.dispatches), 1)
+        self.assertEqual(recovered["currentChild"]["runId"], child["runId"])
+
+    def test_pending_ack_rejects_bypass_human_approval_policy(self) -> None:
+        self.runtime.lose_ack = True
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.start()
+        directory = next((self.agent_exec.agent_root(self.root) / "work-agent" / "loops").iterdir())
+        stored = self.agent_exec.safe_read_json(directory / "state.json")
+        child = next(iter(self.runtime.runs.values()))
+        child["dispatchTuple"]["humanApprovalPolicy"] = "bypass"
+
+        with self.assertRaises(self.agent_exec.ContractError) as raised:
+            self.reconcile({"loopId": stored["loopId"]})
+
+        self.assertEqual(raised.exception.code, "dispatch_binding_invalid")
+        persisted = self.agent_exec.safe_read_json(directory / "state.json")
+        self.assertEqual(persisted["pendingDispatch"]["dispatchId"], child["dispatchId"])
 
     def test_legacy_pending_ack_recovers_original_tuple_without_redispatch(self) -> None:
         self.runtime.lose_ack = True
