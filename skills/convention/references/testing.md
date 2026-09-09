@@ -51,7 +51,7 @@ Use this reference when organizing, selecting, or running tests.
 - Bound worker count to the available CPU, memory, and child-process load.
   Compare elapsed time and outcomes on the same suite and environment before
   claiming a speedup; preserve a serial command for diagnosis.
-- This plugin uses `pytest-xdist` from root `requirements-test.txt`. Its full
+- This plugin uses `pytest-xdist` from root `requirements.txt`. Its full
   suite command is `python3 -m pytest tests -n auto --maxprocesses=4 --dist=worksteal`;
   `-n 0` selects serial execution. Shared fixtures live in `tests/support/`.
   See the [runner's scheduling options](https://pytest-xdist.readthedocs.io/en/stable/distribution.html).

@@ -190,7 +190,7 @@ not guaranteed yet.
 
 MIT License. See [LICENSE](LICENSE).
 
-Install test dependencies with `python3 -m pip install -r requirements-test.txt`.
+Install test dependencies with `python3 -m pip install -r requirements.txt`.
 
 Tests are grouped by purpose: `tests/contracts/` for package and reference
 contracts, `tests/runtime/` for runtime behavior, and `tests/integration/` for
