@@ -21,8 +21,10 @@ metadata:
 
 ## Delegation
 
-- Require clear outcome, scope, constraints, completion criteria and explicit
-  Human execution instruction. Conversation/task shaping authorizes no dispatch.
+- Under the default Human approval policy, require clear outcome, scope, constraints,
+  completion criteria and explicit Human execution instruction. Under runtime-injected
+  `bypass`, the current Human request authorizes immediate bounded dispatch without a
+  separate plan approval. Conversation/task shaping otherwise authorizes no dispatch.
 - Continue conversation during child work; apply input to the active task.
   Record explicit redirects as control-plane transitions; preserve execution/results.
 - CLI (default), exec and VS Code expose the same Main role.

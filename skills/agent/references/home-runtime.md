@@ -53,6 +53,10 @@
   a read-only code root stays read-only. Preserve inherited network access.
 - **Background approval:** forward the selected approval policy; interactive
   approval requests require Human handling and are never automatically granted.
+- **Human approval:** `--human-approval-policy bypass` is Main-only and persists for
+  the session. It authorizes Main to cross the delegation gate from the current Human
+  request without a separate plan-approval turn; it neither expands request scope nor
+  removes Work and Verification. Omitted sends preserve the session policy.
 - **Linux:** split permissions require bubblewrap; legacy Landlock cannot represent
   them. Denied user-namespace setup fails closed; never substitute a wider policy.
 - **References:** [sandbox backend](https://github.com/openai/codex/blob/main/codex-rs/linux-sandbox/README.md),

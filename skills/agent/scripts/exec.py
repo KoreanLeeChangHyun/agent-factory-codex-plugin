@@ -40,6 +40,7 @@ DISPATCH_ID = re.compile(r"^dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SANDBOXES = ("read-only", "workspace-write", "danger-full-access")
 DEFAULT_SANDBOX = None
 ACTORS = ("main", "human")
+HUMAN_APPROVAL_POLICIES = ("required", "bypass")
 ACTIVE_STATES = {"accepted", "queued", "starting", "running", "cancelling"}
 TERMINAL_STATES = {"completed", "needs-human-decision", "failed", "cancelled"}
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
@@ -1017,6 +1018,7 @@ def create_run(
     }
     if execution_options:
         state["executionOptions"] = execution_options
+    state["humanApprovalPolicy"] = session.get("humanApprovalPolicy", "required")
     if "executionPolicy" in session:
         state["executionPolicy"] = session["executionPolicy"]
     if goal_action:
@@ -1037,6 +1039,7 @@ def create_run(
         }
         if "executionPolicy" in session:
             state["dispatchTuple"]["executionPolicy"] = session["executionPolicy"]
+        state["dispatchTuple"]["humanApprovalPolicy"] = state["humanApprovalPolicy"]
         if execution_options:
             state["dispatchTuple"]["executionOptions"] = execution_options
         if goal_action:
@@ -1433,6 +1436,7 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
         "codex": codex,
         "sandbox": args.resolved_execution_policy["sandboxPolicy"]["type"],
         "executionPolicy": args.resolved_execution_policy,
+        "humanApprovalPolicy": getattr(args, "resolved_human_approval_policy", "required"),
         "model": args.model,
         "reasoningEffort": getattr(args, "reasoning_effort", None),
         "heartbeatInterval": args.heartbeat_interval,
@@ -1686,6 +1690,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     stored_session = None if new_agent else load_session(project_root, args.agent)
     policy = resolve_execution_policy(args, project_root, stored_session)
     args.resolved_execution_policy = policy
+    human_approval_policy = resolve_human_approval_policy(args, stored_session)
+    args.resolved_human_approval_policy = human_approval_policy
+    if role != "main" and human_approval_policy != "required":
+        raise ContractError(
+            "human_approval_policy_invalid",
+            "Human approval bypass is valid only for Main",
+        )
     if role == "verification" and verified_work_run_id is None:
         raise ContractError(
             "receipt_binding_invalid",
@@ -1722,6 +1733,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "verifiedWorkRunId": verified_work_run_id,
         "operation": operation,
         "executionPolicy": policy,
+        "humanApprovalPolicy": human_approval_policy,
     }
     if execution_options:
         dispatch_tuple["executionOptions"] = execution_options
@@ -1735,9 +1747,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     agent_path = agent_directory(project_root, args.agent, create=True)
     with file_lock(agent_path / ".dispatch.lock"):
         if not new_agent:
-            policy = resolve_execution_policy(args, project_root, load_session(project_root, args.agent))
+            current_session = load_session(project_root, args.agent)
+            policy = resolve_execution_policy(args, project_root, current_session)
+            human_approval_policy = resolve_human_approval_policy(args, current_session)
             args.resolved_execution_policy = policy
+            args.resolved_human_approval_policy = human_approval_policy
             dispatch_tuple["executionPolicy"] = policy
+            dispatch_tuple["humanApprovalPolicy"] = human_approval_policy
         reservation_path: Path | None = None
         if new_agent and dispatch_id is not None:
             reservation_path = dispatch_reservation_file(
@@ -1813,6 +1829,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
                     "sandbox", "approval_policy", "execution_policy_file", "network_access", "writable_root"
                 )) and "executionPolicy" in state:
                     dispatch_tuple["executionPolicy"] = execution_policy.normalize(state["executionPolicy"])
+                if not new_agent and getattr(args, "human_approval_policy", None) is None and "humanApprovalPolicy" in state:
+                    dispatch_tuple["humanApprovalPolicy"] = state["humanApprovalPolicy"]
                 if state.get("dispatchTuple") != dispatch_tuple:
                     raise ContractError("dispatch_id_collision", "dispatch identifier was used with a different immutable tuple")
                 emit({
@@ -1844,6 +1862,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
                 raise ContractError("execution_policy_mismatch", "Changing an idle session policy requires a complete explicit policy")
             session = {**session, "executionPolicy": policy, "sandbox": policy["sandboxPolicy"]["type"],
                        "executionPolicySource": "explicit" if execution_policy.has_explicit_policy(args) else "legacy"}
+        human_approval_policy_changed = session.get("humanApprovalPolicy", "required") != human_approval_policy
+        if human_approval_policy_changed:
+            session = {**session, "humanApprovalPolicy": human_approval_policy}
         effective = {**session, **execution_options}
         if effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
             capabilities = native_codex.inspect_capabilities(str(session["codex"]))
@@ -1868,11 +1889,19 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             execution_options=execution_options,
             goal_action=goal_action,
         )
-        if policy_changed:
-            update_json(session_file(project_root, args.agent), agent_path / ".session-state.lock", lambda value: value.update({
-                "executionPolicy": policy, "sandbox": policy["sandboxPolicy"]["type"],
-                "executionPolicySource": session["executionPolicySource"],
-            }))
+        if policy_changed or human_approval_policy_changed:
+            session_updates = {"humanApprovalPolicy": human_approval_policy}
+            if policy_changed:
+                session_updates.update({
+                    "executionPolicy": policy,
+                    "sandbox": policy["sandboxPolicy"]["type"],
+                    "executionPolicySource": session["executionPolicySource"],
+                })
+            update_json(
+                session_file(project_root, args.agent),
+                agent_path / ".session-state.lock",
+                lambda value: value.update(session_updates),
+            )
         worker_pid = spawn_worker(project_root, args.agent, state["runId"])
     document = {
             "schemaVersion": SCHEMA_VERSION,
@@ -1974,6 +2003,7 @@ def build_prompt(
     receipt_path: Path | None = None,
     receipt_schema_path: Path | None = None,
     capability_binding_path: Path | None = None,
+    human_approval_policy: str = "required",
 ) -> str:
     prompt_path = role_path(role)
     try:
@@ -1982,6 +2012,23 @@ def build_prompt(
         raise ContractError("role_invalid", "Agent role prompt must be UTF-8 text") from error
     if not role_prompt.strip():
         raise ContractError("role_invalid", "Agent role prompt must not be empty")
+    if human_approval_policy not in HUMAN_APPROVAL_POLICIES:
+        raise ContractError("human_approval_policy_invalid", "Human approval policy is invalid")
+    if human_approval_policy == "bypass" and role != "main":
+        raise ContractError("human_approval_policy_invalid", "Human approval bypass is valid only for Main")
+    human_approval_obligation = ""
+    if human_approval_policy == "bypass":
+        human_approval_obligation = """
+This Main run has Human approval policy `bypass`. The Human has authorized direct
+execution of the current request without a separate proposal or plan-approval turn.
+Treat the current request as satisfying the Delegation gate's execute instruction and
+proceed through Main -> Work -> Verification immediately. Do not return
+`needs-human-decision` merely to approve a plan, scope restatement, delegation, tool
+calls or ordinary in-scope actions. Make bounded reasonable assumptions. Request Human
+input only when execution truly cannot continue because required credentials or a
+Human-owned choice with materially different outcomes is absent. This policy does not
+expand the request or permit skipping Work or Verification.
+"""
     receipt_obligation = ""
     if receipt_path is not None and receipt_schema_path is not None:
         receipt_obligation = f"""
@@ -2027,7 +2074,7 @@ Read the delegated request from `{request_path}`. Keep its scope and authority u
 
 Write the detailed result to `{result_path}`. Then return only the compact JSON
 required by the supplied output schema. Run ID: `{run_id}`.
-{binding_obligation}{receipt_obligation}{migration_obligation}"""
+{human_approval_obligation}{binding_obligation}{receipt_obligation}{migration_obligation}"""
 
 
 def build_codex_command(
@@ -2402,6 +2449,7 @@ def run_codex_attempt(
             Path(state["capabilityBindingPath"])
             if state.get("capabilityBindingPath") else None
         ),
+        human_approval_policy=str(state.get("humanApprovalPolicy", "required")),
     )
     try:
         process.stdin.write(prompt)
@@ -2797,6 +2845,7 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "sessionId",
         "executionOptions",
         "executionPolicy",
+        "humanApprovalPolicy",
         "executionPreflight",
         "backend",
         "goal",
@@ -3221,6 +3270,14 @@ def resolve_execution_policy(args: argparse.Namespace, project_root: Path, sessi
         raise ContractError("execution_policy_invalid", str(error)) from error
 
 
+def resolve_human_approval_policy(args: argparse.Namespace, session: dict[str, Any] | None = None) -> str:
+    requested = getattr(args, "human_approval_policy", None)
+    stored = session.get("humanApprovalPolicy", "required") if session is not None else "required"
+    if stored not in HUMAN_APPROVAL_POLICIES:
+        raise ContractError("human_approval_policy_invalid", "Stored Human approval policy is invalid")
+    return requested if requested is not None else stored
+
+
 def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
     options = {}
     for argument, key in (("model", "model"), ("reasoning_effort", "reasoningEffort"), ("fast", "fast"), ("goal_mode", "goalMode"), ("goal_objective", "goalObjective")):
@@ -3316,6 +3373,10 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     request.add_argument("--request-file", type=Path)
     request.add_argument("--message")
     parser.add_argument("--actor", choices=ACTORS, default="main")
+    parser.add_argument(
+        "--human-approval-policy", choices=HUMAN_APPROVAL_POLICIES,
+        help="Main delegation approval policy; omitted sends preserve the session policy",
+    )
     parser.add_argument("--model")
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
     parser.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)
@@ -3476,7 +3537,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 codex = session["codex"]
             capabilities = dict(native_codex.inspect_capabilities(codex))
             if session is not None and "executionPolicy" in session:
-                capabilities["executionMode"] = execution_policy.session_policy(session)["sandboxPolicy"]["type"]
+                capabilities["executionMode"] = (
+                    "bypass"
+                    if session.get("humanApprovalPolicy") == "bypass"
+                    else execution_policy.session_policy(session)["sandboxPolicy"]["type"]
+                )
             emit(capabilities)
             return 0
         if args.command == "goal":

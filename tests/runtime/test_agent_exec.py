@@ -50,6 +50,23 @@ class AgentExecTests(unittest.TestCase):
                 self.assertIn(source, prompt)
                 self.assertIn("<agent-factory-role-prompt>", prompt)
 
+    def test_main_bypass_prompt_authorizes_direct_delegation_without_plan_approval(self) -> None:
+        prompt = self.module.build_prompt(
+            agent_id="main-agent", role="main",
+            request_path=Path("/managed/request.md"),
+            result_path=Path("/managed/result.md"), run_id="run-one",
+            human_approval_policy="bypass",
+        )
+        self.assertIn("authorized direct", prompt)
+        self.assertIn("proceed through Main -> Work -> Verification immediately", prompt)
+        self.assertIn("Do not return\n`needs-human-decision` merely to approve a plan", prompt)
+        with self.assertRaises(self.module.ContractError):
+            self.module.build_prompt(
+                agent_id="work-agent", role="work",
+                request_path=Path("request.md"), result_path=Path("result.md"),
+                run_id="run-one", human_approval_policy="bypass",
+            )
+
     def test_role_path_rejects_role_outside_graph(self) -> None:
         with self.assertRaises(self.module.ContractError) as raised:
             self.module.role_path("review")
@@ -585,6 +602,49 @@ class AgentExecTests(unittest.TestCase):
             with mock.patch.object(self.module.native_codex, "inspect_capabilities", return_value={"submit": {}, "send": {}}):
                 self.module.main(["capabilities", "--project-root", directory, "--agent", "work-agent"])
             self.assertEqual(emit.call_args.args[0]["executionMode"], "danger-full-access")
+
+    def test_main_human_approval_bypass_persists_and_is_reported_as_execution_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(self.module, "spawn_worker", return_value=123), mock.patch.object(self.module, "emit") as emit:
+            root = Path(directory)
+            initial = self.module.parse_args([
+                "submit", "--project-root", directory, "--agent", "main-agent",
+                "--role", "main", "--message", "do it",
+                "--human-approval-policy", "bypass",
+            ])
+            self.module.submit(initial, True)
+            first = emit.call_args.args[0]
+            first_state = self.module.safe_read_json(Path(first["statePath"]))
+            self.assertEqual(first_state["humanApprovalPolicy"], "bypass")
+            self.assertEqual(self.module.load_session(root, "main-agent")["humanApprovalPolicy"], "bypass")
+            self.module.mark_terminal(Path(first["statePath"]), "completed")
+
+            follow_up = self.module.parse_args([
+                "send", "--project-root", directory, "--agent", "main-agent",
+                "--message", "continue",
+            ])
+            self.module.submit(follow_up, False)
+            second = emit.call_args.args[0]
+            self.assertEqual(
+                self.module.safe_read_json(Path(second["statePath"]))["humanApprovalPolicy"],
+                "bypass",
+            )
+            with mock.patch.object(self.module.native_codex, "inspect_capabilities", return_value={"submit": {}, "send": {}}):
+                self.module.main(["capabilities", "--project-root", directory, "--agent", "main-agent"])
+            self.assertEqual(emit.call_args.args[0]["executionMode"], "bypass")
+
+            self.module.mark_terminal(Path(second["statePath"]), "completed")
+            require_approval = self.module.parse_args([
+                "send", "--project-root", directory, "--agent", "main-agent",
+                "--message", "continue with approval",
+                "--human-approval-policy", "required",
+            ])
+            self.module.submit(require_approval, False)
+            third = emit.call_args.args[0]
+            self.assertEqual(
+                self.module.safe_read_json(Path(third["statePath"]))["humanApprovalPolicy"],
+                "required",
+            )
+            self.assertEqual(self.module.load_session(root, "main-agent")["humanApprovalPolicy"], "required")
 
     def test_crash_after_creation_before_ack_is_adopted_by_exact_dispatch(self) -> None:
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(self.module, "spawn_worker", return_value=123), mock.patch.object(self.module, "emit", side_effect=RuntimeError("lost ack")):
