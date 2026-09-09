@@ -2027,11 +2027,19 @@ def process_exit_failure(return_code: int, stderr_path: Path, started: bool) -> 
     return AttemptFailure("codex_failed", f"codex exec exited with {return_code}", started, True)
 
 
-def missing_result_failure(stderr_path: Path) -> AttemptFailure:
+def missing_result_failure(stderr_path: Path, publication_failed: bool = False) -> AttemptFailure:
     if stderr_reports_sandbox_unavailable(stderr_path):
         return AttemptFailure(
             "sandbox_unavailable",
             sandbox_diagnostics.sandbox_failure("fs sandbox helper failed"),
+            True,
+        )
+    if publication_failed:
+        return AttemptFailure(
+            "result_file_write_failed",
+            "Codex reported a failed write to the managed result file; no result was published. "
+            "Inspect the failed file-change event, tool output and host sandbox diagnostics "
+            "(exec.py doctor --probe). A failed write alone does not identify the host policy cause.",
             True,
         )
     return AttemptFailure(
@@ -2039,6 +2047,25 @@ def missing_result_failure(stderr_path: Path) -> AttemptFailure:
         "Agent did not publish its result file",
         True,
     )
+
+
+def result_publication_failure(event: dict[str, Any], result_path: str) -> bool | None:
+    """Read only structured completion evidence for the exact managed result path."""
+    if event.get("type") != "item.completed":
+        return None
+    item = event.get("item")
+    if not isinstance(item, dict) or item.get("type") != "file_change":
+        return None
+    changes = item.get("changes")
+    if not isinstance(changes, list) or not any(
+        isinstance(change, dict) and change.get("path") == result_path for change in changes
+    ):
+        return None
+    if item.get("status") == "failed":
+        return True
+    if item.get("status") == "completed":
+        return False
+    return None
 
 
 def append_bounded(path: Path, content: bytes, limit: int) -> bool:
@@ -2315,6 +2342,7 @@ def run_codex_attempt(
     started = False
     active_session: str | None = None
     final_messages: list[str] = []
+    publication_failed = False
     started_at = time.monotonic()
     start_deadline = started_at + float(session["startTimeout"])
     turn_deadline = started_at + float(session["turnTimeout"])
@@ -2434,6 +2462,9 @@ def run_codex_attempt(
                 saved = {key: session[key] for key in ("model", "reasoningEffort", "fast", "goalMode", "backend") if key in session}
                 saved["sessionId"] = observed
                 update_json(session_path, session_path.parent / ".session-state.lock", lambda value: value.update(saved))
+            publication_status = result_publication_failure(event, state["resultPath"])
+            if publication_status is not None:
+                publication_failed = publication_status
             item = event.get("item") if event.get("type") == "item.completed" else None
             if isinstance(item, dict) and item.get("type") in (None, "agent_message"):
                 text = item.get("text")
@@ -2473,7 +2504,7 @@ def run_codex_attempt(
     try:
         result_info = os.lstat(result_path)
     except FileNotFoundError as error:
-        raise missing_result_failure(stderr_path) from error
+        raise missing_result_failure(stderr_path, publication_failed) from error
     if (
         stat.S_ISLNK(result_info.st_mode)
         or not stat.S_ISREG(result_info.st_mode)

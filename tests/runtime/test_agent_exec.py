@@ -1111,7 +1111,35 @@ class AgentExecTests(unittest.TestCase):
                 encoding="utf-8",
             )
             failure = self.module.missing_result_failure(stderr_path)
-            self.assertEqual(failure.code, "result_file_missing")
+            self.assertEqual(failure.code, "sandbox_unavailable")
+
+    def test_failed_result_publication_retains_structured_failure(self) -> None:
+        result_path = "/tmp/run/result.md"
+        event = {"type": "item.completed", "item": {
+            "type": "file_change", "status": "failed", "changes": [{"path": result_path}]
+        }}
+        with tempfile.TemporaryDirectory() as directory:
+            stderr = Path(directory) / "stderr.log"
+            stderr.write_text("Failed to write file /tmp/run/result.md\n")
+            observed = self.module.result_publication_failure(event, result_path)
+            failure = self.module.missing_result_failure(stderr, observed)
+            self.assertTrue(observed)
+            self.assertEqual(failure.code, "result_file_write_failed")
+            self.assertIn("doctor --probe", failure.message)
+            self.assertNotIn("AppArmor", failure.message)
+            stderr.write_text("bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted\n")
+            self.assertEqual(self.module.missing_result_failure(stderr, observed).code, "sandbox_unavailable")
+            stderr.write_text("unrelated error")
+            self.assertEqual(self.module.missing_result_failure(stderr).code, "result_file_missing")
+        self.assertIsNone(self.module.result_publication_failure(event, "/tmp/other/result.md"))
+        event["type"] = "item.started"
+        self.assertIsNone(self.module.result_publication_failure(event, result_path))
+        event["type"] = "item.completed"
+        event["item"]["status"] = "completed"
+        self.assertFalse(self.module.result_publication_failure(event, result_path))
+        for item in ({"type": "agent_message", "text": "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted"},
+                     {"type": "file_change", "status": "failed", "changes": "not a list"}):
+            self.assertIsNone(self.module.result_publication_failure({"type": "item.completed", "item": item}, result_path))
 
     def test_nonzero_sandbox_exit_preserves_start_and_launch_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

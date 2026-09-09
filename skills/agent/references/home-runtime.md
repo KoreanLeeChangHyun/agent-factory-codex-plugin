@@ -63,7 +63,9 @@ to locate; this inventory does not prove its version or complete sandbox works.
   Codex may use a bundled helper, so missing system bubblewrap is not conclusive.
 - An observed filesystem-helper initialization failure is reported as
   `sandbox_unavailable`, including nonzero exec exits and app-server error events.
-  Unrelated command failures retain their original classification.
+  Unrelated command failures retain their original classification. A structured failed
+  file change for the exact managed result path followed by a missing file reports
+  `result_file_write_failed`; it does not infer a sandbox cause from Agent prose.
 - On Linux, inspect security audit logs and container/namespace restrictions.
   AppArmor is one possible cause, not a universal Linux diagnosis. Host policy
   changes belong to the host administrator and are never applied automatically.

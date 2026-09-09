@@ -26,7 +26,10 @@ def platform_issue(platform=None):
 
 def sandbox_failure(text):
     """Match runtime/helper errors, not generic permission failures or agent prose."""
-    if "fs sandbox helper failed" in text:
+    if "fs sandbox helper failed" in text or any(
+        line.strip() == "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted"
+        for line in text.splitlines()
+    ):
         return (
             "Codex filesystem sandbox initialization failed. Run exec.py doctor --probe. "
             "On Linux, inspect namespace/container restrictions and security audit logs "

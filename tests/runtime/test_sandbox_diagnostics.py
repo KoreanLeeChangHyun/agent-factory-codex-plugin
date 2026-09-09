@@ -52,12 +52,12 @@ def test_missing_system_helper_is_not_proof_bundled_helper_is_absent():
     assert result['sandboxReadiness'] == 'unknown'
 
 
-@pytest.mark.parametrize('message', ['Permission denied', 'Operation not permitted', 'bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted', 'Windows sandbox available'])
+@pytest.mark.parametrize('message', ['Permission denied', 'Operation not permitted', 'Agent says bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted', 'Windows sandbox available'])
 def test_generic_errors_are_not_misclassified(message):
     assert diagnostics.sandbox_failure(message) is None
 
 
-@pytest.mark.parametrize('message', ['fs sandbox helper failed with status exit status: 1: bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted', 'fs sandbox helper failed: namespace unavailable', 'sandbox-exec: sandbox_apply: Operation not permitted', 'Windows sandbox setup failed'])
+@pytest.mark.parametrize('message', ['bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted', 'fs sandbox helper failed with status exit status: 1: bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted', 'fs sandbox helper failed: namespace unavailable', 'sandbox-exec: sandbox_apply: Operation not permitted', 'Windows sandbox setup failed'])
 def test_specific_sandbox_errors_have_actionable_diagnostics(message):
     assert diagnostics.sandbox_failure(message)
 
