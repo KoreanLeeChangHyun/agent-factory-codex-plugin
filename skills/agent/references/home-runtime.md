@@ -41,6 +41,37 @@
 - **References:** [sandbox backend](https://github.com/openai/codex/blob/main/codex-rs/linux-sandbox/README.md),
   [configuration](https://learn.chatgpt.com/docs/config-file/config-reference).
 
+### Host readiness and diagnostics
+
+Run `python3 skills/agent/scripts/exec.py doctor` before choosing a managed host.
+Add `--probe` to exercise the system bubblewrap helper on Linux with a five-second
+timeout, read-only filesystem and isolated network. Neither command initializes
+the runtime registry or changes host policy. `--codex PATH` selects the executable
+to locate; this inventory does not prove its version or complete sandbox works.
+
+| Host | Managed execution | Required action |
+| --- | --- | --- |
+| Linux, including Ubuntu | Requires `/proc` identity and usable containment/sandbox facilities | Inspect `doctor`; use `--probe` for system bubblewrap evidence. |
+| macOS | Unsupported by this managed runtime | Use a supported Linux host; native Codex support is separate. |
+| Native Windows | Unsupported by this managed runtime | Use a separately checked Linux host or WSL environment. |
+| Other operating systems | Unsupported | Add and verify a process-identity/containment backend before claiming support. |
+
+- Unsupported hosts return `managed_platform_unsupported` before runtime storage
+  access or POSIX-only runtime imports. No backend or permission fallback is selected.
+- `sandboxReadiness: unknown` is intentional: locating a binary, an enabled
+  AppArmor setting, or a successful system helper probe is not a Codex sandbox pass.
+  Codex may use a bundled helper, so missing system bubblewrap is not conclusive.
+- An observed filesystem-helper initialization failure is reported as
+  `sandbox_unavailable`, including nonzero exec exits and app-server error events.
+  Unrelated command failures retain their original classification.
+- On Linux, inspect security audit logs and container/namespace restrictions.
+  AppArmor is one possible cause, not a universal Linux diagnosis. Host policy
+  changes belong to the host administrator and are never applied automatically.
+- Exit codes: `0` means inventory completed (or the requested helper probe passed),
+  `1` means a required inspected prerequisite is absent or the probe failed/could
+  not run, and `2` means the managed platform is unsupported. None certifies native
+  execution on macOS/Windows; simulated platform tests establish diagnostics only.
+
 ### Relocation
 
 1. Use `exec.py rebind --runtime-home HOME --project-id ID --from-root OLD --project-root NEW`.

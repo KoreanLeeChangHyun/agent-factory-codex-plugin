@@ -64,18 +64,18 @@ SYSTEMD_REQUIRED_OPTIONS = (
 )
 ENVIRONMENT_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 CGROUP_ROOT = Path("/sys/fs/cgroup")
-SANDBOX_UNAVAILABLE_STDERR = (
-    "fs sandbox helper failed with status",
-    "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted",
-)
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = SKILL_ROOT / "prompt"
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(SKILL_ROOT / "runtime"))
-import cloud_reporting
-import native_codex
-import paths as runtime_paths
+import sandbox_diagnostics
 import permissions as runtime_permissions
+
+# Diagnostic/refusal paths must load even where POSIX runtime imports cannot.
+if sys.platform == "linux":
+    import cloud_reporting
+    import native_codex
+    import paths as runtime_paths
 VALID_ROLES = {"main", "work", "verification"}
 CAPABILITY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 AUTHORITY_KINDS = {
@@ -102,6 +102,12 @@ class ContractError(Exception):
 class JsonArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
         raise ContractError("invalid_arguments", message)
+
+
+def require_managed_platform() -> None:
+    issue = sandbox_diagnostics.platform_issue()
+    if issue:
+        raise ContractError(issue["code"], issue["message"])
 
 
 def now() -> str:
@@ -1613,6 +1619,7 @@ def spawn_worker(project_root: Path, agent_id: str, run_id: str) -> int:
 
 
 def submit(args: argparse.Namespace, new_agent: bool) -> int:
+    require_managed_platform()
     project_root = resolve_project_root(args.project_root)
     validate_id(args.agent, AGENT_ID, "agent_id")
     if args.actor not in ACTORS:
@@ -2011,14 +2018,20 @@ def stderr_reports_sandbox_unavailable(path: Path) -> bool:
         stderr = safe_read_bytes(path, MAX_EVENT_BYTES).decode("utf-8")
     except (ContractError, UnicodeDecodeError):
         return False
-    return all(fragment in stderr for fragment in SANDBOX_UNAVAILABLE_STDERR)
+    return sandbox_diagnostics.sandbox_failure(stderr) is not None
+
+
+def process_exit_failure(return_code: int, stderr_path: Path, started: bool) -> AttemptFailure:
+    if stderr_reports_sandbox_unavailable(stderr_path):
+        return AttemptFailure("sandbox_unavailable", sandbox_diagnostics.sandbox_failure("fs sandbox helper failed"), started, True)
+    return AttemptFailure("codex_failed", f"codex exec exited with {return_code}", started, True)
 
 
 def missing_result_failure(stderr_path: Path) -> AttemptFailure:
     if stderr_reports_sandbox_unavailable(stderr_path):
         return AttemptFailure(
             "sandbox_unavailable",
-            "Codex filesystem sandbox is unavailable",
+            sandbox_diagnostics.sandbox_failure("fs sandbox helper failed"),
             True,
         )
     return AttemptFailure(
@@ -2382,7 +2395,9 @@ def run_codex_attempt(
                 )
             if event.get("type") == "error" and session.get("backend") == "app-server":
                 stop_attempt()
-                raise AttemptFailure("native_backend_error", str(event.get("message", "Native Codex error")), started, True)
+                message = str(event.get("message", "Native Codex error"))
+                diagnostic = sandbox_diagnostics.sandbox_failure(message)
+                raise AttemptFailure("sandbox_unavailable" if diagnostic else "native_backend_error", diagnostic or message, started, True)
             if event.get("type") == "goal.error":
                 record_goal_uncertainty(state_path, str(event.get("message", "Native Goal state unconfirmed")))
             if event.get("type") == "thread.started":
@@ -2435,9 +2450,7 @@ def run_codex_attempt(
     stop_attempt()
     cloud_reporting.hook(reporting_runtime(), state_path, (now(), "process_exited"))
     if return_code != 0:
-        raise AttemptFailure(
-            "codex_failed", f"codex exec exited with {return_code}", started, True
-        )
+        raise process_exit_failure(return_code, stderr_path, started)
     if not started or active_session is None:
         raise AttemptFailure(
             "start_ack_missing", "codex exec returned no start ACK", False, True
@@ -3209,6 +3222,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         if name == "rebind":
             location_parser.add_argument("--from-root", type=Path, required=True)
 
+    commands.add_parser("doctor", help="Inspect host sandbox prerequisites; use doctor --help for options")
+
     submit_parser = commands.add_parser("submit")
     add_project_argument(submit_parser)
     add_request_arguments(submit_parser)
@@ -3303,7 +3318,11 @@ def validate_submit_options(args: argparse.Namespace) -> None:
 
 def main(argv: Sequence[str] | None = None) -> int:
     try:
-        args = parse_args(argv)
+        arguments = list(sys.argv[1:] if argv is None else argv)
+        if arguments and arguments[0] == "doctor":
+            return sandbox_diagnostics.main(arguments[1:])
+        args = parse_args(arguments)
+        require_managed_platform()
         if hasattr(args, "project_root") and args.command != "rebind":
             binding = runtime_paths.resolve(args.project_root, create=args.command == "init",
                                             home=args.runtime_home, project_id=args.project_id)

@@ -1113,6 +1113,18 @@ class AgentExecTests(unittest.TestCase):
             failure = self.module.missing_result_failure(stderr_path)
             self.assertEqual(failure.code, "result_file_missing")
 
+    def test_nonzero_sandbox_exit_preserves_start_and_launch_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            stderr = Path(directory) / "stderr.log"
+            stderr.write_text("fs sandbox helper failed with status exit status: 1")
+            for started in (False, True):
+                failure = self.module.process_exit_failure(1, stderr, started)
+                self.assertEqual(failure.code, "sandbox_unavailable")
+                self.assertEqual(failure.started, started)
+                self.assertTrue(failure.launched)
+            stderr.write_text("authentication failed")
+            self.assertEqual(self.module.process_exit_failure(1, stderr, False).code, "codex_failed")
+
     def test_work_receipt_requires_exact_binding_and_no_test_execution(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = self.module.create_run(

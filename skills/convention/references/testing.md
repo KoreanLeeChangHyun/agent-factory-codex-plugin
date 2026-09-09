@@ -4,14 +4,16 @@ Use this reference when organizing, selecting, or running tests.
 
 ## Source organization
 
-Use `tests/` as the test root and organize test files into meaningful
-subdirectories by purpose or owning component. Do not accumulate test files
-directly under `tests/` or encode every category only in filename prefixes.
-Root-level runner configuration and shared discovery hooks may remain at the
-root when the framework requires them. Extend an existing category before
-creating another, and update collection and imports when moving files.
+### Layout rules
 
-In this plugin, use these purpose directories:
+- Use `tests/` as the test root.
+- Group tests into meaningful subdirectories by purpose or owning component.
+- Do not accumulate tests directly under `tests/` or classify them only by filename prefixes.
+- Keep runner configuration and shared discovery hooks at the root when the framework requires it.
+- Extend an existing category before creating another.
+- Update collection and imports when moving files.
+
+### Plugin directories
 
 - `tests/contracts/`: package structure, metadata, reference routing, and static
   public contracts;

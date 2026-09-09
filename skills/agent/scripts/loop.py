@@ -484,6 +484,7 @@ def emit(value: dict[str, Any]) -> None:
 def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = build_parser().parse_args(argv)
+        agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
         handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "skip": skip_loop}
         emit(handlers[args.command](args))
