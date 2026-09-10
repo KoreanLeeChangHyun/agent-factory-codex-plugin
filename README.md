@@ -167,6 +167,21 @@ or root `workspace.sh` is installed into consumer projects.
 
 ## Development
 
+### Runtime compatibility
+
+| Component | Contract |
+| --- | --- |
+| Operating system | Managed execution supports Linux. macOS, native Windows and other hosts are rejected; WSL must satisfy the Linux checks. |
+| Python | Python 3.10 is the source-level minimum. Release verification covers the configured 3.10 and 3.12 baselines; other versions are not claimed by that evidence. |
+| Codex | No repository-wide CLI version is assumed. `exec.py doctor`, execution preflight and installed capability discovery decide readiness for the selected executable. |
+| Containment | User systemd with cgroup v2 is preferred. A verified private process-group fallback has weaker descendant containment. |
+| Split permissions | Linux permission profiles that require split filesystem access need a usable bubblewrap backend and fail closed when unavailable. |
+
+The table states compatibility boundaries, not proof that an individual host,
+account, model, tier or sandbox is ready.
+
+### Verification and release
+
 Validate the plugin structure with the bundled Plugin Creator validator:
 
 ```bash
@@ -180,6 +195,25 @@ Human supplies a command, Verification runs it unchanged; otherwise it selects
 only the smallest bounded command justified by repository evidence. Main and
 Work never execute the check. A general request to fix or complete work is not
 test authority. Without authorization, report that tests were not run.
+
+For the focused release-metadata contract, run:
+
+```bash
+python3 -m pytest tests/contracts/test_plugin_distribution_metadata.py
+```
+
+Human-authorized repository verification is also available through the manually
+dispatched `Human-authorized verification` GitHub Actions workflow. Its `contracts`
+scope checks distribution metadata and isolated installation; `full` additionally
+runs the complete suite on Python 3.10 and 3.12. Dispatch defaults to the narrower
+`contracts` scope. The workflow never runs on push or pull request by itself.
+
+The repo marketplace installs from `main`. Changes on development branches are not
+published merely because their manifest version changed. Follow the release-readiness
+procedure in
+[`skills/convention/references/development.md`](skills/convention/references/development.md#plugin-release-readiness),
+including explicit verification and publication authority, cachebuster refresh, and
+confirmation that the verified commit reached remote `main`.
 
 ## Status
 
@@ -200,10 +234,14 @@ performance tools in `tests/benchmarks/`. Run the relevant files with pytest
 from the repository root; `pytest.ini` provides the shared import paths.
 
 ```bash
-python3 -m pytest tests/contracts/test_convention_skill_metadata.py tests/integration/test_distribution.py
+python3 -m pytest \
+  tests/contracts/test_convention_skill_metadata.py \
+  tests/contracts/test_plugin_distribution_metadata.py \
+  tests/integration/test_distribution.py
 ```
 
-These checks cover Skill metadata, routed references, and isolated installation.
+These checks cover Skill and plugin metadata, marketplace release routing, manually
+authorized workflow policy, routed references, and isolated installation.
 
 When a full suite is requested, run it in parallel with bounded worker count:
 

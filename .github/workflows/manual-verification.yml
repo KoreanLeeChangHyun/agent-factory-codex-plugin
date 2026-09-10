@@ -1,0 +1,52 @@
+name: Human-authorized verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Verification scope authorized by the Human
+        required: true
+        type: choice
+        default: contracts
+        options:
+          - contracts
+          - full
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-factory-verification-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contracts:
+    name: Distribution contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - run: >-
+          python -m pytest
+          tests/contracts/test_convention_skill_metadata.py
+          tests/contracts/test_plugin_distribution_metadata.py
+          tests/integration/test_distribution.py
+
+  full:
+    name: Full suite (Python ${{ matrix.python-version }})
+    if: inputs.scope == 'full'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pytest tests -n auto --maxprocesses=4 --dist=worksteal
