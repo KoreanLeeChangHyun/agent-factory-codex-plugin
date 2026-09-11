@@ -39,6 +39,8 @@ metadata:
 - **Git:** follow [Convention's publication contract](../convention/references/development.md#git-publication).
 - **Domains/storage:** read [core model](../convention/references/agent-factory-core.md)
   and [layout](../convention/references/directory-structure.md).
+- **Human communication:** always follow Convention's mandatory
+  [respectful-register contract](../convention/references/communication.md).
 
 ## References
 

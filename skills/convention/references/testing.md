@@ -36,6 +36,18 @@ Use this reference when organizing, selecting, or running tests.
   contract.
 - Resolve it from the project's established runner and current test layout; do
   not treat one framework or command as universal.
+- Treat the interpreter and dependency environment as part of that runner. Before
+  execution, inspect repository evidence such as environment directories, tool
+  configuration, dependency files and CI setup; do not assume the system-default
+  Python contains the project's test dependencies.
+- Run an exact Human-supplied command unchanged first. If it fails before collection
+  because its interpreter lacks the runner or dependencies, make no installation
+  change unless authorized. Resolve an existing compatible project environment and
+  retry the same test scope and options through that environment. Report the initial
+  infrastructure failure separately from the retry result.
+- Never encode a development sibling's environment path as a durable repository
+  command. An evidenced adjacent shared environment may be used only as a local
+  execution fallback when its compatibility is checked for the selected test.
 - Broaden only when focused evidence demonstrates cross-domain impact or the
   Human explicitly requests broader coverage.
 - Run a full suite only on explicit Human request.
@@ -51,9 +63,11 @@ Use this reference when organizing, selecting, or running tests.
 - Bound worker count to the available CPU, memory, and child-process load.
   Compare elapsed time and outcomes on the same suite and environment before
   claiming a speedup; preserve a serial command for diagnosis.
-- This plugin uses `pytest-xdist` from root `requirements.txt`. Its full
-  suite command is `python3 -m pytest tests -n auto --maxprocesses=4 --dist=worksteal`;
-  `-n 0` selects serial execution. Shared fixtures live in `tests/support/`.
+- This plugin uses `pytest-xdist` from root `requirements.txt`. With the project
+  environment resolved as above, run its full suite as
+  `<project-python> -m pytest tests -n auto --maxprocesses=4 --dist=worksteal`;
+  `<project-python>` denotes that environment's interpreter and is not a literal
+  executable name. `-n 0` selects serial execution. Shared fixtures live in `tests/support/`.
   See the [runner's scheduling options](https://pytest-xdist.readthedocs.io/en/stable/distribution.html).
 - Parallel execution does not expand test authorization or enable opt-in
   external integrations automatically.

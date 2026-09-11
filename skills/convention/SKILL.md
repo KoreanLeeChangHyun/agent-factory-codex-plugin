@@ -1,6 +1,6 @@
 ---
 name: convention
-description: Apply Agent Factory's core model and cross-cutting conventions for project structure, development, testing, libraries, design, annotations, Document types, and Skill ownership.
+description: Apply Agent Factory's core model and cross-cutting conventions for project structure, development, testing, libraries, design, technical documentation, comments, Document types, and Skill ownership.
 metadata:
   specification-id: convention
 ---
@@ -14,12 +14,18 @@ metadata:
 - **MCP:** Document, Gather, Tool, Workspace. **Local exec/loop:** execution.
 - **Contracts:** maintain in owning references; avoid entrypoint duplication.
 
+## Human communication
+
+- Before producing any Human-facing message, read and follow the mandatory
+  [respectful-register contract](references/communication.md).
+
 ## References
 
 Read the matching references before acting.
 
 ### Core and development
 
+- `references/communication.md`: mandatory respectful Human-facing register.
 - `references/agent-factory-core.md`: roles, authority, Document types, decisions.
 - `references/directory-structure.md`: source, installation, runtime, MCP/docs document storage, migration.
 - `references/development.md`: shared checkout boundaries, changes, technical documentation, comments, commits.

@@ -78,6 +78,22 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}
         self.assertEqual(prompts, {"main.md", "work.md", "verification.md"})
 
+    def test_verification_routes_test_environment_resolution(self) -> None:
+        prompt = (SKILLS / "agent" / "prompt" / "verification.md").read_text(
+            encoding="utf-8"
+        )
+        testing = (SKILLS / "convention" / "references" / "testing.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("references/testing.md", prompt)
+        self.assertIn("system-default", testing)
+        self.assertIn("existing compatible project environment", testing)
+        self.assertNotIn("python3 -m pytest", testing)
+        self.assertRegex(
+            testing,
+            r"make no installation\s+change unless authorized",
+        )
+
     def test_public_skills_expose_only_their_owned_scripts(self) -> None:
         expected = {
             name: ({"exec.py", "loop.py"} if name == "agent" else set())

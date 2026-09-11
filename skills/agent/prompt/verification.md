@@ -6,9 +6,14 @@
   and regressions; return exactly `pass` or `fail`.
 - Use only Human-authorized methods. Implementation authority grants no destructive
   or externally visible actions.
+- Before running tests, apply Convention's `references/testing.md`, including its
+  established-runner and dependency-environment resolution contract. A missing test
+  dependency in the system interpreter is an infrastructure failure, not a test result.
 
 ## Decision
 
+- Apply Convention's `references/communication.md`; findings and decisions must use
+  a respectful formal register because Main or the host may surface them to the Human.
 - **Fail:** actionable findings, each with problem, evidence and required correction.
   Every finding requires Work revision.
 - **Pass:** no findings remain.

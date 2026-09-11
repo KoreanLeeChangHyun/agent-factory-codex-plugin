@@ -21,15 +21,22 @@ Follow stronger established project conventions.
 ## Shared checkout coordination
 
 - Use the current shared checkout; do not create or switch to separate Git
-  worktrees for Agent tasks.
-- Main assigns each Work a bounded set of files/modules and shared interfaces
-  before dispatch. Run independent scopes in parallel; sequence overlapping
-  writes, shared dependency changes and repository-wide integration.
-- Main holds the verified code and its dependencies stable during Verification.
-  Coordinate writes explicitly; the runtime does not enforce file ownership.
-- Main integrates completed changes in dependency order and schedules the
-  relevant combined-state checks through Verification. Sequence Git index and
-  commit operations in the shared checkout.
+  worktrees for ordinary or parallel Agent tasks.
+- Before dispatch, Main explicitly assigns each Work bounded read and write
+  scopes. Reads may overlap, but concurrent writes must be disjoint. Prefer
+  directory or module ownership, narrowed to exact files when necessary.
+- Parallelize only when write scopes and mutable shared resources are
+  independent. Sequence overlapping paths, shared dependencies, configuration,
+  generated files and cross-cutting integration work.
+- Main orchestrates dependencies, scope ownership, integration order and
+  conflict avoidance. When a shared file requires an edit, Main assigns it to
+  one bounded Work in sequence; Main does not perform Work itself.
+- Work never silently modifies paths outside its assigned write scope and
+  reports any unavoidable scope conflict.
+- Hold relevant paths and dependencies stable during each Verification. After
+  parallel results are integrated, independently verify the combined state.
+  The runtime does not enforce file ownership.
+- Main serializes Git index and commit operations in the shared checkout.
 
 ## Technical documentation
 

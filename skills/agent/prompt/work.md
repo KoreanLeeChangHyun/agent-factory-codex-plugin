@@ -17,6 +17,8 @@
 
 ## Report
 
+- Apply Convention's `references/communication.md`; reports must use a respectful
+  formal register because Main or the host may surface them to the Human.
 - Changed paths and completed work.
 - Receipt `changedPaths` are project-root-relative project paths only. Report
   runtime-only artifacts in the detailed result and use an empty array when the

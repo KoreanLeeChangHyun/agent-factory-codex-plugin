@@ -21,7 +21,7 @@
    `python3 /absolute/installed/plugin/skills/agent/scripts/exec.py init --project-root /absolute/code/worktree`.
 2. Inspect versioned locations/registrations with `location` and `projects`.
    `list`, capability inspection and status discovery never initialize missing storage.
-3. Preserve the resolved binding across supervisor, Worker, loop children, native
+3. Preserve the resolved binding across the supervisor, worker process, loop children, native
    bridge and reporting sender.
 
 - Marketplace installation runs no arbitrary post-install command; the manifest
@@ -166,7 +166,7 @@ to locate; this inventory does not prove its version or complete sandbox works.
 
 1. Check command features, responsive user manager, safe environment transfer and
    cgroup-v2 population access.
-2. Use a unique transient service per run/attempt: Worker main process, Codex child,
+2. Use a unique transient service per run/attempt: worker process, Codex child,
    `Type=exec`, group termination, collection, safely transferable submitter environment,
    bounded TERM-to-KILL escalation.
 3. Record backend/opaque containment identity by launch acknowledgement; query

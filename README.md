@@ -22,8 +22,8 @@ The plugin exposes exactly two public skills:
   sessions. Main orchestrates, Work performs the bounded task, and Verification
   independently returns pass or fail unless the Human skips it.
 - `convention`: Own and apply the Agent Factory core model plus directory,
-  development, library, design, annotation, Document-type, authority, and
-  cross-cutting integration conventions.
+  development, library, design, technical documentation, comments, Document-type,
+  authority, and cross-cutting integration conventions.
 
 Evidence exploration is a capability Work may use while performing its bounded
 task, and Interview remains Main's adaptive Human-facing capability. Neither is
@@ -100,8 +100,7 @@ are migration inputs until import is independently verified. Preserve source dat
 backed up and verified imported. Code retirement never authorizes deletion of
 Human data, source, credentials or backups. Actual tenant/account IDs and
 credential authority are never silently selected. Contract/source availability
-does not establish registration, configured accounts, deployment or
-completion of the active migration steps 1–13.
+does not establish registration, configured accounts or deployment.
 
 Managed Agent runs accept a strict binding file on `exec.py submit`/`send`.
 The graph launcher accepts separate role-scoped binding files on `loop.py
@@ -199,8 +198,15 @@ test authority. Without authorization, report that tests were not run.
 For the focused release-metadata contract, run:
 
 ```bash
-python3 -m pytest tests/contracts/test_plugin_distribution_metadata.py
+PLUGIN_TEST_PYTHON=/absolute/path/to/project-environment/bin/python
+"${PLUGIN_TEST_PYTHON}" -m pytest tests/contracts/test_plugin_distribution_metadata.py
 ```
+
+`PLUGIN_TEST_PYTHON` must identify the interpreter from the established test
+environment; do not assume `/usr/bin/python3` contains the repository's test
+dependencies. For an existing checkout, inspect its environment and tooling first.
+Do not install or modify dependencies merely to recover from a missing runner unless
+that environment change is explicitly authorized.
 
 Human-authorized repository verification is also available through the manually
 dispatched `Human-authorized verification` GitHub Actions workflow. Its `contracts`
@@ -224,7 +230,8 @@ not guaranteed yet.
 
 MIT License. See [LICENSE](LICENSE).
 
-Install test dependencies with `python3 -m pip install -r requirements.txt`.
+When preparing a new isolated test environment, install its dependencies with
+`python -m pip install -r requirements.txt` from inside that environment.
 
 Tests are grouped by purpose: `tests/contracts/` for package and reference
 contracts, `tests/runtime/` for runtime behavior, and `tests/integration/` for
@@ -234,7 +241,7 @@ performance tools in `tests/benchmarks/`. Run the relevant files with pytest
 from the repository root; `pytest.ini` provides the shared import paths.
 
 ```bash
-python3 -m pytest \
+"${PLUGIN_TEST_PYTHON}" -m pytest \
   tests/contracts/test_convention_skill_metadata.py \
   tests/contracts/test_plugin_distribution_metadata.py \
   tests/integration/test_distribution.py
@@ -246,7 +253,7 @@ authorized workflow policy, routed references, and isolated installation.
 When a full suite is requested, run it in parallel with bounded worker count:
 
 ```bash
-python3 -m pytest tests -n auto --maxprocesses=4 --dist=worksteal
+"${PLUGIN_TEST_PYTHON}" -m pytest tests -n auto --maxprocesses=4 --dist=worksteal
 ```
 
 Small focused runs stay serial to avoid worker startup overhead. Use `-n 0`
