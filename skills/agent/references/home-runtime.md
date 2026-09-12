@@ -117,8 +117,18 @@ to locate; this inventory does not prove its version or complete sandbox works.
 
 - Only `main`, `work`, `verification` roles exist; sources are `prompt/main.md`,
   `prompt/work.md`, `prompt/verification.md` relative to the Skill root.
-- Every initial/resumed exec turn validates and injects the complete selected
-  prompt as a tagged `codex exec` stdin block, not a platform system message.
+- Every initial/resumed managed turn validates the complete selected role prompt
+  and includes it as a tagged block in the generated prompt.
+- The exec backend sends that generated prompt through `codex exec` stdin for
+  both initial and exact-session resumed turns; this is not a platform system message.
+- The app-server backend supplies that generated prompt as `developerInstructions`
+  on `thread/start` or `thread/resume`, and again as text input to `turn/start`
+  for ordinary initial and resumed turns.
+- Native Goal activation/reactivation reloads the paused objective through
+  `thread/resume`, supplying the generated prompt and final JSON contract in
+  `developerInstructions`, then activates it with `thread/goal/set` without
+  `turn/start`. Goal control may return without a model turn. See
+  [Native Fast and Goal](native-fast-goal.md) for scope, controls and recovery.
 - Use `scripts/exec.py` for delegated roles; Main may also be exec-hosted.
   Resume exact session IDs; no `resume --last` or concurrent turns per session.
 

@@ -120,7 +120,7 @@ from process_transport import (
     append_event, read_process_lines, stream_stderr, process_group_exists,
     terminate_attempt_group, terminate_verified_group,
 )
-from public_state import public_state
+from public_state import public_state as project_public_state
 from exec_cli import (
     JsonArgumentParser, add_project_argument, add_request_arguments, parse_args,
     validate_submit_options,
@@ -143,6 +143,10 @@ CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
 def reporting_runtime():
     """Expose runtime primitives also when a host loads this file without registration."""
     return SimpleNamespace(**globals())
+
+
+def public_state(state: dict[str, Any]) -> dict[str, Any]:
+    return project_public_state(state, reporting_runtime())
 
 
 def create_run(

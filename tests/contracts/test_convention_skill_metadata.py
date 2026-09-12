@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
@@ -117,19 +118,47 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         documents = (
             SKILLS / "convention" / "references" / "documents.md"
         ).read_text(encoding="utf-8")
-        manifest = (ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        manifest = json.loads(
+            (ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
 
         for mode in ("Plugin only", "MCP only", "Plugin plus MCP"):
             self.assertIn(mode, readme)
-        self.assertIn(
-            "does not require an Agent Factory MCP package, server, account, tenant",
+        plugin_only = re.search(
+            r"(?ms)^- \*\*Plugin only:\*\*\s*(.+?)(?=^- \*\*MCP only:\*\*)",
             readme,
         )
+        self.assertIsNotNone(plugin_only)
+        standalone = " ".join(plugin_only.group(1).split())
+        self.assertRegex(
+            standalone.lower(), r"\bcomplete\b.*\blocal\b.*\bworkflow\b"
+        )
+        self.assertRegex(standalone, r"(?:requires? no|without)\s+Agent Factory MCP")
+        for dependency in (
+            "package",
+            "server",
+            "account",
+            "tenant",
+            "connection",
+            "authenticated resource",
+        ):
+            with self.subTest(standalone_dependency=dependency):
+                self.assertIn(dependency, standalone)
         self.assertIn(
             "without an MCP package, server, account, tenant, connection",
             " ".join(agent.split()),
         )
-        self.assertIn("No MCP package, server, account, tenant, connection", manifest)
+        manifest_description = manifest["interface"]["longDescription"]
+        self.assertRegex(
+            manifest_description,
+            r"\bcomplete local\b.*Main -> Work -> Verification",
+        )
+        self.assertRegex(manifest_description, r"\bNo MCP package\b")
+        for dependency in (
+            "server", "account", "tenant", "connection", "authenticated resource"
+        ):
+            with self.subTest(manifest_dependency=dependency):
+                self.assertIn(dependency, manifest_description)
         self.assertIn("absence of MCP is a normal supported mode", convention)
         self.assertIn("<project-root>/docs/", layout)
         self.assertIn("not an error fallback", layout)

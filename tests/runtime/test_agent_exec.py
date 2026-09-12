@@ -38,6 +38,39 @@ class AgentExecTests(unittest.TestCase):
     def setUp(self) -> None:
         self.module = load_module()
 
+    def test_read_request_preserves_safe_caller_path_checks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = root / "source"
+            parent.mkdir()
+            request = parent / "request.md"
+            request.write_bytes(b"bounded request\n")
+            final_link = root / "linked.md"
+            final_link.symlink_to(request)
+            parent_link = root / "linked-parent"
+            parent_link.symlink_to(parent, target_is_directory=True)
+            for path in (final_link, parent_link / "request.md",
+                         parent / ".." / "source" / "request.md"):
+                with self.subTest(path=path):
+                    with self.assertRaises(self.module.ContractError) as raised:
+                        self.module.read_request(argparse.Namespace(request_file=path))
+                    self.assertEqual(raised.exception.code, "capability_binding_invalid")
+            self.assertEqual(
+                self.module.read_request(argparse.Namespace(request_file=request)),
+                b"bounded request\n",
+            )
+            with mock.patch("pathlib.Path.cwd", return_value=root):
+                self.assertEqual(
+                    self.module.read_request(argparse.Namespace(
+                        request_file=Path("source/request.md"))), b"bounded request\n",
+                )
+
+    def test_public_state_without_reporting_needs_no_reporting_adapter(self) -> None:
+        state = {"role": "main", "status": "running", "statePath": "/private/state.json"}
+        with mock.patch.object(self.module, "cloud_reporting", None):
+            self.assertEqual(self.module.public_state(state),
+                             {"role": "main", "status": "running"})
+
     def test_build_prompt_embeds_each_validated_role_prompt(self) -> None:
         for role in ("main", "work", "verification"):
             with self.subTest(role=role):

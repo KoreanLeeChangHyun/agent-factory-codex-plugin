@@ -201,6 +201,48 @@ class ExecutionPolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(policy.PolicyError, "registered run"):
             policy.resolve(args(), project)
 
+    def test_dotted_managed_parent_inherits_policy_and_rejects_invalid_bindings(self):
+        import paths
+        project = self.root / "project"
+        project.mkdir()
+        binding = paths.resolve(project, home=self.root / "runtime-home", create=True)
+        agent = Path(binding["agentsRoot"]) / "main.v1"
+        run = agent / "runs" / "run.one"
+        run.mkdir(parents=True)
+        state_file = run / "state.json"
+        session_file = agent / "session.json"
+        expected = snapshot("workspace-write", writable_roots=[str(project)], network_access=False)
+        state = {"runtimeBinding": binding, "agentId": "main.v1", "runId": "run.one",
+                 "statePath": str(state_file), "executionPolicy": expected}
+        session = {"agentId": "main.v1", "projectRoot": str(project), "executionPolicy": expected}
+        state_file.write_text(json.dumps(state))
+        session_file.write_text(json.dumps(session))
+        os.environ.update({policy.SNAPSHOT_ENV: json.dumps(expected), policy.PARENT_STATE_ENV: str(state_file)})
+        self.assertEqual(policy.resolve(args(), project), expected)
+
+        for field in ("agentId", "runId"):
+            for invalid in (None, "", ".hidden", "../main", "main/child", "main v1", "a" * 65):
+                with self.subTest(field=field, invalid=invalid):
+                    state_file.write_text(json.dumps({**state, field: invalid}))
+                    with self.assertRaisesRegex(policy.PolicyError, "invalid agent/run identity"):
+                        policy.resolve(args(), project)
+
+        for change, message in (({"runId": "run.other"}, "registered run"),
+                                ({"agentId": "main.v2"}, "registered run"),
+                                ({"statePath": str(run / "other.json")}, "locator"),
+                                ({"executionPolicy": snapshot()}, "parent state")):
+            with self.subTest(state_change=change):
+                state_file.write_text(json.dumps({**state, **change}))
+                with self.assertRaisesRegex(policy.PolicyError, message):
+                    policy.resolve(args(), project)
+        state_file.write_text(json.dumps(state))
+        for change in ({"agentId": "main.v2"}, {"projectRoot": str(self.root)},
+                       {"executionPolicy": snapshot()}):
+            with self.subTest(session_change=change):
+                session_file.write_text(json.dumps({**session, **change}))
+                with self.assertRaisesRegex(policy.PolicyError, "parent session"):
+                    policy.resolve(args(), project)
+
     def test_standalone_queries_effective_config_without_starting_a_thread(self):
         from native_codex import Rpc
         process = mock.Mock()

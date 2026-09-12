@@ -1,6 +1,6 @@
 ---
 name: agent
-description: Run the Agent Factory Main, Work, and Verification graph from a CLI or hosted interface with managed Codex exec sessions for delegated roles.
+description: Run the Agent Factory Main, Work, and Verification graph from a CLI or hosted interface with managed Codex sessions for delegated roles.
 metadata:
   specification-id: agent
 ---

@@ -3,13 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-import sys
 from typing import Any
 
-if sys.platform == "linux":
-    import paths as runtime_paths
-
-def public_state(state: dict[str, Any]) -> dict[str, Any]:
+def public_state(state: dict[str, Any], runtime: Any) -> dict[str, Any]:
     keys = (
         "runId",
         "agentId",
@@ -61,7 +57,8 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
     if state.get("role") not in {"work", "verification"}:
         public.pop("statePath", None)
     if state.get("cloudReporting"):
-        public["reporting"] = cloud_reporting.status(reporting_runtime(), runtime_paths.project_for(Path(state["statePath"])), state)
+        public["reporting"] = runtime.cloud_reporting.status(
+            runtime, runtime.runtime_paths.project_for(Path(state["statePath"])), state
+        )
     return public
-
 

@@ -146,6 +146,11 @@ def resolve(root, *, create=False, home=None, project_id=None):
     if prior and not create:
         if home is not None and str(home_path(home)) != prior['home'] or project_id is not None and project_id != prior['projectId']:
             raise ValueError('immutable runtime binding changed')
+        # Another process can rebind while this client retains its original root.
+        projects = registry(home_path(prior['home']))['projects']
+        identity = next((key for key, path in projects.items() if path == str(root)), None)
+        if identity != prior['projectId']:
+            raise ValueError('immutable runtime binding changed')
         return dict(prior)
     if prior:
         if home is not None and str(home_path(home)) != prior['home']:

@@ -239,8 +239,7 @@ def role_path(role: str) -> Path:
 
 def read_request(args: argparse.Namespace) -> bytes:
     if args.request_file is not None:
-        source = args.request_file.resolve(strict=False)
-        return safe_read_bytes(source, MAX_REQUEST_BYTES)
+        return safe_read_bytes(args.request_file, MAX_REQUEST_BYTES)
     if args.message is not None:
         content = args.message.encode()
     elif not sys.stdin.isatty():
@@ -271,4 +270,3 @@ def dispatch_reservation_file(
 
 def state_file(project_root: Path, agent_id: str, run_id: str) -> Path:
     return run_directory(project_root, agent_id, run_id) / "state.json"
-

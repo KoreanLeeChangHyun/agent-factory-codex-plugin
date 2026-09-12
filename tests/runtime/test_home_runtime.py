@@ -60,6 +60,34 @@ class HomeRuntimeTests(HomeRuntimeFixture, unittest.TestCase):
             self.assertEqual(paths.resolve(self.root), binding)
             self.assertEqual(paths.arguments(self.root)[1], binding['home'])
 
+    def test_external_rebind_rejects_cached_client_with_existing_old_root(self):
+        binding = paths.resolve(self.root, create=True)
+        spec = importlib.util.spec_from_file_location('independent_paths', RUNTIME / 'paths.py')
+        other = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(other)
+        destination = self.base / 'destination'
+        destination.mkdir()
+        moved = other.rebind(self.home, binding['projectId'], self.root, destination)
+        self.assertTrue(self.root.is_dir())
+        self.assertEqual(moved['projectId'], binding['projectId'])
+        for operation in (lambda: paths.resolve(self.root),
+                          lambda: paths.bind(binding),
+                          lambda: paths.resolve(self.root, create=True)):
+            with self.subTest(operation=operation):
+                with self.assertRaises(ValueError):
+                    operation()
+        self.assertEqual(paths._BINDINGS[str(self.root)], binding)
+
+    def test_same_binding_cache_survives_unrelated_registry_update(self):
+        binding = paths.resolve(self.root, create=True)
+        cached = paths._BINDINGS[str(self.root)]
+        other_root = self.base / 'other-code'
+        other_root.mkdir()
+        paths.resolve(other_root, create=True)
+        self.assertEqual(paths.resolve(self.root), binding)
+        self.assertEqual(paths.bind(binding), binding)
+        self.assertIs(paths._BINDINGS[str(self.root)], cached)
+
 
     def test_copy_archive_overlay_receipt_validation_and_no_cutover_without_gate(self):
         source, state = self.legacy()

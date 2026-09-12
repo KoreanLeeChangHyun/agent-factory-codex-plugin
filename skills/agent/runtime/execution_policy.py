@@ -10,6 +10,7 @@ import stat
 import subprocess
 
 import permissions
+from runtime_storage import AGENT_ID
 
 SANDBOXES = ("read-only", "workspace-write", "danger-full-access")
 APPROVALS = ("never", "on-request", "untrusted", "on-failure")
@@ -181,7 +182,7 @@ def _managed_parent(snapshot, project_root):
     import paths
     paths.bind(binding)
     agent_id, run_id = state.get("agentId"), state.get("runId")
-    if any(not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", value)
+    if any(not isinstance(value, str) or not AGENT_ID.fullmatch(value)
            for value in (agent_id, run_id)):
         raise PolicyError("policy_parent_mismatch", "managed parent has invalid agent/run identity")
     agent_root = Path(binding["agentsRoot"]) / agent_id

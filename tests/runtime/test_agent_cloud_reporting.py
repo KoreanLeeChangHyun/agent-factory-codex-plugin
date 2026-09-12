@@ -136,6 +136,22 @@ class ReportingTests(unittest.TestCase):
             k: self.config[k] for k in cloud.TARGET_KEYS}, 'token': token}))
         path.chmod(0o600)
 
+    def test_public_projection_reads_reporting_without_delivery(self):
+        # Hosts also load exec without registering it in sys.modules.
+        spec = importlib.util.spec_from_file_location('unregistered_reporting_exec', SCRIPT)
+        host = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(host)
+        rt.atomic_write_json(Path(self.state['statePath']).parent / 'reporting-error.json',
+                             {'error': None})
+        for runtime in (rt, host):
+            with self.subTest(runtime=runtime.__name__):
+                public = runtime.public_state(self.state)
+                self.assertEqual(public['reporting']['pending'], 1)
+                self.assertEqual(public['reporting']['binding']['run_id'], 'run-one')
+                self.assertEqual(public['status'], 'running')
+                self.assertNotIn('cloudReporting', public)
+        self.assertEqual(self.server.requests, [])
+
     def test_lost_ack_rotation_replays_identical_command_without_execution(self):
         self.server.lose_ack = True
         first = cloud.deliver(rt, self.root, self.state)

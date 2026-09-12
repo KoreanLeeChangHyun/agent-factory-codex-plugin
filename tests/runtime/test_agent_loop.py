@@ -191,6 +191,30 @@ class AgentLoopContractTests(unittest.TestCase):
         })
         return self.reconcile(started)
 
+    def test_start_rejects_unsafe_request_paths_before_dispatch(self) -> None:
+        final_link = self.root / "linked.md"
+        final_link.symlink_to(self.request)
+        parent_link = self.root / "linked-parent"
+        parent_link.symlink_to(self.root, target_is_directory=True)
+        source = self.root / "source"
+        source.mkdir()
+        for path in (final_link, parent_link / "request.md",
+                     source / ".." / "request.md"):
+            with self.subTest(path=path):
+                with self.assertRaises(self.agent_exec.ContractError) as raised:
+                    self.start(["--request-file", str(path)])
+                self.assertEqual(raised.exception.code, "capability_binding_invalid")
+                self.assertEqual(self.runtime.dispatches, [])
+
+    def test_start_preserves_valid_absolute_and_relative_request_bytes(self) -> None:
+        for path in (self.request, Path("request.md")):
+            with self.subTest(path=path), mock.patch("pathlib.Path.cwd", return_value=self.root):
+                started = self.start(["--request-file", str(path)])
+                state = self.agent_exec.safe_read_json(Path(started["statePath"]))
+                self.assertEqual(Path(state["originalRequestPath"]).read_bytes(), b"bounded work\n")
+                self.assertEqual(state["originalRequestHash"], hashlib.sha256(b"bounded work\n").hexdigest())
+                self.assertEqual(self.runtime.dispatches[-1]["role"], "work")
+
     def test_legacy_execution_upgrade_binds_current_authority_without_rewriting_child(self) -> None:
         started = self.start()
         path = Path(started["statePath"])

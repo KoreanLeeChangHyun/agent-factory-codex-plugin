@@ -353,7 +353,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     agent_exec.validate_id(args.verification_agent, agent_exec.AGENT_ID, "verification_agent")
     if args.work_agent == args.verification_agent:
         raise agent_exec.ContractError("agent_identity_conflict", "Work and Verification require different Agent sessions")
-    request = agent_exec.safe_read_bytes(args.request_file.resolve(strict=False), agent_exec.MAX_REQUEST_BYTES)
+    request = agent_exec.safe_read_bytes(args.request_file, agent_exec.MAX_REQUEST_BYTES)
     if not request.decode("utf-8").strip():
         raise agent_exec.ContractError("request_invalid", "request must not be empty")
     loop_id = f"loop-{uuid.uuid4().hex[:16]}"
