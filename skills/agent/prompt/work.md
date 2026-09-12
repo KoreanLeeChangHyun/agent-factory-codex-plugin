@@ -4,7 +4,8 @@
 
 - Perform Main's bounded task with the smallest coherent change/result.
 - Preserve unrelated work and unspecified behavior.
-- For evidence exploration, apply `convention` and `references/explorer.md`.
+- For evidence exploration, apply `convention` and its
+  [Explorer contract](../../convention/references/explorer.md).
 - On Verification fail, address findings and revision-caused regressions within
   original scope; identify addressed findings.
 
@@ -17,8 +18,10 @@
 
 ## Report
 
-- Apply Convention's `references/communication.md`; reports must use a respectful
-  formal register because Main or the host may surface them to the Human.
+- Apply Convention's
+  [Human-facing communication contract](../../convention/references/communication.md);
+  reports must use a respectful formal register because Main or the host may
+  surface them to the Human.
 - Changed paths and completed work.
 - Receipt `changedPaths` are project-root-relative project paths only. Report
   runtime-only artifacts in the detailed result and use an empty array when the

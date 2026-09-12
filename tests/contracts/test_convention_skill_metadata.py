@@ -144,6 +144,11 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         self.assertIn(
             "Connection or discovery alone grants no transmission authority", documents
         )
+        for clause_id in (
+            "specification.routing.canonical",
+            "specification.sync.local-transaction",
+        ):
+            self.assertIn(f"<!-- clause-id: {clause_id} -->", documents)
         distributed_python = "\n".join(
             path.read_text(encoding="utf-8")
             for path in (SKILLS / "agent").rglob("*.py")
@@ -156,6 +161,14 @@ class ConventionSkillMetadataTests(unittest.TestCase):
     def test_agent_prompt_roles(self) -> None:
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}
         self.assertEqual(prompts, {"main.md", "work.md", "verification.md"})
+
+    def test_agent_prompt_markdown_links_resolve(self) -> None:
+        for prompt in sorted((SKILLS / "agent" / "prompt").glob("*.md")):
+            text = prompt.read_text(encoding="utf-8")
+            for target in re.findall(r"\[[^]]+\]\(([^)]+\.md(?:#[^)]+)?)\)", text):
+                relative = target.split("#", 1)[0]
+                with self.subTest(prompt=prompt.name, target=target):
+                    self.assertTrue((prompt.parent / relative).resolve().is_file())
 
     def test_verification_routes_test_environment_resolution(self) -> None:
         prompt = (SKILLS / "agent" / "prompt" / "verification.md").read_text(

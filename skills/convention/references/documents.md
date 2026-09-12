@@ -32,7 +32,8 @@
 
 ## Routing
 
-For Client Documents and generated output outside this Provider-specific placement:
+For Client Original and Processed Documents, generated output outside this
+Provider-specific placement, and optional Specification exports:
 
 1. **Explicit destination:** follow the Human-supplied destination and format.
 2. **Selected connected destination:** only when a Document capability is available,
@@ -44,6 +45,13 @@ For Client Documents and generated output outside this Provider-specific placeme
 
 - The local route is complete standalone behavior, not an error fallback. A
   filename category never changes Document type or acceptance authority.
+<!-- clause-id: specification.routing.canonical -->
+- Client Specification projections are an exception to this general routing
+  order: their canonical paths and formats are fixed by
+  [Client Specification projections](#client-specification-projections). A
+  Human-supplied alternative destination or format creates an additional export
+  or a Processed Document; it does not replace either canonical projection. If the
+  requested classification is unclear, resolve it with the Human before writing.
 - Report failures after a connected destination was selected; do not silently
   choose another destination or create a second copy. This contract adds no
   automatic upload, migration or local Document service.
@@ -74,7 +82,9 @@ For Client Documents and generated output outside this Provider-specific placeme
 - A Client Specification has two synchronized representations with one identity
   and version: an English AI-facing Project Skill at
   `.codex/skills/<category>-<name>/` and a Human-facing HTML document in the Human's
-  language at `docs/<category>-<name>.html`.
+  language at `docs/<category>-<name>.html`. These canonical locations override
+  the general Document routing order; neither representation may be redirected,
+  omitted or replaced by a single alternative file.
 
 <!-- clause-id: specification.human.presentation -->
 - The Human representation may add highlighting, diagrams and layout that improve
@@ -117,19 +127,34 @@ representation remains self-identifying without an MCP connection.
 ## Synchronization
 
 <!-- clause-id: specification.sync.ownership -->
-- The selected MCP server provides the synchronization operation. The Provider
-  plugin does not implement another synchronization engine or require MCP to own a
-  language model, language-neutral semantic model or third canonical Specification.
+- Synchronization follows the selected destination capability. In standalone mode,
+  the Agent uses local file tools and the transaction below. When the Human selects
+  an available MCP Document capability, that MCP server provides file access,
+  version checks and transaction handling. The Provider plugin implements no
+  separate synchronization service and requires neither an MCP-owned language
+  model, language-neutral semantic model nor third canonical Specification.
 
 <!-- clause-id: specification.sync.agent-language -->
 - On a Human request, the Agent maps affected `clause-id` values, writes the English
   Skill and Human-language HTML in the Client, and checks semantic correspondence.
-  MCP provides file access, version checks and all-or-none transaction handling.
+  Local tools provide standalone access; a selected MCP capability provides
+  connected access.
+
+<!-- clause-id: specification.sync.local-transaction -->
+- In standalone mode, read and revalidate both current projections and their shared
+  `sync-base-revision`; stage both complete replacements at temporary sibling paths
+  on their target filesystems; validate metadata, `clause-id` coverage, links and
+  semantic correspondence; then preserve recoverable originals and replace both
+  projections. If either replacement fails, restore the preserved originals. If an
+  interruption prevents rollback, retain the unchanged `sync-base-revision`, mark
+  the pair as a partial failure or pending repair, and do not report synchronization
+  complete. This is the standalone transaction contract and requires no MCP.
 
 <!-- clause-id: specification.sync.atomic -->
 - Stage both representations and commit a new shared semantic revision only after
-  both updates succeed. A one-sided write is a partial failure or pending repair,
-  never completed synchronization.
+  both updates succeed. Advance `sync-base-revision` in both projections only as
+  part of those staged replacements. A one-sided write is a partial failure or
+  pending repair, never completed synchronization.
 
 <!-- clause-id: specification.sync.ambiguity -->
 - Translation equivalence is an Agent judgment. If wording is ambiguous or the
@@ -149,8 +174,10 @@ representation remains self-identifying without an MCP connection.
   they alter or conceal semantic content.
 
 <!-- clause-id: specification.conflict.interview -->
-- MCP returns structured conflict facts; the Agent resolves them through Interview
-  in the current Human conversation. Do not overwrite either representation or
+- In standalone mode, the Agent derives conflict facts from both projections and
+  their embedded metadata. A selected MCP capability returns its structured
+  conflict facts. In either mode, the Agent resolves conflicts through Interview in
+  the current Human conversation. Do not overwrite either representation or
   advance `sync-base-revision` before the Human decides.
 
 <!-- clause-id: specification.conflict.large -->

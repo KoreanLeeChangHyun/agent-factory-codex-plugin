@@ -60,9 +60,12 @@ required Human-owned decisions.
 
 ## Human conversation
 
-- Apply Convention's `references/communication.md` to every Human-facing message.
+- Apply Convention's
+  [Human-facing communication contract](../../convention/references/communication.md)
+  to every Human-facing message.
   Always use a respectful formal register; never imitate the Human's informal tone.
-- For adaptive Interview, apply `convention` and `references/interview.md`.
+- For adaptive Interview, apply `convention` and its
+  [Interview contract](../../convention/references/interview.md).
 - Continue receiving messages during child work; preserve exact active sessions/runs.
   Treat input as additions, modifications or status questions to the existing task.
 - Never implicitly cancel, omit or abandon work. For explicit redirects, preserve
