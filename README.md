@@ -1,237 +1,96 @@
 # Agent Factory for Codex
 
+[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > [!WARNING]
 > This plugin is under active development. Its skills, artifact formats, and
 > workflows may change without notice.
 
-Agent Factory is a Codex plugin for Human-directed software delivery. Main is
-the Human-facing Interview, orchestration, and integration layer; it routes
-bounded tasks, including research and implementation, to Work and independent
-checking to Verification unless the Human skips it. The plugin supports evidence
-exploration and applies shared project conventions. It is complete in standalone
-mode and does not require an Agent Factory MCP package, server, account, tenant,
-connection, or authenticated resource.
+Agent Factory is a Codex plugin for Human-directed software delivery. It provides
+a bounded agent workflow, evidence exploration, and shared project conventions.
 
 ## Product modes
 
-| Mode | Contract |
-| --- | --- |
-| Plugin only | Complete local Main/Work/Verification workflow, inspection, generated documents, results, receipts, sessions, loops and recovery. This is a normal supported mode. |
-| MCP only | The independently installed MCP application advertises and owns its Document, Gather, Tool and Workspace capabilities without requiring this plugin or its Skills/runtime. |
-| Plugin plus MCP | An explicitly selected, connected capability may extend the local workflow under the required Human authority. Local graph authority remains with the plugin, and no local artifact is transmitted implicitly. |
+- **Plugin only:** A complete local workflow. It requires no Agent Factory MCP
+  package, server, account, tenant, connection, or authenticated resource.
+- **MCP only:** An independently installed MCP application owns its Document,
+  Gather, Tool, and Workspace capabilities without requiring this plugin.
+- **Plugin plus MCP:** Explicitly selected and authorized connected capabilities
+  can extend the local workflow. They do not take over graph authority or
+  implicitly transmit local artifacts.
 
-## Included skills
+## Included Skills and agent model
 
-The plugin exposes exactly two public skills:
+The plugin exposes exactly two public Skills:
 
-- `agent`: Run the exact `Main -> Work -> Verification` graph through managed
-  sessions. Main orchestrates, Work performs the bounded task, and Verification
-  independently returns pass or fail unless the Human skips it.
-- `convention`: Own and apply the Agent Factory core model plus directory,
-  development, library, theme, technical documentation, comments, Document-type,
-  authority, and cross-cutting integration conventions.
+- `agent` runs the `Main -> Work -> Verification` graph through managed sessions.
+- `convention` owns the core model and shared project conventions.
 
-Evidence exploration is a capability Work may use while performing its bounded
-task, and Interview remains Main's adaptive Human-facing capability. Neither is
-a separate Agent role; the only roles are Main, Work, and Verification.
+Main communicates with the Human, delegates bounded tasks, and integrates results.
+Work performs the task. Verification independently checks the completed Work and
+returns pass or fail unless the Human explicitly skips it. Evidence exploration is
+a Work capability, and Interview is a Main capability; neither adds a Skill or role.
 
-Main is the same graph node when used directly in Codex CLI, hosted through
-`codex exec`, or surfaced by a VS Code extension. Codex CLI is the default
-entry interface; these hosts do not add Agent roles or graph nodes. Exec-hosted
-roles receive their Agent Factory role instructions as a tagged block in the
-stdin request rather than as a distinct platform system-channel message.
-While delegated work runs, Main continues the Human conversation, preserves
-the active session/run state, and connects new input to the existing task; a
-redirect is explicit and does not erase prior execution or result state.
+Codex CLI is the default interface. The same graph can also be hosted through
+`codex exec` or surfaced by a VS Code extension.
 
-This plugin repository stores its distributed Skills below `skills/` and does
-not mirror them into a repository-local `.codex/`. A separate project that uses
-the plugin stores its own Project Skills below `.codex/skills/` in that project.
-This Provider checkout has no active Original Document directory. Provider
-Processed Documents belong in the Git-ignored `docs/` directory, while Provider
-Specifications exist only in maintained `skills/` packages.
+## Installation
 
-Gathered evidence remains Original Documents, and Work's exploration results
-remain Original or Processed Documents. Local files and host-provided tools can
-support bounded inspection and gathering; a selected MCP integration may add
-external collection and Document operations. The conceptual ordering does not imply
-completeness, maturity, a required transition, or automatic promotion;
-Original is source-faithful evidence and is authority-neutral: its type alone
-does not decide authority or trust. Processed remains non-authoritative working
-knowledge. No mandatory
-Original-to-Processed-to-Specification pipeline exists. Operational Agent sessions
-and temporary exploration workspaces remain operational, while Original,
-Processed, and Human-facing Specifications occupy distinct logical roles.
-AI-facing Specifications remain in Skills. Optional integrations do not expose
-credentials or take over external provider authority. Agent retains capability
-binding, execution authority, and receipts.
-Refined is not a fourth active
-Document type.
-
-Each of the two plugin Skills keeps its entry contract in `SKILL.md`, UI metadata in
-`agents/openai.yaml`, and detailed capability guidance in `references/`.
-New domain implementations, schemas and runtime tests belong to the cloud application. Only local exec/loop and minimum support remain runtime dependencies of the plugin; local domain executables, catalog/sync schemas and provider dependencies are retired.
-
-## Standalone execution and optional integrations
-
-Local `exec.py` and `loop.py` need no MCP integration. Local files and
-host-provided tools support bounded inspection and gathering. An absent MCP
-connection is neither an error nor a missing prerequisite; it simply means that
-optional connected capabilities are not selected. Do not create local domain
-configuration or a local MCP/provider service as a substitute.
-
-The plugin retains two Skills, the three role prompts, local `exec.py`/`loop.py`
-and minimum runtime dependencies. The extension discovers runtime locations through the machine contract. Local sessions, process/run facts, graph transitions,
-receipts, reporting outbox and recovery remain under
-`~/.agent-factory/projects/<project-id>/agents/<agent-id>/`. Cloud reports never launch, resume, cancel
-or finish local runs; process exit and stale reporting do not imply semantic
-completion or graph END.
-
-For a generated durable document, an explicit Human destination wins. Otherwise,
-use a connected Document capability only when it is available, explicitly selected
-and authorized for that write. In every other case, write to `<project-root>/docs/`
-using Convention's `[category]-[name]` basename rules. Merely discovering a
-connector never authorizes upload or transmission.
-
-Discover Document, Gather, Tool, Workspace and shared-reporting operations from
-the selected MCP application's advertised authenticated tools and resources.
-Those live contracts own method names, resource identifiers, request schemas and
-delivery behavior.
-
-Git maintains Agent instructions under `skills/<id>/`. Local documents remain
-fully usable without publication. When connected publication is explicitly
-selected and authorized, its behavior follows the MCP application's current
-authenticated contract while preserving actual provenance.
-
-New catalog/search and document/sync configuration are cloud-owned. Retained
-local `db.sqlite`, old Document roots, `document/sync.json` and gathered collections
-are migration inputs until import is independently verified. Preserve source data until inventoried, independently
-backed up and verified imported. Code retirement never authorizes deletion of
-Human data, source, credentials or backups. Actual tenant/account IDs and
-credential authority are never silently selected. Contract/source availability
-does not establish registration, configured accounts or deployment.
-
-Managed Agent runs accept a strict binding file on `exec.py submit`/`send`.
-The graph launcher accepts separate role-scoped binding files on `loop.py
-start`:
-
-```json
-{
-  "schemaVersion": "0.1.0",
-  "bindings": [{
-    "capabilityId": "playwright.browser.execute",
-    "authority": {"kind": "project-cli", "reference": "package-lock.json#playwright"},
-    "invocationRoute": "node_modules/.bin/playwright",
-    "exactTarget": "https://example.invalid/health",
-    "allowedEffects": ["navigate"],
-    "allowedScopes": ["network:https://example.invalid"],
-    "approvalReference": "human-request-1"
-  }]
-}
-```
-
-Pass it with `exec.py --capability-binding-file <path>`, or use
-`loop.py start --work-capability-binding-file <path>` and/or
-`--verification-capability-binding-file <path>`. A loop never forwards one
-role's binding to the other. The runtime validates and
-copies the canonical document into the managed run, binds its hash into the
-dispatch tuple, and requires one exact `capabilityOutcomes` receipt entry per
-binding. Binding and receipt fields contain no credentials or tokens.
-
-## Local installation
-
-Install the GitHub-backed marketplace and the plugin with Codex CLI:
+Add the GitHub-backed marketplace and install the plugin:
 
 ```bash
 codex plugin marketplace add KoreanLeeChangHyun/agent-factory-codex-plugin --ref main
 codex plugin add agent-factory@agent-factory
 ```
 
-To pick up a published update:
+To install a published update:
 
 ```bash
 codex plugin marketplace upgrade agent-factory
 codex plugin add agent-factory@agent-factory
 ```
 
-The plugin manifest is located at `.codex-plugin/plugin.json`, and reusable
-workflows are under `skills/`.
+Start a new Codex thread after installation or update so the Skills and tools are
+loaded. The plugin manifest is `.codex-plugin/plugin.json`; the two distributed
+Skills are under `skills/`. They are not mirrored into a repository-local `.codex/`.
 
-After installing or updating the plugin, start a new Codex thread so newly
-loaded skills and tools are available.
+## Compatibility
 
-Convention retains `assets/AGENTS.md` as a copy-once project instruction template.
-Use existing file tools only for an authorized absent target; preserve any
-existing project `AGENTS.md`. The bootstrap manager and local domain scripts are
-retired. Project-local Specification authoring needs no connected template service;
-when a connected template capability is explicitly selected, preserve all template
-bytes and licenses.
+- **Operating system:** Managed execution supports Linux. WSL must satisfy the
+  Linux checks; macOS and native Windows are not supported.
+- **Python:** Python 3.10 is the source-level minimum. Release verification covers
+  the configured Python 3.10 and 3.12 baselines.
+- **Codex:** No repository-wide CLI version is assumed. Runtime preflight and
+  installed-capability discovery determine readiness for the selected executable.
+- **Containment:** User systemd with cgroup v2 is preferred. The private
+  process-group fallback provides weaker descendant containment.
 
-## Workspace
+These are compatibility boundaries, not proof that a particular host, account,
+model, tier, or sandbox is ready.
 
-When MCP integration is selected, the Workspace domain and its implementation
-belong to that application. Resolve it through the application's advertised
-authenticated resources. Plugin-only operation needs no Workspace, and the plugin
-and consumer projects receive no Workspace implementation or launcher.
+## Detailed documentation
 
-## Development
+Durable contracts remain with their owning Skill and references:
 
-### Runtime compatibility
-
-| Component | Contract |
-| --- | --- |
-| Operating system | Managed execution supports Linux. macOS, native Windows and other hosts are rejected; WSL must satisfy the Linux checks. |
-| Python | Python 3.10 is the source-level minimum. Release verification covers the configured 3.10 and 3.12 baselines; other versions are not claimed by that evidence. |
-| Codex | No repository-wide CLI version is assumed. `exec.py doctor`, execution preflight and installed capability discovery decide readiness for the selected executable. |
-| Containment | User systemd with cgroup v2 is preferred. A verified private process-group fallback has weaker descendant containment. |
-| Split permissions | Linux permission profiles that require split filesystem access need a usable bubblewrap backend and fail closed when unavailable. |
-
-The table states compatibility boundaries, not proof that an individual host,
-account, model, tier or sandbox is ready.
-
-### Verification and release
-
-Validate the plugin structure with the bundled Plugin Creator validator:
-
-```bash
-python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/plugin-creator/scripts/validate_plugin.py" .
-```
-
-Run no test, smoke, lint, typecheck, build, or other verification command unless
-the Human explicitly requests testing or verification. Main preserves that
-authorization and dispatches a separate managed Verification Agent. When the
-Human supplies a command, Verification runs it unchanged; otherwise it selects
-only the smallest bounded command justified by repository evidence. Main and
-Work never execute the check. A general request to fix or complete work is not
-test authority. Without authorization, report that tests were not run.
-
-For the focused release-metadata contract, run:
-
-```bash
-PLUGIN_TEST_PYTHON=/absolute/path/to/project-environment/bin/python
-"${PLUGIN_TEST_PYTHON}" -m pytest tests/contracts/test_plugin_distribution_metadata.py
-```
-
-`PLUGIN_TEST_PYTHON` must identify the interpreter from the established test
-environment; do not assume `/usr/bin/python3` contains the repository's test
-dependencies. For an existing checkout, inspect its environment and tooling first.
-Do not install or modify dependencies merely to recover from a missing runner unless
-that environment change is explicitly authorized.
-
-Human-authorized repository verification is also available through the manually
-dispatched `Human-authorized verification` GitHub Actions workflow. Its `contracts`
-scope checks distribution metadata and isolated installation; `full` additionally
-runs the complete suite on Python 3.10 and 3.12. Dispatch defaults to the narrower
-`contracts` scope. The workflow never runs on push or pull request by itself.
-
-The repo marketplace installs from `main`. Changes on development branches are not
-published merely because their manifest version changed. Follow the release-readiness
-procedure in
-[`skills/convention/references/development.md`](skills/convention/references/development.md#plugin-release-readiness),
-including explicit verification and publication authority, cachebuster refresh, and
-confirmation that the verified commit reached remote `main`.
+- [Agent Skill](skills/agent/SKILL.md): graph roles, delegation, and execution.
+- [Convention Skill](skills/convention/SKILL.md): shared conventions and ownership.
+- [Core model](skills/convention/references/agent-factory-core.md): roles,
+  capabilities, authority, and product boundaries.
+- [Runtime contract](skills/agent/references/home-runtime.md): managed sessions,
+  paths, receipts, recovery, containment, and migration.
+- [Directory structure](skills/convention/references/directory-structure.md):
+  source, installation, runtime, cloud, and legacy layout.
+- [Documents](skills/convention/references/documents.md): document types, routing,
+  formats, projections, and synchronization.
+- [Development](skills/convention/references/development.md): changes, Git
+  publication, technical documentation, and release readiness.
+- [Testing](skills/convention/references/testing.md): test organization and
+  verification boundaries.
+- [Native Fast and Goal](skills/agent/references/native-fast-goal.md) and
+  [project-specialized Work](skills/agent/references/project-specialist.md):
+  optional execution guidance and specialization design.
 
 ## Status
 
@@ -241,42 +100,3 @@ not guaranteed yet.
 ## License
 
 MIT License. See [LICENSE](LICENSE).
-
-When preparing a new isolated test environment, install its dependencies with
-`python -m pip install -r requirements.txt` from inside that environment.
-
-Tests are grouped by purpose: `tests/contracts/` for package and reference
-contracts, `tests/runtime/` for runtime behavior, and `tests/integration/` for
-installation and cross-component scenarios. Keep test filenames as
-`test_<name>.py`; shared helpers belong in `tests/support/` and standalone
-performance tools in `tests/benchmarks/`. Run the relevant files with pytest
-from the repository root; `pytest.ini` provides the shared import paths.
-
-```bash
-"${PLUGIN_TEST_PYTHON}" -m pytest \
-  tests/contracts/test_convention_skill_metadata.py \
-  tests/contracts/test_plugin_distribution_metadata.py \
-  tests/integration/test_distribution.py
-```
-
-These checks cover Skill and plugin metadata, marketplace release routing, manually
-authorized workflow policy, routed references, and isolated installation.
-
-When a full suite is requested, run it in parallel with bounded worker count:
-
-```bash
-"${PLUGIN_TEST_PYTHON}" -m pytest tests -n auto --maxprocesses=4 --dist=worksteal
-```
-
-Small focused runs stay serial to avoid worker startup overhead. Use `-n 0`
-for serial comparison or diagnosis. Each worker gets a temporary runtime home;
-fixtures own their temporary files and dynamically allocated ports. Installed
-Codex permission tests remain opt-in with `AF_VERIFY_LOCAL_CODEX=1`.
-
-Native local execution guidance lives in
-[`skills/agent/references/native-fast-goal.md`](skills/agent/references/native-fast-goal.md).
-
-Use `skills/agent/scripts/exec.py init --project-root /absolute/project` for explicit setup. `AGENT_FACTORY_HOME` selects an alternate private home without changing Codex home. Installation limits and the gated physical-migration procedure are in [`skills/agent/references/home-runtime.md`](skills/agent/references/home-runtime.md). No physical cutover is implied by the source change.
-
-The project-specialized Work direction and its unresolved design choices live in
-[`skills/agent/references/project-specialist.md`](skills/agent/references/project-specialist.md).
