@@ -51,7 +51,7 @@ record_path.write_text(json.dumps(records))
 receipt = {key:value['const'] for key,value in props.items() if 'const' in value}
 if role == 'work':
     prior_failure = any(r['role']=='verification' for r in records[:-1])
-    receipt.update(changedPaths=[],addressedFindingIds=['fixture-fail'] if prior_failure else [],tests={'run':False,'reason':'work-agent-prohibited'})
+    receipt.update(outcome=props['outcome'].get('const','completed'),changedPaths=[],addressedFindingIds=['fixture-fail'] if prior_failure else [],tests={'run':False,'reason':'work-agent-prohibited'})
 else:
     first = len([r for r in records if r['role']=='verification']) == 1
     receipt.update(decision='fail' if first else 'pass',findings=[{'id':'fixture-fail','path':'file.py','location':'1','problem':'fixture','evidence':'fixture','correction':'fixture'}] if first else [])
@@ -146,5 +146,6 @@ class MigratedGraphTests(HomeRuntimeFixture, unittest.TestCase):
         self.assertEqual(state['status'],'completed')
         self.assertEqual(len(json.loads(self.history.read_text())),1)
         operational = json.loads(Path(state['statePath']).read_text())
+        self.assertNotIn('cloudReporting', operational)
         self.assertEqual(operational['execution']['executionPolicy']['sandboxPolicy']['type'], 'danger-full-access')
         migration.copied_inventory(plan)

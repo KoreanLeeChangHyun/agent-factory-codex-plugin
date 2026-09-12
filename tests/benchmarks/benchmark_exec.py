@@ -102,7 +102,7 @@ class ExecProvider(MockResponsesProvider):
                 return self.fail('installed host did not advertise exec_command', n, str(result))
             receipt = {'schemaVersion': '0.1.0', 'kind': 'work-receipt',
                        'runId': state['runId'], 'requestHash': state['receiptRequestHash'],
-                       'outcome': 'implemented', 'changedPaths': [], 'addressedFindingIds': [],
+                       'outcome': 'completed', 'changedPaths': [], 'addressedFindingIds': [],
                        'tests': {'run': False, 'reason': 'work-agent-prohibited'}}
             script = ('from pathlib import Path; '
                       f'Path({str(result)!r}).write_text("Owned fake-model performance fixture completed.\\n"); '

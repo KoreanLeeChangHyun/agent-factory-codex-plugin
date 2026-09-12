@@ -210,7 +210,7 @@ class ReportingTests(unittest.TestCase):
     def test_validated_terminal_receipt_produces_explicit_results(self):
         result = Path(self.state['statePath']).parent / 'result.md'
         result.write_text('private result body is not transmitted')
-        receipt = {'runId': 'run-one', 'outcome': 'implemented'}
+        receipt = {'runId': 'run-one', 'outcome': 'completed'}
         self.state.update(status='completed', resultPath=str(result), reportingSemanticResult={
             'status': 'completed', 'result_sha256': cloud.hashlib.sha256(result.read_bytes()).hexdigest(),
             'receipt_sha256': cloud.digest(receipt)})
@@ -280,7 +280,7 @@ class ReportingTests(unittest.TestCase):
         if role == 'work':
             rt.atomic_write_json(Path(state['receiptPath']), {
                 'schemaVersion': '0.1.0', 'kind': 'work-receipt', 'runId': state['runId'],
-                'requestHash': state['requestHash'], 'outcome': 'implemented',
+                'requestHash': state['requestHash'], 'outcome': 'completed',
                 'changedPaths': ['example.py'], 'addressedFindingIds': [],
                 'tests': {'run': False, 'reason': 'work-agent-prohibited'}})
         terminal = {'status': 'completed', 'resultPath': str(result)}

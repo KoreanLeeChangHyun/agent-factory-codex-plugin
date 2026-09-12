@@ -1,5 +1,6 @@
 feedback/
 uploads
+/docs/
 __pycache__/
 *.py[cod]
 # Legacy Work Unit data; remove manually after confirming it is no longer needed.

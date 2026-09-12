@@ -20,6 +20,7 @@ CHANGED_PATH_PATTERN = r"^(?!/)(?!.*(?:^|/)\.\.(?:/|$))[^\r\n]+$"
 MAX_RECEIPT_BYTES = 1024 * 1024
 MAX_CAPABILITY_BINDING_BYTES = 256 * 1024
 CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
+WORK_OUTCOMES = {"completed", "implemented"}
 
 def receipt_schema_document(
     *, role: str, run_id: str, request_hash: str, verified_work_run_id: str | None,
@@ -65,7 +66,13 @@ def receipt_schema_document(
             "kind": {"const": "work-receipt"},
             "runId": {"const": run_id},
             "requestHash": {"const": request_hash},
-            "outcome": {"const": "implemented"},
+            "outcome": {
+                "enum": sorted(WORK_OUTCOMES),
+                "description": (
+                    "Use completed for new Work receipts, including read-only work; "
+                    "implemented is accepted for version 0.1.0 compatibility."
+                ),
+            },
             "changedPaths": {
                 "type": "array",
                 "description": (
@@ -249,7 +256,7 @@ def validate_receipt(
             or receipt.get("kind") != "work-receipt"
             or receipt.get("runId") != state.get("runId")
             or receipt.get("requestHash") != expected_hash
-            or receipt.get("outcome") != "implemented"
+            or receipt.get("outcome") not in WORK_OUTCOMES
         ):
             raise ContractError("receipt_binding_invalid", "work receipt binding is invalid")
         work_changed_paths = _string_list(receipt.get("changedPaths"), "changedPaths")
@@ -337,6 +344,5 @@ def validate_receipt(
                     "changedPaths must contain only project-root-relative paths",
                 )
     return validated_receipt
-
 
 

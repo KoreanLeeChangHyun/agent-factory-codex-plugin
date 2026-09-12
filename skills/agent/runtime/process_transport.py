@@ -93,6 +93,7 @@ boundary.
 In a Work receipt, `changedPaths` contains only paths changed inside the project,
 relative to the project root. Record run-directory and other runtime-only artifacts
 in `result.md`; if the project was untouched, use an empty `changedPaths` array.
+Use the neutral `outcome: completed` for new Work receipts, including read-only work.
 """
     binding_obligation = ""
     if capability_binding_path is not None:

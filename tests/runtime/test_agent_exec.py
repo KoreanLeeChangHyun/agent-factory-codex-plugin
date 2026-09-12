@@ -612,6 +612,7 @@ class AgentExecTests(unittest.TestCase):
                 "submit", "--project-root", directory, "--agent", "main-agent",
                 "--role", "main", "--message", "do it",
                 "--human-approval-policy", "bypass",
+                "--codex", sys.executable,
             ])
             self.module.submit(initial, True)
             first = emit.call_args.args[0]
@@ -1268,7 +1269,7 @@ class AgentExecTests(unittest.TestCase):
                 "kind": "work-receipt",
                 "runId": state["runId"],
                 "requestHash": state["requestHash"],
-                "outcome": "implemented",
+                "outcome": "completed",
                 "changedPaths": ["skills/agent/SKILL.md"],
                 "addressedFindingIds": [],
                 "tests": {"run": False, "reason": "work-agent-prohibited"},
@@ -1282,6 +1283,22 @@ class AgentExecTests(unittest.TestCase):
                 ),
                 receipt,
             )
+            receipt["outcome"] = "implemented"
+            Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
+            self.assertEqual(
+                self.module.validate_receipt(
+                    Path(directory), state, agent_id="work-agent", run_id=state["runId"]
+                )["outcome"],
+                "implemented",
+            )
+            receipt["outcome"] = "changed"
+            Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaises(self.module.ContractError) as invalid_outcome:
+                self.module.validate_receipt(
+                    Path(directory), state, agent_id="work-agent", run_id=state["runId"]
+                )
+            self.assertEqual(invalid_outcome.exception.code, "receipt_binding_invalid")
+            receipt["outcome"] = "completed"
             receipt["tests"]["run"] = True
             Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
             with self.assertRaises(self.module.ContractError) as raised:
@@ -1297,6 +1314,7 @@ class AgentExecTests(unittest.TestCase):
             verified_work_run_id=None,
         )
         changed = schema["properties"]["changedPaths"]
+        self.assertEqual(schema["properties"]["outcome"]["enum"], ["completed", "implemented"])
         self.assertIn("Project-root-relative", changed["description"])
         self.assertIn("pattern", changed["items"])
         prompt = self.module.build_prompt(
@@ -1307,6 +1325,7 @@ class AgentExecTests(unittest.TestCase):
         )
         self.assertIn("relative to the project root", prompt)
         self.assertIn("empty `changedPaths` array", prompt)
+        self.assertIn("outcome: completed", prompt)
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1317,7 +1336,7 @@ class AgentExecTests(unittest.TestCase):
             receipt = {
                 "schemaVersion": "0.1.0", "kind": "work-receipt",
                 "runId": state["runId"], "requestHash": state["requestHash"],
-                "outcome": "implemented", "changedPaths": [],
+                "outcome": "completed", "changedPaths": [],
                 "addressedFindingIds": [],
                 "tests": {"run": False, "reason": "work-agent-prohibited"},
             }
@@ -1363,7 +1382,7 @@ class AgentExecTests(unittest.TestCase):
             }
             receipt = {
                 "schemaVersion": "0.1.0", "kind": "work-receipt", "runId": state["runId"],
-                "requestHash": state["requestHash"], "outcome": "implemented",
+                "requestHash": state["requestHash"], "outcome": "completed",
                 "changedPaths": [], "addressedFindingIds": [],
                 "tests": {"run": False, "reason": "work-agent-prohibited"},
                 "capabilityOutcomes": [outcome],

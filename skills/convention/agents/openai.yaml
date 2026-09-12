@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Convention"
   short_description: "Apply Agent Factory core and cross-cutting conventions."
-  default_prompt: "Use $convention to apply the relevant Agent Factory core, structure, development, library, design, technical documentation, or comment convention."
+  default_prompt: "Use $convention to apply the relevant Agent Factory core, structure, development, library, theme, technical documentation, or comment convention."

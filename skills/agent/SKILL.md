@@ -36,6 +36,10 @@ metadata:
 
 ## Execution and shared contracts
 
+- **Standalone:** Main, Work, Verification and local exec/loop are complete without
+  an MCP package, server, account, tenant, connection or authenticated resource.
+  Optional integrations require an available connection plus explicit selection
+  and applicable Human authority; discovery alone never transmits local artifacts.
 - **Git:** follow [Convention's publication contract](../convention/references/development.md#git-publication).
 - **Domains/storage:** read [core model](../convention/references/agent-factory-core.md)
   and [layout](../convention/references/directory-structure.md).

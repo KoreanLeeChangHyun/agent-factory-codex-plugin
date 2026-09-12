@@ -1,5 +1,9 @@
 # Local Agent Runtime
 
+The complete local runtime operates without an Agent Factory MCP package, server,
+account, tenant, connection or authenticated resource. Optional reporting and MCP
+capability bindings are inactive unless explicitly configured and authorized.
+
 ## Storage and identity
 
 - **Resolver:** `runtime/paths.py`; host default `~/.agent-factory` or explicit
@@ -145,7 +149,9 @@ to locate; this inventory does not prove its version or complete sandbox works.
 - Completed runs publish validated `receipt.json` beside `result.md`.
 - Work receipts identify the request, project-root-relative changed paths and
   addressed finding IDs for revisions. Runtime-only artifacts remain in the
-  detailed result; `changedPaths` is empty when the project was untouched.
+  detailed result; `changedPaths` is empty when the project was untouched. New
+  receipts use the neutral `outcome: completed`, including for read-only Work;
+  version 0.1.0 continues accepting legacy `implemented` receipts.
 - `recover-receipt` is an explicit, allowlisted recovery for a loop stopped on a
   deterministic Work receipt missing, format or changed-path-contract failure.
   Test-proof, core/capability-binding, and unsafe path failures are not recoverable.
@@ -185,8 +191,9 @@ to locate; this inventory does not prove its version or complete sandbox works.
 
 ### Authority and configuration
 
-- MCP Tool owns discovery/lifecycle; readiness grants no execution authority.
-  Agent binds authority/capabilities to requests/receipts. Preserve selected
+- For a selected MCP integration, MCP Tool owns discovery/lifecycle; readiness
+  grants no execution authority. Agent binds authority/capabilities to
+  requests/receipts. Preserve selected
   host/plugin/MCP/manifest authority; copy neither registry nor credentials.
 - Individual runs: `exec.py --capability-binding-file`.
 - Loops: separate `--work-capability-binding-file` and
@@ -226,7 +233,8 @@ to locate; this inventory does not prove its version or complete sandbox works.
   archive and independent backup outside home/source projects. Only Agent runtime
   records receive operational projections.
 - Documents/SQLite remain archived, never local domain backends. Human Specifications
-  and historical Documents belong to MCP or selected archival authority, not this plugin.
+  and historical Documents remain with their explicitly selected local, connected or
+  archival destination; the plugin runtime does not silently relocate them.
   Never add raw Documents, untracked runtime, secrets or credential caches to Git.
 - Refuse changed sources, unsafe traversal/links/special files, active/unverifiable
   boot-ID/start-ticks identities, populated containment, writer locks or conflicts.

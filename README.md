@@ -9,10 +9,18 @@
 Agent Factory is a Codex plugin for Human-directed software delivery. Main is
 the Human-facing Interview, orchestration, and integration layer; it routes
 bounded tasks, including research and implementation, to Work and independent
-checking to Verification unless the Human skips it. The plugin supports
-evidence exploration and applies shared project conventions. Document,
-Gather, Tool, and Workspace capabilities are provided by the resolved Agent
-Factory MCP application rather than by plugin Skills.
+checking to Verification unless the Human skips it. The plugin supports evidence
+exploration and applies shared project conventions. It is complete in standalone
+mode and does not require an Agent Factory MCP package, server, account, tenant,
+connection, or authenticated resource.
+
+## Product modes
+
+| Mode | Contract |
+| --- | --- |
+| Plugin only | Complete local Main/Work/Verification workflow, inspection, generated documents, results, receipts, sessions, loops and recovery. This is a normal supported mode. |
+| MCP only | The independently installed MCP application advertises and owns its Document, Gather, Tool and Workspace capabilities without requiring this plugin or its Skills/runtime. |
+| Plugin plus MCP | An explicitly selected, connected capability may extend the local workflow under the required Human authority. Local graph authority remains with the plugin, and no local artifact is transmitted implicitly. |
 
 ## Included skills
 
@@ -22,7 +30,7 @@ The plugin exposes exactly two public skills:
   sessions. Main orchestrates, Work performs the bounded task, and Verification
   independently returns pass or fail unless the Human skips it.
 - `convention`: Own and apply the Agent Factory core model plus directory,
-  development, library, design, technical documentation, comments, Document-type,
+  development, library, theme, technical documentation, comments, Document-type,
   authority, and cross-cutting integration conventions.
 
 Evidence exploration is a capability Work may use while performing its bounded
@@ -41,10 +49,14 @@ redirect is explicit and does not erase prior execution or result state.
 This plugin repository stores its distributed Skills below `skills/` and does
 not mirror them into a repository-local `.codex/`. A separate project that uses
 the plugin stores its own Project Skills below `.codex/skills/` in that project.
+This Provider checkout has no active Original Document directory. Provider
+Processed Documents belong in the Git-ignored `docs/` directory, while Provider
+Specifications exist only in maintained `skills/` packages.
 
-Gathered collections remain Original Documents, and Work's exploration results
-remain Original or Processed Documents. The MCP application owns external
-collection and Document operations. The conceptual ordering does not imply
+Gathered evidence remains Original Documents, and Work's exploration results
+remain Original or Processed Documents. Local files and host-provided tools can
+support bounded inspection and gathering; a selected MCP integration may add
+external collection and Document operations. The conceptual ordering does not imply
 completeness, maturity, a required transition, or automatic promotion;
 Original is source-faithful evidence and is authority-neutral: its type alone
 does not decide authority or trust. Processed remains non-authoritative working
@@ -52,9 +64,9 @@ knowledge. No mandatory
 Original-to-Processed-to-Specification pipeline exists. Operational Agent sessions
 and temporary exploration workspaces remain operational, while Original,
 Processed, and Human-facing Specifications occupy distinct logical roles.
-AI-facing Specifications remain in Skills. MCP integration capabilities manage
-connections without exposing credentials or taking over external provider
-authority. Agent retains capability binding, execution authority, and receipts.
+AI-facing Specifications remain in Skills. Optional integrations do not expose
+credentials or take over external provider authority. Agent retains capability
+binding, execution authority, and receipts.
 Refined is not a fourth active
 Document type.
 
@@ -62,37 +74,36 @@ Each of the two plugin Skills keeps its entry contract in `SKILL.md`, UI metadat
 `agents/openai.yaml`, and detailed capability guidance in `references/`.
 New domain implementations, schemas and runtime tests belong to the cloud application. Only local exec/loop and minimum support remain runtime dependencies of the plugin; local domain executables, catalog/sync schemas and provider dependencies are retired.
 
-## Cloud domains and local execution
+## Standalone execution and optional integrations
 
-The Human-selected Agent Factory MCP application owns new Document persistence,
-search and publication; connections, authentication and bounded
-collection; shared reporting; and the Workspace implementation. Read its
-advertised authenticated tool schemas and guides before invoking domain tools.
-Missing tools, connection, tenant or scope must be reported honestly. Do not
-substitute retained local scripts, create new local domain configuration or add
-a local MCP/provider service.
+Local `exec.py` and `loop.py` need no MCP integration. Local files and
+host-provided tools support bounded inspection and gathering. An absent MCP
+connection is neither an error nor a missing prerequisite; it simply means that
+optional connected capabilities are not selected. Do not create local domain
+configuration or a local MCP/provider service as a substitute.
 
 The plugin retains two Skills, the three role prompts, local `exec.py`/`loop.py`
 and minimum runtime dependencies. The extension discovers runtime locations through the machine contract. Local sessions, process/run facts, graph transitions,
 receipts, reporting outbox and recovery remain under
 `~/.agent-factory/projects/<project-id>/agents/<agent-id>/`. Cloud reports never launch, resume, cancel
 or finish local runs; process exit and stale reporting do not imply semantic
-completion or graph END. Use existing shell/file tools for bounded local Git
-and tool inspection, and authorized Document tools to upload required evidence.
+completion or graph END.
 
-Document tools include `document_import`, `document_read`, `document_write`,
-`document_search`, `document_index`, `document_prepare_upload` and
-`document_finalize_upload`; package members and isolated Human previews use
-revision-scoped authenticated delivery routes. Connections and bounded Gather
-collections follow `agent-factory://integrations/guide`; shared reporting uses
-`reporting_read`, `reporting_write`, `reporting_search` and
-`agent-factory://reporting/cloud-guide`. Development planning follows the
-Workspace planning contract and `agent-factory://planning/import-guide`,
-separately from background jobs and runtime reporting.
+For a generated durable document, an explicit Human destination wins. Otherwise,
+use a connected Document capability only when it is available, explicitly selected
+and authorized for that write. In every other case, write to `<project-root>/docs/`
+using Convention's `[category]-[name]` basename rules. Merely discovering a
+connector never authorizes upload or transmission.
 
-Git maintains Agent instructions under `skills/<id>/`. Human-facing Document
-publication belongs to the MCP application and follows its current authenticated
-schema while preserving actual provenance.
+Discover Document, Gather, Tool, Workspace and shared-reporting operations from
+the selected MCP application's advertised authenticated tools and resources.
+Those live contracts own method names, resource identifiers, request schemas and
+delivery behavior.
+
+Git maintains Agent instructions under `skills/<id>/`. Local documents remain
+fully usable without publication. When connected publication is explicitly
+selected and authorized, its behavior follows the MCP application's current
+authenticated contract while preserving actual provenance.
 
 New catalog/search and document/sync configuration are cloud-owned. Retained
 local `db.sqlite`, old Document roots, `document/sync.json` and gathered collections
@@ -153,16 +164,17 @@ loaded skills and tools are available.
 
 Convention retains `assets/AGENTS.md` as a copy-once project instruction template.
 Use existing file tools only for an authorized absent target; preserve any
-existing project `AGENTS.md`. The bootstrap manager and local domain scripts are retired. New Specification
-authoring uses the authenticated MCP `document_template` manifest and bounded
-version-bound member delivery, preserving all template bytes and licenses.
+existing project `AGENTS.md`. The bootstrap manager and local domain scripts are
+retired. Project-local Specification authoring needs no connected template service;
+when a connected template capability is explicitly selected, preserve all template
+bytes and licenses.
 
-## Workspace control tower
+## Workspace
 
-The Workspace domain belongs to the separate `agent-factory-mcp` application,
-which owns the FastAPI host, `/mcp` transport, discovery API, canonical browser
-assets, deployment adapters, and runtime tests. Resolve the authenticated organization/Workspace in that application and open its `/workspace/` route. No browser-shell copy
-or root `workspace.sh` is installed into consumer projects.
+When MCP integration is selected, the Workspace domain and its implementation
+belong to that application. Resolve it through the application's advertised
+authenticated resources. Plugin-only operation needs no Workspace, and the plugin
+and consumer projects receive no Workspace implementation or launcher.
 
 ## Development
 

@@ -16,11 +16,11 @@
 
 - Preserve source identity/location, retrieval/collection context, fidelity and limitations.
 - Distinguish observations, analysis, hypotheses, conclusions and contradictions.
-- Original uses native/appropriate formats. Active Processed uses portable
-  HTML/CSS/JavaScript; type remains storage-independent. Neither is a Project Skill
-  or Human Specification.
+- Original uses native/appropriate formats. Active Processed defaults to Markdown
+  and may use CSV or JSON when appropriate; type remains storage-independent.
+  Neither is a Project Skill or Human Specification.
 - Classify durable output as Original/Processed; follow
-  [MCP/docs storage](directory-structure.md#ai-generated-documents) under its own authority.
+  [Document routing](documents.md#routing) under its own authority.
   Temporary material stays in its producing run.
 - No standalone Explorer root. Legacy Inquery is read-only, inactive Processed evidence
   in Git history/selected archives; inspect only within delegated scope. Legacy is

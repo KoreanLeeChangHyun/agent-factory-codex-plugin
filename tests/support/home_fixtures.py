@@ -83,7 +83,7 @@ print(json.dumps(state))
         rt.atomic_write_json(rt.session_file(root, session['agentId']), session)
         rt.atomic_write(Path(state['resultPath']), json.dumps(result, sort_keys=True).encode())
         receipt = ({'schemaVersion':'0.1.0', 'kind':'work-receipt', 'runId':state['runId'],
-            'requestHash':state['requestHash'], 'outcome':'implemented', 'changedPaths':[],
+            'requestHash':state['requestHash'], 'outcome':'completed', 'changedPaths':[],
             'addressedFindingIds':[], 'tests':{'run':False,'reason':'work-agent-prohibited'}} if role=='work' else
             {'schemaVersion':'0.1.0', 'kind':'verification-receipt', 'runId':state['runId'],
             'verifiedWorkRunId':work['runId'], 'verifiedRequestHash':work['requestHash'], 'decision':'pass','findings':[]})

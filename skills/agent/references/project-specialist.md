@@ -7,7 +7,8 @@
 - Graph: `Main -> project-specialized Work -> Verification` until an explicitly
   reviewed runtime change. No extra public Skill, role or MCP domain Agent.
 - Specialization grants no self-verification, commits or Verification bypass.
-  MCP capabilities support tasks without defining Specialist identity.
+  Local files and host-provided tools support specialization. Optional MCP
+  capabilities may support tasks without defining Specialist identity.
 
 ## Profile requirements
 
@@ -22,8 +23,8 @@
 1. Inspect current project evidence; distinguish stable conventions, changing state
    and unresolved Human choices.
 2. Main binds exact target/scope/effect/capability/approval per task.
-3. Create, refresh, retire or transfer through the resolved owning Agent/MCP runtime,
-   preserving provenance.
+3. Create, refresh, retire or transfer through the local Agent runtime or an
+   explicitly selected owning integration, preserving provenance.
 
 - Do not manufacture expertise from summaries, accept stale memory as truth,
   infer capability authority or silently widen profiles.

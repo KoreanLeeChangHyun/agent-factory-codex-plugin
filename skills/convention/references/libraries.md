@@ -12,7 +12,7 @@
 
 ## Rendering dependencies
 
-- Follow [design.md](design.md) for portable document behavior and SVG icon rules.
+- Follow [theme.md](theme.md) for portable document behavior and SVG icon rules.
 - Follow [diagrams.md](diagrams.md) for Mermaid source, diagram semantics and accessibility.
 
 ## Mermaid integration

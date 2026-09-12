@@ -373,7 +373,9 @@ def send_one(rt, root, state, index):
            'report_id': str(uuid.UUID(payload['report_id'])) if payload['report_id'] else None,
            'revision': int(record['revision']), 'command_digest': digest(command)}
     from datetime import datetime
-    ack['received_at'] = datetime.fromisoformat(payload['received_at']).isoformat()
+    ack['received_at'] = datetime.fromisoformat(
+        payload['received_at'].replace('Z', '+00:00')
+    ).isoformat()
     return ack
 
 

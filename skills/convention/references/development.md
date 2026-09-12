@@ -48,7 +48,7 @@ Follow stronger established project conventions.
   follow [diagrams.md](diagrams.md) for diagram selection and authoring.
 - Keep each item focused; use short introductory prose only when it adds context.
 - Consolidate duplicates in the owning document; preserve constraints and update callers.
-- Store generated documents using [MCP/docs routing](directory-structure.md#ai-generated-documents).
+- Store generated documents using [Document routing](documents.md#routing).
 
 ## Comments and TODOs
 

@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "0.1.0+codex.20260911161245",
+  "version": "0.1.0+codex.20260912013443",
   "description": "Two Agent Factory skills for managed agent execution and shared project conventions.",
   "author": {
     "name": "Agent Factory",
@@ -25,7 +25,7 @@
   "interface": {
     "displayName": "Agent Factory",
     "shortDescription": "Run managed agents with shared project conventions.",
-    "longDescription": "Provides two public Skills: Agent for the Main -> Work -> Verification graph and Convention for shared rules, authority, and core semantics. Explorer and Interview remain Convention-owned capabilities applied by Work and Main. Document, Gather, Tool, and Workspace are domains of the selected authenticated Agent Factory MCP application rather than plugin Skills. The MCP application owns Document persistence and search, connections and collection, shared reporting, and Workspace runtime assets. Local exec/loop and minimum support retain session, run, graph, and receipt authority.",
+    "longDescription": "Provides two public Skills: Agent for the complete local Main -> Work -> Verification graph and Convention for shared rules, authority, and core semantics. No MCP package, server, account, tenant, connection, or authenticated resource is required. An independently usable MCP application may provide explicitly selected and authorized Document, Gather, Tool, Workspace, and reporting integrations without taking over local graph authority or implicitly transmitting local artifacts.",
     "developerName": "Agent Factory",
     "category": "Productivity",
     "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",

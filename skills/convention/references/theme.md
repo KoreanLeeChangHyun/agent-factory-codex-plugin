@@ -1,7 +1,9 @@
-# Design
+# Theme
 
-Preserve the product's established design system; this baseline does not
-authorize restyling unrelated surfaces.
+Preserve the product's established theme and design system; this baseline does not
+authorize restyling unrelated surfaces. Product and technical Design
+Specifications belong to `documents.md`; this reference owns visual and interface
+presentation.
 
 ## Interfaces
 
@@ -11,9 +13,9 @@ authorize restyling unrelated surfaces.
   interaction. Portable browser documents use local, relative dependencies.
 - Use visuals only when they clarify relationships. For diagrams, read
   `diagrams.md`; keep maintained source and rendered views aligned.
-- Match language/detail to the reader. Read authenticated MCP Workspace or
-  Document guides for those surfaces; do not export their layout/navigation
-  conventions to other products without evidence or Human direction.
+- Match language/detail to the reader. For an explicitly selected connected MCP
+  surface, read its authenticated Workspace or Document guides; do not export its
+  layout/navigation conventions to other products without evidence or Human direction.
 
 ## SVG icons
 

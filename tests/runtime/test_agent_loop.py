@@ -116,7 +116,7 @@ class FakeRuntime:
         run = self.runs[(agent_id, run_id)]
         receipt = {
             "schemaVersion": "0.1.0", "kind": "work-receipt", "runId": run_id,
-            "requestHash": run["receiptRequestHash"], "outcome": "implemented",
+            "requestHash": run["receiptRequestHash"], "outcome": "completed",
             "changedPaths": ["changed.txt"], "addressedFindingIds": addressed or [],
             "tests": {"run": False, "reason": "work-agent-prohibited"},
         }

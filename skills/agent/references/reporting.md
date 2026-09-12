@@ -2,8 +2,11 @@
 
 ## Contract and authority
 
-- Read `agent-factory://reporting/cloud-guide` and `reporting_read`, `reporting_write`,
-  `reporting_search` schemas for binding, replay, heartbeat/freshness and search contracts.
+- Cloud reporting is an optional integration. Use only an available connection
+  that the Human selected and authorized, then read its advertised authenticated
+  guide and tool schemas for binding, replay, heartbeat/freshness and search contracts.
+- No reporting configuration is the normal standalone mode. Discovering a
+  connector never authorizes reporting or transmission.
 - Exec owns local process/session/run facts; loop alone owns transitions/END.
   Reports never control execution or prove Verification pass. Planning tasks remain separate.
 

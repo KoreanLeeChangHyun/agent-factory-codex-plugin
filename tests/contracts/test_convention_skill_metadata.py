@@ -20,7 +20,6 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             if path.is_dir() and (path / "SKILL.md").is_file()
         }
         self.assertEqual(actual, PUBLIC_SKILLS)
-        self.assertFalse((ROOT / "docs").exists())
 
     def test_skill_frontmatter_uses_exact_singular_names_and_fields(self) -> None:
         for name in sorted(PUBLIC_SKILLS):
@@ -74,6 +73,86 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         }
         self.assertEqual(declared, actual)
 
+    def test_agent_reference_inventory_is_routed_from_entrypoint(self) -> None:
+        agent = SKILLS / "agent"
+        entry = (agent / "SKILL.md").read_text(encoding="utf-8")
+        declared = set(re.findall(r"`references/([^`]+\.md)`", entry))
+        actual = {
+            path.relative_to(agent / "references").as_posix()
+            for path in (agent / "references").rglob("*.md")
+        }
+        self.assertEqual(declared, actual)
+
+    def test_plugin_guidance_excludes_mcp_implementation_inventory(self) -> None:
+        paths = [
+            ROOT / "README.md",
+            SKILLS / "convention" / "references" / "agent-factory-core.md",
+            SKILLS / "convention" / "references" / "directory-structure.md",
+        ]
+        text = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+        forbidden = {
+            "agent-factory://",
+            "document_import",
+            "document_prepare_upload",
+            "reporting_write",
+            "PostgreSQL stores tenant metadata",
+            "object storage stores immutable Document bytes",
+            "static/workspace/",
+            "FastAPI host",
+            "작업 표시줄 → 기본 사이드바",
+        }
+        for detail in sorted(forbidden):
+            with self.subTest(detail=detail):
+                self.assertNotIn(detail, text)
+        self.assertIn("advertised authenticated", text)
+        self.assertIn("Document, Gather, Tool and Workspace", text)
+
+    def test_standalone_and_optional_integration_contracts_are_explicit(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        agent = (SKILLS / "agent" / "SKILL.md").read_text(encoding="utf-8")
+        convention = (SKILLS / "convention" / "SKILL.md").read_text(encoding="utf-8")
+        layout = (
+            SKILLS / "convention" / "references" / "directory-structure.md"
+        ).read_text(encoding="utf-8")
+        documents = (
+            SKILLS / "convention" / "references" / "documents.md"
+        ).read_text(encoding="utf-8")
+        manifest = (ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+
+        for mode in ("Plugin only", "MCP only", "Plugin plus MCP"):
+            self.assertIn(mode, readme)
+        self.assertIn(
+            "does not require an Agent Factory MCP package, server, account, tenant",
+            readme,
+        )
+        self.assertIn(
+            "without an MCP package, server, account, tenant, connection",
+            " ".join(agent.split()),
+        )
+        self.assertIn("No MCP package, server, account, tenant, connection", manifest)
+        self.assertIn("absence of MCP is a normal supported mode", convention)
+        self.assertIn("<project-root>/docs/", layout)
+        self.assertIn("not an error fallback", layout)
+        self.assertLess(
+            documents.index("**Explicit destination:**"),
+            documents.index("**Selected connected destination:**"),
+        )
+        self.assertLess(
+            documents.index("**Selected connected destination:**"),
+            documents.index("**Local route:**"),
+        )
+        self.assertIn(
+            "Connection or discovery alone grants no transmission authority", documents
+        )
+        distributed_python = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (SKILLS / "agent").rglob("*.py")
+        )
+        self.assertNotRegex(
+            distributed_python, r"(?m)^\s*(?:from|import)\s+mcp(?:\.|\s|$)"
+        )
+        self.assertNotIn("mcp", (ROOT / "requirements.txt").read_text().lower())
+
     def test_agent_prompt_roles(self) -> None:
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}
         self.assertEqual(prompts, {"main.md", "work.md", "verification.md"})
@@ -111,7 +190,12 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         self.assertEqual(list(SKILLS.rglob("sync.schema.json")), [])
         self.assertEqual(list(SKILLS.rglob("requirements.txt")), [])
         ignored = (ROOT / ".gitignore").read_text()
-        for item in ("/.agent-factory/db.sqlite", "/.agent-factory/db.sqlite-wal", "/.agent-factory/agent/"):
+        for item in (
+            "/docs/",
+            "/.agent-factory/db.sqlite",
+            "/.agent-factory/db.sqlite-wal",
+            "/.agent-factory/agent/",
+        ):
             self.assertIn(item, ignored)
 
 
