@@ -18,7 +18,7 @@ SEMVER = re.compile(
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
-CACHEBUSTER_VERSION = re.compile(r"^0\.1\.0\+codex\.\d{14}$")
+CACHEBUSTER_VERSION = re.compile(r"^1\.0\.0\+codex\.\d{14}$")
 
 
 def read_json(path: Path) -> dict:

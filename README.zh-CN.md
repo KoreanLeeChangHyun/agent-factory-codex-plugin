@@ -4,9 +4,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> [!WARNING]
-> 此插件正处于积极开发阶段。其 Skill、工件格式和工作流可能随时变更，恕不另行通知。
-
 Agent Factory 是用于人类主导的软件交付的 Codex 插件。它提供范围明确的 Agent
 工作流、证据探索和共享项目约定。
 
@@ -86,7 +83,7 @@ codex plugin add agent-factory@agent-factory
 
 ## 状态
 
-Alpha。欢迎提供反馈和 Issue 报告，但尚不保证生产兼容性。
+欢迎提供反馈和 Issue 报告。
 
 ## 许可证
 

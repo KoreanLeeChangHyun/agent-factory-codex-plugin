@@ -4,10 +4,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> [!WARNING]
-> This plugin is under active development. Its skills, artifact formats, and
-> workflows may change without notice.
-
 Agent Factory is a Codex plugin for Human-directed software delivery. It provides
 a bounded agent workflow, evidence exploration, and shared project conventions.
 
@@ -94,8 +90,7 @@ Durable contracts remain with their owning Skill and references:
 
 ## Status
 
-Alpha. Feedback and issue reports are welcome, but production compatibility is
-not guaranteed yet.
+Feedback and issue reports are welcome.
 
 ## License
 

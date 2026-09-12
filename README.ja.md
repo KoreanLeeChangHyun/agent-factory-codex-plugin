@@ -4,10 +4,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> [!WARNING]
-> このプラグインは活発に開発中です。Skill、成果物形式、ワークフローは
-> 予告なく変更される場合があります。
-
 Agent Factory は、人間の指示に基づくソフトウェアデリバリーのための Codex
 プラグインです。範囲を限定した Agent ワークフロー、根拠探索、共通の
 プロジェクト規約を提供します。
@@ -93,8 +89,7 @@ codex plugin add agent-factory@agent-factory
 
 ## ステータス
 
-Alpha です。フィードバックや Issue 報告を歓迎しますが、現時点では本番環境との
-互換性を保証していません。
+フィードバックや Issue 報告を歓迎します。
 
 ## ライセンス
 
