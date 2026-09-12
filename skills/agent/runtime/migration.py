@@ -433,9 +433,7 @@ def managed_completion(state_path, role):
     if rt.safe_read_json(Path(state['receiptSchemaPath'])) != expected:
         raise ValueError('managed role receipt schema mismatch')
     receipt = rt.validate_receipt(root, state, agent_id=state['agentId'], run_id=state['runId'])
-    response = rt.safe_read_json(Path(state['responseSchemaPath']))
-    if response.get('properties', {}).get('resultPath') != {'type': 'string', 'const': state['resultPath']}:
-        raise ValueError('completion response schema mismatch')
+    rt.inline_result(state)  # Validate exact legacy or runtime-owned response schema.
     result = read_bytes(Path(state['resultPath']))
     events = read_bytes(Path(state['eventsPath']))
     if len(events) > rt.MAX_EVENTS_BYTES:
@@ -446,8 +444,10 @@ def managed_completion(state_path, role):
         item = event.get('item', {})
         if event.get('type') == 'item.completed' and item.get('type') == 'agent_message':
             try:
-                terminal = json.loads(item['text']) == {'status': 'completed', 'resultPath': state['resultPath']}
-            except (ValueError, KeyError):
+                output = json.loads(item['text'])
+                content = rt.validate_terminal_result(output, state)
+                terminal = output['status'] == 'completed' and (content is None or content == result)
+            except (ValueError, KeyError, rt.ContractError):
                 terminal = False
     if not terminal:
         raise ValueError('managed terminal output is absent or mismatched')

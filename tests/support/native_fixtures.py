@@ -23,7 +23,7 @@ class FakeRpc:
             self.events.extend([
                 {"method": "turn/started", "params": {"threadId": "thread-exact", "turn": {"id": turn}}},
                 {"method": "item/completed", "params": {"threadId": "thread-exact", "item": {
-                    "type": "agentMessage", "text": json.dumps({"status": "completed", "resultPath": result_path})}}},
+                    "type": "agentMessage", "text": json.dumps({"status": "completed", "resultPath": result_path, "resultText": "Native answer"})}}},
                 {"method": "turn/completed", "params": {"threadId": "thread-exact", "turn": {"id": turn, "status": "completed"}}, "testGoalStatus": status},
             ])
 

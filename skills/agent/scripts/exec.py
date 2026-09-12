@@ -115,6 +115,7 @@ from receipt_contracts import (
 import process_transport
 from process_transport import (
     AttemptFailure, build_prompt, build_codex_command,
+    response_schema_document, inline_result, validate_terminal_result, publish_terminal_result,
     stderr_reports_sandbox_unavailable, process_exit_failure,
     missing_result_failure, result_publication_failure, append_bounded,
     append_event, read_process_lines, stream_stderr, process_group_exists,
@@ -184,22 +185,7 @@ def create_run(
         capability_binding_document = validate_capability_bindings(json.loads(capability_bindings))
         atomic_write(capability_binding_path, capability_bindings)
         capability_binding_hash = hashlib.sha256(capability_bindings).hexdigest()
-    atomic_write_json(
-        response_schema,
-        {
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string",
-                    "enum": ["completed", "needs-human-decision", "failed"],
-                },
-                "resultPath": {"type": "string", "const": str(result_path)},
-            },
-            "required": ["status", "resultPath"],
-            "additionalProperties": False,
-        },
-    )
+    atomic_write_json(response_schema, response_schema_document(str(result_path)))
     role = str(session["role"])
     if role in {"work", "verification"}:
         atomic_write_json(
@@ -916,6 +902,29 @@ def run_codex_attempt(
     request = safe_read_bytes(Path(state["requestPath"]), MAX_REQUEST_BYTES)
     if hashlib.sha256(request).hexdigest() != state.get("requestHash"):
         raise AttemptFailure("request_changed", "managed request content changed", False)
+    # Validate the output contract and prepare all prompt files before any child launch.
+    try:
+        prompt = build_prompt(
+            agent_id=str(state["agentId"]),
+            role=str(state["role"]),
+            request_path=Path(state["requestPath"]),
+            result_path=Path(state["resultPath"]),
+            run_id=str(state["runId"]),
+            receipt_path=(Path(state["receiptPath"]) if state.get("receiptPath") else None),
+            receipt_schema_path=(
+                Path(state["receiptSchemaPath"]) if state.get("receiptSchemaPath") else None
+            ),
+            capability_binding_path=(
+                Path(state["capabilityBindingPath"])
+                if state.get("capabilityBindingPath") else None
+            ),
+            human_approval_policy=str(state.get("humanApprovalPolicy", "required")),
+            inline_response=inline_result(state),
+        )
+    except ContractError as error:
+        raise AttemptFailure(error.code, error.message, False) from error
+    except (OSError, UnicodeError) as error:
+        raise AttemptFailure("prompt_invalid", "Managed prompt could not be prepared", False) from error
     execution = state.get("executionOptions", {})
     session = dict(session)
     try:
@@ -1043,22 +1052,6 @@ def run_codex_attempt(
         raise AttemptFailure(
             "codex_start_failed", "codex exec pipes are unavailable", False, True
         )
-    prompt = build_prompt(
-        agent_id=str(state["agentId"]),
-        role=str(state["role"]),
-        request_path=Path(state["requestPath"]),
-        result_path=Path(state["resultPath"]),
-        run_id=str(state["runId"]),
-        receipt_path=(Path(state["receiptPath"]) if state.get("receiptPath") else None),
-        receipt_schema_path=(
-            Path(state["receiptSchemaPath"]) if state.get("receiptSchemaPath") else None
-        ),
-        capability_binding_path=(
-            Path(state["capabilityBindingPath"])
-            if state.get("capabilityBindingPath") else None
-        ),
-        human_approval_policy=str(state.get("humanApprovalPolicy", "required")),
-    )
     try:
         process.stdin.write(prompt)
         process.stdin.close()
@@ -1227,14 +1220,12 @@ def run_codex_attempt(
         terminal = json.loads(final_messages[-1])
     except json.JSONDecodeError as error:
         raise AttemptFailure("result_invalid", "codex returned invalid terminal JSON", True) from error
-    valid = (
-        isinstance(terminal, dict)
-        and set(terminal) == {"status", "resultPath"}
-        and terminal.get("status") in {"completed", "needs-human-decision", "failed"}
-        and terminal.get("resultPath") == state["resultPath"]
-    )
-    if not valid:
-        raise AttemptFailure("result_invalid", "codex returned an invalid terminal result", True)
+    try:
+        publish_terminal_result(terminal, state)
+    except ContractError as error:
+        raise AttemptFailure(error.code, error.message, True) from error
+    except OSError as error:
+        raise AttemptFailure("result_file_write_failed", "Runtime could not persist the terminal response", True) from error
     result_path = Path(state["resultPath"])
     try:
         result_info = os.lstat(result_path)

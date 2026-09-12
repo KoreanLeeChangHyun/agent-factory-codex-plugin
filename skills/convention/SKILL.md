@@ -19,8 +19,9 @@ metadata:
 
 ## Human communication
 
-- Before producing any Human-facing message, read and follow the mandatory
-  [respectful-register contract](references/communication.md).
+- Follow the mandatory [respectful-register contract](references/communication.md).
+  Read it when needed if it is not already supplied in the current prompt or context;
+  following the contract does not require a file read before each message.
 
 ## References
 

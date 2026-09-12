@@ -20,13 +20,15 @@ from process_containment import (
     terminate_verified_group,
 )
 from runtime_errors import ContractError
-from runtime_storage import reject_symlink, role_path, safe_read_bytes
+from runtime_storage import reject_symlink, role_path, safe_read_bytes, safe_read_json, atomic_write
 
 HUMAN_APPROVAL_POLICIES = ("required", "bypass")
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
 MAX_EVENT_BYTES = 1024 * 1024
 MAX_EVENTS_BYTES = 8 * 1024 * 1024
 MAX_STDERR_BYTES = 4 * 1024 * 1024
+# Leave room for JSON escaping and the enclosing JSONL event.
+MAX_RESULT_TEXT_BYTES = 64 * 1024
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 EXEC_SCRIPT = SKILL_ROOT / "scripts" / "exec.py"
 if sys.platform == "linux":
@@ -43,6 +45,58 @@ class AttemptFailure(Exception):
         self.launched = launched
 
 
+def response_schema_document(result_path: str, *, inline: bool = True) -> dict[str, Any]:
+    properties = {
+        "status": {"type": "string", "enum": ["completed", "needs-human-decision", "failed"]},
+        "resultPath": {"type": "string", "const": result_path},
+    }
+    if inline:
+        properties["resultText"] = {"type": "string", "minLength": 1, "maxLength": MAX_RESULT_TEXT_BYTES}
+    return {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object",
+            "properties": properties, "required": list(properties), "additionalProperties": False}
+
+
+def inline_result(state: dict[str, Any]) -> bool:
+    """Persisted schemas choose the protocol; never reinterpret historical runs."""
+    schema = safe_read_json(Path(state["responseSchemaPath"]))
+    for inline in (True, False):
+        if schema == response_schema_document(state["resultPath"], inline=inline):
+            return inline
+    raise ContractError("result_schema_invalid", "Managed response schema is unsupported or mismatched")
+
+
+def validate_terminal_result(terminal: Any, state: dict[str, Any]) -> bytes | None:
+    inline = inline_result(state)
+    expected = {"status", "resultPath", "resultText"} if inline else {"status", "resultPath"}
+    if (not isinstance(terminal, dict) or set(terminal) != expected
+            or not isinstance(terminal.get("status"), str)
+            or terminal.get("status") not in {"completed", "needs-human-decision", "failed"}
+            or terminal.get("resultPath") != state["resultPath"]):
+        raise ContractError("result_invalid", "Codex returned an invalid terminal result")
+    if not inline:
+        return None
+    text = terminal["resultText"]
+    if not isinstance(text, str) or not text.strip():
+        raise ContractError("result_invalid", "Terminal resultText must be nonempty UTF-8 text")
+    try:
+        content = text.encode("utf-8")
+    except UnicodeEncodeError as error:
+        raise ContractError("result_invalid", "Terminal resultText must be valid UTF-8") from error
+    if len(content) > MAX_RESULT_TEXT_BYTES:
+        raise ContractError("result_invalid", "Terminal resultText exceeds the byte limit")
+    return content
+
+
+def publish_terminal_result(terminal: Any, state: dict[str, Any]) -> None:
+    content = validate_terminal_result(terminal, state)
+    if content is not None:
+        path = Path(state["resultPath"])
+        reject_symlink(path)
+        if path.exists() and not stat.S_ISREG(path.lstat().st_mode):
+            raise ContractError("result_file_invalid", "Managed result path is not a regular file")
+        atomic_write(path, content)
+
+
 def build_prompt(
     *,
     agent_id: str,
@@ -54,6 +108,7 @@ def build_prompt(
     receipt_schema_path: Path | None = None,
     capability_binding_path: Path | None = None,
     human_approval_policy: str = "required",
+    inline_response: bool = True,
 ) -> str:
     prompt_path = role_path(role)
     try:
@@ -62,6 +117,17 @@ def build_prompt(
         raise ContractError("role_invalid", "Agent role prompt must be UTF-8 text") from error
     if not role_prompt.strip():
         raise ContractError("role_invalid", "Agent role prompt must not be empty")
+    communication_obligation = ""
+    if role == "main":
+        communication_path = prompt_path.parents[2] / "convention" / "references" / "communication.md"
+        communication = safe_read_bytes(communication_path, MAX_REQUEST_BYTES).decode("utf-8")
+        communication_obligation = f"""
+The current communication contract is already loaded below. Apply it directly;
+do not open a Skill or reference file merely to obtain these instructions.
+<agent-factory-communication-contract>
+{communication}
+</agent-factory-communication-contract>
+"""
     if human_approval_policy not in HUMAN_APPROVAL_POLICIES:
         raise ContractError("human_approval_policy_invalid", "Human approval policy is invalid")
     if human_approval_policy == "bypass" and role != "main":
@@ -69,15 +135,17 @@ def build_prompt(
     human_approval_obligation = ""
     if human_approval_policy == "bypass":
         human_approval_obligation = """
-This Main run has Human approval policy `bypass`. The Human has authorized direct
-execution of the current request without a separate proposal or plan-approval turn.
-Treat the current request as satisfying the Delegation gate's execute instruction and
-proceed through Main -> Work -> Verification immediately. Do not return
+This Main run has Human approval policy `bypass`. First distinguish conversation from
+requested work using Main's Conversation or execution rules. Answer conversation
+directly without starting Work or Verification. For requested work, the Human has
+authorized execution without a separate proposal or plan-approval turn: treat that
+request as satisfying the Delegation gate's execute instruction and proceed through
+Main -> Work -> Verification. Do not return
 `needs-human-decision` merely to approve a plan, scope restatement, delegation, tool
 calls or ordinary in-scope actions. Make bounded reasonable assumptions. Request Human
 input only when execution truly cannot continue because required credentials or a
 Human-owned choice with materially different outcomes is absent. This policy does not
-expand the request or permit skipping Work or Verification.
+expand the request or permit skipping Work or Verification for delegated work.
 """
     receipt_obligation = ""
     if receipt_path is not None and receipt_schema_path is not None:
@@ -92,7 +160,7 @@ boundary.
             receipt_obligation += """
 In a Work receipt, `changedPaths` contains only paths changed inside the project,
 relative to the project root. Record run-directory and other runtime-only artifacts
-in `result.md`; if the project was untouched, use an empty `changedPaths` array.
+in the detailed response; if the project was untouched, use an empty `changedPaths` array.
 Use the neutral `outcome: completed` for new Work receipts, including read-only work.
 """
     binding_obligation = ""
@@ -113,6 +181,16 @@ Historical evidence paths may have moved. Resolve an exact historical path with
 Use its manifest-bound archivePath and digest; do not rewrite historical requests,
 results, receipts or their hashes. New output still belongs to this exact run.
 """
+    result_instruction = (
+        f"Return the answer or detailed result as `resultText` in the supplied final JSON schema "
+        f"(nonempty UTF-8 text, at most {MAX_RESULT_TEXT_BYTES} bytes), with `status` and "
+        f"`resultPath` set to `{result_path}`. The runtime saves that text atomically. "
+        "Do not write or reread your answer file with tools. Return the complete answer once "
+        "in the final response; intermediate messages are progress only."
+        if inline_response else
+        f"This historical run uses the legacy output contract. Write the detailed result to "
+        f"`{result_path}`. Then return only the compact JSON required by the supplied output schema."
+    )
     return f"""Act as Agent `{agent_id}` for Agent Factory.
 
 The following validated content is the complete `{role}` system-prompt source:
@@ -120,11 +198,11 @@ The following validated content is the complete `{role}` system-prompt source:
 <agent-factory-role-prompt>
 {role_prompt}
 </agent-factory-role-prompt>
+{communication_obligation}
 
 Read the delegated request from `{request_path}`. Keep its scope and authority unchanged.
 
-Write the detailed result to `{result_path}`. Then return only the compact JSON
-required by the supplied output schema. Run ID: `{run_id}`.
+{result_instruction} Run ID: `{run_id}`.
 {human_approval_obligation}{binding_obligation}{receipt_obligation}{migration_obligation}"""
 
 

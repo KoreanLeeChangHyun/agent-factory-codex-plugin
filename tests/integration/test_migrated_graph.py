@@ -56,9 +56,13 @@ else:
     first = len([r for r in records if r['role']=='verification']) == 1
     receipt.update(decision='fail' if first else 'pass',findings=[{'id':'fixture-fail','path':'file.py','location':'1','problem':'fixture','evidence':'fixture','correction':'fixture'}] if first else [])
 (run/'receipt.json').write_text(json.dumps(receipt))
-(run/'result.md').write_text('bounded fake result')
+terminal = {'status':'completed','resultPath':str(run/'result.md')}
+if 'resultText' in json.loads(schema.read_text())['properties']:
+    terminal['resultText'] = 'bounded fake result'
+else:
+    (run/'result.md').write_text('bounded fake result')
 print(json.dumps({'type':'thread.started','thread_id':session}))
-print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps({'status':'completed','resultPath':str(run/'result.md')})}}))
+print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(terminal)}}))
 print(json.dumps({'type':'turn.completed','usage':{}}))
 '''
 

@@ -67,7 +67,7 @@ class ExecProvider(MockResponsesProvider):
     def message(n, status, result_path):
         return {'id': f'msg_{n}', 'type': 'message', 'role': 'assistant', 'status': 'completed',
                 'phase': 'final_answer', 'content': [{'type': 'output_text', 'annotations': [],
-                    'text': json.dumps({'status': status, 'resultPath': result_path})}]}
+                    'text': json.dumps({'status': status, 'resultPath': result_path, 'resultText': 'Owned fake-model performance fixture completed.\n'})}]}
 
     def output(self, request, n):
         try:
@@ -105,7 +105,6 @@ class ExecProvider(MockResponsesProvider):
                        'outcome': 'completed', 'changedPaths': [], 'addressedFindingIds': [],
                        'tests': {'run': False, 'reason': 'work-agent-prohibited'}}
             script = ('from pathlib import Path; '
-                      f'Path({str(result)!r}).write_text("Owned fake-model performance fixture completed.\\n"); '
                       f'Path({state["receiptPath"]!r}).write_text({json.dumps(receipt)!r})')
             properties = tool['parameters'].get('properties', {})
             offered = {'cmd': 'python3 -c ' + shlex.quote(script), 'workdir': str(self.project),
@@ -125,8 +124,8 @@ class ExecProvider(MockResponsesProvider):
                 call['namespace'] = tool['namespace']
             self.diagnostics[-1]['emittedCall'] = call
             return call
-        if not result.is_file() or not Path(state['receiptPath']).is_file():
-            return self.fail('real host write tool did not create result and receipt; '
+        if not Path(state['receiptPath']).is_file():
+            return self.fail('real host write tool did not create receipt; '
                              'see provider.diagnostics toolResponses', n, str(result))
         self.finals += 1
         return self.message(n, 'completed', str(result))
@@ -325,7 +324,8 @@ def main():
                                 stderr = Path(ack['statePath']).parent / 'stderr.log'
                                 row['workerStderr'] = stderr.read_text()[-12000:] if stderr.exists() else None
                                 raise RuntimeError(f'public {kind} failed: {state.get("error")}')
-                            expected = {'status': 'completed', 'resultPath': state['resultPath']}
+                            expected = {'status': 'completed', 'resultPath': state['resultPath'],
+                                        'resultText': 'Owned fake-model performance fixture completed.\n'}
                             if not assistants or json.loads(assistants[-1]['item']['text']) != expected:
                                 raise RuntimeError('missing exact completed assistant output')
                             if len(calls) != 2 or row['turnCompletedEventCount'] != 1:

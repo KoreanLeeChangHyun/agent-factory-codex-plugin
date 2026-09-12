@@ -102,7 +102,7 @@ class MockResponsesProvider:
             args['status'] = 'complete'
             return {'id': f'fc_{n}', 'type': 'function_call', 'call_id': f'call_goal_{n}',
                     'name': tool['name'], 'arguments': json.dumps(args), 'status': 'completed'}
-        text = 'invalid terminal output' if self.mode == 'invalid' else json.dumps({'status': 'completed', 'resultPath': self.result_path})
+        text = 'invalid terminal output' if self.mode == 'invalid' else json.dumps({'status': 'completed', 'resultPath': self.result_path, 'resultText': 'Native answer'})
         return {'id': f'msg_{n}', 'type': 'message', 'role': 'assistant', 'status': 'completed', 'phase': 'final_answer',
                 'content': [{'type': 'output_text', 'text': text, 'annotations': []}]}
 

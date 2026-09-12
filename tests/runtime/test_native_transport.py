@@ -101,7 +101,7 @@ class ActivationAndFramingRegressions(unittest.TestCase):
             with self.subTest(status=status), tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()) as output:
                 bridge, rpc, state = native_fixture(Path(directory))
                 setup = bridge.setup
-                terminal = json.dumps({'status': 'completed', 'resultPath': state['resultPath']})
+                terminal = json.dumps({'status': 'completed', 'resultPath': state['resultPath'], 'resultText': 'Native answer'})
                 events = [
                     {'method': 'turn/started', 'params': {'threadId': 'thread-exact', 'turn': {'id': 'first'}}},
                     {'method': 'item/completed', 'params': {'threadId': 'thread-exact', 'turnId': 'first', 'item': {'type': 'agentMessage', 'text': terminal}}},

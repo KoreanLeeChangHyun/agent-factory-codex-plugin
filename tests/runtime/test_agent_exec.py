@@ -82,6 +82,11 @@ class AgentExecTests(unittest.TestCase):
                 )
                 self.assertIn(source, prompt)
                 self.assertIn("<agent-factory-role-prompt>", prompt)
+                communication = (SCRIPT.parents[2] / "convention" / "references" / "communication.md").read_text(encoding="utf-8")
+                if role == "main":
+                    self.assertIn(communication, prompt)
+                else:
+                    self.assertNotIn("<agent-factory-communication-contract>", prompt)
 
     def test_main_bypass_prompt_authorizes_direct_delegation_without_plan_approval(self) -> None:
         prompt = self.module.build_prompt(
@@ -90,8 +95,9 @@ class AgentExecTests(unittest.TestCase):
             result_path=Path("/managed/result.md"), run_id="run-one",
             human_approval_policy="bypass",
         )
-        self.assertIn("authorized direct", prompt)
-        self.assertIn("proceed through Main -> Work -> Verification immediately", prompt)
+        self.assertIn("For requested work, the Human has", prompt)
+        self.assertIn("authorized execution without a separate proposal", prompt)
+        self.assertNotIn("proceed through Main -> Work -> Verification immediately", prompt)
         self.assertIn("Do not return\n`needs-human-decision` merely to approve a plan", prompt)
         with self.assertRaises(self.module.ContractError):
             self.module.build_prompt(

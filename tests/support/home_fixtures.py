@@ -91,7 +91,7 @@ print(json.dumps(state))
         state.update(sessionId=session['sessionId'], startDisposition='started')
         rt.atomic_write_json(Path(state['statePath']), state)
         rt.append_event(Path(state['eventsPath']), json.dumps({'type':'item.completed', 'item':{
-            'type':'agent_message','text':json.dumps({'status':'completed','resultPath':state['resultPath']})}})+'\n')
+            'type':'agent_message','text':json.dumps({'status':'completed','resultPath':state['resultPath'],'resultText':json.dumps(result, sort_keys=True)})}})+'\n')
         rt.mark_terminal(Path(state['statePath']), 'completed')
         return rt.find_run(root, state['agentId'], state['runId'])
 

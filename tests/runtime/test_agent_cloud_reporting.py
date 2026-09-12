@@ -288,6 +288,9 @@ class ReportingTests(unittest.TestCase):
         state = rt.create_run(project_root=self.root, agent_id='accepted-agent', actor='main',
             request=b'bounded reporting regression', session={'role': role, 'maxAttempts': 1},
             reporting_config=self.config)
+        # Preserve the legacy oversized-result reporting regression explicitly.
+        rt.atomic_write_json(Path(state['responseSchemaPath']),
+                             rt.response_schema_document(state['resultPath'], inline=False))
         result = Path(state['resultPath'])
         # Sparse data avoids allocating a large fixture string while remaining a
         # nonempty regular file accepted by the runtime's original contract.

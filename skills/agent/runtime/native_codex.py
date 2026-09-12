@@ -355,8 +355,13 @@ class Bridge:
 
     def finish_control(self, action):
         # A Human control is an operational result, never an objective completion.
-        self.runtime.atomic_write(Path(self.state["resultPath"]), f"Goal {action}. Native goal: {self.goal.get('status') if self.goal else 'cleared'}.\n".encode())
-        emit({"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps({"status": "needs-human-decision", "resultPath": self.state["resultPath"]})}})
+        text = f"Goal {action}. Native goal: {self.goal.get('status') if self.goal else 'cleared'}.\n"
+        terminal = {"status": "needs-human-decision", "resultPath": self.state["resultPath"]}
+        if self.runtime.inline_result(self.state):
+            terminal["resultText"] = text
+        else:
+            self.runtime.atomic_write(Path(self.state["resultPath"]), text.encode())
+        emit({"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal)}})
 
     def setup(self, prompt):
         self.rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
@@ -449,10 +454,10 @@ class Bridge:
             raise NativeError("Native turn returned no final result")
         message = self.last_message
         terminal = json.loads(message)
-        if (not isinstance(terminal, dict) or set(terminal) != {"status", "resultPath"}
-                or terminal.get("status") not in {"completed", "needs-human-decision", "failed"}
-                or terminal.get("resultPath") != self.state["resultPath"]):
-            raise NativeError("Native Goal returned an invalid mandatory terminal JSON/result path")
+        try:
+            self.runtime.validate_terminal_result(terminal, self.state)
+        except self.runtime.ContractError as error:
+            raise NativeError(error.message) from error
         if self.goal and self.goal.get("status") != "complete":
             terminal = json.loads(message)
             terminal["status"] = "needs-human-decision"

@@ -59,8 +59,10 @@ capability bindings are inactive unless explicitly configured and authorized.
   approval requests require Human handling and are never automatically granted.
 - **Human approval:** `--human-approval-policy bypass` is Main-only and persists for
   the session. It authorizes Main to cross the delegation gate from the current Human
-  request without a separate plan-approval turn; it neither expands request scope nor
-  removes Work and Verification. Omitted sends preserve the session policy.
+  request for work without a separate plan-approval turn; it neither expands request
+  scope nor removes Work and Verification for delegated work. Conversation remains
+  Main's direct responsibility under either policy and starts no child graph.
+  Omitted sends preserve the session policy.
 - **Linux:** split permissions require bubblewrap; legacy Landlock cannot represent
   them. Denied user-namespace setup fails closed; never substitute a wider policy.
 - **References:** [sandbox backend](https://github.com/openai/codex/blob/main/codex-rs/linux-sandbox/README.md),
@@ -92,7 +94,7 @@ to locate; this inventory does not prove its version or complete sandbox works.
   launch. Do not retry with broader permissions or substitute a host helper probe.
 - An observed filesystem-helper initialization failure is reported as
   `sandbox_unavailable`, including nonzero exec exits and app-server error events.
-  Unrelated command failures retain their original classification. A structured failed
+  Unrelated command failures retain their original classification. For legacy runs, a structured failed
   file change for the exact managed result path followed by a missing file reports
   `result_file_write_failed`; it does not infer a sandbox cause from Agent prose.
 - On Linux, inspect security audit logs and container/namespace restrictions.
@@ -133,6 +135,18 @@ to locate; this inventory does not prove its version or complete sandbox works.
   Resume exact session IDs; no `resume --last` or concurrent turns per session.
 
 ### Run files and retries
+
+- New runs return `status`, the exact `resultPath`, and a nonempty `resultText`
+  in the final structured response. The runtime validates the envelope and atomically
+  saves its UTF-8 text as `result.md` before terminal publication. Agents do not write
+  or reread their answer file. Text is limited to 64 KiB (and 65,536 characters in
+  the output schema), leaving room inside the bounded JSONL stream; keep large
+  artifacts in task-owned files and summarize them in the response.
+- Work and Verification still write their separate machine receipts; completed runs
+  retain all request, role, capability and exact-Work receipt validation.
+- Persisted legacy response schemas retain their file-based completion contract.
+  A new turn in an existing session gets the new schema; historical runs and result
+  paths are unchanged. Native Goal controls use the same response persistence path.
 
 - `runs/<run-id>/` owns request/state/heartbeat/events/response schema/result/receipt;
   keep operational data separate from Skills/project information.
