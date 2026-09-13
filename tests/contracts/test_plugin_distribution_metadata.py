@@ -18,7 +18,35 @@ SEMVER = re.compile(
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
-CACHEBUSTER_VERSION = re.compile(r"^1\.0\.0\+codex\.\d{14}$")
+CACHEBUSTER_VERSION = re.compile(r"^1\.0\.4\+codex\.\d{14}$")
+README_PATHS = (
+    ROOT / "README.md",
+    ROOT / "README.ko.md",
+    ROOT / "README.ja.md",
+    ROOT / "README.zh-CN.md",
+)
+README_CONTRACT_MARKERS = {
+    "README.md": (
+        "fully installable and usable on its own",
+        "released together",
+        "does not contain or bundle",
+    ),
+    "README.ko.md": (
+        "단독으로 완전히 설치하고 사용할 수",
+        "함께 릴리스",
+        "포함하거나 번들로 제공하지",
+    ),
+    "README.ja.md": (
+        "単独で完全にインストールして使用",
+        "同時にリリース",
+        "内包またはバンドル",
+    ),
+    "README.zh-CN.md": (
+        "完全独立安装和使用",
+        "同步发布",
+        "并不自行包含或捆绑",
+    ),
+}
 
 
 def read_json(path: Path) -> dict:
@@ -29,6 +57,23 @@ def read_json(path: Path) -> dict:
 
 
 class PluginDistributionMetadataTests(unittest.TestCase):
+    def test_readmes_publish_extension_dependency_and_standalone_contract(self) -> None:
+        required_commands = (
+            "codex plugin marketplace add KoreanLeeChangHyun/agent-factory-codex-plugin --ref main",
+            "codex plugin marketplace upgrade agent-factory",
+            "codex plugin add agent-factory@agent-factory",
+        )
+        for path in README_PATHS:
+            with self.subTest(path=path.name):
+                readme = path.read_text(encoding="utf-8")
+                normalized = " ".join(readme.split())
+                self.assertIn("1.0.4+codex.<token>", readme)
+                self.assertIn("agent-factory", readme)
+                for marker in README_CONTRACT_MARKERS[path.name]:
+                    self.assertIn(marker, normalized)
+                for command in required_commands:
+                    self.assertIn(command, readme)
+
     def test_manifest_has_release_metadata_and_resolvable_skill_path(self) -> None:
         manifest = read_json(MANIFEST)
         self.assertEqual(manifest["name"], "agent-factory")

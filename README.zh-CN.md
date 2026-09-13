@@ -7,6 +7,26 @@
 Agent Factory 是用于人类主导的软件交付的 Codex 插件。它提供范围明确的 Agent
 工作流、证据探索和共享项目约定。
 
+## 与 VS Code 扩展程序的关系
+
+此插件可以完全独立安装和使用，VS Code 扩展程序是可选项。反之，Agent Factory
+VS Code 扩展程序要求安装并启用 semantic base 版本完全相同的此插件。例如，
+扩展程序 `1.0.4` 接受插件 `1.0.4+codex.<token>`。
+
+扩展程序激活时会检查已配置的 Codex marketplace，优先使用官方
+`agent-factory` marketplace；如果插件缺失或版本不匹配，则尝试安装一次兼容插件，
+然后重新检查其安装和启用状态。如果仍无法满足要求，扩展程序会阻止激活，此时可用
+以下命令手动安装或更新插件：
+
+```bash
+codex plugin marketplace add KoreanLeeChangHyun/agent-factory-codex-plugin --ref main
+codex plugin marketplace upgrade agent-factory
+codex plugin add agent-factory@agent-factory
+```
+
+插件与 VS Code 扩展程序同步发布，并且必须始终保持 semantic base 版本一致。
+扩展程序调用 Codex 的插件安装功能，并不自行包含或捆绑此插件。
+
 ## 产品模式
 
 - **仅插件：** 完整的本地工作流。无需 Agent Factory MCP 包、服务器、账户、

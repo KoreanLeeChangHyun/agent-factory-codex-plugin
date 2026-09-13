@@ -7,6 +7,29 @@
 Agent Factory is a Codex plugin for Human-directed software delivery. It provides
 a bounded agent workflow, evidence exploration, and shared project conventions.
 
+## VS Code extension relationship
+
+This plugin is fully installable and usable on its own; the VS Code extension is
+optional. The Agent Factory VS Code extension, however, requires this plugin to be
+installed and enabled at the identical semantic base version. For example, extension
+`1.0.4` accepts plugin `1.0.4+codex.<token>`.
+
+On activation, the extension checks configured Codex marketplaces, prefers the
+official `agent-factory` marketplace, and attempts one installation of a compatible
+plugin when the plugin is missing or mismatched. It then rechecks the installed and
+enabled state. If that cannot be satisfied, activation blocks and the plugin can be
+installed or updated manually:
+
+```bash
+codex plugin marketplace add KoreanLeeChangHyun/agent-factory-codex-plugin --ref main
+codex plugin marketplace upgrade agent-factory
+codex plugin add agent-factory@agent-factory
+```
+
+The plugin and VS Code extension are released together and must remain on matching
+semantic base versions. The extension invokes Codex plugin installation; it does not
+contain or bundle the plugin.
+
 ## Product modes
 
 - **Plugin only:** A complete local workflow. It requires no Agent Factory MCP

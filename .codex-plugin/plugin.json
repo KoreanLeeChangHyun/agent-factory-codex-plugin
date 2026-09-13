@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "1.0.3+codex.20260913103244",
+  "version": "1.0.4+codex.20260913115728",
   "description": "Two Agent Factory skills for managed agent execution and shared project conventions.",
   "author": {
     "name": "Agent Factory",

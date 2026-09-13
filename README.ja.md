@@ -8,6 +8,30 @@ Agent Factory は、人間の指示に基づくソフトウェアデリバリー
 プラグインです。範囲を限定した Agent ワークフロー、根拠探索、共通の
 プロジェクト規約を提供します。
 
+## VS Code 拡張機能との関係
+
+このプラグインは単独で完全にインストールして使用でき、VS Code 拡張機能は
+任意です。一方、Agent Factory VS Code 拡張機能を使用するには、semantic base
+version が完全に一致するこのプラグインがインストールされ、有効になっている
+必要があります。たとえば、拡張機能 `1.0.4` はプラグイン
+`1.0.4+codex.<token>` を受け入れます。
+
+拡張機能は起動時に設定済みの Codex marketplace を確認し、公式の
+`agent-factory` marketplace を優先します。プラグインが存在しないか version が
+一致しない場合は、互換性のあるプラグインのインストールを 1 回試み、インストール
+済みかつ有効であることを再確認します。条件を満たせない場合は起動を停止し、次の
+コマンドで手動インストールまたは更新できます。
+
+```bash
+codex plugin marketplace add KoreanLeeChangHyun/agent-factory-codex-plugin --ref main
+codex plugin marketplace upgrade agent-factory
+codex plugin add agent-factory@agent-factory
+```
+
+プラグインと VS Code 拡張機能は同時にリリースし、semantic base version を常に
+一致させる必要があります。拡張機能は Codex のプラグインインストールを呼び出す
+ものであり、プラグイン自体を内包またはバンドルしているわけではありません。
+
 ## 製品モード
 
 - **プラグインのみ:** 完全なローカルワークフローです。Agent Factory MCP
