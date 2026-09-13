@@ -12,7 +12,7 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 This plugin is fully installable and usable on its own; the VS Code extension is
 optional. The Agent Factory VS Code extension, however, requires this plugin to be
 installed and enabled at the identical semantic base version. For example, extension
-`1.0.5` accepts plugin `1.0.5+codex.<token>`.
+`1.0.6` accepts plugin `1.0.6+codex.<token>`.
 
 On activation, the extension checks configured Codex marketplaces, prefers the
 official `agent-factory` marketplace, and attempts one installation of a compatible

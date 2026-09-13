@@ -12,7 +12,7 @@ Agent Factory는 사람이 지시하는 소프트웨어 전달을 위한 Codex �
 이 플러그인은 단독으로 완전히 설치하고 사용할 수 있으며 VS Code 확장 프로그램은
 선택 사항입니다. 반면 Agent Factory VS Code 확장 프로그램을 사용하려면 semantic
 base 버전이 정확히 같은 이 플러그인이 설치되고 활성화되어 있어야 합니다. 예를 들어
-확장 프로그램 `1.0.5`는 플러그인 `1.0.5+codex.<token>`을 허용합니다.
+확장 프로그램 `1.0.6`는 플러그인 `1.0.6+codex.<token>`을 허용합니다.
 
 확장 프로그램은 활성화할 때 구성된 Codex marketplace를 확인하고 공식
 `agent-factory` marketplace를 우선합니다. 플러그인이 없거나 버전이 다르면 호환되는

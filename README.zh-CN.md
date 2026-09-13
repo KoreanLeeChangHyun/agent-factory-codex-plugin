@@ -11,7 +11,7 @@ Agent Factory 是用于人类主导的软件交付的 Codex 插件。它提供�
 
 此插件可以完全独立安装和使用，VS Code 扩展程序是可选项。反之，Agent Factory
 VS Code 扩展程序要求安装并启用 semantic base 版本完全相同的此插件。例如，
-扩展程序 `1.0.5` 接受插件 `1.0.5+codex.<token>`。
+扩展程序 `1.0.6` 接受插件 `1.0.6+codex.<token>`。
 
 扩展程序激活时会检查已配置的 Codex marketplace，优先使用官方
 `agent-factory` marketplace；如果插件缺失或版本不匹配，则尝试安装一次兼容插件，

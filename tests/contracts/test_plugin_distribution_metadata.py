@@ -18,7 +18,7 @@ SEMVER = re.compile(
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
-CACHEBUSTER_VERSION = re.compile(r"^1\.0\.5\+codex\.\d{14}$")
+CACHEBUSTER_VERSION = re.compile(r"^1\.0\.6\+codex\.\d{14}$")
 README_PATHS = (
     ROOT / "README.md",
     ROOT / "README.ko.md",
@@ -67,7 +67,7 @@ class PluginDistributionMetadataTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 readme = path.read_text(encoding="utf-8")
                 normalized = " ".join(readme.split())
-                self.assertIn("1.0.5+codex.<token>", readme)
+                self.assertIn("1.0.6+codex.<token>", readme)
                 self.assertIn("agent-factory", readme)
                 for marker in README_CONTRACT_MARKERS[path.name]:
                     self.assertIn(marker, normalized)
