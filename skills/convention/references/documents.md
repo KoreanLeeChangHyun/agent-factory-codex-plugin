@@ -18,57 +18,118 @@
 
 ## Provider placement
 
-- This Agent Factory plugin repository is the Provider. It has no active Original
-  Document storage route. Evidence remains at its existing source or in temporary
-  execution state; do not copy it into a repository Original-document tree.
-- Store Provider Processed Documents under `<plugin-root>/docs/`. The root `/docs/`
-  path is Git-ignored and contains no authoritative plugin contract.
+- This Agent Factory plugin repository is the Provider. When the Human requests a
+  durable Provider Original or Processed Document, use the same type-specific
+  package roots below with `<plugin-root>` as the project root. Otherwise evidence
+  remains at its existing source or in temporary execution state.
+- Provider Processed Documents under `<plugin-root>/docs/processed/` remain
+  non-authoritative and Git-ignored.
 - Store Provider Specifications only as maintained packages under
   `<plugin-root>/skills/`. `SKILL.md` and its owned `references/`, `scripts/` and
   `assets/` form the Specification package. Do not create parallel Provider
-  Specifications under `docs/` or `.codex/skills/`.
+  Specifications under `docs/specification/` or `.codex/skills/` and do not migrate
+  these distributed packages as Client Documents.
 - The Provider exposes only `agent` and `convention`; Client Project Skill naming
   does not rename these accepted Provider identities.
 
 ## Routing
 
-For Client Original and Processed Documents, generated output outside this
-Provider-specific placement, and optional Specification exports:
+In the currently implemented plugin-only mode, durable Client Documents use one
+package directory under exactly one of these local roots:
 
-1. **Explicit destination:** follow the Human-supplied destination and format.
-2. **Selected connected destination:** only when a Document capability is available,
-   explicitly selected and authorized for the write, use its current contract and
-   resolved destination. Connection or discovery alone grants no transmission authority.
-3. **Local route:** otherwise write under `<project-root>/docs/` with a concise
-   `[분류]-[이름]` (`<category>-<name>`) basename. Use the appropriate extension
-   for a file or that basename as the directory for a multi-file package.
+| Type | Canonical package |
+|---|---|
+| Original | `<project-root>/docs/original/<category>-<name>/` |
+| Processed | `<project-root>/docs/processed/<category>-<name>/` |
+| Specification | `<project-root>/docs/specification/<category>-<name>/` |
 
-- The local route is complete standalone behavior, not an error fallback. A
-  filename category never changes Document type or acceptance authority.
+- The local route is complete standalone behavior, not an error fallback. Use a
+  concise lowercase `<category>-<name>` package identity. A category never changes
+  Document type or acceptance authority.
+- A Human-supplied alternative destination or format creates an additional export;
+  it does not replace canonical local storage or either Specification projection.
 <!-- clause-id: specification.routing.canonical -->
-- Client Specification projections are an exception to this general routing
-  order: their canonical paths and formats are fixed by
-  [Client Specification projections](#client-specification-projections). A
-  Human-supplied alternative destination or format creates an additional export
-  or a Processed Document; it does not replace either canonical projection. If the
+- Client Specification projections have the fixed paths and formats in
+  [Client Specification projections](#client-specification-projections). If the
   requested classification is unclear, resolve it with the Human before writing.
-- Report failures after a connected destination was selected; do not silently
-  choose another destination or create a second copy. This contract adds no
-  automatic upload, migration or local Document service.
+- This plugin implements no cloud Document receiver, migration path, automatic
+  upload or local MCP/Document service. The future connected route below is a
+  contract for later implementation, not a claim about the current MCP repository.
 - Keep temporary execution artifacts in their run directories and maintained
   Provider instructions in their owning `skills/` packages.
+
+### Original packages
+
+- Store source identity, provenance, fidelity, locators and whether source content
+  is stored as package metadata by default.
+- Store actual source data inside the same Original package only when the Human
+  explicitly requests it. Record its presence and format without implying that a
+  locator is embedded content.
+- Preservation and migration requirements grant no destructive local cleanup rule.
+
+### Future connected storage and migration
+
+<!-- clause-id: document.future-mcp.cutover -->
+- The cloud Document MCP receiver and migration system described here does not yet
+  exist. Actual cutover requires that future capability, an available authorized
+  Agent Factory cloud Document MCP connection, and an explicitly resolved target
+  workspace/project destination. A connection without that destination fails
+  closed; never infer an upload target.
+- Before cutover, enumerate the complete bounded inventory under
+  `<project-root>/docs/original/`, `<project-root>/docs/processed/`, and
+  `<project-root>/docs/specification/`. Migrate every existing local Document while
+  preserving type, identity, provenance, content-presence, and each Specification's
+  HTML/Project Skill pairing. Use stable idempotency identifiers and verify receiver
+  acknowledgements, integrity, and source-to-destination mappings.
+- Report cutover only after the complete bounded inventory succeeds. Partial or
+  ambiguous failure remains pending and retains recoverable local data; retry must
+  be idempotent and no automatic deletion is permitted.
+- After verified cutover, subsequent durable Documents use the resolved MCP
+  destination as authoritative storage under its then-current authenticated
+  contract. Do not silently fall back to local authoritative storage after that
+  destination has been selected; report failures instead.
+
+#### Dual-storage mode
+
+<!-- clause-id: document.future-mcp.dual-storage -->
+- If the Human explicitly requests both canonical local storage and the future
+  cloud Document MCP storage, use dual-storage mode. This is a future contract
+  only: the cloud receiver, migration system, and dual-storage execution path are
+  not currently implemented.
+- For every create or update, first mutate the authoritative MCP Document at its
+  resolved target using the expected revision/CAS and idempotency contract. Only
+  after its acknowledgement succeeds, fetch the committed MCP revision and
+  synchronize the received content and metadata to the canonical local package.
+  Derive the local projection from that MCP-confirmed revision, never independently
+  from proposed input.
+- Never write local first, perform concurrent bidirectional writes, or silently
+  merge divergent local and MCP state. If the MCP mutation fails or its outcome is
+  ambiguous, do not mutate the local projection.
+- If the MCP mutation succeeds but local projection fails, MCP remains
+  authoritative and local is explicitly stale and pending retry. Retry projection
+  from that same MCP revision without replaying the MCP mutation.
+- For a Specification, project the MCP-confirmed revision to its local
+  Human-language HTML and English Project Skill pair using the existing atomic pair
+  transaction and shared semantic metadata.
+- Initial cutover into dual-storage mode imports each local Document to MCP,
+  confirms its committed revision, and then re-projects that confirmed MCP state to
+  local. Conflicting pre-existing MCP and local revisions require Human resolution;
+  never choose authority by timestamps.
 
 ## Formats
 
 - Original uses its native or otherwise source-appropriate format.
 - Processed defaults to Markdown and may use CSV or JSON when tabular or structured
-  data makes one appropriate. A Processed Document is never a Project Skill.
+  data makes one appropriate. Every AI-generated durable Document is Processed by
+  default. Processed categories are open-ended and may include `interview`,
+  `research`, and `analysis`. A Processed Document is never a Project Skill.
 - Only a Human-requested Specification becomes a Project Skill.
 
 ## Specification naming
 
 - Use the Human-resolved lowercase `<category>-<name>` identity. Do not infer
   components or bulk-rename accepted identities.
+- Specification categories are limited to `info-*`, `rule-*`, and `design-*`.
 - Use `info-*` for information Agents consult, `rule-*` for rules Agents must
   follow, and `design-*` for integrated planning intent and technical design.
 - Keep planning intent and technical design together in one `design-*`
@@ -82,9 +143,9 @@ Provider-specific placement, and optional Specification exports:
 - A Client Specification has two synchronized representations with one identity
   and version: an English AI-facing Project Skill at
   `.codex/skills/<category>-<name>/` and a Human-facing HTML document in the Human's
-  language at `docs/<category>-<name>.html`. These canonical locations override
-  the general Document routing order; neither representation may be redirected,
-  omitted or replaced by a single alternative file.
+  language at `docs/specification/<category>-<name>/index.html`. The HTML is inside
+  the Specification package. Neither representation may be redirected, omitted or
+  replaced by a single alternative file.
 
 <!-- clause-id: specification.human.presentation -->
 - The Human representation may add highlighting, diagrams and layout that improve
@@ -93,11 +154,12 @@ Provider-specific placement, and optional Specification exports:
   facts or design intent.
 
 <!-- clause-id: specification.html.packaging -->
-- Keep HTML self-contained by default. At 3,000 unminified source lines, review
+- Keep `index.html` self-contained by default. At 3,000 unminified source lines, review
   splitting; do not split solely because the count was reached. Prefer the
   structure an AI can read and modify reliably, considering DOM size, byte size and
   independently maintainable CSS, JavaScript, SVG or content sections. When
-  splitting is warranted, use `docs/<category>-<name>/index.html` with local files.
+  splitting is warranted, keep local files in the same
+  `docs/specification/<category>-<name>/` package.
 
 ## Embedded metadata
 
@@ -111,7 +173,7 @@ representation remains self-identifying without an MCP connection.
 | `specification-version` | Human-visible shared version. |
 | `projection` | `ai` for Skill or `human` for HTML. |
 | `language` | Representation language. |
-| `counterpart` | Resolved locator for the other representation. |
+| `counterpart` | Canonical locator for the other representation: the Skill uses `docs/specification/<category>-<name>/index.html`; the HTML uses `.codex/skills/<category>-<name>/`. |
 | `semantic-revision` | Meaning revision represented by this file. |
 | `sync-base-revision` | Last meaning revision committed to both representations. |
 | `modified-at` | Actual representation modification time in RFC 3339 form. |
@@ -128,20 +190,23 @@ representation remains self-identifying without an MCP connection.
 
 <!-- clause-id: specification.sync.ownership -->
 - Synchronization follows the selected destination capability. In standalone mode,
-  the Agent uses local file tools and the transaction below. When the Human selects
-  an available MCP Document capability, that MCP server provides file access,
-  version checks and transaction handling. The Provider plugin implements no
-  separate synchronization service and requires neither an MCP-owned language
-  model, language-neutral semantic model nor third canonical Specification.
+  the Agent uses local file tools and the transaction below. Only after the future
+  cloud receiver exists and the connected-storage cutover conditions succeed may
+  its then-current contract provide authoritative storage, version checks and
+  transaction handling. The Provider plugin implements no separate synchronization
+  service and requires neither an MCP-owned language model, language-neutral
+  semantic model nor third canonical Specification.
 
 <!-- clause-id: specification.sync.agent-language -->
 - On a Human request, the Agent maps affected `clause-id` values, writes the English
-  Skill and Human-language HTML in the Client, and checks semantic correspondence.
-  Local tools provide standalone access; a selected MCP capability provides
-  connected access.
+  Skill at `.codex/skills/<category>-<name>/` and the Human-language HTML at
+  `docs/specification/<category>-<name>/index.html`, and checks semantic
+  correspondence. Local tools provide the currently implemented standalone access.
 
 <!-- clause-id: specification.sync.local-transaction -->
-- In standalone mode, read and revalidate both current projections and their shared
+- In standalone mode, read and revalidate the Skill at
+  `.codex/skills/<category>-<name>/` and HTML at
+  `docs/specification/<category>-<name>/index.html` with their shared
   `sync-base-revision`; stage both complete replacements at temporary sibling paths
   on their target filesystems; validate metadata, `clause-id` coverage, links and
   semantic correspondence; then preserve recoverable originals and replace both
@@ -175,10 +240,11 @@ representation remains self-identifying without an MCP connection.
 
 <!-- clause-id: specification.conflict.interview -->
 - In standalone mode, the Agent derives conflict facts from both projections and
-  their embedded metadata. A selected MCP capability returns its structured
-  conflict facts. In either mode, the Agent resolves conflicts through Interview in
-  the current Human conversation. Do not overwrite either representation or
-  advance `sync-base-revision` before the Human decides.
+  their embedded metadata. A future connected capability may return structured
+  conflict facts only after the cutover contract applies. In either mode, the Agent
+  resolves conflicts through Interview in the current Human conversation. Do not
+  overwrite either representation or advance `sync-base-revision` before the Human
+  decides.
 
 <!-- clause-id: specification.conflict.large -->
 - For a conflict too large to compare safely in conversation, the Agent may create

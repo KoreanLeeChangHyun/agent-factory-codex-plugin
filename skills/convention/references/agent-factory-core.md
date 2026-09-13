@@ -37,9 +37,14 @@
   Local exec/loop retains session/run/graph authority; run/outbox/recovery stays
   local. Consult current authenticated MCP guides and schemas for domain operations.
 - Inspect locally with shell/file tools; route generated documents through
-  [Document routing](documents.md#routing). MCP
-  absence is normal in plugin-only mode; never infer accounts or create a substitute
-  local MCP/provider service.
+  [Document routing](documents.md#routing). Plugin-only durable Documents use the
+  three local type roots. MCP absence is normal in plugin-only mode; never infer
+  accounts or create a substitute local MCP/provider service.
+- The future cloud receiver/migration contract is not currently implemented. A
+  future cutover requires an authorized connection, a resolved target
+  workspace/project destination, complete idempotent migration and verified
+  acknowledgements, integrity and mappings; partial failure retains local data and
+  remains pending without automatic deletion.
 - Follow [directory-structure.md](directory-structure.md#legacy-migration) for
   legacy retention and retirement. Retire local domain executables only after
   verified replacement.

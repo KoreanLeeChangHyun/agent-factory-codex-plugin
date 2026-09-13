@@ -18,9 +18,11 @@ installed Skill roots, not to this project:
 
 This project uses Agent Factory. Keep its Human-requested Project Skills below
 `.codex/skills/<category>-<name>/`, synchronized with their Human-facing
-`docs/<category>-<name>.html` projections under the Documents contract. Preserve
-existing project guidance; do not copy the installed plugin's Skills into this
-project. MCP domain guides remain with the MCP application. Resolve managed
-runtime locations through the installed Agent runtime, outside the checkout.
+`docs/specification/<category>-<name>/index.html` projections under the Documents
+contract. Route Original and Processed packages below `docs/original/` and
+`docs/processed/`. Preserve existing project guidance; do not copy the installed
+plugin's Skills into this project. MCP domain guides remain with the MCP
+application. Resolve managed runtime locations through the installed Agent
+runtime, outside the checkout.
 </agent-factory>
 </INSTRUCTIONS>

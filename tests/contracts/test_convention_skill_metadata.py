@@ -160,22 +160,20 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             with self.subTest(manifest_dependency=dependency):
                 self.assertIn(dependency, manifest_description)
         self.assertIn("absence of MCP is a normal supported mode", convention)
-        self.assertIn("<project-root>/docs/", layout)
+        for document_type in ("original", "processed", "specification"):
+            self.assertIn(
+                f"<project-root>/docs/{document_type}/<category>-<name>/", layout
+            )
         self.assertIn("not an error fallback", layout)
-        self.assertLess(
-            documents.index("**Explicit destination:**"),
-            documents.index("**Selected connected destination:**"),
-        )
-        self.assertLess(
-            documents.index("**Selected connected destination:**"),
-            documents.index("**Local route:**"),
-        )
+        self.assertNotIn("docs/<category>-<name>.html", documents)
         self.assertIn(
-            "Connection or discovery alone grants no transmission authority", documents
+            "docs/specification/<category>-<name>/index.html", documents
         )
         for clause_id in (
             "specification.routing.canonical",
             "specification.sync.local-transaction",
+            "document.future-mcp.cutover",
+            "document.future-mcp.dual-storage",
         ):
             self.assertIn(f"<!-- clause-id: {clause_id} -->", documents)
         distributed_python = "\n".join(
@@ -186,6 +184,71 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             distributed_python, r"(?m)^\s*(?:from|import)\s+mcp(?:\.|\s|$)"
         )
         self.assertNotIn("mcp", (ROOT / "requirements.txt").read_text().lower())
+
+    def test_document_package_and_future_cutover_contract(self) -> None:
+        documents = (
+            SKILLS / "convention" / "references" / "documents.md"
+        ).read_text(encoding="utf-8")
+        normalized_documents = " ".join(documents.split())
+        dual_storage = documents.split("#### Dual-storage mode", 1)[1].split(
+            "\n## Formats", 1
+        )[0]
+        normalized_dual_storage = " ".join(dual_storage.split())
+        asset = (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(
+            encoding="utf-8"
+        )
+
+        for document_type in ("original", "processed", "specification"):
+            root = f"<project-root>/docs/{document_type}/<category>-<name>/"
+            self.assertIn(root, documents)
+        for detail in (
+            "source identity",
+            "provenance",
+            "fidelity",
+            "locators",
+            "whether source content is stored",
+            "only when the Human explicitly requests it",
+            "Every AI-generated durable Document is Processed by default",
+            "open-ended",
+            "`interview`",
+            "`research`",
+            "`analysis`",
+            "does not yet exist",
+            "stable idempotency identifiers",
+            "receiver acknowledgements",
+            "complete bounded inventory",
+            "no automatic deletion",
+            "fails closed",
+            "explicitly requests both canonical local storage and the future cloud",
+            "first mutate the authoritative MCP Document",
+            "expected revision/CAS and idempotency contract",
+            "fetch the committed MCP revision",
+            "never independently from proposed input",
+            "Never write local first",
+            "concurrent bidirectional writes",
+            "silently merge divergent local and MCP state",
+            "outcome is ambiguous, do not mutate the local projection",
+            "local is explicitly stale and pending retry",
+            "without replaying the MCP mutation",
+            "existing atomic pair transaction and shared semantic metadata",
+            "re-projects that confirmed MCP state to local",
+            "Conflicting pre-existing MCP and local revisions require Human resolution",
+            "never choose authority by timestamps",
+            "dual-storage execution path are not currently implemented",
+        ):
+            with self.subTest(detail=detail):
+                self.assertIn(detail, normalized_documents)
+        self.assertIn(
+            "Only after its acknowledgement succeeds, fetch the committed MCP revision",
+            normalized_dual_storage,
+        )
+        self.assertIn(
+            "limited to `info-*`, `rule-*`, and `design-*`",
+            normalized_documents,
+        )
+        self.assertIn("<plugin-root>/skills/", normalized_documents)
+        self.assertIn("Do not create parallel Provider", normalized_documents)
+        self.assertIn("docs/specification/<category>-<name>/index.html", asset)
 
     def test_agent_prompt_roles(self) -> None:
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}

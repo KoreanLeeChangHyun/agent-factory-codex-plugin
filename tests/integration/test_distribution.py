@@ -39,6 +39,11 @@ class DistributionTests(unittest.TestCase):
             self.assertFalse((installed / "mcp").exists())
             self.assertFalse((installed / "skills/mcp").exists())
             layout = (installed / "skills/convention/references/directory-structure.md").read_text()
-            self.assertIn("<project-root>/docs/", layout)
-            self.assertIn("complete standalone behavior", layout)
+            normalized_layout = " ".join(layout.split())
+            for document_type in ("original", "processed", "specification"):
+                self.assertIn(
+                    f"<project-root>/docs/{document_type}/<category>-<name>/",
+                    normalized_layout,
+                )
+            self.assertIn("complete standalone behavior", normalized_layout)
             self.assertFalse((installed / "docs").exists())

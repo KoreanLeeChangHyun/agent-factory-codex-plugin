@@ -23,8 +23,10 @@
 - Keep credentials with their authority, outside runtime evidence and Git.
 - Use shell/file tools for bounded local inspection.
 - Store durable documents using [Document routing](documents.md#routing). Its local
-  standalone route is `<project-root>/docs/`; this is complete standalone behavior,
-  not an error fallback.
+  standalone packages are `<project-root>/docs/original/<category>-<name>/`,
+  `<project-root>/docs/processed/<category>-<name>/`, and
+  `<project-root>/docs/specification/<category>-<name>/`; this is complete
+  standalone behavior, not an error fallback.
 - Add no local MCP/provider/Document service.
 
 ## Cloud domains
@@ -34,6 +36,11 @@
 - The resolved MCP application owns its domain implementation, dependencies,
   deployment and connected state. Use its current authenticated guides and schemas
   for physical storage and application layout.
+- A future Agent Factory cloud Document MCP receiver may become authoritative only
+  after an authorized connection and target workspace/project destination are both
+  resolved and the complete local inventory is migrated and verified under
+  [Documents](documents.md#future-connected-storage-and-migration). That receiver
+  and migration path are not currently implemented by this plugin.
 - Do not add MCP domain backends, Workspace assets or launchers to the plugin or a
   consumer project. Non-authoritative installation/connection cache may use
   `~/.agent-factory/` outside repositories.
