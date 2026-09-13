@@ -1961,6 +1961,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 session = load_session(resolve_project_root(args.project_root), args.agent)
                 codex = session["codex"]
             capabilities = dict(native_codex.inspect_capabilities(codex))
+            capabilities["submit"] = {**capabilities["submit"], "images": True}
+            capabilities["send"] = {**capabilities["send"], "images": True}
             if session is not None and "executionPolicy" in session:
                 capabilities["executionMode"] = (
                     "bypass"

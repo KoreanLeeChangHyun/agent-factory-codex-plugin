@@ -175,6 +175,10 @@ to locate; this inventory does not prove its version or complete sandbox works.
   Native Goal activation has no image field in the installed app-server schema;
   requests combining images with enabled Goal mode fail before run creation
   instead of silently discarding image content. Disable Goal for that turn.
+- The `capabilities` response advertises `images: true` independently for
+  `submit` and `send`. Clients must require that flag before using `agent-input`;
+  a missing or false flag identifies a runtime that cannot guarantee image
+  delivery and must not be downgraded to attachment-reference text.
 - `scripts/loop.py`: `start`, `status`, `reconcile` (one transition),
   `recover-receipt`,
   `skip --actor human --authorization-reference REF --decision-evidence TEXT`.
