@@ -246,7 +246,7 @@ def read_request(args: argparse.Namespace) -> bytes:
         content = sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1)
     else:
         raise ContractError(
-            "request_missing", "provide --request-file, --message, or piped stdin"
+            "request_missing", "provide --request-file, --message, --input-file, or piped stdin"
         )
     if len(content) > MAX_REQUEST_BYTES:
         raise ContractError("request_too_large", "request exceeds the size limit")

@@ -270,6 +270,8 @@ def activate_persisted_goal(rpc, thread_id, params, turn):
     """
     if turn.get("threadId") != thread_id or "outputSchema" not in turn:
         raise NativeError("Goal startup requires exact thread identity and result contract")
+    if any(item.get("type") == "localImage" for item in turn.get("input", [])):
+        raise NativeError("Native Goal activation does not support local image input")
     before = rpc.call("thread/goal/get", {"threadId": thread_id}).get("goal")
     if not before or before.get("status") != "paused":
         raise NativeError("Owned Goal must be confirmed paused before backend reload")
@@ -408,7 +410,9 @@ class Bridge:
             if cursor:
                 raise NativeError("Codex model catalog exceeds pagination bound")
         tier = service_tier(models, response.get("model", self.session.get("model", "")), fast)
-        turn = {"threadId": self.thread_id, "input": [{"type": "text", "text": prompt}],
+        inputs = [{"type": "text", "text": prompt}]
+        inputs.extend({"type": "localImage", "path": image["path"]} for image in self.state.get("imageInputs", []))
+        turn = {"threadId": self.thread_id, "input": inputs,
                 "outputSchema": self.runtime.safe_read_json(Path(self.state["responseSchemaPath"]))}
         if self.session.get("model"):
             turn["model"] = self.session["model"]

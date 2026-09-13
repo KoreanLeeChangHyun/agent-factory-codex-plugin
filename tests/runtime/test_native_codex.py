@@ -15,6 +15,23 @@ from native_fixtures import native, runtime, native_fixture
 
 
 class NativeCodexTests(unittest.TestCase):
+    def test_turn_start_includes_file_backed_local_image(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, state = native_fixture(Path(directory), goal=False)
+            state["imageInputs"] = [{"path": str(Path(directory) / "image.png"), "mediaType": "image/png"}]
+            bridge = native.Bridge(runtime, bridge.session, state, rpc)
+            bridge.setup("bounded Main")
+            turn = next(params for method, params in rpc.calls if method == "turn/start")
+            self.assertIn({"type": "localImage", "path": state["imageInputs"][0]["path"]}, turn["input"])
+
+    def test_goal_activation_never_silently_drops_local_image(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, state = native_fixture(Path(directory), goal=True)
+            state["imageInputs"] = [{"path": str(Path(directory) / "image.png"), "mediaType": "image/png"}]
+            bridge = native.Bridge(runtime, bridge.session, state, rpc)
+            with self.assertRaisesRegex(native.NativeError, "does not support local image"):
+                bridge.setup("bounded Main")
+
     def test_explicit_false_and_inherit_are_distinct_on_submit_and_send(self):
         for command in ("submit", "send"):
             prefix = [command, "--agent", "main-test", "--message", "hi"]

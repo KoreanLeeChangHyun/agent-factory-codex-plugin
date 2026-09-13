@@ -165,6 +165,16 @@ to locate; this inventory does not prove its version or complete sandbox works.
 
 - `scripts/exec.py`: `submit`, `send`, `status`, `result`, `inbox`, `list`,
   `cancel`, `reconcile`.
+- `submit` and `send` accept either the existing text inputs or `--input-file`.
+  The latter is a versioned `agent-input` JSON document containing `message` and
+  up to eight sibling PNG, JPEG, GIF or WebP filenames. The runtime rejects
+  traversal, symlinks, non-regular files, MIME/extension mismatches, images over
+  10 MiB, and combined image content over 20 MiB, then captures accepted bytes
+  into the run before asynchronous acknowledgement. Codex exec receives those
+  files through `--image`; app-server turns receive `localImage` inputs.
+  Native Goal activation has no image field in the installed app-server schema;
+  requests combining images with enabled Goal mode fail before run creation
+  instead of silently discarding image content. Disable Goal for that turn.
 - `scripts/loop.py`: `start`, `status`, `reconcile` (one transition),
   `recover-receipt`,
   `skip --actor human --authorization-reference REF --decision-evidence TEXT`.

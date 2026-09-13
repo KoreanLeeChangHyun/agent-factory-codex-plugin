@@ -132,6 +132,7 @@ if sys.platform == "linux":
     import cloud_reporting
     import native_codex
     import paths as runtime_paths
+    import image_input
 VALID_ROLES = {"main", "work", "verification"}
 CAPABILITY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 AUTHORITY_KINDS = {
@@ -166,6 +167,7 @@ def create_run(
     reporting_loop_id: str | None = None,
     execution_options: dict[str, Any] | None = None,
     goal_action: str | None = None,
+    images: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     run_id = new_run_id()
     directory = run_directory(project_root, agent_id, run_id, create=True)
@@ -179,6 +181,15 @@ def create_run(
     capability_binding_path = directory / "capability-bindings.json"
     request_hash = hashlib.sha256(request).hexdigest()
     atomic_write(request_path, request)
+    image_inputs = []
+    for index, image in enumerate(images or []):
+        image_path = directory / "images" / f"{index:02d}{image['suffix']}"
+        atomic_write(image_path, image["content"])
+        image_inputs.append({
+            "path": str(image_path), "mediaType": image["mediaType"],
+            "size": len(image["content"]),
+            "sha256": hashlib.sha256(image["content"]).hexdigest(),
+        })
     capability_binding_hash = None
     capability_binding_document = None
     if capability_bindings is not None:
@@ -231,6 +242,8 @@ def create_run(
         "unread": False,
         "error": None,
     }
+    if image_inputs:
+        state["imageInputs"] = image_inputs
     if execution_options:
         state["executionOptions"] = execution_options
     state["humanApprovalPolicy"] = session.get("humanApprovalPolicy", "required")
@@ -556,7 +569,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     validate_id(args.agent, AGENT_ID, "agent_id")
     if args.actor not in ACTORS:
         raise ContractError("actor_invalid", "actor is invalid")
-    request = read_request(args)
+    if getattr(args, "input_file", None) is not None:
+        request, images = image_input.read_agent_input(args.input_file)
+    else:
+        request, images = read_request(args), []
     try:
         request_text = request.decode("utf-8")
     except UnicodeDecodeError as error:
@@ -621,6 +637,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         execution_options["goalObjective"] = request_text
     operation = "submit" if new_agent else "send"
     request_hash = hashlib.sha256(request).hexdigest()
+    input_images = [{"mediaType": image["mediaType"], "size": len(image["content"]),
+                     "sha256": hashlib.sha256(image["content"]).hexdigest()} for image in images]
     dispatch_tuple = {
         "agentId": args.agent,
         "role": role,
@@ -632,6 +650,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "executionPolicy": policy,
         "humanApprovalPolicy": human_approval_policy,
     }
+    if input_images:
+        dispatch_tuple["imageInputs"] = input_images
     if execution_options:
         dispatch_tuple["executionOptions"] = execution_options
     if goal_action:
@@ -763,6 +783,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         if human_approval_policy_changed:
             session = {**session, "humanApprovalPolicy": human_approval_policy}
         effective = {**session, **execution_options}
+        image_input.validate_execution(images, effective)
         if effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
             capabilities = native_codex.inspect_capabilities(str(session["codex"]))
             required = {"fast": effective.get("fast") is True and goal_action in (None, "resume", "reopen"),
@@ -785,6 +806,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             reporting_loop_id=reporting_loop_id,
             execution_options=execution_options,
             goal_action=goal_action,
+            images=images,
         )
         if policy_changed or human_approval_policy_changed:
             session_updates = {"humanApprovalPolicy": human_approval_policy}
@@ -902,6 +924,10 @@ def run_codex_attempt(
     request = safe_read_bytes(Path(state["requestPath"]), MAX_REQUEST_BYTES)
     if hashlib.sha256(request).hexdigest() != state.get("requestHash"):
         raise AttemptFailure("request_changed", "managed request content changed", False)
+    for image in state.get("imageInputs", []):
+        content = safe_read_bytes(Path(image["path"]), image_input.MAX_IMAGE_BYTES)
+        if len(content) != image.get("size") or hashlib.sha256(content).hexdigest() != image.get("sha256"):
+            raise AttemptFailure("input_image_changed", "managed image input changed", False)
     # Validate the output contract and prepare all prompt files before any child launch.
     try:
         prompt = build_prompt(

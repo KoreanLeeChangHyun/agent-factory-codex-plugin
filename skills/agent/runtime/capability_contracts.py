@@ -95,7 +95,8 @@ def safe_hash_caller_file(path: Path, expected_identity=None) -> str:
 
 
 def safe_read_caller_file(path: Path, limit: int | None, *, private: bool = False,
-                          digest_only: bool = False, expected_identity=None) -> bytes | str:
+                          digest_only: bool = False, expected_identity=None,
+                          stable: bool = False) -> bytes | str:
     """Read an explicit caller file without following any path component."""
     if ".." in path.parts:
         raise ContractError("capability_binding_invalid", "capability binding path contains traversal")
@@ -162,6 +163,8 @@ def safe_read_caller_file(path: Path, limit: int | None, *, private: bool = Fals
         content = b"".join(chunks)
         if len(content) > limit:
             raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
+        if stable and (len(content) != info.st_size or result_file_identity(os.fstat(descriptor)) != result_file_identity(info)):
+            raise ContractError("input_file_changed", "input file changed during capture")
         return content
     except (FileNotFoundError, NotADirectoryError, OSError) as error:
         raise ContractError(
@@ -171,6 +174,5 @@ def safe_read_caller_file(path: Path, limit: int | None, *, private: bool = Fals
     finally:
         if descriptor >= 0:
             os.close(descriptor)
-
 
 

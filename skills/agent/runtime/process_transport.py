@@ -210,7 +210,10 @@ def build_codex_command(
     session: dict[str, Any], state: dict[str, Any], session_id: str | None
 ) -> list[str]:
     codex = str(session["codex"])
-    common = ["--json", "--output-schema", str(state["responseSchemaPath"])]
+    common = []
+    for image in state.get("imageInputs", []):
+        common.extend(["--image", str(image["path"])])
+    common.extend(["--json", "--output-schema", str(state["responseSchemaPath"])])
     if session.get("backend") == "app-server":
         return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"])]
     policy = execution_policy.session_policy(session)

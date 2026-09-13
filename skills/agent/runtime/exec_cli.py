@@ -28,6 +28,10 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     request = parser.add_mutually_exclusive_group()
     request.add_argument("--request-file", type=Path)
     request.add_argument("--message")
+    request.add_argument(
+        "--input-file", type=Path,
+        help="versioned agent-input JSON with sibling, file-backed images",
+    )
     parser.add_argument("--actor", choices=ACTORS, default="main")
     parser.add_argument(
         "--human-approval-policy", choices=HUMAN_APPROVAL_POLICIES,
@@ -160,6 +164,5 @@ def validate_submit_options(args: argparse.Namespace) -> None:
         )
     if args.max_attempts < 1 or args.max_attempts > 10:
         raise ContractError("invalid_attempts", "max attempts must be between 1 and 10")
-
 
 
