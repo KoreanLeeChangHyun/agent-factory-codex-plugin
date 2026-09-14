@@ -32,7 +32,7 @@ MAX_STDERR_BYTES = 4 * 1024 * 1024
 MAX_RESULT_TEXT_BYTES = 64 * 1024
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 EXEC_SCRIPT = SKILL_ROOT / "scripts" / "exec.py"
-if sys.platform == "linux":
+if sys.platform in {"linux", "darwin"}:
     import paths as runtime_paths
 
 class AttemptFailure(Exception):

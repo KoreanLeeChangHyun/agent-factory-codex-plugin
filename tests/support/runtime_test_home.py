@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 _temporary = tempfile.TemporaryDirectory(prefix='af-test-home-')
-os.environ['AGENT_FACTORY_HOME'] = str(Path(_temporary.name) / 'runtime')
+os.environ['AGENT_FACTORY_HOME'] = str(Path(_temporary.name).resolve() / 'runtime')
 os.environ.pop('AGENT_FACTORY_PARENT_STATE', None)
 os.environ.pop('CODEX_THREAD_ID', None)
 os.environ['AGENT_FACTORY_EXECUTION_POLICY'] = json.dumps({

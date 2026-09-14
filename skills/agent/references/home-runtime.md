@@ -79,10 +79,17 @@ to locate; this inventory does not prove its version or complete sandbox works.
 | Host | Managed execution | Required action |
 | --- | --- | --- |
 | Linux, including Ubuntu | Requires `/proc` identity and usable containment/sandbox facilities | Inspect `doctor`; use `--probe` for system bubblewrap evidence. |
-| macOS | Unsupported by this managed runtime | Use a supported Linux host; native Codex support is separate. |
+| macOS | Requires kernel boot/process identity and private process groups | Use Python 3.10+ and inspect `doctor`; validate the selected native Codex sandbox on the actual Mac. |
 | Native Windows | Unsupported by this managed runtime | Use a separately checked Linux host or WSL environment. |
 | Other operating systems | Unsupported | Add and verify a process-identity/containment backend before claiming support. |
 
+- macOS `doctor --probe` reports the Linux bubblewrap probe as `not-applicable`;
+  it reads native identity availability and leaves sandbox readiness unknown.
+  For custom `AGENT_FACTORY_HOME`, use an absolute path with no symlink ancestors
+  (for example, `/private/tmp/...` rather than the macOS `/tmp` alias). The runtime
+  does not weaken its path checks to accommodate aliases.
+- Native API references: [process info](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h),
+  [boot session UUID](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_sysctl.c).
 - Unsupported hosts return `managed_platform_unsupported` before runtime storage
   access or POSIX-only runtime imports. No backend or permission fallback is selected.
 - `sandboxReadiness: unknown` is intentional: locating a binary, an enabled
@@ -221,10 +228,17 @@ to locate; this inventory does not prove its version or complete sandbox works.
 
 #### Fallback
 
-- Without usable user systemd, retain startup barrier, private sessions/process
-  groups and boot-ID/start-ticks checks. Fail closed on unverifiable identity;
+- Without usable user systemd (including macOS), retain startup barrier, private
+  sessions/process groups and boot/process-start identity checks. Fail closed on unverifiable identity;
   preserve conservative stale-run/non-replay behavior.
-- Descendant containment is weaker. Systemd is optional; the adapter allows future
+- On macOS, `kern.bootsessionuuid` and `proc_pidinfo(PROC_PIDTBSDINFO)` bind
+  identity to the boot and microsecond process start time. The persisted `bootId`
+  has a `darwin:` prefix; `startTicks` stores start microseconds on this backend.
+  Missing, denied or malformed identity fails closed; no PID-only fallback is used.
+- Descendant containment is weaker: children that create a new session can escape
+  process-group cancellation. `weakerDescendantContainment: true` records this
+  lifecycle limitation; it does not widen Codex filesystem/network permissions.
+  Systemd is optional; the adapter allows future
   backends but claims no Windows support.
 
 ## Capability bindings

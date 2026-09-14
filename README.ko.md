@@ -77,8 +77,10 @@ codex plugin add agent-factory@agent-factory
 
 ## 호환성
 
-- **운영체제:** 관리형 실행은 Linux를 지원합니다. WSL은 Linux 검사를 충족해야
-  하며 macOS와 네이티브 Windows는 지원하지 않습니다.
+- **운영체제:** 관리형 실행에 Linux와 macOS 백엔드가 있습니다. WSL은 Linux 검사를
+  충족해야 하며 네이티브 Windows는 지원하지 않습니다. macOS는 자손 프로세스
+  추적이 더 약한 비공개 프로세스 그룹을 사용하며 실제 Mac 검증이 필요합니다.
+  [호스트 준비 상태](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics)를 참고해 주세요.
 - **Python:** 소스 수준 최저 버전은 Python 3.10입니다. 릴리스 검증은 구성된
   Python 3.10 및 3.12 기준을 다룹니다.
 - **Codex:** 저장소 전체에 적용되는 CLI 버전을 전제하지 않습니다. 런타임 사전

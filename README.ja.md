@@ -79,8 +79,10 @@ codex plugin add agent-factory@agent-factory
 
 ## 互換性
 
-- **オペレーティングシステム:** 管理対象実行は Linux をサポートします。WSL は
-  Linux のチェックを満たす必要があり、macOS とネイティブ Windows は非対応です。
+- **オペレーティングシステム:** 管理対象実行には Linux と macOS のバックエンドがあります。WSL は
+  Linux のチェックを満たす必要があり、ネイティブ Windows は非対応です。macOS は
+  子孫プロセスの封じ込めが弱い非公開プロセスグループを使用し、実機検証が必要です。
+  [ホスト準備状況](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics)をご参照ください。
 - **Python:** ソースレベルの最低バージョンは Python 3.10 です。リリース検証は、
   構成された Python 3.10 および 3.12 のベースラインを対象とします。
 - **Codex:** リポジトリ全体に適用する CLI バージョンは仮定しません。ランタイムの

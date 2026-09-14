@@ -1,4 +1,4 @@
-"""Linux process identity and containment backends for managed Agent runs."""
+"""Linux/macOS process identity and containment for managed Agent runs."""
 
 from __future__ import annotations
 
@@ -98,6 +98,21 @@ def linux_process_identity(pid: int) -> dict[str, Any]:
     return {"pid": pid, "bootId": linux_boot_id(), "startTicks": int(fields[19])}
 
 
+def boot_id() -> str:
+    if sys.platform == "darwin":
+        import macos_process_identity
+        return macos_process_identity.boot_id()
+    return linux_boot_id()
+
+
+def process_identity(pid: int) -> dict[str, Any]:
+    if sys.platform == "darwin":
+        import macos_process_identity
+        return macos_process_identity.process_identity(pid)
+    require_managed_platform()
+    return linux_process_identity(pid)
+
+
 def process_identity_status(identity: object) -> str:
     if not isinstance(identity, dict) or set(identity) != {
         "pid",
@@ -109,7 +124,9 @@ def process_identity_status(identity: object) -> str:
     if not isinstance(pid, int) or pid <= 0:
         return "unknown"
     try:
-        observed = linux_process_identity(pid)
+        if sys.platform == "darwin" and identity["bootId"] != boot_id():
+            return "mismatch"
+        observed = process_identity(pid)
     except ContractError as error:
         if error.code == "process_not_found":
             return "dead"
@@ -360,7 +377,7 @@ def containment_bootstrap(args: argparse.Namespace) -> int:
 def spawn_contained_process(
     command: Sequence[str], **popen_options: Any
 ) -> tuple[subprocess.Popen[str], dict[str, Any], int]:
-    linux_boot_id()
+    boot_id()
     ready_read, ready_write = os.pipe()
     release_read, release_write = os.pipe()
     bootstrap_command = [
@@ -392,7 +409,7 @@ def spawn_contained_process(
         os.close(release_write)
         raise
     try:
-        identity = linux_process_identity(process.pid)
+        identity = process_identity(process.pid)
         if process_identity_status(identity) != "match":
             raise ContractError(
                 "process_identity_mismatch",

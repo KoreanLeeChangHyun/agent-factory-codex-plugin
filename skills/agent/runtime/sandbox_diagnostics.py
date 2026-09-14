@@ -12,13 +12,13 @@ from pathlib import Path
 def platform_issue(platform=None):
     """Describe Agent Factory support independently of native Codex support."""
     platform = sys.platform if platform is None else platform
-    if platform == "linux":
+    if platform in {"linux", "darwin"}:
         return None
     name = {"darwin": "macOS", "win32": "Windows"}.get(platform, platform)
     return {
         "code": "managed_platform_unsupported",
         "message": f"Agent Factory managed execution is not supported on {name}: "
-        "process identity and containment require Linux /proc. Use a supported Linux "
+        "process identity and containment require Linux or macOS. Use a supported "
         "host (including a separately checked Linux VM/WSL environment). Native Codex "
         "platform support does not imply Agent Factory runtime support.",
     }
@@ -39,7 +39,7 @@ def sandbox_failure(text):
         )
     if "sandbox-exec:" in text and any(marker in text for marker in (
         "sandbox_apply: Operation not permitted", "invalid profile", "No such file")):
-        return "macOS sandbox initialization failed; check the native sandbox profile and host policy. " + platform_issue("darwin")["message"]
+        return "macOS sandbox initialization failed; check the native sandbox profile and host policy. Keep the requested permissions; no automatic sandbox fallback is allowed."
     if "Windows sandbox" in text and any(marker in text for marker in (
         "setup failed", "initialization failed")):
         return "Windows sandbox initialization failed; check native sandbox setup. " + platform_issue("win32")["message"]
@@ -51,13 +51,34 @@ def diagnose(*, codex="codex", probe=False):
     issue = platform_issue()
     result = {
         "schemaVersion": 1, "kind": "sandbox-diagnostics", "platform": sys.platform,
-        "managedExecution": "unsupported" if issue else "linux-prerequisites-unverified",
+        "managedExecution": "unsupported" if issue else f"{sys.platform}-prerequisites-unverified",
         "issue": issue, "codexExecutable": None,
         "sandboxReadiness": "unknown", "probe": {"status": "not-run"},
     }
     if issue:
         return result
     result["codexExecutable"] = shutil.which(codex)
+    if sys.platform == "darwin":
+        import os
+        import macos_process_identity
+        from runtime_errors import ContractError
+        try:
+            macos_process_identity.process_identity(os.getpid())
+            result["macosProcessIdentityAvailable"] = True
+        except ContractError as error:
+            result["macosProcessIdentityAvailable"] = False
+            result["issue"] = {"code": error.code, "message": str(error)}
+        result["containmentBackend"] = "process-group"
+        result["weakerDescendantContainment"] = True
+        result["note"] = (
+            "macOS uses private process groups, not Linux cgroups. Descendants that "
+            "create a new session can escape lifecycle containment. Codex enforces "
+            "the requested sandbox independently; no permission fallback is selected. "
+            "The bubblewrap probe is Linux-only; native sandbox readiness remains unknown."
+        )
+        if probe:
+            result["probe"] = {"status": "not-applicable"}
+        return result
     result["linuxProcessIdentityAvailable"] = Path("/proc/self/stat").is_file() and Path("/proc/sys/kernel/random/boot_id").is_file()
     try:
         result["apparmorRestrictsUserNamespaces"] = Path(

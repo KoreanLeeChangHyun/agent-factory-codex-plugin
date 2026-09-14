@@ -31,7 +31,7 @@ MAX_REQUEST_BYTES = 8 * 1024 * 1024
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = SKILL_ROOT / "prompt"
 VALID_ROLES = {"main", "work", "verification"}
-if sys.platform == "linux":
+if sys.platform in {"linux", "darwin"}:
     import paths as runtime_paths
 
 def emit(value: dict[str, Any], stream: IO[str] = sys.stdout) -> None:

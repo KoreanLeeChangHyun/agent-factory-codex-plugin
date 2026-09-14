@@ -15,7 +15,7 @@ diagnostics = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(diagnostics)
 
 
-@pytest.mark.parametrize('platform', ['darwin', 'win32', 'freebsd14'])
+@pytest.mark.parametrize('platform', ['win32', 'freebsd14'])
 def test_unsupported_hosts_never_probe(platform):
     with mock.patch.object(sys, 'platform', platform), mock.patch.object(diagnostics.subprocess, 'run') as run:
         result = diagnostics.diagnose(probe=True)
@@ -62,7 +62,7 @@ def test_specific_sandbox_errors_have_actionable_diagnostics(message):
     assert diagnostics.sandbox_failure(message)
 
 
-@pytest.mark.parametrize('platform', ['darwin', 'win32', 'freebsd14'])
+@pytest.mark.parametrize('platform', ['win32', 'freebsd14'])
 @pytest.mark.parametrize('arguments', [['doctor'], ['submit', '--agent', 'a', '--role', 'work', '--message', 'inspect']])
 def test_cli_diagnostics_and_refusal_do_not_import_posix_runtime(platform, arguments, tmp_path):
     # Fail if portability handling accidentally imports a POSIX-only runtime module.

@@ -80,8 +80,10 @@ Skills are under `skills/`. They are not mirrored into a repository-local `.code
 
 ## Compatibility
 
-- **Operating system:** Managed execution supports Linux. WSL must satisfy the
-  Linux checks; macOS and native Windows are not supported.
+- **Operating system:** Managed execution has Linux and macOS backends. WSL must
+  satisfy the Linux checks; native Windows is unsupported. macOS uses private
+  process groups with weaker descendant containment; actual Mac validation is
+  required. See [host readiness](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics).
 - **Python:** Python 3.10 is the source-level minimum. Release verification covers
   the configured Python 3.10 and 3.12 baselines.
 - **Codex:** No repository-wide CLI version is assumed. Runtime preflight and

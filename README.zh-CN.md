@@ -72,8 +72,9 @@ codex plugin add agent-factory@agent-factory
 
 ## 兼容性
 
-- **操作系统：** 托管执行支持 Linux。WSL 必须满足 Linux 检查；不支持 macOS
-  和原生 Windows。
+- **操作系统：** 托管执行具有 Linux 和 macOS 后端。WSL 必须满足 Linux 检查；
+  不支持原生 Windows。macOS 使用后代进程隔离较弱的私有进程组，需要在真实 Mac 上验证。
+  请参阅[主机就绪状态](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics)。
 - **Python：** 源代码级最低版本为 Python 3.10。发布验证覆盖配置的 Python 3.10
   和 3.12 基准。
 - **Codex：** 不假定仓库范围的 CLI 版本。运行时预检和已安装能力发现会判断所选

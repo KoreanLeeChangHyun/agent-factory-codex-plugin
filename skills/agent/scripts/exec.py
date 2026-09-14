@@ -72,6 +72,7 @@ from process_containment import (
     parse_time,
     linux_boot_id,
     linux_process_identity,
+    process_identity,
     process_identity_status,
     _systemd_command,
     systemd_environment_supported,
@@ -128,7 +129,7 @@ from exec_cli import (
 )
 
 # Diagnostic/refusal paths must load even where POSIX runtime imports cannot.
-if sys.platform == "linux":
+if sys.platform in {"linux", "darwin"}:
     import cloud_reporting
     import native_codex
     import paths as runtime_paths
@@ -854,7 +855,7 @@ class Heartbeat:
         self.attempt = 0
         self.codex_pid: int | None = None
         self.codex_identity: dict[str, Any] | None = None
-        self.worker_identity = linux_process_identity(os.getpid())
+        self.worker_identity = process_identity(os.getpid())
         self.lock = threading.Lock()
         self.thread = threading.Thread(target=self._run, daemon=True)
 
@@ -1338,7 +1339,7 @@ def worker(args: argparse.Namespace) -> int:
     project_root = resolve_project_root(args.project_root)
     state_path = state_file(project_root, args.agent, args.run_id)
     state = find_run(project_root, args.agent, args.run_id)
-    worker_identity = linux_process_identity(os.getpid())
+    worker_identity = process_identity(os.getpid())
     update_json(
         state_path,
         state_path.parent / ".state.lock",
