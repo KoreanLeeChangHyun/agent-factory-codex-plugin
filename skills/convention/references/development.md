@@ -40,13 +40,17 @@ Follow stronger established project conventions.
 
 ## Technical documentation
 
-- Use sections/subsections for topics and deeper headings only for distinct subtopics.
-- Use bullets for parallel rules and numbered lists for ordered procedures.
-- Use tables actively for comparisons and mappings with shared dimensions,
+- For Markdown and technical documents, including designs and specifications,
+  default to section headings with concise bullets for parallel requirements/rules
+  and numbered lists for ordered steps. Use deeper headings only for distinct subtopics.
+- Keep one core point per item. Avoid headings followed by long prose blocks;
+  include brief context or rationale only when it helps understanding.
+- Use tables where shared dimensions clarify comparisons, definitions or mappings,
   such as roles, ownership, options and reference purposes.
-- Use diagrams actively to explain flows, structures and relationships;
+- Place useful tables, diagrams and images near the text they explain. Use visual
+  aids when they improve understanding, without quotas or decorative requirements;
   follow [diagrams.md](diagrams.md) for diagram selection and authoring.
-- Keep each item focused; use short introductory prose only when it adds context.
+- Keep critical requirements and constraints explicit in text alongside visual aids.
 - Consolidate duplicates in the owning document; preserve constraints and update callers.
 - Store generated documents using [Document routing](documents.md#routing).
 
