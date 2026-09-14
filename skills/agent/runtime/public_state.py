@@ -17,6 +17,7 @@ def public_state(state: dict[str, Any], runtime: Any) -> dict[str, Any]:
         "maxAttempts",
         "sessionId",
         "executionOptions",
+        "taskMode",
         "executionPolicy",
         "humanApprovalPolicy",
         "executionPreflight",

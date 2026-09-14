@@ -60,7 +60,7 @@ capability bindings are inactive unless explicitly configured and authorized.
 - **Human approval:** `--human-approval-policy bypass` is Main-only and persists for
   the session. It authorizes Main to cross the delegation gate from the current Human
   request for work without a separate plan-approval turn; it neither expands request
-  scope nor removes Work and Verification for delegated work. Conversation remains
+  scope nor changes the captured execution route. Conversation remains
   Main's direct responsibility under either policy and starts no child graph.
   Omitted sends preserve the session policy.
 - **Linux:** split permissions require bubblewrap; legacy Landlock cannot represent
@@ -202,7 +202,9 @@ to locate; this inventory does not prove its version or complete sandbox works.
   start independent Verification only after it actually completes.
 - Verification uses `--verified-work-run-id`; its receipt binds the exact Work
   run and original request. `pass` has no findings; `fail` has actionable findings.
-- Exec owns process/session/run facts; loop alone owns transitions and END.
+- Exec owns process/session/run facts and genuine same-session Plan/default turns.
+  Loop owns delegated transitions and END; Main owns completion of direct tasks
+  and its own checks in direct/work modes. See [execution modes](execution-modes.md).
 
 ### Linux containment
 

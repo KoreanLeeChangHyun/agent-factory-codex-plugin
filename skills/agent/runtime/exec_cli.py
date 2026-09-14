@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Sequence
 
 import execution_policy
+from task_modes import TASK_MODES
 from runtime_errors import ContractError
 
 ACTORS = ("main", "human")
@@ -37,6 +38,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         "--human-approval-policy", choices=HUMAN_APPROVAL_POLICIES,
         help="Main delegation approval policy; omitted sends preserve the session policy",
     )
+    parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to work")
     parser.add_argument("--model")
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
     parser.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)

@@ -64,6 +64,10 @@ class FakeRuntime:
         }
         if "executionPolicy" in values["execution"]:
             dispatch_tuple["executionPolicy"] = values["execution"]["executionPolicy"]
+        if values["operation"] == "submit" and values["execution"].get("model"):
+            dispatch_tuple.setdefault("executionOptions", {})["model"] = values["execution"]["model"]
+        if values["role"] == "work" and values["execution"].get("taskMode"):
+            dispatch_tuple.setdefault("executionOptions", {})["taskMode"] = values["execution"]["taskMode"]
         if binding_hash is not None:
             dispatch_tuple["capabilityBindingHash"] = binding_hash
         directory = self.agent_exec.agent_root(self.root) / values["agent_id"] / "runs" / run_id
@@ -190,6 +194,55 @@ class AgentLoopContractTests(unittest.TestCase):
             },
         })
         return self.reconcile(started)
+
+    def test_work_mode_completes_without_verification_or_human_skip(self):
+        started = self.start(["--task-mode", "work"])
+        self.runtime.complete_work("work-agent", started["latestWorkRunId"])
+        ended = self.reconcile(started)
+        self.assertEqual(ended["status"], "completed")
+        self.assertEqual(ended["terminalReason"]["code"], "work-completed")
+        self.assertIsNone(ended["humanSkip"])
+        self.assertIsNone(ended["latestVerificationRunId"])
+        self.assertEqual([item["role"] for item in self.runtime.dispatches], ["work"])
+
+    def test_plan_mode_is_bound_to_work_dispatch_and_not_verification(self):
+        started = self.start(["--task-mode", "plan-work-verification"])
+        work = self.runtime.runs[("work-agent", started["latestWorkRunId"])]
+        self.assertEqual(work["dispatchTuple"]["executionOptions"]["taskMode"], "plan-work-verification")
+        self.runtime.complete_work("work-agent", started["latestWorkRunId"])
+        checking = self.reconcile(started)
+        verification = self.runtime.runs[("verification-agent", checking["latestVerificationRunId"])]
+        self.assertNotIn("taskMode", verification["dispatchTuple"].get("executionOptions", {}))
+        self.assertEqual(verification["verifiedWorkRunId"], work["runId"])
+
+    def test_plan_mode_failure_reuses_both_sessions(self):
+        state = self.start(["--task-mode", "plan-work-verification"])
+        self.runtime.complete_work("work-agent", state["latestWorkRunId"])
+        state = self.reconcile(state)
+        first_verification = state["latestVerificationRunId"]
+        self.runtime.complete_verification("verification-agent", first_verification, "fail")
+        state = self.reconcile(state)
+        revision = self.runtime.runs[("work-agent", state["latestWorkRunId"])]
+        self.assertEqual(self.runtime.dispatches[-1]["operation"], "send")
+        self.assertEqual(revision["dispatchTuple"]["executionOptions"]["taskMode"], "plan-work-verification")
+        self.runtime.complete_work("work-agent", state["latestWorkRunId"], ["finding-1"])
+        state = self.reconcile(state)
+        self.assertEqual(self.runtime.dispatches[-1]["agent_id"], "verification-agent")
+        self.assertEqual(self.runtime.dispatches[-1]["operation"], "send")
+        self.assertNotEqual(state["latestVerificationRunId"], first_verification)
+        self.runtime.complete_verification("verification-agent", state["latestVerificationRunId"], "pass")
+        self.assertEqual(self.reconcile(state)["status"], "completed")
+
+    def test_historical_loop_without_mode_retains_verification_route(self):
+        started = self.start()
+        path = Path(started["statePath"])
+        stored = self.agent_exec.safe_read_json(path)
+        stored["execution"].pop("taskMode")
+        self.agent_exec.atomic_write_json(path, stored)
+        self.runtime.complete_work("work-agent", started["latestWorkRunId"])
+        checking = self.reconcile(started)
+        self.assertEqual(checking["taskMode"], "work-verification")
+        self.assertEqual(self.runtime.dispatches[-1]["role"], "verification")
 
     def test_start_rejects_unsafe_request_paths_before_dispatch(self) -> None:
         final_link = self.root / "linked.md"
@@ -422,6 +475,8 @@ class AgentLoopContractTests(unittest.TestCase):
         stored["execution"] = {"codex": "/bin/true", "sandbox": "danger-full-access", "model": None}
         child = next(iter(self.runtime.runs.values()))
         child["dispatchTuple"].pop("executionPolicy")
+        # Historical loop and child fixtures must both predate task-mode options.
+        child["dispatchTuple"].pop("executionOptions")
         original_tuple = dict(child["dispatchTuple"])
         self.agent_exec.atomic_write_json(path, stored)
         recovered = self.reconcile({"loopId": stored["loopId"]})

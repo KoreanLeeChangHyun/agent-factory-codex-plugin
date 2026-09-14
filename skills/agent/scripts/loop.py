@@ -102,6 +102,8 @@ class AgentRuntime:
             ])
             if execution.get("model"):
                 arguments.extend(["--model", str(execution["model"])])
+        if role == "work" and execution.get("taskMode"):
+            arguments.extend(["--task-mode", execution["taskMode"]])
         if verified_work_run_id is not None:
             arguments.extend(["--verified-work-run-id", verified_work_run_id])
         if capability_binding_file is not None:
@@ -171,6 +173,7 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         "schemaVersion": SCHEMA_VERSION,
         "kind": "work-verification-loop",
         "loopId": state["loopId"],
+        "taskMode": state.get("execution", {}).get("taskMode", "work-verification"),
         "status": state["status"],
         "phase": state["phase"],
         "workAgentId": state["workAgentId"],
@@ -202,6 +205,8 @@ def prepare_dispatch(
         raise agent_exec.ContractError("graph_role_invalid", "dispatch role is outside the graph")
     if isinstance(state.get("pendingDispatch"), dict):
         raise agent_exec.ContractError("dispatch_intent_exists", "a durable dispatch intent already exists")
+    if role == "verification" and state.get("execution", {}).get("taskMode") == "work":
+        raise agent_exec.ContractError("graph_transition_invalid", "Work mode does not request separate Verification")
     if role == "verification" and (
         not isinstance(state.get("latestWorkRunId"), str)
         or verified_work_run_id != state.get("latestWorkRunId")
@@ -300,6 +305,8 @@ def complete_pending_dispatch(
         expected_tuple["executionPolicy"] = state["execution"]["executionPolicy"]
     if pending["operation"] == "submit" and state["execution"].get("model"):
         expected_tuple["executionOptions"] = {"model": state["execution"]["model"]}
+    if pending["role"] == "work" and state["execution"].get("taskMode"):
+        expected_tuple.setdefault("executionOptions", {})["taskMode"] = state["execution"]["taskMode"]
     reporting = state["execution"].get("reportingConfigs", {}).get(pending["role"])
     if reporting:
         expected_tuple["reportingConfigHash"] = reporting["hash"]
@@ -350,7 +357,11 @@ def dispatch(
 def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     root = agent_exec.resolve_project_root(args.project_root)
     agent_exec.validate_id(args.work_agent, agent_exec.AGENT_ID, "work_agent")
-    agent_exec.validate_id(args.verification_agent, agent_exec.AGENT_ID, "verification_agent")
+    mode = getattr(args, "task_mode", "work-verification")
+    if mode != "work" and not args.verification_agent:
+        raise agent_exec.ContractError("verification_agent_required", "This route requires Verification")
+    if args.verification_agent:
+        agent_exec.validate_id(args.verification_agent, agent_exec.AGENT_ID, "verification_agent")
     if args.work_agent == args.verification_agent:
         raise agent_exec.ContractError("agent_identity_conflict", "Work and Verification require different Agent sessions")
     request = agent_exec.safe_read_bytes(args.request_file, agent_exec.MAX_REQUEST_BYTES)
@@ -413,7 +424,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "controlPlaneError": None,
         "receiptRecovery": None,
         "terminalReason": None,
-        "execution": {"codex": args.codex, "model": args.model,
+        "execution": {"taskMode": mode, "codex": args.codex, "model": args.model,
                       "executionPolicy": policy, "executionPolicyPath": str(policy_path)},
         "createdAt": created,
         "updatedAt": created,
@@ -606,6 +617,11 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
             pending_findings = set(state.get("pendingFindingIds", []))
             if not pending_findings.issubset(set(receipt["addressedFindingIds"])):
                 raise agent_exec.ContractError("finding_binding_invalid", "Work receipt omitted failed Verification findings")
+            if state.get("execution", {}).get("taskMode") == "work":
+                state.update({"status": "completed", "phase": "ended", "currentChild": None,
+                              "terminalReason": {"code": "work-completed", "message": "Work completed; separate Verification not requested"}, "updatedAt": now()})
+                agent_exec.atomic_write_json(path, state)
+                return public_state(state)
             if isinstance(state.get("humanSkip"), dict):
                 state.update({"status": "completed", "phase": "ended", "currentChild": None, "terminalReason": {"code": "human-skip", "message": "Human skipped Verification"}, "updatedAt": now()})
                 agent_exec.atomic_write_json(path, state)
@@ -648,6 +664,8 @@ def skip_loop(args: argparse.Namespace) -> dict[str, Any]:
     path, _state = read_state(root, args.work_agent, args.loop_id)
     with agent_exec.file_lock(path.parent / ".loop.lock"):
         state = agent_exec.safe_read_json(path)
+        if state.get("execution", {}).get("taskMode") == "work":
+            raise agent_exec.ContractError("verification_not_requested", "Work mode has no separate Verification to skip")
         if state["status"] == "completed":
             return public_state(state)
         current = state.get("currentChild")
@@ -674,7 +692,8 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     agent_exec.add_project_argument(start)
     start.add_argument("--request-file", type=Path, required=True)
     start.add_argument("--work-agent", required=True)
-    start.add_argument("--verification-agent", required=True)
+    start.add_argument("--task-mode", choices=("work", "work-verification", "plan-work-verification"), default="work-verification")
+    start.add_argument("--verification-agent")
     start.add_argument("--codex", default="codex")
     agent_exec.execution_policy.add_policy_arguments(start)
     start.add_argument("--model")

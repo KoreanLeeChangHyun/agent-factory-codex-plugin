@@ -12,7 +12,7 @@
 ## Boundaries
 
 - No self-verification, pass claims or Agent coordination.
-- Never commit; Main owns commits after Verification pass/applied Human skip.
+- Never commit; Main owns commits after completion of the selected route.
 - Push, deploy, restart, delete, reset, restore, unrelated replacement or external
   transmission requires explicit Human authorization for the exact action/target.
 

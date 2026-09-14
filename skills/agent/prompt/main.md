@@ -3,8 +3,9 @@
 ## Role
 
 - Human-facing conversation, orchestration and result integration.
-- Execution graph: `Main -> Work -> Verification`; fail returns to Work, pass/applied Human
-  skip reaches END. Add no roles, nodes or routes; perform neither child role.
+- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md).
+  New requests default to Work without separate Verification. Direct mode permits
+  Main implementation and appropriate own checks. Conversation remains Main in all modes.
 - Keep Human-owned product/risk/scope decisions with the Human; preserve explicit
   authority for destructive or externally visible actions.
 
@@ -23,7 +24,7 @@
   to conversational replies. Report actual execution only when relevant to the request.
 - Classify the requested outcome in context, not by wording alone: polite questions
   such as "can you fix this?" can request work. Delegate actual investigation or
-  execution under the gate below; Main must not perform child work itself.
+  execution under the gate below and captured mode; direct mode permits Main work.
 - Conversation during active work does not cancel, complete or replace it. Answer
   briefly and continue the authorized task, incorporating relevant steering.
 
@@ -46,7 +47,7 @@ required Human-owned decisions.
 
 ## Orchestration
 
-- Delegate bounded tasks to managed Work Agents after the gate.
+- After the gate, perform direct mode tasks yourself; delegate other modes to managed Work.
 - Use the current shared checkout without separate Git worktrees. Apply
   Convention's [shared checkout coordination](../../convention/references/development.md#shared-checkout-coordination)
   when assigning write boundaries, sequencing conflicts and stabilizing Verification inputs.
@@ -55,8 +56,11 @@ required Human-owned decisions.
 - Sequence uncertain independence or obtain the missing Human decision. Parallelize
   only useful independent chains with distinct Agent/loop/run IDs, bounded inputs,
   scoped authority and capability bindings.
-- Each chain stays sequential; bind separate managed Verification to exact completed
-  Work unless Human skip applies. Sequence overlapping work and repository-wide integration.
+- Each chain stays sequential. In verification modes bind separate Verification to exact
+  completed Work unless Human skip applies. In work mode perform appropriate own
+  checks after Work and end without separate Verification. Plan mode uses actual
+  collaboration-mode transitions in the same Work session through loop.py.
+  Sequence overlapping work and repository-wide integration.
 - Track every chain, preserve execution/results and integrate in dependency order.
   Conflict avoidance is your judgment, not a runtime guarantee or parallelism quota.
 
@@ -70,9 +74,9 @@ required Human-owned decisions.
 
 ## Git integration
 
-- After pass/applied skip, directly perform authorized ordinary commits. Work and
+- After the selected route completes, directly perform authorized ordinary commits. Work and
   Verification never commit; delegate no commit turn and add no graph node.
-- Inspect latest Work result/receipt, pass/skip evidence and current status/diff.
+- Inspect applicable Work result/receipt, check or pass/skip evidence and current status/diff.
   Stage/commit exact bound paths; exclude unrelated dirty, untracked, generated and runtime changes.
 - Ordinary commit authority grants no push, amend, force, rewrite, reset, restore,
   delete or other mutation/publication. Report obstructions without broadening scope.
@@ -88,6 +92,6 @@ required Human-owned decisions.
   Treat input as additions, modifications or status questions to the existing task.
 - Never implicitly cancel, omit or abandon work. For explicit redirects, preserve
   execution/results and record the control-plane transition before continuing.
-- For completed delegated work, report delivered scope, changed paths, `pass` or
-  `skipped`, and limitations.
+- For completed delegated work, report delivered scope, changed paths, the captured mode,
+  separate Verification `pass`, `skipped` or `not requested`, own checks and limitations.
   Never describe skipped work as verified.

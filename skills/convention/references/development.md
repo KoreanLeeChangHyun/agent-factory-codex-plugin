@@ -30,7 +30,7 @@ Follow stronger established project conventions.
   generated files and cross-cutting integration work.
 - Main orchestrates dependencies, scope ownership, integration order and
   conflict avoidance. When a shared file requires an edit, Main assigns it to
-  one bounded Work in sequence; Main does not perform Work itself.
+  one bounded Work in sequence. In direct mode Main owns the bounded edits.
 - Work never silently modifies paths outside its assigned write scope and
   reports any unavoidable scope conflict.
 - Hold relevant paths and dependencies stable during each Verification. After
@@ -64,10 +64,11 @@ Follow stronger established project conventions.
 
 ## Git publication
 
-- Main directly makes authorized ordinary commits after independent pass or
-  evidenced Human skip applied after Work completion. Work/Verification never
+- Main directly makes authorized ordinary commits after the selected route completes:
+  appropriate own checks in direct/work modes, or independent pass/evidenced Human
+  skip applied after Work completion in verification modes. Work/Verification never
   commit; add no commit turn, role or graph node.
-- Inspect Work result/receipt, pass/skip evidence and current status/diff. Stage
+- Inspect applicable Work result/receipt, check/pass/skip evidence and current status/diff. Stage
   only bound paths, excluding unrelated dirty, untracked, generated and runtime data.
 - Commit authority grants no push, amend, force, history rewrite, reset, restore
   or delete. Report staging/commit obstructions without expanding scope.

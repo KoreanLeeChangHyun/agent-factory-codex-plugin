@@ -13,15 +13,22 @@ read only references required for the next operation.
 
 ## Roles and graph
 
-Execution graph: `Main -> Work -> Verification`; no extra roles, nodes or routes.
+Execution mode is captured per submitted task; conversation always remains Main.
+The default for new Main requests is `work`. See [execution modes](references/execution-modes.md).
 
-- **Main:** converse, delegate, integrate; perform neither child role.
-- **Work:** execute; no self-verification or commits.
+- **direct:** Main performs bounded work and appropriate own checks directly.
+- **work:** Main delegates Work, then performs appropriate own checks and integrates;
+  no separate Verification. Report it as not requested, never a pass or Human skip.
+- **work-verification:** Main -> Work -> Verification.
+- **plan-work-verification:** the same Work session uses actual Codex Plan mode,
+  automatically transitions to default execution mode, then separate Verification.
+- **Work:** execute; no self-verification, coordination or commits.
 - **Verification:** independently check the exact completed Work run; no repair.
-- **Fail:** return to the same Work session; reuse the Verification session.
-- **END:** Verification pass or evidenced Human skip. Record skip before the next
-  Verification; apply after initial/revision Work completes, starting no further
-  Verification. Intent, failure, cancellation or input requests alone never end the graph.
+- **Fail in verification modes:** return to the same Work and Verification sessions.
+- **END:** direct/Work route completion after appropriate Main checks; verification
+  routes require pass or evidenced Human skip applied after completed Work.
+  Record skip before the next Verification; never equate failure/cancellation/input
+  requests with completion. Mode selection is independent of Human approval policy.
 
 ## Delegation
 
@@ -59,6 +66,7 @@ Execution graph: `Main -> Work -> Verification`; no extra roles, nodes or routes
 
 Read before the corresponding operation:
 
+- `references/execution-modes.md`: captured execution routes, completion rules, runtime interface and Plan transitions.
 - `references/home-runtime.md`: dispatch, sessions, receipts, prompts, containment, bindings, storage and migration.
 - `references/reporting.md`: optional cloud reporting configuration, delivery and evidence.
 - `references/native-fast-goal.md`: installed Codex Fast and native Goal.

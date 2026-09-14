@@ -34,10 +34,10 @@ if (root / 'fail').exists():
 out = Path(sys.argv[-1])
 (out / 'v2').mkdir()
 for name in ('TurnStartParams', 'ThreadStartParams', 'ThreadResumeParams'):
-    (out / 'v2' / (name + '.json')).write_text(json.dumps({'properties': {'serviceTier': {}, 'outputSchema': {}}}))
+    (out / 'v2' / (name + '.json')).write_text(json.dumps({'properties': {'serviceTier': {}, 'outputSchema': {}, 'collaborationMode': {}}, 'definitions': {'ModeKind': {'enum': ['plan', 'default']}}}))
 (out / 'v2/ModelListResponse.json').write_text(json.dumps({'definitions': {'Model': {'properties': {'serviceTiers': {}}}}}))
 (out / 'v2/ThreadGoalSetParams.json').write_text(json.dumps({'definitions': {'ThreadGoalStatus': {'enum': ['active', 'paused', 'complete']}}}))
-(out / 'ClientRequest.json').write_text(json.dumps(['thread/goal/set', 'thread/goal/get', 'thread/goal/clear']))
+(out / 'ClientRequest.json').write_text(json.dumps(['thread/goal/set', 'thread/goal/get', 'thread/goal/clear', 'collaborationMode/list']))
 ''')
         self.binary.chmod(0o700)
         self.cache = self.root / 'runtime/cache/native-capabilities/capabilities.json'
@@ -53,6 +53,13 @@ for name in ('TurnStartParams', 'ThreadStartParams', 'ThreadResumeParams'):
         source = 'import sys; sys.path.insert(0, sys.argv[1]); import native_codex; native_codex.inspect_capabilities(sys.argv[2], refresh=True, runtime_home=sys.argv[3])'
         return subprocess.Popen([sys.executable, '-c', source, str(Path(native.__file__).parent),
                                  str(self.binary), str(self.root / 'runtime')], env=dict(os.environ))
+
+    def test_missing_plan_schema_is_not_advertised_or_cached_as_supported(self):
+        self.binary.write_text(self.binary.read_text().replace("collaborationMode", "unsupportedCollaboration"))
+        result = self.probe()
+        self.assertFalse(result["submit"]["plan"])
+        self.assertTrue(result["submit"]["fast"])
+        self.assertFalse(self.cache.exists())
 
     def test_pure_query_does_not_create_or_change_runtime_home(self):
         runtime_home = self.root / 'runtime'

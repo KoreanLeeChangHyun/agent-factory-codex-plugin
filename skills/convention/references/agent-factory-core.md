@@ -64,7 +64,7 @@
   provenance, destination and read-only intent.
 - **Tool:** logical discovery/lifecycle, connection, scope, health and metadata;
   host/plugin/MCP/project/provider remains authoritative. No secrets or execution grants.
-- **Explorer:** Work's bounded evidence exploration; may produce Original/Processed,
+- **Explorer:** bounded evidence exploration by Work, or Main in direct mode; may produce Original/Processed,
   never interview Humans or accept Specification truth.
 - **Interview:** Main's adaptive elicitation; Processed by default, no authority/acceptance grant.
 - **Document:** operations on resolved Document targets.

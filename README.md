@@ -44,13 +44,16 @@ contain or bundle the plugin.
 
 The plugin exposes exactly two public Skills:
 
-- `agent` runs the `Main -> Work -> Verification` graph through managed sessions.
+- `agent` supports four per-request execution modes through Main and managed sessions.
 - `convention` owns the core model and shared project conventions.
 
 Main communicates with the Human, delegates bounded tasks, and integrates results.
-Work performs the task. Verification independently checks the completed Work and
-returns pass or fail unless the Human explicitly skips it. Evidence exploration is
-a Work capability, and Interview is a Main capability; neither adds a Skill or role.
+The default delegates Work without separate Verification; direct mode lets Main
+perform the task. Verification modes check completed Work independently, with
+optional actual Plan/default turns in the same Work thread. See the
+[execution modes contract](skills/agent/references/execution-modes.md). Evidence exploration is
+a Work capability (also available to Main in direct mode), and Interview is a Main
+capability; neither adds a Skill or role.
 
 Codex CLI is the default interface. The same graph can also be hosted through
 `codex exec` or surfaced by a VS Code extension.

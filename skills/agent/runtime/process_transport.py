@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, IO
 
 import execution_policy
+from task_modes import route_instruction
 import sandbox_diagnostics
 from process_containment import (
     process_group_exists,
@@ -109,6 +110,7 @@ def build_prompt(
     capability_binding_path: Path | None = None,
     human_approval_policy: str = "required",
     inline_response: bool = True,
+    task_mode: str = "work-verification",
 ) -> str:
     prompt_path = role_path(role)
     try:
@@ -140,12 +142,12 @@ requested work using Main's Conversation or execution rules. Answer conversation
 directly without starting Work or Verification. For requested work, the Human has
 authorized execution without a separate proposal or plan-approval turn: treat that
 request as satisfying the Delegation gate's execute instruction and proceed through
-Main -> Work -> Verification. Do not return
+the captured task route. Do not return
 `needs-human-decision` merely to approve a plan, scope restatement, delegation, tool
 calls or ordinary in-scope actions. Make bounded reasonable assumptions. Request Human
 input only when execution truly cannot continue because required credentials or a
 Human-owned choice with materially different outcomes is absent. This policy does not
-expand the request or permit skipping Work or Verification for delegated work.
+expand the request or override the captured task route.
 """
     receipt_obligation = ""
     if receipt_path is not None and receipt_schema_path is not None:
@@ -203,7 +205,7 @@ The following validated content is the complete `{role}` system-prompt source:
 Read the delegated request from `{request_path}`. Keep its scope and authority unchanged.
 
 {result_instruction} Run ID: `{run_id}`.
-{human_approval_obligation}{binding_obligation}{receipt_obligation}{migration_obligation}"""
+{human_approval_obligation}{route_instruction(task_mode, role)}{binding_obligation}{receipt_obligation}{migration_obligation}"""
 
 
 def build_codex_command(

@@ -2,7 +2,8 @@
 
 ## Role and scope
 
-- Convention-owned evidence capability performed by bounded Work; no extra Skill/role.
+- Convention-owned evidence capability performed by bounded Work, or Main in direct
+  mode; no extra Skill/role.
 - Explore web, code, Documents and data. Preserve delegated question, scope,
   constraints, completion condition and evidence boundary.
 - May preserve Original or produce Processed comparisons/analysis/hypotheses/conclusions.

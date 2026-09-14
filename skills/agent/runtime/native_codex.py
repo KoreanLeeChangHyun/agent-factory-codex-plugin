@@ -23,7 +23,7 @@ class NativeError(Exception):
 
 def _probe_capabilities(codex: str) -> dict:
     """Inspect this executable's protocol, never infer support from wrapper flags."""
-    supported = {"model": True, "reasoning": True, "fast": False, "goal": False}
+    supported = {"model": True, "reasoning": True, "fast": False, "goal": False, "plan": False}
     reason = None
     try:
         with tempfile.TemporaryDirectory(prefix="agent-factory-codex-schema-") as directory:
@@ -37,7 +37,7 @@ def _probe_capabilities(codex: str) -> dict:
                 if path.stat().st_size > 8 * 1024 * 1024:
                     raise NativeError("Codex schema exceeds the inspection bound")
                 return json.loads(path.read_text())
-            for feature in ("fast", "goal"):
+            for feature in ("fast", "goal", "plan"):
                 try:
                     turn = schema("v2/TurnStartParams.json")["properties"]
                     if feature == "fast":
@@ -45,6 +45,11 @@ def _probe_capabilities(codex: str) -> dict:
                         resume = schema("v2/ThreadResumeParams.json")["properties"]
                         catalog = schema("v2/ModelListResponse.json")["definitions"]["Model"]["properties"]
                         supported[feature] = all("serviceTier" in fields for fields in (start, resume, turn)) and "serviceTiers" in catalog
+                    elif feature == "plan":
+                        methods = json.dumps(schema("ClientRequest.json"))
+                        definition = schema("v2/TurnStartParams.json")
+                        modes = definition.get("definitions", {}).get("ModeKind", {}).get("enum", [])
+                        supported[feature] = "outputSchema" in turn and "collaborationMode" in turn and "collaborationMode/list" in methods and all(mode in modes for mode in ("plan", "default"))
                     else:
                         methods = json.dumps(schema("ClientRequest.json"))
                         statuses = schema("v2/ThreadGoalSetParams.json")["definitions"]["ThreadGoalStatus"]["enum"]
@@ -53,7 +58,7 @@ def _probe_capabilities(codex: str) -> dict:
                     supported[feature] = False
 
     except (OSError, ValueError, KeyError, subprocess.TimeoutExpired, NativeError) as error:
-        reason = f"Native Fast/Goal requires a Codex build with service-tier catalog and thread/goal APIs: {error}. Update/select Codex, then retry."
+        reason = f"Native Fast/Goal/Plan requires compatible Codex app-server schemas: {error}. Update/select Codex, then retry."
     if not all(supported.values()) and reason is None:
         reason = "Installed Codex protocol lacks required native fields. Update/select Codex, then retry."
     return {"schemaVersion": "0.1.0", "kind": "execution-capabilities", "backend": "codex-app-server-stdio",
@@ -87,7 +92,7 @@ def _cached_capabilities(paths, file, identity):
                 or not 0 <= time.time() - value["created"] < CAPABILITY_CACHE_TTL):
             return None
         caps = value["capabilities"]
-        expected = {"model": True, "reasoning": True, "fast": True, "goal": True}
+        expected = {"model": True, "reasoning": True, "fast": True, "goal": True, "plan": True}
         if (not isinstance(caps, dict) or set(caps) != {"schemaVersion", "kind", "backend", "submit", "send", "diagnostic"}
                 or caps["schemaVersion"] != "0.1.0" or caps["kind"] != "execution-capabilities"
                 or caps["backend"] != "codex-app-server-stdio" or caps["diagnostic"] is not None):
@@ -309,6 +314,9 @@ class Bridge:
         self.goal_enabled = session.get("role") == "main" and self.goal_supported and (
             session.get("goalMode") is not None or bool(session.get("goal")) or bool(state.get("goalAction")))
         self.stopped = False
+        self.planning = state.get("role") == "work" and state.get("executionOptions", {}).get("taskMode") == "plan-work-verification"
+        self.execution_turn = None
+        self.planning_turn_id = None
 
     def publish_goal(self, goal):
         if goal is not None and (not isinstance(goal, dict) or goal.get("threadId") != self.thread_id):
@@ -387,6 +395,8 @@ class Bridge:
                   **({"permissions": config["default_permissions"]} if "default_permissions" in config else {"sandbox": policy["sandboxPolicy"]["type"]}),
                   "approvalPolicy": policy["approvalPolicy"], "config": config,
                   "developerInstructions": prompt}
+        if self.planning:
+            params["developerInstructions"] += "\nHost phase contract: while actual collaboration mode is plan, inspect and plan only, produce the planning output schema and no receipt. In default mode implement and follow the original final result/receipt contract. The runtime automatically transitions within this same Work session after a planned result; required unresolved Human choices stop execution.\n"
         if self.session.get("model"):
             params["model"] = self.session["model"]
         prior = self.session.get("sessionId")
@@ -420,6 +430,23 @@ class Bridge:
             turn["effort"] = self.session["reasoningEffort"]
         if tier is not None and self.session.get("nativeCapabilities", {}).get("fast", True):
             turn["serviceTier"] = tier
+        if self.planning:
+            if self.session.get("nativeCapabilities", {}).get("plan") is not True:
+                raise NativeError("Installed Codex lacks genuine Plan collaboration mode")
+            masks = self.rpc.call("collaborationMode/list", {}).get("data", [])
+            if not all(any(isinstance(mask, dict) and mask.get("mode") == mode for mask in masks) for mode in ("plan", "default")):
+                raise NativeError("Codex does not advertise both Plan and default collaboration modes")
+            model = response.get("model") or self.session.get("model")
+            if not model:
+                raise NativeError("Plan collaboration requires the resolved Codex model")
+            settings = {"model": model, "reasoning_effort": self.session.get("reasoningEffort"), "developer_instructions": None}
+            self.execution_turn = {**turn, "collaborationMode": {"mode": "default", "settings": settings},
+                                   "input": [{"type": "text", "text": "Execute the plan in this same Work session within the already authorized request. Respect unresolved Human decisions. Complete the original result and receipt contract.\n" + prompt}]}
+            turn = {**turn, "collaborationMode": {"mode": "plan", "settings": settings},
+                    "input": [*inputs, {"type": "text", "text": "This is the planning phase only. Inspect and plan the bounded request without implementation or a Work receipt. Return the planning schema. Use needs-human-decision only for a required unresolved Human choice; otherwise return planned. The host will transition this same session to execution automatically."}],
+                    "outputSchema": {"type": "object", "additionalProperties": False,
+                                     "properties": {"status": {"type": "string", "enum": ["planned", "needs-human-decision"]}, "plan": {"type": "string", "minLength": 1}},
+                                     "required": ["status", "plan"]}}
         activate_goal = False
         if self.goal_enabled:
             self.get_goal()
@@ -451,6 +478,8 @@ class Bridge:
         else:
             result = self.rpc.call("turn/start", turn)
             self.turn_id = result["turn"]["id"]
+            if self.planning:
+                self.planning_turn_id = self.turn_id
         return True
 
     def finish_turn(self):
@@ -573,6 +602,27 @@ class Bridge:
                     emit({"type": "turn.completed", "turn_id": turn["id"]})
                     if turn.get("status") != "completed":
                         raise NativeError(f"Native turn {turn.get('status')}: {json.dumps(turn.get('error'))[:2000]}")
+                    if self.planning and turn["id"] == self.planning_turn_id:
+                        plan = json.loads(self.last_message or "null")
+                        if (not isinstance(plan, dict) or set(plan) != {"status", "plan"}
+                                or plan.get("status") not in {"planned", "needs-human-decision"}
+                                or not isinstance(plan.get("plan"), str) or not plan["plan"].strip()):
+                            raise NativeError("Native planning result is invalid")
+                        self.runtime.atomic_write(Path(self.state["statePath"]).parent / "plan.json", json.dumps(plan, ensure_ascii=False).encode())
+                        if plan["status"] == "needs-human-decision":
+                            self.last_message = json.dumps({"status": "needs-human-decision", "resultPath": self.state["resultPath"], "resultText": plan["plan"]})
+                            self.finish_turn()
+                            return
+                        # Cancellation/input authority is checked again before the automatic transition.
+                        current = self.runtime.safe_read_json(Path(self.state["statePath"]))
+                        if current.get("cancelRequested"):
+                            return
+                        self.planning = False
+                        emit({"type": "native.commentary", "text": "계획을 완료했습니다. 같은 Work 세션에서 구현을 시작합니다."})
+                        result = self.rpc.call("turn/start", self.execution_turn)
+                        self.turn_id = result["turn"]["id"]
+                        self.last_message = None
+                        continue
                     if self.goal_enabled:
                         if self.finish_latest_goal_turn():
                             return
