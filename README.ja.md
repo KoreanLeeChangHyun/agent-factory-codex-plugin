@@ -13,8 +13,8 @@ Agent Factory は、人間の指示に基づくソフトウェアデリバリー
 このプラグインは単独で完全にインストールして使用でき、VS Code 拡張機能は
 任意です。一方、Agent Factory VS Code 拡張機能を使用するには、semantic base
 version が完全に一致するこのプラグインがインストールされ、有効になっている
-必要があります。たとえば、拡張機能 `1.0.6` はプラグイン
-`1.0.6+codex.<token>` を受け入れます。
+必要があります。たとえば、拡張機能 `1.0.8` はプラグイン
+`1.0.8+codex.<token>` を受け入れます。
 
 拡張機能は起動時に設定済みの Codex marketplace を確認し、公式の
 `agent-factory` marketplace を優先します。プラグインが存在しないか version が
