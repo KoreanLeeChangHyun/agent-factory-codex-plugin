@@ -31,7 +31,7 @@ Read the matching references before acting.
 
 - `references/communication.md`: mandatory respectful Human-facing register.
 - `references/agent-factory-core.md`: roles, authority, capabilities and decisions.
-- `references/documents.md`: Document types, authority, Provider/Client placement, formats and synchronization.
+- `references/documents.md`: Document types, authority, Provider/Client placement, single-source packages and derived presentation.
 - `references/directory-structure.md`: source, installation, runtime, cloud layout and migration.
 - `references/development.md`: shared checkout boundaries, changes, technical documentation, comments, commits.
 - `references/testing.md`: test organization, selection, parallel execution and execution boundaries.

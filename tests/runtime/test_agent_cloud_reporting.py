@@ -489,6 +489,15 @@ class InstalledSDKTests(unittest.TestCase):
         mcp_root = SCRIPT.parents[3].parent / 'mcp'
         if not python.exists():
             self.skipTest('Sibling MCP environment required for SDK integration')
+        schema = mcp_root / 'app/modules/reporting/schemas'
+        # This fixture uses the legacy recipient's Command, not the newer domain dataclass.
+        # Check source presence only; import and runtime errors must still fail below.
+        if not schema.with_suffix('.py').is_file() and not (schema / '__init__.py').is_file():
+            self.skipTest(
+                'Legacy sibling MCP recipient schema app.modules.reporting.schemas is absent; '
+                'actual SDK/Command integration requires schemas.py or schemas/__init__.py '
+                f'under {mcp_root / "app/modules/reporting"}'
+            )
         with socket.socket() as listener:
             listener.bind(('127.0.0.1', 0))
             port = listener.getsockname()[1]

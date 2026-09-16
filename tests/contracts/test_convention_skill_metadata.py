@@ -149,10 +149,9 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             " ".join(agent.split()),
         )
         manifest_description = manifest["interface"]["longDescription"]
-        self.assertRegex(
-            manifest_description,
-            r"\bcomplete local\b.*Main -> Work -> Verification",
-        )
+        self.assertIn("complete local workflows", manifest_description)
+        for mode in ("direct", "work", "work-verification", "plan-work-verification"):
+            self.assertRegex(manifest_description, rf"(?<![\w-]){mode}(?![\w-])")
         self.assertRegex(manifest_description, r"\bNo MCP package\b")
         for dependency in (
             "server", "account", "tenant", "connection", "authenticated resource"
@@ -162,16 +161,15 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         self.assertIn("absence of MCP is a normal supported mode", convention)
         for document_type in ("original", "processed", "specification"):
             self.assertIn(
-                f"<project-root>/docs/{document_type}/<category>-<name>/", layout
+                f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/", layout
             )
         self.assertIn("not an error fallback", layout)
-        self.assertNotIn("docs/<category>-<name>.html", documents)
+        self.assertNotIn("docs/<category>[-<domain>]-<name>.html", documents)
         self.assertIn(
-            "docs/specification/<category>-<name>/index.html", documents
+            "docs/specification/<category>[-<domain>]-<name>/SKILL.md", documents
         )
         for clause_id in (
             "specification.routing.canonical",
-            "specification.sync.local-transaction",
             "document.future-mcp.cutover",
             "document.future-mcp.dual-storage",
         ):
@@ -190,8 +188,8 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             SKILLS / "convention" / "references" / "documents.md"
         ).read_text(encoding="utf-8")
         normalized_documents = " ".join(documents.split())
-        dual_storage = documents.split("#### Dual-storage mode", 1)[1].split(
-            "\n## Formats", 1
+        dual_storage = documents.split("### Dual-storage mode", 1)[1].split(
+            "\n## Document package", 1
         )[0]
         normalized_dual_storage = " ".join(dual_storage.split())
         asset = (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(
@@ -199,7 +197,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         )
 
         for document_type in ("original", "processed", "specification"):
-            root = f"<project-root>/docs/{document_type}/<category>-<name>/"
+            root = f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/"
             self.assertIn(root, documents)
         for detail in (
             "source identity",
@@ -209,10 +207,9 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             "whether source content is stored",
             "only when the Human explicitly requests it",
             "Every AI-generated durable Document is Processed by default",
-            "open-ended",
             "`interview`",
             "`research`",
-            "`analysis`",
+            "`analyze`",
             "does not yet exist",
             "stable idempotency identifiers",
             "receiver acknowledgements",
@@ -230,7 +227,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             "outcome is ambiguous, do not mutate the local projection",
             "local is explicitly stale and pending retry",
             "without replaying the MCP mutation",
-            "existing atomic pair transaction and shared semantic metadata",
+            "canonical user-language `SKILL.md` and optional `assets/` package",
             "re-projects that confirmed MCP state to local",
             "Conflicting pre-existing MCP and local revisions require Human resolution",
             "never choose authority by timestamps",
@@ -248,7 +245,8 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         )
         self.assertIn("<plugin-root>/skills/", normalized_documents)
         self.assertIn("Do not create parallel Provider", normalized_documents)
-        self.assertIn("docs/specification/<category>-<name>/index.html", asset)
+        self.assertIn("`docs/specification/`", asset)
+        self.assertIn("<category>[-<domain>]-<name>/SKILL.md", asset)
 
     def test_agent_prompt_roles(self) -> None:
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}

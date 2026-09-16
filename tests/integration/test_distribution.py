@@ -42,7 +42,7 @@ class DistributionTests(unittest.TestCase):
             normalized_layout = " ".join(layout.split())
             for document_type in ("original", "processed", "specification"):
                 self.assertIn(
-                    f"<project-root>/docs/{document_type}/<category>-<name>/",
+                    f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/",
                     normalized_layout,
                 )
             self.assertIn("complete standalone behavior", normalized_layout)

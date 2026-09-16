@@ -7,14 +7,15 @@ metadata:
 
 # Agent Factory Agent
 
-Use this Skill for the managed operation being performed, not just because the
-conversation runs in Agent Factory. Reuse instructions already present in context;
-read only references required for the next operation.
+- Use this Skill for the managed operation being performed, not just because the
+  conversation runs in Agent Factory.
+- Reuse instructions already present in context; read only references required for
+  the next operation.
 
 ## Roles and graph
 
-Execution mode is captured per submitted task; conversation always remains Main.
-The default for new Main requests is `work`. See [execution modes](references/execution-modes.md).
+- Execution mode is captured per submitted task; conversation always remains Main.
+- The default for new Main requests is `work`. See [execution modes](references/execution-modes.md).
 
 - **direct:** Main performs bounded work and appropriate own checks directly.
 - **work:** Main delegates Work, then performs appropriate own checks and integrates;

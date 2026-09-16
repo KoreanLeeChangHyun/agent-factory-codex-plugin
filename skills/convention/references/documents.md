@@ -2,10 +2,10 @@
 
 ## Types and authority
 
-- **Original / 원본 문서:** source-faithful evidence in its native or otherwise
+- **Original:** source-faithful evidence in its native or otherwise
   appropriate format.
-- **Processed / 가공 문서:** transformed, non-authoritative working knowledge.
-- **Specification / 명세 문서:** project knowledge the Human explicitly requests
+- **Processed:** transformed, non-authoritative working knowledge.
+- **Specification:** project knowledge the Human explicitly requests
   as a Specification. Agent generation, refinement, inferred approval or file
   format never independently grants this type.
 - Original, Processed and Specification are the only storage-independent Document
@@ -18,6 +18,9 @@
 
 ## Provider placement
 
+- Maintain Provider execution Skill guidance in English, an explicit exception to
+  the Human-language Document contract. Preserve the `agent` and `convention`
+  identities, YAML metadata and execution package structure.
 - This Agent Factory plugin repository is the Provider. When the Human requests a
   durable Provider Original or Processed Document, use the same type-specific
   package roots below with `<plugin-root>` as the project root. Otherwise evidence
@@ -25,8 +28,9 @@
 - Provider Processed Documents under `<plugin-root>/docs/processed/` remain
   non-authoritative and Git-ignored.
 - Store Provider Specifications only as maintained packages under
-  `<plugin-root>/skills/`. `SKILL.md` and its owned `references/`, `scripts/` and
-  `assets/` form the Specification package. Do not create parallel Provider
+  `<plugin-root>/skills/`. These Provider execution Skills retain `SKILL.md` and their owned
+  `references/`, `scripts/`, `agents/`, `assets/` and runtime structure; the
+  Document package restrictions below do not apply to them. Do not create parallel Provider
   Specifications under `docs/specification/` or `.codex/skills/` and do not migrate
   these distributed packages as Client Documents.
 - The Provider exposes only `agent` and `convention`; Client Project Skill naming
@@ -34,24 +38,26 @@
 
 ## Routing
 
-In the currently implemented plugin-only mode, durable Client Documents use one
-package directory under exactly one of these local roots:
+- In the currently implemented plugin-only mode, durable Client Documents use one
+  package directory under exactly one of these local roots:
 
 | Type | Canonical package |
 |---|---|
-| Original | `<project-root>/docs/original/<category>-<name>/` |
-| Processed | `<project-root>/docs/processed/<category>-<name>/` |
-| Specification | `<project-root>/docs/specification/<category>-<name>/` |
+| Original | `<project-root>/docs/original/<category>[-<domain>]-<name>/` |
+| Processed | `<project-root>/docs/processed/<category>[-<domain>]-<name>/` |
+| Specification | `<project-root>/docs/specification/<category>[-<domain>]-<name>/` |
 
 - The local route is complete standalone behavior, not an error fallback. Use a
-  concise lowercase `<category>-<name>` package identity. A category never changes
+  concise `<category>[-<domain>]-<name>` package identity under the naming
+  contract below. A category never changes
   Document type or acceptance authority.
 - A Human-supplied alternative destination or format creates an additional export;
-  it does not replace canonical local storage or either Specification projection.
+  it does not replace the canonical single source.
 <!-- clause-id: specification.routing.canonical -->
-- Client Specification projections have the fixed paths and formats in
-  [Client Specification projections](#client-specification-projections). If the
-  requested classification is unclear, resolve it with the Human before writing.
+- Processed and Specification use the same [Document package](#document-package).
+  If the requested classification is unclear, resolve it with the Human before writing.
+- Preserve existing user Documents in place. This contract authorizes no movement,
+  conversion, renaming or deletion of existing packages or historical projections.
 - This plugin implements no cloud Document receiver, migration path, automatic
   upload or local MCP/Document service. The future connected route below is a
   contract for later implementation, not a claim about the current MCP repository.
@@ -78,8 +84,8 @@ package directory under exactly one of these local roots:
 - Before cutover, enumerate the complete bounded inventory under
   `<project-root>/docs/original/`, `<project-root>/docs/processed/`, and
   `<project-root>/docs/specification/`. Migrate every existing local Document while
-  preserving type, identity, provenance, content-presence, and each Specification's
-  HTML/Project Skill pairing. Use stable idempotency identifiers and verify receiver
+  preserving type, identity, provenance, content-presence, and each Document's
+  single source, assets and existing derivation provenance. Use stable idempotency identifiers and verify receiver
   acknowledgements, integrity, and source-to-destination mappings.
 - Report cutover only after the complete bounded inventory succeeds. Partial or
   ambiguous failure remains pending and retains recoverable local data; retry must
@@ -89,7 +95,7 @@ package directory under exactly one of these local roots:
   contract. Do not silently fall back to local authoritative storage after that
   destination has been selected; report failures instead.
 
-#### Dual-storage mode
+### Dual-storage mode
 
 <!-- clause-id: document.future-mcp.dual-storage -->
 - If the Human explicitly requests both canonical local storage and the future
@@ -108,145 +114,98 @@ package directory under exactly one of these local roots:
 - If the MCP mutation succeeds but local projection fails, MCP remains
   authoritative and local is explicitly stale and pending retry. Retry projection
   from that same MCP revision without replaying the MCP mutation.
-- For a Specification, project the MCP-confirmed revision to its local
-  Human-language HTML and English Project Skill pair using the existing atomic pair
-  transaction and shared semantic metadata.
+- For Processed and Specification, project the MCP-confirmed revision to the
+  canonical user-language `SKILL.md` and optional `assets/` package. Any display or
+  Skill exposure derives from that same source, never a separately edited pair.
 - Initial cutover into dual-storage mode imports each local Document to MCP,
   confirms its committed revision, and then re-projects that confirmed MCP state to
   local. Conflicting pre-existing MCP and local revisions require Human resolution;
   never choose authority by timestamps.
 
-## Formats
+## Document package
 
 - Original uses its native or otherwise source-appropriate format.
-- Processed defaults to Markdown and may use CSV or JSON when tabular or structured
-  data makes one appropriate. Every AI-generated durable Document is Processed by
-  default. Processed categories are open-ended and may include `interview`,
-  `research`, and `analysis`. A Processed Document is never a Project Skill.
-- Only a Human-requested Specification becomes a Project Skill.
+- Every AI-generated durable Document is Processed by default unless the Human
+  explicitly requests a Specification. File format never grants that authority.
+- Processed and Specification share one package structure: a single `SKILL.md`
+  in the Human's language, plus optional `assets/`. Do not add `references/`,
+  `scripts/` or `agents/` to Document packages; Provider execution Skills are exempt.
+- Use the language the Human uses, or their explicitly selected language for the
+  Document. Preserve source text, quotations, code and identifiers; language choice
+  alone authorizes no translation or conversion of existing material.
+- `SKILL.md` is the single source for the document body. The body and `assets/`
+  together form the canonical editable package; asset CSV and JSON files are
+  editable sources too. The filename does not make Processed an automatically
+  active Skill or a Specification.
+- Keep independent CSV datasets, Archify-based diagram JSON and necessary images
+  in `assets/`. Write tables in the body as Markdown tables.
+- Reference assets by relative path at the point where they belong in the body.
+  The Human-facing viewer contract is to expand each referenced asset there and
+  present the body and assets as one document. HTML or other displays are derived
+  presentation, never a second editable source or a required translation.
+- The viewer, Archify rendering integration and ERD support are follow-up
+  implementation work. This contract does not claim they are implemented or
+  authorize an external Archify installation. See [Diagrams](diagrams.md).
+- Use H1/H2/H3 only and section numbering no deeper than `1` / `1.1`.
+  Split deeper topics into separate Documents. Refine content into bullets and
+  numbered lists; avoid unnecessary long prose. Code, tables and diagrams are allowed.
 
-## Specification naming
+## Naming and metadata
 
-- Use the Human-resolved lowercase `<category>-<name>` identity. Do not infer
-  components or bulk-rename accepted identities.
+- Use `<category>-<domain>-<name>` when the project defines the optional domain;
+  otherwise use `<category>-<name>`. Routing uses `<category>[-<domain>]-<name>`
+  to denote those alternatives; brackets are not literal directory characters.
+- The project defines domains. Never infer a missing domain or bulk-rename accepted
+  identities. Keep category tokens below and preserve the Human-resolved name.
+- In `SKILL.md` YAML frontmatter metadata, explicitly record `document-type`,
+  `category`, `domain` and `name`. Use `domain: null` when no domain is defined.
+  Record `language` and actual provenance as applicable; metadata does not grant authority.
+- Original package metadata also records category, optional domain and name without
+  requiring conversion of its native source into `SKILL.md`.
+
+### Specification naming
+
 - Specification categories are limited to `info-*`, `rule-*`, and `design-*`.
-- Use `info-*` for information Agents consult, `rule-*` for rules Agents must
-  follow, and `design-*` for integrated planning intent and technical design.
-- Keep planning intent and technical design together in one `design-*`
-  Specification. Do not introduce `plan-*` or use `spec-*` as the Design category.
-- `design-*` does not mean visual styling. Convention's `theme.md` owns interface
-  themes, visual systems and presentation rules.
 
-## Client Specification projections
-
-<!-- clause-id: specification.projections.two -->
-- A Client Specification has two synchronized representations with one identity
-  and version: an English AI-facing Project Skill at
-  `.codex/skills/<category>-<name>/` and a Human-facing HTML document in the Human's
-  language at `docs/specification/<category>-<name>/index.html`. The HTML is inside
-  the Specification package. Neither representation may be redirected, omitted or
-  replaced by a single alternative file.
-
-<!-- clause-id: specification.human.presentation -->
-- The Human representation may add highlighting, diagrams and layout that improve
-  comprehension. Presentation-only changes do not change Skill semantics. Text or
-  relationships in a diagram are semantic when they alter requirements, rules,
-  facts or design intent.
-
-<!-- clause-id: specification.html.packaging -->
-- Keep `index.html` self-contained by default. At 3,000 unminified source lines, review
-  splitting; do not split solely because the count was reached. Prefer the
-  structure an AI can read and modify reliably, considering DOM size, byte size and
-  independently maintainable CSS, JavaScript, SVG or content sections. When
-  splitting is warranted, keep local files in the same
-  `docs/specification/<category>-<name>/` package.
-
-## Embedded metadata
-
-<!-- clause-id: specification.metadata.embedded -->
-Embed equivalent metadata in Skill YAML frontmatter and the HTML document so each
-representation remains self-identifying without an MCP connection.
-
-| Field | Contract |
+| Category | Meaning |
 |---|---|
-| `specification-id` | Stable shared Specification identity. |
-| `specification-version` | Human-visible shared version. |
-| `projection` | `ai` for Skill or `human` for HTML. |
-| `language` | Representation language. |
-| `counterpart` | Canonical locator for the other representation: the Skill uses `docs/specification/<category>-<name>/index.html`; the HTML uses `.codex/skills/<category>-<name>/`. |
-| `semantic-revision` | Meaning revision represented by this file. |
-| `sync-base-revision` | Last meaning revision committed to both representations. |
-| `modified-at` | Actual representation modification time in RFC 3339 form. |
+| `info` | Describe facts in an informative, declarative form. |
+| `rule` | State obligations and compliance requirements in a mandatory form. |
+| `design` | Organize planning intent and implementation design in a design form. |
 
-<!-- clause-id: specification.metadata.clause-id -->
-- Give each semantic requirement, rule, fact or design statement a stable
-  `clause-id` shared across translations. Layout-only elements need no semantic ID.
+- Keep planning intent and implementation design together in `design` when they
+  describe the same subject. Do not introduce `plan` or `spec` as Design categories.
+- `design` is not limited to visual styling; [Theme](theme.md) owns presentation rules.
 
-<!-- clause-id: specification.metadata.modified-at -->
-- Use `modified-at` for chronology and Human inspection; never treat the newest
-  timestamp as semantic authority.
+### Processed categories
 
-## Synchronization
+| Category | Meaning |
+|---|---|
+| `interview` | Human interview evidence; follow the [Interview writing contract](interview.md#completion-and-record). |
+| `research` | Research. |
+| `analyze` | Internal analysis. |
+| `websearch` | Web search evidence. |
+| `process` | Progress and status. |
+| `classification` | Original source classification. |
+| `other` | Other processed knowledge. |
+| `extraction` | Extracted content. |
+| `comparison` | Comparisons. |
 
-<!-- clause-id: specification.sync.ownership -->
-- Synchronization follows the selected destination capability. In standalone mode,
-  the Agent uses local file tools and the transaction below. Only after the future
-  cloud receiver exists and the connected-storage cutover conditions succeed may
-  its then-current contract provide authoritative storage, version checks and
-  transaction handling. The Provider plugin implements no separate synchronization
-  service and requires neither an MCP-owned language model, language-neutral
-  semantic model nor third canonical Specification.
+- Use `summary` as a section when needed, not as a Processed category.
 
-<!-- clause-id: specification.sync.agent-language -->
-- On a Human request, the Agent maps affected `clause-id` values, writes the English
-  Skill at `.codex/skills/<category>-<name>/` and the Human-language HTML at
-  `docs/specification/<category>-<name>/index.html`, and checks semantic
-  correspondence. Local tools provide the currently implemented standalone access.
+## Derived Skill exposure and display
 
-<!-- clause-id: specification.sync.local-transaction -->
-- In standalone mode, read and revalidate the Skill at
-  `.codex/skills/<category>-<name>/` and HTML at
-  `docs/specification/<category>-<name>/index.html` with their shared
-  `sync-base-revision`; stage both complete replacements at temporary sibling paths
-  on their target filesystems; validate metadata, `clause-id` coverage, links and
-  semantic correspondence; then preserve recoverable originals and replace both
-  projections. If either replacement fails, restore the preserved originals. If an
-  interruption prevents rollback, retain the unchanged `sync-base-revision`, mark
-  the pair as a partial failure or pending repair, and do not report synchronization
-  complete. This is the standalone transaction contract and requires no MCP.
-
-<!-- clause-id: specification.sync.atomic -->
-- Stage both representations and commit a new shared semantic revision only after
-  both updates succeed. Advance `sync-base-revision` in both projections only as
-  part of those staged replacements. A one-sided write is a partial failure or
-  pending repair, never completed synchronization.
-
-<!-- clause-id: specification.sync.ambiguity -->
-- Translation equivalence is an Agent judgment. If wording is ambiguous or the
-  languages cannot be reconciled confidently, ask the Human instead of inferring
-  acceptance or making MCP resolve meaning.
-
-## Conflicts
-
-<!-- clause-id: specification.conflict.definition -->
-- A semantic conflict exists when both representations diverge from the same
-  `sync-base-revision` for the same `clause-id`, or a partial/manual edit makes the
-  intended shared meaning ambiguous. Propagate a one-sided unambiguous semantic
-  change to its counterpart.
-
-<!-- clause-id: specification.conflict.presentation -->
-- Styling, highlighting, spacing and interaction changes are not conflicts unless
-  they alter or conceal semantic content.
-
-<!-- clause-id: specification.conflict.interview -->
-- In standalone mode, the Agent derives conflict facts from both projections and
-  their embedded metadata. A future connected capability may return structured
-  conflict facts only after the cutover contract applies. In either mode, the Agent
-  resolves conflicts through Interview in the current Human conversation. Do not
-  overwrite either representation or advance `sync-base-revision` before the Human
-  decides.
-
-<!-- clause-id: specification.conflict.large -->
-- For a conflict too large to compare safely in conversation, the Agent may create
-  a Processed HTML comparison as supporting evidence. The conversation remains the
-  decision surface and the comparison grants no Specification authority.
+- Client Specifications remain canonical at
+  `docs/specification/<category>[-<domain>]-<name>/SKILL.md`; Processed remains at
+  `docs/processed/<category>[-<domain>]-<name>/SKILL.md`.
+- When Specification discovery needs `.codex/skills/<category>[-<domain>]-<name>/`,
+  expose a derivation of the same canonical source. It is not a separate editable
+  original. Do not require an English Skill, translated HTML, counterpart metadata
+  or a two-source synchronization transaction.
+- Update meaning in the canonical source and regenerate any derived display or
+  exposure as needed. Presentation may improve readability without changing or
+  concealing meaning; a stale derivation grants no competing authority.
+- Ambiguous requirements or conflicting accepted meaning require the Human's
+  decision through Interview. Do not infer acceptance from timestamps or generated
+  output. A Processed `comparison` package may support that decision without
+  acquiring Specification authority.

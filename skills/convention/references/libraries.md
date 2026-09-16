@@ -13,11 +13,14 @@
 ## Rendering dependencies
 
 - Follow [theme.md](theme.md) for portable document behavior and SVG icon rules.
-- Follow [diagrams.md](diagrams.md) for Mermaid source, diagram semantics and accessibility.
+- Follow [diagrams.md](diagrams.md) for Document assets, diagram semantics and accessibility.
+- Document packages use Archify-based JSON; their viewer integration and ERD
+  support remain follow-up work. This contract authorizes no Archify installation.
 
 ## Mermaid integration
 
-- Use Mermaid.js to render SVG.
+- For existing or separately authorized Mermaid contexts outside the Document
+  package contract, use Mermaid.js to render SVG.
 - Use a local relative dependency, `mermaid.run` and `securityLevel: "strict"`;
   another security level requires explicit security review.
 - Record version, source, license and update mechanism in the owning manifest or

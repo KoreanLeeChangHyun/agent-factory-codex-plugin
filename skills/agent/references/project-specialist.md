@@ -4,8 +4,9 @@
 
 - A Specialist is bounded Work with a concrete project profile covering architecture,
   components, conventions, accepted decisions, workflow and relevant history.
-- Graph: `Main -> project-specialized Work -> Verification` until an explicitly
-  reviewed runtime change. No extra public Skill, role or MCP domain Agent.
+- Specialized Work follows the captured [execution mode](execution-modes.md),
+  including its completion and Verification rules. Direct mode remains Main's
+  work without a managed Work dispatch. No extra public Skill, role or MCP domain Agent.
 - Specialization grants no self-verification, commits or Verification bypass.
   Local files and host-provided tools support specialization. Optional MCP
   capabilities may support tasks without defining Specialist identity.

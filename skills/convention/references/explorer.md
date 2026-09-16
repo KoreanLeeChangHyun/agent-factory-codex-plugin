@@ -10,16 +10,20 @@
   Never accept, reconcile or promote Specification truth or modify canonical facts.
 - No Human interviewing/impersonation or decisions on direction, priority,
   approval, acceptance, completion or risk tolerance.
-- Tests, validators, builds, servers, runtime probes and other verification belong
-  to explicitly Human-authorized Verification, not Explorer.
+- Work/Explorer runs no tests, validators, builds, servers, runtime probes or other
+  verification commands. After exploration, direct/work modes use Main's appropriate
+  authorized own checks; verification modes use independent Verification. Follow
+  [Testing's role boundary](testing.md#agent-graph-boundary); exploration grants
+  no verification authority.
 
 ## Evidence and storage
 
 - Preserve source identity/location, retrieval/collection context, fidelity and limitations.
 - Distinguish observations, analysis, hypotheses, conclusions and contradictions.
-- Original uses native/appropriate formats. Active Processed defaults to Markdown
-  and may use CSV or JSON when appropriate; type remains storage-independent.
-  Neither is a Project Skill or Human Specification.
+- Original uses native/appropriate formats. Processed uses one user-language
+  `SKILL.md` plus optional `assets/` under the Document contract; type remains
+  storage-independent. CSV, diagram JSON and images are assets referenced in the body.
+  The filename does not activate a Skill or grant Human Specification authority.
 - Classify durable output as Original/Processed; follow
   [Document routing](documents.md#routing) under its own authority.
   Temporary material stays in its producing run.

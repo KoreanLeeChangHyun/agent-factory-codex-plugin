@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Factory Agent"
-  short_description: "Run the Main, Work, and Verification graph."
-  default_prompt: "Use $agent to route work through Main -> Work -> Verification, repeat on failure, and let Main directly commit the exact result after pass or evidenced Human skip."
+  short_description: "Apply the captured Agent execution mode."
+  default_prompt: "Use $agent to follow the captured task mode and its completion rules, preserve the independent Human approval gate, and let Main perform only authorized Git actions under Convention's publication contract."

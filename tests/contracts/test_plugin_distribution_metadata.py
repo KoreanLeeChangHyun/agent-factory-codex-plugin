@@ -18,35 +18,18 @@ SEMVER = re.compile(
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
-CACHEBUSTER_VERSION = re.compile(r"^1\.0\.8\+codex\.\d{14}$")
+CACHEBUSTER_VERSION = re.compile(r"^1\.0\.9\+codex\.\d{14}$")
 README_PATHS = (
     ROOT / "README.md",
     ROOT / "README.ko.md",
     ROOT / "README.ja.md",
     ROOT / "README.zh-CN.md",
 )
-README_CONTRACT_MARKERS = {
-    "README.md": (
-        "fully installable and usable on its own",
-        "released together",
-        "does not contain or bundle",
-    ),
-    "README.ko.md": (
-        "단독으로 완전히 설치하고 사용할 수",
-        "함께 릴리스",
-        "포함하거나 번들로 제공하지",
-    ),
-    "README.ja.md": (
-        "単独で完全にインストールして使用",
-        "同時にリリース",
-        "内包またはバンドル",
-    ),
-    "README.zh-CN.md": (
-        "完全独立安装和使用",
-        "同步发布",
-        "并不自行包含或捆绑",
-    ),
-}
+README_CONTRACT_MARKERS = (
+    "fully installable and usable on its own",
+    "released together",
+    "does not contain or bundle",
+)
 
 
 def read_json(path: Path) -> dict:
@@ -66,10 +49,18 @@ class PluginDistributionMetadataTests(unittest.TestCase):
         for path in README_PATHS:
             with self.subTest(path=path.name):
                 readme = path.read_text(encoding="utf-8")
+                if path.name != "README.md":
+                    targets = re.findall(r"\[[^]]+\]\(([^)]+)\)", readme)
+                    self.assertTrue(any(
+                        (path.parent / target).resolve() == (ROOT / "README.md").resolve()
+                        for target in targets
+                    ), "Former translations must link to the maintained README")
+                    continue
                 normalized = " ".join(readme.split())
-                self.assertIn("1.0.8+codex.<token>", readme)
+                self.assertIn("extension `1.0.9`", normalized)
+                self.assertIn("1.0.9+codex.<token>", readme)
                 self.assertIn("agent-factory", readme)
-                for marker in README_CONTRACT_MARKERS[path.name]:
+                for marker in README_CONTRACT_MARKERS:
                     self.assertIn(marker, normalized)
                 for command in required_commands:
                     self.assertIn(command, readme)

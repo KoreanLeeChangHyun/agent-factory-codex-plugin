@@ -618,7 +618,7 @@ class Bridge:
                         if current.get("cancelRequested"):
                             return
                         self.planning = False
-                        emit({"type": "native.commentary", "text": "계획을 완료했습니다. 같은 Work 세션에서 구현을 시작합니다."})
+                        emit({"type": "native.commentary", "text": "Planning is complete. Implementation is starting in the same Work session."})
                         result = self.rpc.call("turn/start", self.execution_turn)
                         self.turn_id = result["turn"]["id"]
                         self.last_message = None

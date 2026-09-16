@@ -1,52 +1,59 @@
 # Diagrams
 
-## Shared rules
+## Document assets
 
-- Maintain Mermaid source; render SVG with Mermaid.js under `libraries.md`.
+- Processed and Specification packages use Archify-based diagram JSON under
+  `assets/`, referenced by relative path where the diagram belongs in `SKILL.md`.
+  Follow [Documents](documents.md#document-package) for the single-source package.
+- The Human-facing viewer is intended to expand those references inline as part
+  of one document. The viewer, Archify rendering integration and ERD support are
+  follow-up implementation work, not capabilities delivered by this contract.
+- Do not invent an Archify JSON schema, install external Archify tools or convert
+  existing diagrams under this guidance. Resolve the supported format in the
+  separately authorized implementation work.
 - Ground labels and relationships in inspected code, schemas or accepted
   Specifications. Diagrams establish no runtime behavior, authority or completion.
-- Include `accTitle`, `accDescr` and readable fallback meaning independent of
-  color/geometry. Keep source readable and labels stable/domain-specific.
-- Choose the form by the main relationship; split mixed models when reading
-  direction becomes unclear. Agent Factory concepts come from
-  `agent-factory-core.md`, not a separately maintained example catalog.
+- Keep critical meaning explicit in nearby text and readable without color or
+  geometry. Keep labels stable and domain-specific; split mixed models when their
+  reading direction becomes unclear.
 
 ## ERD — data structure
 
-- Use `erDiagram`; distinguish conceptual, logical and physical models.
+- Distinguish conceptual, logical and physical models.
 - Use singular domain entity names, explicit cardinality/optionality, meaningful
   relationship labels and keys that clarify identity/joins.
 - Include only relevant attributes unless a complete physical schema is required.
   Never infer tables, keys or constraints from naming alone.
 - Preserve derivation provenance; schemas, migrations and accepted Specifications
-  remain authoritative over the diagram.
+  remain authoritative over the diagram. These semantics do not claim ERD rendering support.
 
 ## Behavior — game decisions
 
-- Use `stateDiagram-v2` for FSM states, events, guards, transitions and boss phases.
-- Use `flowchart` for Behavior Trees with identified Root, Selector, Sequence,
-  Condition, Action and relevant Success/Failure/Running semantics. An ordinary
-  flowchart is not automatically a Behavior Tree; name boundaries when mixing FSM/BT.
-- Use domain states/actions; label causal events/guards. Distinguish conditions
-  from actions and interrupts from transitions; show meaningful loops/end states.
+- Identify FSM states, events, guards, transitions and boss phases explicitly.
+- For Behavior Trees identify Root, Selector, Sequence, Condition, Action and
+  relevant Success/Failure/Running semantics. An ordinary flowchart is not
+  automatically a Behavior Tree; name boundaries when mixing FSM/BT.
+- Use domain states/actions; distinguish conditions from actions and interrupts
+  from transitions; show meaningful loops/end states.
 - Separate observed, intended and unresolved behavior. Never invent thresholds,
   probabilities, cooldowns, priorities or phase conditions.
-- Mermaid renders documentation only. Runtime equivalence needs separate evidence;
-  node editing, simulation, tracing and code generation require separate tool decisions.
+- Runtime equivalence needs separate evidence; node editing, simulation, tracing
+  and code generation require separate tool decisions.
 
 ## Sequence — ordered interaction
 
-- Use `sequenceDiagram` with stable participants and chronological messages;
-  distinguish calls, responses and asynchronous signals where relevant.
-- Use grounded `alt`, `opt`, `loop` and parallel fragments. Show activation only
-  when it clarifies responsibility/lifetime.
+- Use stable participants and chronological messages; distinguish calls, responses
+  and asynchronous signals where relevant.
+- Show grounded alternatives, optional exchanges, loops and parallel interactions.
+  Show activation only when it clarifies responsibility/lifetime.
 - Keep state changes in labels or linked behavior diagrams. Use behavior diagrams
   for one actor's decisions; sequence diagrams for exchanges among actors/systems.
 - Never invent timing guarantees, retries, concurrency, ownership or failure handling.
 
-## Syntax references
+## Existing Mermaid contexts
 
-- [ERD](https://mermaid.js.org/syntax/entityRelationshipDiagram)
-- [State](https://mermaid.js.org/syntax/stateDiagram)
-- [Flowchart](https://mermaid.js.org/syntax/flowchart)
-- [Sequence](https://mermaid.js.org/syntax/sequenceDiagram)
+- Preserve existing Mermaid diagrams. For separately authorized Mermaid work
+  outside the Document package contract, follow [Libraries](libraries.md#mermaid-integration).
+- Use `accTitle`, `accDescr` and readable fallback meaning. Mermaid source types
+  include `erDiagram`, `stateDiagram-v2`, `flowchart` and `sequenceDiagram`.
+  Their availability does not establish Archify or Document viewer support.

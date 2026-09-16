@@ -1,6 +1,7 @@
 # Agent Factory for Codex
 
-[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+Maintained documentation: English. Human-facing responses support the language
+the Human uses or explicitly selects.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -9,16 +10,19 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 ## VS Code extension relationship
 
-This plugin is fully installable and usable on its own; the VS Code extension is
-optional. The Agent Factory VS Code extension, however, requires this plugin to be
-installed and enabled at the identical semantic base version. For example, extension
-`1.0.8` accepts plugin `1.0.8+codex.<token>`.
+- This plugin is fully installable and usable on its own; the VS Code extension is optional.
+- The Agent Factory VS Code extension requires this plugin to be installed and
+  enabled at the identical semantic base version. For example, extension `1.0.9`
+  accepts plugin `1.0.9+codex.<token>`.
 
-On activation, the extension checks configured Codex marketplaces, prefers the
-official `agent-factory` marketplace, and attempts one installation of a compatible
-plugin when the plugin is missing or mismatched. It then rechecks the installed and
-enabled state. If that cannot be satisfied, activation blocks and the plugin can be
-installed or updated manually:
+On activation, the extension:
+
+1. Checks configured Codex marketplaces and prefers the official `agent-factory` marketplace.
+2. Attempts one installation of a compatible plugin when it is missing or mismatched.
+3. Rechecks the installed and enabled state; blocks activation if those conditions
+   cannot be satisfied.
+
+For manual installation or update:
 
 ```bash
 codex plugin marketplace add KoreanLeeChangHyun/agent-factory-codex-plugin --ref main
@@ -26,9 +30,10 @@ codex plugin marketplace upgrade agent-factory
 codex plugin add agent-factory@agent-factory
 ```
 
-The plugin and VS Code extension are released together and must remain on matching
-semantic base versions. The extension invokes Codex plugin installation; it does not
-contain or bundle the plugin.
+- The plugin and VS Code extension are released together and must remain on
+  matching semantic base versions.
+- The extension invokes Codex plugin installation; it does not contain or bundle
+  the plugin.
 
 ## Product modes
 
@@ -47,16 +52,16 @@ The plugin exposes exactly two public Skills:
 - `agent` supports four per-request execution modes through Main and managed sessions.
 - `convention` owns the core model and shared project conventions.
 
-Main communicates with the Human, delegates bounded tasks, and integrates results.
-The default delegates Work without separate Verification; direct mode lets Main
-perform the task. Verification modes check completed Work independently, with
-optional actual Plan/default turns in the same Work thread. See the
-[execution modes contract](skills/agent/references/execution-modes.md). Evidence exploration is
-a Work capability (also available to Main in direct mode), and Interview is a Main
-capability; neither adds a Skill or role.
-
-Codex CLI is the default interface. The same graph can also be hosted through
-`codex exec` or surfaced by a VS Code extension.
+- Main communicates with the Human, delegates bounded tasks, and integrates results.
+- The default delegates Work without separate Verification; direct mode lets Main
+  perform the task.
+- Verification modes check completed Work independently, with optional actual
+  Plan/default turns in the same Work thread. See the
+  [execution modes contract](skills/agent/references/execution-modes.md).
+- Evidence exploration is a Work capability, also available to Main in direct mode.
+- Interview is a Main capability. Neither exploration nor Interview adds a Skill or role.
+- Codex CLI is the default interface. The same graph can also be hosted through
+  `codex exec` or surfaced by a VS Code extension.
 
 ## Installation
 
@@ -74,9 +79,10 @@ codex plugin marketplace upgrade agent-factory
 codex plugin add agent-factory@agent-factory
 ```
 
-Start a new Codex thread after installation or update so the Skills and tools are
-loaded. The plugin manifest is `.codex-plugin/plugin.json`; the two distributed
-Skills are under `skills/`. They are not mirrored into a repository-local `.codex/`.
+- Start a new Codex thread after installation or update so the Skills and tools are loaded.
+- The plugin manifest is `.codex-plugin/plugin.json`.
+- The two distributed Skills are under `skills/`; they are not mirrored into a
+  repository-local `.codex/`.
 
 ## Compatibility
 
@@ -91,8 +97,8 @@ Skills are under `skills/`. They are not mirrored into a repository-local `.code
 - **Containment:** User systemd with cgroup v2 is preferred. The private
   process-group fallback provides weaker descendant containment.
 
-These are compatibility boundaries, not proof that a particular host, account,
-model, tier, or sandbox is ready.
+- These are compatibility boundaries, not proof that a particular host, account,
+  model, tier, or sandbox is ready.
 
 ## Detailed documentation
 
@@ -107,7 +113,8 @@ Durable contracts remain with their owning Skill and references:
 - [Directory structure](skills/convention/references/directory-structure.md):
   source, installation, runtime, cloud, and legacy layout.
 - [Documents](skills/convention/references/documents.md): document types, routing,
-  formats, projections, and synchronization.
+  single user-language `SKILL.md` plus optional `assets/` packages, and derived
+  display/Skill exposure. Inline asset viewing and ERD support remain follow-up work.
 - [Development](skills/convention/references/development.md): changes, Git
   publication, technical documentation, and release readiness.
 - [Testing](skills/convention/references/testing.md): test organization and

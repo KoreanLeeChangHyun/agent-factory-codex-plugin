@@ -1,8 +1,9 @@
 # Local Agent Runtime
 
-The complete local runtime operates without an Agent Factory MCP package, server,
-account, tenant, connection or authenticated resource. Optional reporting and MCP
-capability bindings are inactive unless explicitly configured and authorized.
+- The complete local runtime operates without an Agent Factory MCP package, server,
+  account, tenant, connection or authenticated resource.
+- Optional reporting and MCP capability bindings are inactive unless explicitly
+  configured and authorized.
 
 ## Storage and identity
 
@@ -70,11 +71,12 @@ capability bindings are inactive unless explicitly configured and authorized.
 
 ### Host readiness and diagnostics
 
-Run `python3 skills/agent/scripts/exec.py doctor` before choosing a managed host.
-Add `--probe` to exercise the system bubblewrap helper on Linux with a five-second
-timeout, read-only filesystem and isolated network. Neither command initializes
-the runtime registry or changes host policy. `--codex PATH` selects the executable
-to locate; this inventory does not prove its version or complete sandbox works.
+- Run `python3 skills/agent/scripts/exec.py doctor` before choosing a managed host.
+- Add `--probe` to exercise the system bubblewrap helper on Linux with a five-second
+  timeout, read-only filesystem and isolated network.
+- Neither command initializes the runtime registry or changes host policy.
+- `--codex PATH` selects the executable to locate; this inventory does not prove
+  its version or complete sandbox works.
 
 | Host | Managed execution | Required action |
 | --- | --- | --- |
@@ -144,11 +146,12 @@ to locate; this inventory does not prove its version or complete sandbox works.
 ### Run files and retries
 
 - New runs return `status`, the exact `resultPath`, and a nonempty `resultText`
-  in the final structured response. The runtime validates the envelope and atomically
-  saves its UTF-8 text as `result.md` before terminal publication. Agents do not write
-  or reread their answer file. Text is limited to 64 KiB (and 65,536 characters in
-  the output schema), leaving room inside the bounded JSONL stream; keep large
-  artifacts in task-owned files and summarize them in the response.
+  in the final structured response.
+- The runtime validates the envelope and atomically saves its UTF-8 text as
+  `result.md` before terminal publication. Agents do not write or reread their answer file.
+- Text is limited to 64 KiB (and 65,536 characters in the output schema), leaving
+  room inside the bounded JSONL stream. Keep large artifacts in task-owned files
+  and summarize them in the response.
 - Work and Verification still write their separate machine receipts; completed runs
   retain all request, role, capability and exact-Work receipt validation.
 - Persisted legacy response schemas retain their file-based completion contract.
@@ -193,29 +196,35 @@ to locate; this inventory does not prove its version or complete sandbox works.
   [the Agent graph](../SKILL.md#roles-and-graph).
 - Completed runs publish validated `receipt.json` beside `result.md`.
 - Work receipts identify the request, project-root-relative changed paths and
-  addressed finding IDs for revisions. Runtime-only artifacts remain in the
-  detailed result; `changedPaths` is empty when the project was untouched. New
-  receipts use the neutral `outcome: completed`, including for read-only Work;
+  addressed finding IDs for revisions.
+- Runtime-only artifacts remain in the detailed result; `changedPaths` is empty
+  when the project was untouched.
+- New receipts use the neutral `outcome: completed`, including for read-only Work;
   version 0.1.0 continues accepting legacy `implemented` receipts.
 - `recover-receipt` is an explicit, allowlisted recovery for a loop stopped on a
-  deterministic Work receipt missing, format or changed-path-contract failure.
-  Test-proof, core/capability-binding, and unsafe path failures are not recoverable.
-  It preserves the failed run and
-  loop, resumes the exact Work session in a fresh run through durable dispatch,
-  and retains original request, findings, capability and execution-policy
-  bindings, and passes preserved failed-run evidence to Verification. Its request
-  forbids repeating completed effects; active, ambiguous,
-  unsafe and non-receipt failures fail closed. Reconcile the recovered Work to
-  start independent Verification only after it actually completes.
+  deterministic Work receipt missing, format or changed-path-contract failure:
+  - Test-proof, core/capability-binding, and unsafe path failures are not recoverable.
+  - Preserve the failed run and loop.
+  - Resume the exact Work session in a fresh run through durable dispatch.
+  - Retain original request, captured task mode, findings, capability and
+    execution-policy bindings.
+  - The recovery request forbids repeating completed effects; active, ambiguous,
+    unsafe and non-receipt failures fail closed.
+  - Reconcile only after the recovered Work actually completes. In `work` mode,
+    end the loop with `work-completed`; Main then performs appropriate own checks
+    and integrates, with separate Verification `not requested`.
+  - In verification modes, start independent Verification with the preserved
+    failed-run evidence unless an evidenced Human skip applies. Follow
+    [execution modes](execution-modes.md) for completion and skip rules.
 - Verification uses `--verified-work-run-id`; its receipt binds the exact Work
   run and original request. `pass` has no findings; `fail` has actionable findings.
 - Exec owns process/session/run facts and genuine same-session Plan/default turns.
   Loop owns delegated transitions and END; Main owns completion of direct tasks
   and its own checks in direct/work modes. See [execution modes](execution-modes.md).
 
-### Linux containment
+## Linux containment
 
-#### Systemd backend
+### Systemd backend
 
 1. Check command features, responsive user manager, safe environment transfer and
    cgroup-v2 population access.
@@ -226,7 +235,7 @@ to locate; this inventory does not prove its version or complete sandbox works.
    that binding before reconciliation/signalling.
 4. Confirm cancellation from empty bound cgroup population, not service state or leader PID.
 
-#### Fallback
+### Fallback
 
 - Without usable user systemd (including macOS), retain startup barrier, private
   sessions/process groups and boot/process-start identity checks. Fail closed on unverifiable identity;

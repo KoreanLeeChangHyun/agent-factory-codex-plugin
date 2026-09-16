@@ -9,11 +9,12 @@
 | `work-verification` | Managed Work | Separate Verification pass or evidenced Human skip |
 | `plan-work-verification` | Actual Plan then default execution in the same Work thread | Separate Verification pass or evidenced Human skip |
 
-Conversation and Human Interview always remain Main. Selecting a mode does not
-satisfy the independent Human approval gate or expand execution permissions.
-The selector applies to the next submitted message. Queued messages retain their
-submission snapshot; changing the selector cannot redirect accepted/running work.
-Main preserves an active task's route when handling conversational steering.
+- Conversation and Human Interview always remain Main.
+- Selecting a mode does not satisfy the independent Human approval gate or expand
+  execution permissions.
+- The selector applies to the next submitted message. Queued messages retain their
+  submission snapshot; changing the selector cannot redirect accepted/running work.
+- Main preserves an active task's route when handling conversational steering.
 
 ## Runtime interface
 
@@ -37,24 +38,32 @@ Main preserves an active task's route when handling conversational steering.
 
 ## Actual Plan transition
 
-Plan support is advertised only when the installed Codex experimental schema
-contains `turn/start.collaborationMode`, Plan/default kinds and
-`collaborationMode/list`. At execution time the adapter also requires both modes
-from the live catalog. Missing support fails closed before a model turn.
+- Plan support is advertised only when the installed Codex experimental schema
+  contains `turn/start.collaborationMode`, Plan/default kinds and
+  `collaborationMode/list`.
+- At execution time the adapter also requires both modes from the live catalog.
+  Missing support fails closed before a model turn.
 
-A Work run starts/resumes one exact thread with a `plan` collaboration turn and a
-planning output schema. It preserves the plan in that run's `plan.json`, checks
-cancellation, then issues `turn/start` with `default` collaboration mode and the
-original result/receipt schema on that same thread. Model, reasoning, execution
-permissions and approval policy are retained. No transition click is required.
-A required unresolved Human decision stops at `needs-human-decision`; failure or
-interruption cannot start implementation or Verification. Native interactive
-requests remain subject to the managed transport's existing input boundary.
-Only the implementation result can complete Work and enable Verification.
+1. Start/resume one exact Work thread with a `plan` collaboration turn and a
+   planning output schema.
+2. Preserve the plan in that run's `plan.json` and check cancellation.
+3. Issue `turn/start` with `default` collaboration mode and the original
+   result/receipt schema on that same thread.
+
+- Model, reasoning, execution permissions and approval policy are retained.
+- No transition click is required.
+- A required unresolved Human decision stops at `needs-human-decision`; failure or
+  interruption cannot start implementation or Verification.
+- Native interactive requests remain subject to the managed transport's existing
+  input boundary.
+- Only the implementation result can complete Work and enable Verification.
 
 ## Reports and authority
 
-Use `not requested` for separate Verification in direct/work modes, not `pass` or
-Human skip. Report Main's own checks separately. Work never self-verifies or
-commits. Permission, approval, publication and destructive-action authority remain
-independent of mode. Mode selection alone sends no messages to external services.
+- Use `not requested` for separate Verification in direct/work modes, not `pass` or
+  Human skip.
+- Report Main's own checks separately.
+- Work never self-verifies or commits.
+- Permission, approval, publication and destructive-action authority remain
+  independent of mode.
+- Mode selection alone sends no messages to external services.

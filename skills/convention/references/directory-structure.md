@@ -6,8 +6,11 @@
   preserve single-name identities. No repository `.codex/` mirror or duplicate
   Skill contract tree. These packages are Provider instructions, not Client
   Document or Project Skill backends.
-- **Consumer:** `.codex/skills/<category>-<title>/` using the
-  [Specification naming contract](documents.md#specification-naming).
+- **Consumer:** canonical Processed and Specification packages contain one
+  user-language `SKILL.md` plus optional `assets/`, under the local roots below.
+  Optional `.codex/skills/<category>[-<domain>]-<name>/` exposure derives from the
+  canonical Specification; it is never a separate editable source. Follow the
+  [naming and metadata contract](documents.md#naming-and-metadata).
 - **Locators:** resolve source, installed Skill and immutable cloud revision
   separately. Git owns authoring; current MCP schema/authority governs selected
   connected publication.
@@ -23,9 +26,9 @@
 - Keep credentials with their authority, outside runtime evidence and Git.
 - Use shell/file tools for bounded local inspection.
 - Store durable documents using [Document routing](documents.md#routing). Its local
-  standalone packages are `<project-root>/docs/original/<category>-<name>/`,
-  `<project-root>/docs/processed/<category>-<name>/`, and
-  `<project-root>/docs/specification/<category>-<name>/`; this is complete
+  standalone packages are `<project-root>/docs/original/<category>[-<domain>]-<name>/`,
+  `<project-root>/docs/processed/<category>[-<domain>]-<name>/`, and
+  `<project-root>/docs/specification/<category>[-<domain>]-<name>/`; this is complete
   standalone behavior, not an error fallback.
 - Add no local MCP/provider/Document service.
 

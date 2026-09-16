@@ -1,9 +1,9 @@
 # Theme
 
-Preserve the product's established theme and design system; this baseline does not
-authorize restyling unrelated surfaces. Product and technical Design
-Specifications belong to `documents.md`; this reference owns visual and interface
-presentation.
+- Preserve the product's established theme and design system; this baseline does
+  not authorize restyling unrelated surfaces.
+- Product and technical Design Specifications belong to `documents.md`; this
+  reference owns visual and interface presentation.
 
 ## Interfaces
 

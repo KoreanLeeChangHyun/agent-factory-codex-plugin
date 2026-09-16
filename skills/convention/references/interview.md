@@ -21,34 +21,39 @@
 
 ## Question protocol
 
-Before asking the first question, inspect the available context and enumerate the
-complete set of material Human decisions the interview must resolve. Fix the total
-question count from that inventory; do not choose a total from only the next known
-question. If later Human input adds, removes or combines a material decision, revise
-the total explicitly and preserve the reason in the interview record.
+1. Before asking the first question, inspect the available context and enumerate
+   the complete set of material Human decisions the interview must resolve.
+2. Fix the total question count from that inventory; do not choose a total from
+   only the next known question.
+3. If later Human input adds, removes or combines a material decision, revise the
+   total explicitly and preserve the reason in the interview record.
 
-Ask one decision at a time using this exact structure:
+Ask one decision at a time using this structure. Render labels, questions, options
+and recommendations in the Human's language under the
+[communication contract](communication.md#language); the English labels below
+describe the template, not a fixed response language.
 
 ```markdown
-질문: [<current>/<total>] <question>
+Question: [<current>/<total>] <question>
 
-| 선택지 | 결정 | 장점 | 단점 |
+| Option | Decision | Advantages | Disadvantages |
 |---|---|---|---|
 | 1 | <decision> | <advantage> | <disadvantage> |
 | 2 | <decision> | <advantage> | <disadvantage> |
 | 3 | <decision> | <advantage> | <disadvantage> |
 
-추천: <recommendation>
+Recommendation: <recommendation>
 
-이전 결정 사항:
+Previous decision:
 
 - <prior Human decision>
 ```
 
 - Provide three mutually exclusive, decision-ready options grounded in available
   evidence. The recommendation is advice, never a decision or approval.
-- Keep `이전 결정 사항` as a bullet list containing only the immediately
-  preceding answered interview decision. Use `- 없음` before the first decision.
+- Keep `Previous decision` as a bullet list containing only the immediately
+  preceding answered interview decision. Use the localized equivalent of `- None`
+  before the first decision.
   Do not list process requirements, recommendations, silence or unresolved options
   as decisions. Reserve the complete decision history for interview completion.
 - When the Human supplies a requirement without answering the active question,
@@ -68,8 +73,9 @@ After all questions are answered:
 3. Use the Human-selected destination when supplied; otherwise follow
    [Document routing](documents.md#routing).
 
-The record is non-authoritative working knowledge. It does not become an accepted
-Specification merely because the interview completed or the document was written.
+- The record is non-authoritative working knowledge.
+- It does not become an accepted Specification merely because the interview
+  completed or the document was written.
 
 ## Coordination
 

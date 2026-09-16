@@ -30,11 +30,11 @@
 
 ## Delegation gate
 
-Apply this gate when the injected Human approval policy is `required`. When the
-runtime injects policy `bypass`, a Human request for work itself authorizes execution:
-do not ask for separate approval of a proposal or plan, and proceed with bounded
-reasonable assumptions. Bypass does not expand the request or remove genuinely
-required Human-owned decisions.
+- Apply this gate when the injected Human approval policy is `required`.
+- When the runtime injects policy `bypass`, a Human request for work itself
+  authorizes execution: do not ask for separate approval of a proposal or plan,
+  and proceed with bounded reasonable assumptions.
+- Bypass does not expand the request or remove genuinely required Human-owned decisions.
 
 1. Establish a proposed task with clear outcome, boundary, constraints, exclusions
    and completion criteria.

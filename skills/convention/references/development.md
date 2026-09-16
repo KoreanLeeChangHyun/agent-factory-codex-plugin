@@ -13,7 +13,10 @@ Follow stronger established project conventions.
   mirror or migrate storage. Initialization preserves files unless exact
   overwrite/merge behavior is authorized.
 - Distinguish generated/copied assets from reusable source; document their sync
-  contract. Keep reusable code in scripts and conditional guidance in references.
+  contract. Provider execution Skills keep reusable code in scripts and conditional
+  guidance in references; Processed and Specification Document packages follow
+  `documents.md` and contain only `SKILL.md` plus optional `assets/`. Original
+  retains its native or otherwise source-appropriate format.
 - Keep domain names/interfaces consistent; separate observed facts, accepted
   decisions, inferences and unresolved questions. Local implementations are not
   universal architecture rules.
@@ -40,12 +43,18 @@ Follow stronger established project conventions.
 
 ## Technical documentation
 
+- Maintain this plugin's documentation and Provider execution Skill guidance in English. This is the
+  explicit language exception to the Human-language Document package contract in
+  [Documents](documents.md#provider-placement).
+- Preserve Provider `references/`, `scripts/`, `agents/`, `runtime/` and `prompt/`;
+  Document package simplification does not remove execution package components.
 - For Markdown and technical documents, including designs and specifications,
   default to section headings with concise bullets for parallel requirements/rules
-  and numbered lists for ordered steps. Use deeper headings only for distinct subtopics.
+  and numbered lists for ordered steps. Use only H1/H2/H3 and section numbering
+  through `1` / `1.1`; split deeper topics into separate documents.
 - Keep one core point per item. Avoid headings followed by long prose blocks;
   include brief context or rationale only when it helps understanding.
-- Use tables where shared dimensions clarify comparisons, definitions or mappings,
+- Use Markdown tables in document bodies where shared dimensions clarify comparisons, definitions or mappings,
   such as roles, ownership, options and reference purposes.
 - Place useful tables, diagrams and images near the text they explain. Use visual
   aids when they improve understanding, without quotas or decorative requirements;
@@ -79,8 +88,8 @@ Follow stronger established project conventions.
 
 ## Plugin release readiness
 
-The repository marketplace installs this plugin from `main`. Treat another branch
-as a release candidate, not as published state.
+- The repository marketplace installs this plugin from `main`.
+- Treat another branch as a release candidate, not as published state.
 
 1. Inspect the candidate diff against the current remote `main`; resolve unrelated
    changes and confirm the exact release scope.

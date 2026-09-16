@@ -9,10 +9,12 @@
 - **Publication:** Git owns AI Skill authoring; MCP owns connected Document
   publication and accepted cloud revisions. Keep source, installed and revision locators distinct.
 - **Documents:** follow the [Document contract](documents.md) for types, authority,
-  placement, formats, Specification projections and synchronization.
+  placement, single-source packages and derived display/Skill exposure.
 
 ### Project Skills
 
+- Processed `SKILL.md` is not an automatically active Skill or Specification.
+  Client Specification Skill exposure derives from its canonical document source.
 - Project Skill identity, categories and representations follow
   [Documents](documents.md#specification-naming). This plugin's `agent` and
   `convention` identities remain explicit Provider exceptions.
