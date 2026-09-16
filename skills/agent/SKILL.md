@@ -20,13 +20,16 @@ metadata:
 - **direct:** Main performs bounded work and appropriate own checks directly.
 - **work:** Main delegates Work, then performs appropriate own checks and integrates;
   no separate Verification. Report it as not requested, never a pass or Human skip.
+- **plan-work:** the same Work session uses actual Codex Plan mode, automatically
+  transitions to default execution mode, then Main performs appropriate own checks
+  and integrates; separate Verification is not requested.
 - **work-verification:** Main -> Work -> Verification.
 - **plan-work-verification:** the same Work session uses actual Codex Plan mode,
   automatically transitions to default execution mode, then separate Verification.
 - **Work:** execute; no self-verification, coordination or commits.
 - **Verification:** independently check the exact completed Work run; no repair.
 - **Fail in verification modes:** return to the same Work and Verification sessions.
-- **END:** direct/Work route completion after appropriate Main checks; verification
+- **END:** direct/work/plan-work route completion after appropriate Main checks; verification
   routes require pass or evidenced Human skip applied after completed Work.
   Record skip before the next Verification; never equate failure/cancellation/input
   requests with completion. Mode selection is independent of Human approval policy.

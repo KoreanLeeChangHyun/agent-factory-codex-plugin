@@ -11,7 +11,7 @@
 - No Human interviewing/impersonation or decisions on direction, priority,
   approval, acceptance, completion or risk tolerance.
 - Work/Explorer runs no tests, validators, builds, servers, runtime probes or other
-  verification commands. After exploration, direct/work modes use Main's appropriate
+  verification commands. After exploration, direct/work/plan-work modes use Main's appropriate
   authorized own checks; verification modes use independent Verification. Follow
   [Testing's role boundary](testing.md#agent-graph-boundary); exploration grants
   no verification authority.

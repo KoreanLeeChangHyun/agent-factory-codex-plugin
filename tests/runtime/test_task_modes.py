@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 from native_fixtures import native, runtime, native_fixture
 from task_modes import route_instruction
@@ -18,7 +19,7 @@ class TaskModeTests(unittest.TestCase):
             session = {"role": "main", "maxAttempts": 1}
             default = runtime.create_run(project_root=root, agent_id="main-default", actor="human", request=b"task", session=session)
             self.assertEqual(default["taskMode"], "work")
-            for mode in ("direct", "work", "work-verification", "plan-work-verification"):
+            for mode in ("direct", "work", "plan-work", "work-verification", "plan-work-verification"):
                 state = runtime.create_run(project_root=root, agent_id="main-selected", actor="human", request=b"task", session=session,
                                            execution_options={"taskMode": mode}, dispatch_id="dispatch-" + mode, dispatch_operation="send")
                 self.assertEqual(state["taskMode"], mode)
@@ -27,10 +28,10 @@ class TaskModeTests(unittest.TestCase):
             with self.assertRaises(runtime.ContractError):
                 route_instruction("pretend-plan", "main")
 
-    def fixture(self, root, *, plan_status="planned", cancel=False, failure=False, supported=True):
+    def fixture(self, root, *, plan_status="planned", cancel=False, failure=False, supported=True, task_mode="plan-work-verification"):
         original, rpc, state = native_fixture(root, goal=False)
         state["role"] = "work"
-        state["executionOptions"] = {"taskMode": "plan-work-verification"}
+        state["executionOptions"] = {"taskMode": task_mode}
         original.session["role"] = "work"
         original.session["nativeCapabilities"] = {"plan": supported}
         rpc.events = []
@@ -109,3 +110,30 @@ class TaskModeTests(unittest.TestCase):
             with self.assertRaisesRegex(native.NativeError, "genuine Plan"):
                 bridge.run("bounded request")
             self.assertFalse(any(method == "turn/start" for method, _ in rpc.calls))
+
+
+class PlanWorkTests(TaskModeTests):
+    """Exercise the same native transition and stop boundaries without Verification."""
+
+    def fixture(self, root, **kwargs):
+        return super().fixture(root, task_mode="plan-work", **kwargs)
+
+    def test_capabilities_gate_both_plan_routes(self):
+        for supported in (False, True):
+            with self.subTest(supported=supported), tempfile.TemporaryDirectory() as directory:
+                capabilities = {"submit": {"plan": supported}, "send": {"plan": supported}}
+                with mock.patch.object(native, "inspect_capabilities", return_value=capabilities), mock.patch.object(runtime, "emit") as emit:
+                    runtime.main(["capabilities", "--project-root", directory])
+                for operation in ("submit", "send"):
+                    modes = emit.call_args.args[0][operation]["taskModes"]
+                    self.assertIn("work", modes)
+                    self.assertIn("work-verification", modes)
+                    for mode in ("plan-work", "plan-work-verification"):
+                        self.assertEqual(mode in modes, supported)
+
+    def test_main_guidance_requires_own_checks_without_verification(self):
+        instruction = route_instruction("plan-work", "main")
+        self.assertIn("loop.py start --task-mode plan-work", instruction)
+        self.assertIn("appropriate own checks", instruction)
+        self.assertIn("Do not start separate Verification", instruction)
+        self.assertEqual(route_instruction("plan-work", "work"), "")

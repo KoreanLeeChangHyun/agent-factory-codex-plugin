@@ -205,6 +205,48 @@ class AgentLoopContractTests(unittest.TestCase):
         self.assertIsNone(ended["latestVerificationRunId"])
         self.assertEqual([item["role"] for item in self.runtime.dispatches], ["work"])
 
+    def test_plan_work_needs_no_verification_identity_and_completes(self):
+        args = self.agent_loop.build_parser().parse_args([
+            "start", "--project-root", str(self.root), "--request-file", str(self.request),
+            "--work-agent", "work-agent", "--task-mode", "plan-work", "--codex", "/bin/true",
+        ])
+        started = self.agent_loop.start_loop(args)
+        work = self.runtime.runs[("work-agent", started["latestWorkRunId"])]
+        self.assertEqual(work["dispatchTuple"]["executionOptions"]["taskMode"], "plan-work")
+        self.runtime.complete_work("work-agent", work["runId"])
+        ended = self.reconcile(started)
+        self.assertEqual(ended["status"], "completed")
+        self.assertEqual(ended["terminalReason"]["code"], "work-completed")
+        self.assertIsNone(ended["humanSkip"])
+        self.assertIsNone(ended["latestVerificationRunId"])
+        self.assertEqual([item["role"] for item in self.runtime.dispatches], ["work"])
+
+    def test_plan_work_rejects_verification_dispatch_and_skip(self):
+        started = self.start(["--task-mode", "plan-work"])
+        path = Path(started["statePath"])
+        state = self.agent_exec.safe_read_json(path)
+        with self.assertRaises(self.agent_exec.ContractError) as raised:
+            self.agent_loop.prepare_dispatch(state, path, role="verification", request_file=self.request)
+        self.assertEqual(raised.exception.code, "graph_transition_invalid")
+        args = self.agent_loop.build_parser().parse_args([
+            "skip", "--project-root", str(self.root), "--work-agent", "work-agent",
+            "--loop-id", started["loopId"], "--actor", "human",
+            "--authorization-reference", "explicit-input", "--decision-evidence", "skip",
+        ])
+        with self.assertRaises(self.agent_exec.ContractError) as raised:
+            self.agent_loop.skip_loop(args)
+        self.assertEqual(raised.exception.code, "verification_not_requested")
+
+    def test_plan_work_noncompleted_child_never_finishes_or_dispatches_verification(self):
+        for status in ("failed", "cancelled", "needs-human-decision"):
+            with self.subTest(status=status):
+                started = self.start(["--task-mode", "plan-work"])
+                self.runtime.runs[("work-agent", started["latestWorkRunId"])]["status"] = status
+                ended = self.reconcile(started)
+                self.assertEqual(ended["status"], "runtime-error")
+                self.assertIsNone(ended["latestVerificationRunId"])
+                self.assertTrue(all(item["role"] == "work" for item in self.runtime.dispatches))
+
     def test_plan_mode_is_bound_to_work_dispatch_and_not_verification(self):
         started = self.start(["--task-mode", "plan-work-verification"])
         work = self.runtime.runs[("work-agent", started["latestWorkRunId"])]

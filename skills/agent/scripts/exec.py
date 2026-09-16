@@ -791,9 +791,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             session = {**session, "humanApprovalPolicy": human_approval_policy}
         effective = {**session, **execution_options}
         image_input.validate_execution(images, effective)
-        if effective.get("taskMode") == "plan-work-verification" or effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
+        if effective.get("taskMode") in ("plan-work", "plan-work-verification") or effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
             capabilities = native_codex.inspect_capabilities(str(session["codex"]))
-            required = {"plan": effective.get("taskMode") == "plan-work-verification", "fast": effective.get("fast") is True and goal_action in (None, "resume", "reopen"),
+            required = {"plan": effective.get("taskMode") in ("plan-work", "plan-work-verification"), "fast": effective.get("fast") is True and goal_action in (None, "resume", "reopen"),
                         "goal": effective.get("goalMode") is True or bool(goal_action)}
             for field, needed in required.items():
                 if needed and not capabilities["send"].get(field, False):
@@ -985,7 +985,7 @@ def run_codex_attempt(
     for key in ("model", "reasoningEffort", "fast", "goalMode"):
         if key in execution:
             session[key] = execution[key]
-    if execution.get("taskMode") == "plan-work-verification" or session.get("backend") == "app-server" or session.get("fast") is True or session.get("goalMode") is True or state.get("goalAction"):
+    if execution.get("taskMode") in ("plan-work", "plan-work-verification") or session.get("backend") == "app-server" or session.get("fast") is True or session.get("goalMode") is True or state.get("goalAction"):
         session["backend"] = "app-server"
     # Legacy explicit off is applied as a config override by build_codex_command.
     if session.get("backend") == "app-server":
@@ -1970,7 +1970,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 codex = session["codex"]
             capabilities = dict(native_codex.inspect_capabilities(codex))
             from task_modes import TASK_MODES
-            modes = [mode for mode in TASK_MODES if mode != "plan-work-verification" or capabilities["submit"].get("plan") is True]
+            modes = [mode for mode in TASK_MODES if mode not in ("plan-work", "plan-work-verification") or capabilities["submit"].get("plan") is True]
             capabilities["submit"] = {**capabilities["submit"], "images": True, "taskModes": modes}
             capabilities["send"] = {**capabilities["send"], "images": True, "taskModes": modes}
             if session is not None and "executionPolicy" in session:

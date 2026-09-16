@@ -220,7 +220,7 @@
   run and original request. `pass` has no findings; `fail` has actionable findings.
 - Exec owns process/session/run facts and genuine same-session Plan/default turns.
   Loop owns delegated transitions and END; Main owns completion of direct tasks
-  and its own checks in direct/work modes. See [execution modes](execution-modes.md).
+  and its own checks in direct/work/plan-work modes. See [execution modes](execution-modes.md).
 
 ## Linux containment
 

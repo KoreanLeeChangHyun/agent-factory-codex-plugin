@@ -49,12 +49,14 @@ codex plugin add agent-factory@agent-factory
 
 The plugin exposes exactly two public Skills:
 
-- `agent` supports four per-request execution modes through Main and managed sessions.
+- `agent` supports five per-request execution modes through Main and managed sessions.
 - `convention` owns the core model and shared project conventions.
 
 - Main communicates with the Human, delegates bounded tasks, and integrates results.
 - The default delegates Work without separate Verification; direct mode lets Main
   perform the task.
+- `plan-work` runs actual Plan then default implementation in the same Work
+  thread, followed by Main checks without separate Verification.
 - Verification modes check completed Work independently, with optional actual
   Plan/default turns in the same Work thread. See the
   [execution modes contract](skills/agent/references/execution-modes.md).

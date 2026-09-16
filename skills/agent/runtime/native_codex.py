@@ -314,7 +314,7 @@ class Bridge:
         self.goal_enabled = session.get("role") == "main" and self.goal_supported and (
             session.get("goalMode") is not None or bool(session.get("goal")) or bool(state.get("goalAction")))
         self.stopped = False
-        self.planning = state.get("role") == "work" and state.get("executionOptions", {}).get("taskMode") == "plan-work-verification"
+        self.planning = state.get("role") == "work" and state.get("executionOptions", {}).get("taskMode") in ("plan-work", "plan-work-verification")
         self.execution_turn = None
         self.planning_turn_id = None
 

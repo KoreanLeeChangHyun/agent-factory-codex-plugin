@@ -75,7 +75,7 @@ Use this reference when organizing, selecting, or running tests.
 ## Agent graph boundary
 
 - Organizing/authoring tests grants no execution authority. Work runs no verification
-  commands. In direct/work modes Main performs appropriate authorized own checks;
+  commands. In direct/work/plan-work modes Main performs appropriate authorized own checks;
   verification modes reserve independent checking for Verification.
 - Verification independently checks exact Work with the smallest authorized tests.
 - Report skipped/unrun tests honestly, never as passes.

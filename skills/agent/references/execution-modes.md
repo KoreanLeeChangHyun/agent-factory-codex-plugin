@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | `direct` | Main directly | Appropriate Main checks |
 | `work` (new Main default) | Managed Work | Completed Work receipt, appropriate Main checks; separate Verification not requested |
+| `plan-work` | Actual Plan then default execution in the same Work thread | Completed Work receipt, appropriate Main checks; separate Verification not requested |
 | `work-verification` | Managed Work | Separate Verification pass or evidenced Human skip |
 | `plan-work-verification` | Actual Plan then default execution in the same Work thread | Separate Verification pass or evidenced Human skip |
 
@@ -22,7 +23,8 @@
   without a flag capture `work`; historical runs with no mode retain
   `work-verification`. Explicit flags participate in the immutable dispatch tuple.
 - Main performs `direct` work itself; do not create a direct-mode loop.
-- `loop.py start --task-mode work --work-agent ID --request-file PATH` needs no
+- `loop.py start --task-mode work --work-agent ID --request-file PATH` (also
+  `--task-mode plan-work`) needs no
   Verification identity. Its completed Work receipt ends the loop with terminal
   reason `work-completed`. Main then performs appropriate checks and integrates.
 - Verification modes additionally require `--verification-agent ID`. Failure
@@ -38,6 +40,7 @@
 
 ## Actual Plan transition
 
+- Both `plan-work` and `plan-work-verification` use this transition.
 - Plan support is advertised only when the installed Codex experimental schema
   contains `turn/start.collaborationMode`, Plan/default kinds and
   `collaborationMode/list`.
@@ -56,11 +59,13 @@
   interruption cannot start implementation or Verification.
 - Native interactive requests remain subject to the managed transport's existing
   input boundary.
-- Only the implementation result can complete Work and enable Verification.
+- Only the implementation result and valid Work receipt can complete Work.
+  `plan-work` ends the loop without Verification; Main then performs appropriate
+  checks. `plan-work-verification` proceeds to separate Verification.
 
 ## Reports and authority
 
-- Use `not requested` for separate Verification in direct/work modes, not `pass` or
+- Use `not requested` for separate Verification in direct/work/plan-work modes, not `pass` or
   Human skip.
 - Report Main's own checks separately.
 - Work never self-verifies or commits.
