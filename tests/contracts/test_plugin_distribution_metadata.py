@@ -80,7 +80,7 @@ class PluginDistributionMetadataTests(unittest.TestCase):
         self.assertTrue((ROOT / manifest["skills"]).is_dir())
         self.assertEqual(
             {path.name for path in (ROOT / manifest["skills"]).iterdir() if path.is_dir()},
-            {"agent", "convention"},
+            {"agent", "convention", "document"},
         )
         for field in ("homepage", "repository"):
             self.assertEqual(urlsplit(manifest[field]).scheme, "https")

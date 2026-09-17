@@ -10,11 +10,11 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 SKILLS = ROOT / "skills"
-PUBLIC_SKILLS = {"agent", "convention"}
+PUBLIC_SKILLS = {"agent", "convention", "document"}
 
 
 class ConventionSkillMetadataTests(unittest.TestCase):
-    def test_public_skill_directories_match_the_two_skill_contract(self) -> None:
+    def test_public_skill_directories_match_the_public_skill_contract(self) -> None:
         actual = {
             path.name
             for path in SKILLS.iterdir()
@@ -115,9 +115,10 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         layout = (
             SKILLS / "convention" / "references" / "directory-structure.md"
         ).read_text(encoding="utf-8")
-        documents = (
-            SKILLS / "convention" / "references" / "documents.md"
-        ).read_text(encoding="utf-8")
+        documents = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8") + "\n" + "\n".join(
+            (SKILLS / "document" / "references" / name).read_text(encoding="utf-8")
+            for name in ("specification.md", "processed.md", "original.md")
+        )
         manifest = json.loads(
             (ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
         )
@@ -158,15 +159,15 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         ):
             with self.subTest(manifest_dependency=dependency):
                 self.assertIn(dependency, manifest_description)
-        self.assertIn("absence of MCP is a normal supported mode", convention)
-        for document_type in ("original", "processed", "specification"):
+        self.assertIn("absence of MCP is a normal supported mode", " ".join(convention.split()))
+        for document_type in ("original", "processed", "skills"):
             self.assertIn(
                 f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/", layout
             )
-        self.assertIn("not an error fallback", layout)
+        self.assertIn("not an error fallback", " ".join(layout.split()))
         self.assertNotIn("docs/<category>[-<domain>]-<name>.html", documents)
         self.assertIn(
-            "docs/specification/<category>[-<domain>]-<name>/SKILL.md", documents
+            "docs/skills/<category>[-<domain>]-<name>/SKILL.md", documents
         )
         for clause_id in (
             "specification.routing.canonical",
@@ -184,19 +185,19 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         self.assertNotIn("mcp", (ROOT / "requirements.txt").read_text().lower())
 
     def test_document_package_and_future_cutover_contract(self) -> None:
-        documents = (
-            SKILLS / "convention" / "references" / "documents.md"
-        ).read_text(encoding="utf-8")
+        documents = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8") + "\n" + "\n".join(
+            (SKILLS / "document" / "references" / name).read_text(encoding="utf-8")
+            for name in ("specification.md", "processed.md", "original.md")
+        )
         normalized_documents = " ".join(documents.split())
-        dual_storage = documents.split("### Dual-storage mode", 1)[1].split(
-            "\n## Document package", 1
-        )[0]
+        storage = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8")
+        dual_storage = re.split(r"(?m)^### (?:[0-9.]+ )?Dual-storage mode$", storage, maxsplit=1)[1]
         normalized_dual_storage = " ".join(dual_storage.split())
         asset = (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(
             encoding="utf-8"
         )
 
-        for document_type in ("original", "processed", "specification"):
+        for document_type in ("original", "processed", "skills"):
             root = f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/"
             self.assertIn(root, documents)
         for detail in (
@@ -245,7 +246,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         )
         self.assertIn("<plugin-root>/skills/", normalized_documents)
         self.assertIn("Do not create parallel Provider", normalized_documents)
-        self.assertIn("`docs/specification/`", asset)
+        self.assertIn("`docs/skills/`", asset)
         self.assertIn("<category>[-<domain>]-<name>/SKILL.md", asset)
 
     def test_agent_prompt_roles(self) -> None:
@@ -278,7 +279,8 @@ class ConventionSkillMetadataTests(unittest.TestCase):
 
     def test_public_skills_expose_only_their_owned_scripts(self) -> None:
         expected = {
-            name: ({"exec.py", "loop.py"} if name == "agent" else set())
+            name: ({"exec.py", "loop.py"} if name == "agent"
+                   else {"export_documents.py", "sync_documents.py"} if name == "document" else set())
             for name in PUBLIC_SKILLS
         }
         for skill, scripts in expected.items():

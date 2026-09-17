@@ -1,0 +1,7 @@
+{
+  "description": "Keep docs packages synchronized to their Codex projections.",
+  "hooks": {
+    "PostToolUse": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/skills/document/scripts/sync_documents.py\" --hook", "timeout": 30}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/skills/document/scripts/sync_documents.py\" --hook", "timeout": 30}]}]
+  }
+}

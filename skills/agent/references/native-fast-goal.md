@@ -1,31 +1,44 @@
 # Native Fast and Goal
 
-## Capability discovery
+<a id="capability-discovery"></a>
+
+## 1. Capability discovery
 
 - For managed Main, run `exec.py capabilities` against the session-bound executable.
-- Schema support proves no model/account/admin-policy/tier entitlement. Preserve
-  native rejection diagnostics; never change credentials/install/sandbox/policy to force access.
-- Installed protocol discovery/runtime is authoritative; historical benchmarks or
-  pinned CLI versions are not product guarantees.
+- Schema support proves no model/account/admin-policy/tier entitlement. Preserve native
+  rejection diagnostics; never change credentials/install/sandbox/policy to force
+  access.
+- Installed protocol discovery/runtime is authoritative; historical benchmarks or pinned
+  CLI versions are not product guarantees.
 
-## Fast tier
+<a id="fast-tier"></a>
 
-- `--fast`: advertised Fast tier; `--no-fast`: default; omission: inherit session setting.
-- Model/reasoning overrides work on initial/resumed turns with the exact stored thread ID.
+## 2. Fast tier
 
-## Goal continuation
+- `--fast`: advertised Fast tier; `--no-fast`: default; omission: inherit session
+  setting.
+- Model/reasoning overrides work on initial/resumed turns with the exact stored thread
+  ID.
 
-### Scope
+<a id="goal-continuation"></a>
 
-- `--goal-mode` creates/reopens a persisted native objective. Supply it through
-  the first request or `--goal-objective`; never infer a token budget.
+## 3. Goal continuation
+
+<a id="scope"></a>
+
+### 3.1. Scope
+
+- `--goal-mode` creates/reopens a persisted native objective. Supply it through the first
+  request or `--goal-objective`; never infer a token budget.
 - Goal is Main-only; Work/Verification remain bounded with receipts. Native turns,
   status and accounting cannot advance loop, replace Verification or establish END.
 - Objective replacement/pause/reopen/clear follows installed host semantics.
 
-### Commands
+<a id="commands"></a>
 
-Use `exec.py goal --project-root PROJECT --agent AGENT`:
+### 3.2. Commands
+
+- Use `exec.py goal --project-root PROJECT --agent AGENT`:
 
 - `get`: last observation.
 - `refresh`: current native state, no model turn.
@@ -34,10 +47,14 @@ Use `exec.py goal --project-root PROJECT --agent AGENT`:
 - `cancel` / `clear`: remove objective.
 - `disable`: clear objective and turn Goal mode off.
 
-### Recovery and completion
+<a id="recovery-and-completion"></a>
 
-1. Confirm controls through later Goal events or refreshed state; acceptance alone is insufficient.
-2. After crash, termination, transport error or unconfirmed pause, refresh before reopening.
+### 3.3. Recovery and completion
+
+1. Confirm controls through later Goal events or refreshed state; acceptance alone is
+   insufficient.
+2. After crash, termination, transport error or unconfirmed pause, refresh before
+   reopening.
 3. Correlate terminal Goal state with authoritative thread history; validate the latest
    native turn's exact result. Ordinary `turn/completed` does not prove objective completion.
 

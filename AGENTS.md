@@ -2,7 +2,7 @@
 <agent-factory>
 # Plugin guidance
 
-- Agent Factory exposes exactly two public Skills under `skills/`: [agent](skills/agent/SKILL.md) and [convention](skills/convention/SKILL.md). Preserve their identities; never mirror them into `.codex/`.
+- Agent Factory exposes three public Skills under `skills/`: [agent](skills/agent/SKILL.md), [convention](skills/convention/SKILL.md) and [document](skills/document/SKILL.md). Preserve their identities; never mirror them into `.codex/`.
 - Read the relevant owning Skill and references before acting; keep detailed contracts there.
 
 ## Ownership and storage

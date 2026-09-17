@@ -40,7 +40,7 @@ class DistributionTests(unittest.TestCase):
             self.assertFalse((installed / "skills/mcp").exists())
             layout = (installed / "skills/convention/references/directory-structure.md").read_text()
             normalized_layout = " ".join(layout.split())
-            for document_type in ("original", "processed", "specification"):
+            for document_type in ("original", "processed", "skills"):
                 self.assertIn(
                     f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/",
                     normalized_layout,

@@ -5,38 +5,39 @@
 - Use the relevant Agent Factory Skills when the task calls for them.
 - Detailed contracts live in their owning Skills and are not duplicated here.
 
-## Reference locations
+<a id="reference-locations"></a>
 
-- Resolve the installed Agent Factory `agent` and `convention` Skills from the
-  host's available Skills.
-- The following references are relative to their owning installed Skill roots,
-  not to this project:
+## 1. Reference locations
 
-- Managed graph, role boundaries, and project-specialized Work profiles:
-  Agent `SKILL.md` and `references/project-specialist.md`
-- Core concepts, roles, authority, and shared invariants:
-  Convention `references/agent-factory-core.md`
-- Project layout and ownership boundaries:
-  Convention `references/directory-structure.md`
-- Document types, routing and single-source packages:
-  Convention `references/documents.md`
+- Resolve the installed Agent Factory `agent`, `convention` and `document` Skills
+  from the host's available Skills.
+- The following references are relative to their owning installed Skill roots, not to
+  this project:
 
-## Ownership and storage
+- Managed graph, role boundaries, and project-specialized Work profiles: Agent
+  `SKILL.md` and `references/project-specialist.md`
+- Core concepts, roles, authority, and shared invariants: Convention `references/agent-factory-core.md`
+- Project layout and ownership boundaries: Convention `references/directory-structure.md`
+- Document types, routing and single-source packages: Document `SKILL.md` and its
+  type-specific writing guides
+
+<a id="ownership-and-storage"></a>
+
+## 2. Ownership and storage
 
 - This project uses Agent Factory.
-- Keep canonical Processed and Human-requested Specification packages below
-  `docs/processed/` and `docs/specification/`, using
-  `<category>[-<domain>]-<name>/SKILL.md` in the Human's language plus optional
-  `assets/` under the Documents contract.
-- Optional `.codex/skills/` Specification exposure derives from that same source,
-  never a separate editable original.
+- Keep canonical Processed and Human-requested Specification packages below `docs/processed/`
+  and `docs/skills/`, using `<category>[-<domain>]-<name>/SKILL.md` in the Human's language plus optional `assets/`
+  under the Documents contract.
+- Optional `.codex/skills/` Specification exposure derives from that same source, never a
+  separate editable original.
 - Processed is not automatically an active Skill or Specification.
 - Route Original packages below `docs/original/`.
 - Preserve existing Documents without migration or conversion.
-- Preserve existing project guidance; do not copy the installed plugin's Skills
-  into this project.
+- Preserve existing project guidance; do not copy the installed plugin's Skills into
+  this project.
 - MCP domain guides remain with the MCP application.
-- Resolve managed runtime locations through the installed Agent runtime, outside
-  the checkout.
+- Resolve managed runtime locations through the installed Agent runtime, outside the
+  checkout.
 </agent-factory>
 </INSTRUCTIONS>

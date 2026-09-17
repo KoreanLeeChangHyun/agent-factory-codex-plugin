@@ -1,51 +1,67 @@
 ---
 name: convention
-description: Apply Agent Factory's core model and cross-cutting conventions for project structure, development, testing, libraries, themes, technical documentation, comments, Document types, and Skill ownership.
+description: Apply Agent Factory's core model and cross-cutting conventions for project structure, development, testing, libraries, themes, technical documentation, comments, and Skill ownership. Use document for Document authoring, classification, storage, and synchronization.
 metadata:
   specification-id: convention
 ---
 
 # Agent Factory Convention
 
-## Ownership
+<a id="ownership"></a>
 
-- **Plugin:** only `agent` and `convention` under `skills/`; preserve identities.
-  Never mirror into this repository's `.codex/`.
+## 1. Ownership
+
+- **Plugin:** `agent`, `convention` and `document` under `skills/`; preserve
+  identities. Never mirror into this repository's `.codex/`.
 - **Standalone:** local Agent execution and project-local documents are complete;
   absence of MCP is a normal supported mode.
-- **Optional MCP:** Document, Gather, Tool and Workspace remain MCP-owned and are
-  used only when connected, explicitly selected and authorized.
+- **Optional MCP:** Document, Gather, Tool and Workspace remain MCP-owned and are used
+  only when connected, explicitly selected and authorized.
 - **Contracts:** maintain in owning references; avoid entrypoint duplication.
 
-## Human communication
+<a id="human-communication"></a>
 
-- Follow the mandatory [respectful-register contract](references/communication.md).
-  Read it when needed if it is not already supplied in the current prompt or context;
-  following the contract does not require a file read before each message.
+## 2. Human communication
 
-## References
+- Follow the mandatory [respectful-register contract](references/communication.md). Read it when needed if it is not already supplied in
+  the current prompt or context; following the contract does not require a file read
+  before each message.
 
-Read the matching references before acting.
+<a id="references"></a>
 
-### Core and development
+## 3. References
+
+- Read the matching references before acting.
+
+<a id="core-and-development"></a>
+
+### 3.1. Core and development
 
 - `references/communication.md`: mandatory respectful Human-facing register.
 - `references/agent-factory-core.md`: roles, authority, capabilities and decisions.
-- `references/documents.md`: Document types, authority, Provider/Client placement, single-source packages and derived presentation.
+- Use [Document](../document/SKILL.md) for Document authoring, types, storage, single-source packages and
+  Codex synchronization.
 - `references/directory-structure.md`: source, installation, runtime, cloud layout and migration.
-- `references/development.md`: shared checkout boundaries, changes, technical documentation, comments, commits.
-- `references/testing.md`: test organization, selection, parallel execution and execution boundaries.
+- `references/development.md`: shared checkout boundaries, changes, technical documentation, comments,
+  commits.
+- `references/testing.md`: test organization, selection, parallel execution and execution
+  boundaries.
 - `references/explicit-human-input.md`: missing Human decisions.
 - `references/libraries.md`: dependencies, renderers.
 
-### Theme and knowledge
+<a id="theme-and-knowledge"></a>
+
+### 3.2. Theme and knowledge
 
 - `references/theme.md`: interface themes, browser documents and SVG icons.
 - `references/diagrams.md`: ERD, behavior and sequence diagrams.
 - `references/explorer.md`: evidence exploration, provenance.
 - `references/interview.md`: Main's Human elicitation.
 
-## Bootstrap
+<a id="bootstrap"></a>
+
+## 4. Bootstrap
 
 - Copy `assets/AGENTS.md` only when authorized and project `AGENTS.md` is absent.
-- Preserve existing files. The manifest injects none; the local initializer is retired.
+- Preserve existing files. The manifest does not inject project guidance.
+- Bootstrap through the template; no local initializer is available.

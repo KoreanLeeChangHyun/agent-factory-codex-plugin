@@ -1,6 +1,8 @@
 # Execution modes
 
-## Captured routes
+<a id="captured-routes"></a>
+
+## 1. Captured routes
 
 | Mode | Implementation | Completion |
 | --- | --- | --- |
@@ -17,58 +19,62 @@
   submission snapshot; changing the selector cannot redirect accepted/running work.
 - Main preserves an active task's route when handling conversational steering.
 
-## Runtime interface
+<a id="runtime-interface"></a>
 
-- `exec.py submit/send --task-mode MODE` snapshots the route. New Main requests
-  without a flag capture `work`; historical runs with no mode retain
-  `work-verification`. Explicit flags participate in the immutable dispatch tuple.
+## 2. Runtime interface
+
+- `exec.py submit/send --task-mode MODE` snapshots the route. New Main requests without a flag capture `work`;
+  persisted runs with no mode use `work-verification`. Explicit flags participate in the
+  immutable dispatch tuple.
 - Main performs `direct` work itself; do not create a direct-mode loop.
-- `loop.py start --task-mode work --work-agent ID --request-file PATH` (also
-  `--task-mode plan-work`) needs no
-  Verification identity. Its completed Work receipt ends the loop with terminal
-  reason `work-completed`. Main then performs appropriate checks and integrates.
-- Verification modes additionally require `--verification-agent ID`. Failure
-  revises the same Work session, then reuses the same Verification session and
-  binds its receipt to the new exact Work run. No planning role or extra Agent exists.
-- The low-level loop CLI's omitted flag retains `work-verification` for existing
-  callers. Persisted loops without the field retain that same historical route.
-  New Main uses its captured mode explicitly when starting a loop.
-- `capabilities` version 0.1.0 adds `submit/send.taskModes`. Clients require the
-  selected mode in that list before dispatch; absence is unsupported, never an
-  invitation to inject prose or silently choose another route. Existing fields
-  and receipt schema versions remain compatible.
+- `loop.py start --task-mode work --work-agent ID --request-file PATH` (also `--task-mode plan-work`) needs no Verification identity. Its completed Work
+  receipt ends the loop with terminal reason `work-completed`. Main then performs appropriate
+  checks and integrates.
+- Verification modes additionally require `--verification-agent ID`. Failure revises the same Work
+  session, then reuses the same Verification session and binds its receipt to the new
+  exact Work run. No planning role or extra Agent exists.
+- The low-level loop CLI's omitted flag retains `work-verification` for existing callers.
+  Persisted loops without the field use `work-verification`. New Main uses its captured mode
+  explicitly when starting a loop.
+- `capabilities` version 0.1.0 exposes `submit/send.taskModes`. Clients require the selected mode in
+  that list before dispatch; absence is unsupported, never an invitation to inject prose
+  or silently choose another route. Existing fields and receipt schema versions remain
+  compatible.
 
-## Actual Plan transition
+<a id="actual-plan-transition"></a>
+
+## 3. Actual Plan transition
 
 - Both `plan-work` and `plan-work-verification` use this transition.
-- Plan support is advertised only when the installed Codex experimental schema
-  contains `turn/start.collaborationMode`, Plan/default kinds and
-  `collaborationMode/list`.
-- At execution time the adapter also requires both modes from the live catalog.
-  Missing support fails closed before a model turn.
+- Plan support is advertised only when the installed Codex experimental schema contains
+  `turn/start.collaborationMode`, Plan/default kinds and `collaborationMode/list`.
+- At execution time the adapter also requires both modes from the live catalog. Missing
+  support fails closed before a model turn.
 
 1. Start/resume one exact Work thread with a `plan` collaboration turn and a
    planning output schema.
 2. Preserve the plan in that run's `plan.json` and check cancellation.
-3. Issue `turn/start` with `default` collaboration mode and the original
-   result/receipt schema on that same thread.
+3. Issue `turn/start` with `default` collaboration mode and the original result/receipt
+   schema on that same thread.
 
 - Model, reasoning, execution permissions and approval policy are retained.
 - No transition click is required.
-- A required unresolved Human decision stops at `needs-human-decision`; failure or
-  interruption cannot start implementation or Verification.
-- Native interactive requests remain subject to the managed transport's existing
-  input boundary.
-- Only the implementation result and valid Work receipt can complete Work.
-  `plan-work` ends the loop without Verification; Main then performs appropriate
-  checks. `plan-work-verification` proceeds to separate Verification.
+- A required unresolved Human decision stops at `needs-human-decision`; failure or interruption
+  cannot start implementation or Verification.
+- Native interactive requests remain subject to the managed transport's existing input
+  boundary.
+- Only the implementation result and valid Work receipt can complete Work. `plan-work`
+  ends the loop without Verification; Main then performs appropriate checks. `plan-work-verification`
+  proceeds to separate Verification.
 
-## Reports and authority
+<a id="reports-and-authority"></a>
 
-- Use `not requested` for separate Verification in direct/work/plan-work modes, not `pass` or
-  Human skip.
+## 4. Reports and authority
+
+- Use `not requested` for separate Verification in direct/work/plan-work modes, not
+  `pass` or Human skip.
 - Report Main's own checks separately.
 - Work never self-verifies or commits.
-- Permission, approval, publication and destructive-action authority remain
-  independent of mode.
+- Permission, approval, publication and destructive-action authority remain independent
+  of mode.
 - Mode selection alone sends no messages to external services.

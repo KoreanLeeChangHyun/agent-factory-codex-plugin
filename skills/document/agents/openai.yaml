@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Document"
+  short_description: "Author, organize, and synchronize project Documents."
+  default_prompt: "Use $document to create or update the requested Document using its writing, storage, and synchronization rules."

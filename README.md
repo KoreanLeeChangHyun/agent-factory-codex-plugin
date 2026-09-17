@@ -47,10 +47,11 @@ codex plugin add agent-factory@agent-factory
 
 ## Included Skills and agent model
 
-The plugin exposes exactly two public Skills:
+The plugin exposes three public Skills:
 
 - `agent` supports five per-request execution modes through Main and managed sessions.
 - `convention` owns the core model and shared project conventions.
+- `document` owns Document authoring, classification, storage and Codex synchronization.
 
 - Main communicates with the Human, delegates bounded tasks, and integrates results.
 - The default delegates Work without separate Verification; direct mode lets Main
@@ -83,7 +84,7 @@ codex plugin add agent-factory@agent-factory
 
 - Start a new Codex thread after installation or update so the Skills and tools are loaded.
 - The plugin manifest is `.codex-plugin/plugin.json`.
-- The two distributed Skills are under `skills/`; they are not mirrored into a
+- The three distributed Skills are under `skills/`; they are not mirrored into a
   repository-local `.codex/`.
 
 ## Compatibility
@@ -114,9 +115,11 @@ Durable contracts remain with their owning Skill and references:
   paths, receipts, recovery, containment, and migration.
 - [Directory structure](skills/convention/references/directory-structure.md):
   source, installation, runtime, cloud, and legacy layout.
-- [Documents](skills/convention/references/documents.md): document types, routing,
-  single user-language `SKILL.md` plus optional `assets/` packages, and derived
-  display/Skill exposure. Inline asset viewing and ERD support remain follow-up work.
+- [Document Skill](skills/document/SKILL.md): mandatory common writing rules,
+  storage, export and synchronization. Inline asset viewing and ERD support remain
+  follow-up work.
+- Type-specific writing: [Specification](skills/document/references/specification.md),
+  [Processed](skills/document/references/processed.md), and [Original](skills/document/references/original.md).
 - [Development](skills/convention/references/development.md): changes, Git
   publication, technical documentation, and release readiness.
 - [Testing](skills/convention/references/testing.md): test organization and

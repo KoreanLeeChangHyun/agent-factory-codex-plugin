@@ -1,105 +1,127 @@
 # Development
 
-Follow stronger established project conventions.
+- Follow stronger established project conventions.
 
-## Changes
+<a id="changes"></a>
 
-- Inspect the owning component, callers and existing patterns; keep changes
-  bounded. Preserve unrelated work, public contracts and accepted identities.
+## 1. Changes
+
+- Inspect the owning component, callers and existing patterns; keep changes bounded.
+  Preserve unrelated work, public contracts and accepted identities.
 - Separate broad formatting/refactoring when it would obscure behavioral review.
-- Reuse existing abstractions and the smallest maintainable implementation.
-  Use `libraries.md` for dependencies and `directory-structure.md` for paths.
-- Resolve filesystem targets and adapters explicitly; never silently broaden,
-  mirror or migrate storage. Initialization preserves files unless exact
-  overwrite/merge behavior is authorized.
+- Reuse existing abstractions and the smallest maintainable implementation. Use
+  `libraries.md` for dependencies and `directory-structure.md` for paths.
+- Resolve filesystem targets and adapters explicitly; never silently broaden, mirror or
+  migrate storage. Initialization preserves files unless exact overwrite/merge behavior
+  is authorized.
 - Distinguish generated/copied assets from reusable source; document their sync
-  contract. Provider execution Skills keep reusable code in scripts and conditional
-  guidance in references; Processed and Specification Document packages follow
-  `documents.md` and contain only `SKILL.md` plus optional `assets/`. Original
-  retains its native or otherwise source-appropriate format.
-- Keep domain names/interfaces consistent; separate observed facts, accepted
-  decisions, inferences and unresolved questions. Local implementations are not
-  universal architecture rules.
+  contract.
+  - Provider execution Skills keep reusable code in scripts and conditional guidance in
+    references; Processed and Specification Document packages follow the [Document contract](../../document/SKILL.md) and
+    contain only `SKILL.md` plus optional `assets/`.
+  - Original retains its native or otherwise source-appropriate format.
+- Keep domain names/interfaces consistent; separate observed facts, accepted decisions,
+  inferences and unresolved questions. Local implementations are not universal
+  architecture rules.
 
-## Shared checkout coordination
+<a id="shared-checkout-coordination"></a>
 
-- Use the current shared checkout; do not create or switch to separate Git
-  worktrees for ordinary or parallel Agent tasks.
-- Before dispatch, Main explicitly assigns each Work bounded read and write
-  scopes. Reads may overlap, but concurrent writes must be disjoint. Prefer
-  directory or module ownership, narrowed to exact files when necessary.
-- Parallelize only when write scopes and mutable shared resources are
-  independent. Sequence overlapping paths, shared dependencies, configuration,
-  generated files and cross-cutting integration work.
-- Main orchestrates dependencies, scope ownership, integration order and
-  conflict avoidance. When a shared file requires an edit, Main assigns it to
-  one bounded Work in sequence. In direct mode Main owns the bounded edits.
-- Work never silently modifies paths outside its assigned write scope and
-  reports any unavoidable scope conflict.
-- Hold relevant paths and dependencies stable during each Verification. After
-  parallel results are integrated, independently verify the combined state.
-  The runtime does not enforce file ownership.
+## 2. Shared checkout coordination
+
+- Use the current shared checkout; do not create or switch to separate Git worktrees for
+  ordinary or parallel Agent tasks.
+- Before dispatch, Main explicitly assigns each Work bounded read and write scopes.
+  Reads may overlap, but concurrent writes must be disjoint. Prefer directory or module
+  ownership, narrowed to exact files when necessary.
+- Parallelize only when write scopes and mutable shared resources are independent.
+  Sequence overlapping paths, shared dependencies, configuration, generated files and
+  cross-cutting integration work.
+- Main orchestrates dependencies, scope ownership, integration order and conflict
+  avoidance. When a shared file requires an edit, Main assigns it to one bounded Work in
+  sequence. In direct mode Main owns the bounded edits.
+- Work never silently modifies paths outside its assigned write scope and reports any
+  unavoidable scope conflict.
+- Hold relevant paths and dependencies stable during each Verification. After parallel
+  results are integrated, independently verify the combined state. The runtime does not
+  enforce file ownership.
 - Main serializes Git index and commit operations in the shared checkout.
 
-## Technical documentation
+<a id="technical-documentation"></a>
 
-- Maintain this plugin's documentation and Provider execution Skill guidance in English. This is the
-  explicit language exception to the Human-language Document package contract in
-  [Documents](documents.md#provider-placement).
+## 3. Technical documentation
+
+- Apply the mandatory [Document structure](../../document/SKILL.md#document-structure) to Client Documents and Provider Skill guidance. Use
+  numbered headings, lists, Markdown tables and JSON blocks.
+- Skill guidance describes the current accepted state. Keep change logs and past
+  discussions in Processed documents, not Skill guidance. Retain current compatibility,
+  migration and recovery rules as operational requirements.
+- Maintain this plugin's documentation and Provider execution Skill guidance in English.
+  This is the explicit language exception to the Human-language Document package
+  contract in [Documents](../../document/SKILL.md#provider-placement).
 - Preserve Provider `references/`, `scripts/`, `agents/`, `runtime/` and `prompt/`;
   Document package simplification does not remove execution package components.
-- For Markdown and technical documents, including designs and specifications,
-  default to section headings with concise bullets for parallel requirements/rules
-  and numbered lists for ordered steps. Use only H1/H2/H3 and section numbering
-  through `1` / `1.1`; split deeper topics into separate documents.
-- Keep one core point per item. Avoid headings followed by long prose blocks;
-  include brief context or rationale only when it helps understanding.
-- Use Markdown tables in document bodies where shared dimensions clarify comparisons, definitions or mappings,
-  such as roles, ownership, options and reference purposes.
-- Place useful tables, diagrams and images near the text they explain. Use visual
-  aids when they improve understanding, without quotas or decorative requirements;
-  follow [diagrams.md](diagrams.md) for diagram selection and authoring.
+- For Markdown and technical documents, including designs and specifications, default to
+  section headings with concise bullets for parallel requirements/rules and numbered
+  lists for ordered steps. Use only H1/H2/H3 and section numbering through `1.` /
+  `1.1.`; split deeper topics into separate documents.
+- Keep one core point per item and one point per sentence. Use concise technical
+  language. Split long explanations into separate items or nested lists. Place necessary
+  context and rationale in list items.
+- Use Markdown tables in document bodies where shared dimensions clarify comparisons,
+  definitions or mappings, such as roles, ownership, options and reference purposes.
+- Place useful tables, diagrams and images near the text they explain. Use visual aids
+  when they improve understanding, without quotas or decorative requirements; follow
+  [diagrams.md](diagrams.md) for diagram selection and authoring.
 - Keep critical requirements and constraints explicit in text alongside visual aids.
-- Consolidate duplicates in the owning document; preserve constraints and update callers.
-- Store generated documents using [Document routing](documents.md#routing).
+- Consolidate duplicates in the owning document; preserve constraints and update
+  callers.
+- Store generated documents using [Document routing](../../document/SKILL.md#routing).
 
-## Comments and TODOs
+<a id="comments-and-todos"></a>
 
-- Explain non-obvious intent, constraints, side effects and exceptional decisions;
-  do not narrate code. Prefer clear names, types and small units.
+## 4. Comments and TODOs
+
+- Explain non-obvious intent, constraints, side effects and exceptional decisions; do
+  not narrate code. Prefer clear names, types and small units.
 - Use language-standard public API documentation; update or remove inaccurate,
   unsupported comments when code changes. Keep inactive code in Git history.
 - Each TODO needs a reason and completion condition or traceable issue.
 
-## Tests
+<a id="tests"></a>
+
+## 5. Tests
 
 - Read `testing.md` for test organization, focused execution and Verification boundaries.
 
-## Git publication
+<a id="git-publication"></a>
+
+## 6. Git publication
 
 - Main directly makes authorized ordinary commits after the selected route completes:
-  appropriate own checks in direct/work/plan-work modes, or independent pass/evidenced Human
-  skip applied after Work completion in verification modes. Work/Verification never
-  commit; add no commit turn, role or graph node.
-- Inspect applicable Work result/receipt, check/pass/skip evidence and current status/diff. Stage
-  only bound paths, excluding unrelated dirty, untracked, generated and runtime data.
-- Commit authority grants no push, amend, force, history rewrite, reset, restore
-  or delete. Report staging/commit obstructions without expanding scope.
+  appropriate own checks in direct/work/plan-work modes, or independent pass/evidenced
+  Human skip applied after Work completion in verification modes. Work/Verification
+  never commit; add no commit turn, role or graph node.
+- Inspect applicable Work result/receipt, check/pass/skip evidence and current
+  status/diff. Stage only bound paths, excluding unrelated dirty, untracked, generated
+  and runtime data.
+- Commit authority grants no push, amend, force, history rewrite, reset, restore or
+  delete. Report staging/commit obstructions without expanding scope.
 
-## Plugin release readiness
+<a id="plugin-release-readiness"></a>
+
+## 7. Plugin release readiness
 
 - The repository marketplace installs this plugin from `main`.
 - Treat another branch as a release candidate, not as published state.
 
 1. Inspect the candidate diff against the current remote `main`; resolve unrelated
    changes and confirm the exact release scope.
-2. Update the manifest cachebuster with Plugin Creator's
-   `update_plugin_cachebuster.py`; preserve the base semantic version and keep one
-   `+codex.<cachebuster>` suffix.
+2. Update the manifest cachebuster with Plugin Creator's `update_plugin_cachebuster.py`; preserve the base
+   semantic version and keep one `+codex.<cachebuster>` suffix.
 3. Obtain explicit Human verification authority. Run either the manually dispatched
-   `Human-authorized verification` workflow or the exact Human-supplied checks.
-   A full release check covers the configured Python 3.10 and 3.12 baselines and
-   the distribution, contract, runtime and integration suites.
+   `Human-authorized verification` workflow or the exact Human-supplied checks. A full release check covers
+   the configured Python 3.10 and 3.12 baselines and the distribution, contract, runtime
+   and integration suites.
 4. Run the Plugin Creator validator against the candidate checkout. This separately
    checks the current Codex plugin ingestion shape; repository tests do not replace it.
 5. Recheck the manifest, marketplace source/ref, Skill inventory and release diff.
@@ -108,12 +130,14 @@ Follow stronger established project conventions.
    the remote `main` contains the verified commit before describing the release as
    published, then verify a fresh marketplace installation in a new Codex thread.
 
-- The marketplace/manifest contract test prevents local metadata drift but cannot
-  prove that a remote branch, installation, account or deployment is current.
-- Do not move MCP-owned schemas, services or Workspace assets into the plugin to
-  make a release self-contained.
+- The marketplace/manifest contract test prevents local metadata drift but cannot prove
+  that a remote branch, installation, account or deployment is current.
+- Do not move MCP-owned schemas, services or Workspace assets into the plugin to make a
+  release self-contained.
 
-## Sources
+<a id="sources"></a>
+
+## 8. Sources
 
 - [Google: Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
 - [Google: Code review](https://google.github.io/eng-practices/review/reviewer/looking-for.html)
