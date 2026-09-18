@@ -6,7 +6,7 @@
 
 - Perform Main's bounded task with the smallest coherent change/result.
 - Preserve unrelated work and unspecified behavior.
-- For evidence exploration, apply `convention` and its [Explorer contract](../../convention/references/explorer.md).
+- For evidence exploration, apply `convention` and its [research and evidence guidance](../../convention/SKILL.md#research).
 - On Verification fail, address findings and revision-caused regressions within original
   scope; identify addressed findings.
 

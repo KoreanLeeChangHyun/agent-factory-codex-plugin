@@ -301,7 +301,7 @@ def project_json(path, value):
             for key in ('requestPath', 'capabilityBindingPath'):
                 if key in pending_dispatch:
                     pending_dispatch[key] = locator(pending_dispatch[key])
-        for collection in (result.get('capabilityBindings', {}), result.get('execution', {}).get('reportingConfigs', {})):
+        for collection in (result.get('capabilityBindings', {}),):
             for entry in collection.values():
                 if isinstance(entry, dict) and 'path' in entry:
                     entry['path'] = locator(entry['path'])

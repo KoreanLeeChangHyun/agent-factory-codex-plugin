@@ -17,7 +17,6 @@ import sys
 import threading
 import time
 import uuid
-from types import SimpleNamespace
 from pathlib import Path
 from typing import Any, Callable, IO, Iterator, Sequence
 
@@ -106,7 +105,7 @@ from runtime_storage import (
 import capability_contracts
 from capability_contracts import (
     _bounded_text, validate_capability_bindings, read_capability_bindings,
-    result_file_identity, safe_hash_caller_file, safe_read_caller_file,
+    safe_read_caller_file,
 )
 import receipt_contracts
 from receipt_contracts import (
@@ -130,7 +129,6 @@ from exec_cli import (
 
 # Diagnostic/refusal paths must load even where POSIX runtime imports cannot.
 if sys.platform in {"linux", "darwin"}:
-    import cloud_reporting
     import native_codex
     import paths as runtime_paths
     import image_input
@@ -143,13 +141,10 @@ AUTHORITY_KINDS = {
 CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
 
 
-def reporting_runtime():
-    """Expose runtime primitives also when a host loads this file without registration."""
-    return SimpleNamespace(**globals())
 
 
 def public_state(state: dict[str, Any]) -> dict[str, Any]:
-    return project_public_state(state, reporting_runtime())
+    return project_public_state(state)
 
 
 def create_run(
@@ -164,8 +159,6 @@ def create_run(
     dispatch_id: str | None = None,
     dispatch_operation: str | None = None,
     capability_bindings: bytes | None = None,
-    reporting_config: dict[str, Any] | None = None,
-    reporting_loop_id: str | None = None,
     execution_options: dict[str, Any] | None = None,
     goal_action: str | None = None,
     images: list[dict[str, Any]] | None = None,
@@ -208,6 +201,7 @@ def create_run(
                 request_hash=receipt_request_hash or request_hash,
                 verified_work_run_id=verified_work_run_id,
                 capability_bindings=capability_binding_document,
+                standalone=(execution_options or {}).get("taskMode") == "verification",
             ),
         )
     accepted_at = now()
@@ -243,7 +237,7 @@ def create_run(
         "unread": False,
         "error": None,
     }
-    state["taskMode"] = (execution_options or {}).get("taskMode", "work" if role == "main" else "work-verification")
+    state["taskMode"] = (execution_options or {}).get("taskMode", "direct" if role == "main" else "work-verification")
     if image_inputs:
         state["imageInputs"] = image_inputs
     if execution_options:
@@ -253,9 +247,6 @@ def create_run(
         state["executionPolicy"] = session["executionPolicy"]
     if goal_action:
         state["goalAction"] = goal_action
-    if reporting_config is not None:
-        state["cloudReporting"] = reporting_config
-        state["reportingLoopId"] = reporting_loop_id
     if dispatch_id is not None:
         state["dispatchId"] = dispatch_id
         state["dispatchTuple"] = {
@@ -274,9 +265,6 @@ def create_run(
             state["dispatchTuple"]["executionOptions"] = execution_options
         if goal_action:
             state["dispatchTuple"]["goalAction"] = goal_action
-        if reporting_config is not None:
-            state["dispatchTuple"]["reportingConfigHash"] = cloud_reporting.digest(reporting_config)
-            state["dispatchTuple"]["reportingLoopId"] = reporting_loop_id
         if capability_binding_hash is not None:
             state["dispatchTuple"]["capabilityBindingHash"] = capability_binding_hash
     if role in {"work", "verification"}:
@@ -308,7 +296,6 @@ def create_run(
             "observedAt": accepted_at,
         },
     )
-    cloud_reporting.hook(reporting_runtime(), directory / "state.json")
     return state
 
 
@@ -612,7 +599,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             "human_approval_policy_invalid",
             "Human approval bypass is valid only for Main",
         )
-    if role == "verification" and verified_work_run_id is None:
+    standalone = role == "verification" and getattr(args, "task_mode", None) == "verification"
+    if standalone and (verified_work_run_id is not None or receipt_request_hash is not None):
+        raise ContractError("receipt_binding_invalid", "Standalone verification binds its own target request, not a Work run")
+    if role == "verification" and not standalone and verified_work_run_id is None:
         raise ContractError(
             "receipt_binding_invalid",
             "Verification runs require the exact Work run identifier",
@@ -622,18 +612,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             "receipt_binding_invalid",
             "verified Work run binding is valid only for Verification runs",
         )
-    reporting_config = cloud_reporting.read_config(reporting_runtime(), getattr(args, "reporting_config", None))
-    reporting_loop_id = getattr(args, "reporting_loop_id", None)
-    if reporting_loop_id is not None:
-        if reporting_config is None or not cloud_reporting.IDENTIFIER.fullmatch(reporting_loop_id):
-            raise ContractError("reporting_binding_invalid", "Loop reporting requires configuration and a valid identity")
-    if reporting_config is not None and not cloud_reporting.IDENTIFIER.fullmatch(args.agent):
-        raise ContractError("reporting_binding_invalid", "Agent identity is unsupported by the reporting recipient")
     execution_options = requested_execution(args)
+    if role == "main":
+        execution_options.setdefault("taskMode", "direct")
     from task_modes import validate_mode
     if "taskMode" in execution_options:
         validate_mode(execution_options["taskMode"])
-        if role == "verification" or (role == "work" and execution_options["taskMode"] == "direct"):
+        if (role == "verification" and not standalone) or (role == "work" and execution_options["taskMode"] in ("direct", "verification")):
             raise ContractError("task_mode_role_invalid", "Task mode is incompatible with this role")
     goal_action = getattr(args, "goal_action", None)
     if role != "main" and (execution_options.get("goalMode") is True or goal_action):
@@ -663,9 +648,6 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         dispatch_tuple["executionOptions"] = execution_options
     if goal_action:
         dispatch_tuple["goalAction"] = goal_action
-    if reporting_config is not None:
-        dispatch_tuple["reportingConfigHash"] = cloud_reporting.digest(reporting_config)
-        dispatch_tuple["reportingLoopId"] = reporting_loop_id
     if capability_binding_hash is not None:
         dispatch_tuple["capabilityBindingHash"] = capability_binding_hash
     agent_path = agent_directory(project_root, args.agent, create=True)
@@ -791,9 +773,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             session = {**session, "humanApprovalPolicy": human_approval_policy}
         effective = {**session, **execution_options}
         image_input.validate_execution(images, effective)
-        if effective.get("taskMode") in ("plan-work", "plan-work-verification") or effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
+        if effective.get("taskMode") in ("plan", "plan-work", "plan-work-verification") or effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
             capabilities = native_codex.inspect_capabilities(str(session["codex"]))
-            required = {"plan": effective.get("taskMode") in ("plan-work", "plan-work-verification"), "fast": effective.get("fast") is True and goal_action in (None, "resume", "reopen"),
+            required = {"plan": effective.get("taskMode") in ("plan", "plan-work", "plan-work-verification"), "fast": effective.get("fast") is True and goal_action in (None, "resume", "reopen"),
                         "goal": effective.get("goalMode") is True or bool(goal_action)}
             for field, needed in required.items():
                 if needed and not capabilities["send"].get(field, False):
@@ -809,8 +791,6 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             dispatch_id=dispatch_id,
             dispatch_operation=operation,
             capability_bindings=capability_bindings,
-            reporting_config=reporting_config,
-            reporting_loop_id=reporting_loop_id,
             execution_options=execution_options,
             goal_action=goal_action,
             images=images,
@@ -905,7 +885,6 @@ class Heartbeat:
             }
         atomic_write_json(self.path, value)
         fact = "process_alive" if process_identity_status(value.get("codexIdentity")) == "match" else "unreachable"
-        cloud_reporting.hook(reporting_runtime(), self.state_path, (value["observedAt"], fact))
 
 
 def cancel_requested(state_path: Path, cancel_event: threading.Event) -> bool:
@@ -985,7 +964,7 @@ def run_codex_attempt(
     for key in ("model", "reasoningEffort", "fast", "goalMode"):
         if key in execution:
             session[key] = execution[key]
-    if execution.get("taskMode") in ("plan-work", "plan-work-verification") or session.get("backend") == "app-server" or session.get("fast") is True or session.get("goalMode") is True or state.get("goalAction"):
+    if execution.get("taskMode") in ("plan", "plan-work", "plan-work-verification") or session.get("backend") == "app-server" or session.get("fast") is True or session.get("goalMode") is True or state.get("goalAction"):
         session["backend"] = "app-server"
     # Legacy explicit off is applied as a config override by build_codex_command.
     if session.get("backend") == "app-server":
@@ -1241,7 +1220,6 @@ def run_codex_attempt(
     # The leader may exit while descendants keep its isolated process group.
     # Contain that group before validating or returning any post-exit outcome.
     stop_attempt()
-    cloud_reporting.hook(reporting_runtime(), state_path, (now(), "process_exited"))
     if return_code != 0:
         raise process_exit_failure(return_code, stderr_path, started)
     if not started or active_session is None:
@@ -1278,24 +1256,6 @@ def run_codex_attempt(
                 project_root, state, agent_id=expected_agent_id, run_id=expected_run_id)
         except ContractError as error:
             raise AttemptFailure(error.code, error.message, True) from error
-    if state.get("cloudReporting"):
-        intent = {"status": terminal["status"], "run_id": state["runId"],
-                  "agent_id": state["agentId"], "session_id": active_session,
-                  "request_sha256": state["requestHash"], "role": state["role"],
-                  "result_identity": result_file_identity(result_info),
-                  "receipt_sha256": cloud_reporting.digest(validated_receipt) if validated_receipt else None}
-        # Retain in the attempt object too: worker's authoritative terminal write
-        # includes this intent even if its earlier standalone publication fails.
-        state["reportingSemanticIntent"] = intent
-        for _ in range(2):
-            try:
-                update_json(state_path, state_path.parent / ".state.lock",
-                            lambda value: value.update({"reportingSemanticIntent": intent,
-                                "reportingCaptureError": "reporting_capture_pending"}))
-                cloud_reporting.sync_directory(state_path.parent)
-                break
-            except Exception:
-                continue
     return str(terminal["status"]), active_session
 
 
@@ -1306,7 +1266,6 @@ def mark_terminal(
     *,
     attempt: int | None = None,
     start_disposition: str | None = None,
-    semantic_intent: dict[str, Any] | None = None,
 ) -> None:
     def change(value: dict[str, Any]) -> None:
         value.update(
@@ -1319,20 +1278,12 @@ def mark_terminal(
                 "error": error,
             }
         )
-        if semantic_intent is not None:
-            value["reportingSemanticIntent"] = semantic_intent
-            if not value.get("reportingSemanticResult"):
-                value["reportingCaptureError"] = "reporting_capture_pending"
         if attempt is not None:
             value["attempt"] = attempt
         if start_disposition is not None:
             value["startDisposition"] = start_disposition
 
     update_json(state_path, state_path.parent / ".state.lock", change)
-    if semantic_intent is not None:
-        with contextlib.suppress(OSError):
-            cloud_reporting.sync_directory(state_path.parent)
-    cloud_reporting.hook(reporting_runtime(), state_path)
 
 
 def worker(args: argparse.Namespace) -> int:
@@ -1384,8 +1335,7 @@ def worker(args: argparse.Namespace) -> int:
                         expected_agent_id=args.agent,
                         expected_run_id=args.run_id,
                     )
-                    mark_terminal(state_path, terminal_status,
-                                  semantic_intent=attempt_state.get("reportingSemanticIntent"))
+                    mark_terminal(state_path, terminal_status)
                     heartbeat.update(
                         status=terminal_status, attempt=attempt, codex_pid=None
                     )
@@ -1970,7 +1920,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 codex = session["codex"]
             capabilities = dict(native_codex.inspect_capabilities(codex))
             from task_modes import TASK_MODES
-            modes = [mode for mode in TASK_MODES if mode not in ("plan-work", "plan-work-verification") or capabilities["submit"].get("plan") is True]
+            modes = [mode for mode in TASK_MODES if mode not in ("plan", "plan-work", "plan-work-verification") or capabilities["submit"].get("plan") is True]
             capabilities["submit"] = {**capabilities["submit"], "images": True, "taskModes": modes}
             capabilities["send"] = {**capabilities["send"], "images": True, "taskModes": modes}
             if session is not None and "executionPolicy" in session:
@@ -2000,20 +1950,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             return command_cancel(args)
         if args.command == "reconcile":
             return command_reconcile(args)
-        if args.command in {"reporting-deliver", "_report-send"}:
-            try:
-                root = resolve_project_root(args.project_root)
-                state = find_run(root, args.agent, args.run_id)
-                if not state.get("cloudReporting"):
-                    emit({"reporting": None})
-                elif args.command == "_report-send":
-                    emit({"ack": cloud_reporting.send_one(reporting_runtime(), root, state, args.entry)})
-                else:
-                    emit({"reporting": cloud_reporting.deliver(reporting_runtime(), root, state)})
-                return 0
-            except Exception:
-                emit({"reporting": {"pending": True, "error": "reporting_delivery_pending"}})
-                return 1
         if args.command == "_worker":
             return worker(args)
         if args.command == "_bootstrap":

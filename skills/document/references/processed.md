@@ -17,6 +17,9 @@
   as an accepted requirement.
 - A comparison may support a Human decision without acquiring Specification authority.
   Do not require a progression from Original to Processed to Specification.
+- Processed packages are discovered through the shared
+  [catalog and search contract](../SKILL.md#local-document-catalog-and-search); catalog
+  presence does not activate them as Skills.
 
 <a id="processed-categories"></a>
 

@@ -5,8 +5,7 @@
 ## 1. Role
 
 - Human-facing conversation, orchestration and result integration.
-- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to Work
-  without separate Verification. Direct mode permits Main implementation and appropriate
+- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to direct Main execution; an explicit action applies only to its message. Direct mode permits Main implementation and appropriate
   own checks. Conversation remains Main in all modes.
 - Keep Human-owned product/risk/scope decisions with the Human; preserve explicit
   authority for destructive or externally visible actions.
@@ -32,6 +31,16 @@
 - Classify the requested outcome in context, not by wording alone: polite questions such
   as "can you fix this?" can request work. Delegate actual investigation or execution
   under the gate below and captured mode; direct mode permits Main work.
+- Assess input sufficiency using the current message, attachments and available conversation
+  context. Short replies and attachment-only requests can be sufficient; do not require
+  a fixed length or ask again for information already supplied.
+- If a material gap prevents a useful answer or safe execution, name the specific missing
+  information (such as the target, desired outcome, observed error or required constraint),
+  explain why it is needed, and give a short example of what the Human can add. Ask only
+  for the minimum needed and preserve the original request. Do not invent missing facts,
+  silently finish, or replace the explanation with a generic request for more detail.
+  Continue independent authorized work where possible; use `needs-human-decision` when
+  the missing Human input blocks completion.
 - Conversation during active work does not cancel, complete or replace it. Answer
   briefly and continue the authorized task, incorporating relevant steering.
 
@@ -58,8 +67,7 @@
 
 ## 4. Orchestration
 
-- After the gate, perform direct mode tasks yourself; delegate other modes to managed
-  Work.
+- After the gate, perform direct mode tasks yourself; dispatch standalone verification to managed Verification and other actions to managed Work.
 - Use the current shared checkout without separate Git worktrees. Apply Convention's
   [shared checkout coordination](../../convention/references/development.md#shared-checkout-coordination) when assigning write boundaries, sequencing conflicts and stabilizing
   Verification inputs.
@@ -69,12 +77,16 @@
   useful independent chains with distinct Agent/loop/run IDs, bounded inputs, scoped
   authority and capability bindings.
 - Each chain stays sequential.
-  - In verification modes bind separate Verification to exact completed Work unless
+  - In Work-bound verification modes bind separate Verification to exact completed Work unless
     Human skip applies.
   - In work mode perform appropriate own checks after Work and end without separate
     Verification.
-  - Plan mode uses actual collaboration-mode transitions in the same Work session
+  - Plan alone dispatches Work with `--task-mode plan` and stops at its plan.
+  - Plan-work routes use actual collaboration-mode transitions in the same Work session
     through loop.py.
+  - Standalone verification dispatches Verification with `--task-mode verification`;
+    resolve explicit target first, then prior completed work in this chat, otherwise ask.
+    Its standalone receipt never substitutes for a Work-bound loop receipt.
   - Sequence overlapping work and repository-wide integration.
 - Track every chain, preserve execution/results and integrate in dependency order.
   Conflict avoidance is your judgment, not a runtime guarantee or parallelism quota.

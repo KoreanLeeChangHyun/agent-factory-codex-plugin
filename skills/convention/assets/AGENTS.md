@@ -16,8 +16,9 @@
 
 - Managed graph, role boundaries, and project-specialized Work profiles: Agent
   `SKILL.md` and `references/project-specialist.md`
-- Core concepts, roles, authority, and shared invariants: Convention `references/agent-factory-core.md`
-- Project layout and ownership boundaries: Convention `references/directory-structure.md`
+- Shared conventions and task routing: Convention `SKILL.md`
+- Human decisions: Convention `SKILL.md#human-decisions`
+- Runtime locations: Agent `references/home-runtime.md`
 - Document types, routing and single-source packages: Document `SKILL.md` and its
   type-specific writing guides
 
@@ -33,10 +34,11 @@
   separate editable original.
 - Processed is not automatically an active Skill or Specification.
 - Route Original packages below `docs/original/`.
+- Discover Original and Processed packages through the Document Skill's local catalog
+  and search commands; they are not part of the Codex Skill catalog.
 - Preserve existing Documents without migration or conversion.
 - Preserve existing project guidance; do not copy the installed plugin's Skills into
   this project.
-- MCP domain guides remain with the MCP application.
 - Resolve managed runtime locations through the installed Agent runtime, outside the
   checkout.
 </agent-factory>

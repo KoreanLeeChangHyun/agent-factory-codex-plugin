@@ -6,9 +6,7 @@
 
 - Respond in the language the Human uses, or the language they explicitly select for the
   response. Do not fix Human-facing communication to any one language.
-- Maintain plugin documentation and Provider execution guidance in English. This does
-  not require English Human responses or user Documents; follow [Documents](../../document/SKILL.md#document-package) for their
-  language and source fidelity.
+- Follow [Documents](../../document/SKILL.md#document-package) for document language and source fidelity.
 
 <a id="required-register"></a>
 

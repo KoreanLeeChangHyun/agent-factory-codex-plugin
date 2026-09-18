@@ -232,27 +232,6 @@ class HomeRuntimeTests(HomeRuntimeFixture, unittest.TestCase):
         self.assertEqual(Path(moved['resultPath']).parent, Path(moved['statePath']).parent)
         self.assertFalse(Path(moved['resultPath']).exists())
 
-    def test_real_legacy_reporting_outbox_replays_after_activation(self):
-        config = {'version':1, 'endpoint':'http://127.0.0.1:9/mcp',
-            'recipient_id':'recipient-one','project_ref':'project-one',
-            'organization_id':str(uuid.uuid4()),'workspace_id':str(uuid.uuid4()),
-            'reporter_user_id':str(uuid.uuid4()),'cloud_agent_id':str(uuid.uuid4()),
-            'credential_file':str(self.base/'credential.json'),'allow_loopback_http':True}
-        source, _ = self.legacy_reporting_subprocess(config)
-        before = json.loads((source/'reporting.json').read_text())
-        plan = migration.make_plan([str(self.root)], self.home)
-        migration.copy(plan, self.base/'backup')
-        migration.activate(plan, self.evidence(plan))
-        runtime = migration.runtime_owner()
-        moved = runtime.find_run(self.root, 'work', 'run-one')
-        _, box = runtime.cloud_reporting.load_box(runtime, self.root, moved)
-        self.assertEqual(box['config'], config)
-        self.assertEqual(box['entries'], before['entries'])
-        first_keys = [entry['command']['key'] for entry in box['entries']]
-        runtime.cloud_reporting.collect(runtime, self.root, moved,
-            ('2099-01-01T00:00:00Z','process_exited'))
-        _, resumed = runtime.cloud_reporting.load_box(runtime, self.root, moved)
-        self.assertEqual([entry['command']['key'] for entry in resumed['entries'][:len(first_keys)]], first_keys)
 
     def test_exec_sandbox_grants_exact_external_run_and_resumes_exact_session(self):
         spec = importlib.util.spec_from_file_location('home_test_exec', RUNTIME.parent/'scripts/exec.py')

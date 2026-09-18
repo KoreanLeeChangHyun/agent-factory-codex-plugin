@@ -66,6 +66,9 @@ class FakeRuntime:
             dispatch_tuple["executionPolicy"] = values["execution"]["executionPolicy"]
         if values["operation"] == "submit" and values["execution"].get("model"):
             dispatch_tuple.setdefault("executionOptions", {})["model"] = values["execution"]["model"]
+        profile = values["execution"].get("agentModels", {}).get(values["role"], {})
+        if profile:
+            dispatch_tuple.setdefault("executionOptions", {}).update(profile)
         if values["role"] == "work" and values["execution"].get("taskMode"):
             dispatch_tuple.setdefault("executionOptions", {})["taskMode"] = values["execution"]["taskMode"]
         if binding_hash is not None:
@@ -335,6 +338,23 @@ class AgentLoopContractTests(unittest.TestCase):
                 self.reconcile(started)
         self.assertEqual(raised.exception.code, "execution_policy_invalid")
         self.assertEqual(path.read_bytes(), before)
+
+    def test_role_profiles_bind_through_work_verification_revision_loop(self):
+        state = self.start(["--work-model", "worker", "--work-reasoning-effort", "high",
+                            "--verification-model", "reviewer", "--verification-reasoning-effort", "low"])
+        self.runtime.complete_work("work-agent", state["latestWorkRunId"])
+        state = self.reconcile(state)
+        self.runtime.complete_verification("verification-agent", state["latestVerificationRunId"], "fail")
+        state = self.reconcile(state)
+        self.runtime.complete_work("work-agent", state["latestWorkRunId"], ["finding-1"])
+        state = self.reconcile(state)
+        self.runtime.complete_verification("verification-agent", state["latestVerificationRunId"], "pass")
+        state = self.reconcile(state)
+        self.assertEqual(state["status"], "completed")
+        for run in self.runtime.runs.values():
+            expected = ("worker", "high") if run["role"] == "work" else ("reviewer", "low")
+            options = run["dispatchTuple"]["executionOptions"]
+            self.assertEqual((options["model"], options["reasoningEffort"]), expected)
 
     def test_complete_graph_reuses_work_and_verification_sessions(self) -> None:
         state = self.start()
@@ -760,3 +780,32 @@ class AgentLoopContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class RoleModelDispatchTests(unittest.TestCase):
+    def test_role_flags_are_sent_on_initial_and_revision_turns(self):
+        _, loop = load_modules()
+        runtime = object.__new__(loop.AgentRuntime)
+        runtime.call = mock.Mock(return_value={"status": "accepted"})
+        execution = {"codex": "/bin/true", "taskMode": "plan-work-verification", "agentModels": {
+            "work": {"model": "work-model", "reasoningEffort": "high"},
+            "verification": {"model": "verify-model", "reasoningEffort": "low"}}}
+        for operation in ("submit", "send"):
+            for role, model, effort in (("work", "work-model", "high"), ("verification", "verify-model", "low")):
+                runtime.dispatch(operation=operation, agent_id=role, role=role,
+                    request_file=Path("/tmp/role-request.md"), request_hash="0" * 64,
+                    dispatch_id="dispatch-role", verified_work_run_id=None,
+                    execution=execution, capability_binding_file=None, human_approval_policy="required")
+                args = runtime.call.call_args.args[0]
+                self.assertEqual(args[args.index("--model") + 1], model)
+                self.assertEqual(args[args.index("--reasoning-effort") + 1], effort)
+                self.assertEqual(loop.role_model_options(execution, role, operation), execution["agentModels"][role])
+                self.assertEqual("--task-mode" in args, role == "work")
+
+    def test_role_flags_parse_and_legacy_shared_model_stays_submit_only(self):
+        _, loop = load_modules()
+        args = loop.build_parser().parse_args(["start", "--request-file", "/tmp/request.md", "--work-agent", "work-one",
+            "--work-model", "worker", "--work-reasoning-effort", "high", "--verification-model", "reviewer", "--verification-reasoning-effort", "low"])
+        self.assertEqual(args.work_model, "worker")
+        self.assertEqual(args.verification_reasoning_effort, "low")
+        self.assertEqual(loop.role_model_options({"model": "legacy"}, "work", "submit"), {"model": "legacy"})
+        self.assertEqual(loop.role_model_options({"model": "legacy"}, "work", "send"), {})

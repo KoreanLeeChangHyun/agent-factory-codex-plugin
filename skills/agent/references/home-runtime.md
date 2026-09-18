@@ -1,15 +1,12 @@
 # Local Agent Runtime
 
-- The complete local runtime operates without an Agent Factory MCP package, server,
-  account, tenant, connection or authenticated resource.
-- Optional reporting and MCP capability bindings are inactive unless explicitly
-  configured and authorized.
+- The runtime manages local projects, sessions, runs and execution results.
 
 <a id="storage-and-identity"></a>
 
 ## 1. Storage and identity
 
-- **Resolver:** `runtime/paths.py`; host default `~/.agent-factory` or explicit absolute `AGENT_FACTORY_HOME`.
+- **Runtime home:** host default `~/.agent-factory` or explicit absolute `AGENT_FACTORY_HOME`.
   Codex keeps its own home/credentials.
 - **Roots:** canonical worktree `projectRoot` differs from `runtimeRoot`. Create no checkout
   `.agent-factory` marker/runtime/backend/catalog or symlink fallback.
@@ -32,15 +29,12 @@
 2. Inspect versioned locations/registrations with `location` and `projects`.
    `list`, capability inspection and status discovery never initialize missing
    storage.
-3. Preserve the resolved binding across the supervisor, worker process, loop children,
-   native bridge and reporting sender.
+3. Use the returned project identity and runtime location for subsequent commands.
 
 - Marketplace installation runs no arbitrary post-install command; the manifest supplies
   no initialization hook and installation does not trust hooks.
-- Initialization requires no cachebuster, reinstall or credential change.
 - VS Code uses the workspace extension host's home, including SSH/containers, not the UI
-  host's. Connections cache validated binding/filesystem event signature; failed
-  initialization clears it.
+  host's.
 
 <a id="permissions"></a>
 
@@ -82,7 +76,7 @@
 
 ### 2.3. Host readiness and diagnostics
 
-- Run `python3 skills/agent/scripts/exec.py doctor` before choosing a managed host.
+- Run `python3 <installed-agent-skill>/scripts/exec.py doctor` before choosing a managed host.
 - Add `--probe` to exercise the system bubblewrap helper on Linux with a five-second
   timeout, read-only filesystem and isolated network.
 - Neither command initializes the runtime registry or changes host policy.
@@ -94,7 +88,7 @@
 | Linux, including Ubuntu | Requires `/proc` identity and usable containment/sandbox facilities | Inspect `doctor`; use `--probe` for system bubblewrap evidence. |
 | macOS | Requires kernel boot/process identity and private process groups | Use Python 3.10+ and inspect `doctor`; validate the selected native Codex sandbox on the actual Mac. |
 | Native Windows | Unsupported by this managed runtime | Use a separately checked Linux host or WSL environment. |
-| Other operating systems | Unsupported | Add and verify a process-identity/containment backend before claiming support. |
+| Other operating systems | Unsupported | Use a supported host. |
 
 - macOS `doctor --probe` reports the Linux bubblewrap probe as `not-applicable`; it reads native
   identity availability and leaves sandbox readiness unknown.
@@ -102,8 +96,8 @@
     `/private/tmp/...` rather than the macOS `/tmp` alias).
   - The runtime does not weaken its path checks to accommodate aliases.
 - Native API references: [process info](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h), [boot session UUID](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_sysctl.c).
-- Unsupported hosts return `managed_platform_unsupported` before runtime storage access or POSIX-only
-  runtime imports. No backend or permission fallback is selected.
+- Unsupported hosts return `managed_platform_unsupported`; use a supported host without
+  broadening permissions.
 - `sandboxReadiness: unknown` is intentional: locating a binary, an enabled AppArmor setting, or a
   successful system helper probe is not a Codex sandbox pass. Codex may use a bundled
   helper, so missing system bubblewrap is not conclusive.
@@ -123,8 +117,7 @@
 - Exit codes: `0` means inventory completed (or the requested helper probe
   passed), `1` means a required inspected prerequisite is absent or the probe
   failed/could not run, and `2` means the managed platform is unsupported. None
-  certifies native execution on macOS/Windows; simulated platform tests establish
-  diagnostics only.
+  certifies successful managed execution on the selected host.
 
 <a id="relocation"></a>
 
@@ -146,21 +139,11 @@
 
 ### 3.1. Prompts and sessions
 
-- Only `main`, `work`, `verification` roles exist; sources are `prompt/main.md`,
-  `prompt/work.md`, `prompt/verification.md` relative to the Skill root.
-- Every initial/resumed managed turn validates the complete selected role prompt and
-  includes it as a tagged block in the generated prompt.
-- The exec backend sends that generated prompt through `codex exec` stdin for both
-  initial and exact-session resumed turns; this is not a platform system message.
-- The app-server backend supplies that generated prompt as `developerInstructions` on `thread/start` or
-  `thread/resume`, and again as text input to `turn/start` for ordinary initial and resumed
-  turns.
-- Native Goal activation/reactivation reloads the paused objective through `thread/resume`,
-  supplying the generated prompt and final JSON contract in `developerInstructions`, then activates
-  it with `thread/goal/set` without `turn/start`. Goal control may return without a model turn.
-  See [Native Fast and Goal](native-fast-goal.md) for scope, controls and recovery.
-- Use `scripts/exec.py` for delegated roles; Main may also be exec-hosted. Resume exact
-  session IDs; no `resume --last` or concurrent turns per session.
+- Managed roles are `main`, `work` and `verification`; follow the role prompt supplied
+  for the current run.
+- Use `scripts/exec.py` for delegated roles; Main may also be exec-hosted.
+- Resume exact session IDs; do not use `resume --last` or concurrent turns per session.
+- Follow [Native Fast and Goal](native-fast-goal.md) for native objective controls and recovery.
 
 <a id="run-files-and-retries"></a>
 
@@ -186,10 +169,7 @@
   and unexpected file types; publish atomically and bound event/stderr logs.
 - Submit asynchronously; persist dispatch intent/tuple first. Reconcile ambiguous
   acknowledgement with the same dispatch ID, without replacement dispatch.
-- Create each loop's lock with the loop itself; later rejected control-plane operations
-  must not create or alter loop artifacts. Separate acceptance, startup, heartbeat and
-  turn timeouts; distinguish durable acceptance, start, observed heartbeat and terminal
-  completion.
+- Distinguish accepted, started, active and terminal status; acceptance alone is not completion.
 - Pre-start retries are idempotent. After successful launch, missing start events are
   ambiguous; no automatic replay. External/irreversible retries need Human authority.
 
@@ -240,45 +220,37 @@
   - In verification modes, start independent Verification with the preserved failed-run
     evidence unless an evidenced Human skip applies. Follow [execution modes](execution-modes.md) for completion
     and skip rules.
-- Verification uses `--verified-work-run-id`; its receipt binds the exact Work run and original
+- Work-bound Verification uses `--verified-work-run-id`; its receipt binds the exact Work run and original
   request. `pass` has no findings; `fail` has actionable findings.
+- Standalone Verification uses `--task-mode verification` without Work/hash overrides. Its
+  `standalone-verification-receipt` binds its own `runId` and target `requestHash` with
+  decision/findings; it cannot substitute for a Work-bound receipt.
+- Plan-only Work uses `--task-mode plan`: actual Plan mode returns a plan and the host
+  records read-only completion without a default execution turn.
 - Exec owns process/session/run facts and genuine same-session Plan/default turns. Loop
   owns delegated transitions and END; Main owns completion of direct tasks and its own
   checks in direct/work/plan-work modes. See [execution modes](execution-modes.md).
 
 <a id="linux-containment"></a>
 
-## 4. Linux containment
+## 4. Cancellation and containment
 
 <a id="systemd-backend"></a>
 
-### 4.1. Systemd backend
+### 4.1. Managed cancellation
 
-1. Check command features, responsive user manager, safe environment transfer and
-   cgroup-v2 population access.
-2. Use a unique transient service per run/attempt: worker process, Codex child,
-   `Type=exec`, group termination, collection, safely transferable submitter
-   environment, bounded TERM-to-KILL escalation.
-3. Record backend/opaque containment identity by launch acknowledgement; query that
-   binding before reconciliation/signalling.
-4. Confirm cancellation from empty bound cgroup population, not service state or leader
-   PID.
+- Cancel through `exec.py cancel` with the exact Agent and run identity.
+- Check the resulting status; request acceptance alone does not prove process termination.
+- Do not signal a reused PID or manipulate runtime containment records directly.
 
 <a id="fallback"></a>
 
-### 4.2. Fallback
+### 4.2. Containment limitations
 
-- Without usable user systemd (including macOS), retain startup barrier, private
-  sessions/process groups and boot/process-start identity checks. Fail closed on
-  unverifiable identity; preserve conservative stale-run/non-replay behavior.
-- On macOS, `kern.bootsessionuuid` and `proc_pidinfo(PROC_PIDTBSDINFO)` bind identity to the boot and microsecond
-  process start time. The persisted `bootId` has a `darwin:` prefix; `startTicks`
-  stores start microseconds on this backend. Missing, denied or malformed identity fails
-  closed; no PID-only fallback is used.
-- Descendant containment is weaker: children that create a new session can escape
-  process-group cancellation. `weakerDescendantContainment: true` records this lifecycle limitation; it does not
-  widen Codex filesystem/network permissions. Systemd is optional; the adapter allows
-  future backends but claims no Windows support.
+- `weakerDescendantContainment: true` means detached descendants may escape
+  process-group cancellation. Report this limitation when termination is uncertain.
+- This flag does not widen filesystem or network permissions.
+- Preserve ambiguous runs and reconcile their status before retrying work.
 
 <a id="capability-bindings"></a>
 
@@ -288,9 +260,8 @@
 
 ### 5.1. Authority and configuration
 
-- For a selected MCP integration, MCP Tool owns discovery/lifecycle; readiness grants no
-  execution authority. Agent binds authority/capabilities to requests/receipts. Preserve
-  selected host/plugin/MCP/manifest authority; copy neither registry nor credentials.
+- Bind allowed capabilities and effects to the request and receipt. Capability availability
+  grants no additional execution authority; keep credentials outside binding files.
 - Individual runs: `exec.py --capability-binding-file`.
 - Loops: separate `--work-capability-binding-file` and `--verification-capability-binding-file`; never forward bindings between roles.
 - Strict versioned schema: 1–32 unique capability IDs, authority kind/reference,
@@ -301,96 +272,20 @@
 
 ### 5.2. Validation
 
-1. Open without resolving/following file or parent symlinks. Unsupported traversal,
-   unsafe parents, replacement races, non-regular files and oversized content fail
-   closed.
-2. Open final component nonblocking; verify a regular descriptor, then read bounded
-   bytes from that same descriptor. FIFOs/sockets/devices cannot block dispatch.
-3. Canonicalize/copy into the run; hash into the immutable dispatch tuple and expose
-   canonical path/hash in status.
-4. Require ordered `capabilityOutcomes`, one per binding: request hash, run ID, capability ID,
-   authority, target and `succeeded`, `failed`, `unknown` or `not-invoked`.
-5. Re-read/hash canonical bindings; reject omitted, reordered, widened or substituted
-   outcomes.
+- Supply regular, bounded JSON files without symlinks or credentials.
+- Use the canonical binding path and hash returned by the runtime.
+- Report ordered `capabilityOutcomes`, one per binding, with request hash, run ID,
+  capability ID, authority, target and `succeeded`, `failed`, `unknown` or `not-invoked`.
+- Do not omit, reorder, widen or substitute bound capabilities.
 
 <a id="legacy-migration"></a>
 
-## 6. Legacy migration
+## 6. Legacy records
 
-<a id="1-inventory-and-plan"></a>
-
-### 6.1. Inventory and plan
-
-- `runtime/migration.py` provides `inventory`, `plan`, `copy-request`, `copy`, `verify-eligible`,
-  `activate`, `retire`.
-- Pass each parent/plugin/extension/MCP project as a separate `--project-root`; nesting does
-  not merge identities.
-- Bind complete file/directory inventory, sizes/SHA-256, registry bindings and exact
-  operational locator mapping. Mark malformed inactive records archive-only.
-- `copy-request` binds independent backup and deterministic source/projection hashes before
-  Work copies. Plans are data, not executable model output.
-
-<a id="2-copy-and-map"></a>
-
-### 6.2. Copy and map
-
-- Preserve legacy bytes, including requests/results/receipts/events, in the home archive
-  and independent backup outside home/source projects. Only Agent runtime records
-  receive operational projections.
-- Documents/SQLite remain archived, never local domain backends. Human Specifications
-  and historical Documents remain with their explicitly selected local, connected or
-  archival destination; the plugin runtime does not silently relocate them. Never add
-  raw Documents, untracked runtime, secrets or credential caches to Git.
-- Refuse changed sources, unsafe traversal/links/special files, active/unverifiable
-  boot-ID/start-ticks identities, populated containment, writer locks or conflicts.
-- Journal copy intent; identical retries are supported. Check complete allowlisted
-  archive/backup/projection/activation trees, including empty directories; reject
-  foreign files and replacement inodes.
-- Resolve only known JSON filesystem locator fields, including absent optional outputs,
-  by longest root-bound prefix. Preserve historical request identity, receipt hashes,
-  session/run/loop IDs, recipients, payload strings and outbox commands.
-- `exec.py map-path --project-root PROJECT --path OLD_PATH` uses the cross-project manifest to return archive path/byte digest.
-  Prompts describe this route; archives remain immutable and invalid records gain no
-  fabricated completion.
-
-<a id="3-verify-and-activate"></a>
-
-### 6.3. Verify and activate
-
-- `verify-eligible` proves byte eligibility only. Independent Verification reviews copied
-  state, valid/invalid receipts, cross-project mapping, exact-session continuation,
-  graph pass/fail/skip and reporting recovery.
-- Activation requires a version-2 envelope naming actual completed managed Work and
-  Verification states. Revalidate ownership, exact request/result/response/receipt
-  schemas/hashes, terminal events, distinct sessions, strict pass receipt and exact
-  plan/home/backup/source/projection binding. Unbound fields/filenames are insufficient.
-- Publish operational projection with a recoverable journal; partial activation blocks
-  use until recovery.
-
-<a id="4-retire"></a>
-
-### 6.4. Retire
-
-- Require exact already-authorized retirement reference and unchanged source/archive/
-  backup/projection evidence. Recheck writer exclusion/allowlists on every retry;
-  persist one inode-bound unlink/rmdir intent and reject foreign/replaced
-  source/tombstones.
-- Existing authorization needs actual verification evidence, not another permission
-  request.
-- Keep pinned bootstrap runtime/active records until Main transfers control and
-  independent validation permits retirement.
-
-<a id="authority"></a>
-
-### 6.5. Authority
-
-- Preserve [the Agent role boundaries](../SKILL.md#roles-and-graph) and [Convention domain authority](../../convention/references/agent-factory-core.md).
-- Code changes/copies prove no physical migration, acceptance, cloud import,
-  installation or deployment.
-
-<a id="optional-cloud-reporting"></a>
-
-## 7. Optional cloud reporting
-
-- Follow [reporting.md](reporting.md) for role-specific configuration, outbox delivery, recovery and
-  cloud reporting evidence.
+- Preserve old runtime and document records; initialization does not authorize migration
+  or deletion.
+- For an already migrated path, use `exec.py map-path --project-root PROJECT --path OLD_PATH`
+  to resolve its archive path and byte digest.
+- Keep archives immutable. An archived or malformed record is not proof of completion.
+- Resolve projects separately; nested checkouts do not share an identity automatically.
+- Report an unavailable mapping or recovery operation instead of editing runtime state.

@@ -6,24 +6,25 @@
 
 - Apply the mandatory [Document core requirements](../SKILL.md), using its Original-specific scope rather than the
   Processed/Specification body format.
-- Original is source-faithful evidence in its native or otherwise source-appropriate
-  format. Do not rewrite, translate or convert source content merely to conform to a
-  `SKILL.md` package.
+- Original is a source-faithful reference to evidence. Do not copy, rewrite, translate
+  or convert the referenced source into the package.
 - Store packages at `docs/original/<category>[-<domain>]-<name>/`.
 
 <a id="source-metadata-and-content"></a>
 
-## 2. Source metadata and content
+## 2. Source metadata and links
 
-- Store source identity, provenance, fidelity, locators and whether source content is
-  stored as package metadata by default.
-- Store actual source data inside the same Original package only when the Human
-  explicitly requests it. Record its presence and format without implying that a locator
-  is embedded content.
+- Store exactly one `metadata.yaml` file in each Original package. Store no copied source
+  body, attachment or `assets/` directory.
+- `metadata.yaml` records `document-type: original`, `category`, nullable `domain`,
+  `name`, provenance and fidelity metadata, plus a nonempty `links` list of source
+  locators. Each link is a nonempty string.
+- A link identifies external or repository evidence; it does not imply that the linked
+  content is embedded, available or verified.
 - Preservation and migration requirements grant no destructive local cleanup rule.
 
-- Original package metadata also records category, optional domain and name without
-  requiring conversion of its native source into `SKILL.md`.
+- Catalog and search read this metadata without fetching links. Follow the shared
+  [catalog and search contract](../SKILL.md#local-document-catalog-and-search).
 
-- Preserve source text, quotations, code and identifiers when fidelity requires it. A
-  response-language choice alone does not authorize translating source material.
+- Preserve source identifiers, provenance and link strings exactly. A response-language
+  choice alone does not authorize translating or rewriting them.

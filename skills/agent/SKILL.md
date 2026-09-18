@@ -17,9 +17,11 @@ metadata:
 ## 1. Roles and graph
 
 - Execution mode is captured per submitted task; conversation always remains Main.
-- The default for new Main requests is `work`. See [execution modes](references/execution-modes.md).
+- The default for each new Main input is `direct`; old saved selections do not apply. See [execution modes](references/execution-modes.md).
 
 - **direct:** Main performs bounded work and appropriate own checks directly.
+- **plan:** Work uses actual Plan collaboration mode and returns only a plan; no implementation transition.
+- **verification:** managed standalone Verification of an explicit target, otherwise prior completed work in this chat; ask if no target is available. Its request-bound receipt cannot satisfy a Work loop.
 - **work:** Main delegates Work, then performs appropriate own checks and integrates; no
   separate Verification. Report it as not requested, never a pass or Human skip.
 - **plan-work:** Work plans in actual Codex Plan mode, then automatically executes in
@@ -29,16 +31,20 @@ metadata:
 - **plan-work-verification:** Work plans in actual Codex Plan mode, then automatically
   executes in default mode within the same session. Separate Verification follows.
 - **Work:** execute; no self-verification, coordination or commits.
-- **Verification:** independently check the exact completed Work run; no repair.
-- **Fail in verification modes:** return to the same Work and Verification sessions.
+- **Verification:** independently check the exact completed Work run or an explicitly bound standalone target; no repair.
+- **Fail in Work-bound verification modes:** return to the same Work and Verification sessions.
 - **END:** direct/work/plan-work route completion after appropriate Main checks;
-  verification routes require pass or evidenced Human skip applied after completed Work.
+  Work-bound verification routes require pass or evidenced Human skip applied after completed Work.
   Record skip before the next Verification; never equate failure/cancellation/input
   requests with completion. Mode selection is independent of Human approval policy.
 
 <a id="delegation"></a>
 
 ## 2. Delegation
+
+- Main asks the Human when a required decision is missing and waits before the affected action.
+- Work and Verification report decision gaps to Main; neither asks the Human directly nor
+  proceeds through the unresolved decision. Follow [Human decision and authority rules](../convention/SKILL.md#human-decisions).
 
 - Main directly answers greetings, thanks, casual conversation and questions answerable
   from available context.
@@ -64,12 +70,10 @@ metadata:
 
 ## 3. Execution and shared contracts
 
-- **Standalone:** Main, Work, Verification and local exec/loop are complete without an
-  MCP package, server, account, tenant, connection or authenticated resource. Optional
-  integrations require an available connection plus explicit selection and applicable
-  Human authority; discovery alone never transmits local artifacts.
+- **Local execution:** Main, Work, Verification and exec/loop provide the complete local workflow.
 - **Git:** follow [Convention's publication contract](../convention/references/development.md#git-publication).
-- **Domains/storage operations:** read [core model](../convention/references/agent-factory-core.md) and [layout](../convention/references/directory-structure.md).
+- **Runtime storage:** use [runtime locations](references/home-runtime.md#storage-and-identity).
+- **Durable documents:** use [Document](../document/SKILL.md); keep temporary execution evidence in its run.
 - **Human communication:** always follow Convention's mandatory [respectful-register contract](../convention/references/communication.md).
 
 <a id="references"></a>
@@ -82,6 +86,5 @@ metadata:
   transitions.
 - `references/home-runtime.md`: dispatch, sessions, receipts, prompts, containment, bindings, storage and
   migration.
-- `references/reporting.md`: optional cloud reporting configuration, delivery and evidence.
 - `references/native-fast-goal.md`: installed Codex Fast and native Goal.
 - `references/project-specialist.md`: project-specialized Work profiles.

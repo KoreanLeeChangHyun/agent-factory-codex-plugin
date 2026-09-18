@@ -1,6 +1,6 @@
 ---
 name: document
-description: Write, revise, consolidate, convert, classify, store, or synchronize Agent Factory Documents using mandatory writing and single-source rules.
+description: Write, revise, consolidate, convert, classify, store, catalog, search, or synchronize Agent Factory Documents using mandatory writing and single-source rules.
 metadata:
   specification-id: document
 ---
@@ -21,7 +21,7 @@ metadata:
   references for the current accepted state, not historical records. Keep change logs,
   past discussions and superseded decisions in Processed documents. Preserve source
   evidence in Original documents.
-- After creating or updating any package under `docs/original/`, `docs/processed/` or `docs/skills/`,
+- After creating or updating any package under `docs/skills/`,
   you MUST directly run the [synchronization script](#continuous-codex-synchronization) for that document's project and check its result
   before reporting completion.
   - Hook configuration or an expected future hook run does not satisfy this requirement.
@@ -43,7 +43,7 @@ metadata:
 
 | Type | Meaning |
 |---|---|
-| Original | Source-faithful evidence in a source-appropriate format. |
+| Original | Source-faithful metadata and links identifying external evidence. |
 | Processed | Transformed, non-authoritative working knowledge. |
 | Skill document (Specification) | Project knowledge explicitly requested as a Specification by the Human. |
 
@@ -58,7 +58,7 @@ metadata:
 
 ## 4. Routing
 
-| Type | Canonical Client package |
+| Type | Canonical project package |
 |---|---|
 | Original | `<project-root>/docs/original/<category>[-<domain>]-<name>/` |
 | Processed | `<project-root>/docs/processed/<category>[-<domain>]-<name>/` |
@@ -68,7 +68,7 @@ metadata:
 - Maintain one editable source. Local storage is complete standalone behavior, not an
   error fallback. Alternative destinations/formats are additional exports.
 - Preserve existing Documents unless changes are authorized. Keep temporary artifacts in
-  run directories and Provider instructions in their owning `skills/` packages.
+  run directories.
 
 <a id="document-package"></a>
 
@@ -78,16 +78,23 @@ metadata:
   explicitly selected document language. Support any user language; never fix these
   Documents to Korean, English or the language of this guidance.
 - Processed/Specification: one `SKILL.md` plus optional `assets/`; no `references/`,
-  `scripts/` or `agents/`. Original retains its native/source-appropriate format;
-  Provider Skills are exempt.
-- Preserve source text, quotes, code and identifiers. Language choice alone permits no
-  translation or conversion. `SKILL.md` does not activate Processed as a Skill.
+  `scripts/` or `agents/`. Original contains one `metadata.yaml` with metadata and links
+  only; it stores no copied source body or assets. Installed capability packages are
+  outside this document format.
+- Preserve source text, quotes, code and identifiers in content-bearing Processed and
+  Specification packages. For Original, preserve metadata and link strings exactly.
+  Language choice alone permits no translation or conversion. `SKILL.md` does not
+  activate Processed as a Skill.
 - Follow the mandatory [Document structure](#document-structure) for the body.
-- Body and assets are the editable source, including asset CSV/JSON. Put independent CSV
-  datasets, Archify diagram JSON and needed images in `assets/`; link relatively where
-  used. Displays expand assets in place and remain derived, not editable peers.
-- Viewer, Archify rendering and ERD are unimplemented follow-up work; no external
-  installation is authorized. See [Diagrams](../convention/references/diagrams.md).
+- Body and assets are the editable source, including asset CSV/JSON. Store each diagram,
+  system architecture, database/ERD or API design represented as JSON in a separate
+  `assets/*.json` file. In `SKILL.md`, reference it where used with a descriptive relative
+  Markdown link such as `[System architecture](assets/system-architecture.json)`; do not
+  embed or duplicate the JSON in the Markdown body. Put independent CSV datasets and
+  needed images in `assets/` as separate files as well. Any display that expands a linked
+  asset remains derived, not an editable peer.
+- Do not assume a viewer or renderer is available. Follow [Diagrams](../convention/references/diagrams.md)
+  for asset formats and readable text.
 
 <a id="document-structure"></a>
 
@@ -104,7 +111,9 @@ metadata:
 - A numbered item may contain a bulleted list, and a bulleted item may contain a
   numbered list. Indent child lists to distinguish their nesting level.
 - Write tables as Markdown tables.
-- Represent blocks such as code blocks, images and diagrams as JSON.
+- Keep ordinary code blocks and images in their native Markdown forms. Store structured
+  design JSON as separate linked assets under the [Document package](#document-package)
+  contract.
 
 <a id="naming-and-metadata"></a>
 
@@ -117,17 +126,12 @@ metadata:
   applicable `language`/actual provenance. Undefined domain is `null`. Metadata
   grants no authority.
 
-<a id="provider-placement"></a>
+<a id="installed-capability-boundary"></a>
 
-## 8. Provider placement
+## 8. Installed capability boundary
 
-- Provider execution guidance stays in English under `<plugin-root>/skills/`, with `agent`,
-  `convention`, `document`, YAML metadata and owned package components intact.
-- Do not create parallel Provider Specifications under `docs/skills/` or `.codex/skills/`, or
-  migrate Provider Skills as Client Documents.
-- Human-requested durable Provider Original/Processed use the Client roots with the
-  plugin as project root; Provider Processed remains non-authoritative and Git-ignored.
-  Otherwise retain evidence at its source or in temporary state.
+- These document rules apply to project documents, not installed capability packages.
+- Synchronize only the declared project roots; do not copy or rewrite installed Skills.
 
 <a id="explicit-codex-export"></a>
 
@@ -135,13 +139,14 @@ metadata:
 
 | Source | Derived destination |
 |---|---|
-| `docs/original/` | `.codex/original/` |
-| `docs/processed/` | `.codex/processed/` |
 | `docs/skills/` | `.codex/skills/` |
 
-- Run `scripts/export_documents.py --project-root <project-root>` to preview; add `--apply` to copy. Missing type roots are empty
-  inputs; children must be packages, with `SKILL.md` for Processed/Specification.
-  Provider Skills are excluded.
+- Only `docs/skills/` is projected. `docs/original/` and `docs/processed/` remain canonical
+  project storage; they require no Codex export or synchronization. Existing
+  `.codex/original/` and `.codex/processed/` content is left untouched.
+- Run `scripts/export_documents.py --project-root <project-root>` to preview; add `--apply` to copy. A missing `docs/skills/` root is an empty
+  input; children must be packages with `SKILL.md`.
+  Installed capability packages are excluded.
 - Preserve names, bytes, assets, empty directories and metadata. Identical copies stay
   unchanged; preflight rejects conflicts, symlinks and unsupported files. Export never
   overwrites, merges or deletes and does not continuously synchronize.
@@ -152,10 +157,9 @@ metadata:
 
 ## 10. Continuous Codex synchronization
 
-- `docs` is authoritative: `original`, `processed` and `skills` map to the same
-  directory names under `.codex`. Overwrite differing destination content and remove
-  destination-only files/directories within each active mapped root. Do not merge or
-  protect independent edits in these derived directories.
+- `docs/skills/` is authoritative for `.codex/skills/`, the only synchronized root.
+  Overwrite differing destination content and remove destination-only files/directories
+  within that active mapped root. Do not merge or protect independent edits there.
 - A missing source root is skipped; an existing empty source root clears its mapped
   destination. Other `.codex` content, such as configuration and hooks, is untouched.
 - Run `python3 <plugin-root>/skills/document/scripts/sync_documents.py --project-root <project-root>` using the document's actual project root. Inspect the result; rerun
@@ -166,68 +170,32 @@ metadata:
 - File writes are atomic; a multi-file sync is not. Hold source trees stable and rerun
   after I/O failures to finish. Relative links and metadata are copied unchanged.
 - `hooks/hooks.json` invokes `--hook` on `PostToolUse` and `Stop` using the event's
-  absolute `cwd`, never an ancestor. It is not a watcher; outside edits wait for
-  the next event. Hooks require trust; source edits do not update installed plugins.
+  absolute `cwd`, never an ancestor. Projects without `docs/skills/` are a no-op.
+  It is not a watcher; outside edits wait for
+  the next event. Hooks require trust and an installed configuration.
 - Hook errors emit `systemMessage` without blocking/re-triggering Stop; CLI errors return
   nonzero. See the [hook contract](https://learn.chatgpt.com/docs/hooks).
 
+<a id="local-document-catalog-and-search"></a>
+
+## 11. Local document catalog and search
+
+- Codex discovers Specification packages through its Skill catalog. Original and
+  Processed packages use the separate local Document catalog supplied by this Skill.
+- Run `scripts/catalog_documents.py --project-root <project-root>` to emit a current JSON
+  catalog of `docs/original/` and `docs/processed/`. It reads the canonical packages on
+  demand and writes no generated index into the project.
+- Run `scripts/search_documents.py --project-root <project-root> --query <text>` to search
+  catalog metadata, Original links and Processed Markdown. Optional `--type`,
+  `--category` and `--limit` filters narrow results.
+- Catalog and search are read-only discovery operations. They do not activate a
+  Processed Document as a Skill, change document authority or index `docs/skills/`.
+- Reject malformed metadata, duplicate identities, links, unsupported package content
+  and symlinks instead of silently omitting them from discovery.
+
 <a id="boundaries"></a>
 
-## 11. Boundaries
+## 12. Boundaries
 
-- This Skill implements local document operations, not a cloud receiver, cloud
-  migration, upload or MCP service. Connected operations require an available,
-  authorized capability. The following contracts describe future implementation.
-
-<a id="future-connected-storage-and-migration"></a>
-
-## 12. Future connected storage and migration
-
-<!-- clause-id: document.future-mcp.cutover -->
-- The cloud Document MCP receiver and migration system described here does not yet
-  exist.
-  - Actual cutover requires that future capability, an available authorized Agent
-    Factory cloud Document MCP connection, and an explicitly resolved target
-    workspace/project destination.
-  - A connection without that destination fails closed; never infer an upload target.
-- Before cutover, enumerate the complete bounded inventory under `<project-root>/docs/original/`,
-  `<project-root>/docs/processed/`, and `<project-root>/docs/skills/`. Migrate every existing local Document while preserving
-  type, identity, provenance, content-presence, and each Document's single source,
-  assets and existing derivation provenance. Use stable idempotency identifiers and
-  verify receiver acknowledgements, integrity, and source-to-destination mappings.
-- Report cutover only after the complete bounded inventory succeeds. Partial or
-  ambiguous failure remains pending and retains recoverable local data; retry must be
-  idempotent and no automatic deletion is permitted.
-- After verified cutover, subsequent durable Documents use the resolved MCP destination
-  as authoritative storage under its then-current authenticated contract. Do not
-  silently fall back to local authoritative storage after that destination has been
-  selected; report failures instead.
-
-<a id="dual-storage-mode"></a>
-
-### 12.1. Dual-storage mode
-
-<!-- clause-id: document.future-mcp.dual-storage -->
-- If the Human explicitly requests both canonical local storage and the future cloud
-  Document MCP storage, use dual-storage mode. This is a future contract only: the cloud
-  receiver, migration system, and dual-storage execution path are not currently
-  implemented.
-- For every create or update, first mutate the authoritative MCP Document at its
-  resolved target using the expected revision/CAS and idempotency contract.
-  - Only after its acknowledgement succeeds, fetch the committed MCP revision and
-    synchronize the received content and metadata to the canonical local package.
-  - Derive the local projection from that MCP-confirmed revision, never independently
-    from proposed input.
-- Never write local first, perform concurrent bidirectional writes, or silently merge
-  divergent local and MCP state. If the MCP mutation fails or its outcome is ambiguous,
-  do not mutate the local projection.
-- If the MCP mutation succeeds but local projection fails, MCP remains authoritative and
-  local is explicitly stale and pending retry. Retry projection from that same MCP
-  revision without replaying the MCP mutation.
-- For Processed and Specification, project the MCP-confirmed revision to the canonical
-  user-language `SKILL.md` and optional `assets/` package. Any display or Skill
-  exposure derives from that same source, never a separately edited pair.
-- Initial cutover into dual-storage mode imports each local Document to MCP, confirms
-  its committed revision, and then re-projects that confirmed MCP state to local.
-  Conflicting pre-existing MCP and local revisions require Human resolution; never
-  choose authority by timestamps.
+- This Skill provides local project document authoring, storage and synchronization.
+- Document work does not authorize unrelated migration or deletion.

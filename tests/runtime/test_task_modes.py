@@ -18,8 +18,8 @@ class TaskModeTests(unittest.TestCase):
             root = Path(directory)
             session = {"role": "main", "maxAttempts": 1}
             default = runtime.create_run(project_root=root, agent_id="main-default", actor="human", request=b"task", session=session)
-            self.assertEqual(default["taskMode"], "work")
-            for mode in ("direct", "work", "plan-work", "work-verification", "plan-work-verification"):
+            self.assertEqual(default["taskMode"], "direct")
+            for mode in ("direct", "work", "plan", "verification", "plan-work", "work-verification", "plan-work-verification"):
                 state = runtime.create_run(project_root=root, agent_id="main-selected", actor="human", request=b"task", session=session,
                                            execution_options={"taskMode": mode}, dispatch_id="dispatch-" + mode, dispatch_operation="send")
                 self.assertEqual(state["taskMode"], mode)
@@ -128,7 +128,7 @@ class PlanWorkTests(TaskModeTests):
                     modes = emit.call_args.args[0][operation]["taskModes"]
                     self.assertIn("work", modes)
                     self.assertIn("work-verification", modes)
-                    for mode in ("plan-work", "plan-work-verification"):
+                    for mode in ("plan", "plan-work", "plan-work-verification"):
                         self.assertEqual(mode in modes, supported)
 
     def test_main_guidance_requires_own_checks_without_verification(self):
@@ -137,3 +137,48 @@ class PlanWorkTests(TaskModeTests):
         self.assertIn("appropriate own checks", instruction)
         self.assertIn("Do not start separate Verification", instruction)
         self.assertEqual(route_instruction("plan-work", "work"), "")
+
+
+class MessageActionTests(unittest.TestCase):
+    def test_plan_only_stops_after_real_plan_and_records_read_only_receipt(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, state = TaskModeTests().fixture(Path(directory), task_mode="plan")
+            run_dir = Path(state["statePath"]).parent
+            state["receiptPath"] = str(run_dir / "receipt.json")
+            state["receiptSchemaPath"] = str(run_dir / "receipt.schema.json")
+            runtime.atomic_write_json(Path(state["receiptSchemaPath"]), runtime.receipt_schema_document(
+                role="work", run_id=state["runId"], request_hash=state["requestHash"], verified_work_run_id=None))
+            bridge.run("Plan only")
+            turns = [params for method, params in rpc.calls if method == "turn/start"]
+            self.assertEqual([turn["collaborationMode"]["mode"] for turn in turns], ["plan"])
+            self.assertEqual(runtime.safe_read_json(Path(state["receiptPath"]))["changedPaths"], [])
+            self.assertEqual(runtime.safe_read_json(run_dir / "plan.json")["status"], "planned")
+
+    def test_standalone_receipt_is_request_bound_and_cannot_be_a_loop_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = runtime.create_run(project_root=root, agent_id="verify-target", actor="main",
+                request=b"Inspect explicit target src/example.py", session={"role": "verification", "maxAttempts": 1},
+                execution_options={"taskMode": "verification"})
+            schema = runtime.safe_read_json(Path(state["receiptSchemaPath"]))
+            self.assertEqual(schema["properties"]["kind"]["const"], "standalone-verification-receipt")
+            self.assertNotIn("verifiedWorkRunId", schema["properties"])
+            runtime.atomic_write(Path(state["resultPath"]), b"No findings")
+            receipt = {"schemaVersion": "0.1.0", "kind": "standalone-verification-receipt",
+                "runId": state["runId"], "requestHash": state["requestHash"], "decision": "pass", "findings": []}
+            runtime.atomic_write_json(Path(state["receiptPath"]), receipt)
+            runtime.validate_receipt(root, state, agent_id=state["agentId"], run_id=state["runId"])
+            with self.assertRaises(runtime.ContractError):
+                runtime.validate_receipt(root, {**state, "taskMode": "work-verification", "verifiedWorkRunId": "work-exact"},
+                    agent_id=state["agentId"], run_id=state["runId"])
+            receipt["requestHash"] = "0" * 64
+            runtime.atomic_write_json(Path(state["receiptPath"]), receipt)
+            with self.assertRaises(runtime.ContractError):
+                runtime.validate_receipt(root, state, agent_id=state["agentId"], run_id=state["runId"])
+
+    def test_standalone_guidance_requires_target_and_managed_verification(self):
+        instruction = route_instruction("verification", "main")
+        self.assertIn("explicit input first", instruction)
+        self.assertIn("prior completed work in this current chat", instruction)
+        self.assertIn("ask the Human", instruction)
+        self.assertIn("--role verification --task-mode verification", instruction)

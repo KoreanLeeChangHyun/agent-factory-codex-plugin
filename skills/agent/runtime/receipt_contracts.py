@@ -25,6 +25,7 @@ WORK_OUTCOMES = {"completed", "implemented"}
 def receipt_schema_document(
     *, role: str, run_id: str, request_hash: str, verified_work_run_id: str | None,
     capability_bindings: dict[str, Any] | None = None,
+    standalone: bool = False,
 ) -> dict[str, Any]:
     tests = {
         "type": "object",
@@ -122,6 +123,11 @@ def receipt_schema_document(
             "decision": {"enum": ["pass", "fail"]},
             "findings": {"type": "array", "items": finding},
         }
+        if standalone:
+            properties["kind"] = {"const": "standalone-verification-receipt"}
+            del properties["verifiedWorkRunId"]
+            del properties["verifiedRequestHash"]
+            properties["requestHash"] = {"const": request_hash}
         required = list(properties)
     if capability_outcomes is not None:
         properties["capabilityOutcomes"] = capability_outcomes
@@ -179,6 +185,7 @@ def validate_receipt(
 ) -> dict[str, Any]:
     root = resolve_project_root(project_root)
     role = state.get("role")
+    standalone = role == "verification" and state.get("taskMode") == "verification"
     if role not in {"work", "verification"}:
         raise ContractError("receipt_unexpected", "this Agent role has no receipt contract")
     validate_id(agent_id, AGENT_ID, "agent_id")
@@ -266,6 +273,9 @@ def validate_receipt(
             "schemaVersion", "kind", "runId", "verifiedWorkRunId",
             "verifiedRequestHash", "decision", "findings",
         }
+        if standalone:
+            expected_fields -= {"verifiedWorkRunId", "verifiedRequestHash"}
+            expected_fields.add("requestHash")
         if binding_document is not None:
             expected_fields.add("capabilityOutcomes")
         _exact_keys(receipt, expected_fields, "verification receipt")
@@ -276,12 +286,13 @@ def validate_receipt(
         expected_work_run_id = state.get("verifiedWorkRunId")
         if (
             receipt.get("schemaVersion") != SCHEMA_VERSION
-            or receipt.get("kind") != "verification-receipt"
+            or receipt.get("kind") != ("standalone-verification-receipt" if standalone else "verification-receipt")
             or receipt.get("runId") != state.get("runId")
-            or not isinstance(verified_work_run_id, str)
-            or not AGENT_ID.fullmatch(verified_work_run_id)
-            or (expected_work_run_id is not None and verified_work_run_id != expected_work_run_id)
-            or receipt.get("verifiedRequestHash") != expected_hash
+            or (standalone and (state.get("verifiedWorkRunId") is not None or receipt.get("requestHash") != expected_hash))
+            or (not standalone and (not isinstance(verified_work_run_id, str)
+                or not AGENT_ID.fullmatch(verified_work_run_id)
+                or (expected_work_run_id is not None and verified_work_run_id != expected_work_run_id)
+                or receipt.get("verifiedRequestHash") != expected_hash))
         ):
             raise ContractError("receipt_binding_invalid", "verification receipt binding is invalid")
         findings = receipt.get("findings")

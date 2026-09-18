@@ -38,7 +38,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         "--human-approval-policy", choices=HUMAN_APPROVAL_POLICIES,
         help="Main delegation approval policy; omitted sends preserve the session policy",
     )
-    parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to work")
+    parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to direct")
     parser.add_argument("--model")
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
     parser.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)
@@ -52,8 +52,6 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         "--verified-work-run-id",
         help="exact Work run checked by a Verification Agent (required for Verification runs)",
     )
-    parser.add_argument("--reporting-config", type=Path, help="Explicit private cloud recipient configuration; per run")
-    parser.add_argument("--reporting-loop-id", help="Exact owning loop identity for cloud reporting")
     parser.add_argument("--dispatch-id", help="idempotency key scoped to this managed Agent")
     parser.add_argument(
         "--capability-binding-file", type=Path,
@@ -129,13 +127,6 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     add_project_argument(reconcile_parser)
     reconcile_parser.add_argument("--agent")
 
-    for name in ("reporting-deliver", "_report-send"):
-        reporting_parser = commands.add_parser(name, help="Deliver pending reports" if name == "reporting-deliver" else argparse.SUPPRESS)
-        add_project_argument(reporting_parser)
-        reporting_parser.add_argument("--agent", required=True)
-        reporting_parser.add_argument("--run-id", required=True)
-        if name == "_report-send":
-            reporting_parser.add_argument("--entry", type=int, required=True)
 
     worker_parser = commands.add_parser("_worker", help=argparse.SUPPRESS)
     add_project_argument(worker_parser)

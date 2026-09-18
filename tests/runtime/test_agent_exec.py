@@ -65,9 +65,10 @@ class AgentExecTests(unittest.TestCase):
                         request_file=Path("source/request.md"))), b"bounded request\n",
                 )
 
-    def test_public_state_without_reporting_needs_no_reporting_adapter(self) -> None:
-        state = {"role": "main", "status": "running", "statePath": "/private/state.json"}
-        with mock.patch.object(self.module, "cloud_reporting", None):
+    def test_public_state_ignores_legacy_cloud_configuration(self) -> None:
+        state = {"role": "main", "status": "running", "statePath": "/private/state.json",
+                 "cloudReporting": {"endpoint": "https://unused.invalid"}}
+        with mock.patch("socket.socket", side_effect=AssertionError("network attempted")):
             self.assertEqual(self.module.public_state(state),
                              {"role": "main", "status": "running"})
 

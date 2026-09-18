@@ -19,22 +19,12 @@
 - Extend an existing category before creating another.
 - Update collection and imports when moving files.
 
-<a id="plugin-directories"></a>
-
-### 1.2. Plugin directories
-
-- `tests/contracts/`: package structure, metadata, reference routing, and static public
-  contracts;
-- `tests/runtime/`: local Agent runtime behavior;
-- `tests/integration/`: installation and cross-component behavior;
-- `tests/support/`: shared fixtures and helpers that are not tests; and
-- `tests/benchmarks/`: explicitly invoked performance harnesses, not ordinary test collection.
-
 <a id="collection"></a>
 
-### 1.3. Collection
+### 1.2. Collection
 
-- Name collected tests `test_<name>.py`; keep helpers outside collected modules.
+- Follow the project runner’s test naming and discovery rules.
+  Keep helpers outside collected test modules.
 - Configure shared import paths once; avoid duplicated path/bootstrap code.
 - Remove tests for retired domains/deleted Human document packages.
 - Test maintained ownership and observable behavior, not generated prose wording.
@@ -77,13 +67,6 @@
 - Bound worker count to the available CPU, memory, and child-process load. Compare
   elapsed time and outcomes on the same suite and environment before claiming a speedup;
   preserve a serial command for diagnosis.
-- This plugin uses `pytest-xdist` from root `requirements.txt`.
-  - With the project environment resolved as above, run its full suite as `<project-python> -m pytest tests -n auto --maxprocesses=4 --dist=worksteal`;
-    `<project-python>` denotes that environment's interpreter and is not a literal executable
-    name.
-  - `-n 0` selects serial execution.
-  - Shared fixtures live in `tests/support/`.
-  - See the [runner's scheduling options](https://pytest-xdist.readthedocs.io/en/stable/distribution.html).
 - Parallel execution does not expand test authorization or enable opt-in external
   integrations automatically.
 

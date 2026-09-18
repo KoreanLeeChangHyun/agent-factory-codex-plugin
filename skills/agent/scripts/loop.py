@@ -32,6 +32,15 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def role_model_options(execution: dict[str, Any], role: str, operation: str) -> dict[str, Any]:
+    """Bind role overrides on every turn; retain the legacy shared submit model."""
+    profile = execution.get("agentModels", {}).get(role, {})
+    options = dict(profile)
+    if operation == "submit" and not options.get("model") and execution.get("model"):
+        options["model"] = execution["model"]
+    return options
+
+
 class AgentRuntime:
     """Call only the public managed-session interface."""
 
@@ -100,17 +109,14 @@ class AgentRuntime:
                 "--role", role,
                 "--codex", str(execution["codex"]),
             ])
-            if execution.get("model"):
-                arguments.extend(["--model", str(execution["model"])])
+        for key, value in role_model_options(execution, role, operation).items():
+            arguments.extend(["--model" if key == "model" else "--reasoning-effort", str(value)])
         if role == "work" and execution.get("taskMode"):
             arguments.extend(["--task-mode", execution["taskMode"]])
         if verified_work_run_id is not None:
             arguments.extend(["--verified-work-run-id", verified_work_run_id])
         if capability_binding_file is not None:
             arguments.extend(["--capability-binding-file", str(capability_binding_file)])
-        reporting = execution.get("reportingConfigs", {}).get(role)
-        if reporting:
-            arguments.extend(["--reporting-config", reporting["path"], "--reporting-loop-id", execution["reportingLoopId"]])
         return self.call(arguments)
 
     def status(self, agent_id: str, run_id: str) -> dict[str, Any]:
@@ -268,11 +274,6 @@ def complete_pending_dispatch(
     except agent_exec.ContractError as error:
         if error.code != "dispatch_not_found":
             raise
-        reporting = state["execution"].get("reportingConfigs", {}).get(pending["role"])
-        if reporting:
-            config = agent_exec.cloud_reporting.read_config(agent_exec, Path(reporting["path"]))
-            if agent_exec.cloud_reporting.digest(config) != reporting["hash"]:
-                raise agent_exec.ContractError("reporting_binding_invalid", "Loop reporting configuration changed")
         acknowledgement = runtime.dispatch(
             operation=pending["operation"],
             agent_id=pending["agentId"],
@@ -303,14 +304,11 @@ def complete_pending_dispatch(
         pending.get("legacyPolicyUnbound") and "executionPolicy" not in run.get("dispatchTuple", {})
     ):
         expected_tuple["executionPolicy"] = state["execution"]["executionPolicy"]
-    if pending["operation"] == "submit" and state["execution"].get("model"):
-        expected_tuple["executionOptions"] = {"model": state["execution"]["model"]}
+    model_options = role_model_options(state["execution"], pending["role"], pending["operation"])
+    if model_options:
+        expected_tuple["executionOptions"] = model_options
     if pending["role"] == "work" and state["execution"].get("taskMode"):
         expected_tuple.setdefault("executionOptions", {})["taskMode"] = state["execution"]["taskMode"]
-    reporting = state["execution"].get("reportingConfigs", {}).get(pending["role"])
-    if reporting:
-        expected_tuple["reportingConfigHash"] = reporting["hash"]
-        expected_tuple["reportingLoopId"] = state["loopId"]
     if pending.get("capabilityBindingHash") is not None:
         expected_tuple["capabilityBindingHash"] = pending["capabilityBindingHash"]
     actual_tuple = run.get("dispatchTuple")
@@ -393,13 +391,6 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
             "path": str(binding_path) if binding_path else None,
             "hash": binding_hash,
         }
-    reporting_configs = {}
-    for role in ("work", "verification"):
-        config = agent_exec.cloud_reporting.read_config(agent_exec, getattr(args, f"{role}_reporting_config", None))
-        if config is not None:
-            config_path = directory / f"{role}-reporting-config.json"
-            agent_exec.cloud_reporting.publish(agent_exec, config_path, config)
-            reporting_configs[role] = {"path": str(config_path), "hash": agent_exec.cloud_reporting.digest(config)}
     created = now()
     path = directory / "state.json"
     state = {
@@ -425,13 +416,11 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "receiptRecovery": None,
         "terminalReason": None,
         "execution": {"taskMode": mode, "codex": args.codex, "model": args.model,
+                      "agentModels": {role: {key: value for key, value in {"model": getattr(args, role + "_model", None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None)}.items() if value} for role in ("work", "verification")},
                       "executionPolicy": policy, "executionPolicyPath": str(policy_path)},
         "createdAt": created,
         "updatedAt": created,
     }
-    if reporting_configs:
-        state["execution"]["reportingConfigs"] = reporting_configs
-        state["execution"]["reportingLoopId"] = loop_id
     agent_exec.atomic_write_json(path, state)
     dispatch(state, path, AgentRuntime(root), role="work", request_file=original)
     return public_state(state, state["currentChild"])
@@ -697,8 +686,9 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--codex", default="codex")
     agent_exec.execution_policy.add_policy_arguments(start)
     start.add_argument("--model")
-    start.add_argument("--work-reporting-config", type=Path)
-    start.add_argument("--verification-reporting-config", type=Path)
+    for role in ("work", "verification"):
+        start.add_argument("--" + role + "-model")
+        start.add_argument("--" + role + "-reasoning-effort", choices=("none", "low", "medium", "high", "xhigh", "max"))
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
     for name in ("status", "reconcile", "recover-receipt", "skip"):

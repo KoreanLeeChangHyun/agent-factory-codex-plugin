@@ -56,7 +56,7 @@
 ## 4. Package and derived copies
 
 - Store the canonical body at `docs/skills/<category>[-<domain>]-<name>/SKILL.md`, with optional `assets/`. Follow the shared
-  language, heading, metadata and asset rules. Provider packages follow [Provider placement](../SKILL.md#provider-placement).
+  language, heading, metadata and asset rules.
 - Update the canonical source and regenerate `.codex/skills/` or displays from it. Do not
   require an English translation, paired HTML, counterpart metadata or a two-source
   synchronization transaction. A stale copy gains no competing authority.

@@ -15,9 +15,12 @@
   Portable browser documents use local, relative dependencies.
 - Use visuals only when they clarify relationships. For diagrams, read `diagrams.md`; keep
   maintained source and rendered views aligned.
-- Match language/detail to the reader. For an explicitly selected connected MCP surface,
-  read its authenticated Workspace or Document guides; do not export its
-  layout/navigation conventions to other products without evidence or Human direction.
+- Match language and detail to the reader. Follow the project's own layout and navigation
+  conventions.
+- Keep borders consistent with the established theme. Do not highlight individual elements
+  by changing border color or thickness, or adding a colored accent to one edge.
+  Use typography, spacing or established surface treatments for emphasis; preserve
+  accessible keyboard focus indicators.
 
 <a id="svg-icons"></a>
 

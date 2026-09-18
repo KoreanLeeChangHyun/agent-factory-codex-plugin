@@ -84,36 +84,20 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         }
         self.assertEqual(declared, actual)
 
-    def test_plugin_guidance_excludes_mcp_implementation_inventory(self) -> None:
-        paths = [
-            ROOT / "README.md",
-            SKILLS / "convention" / "references" / "agent-factory-core.md",
-            SKILLS / "convention" / "references" / "directory-structure.md",
-        ]
-        text = "\n".join(path.read_text(encoding="utf-8") for path in paths)
-        forbidden = {
-            "agent-factory://",
-            "document_import",
-            "document_prepare_upload",
-            "reporting_write",
-            "PostgreSQL stores tenant metadata",
-            "object storage stores immutable Document bytes",
-            "static/workspace/",
-            "FastAPI host",
-            "작업 표시줄 → 기본 사이드바",
-        }
-        for detail in sorted(forbidden):
-            with self.subTest(detail=detail):
-                self.assertNotIn(detail, text)
-        self.assertIn("advertised authenticated", text)
-        self.assertIn("Document, Gather, Tool and Workspace", text)
+    def test_distributed_guidance_excludes_mcp_service_instructions(self) -> None:
+        for path in sorted(SKILLS.rglob("*")):
+            if path.suffix not in {".md", ".yaml"}:
+                continue
+            with self.subTest(path=path.relative_to(SKILLS).as_posix()):
+                text = path.read_text(encoding="utf-8")
+                self.assertNotRegex(text, r"(?i)\bMCP\b|cloud reporting|reporting-deliver|--reporting-config")
 
-    def test_standalone_and_optional_integration_contracts_are_explicit(self) -> None:
+    def test_local_workflow_and_service_independence_contracts_are_explicit(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         agent = (SKILLS / "agent" / "SKILL.md").read_text(encoding="utf-8")
         convention = (SKILLS / "convention" / "SKILL.md").read_text(encoding="utf-8")
         layout = (
-            SKILLS / "convention" / "references" / "directory-structure.md"
+            SKILLS / "document" / "SKILL.md"
         ).read_text(encoding="utf-8")
         documents = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8") + "\n" + "\n".join(
             (SKILLS / "document" / "references" / name).read_text(encoding="utf-8")
@@ -123,10 +107,10 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             (ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
         )
 
-        for mode in ("Plugin only", "MCP only", "Plugin plus MCP"):
+        for mode in ("Extension + plugin", "MCP"):
             self.assertIn(mode, readme)
         plugin_only = re.search(
-            r"(?ms)^- \*\*Plugin only:\*\*\s*(.+?)(?=^- \*\*MCP only:\*\*)",
+            r"(?ms)^- \*\*Extension \+ plugin:\*\*\s*(.+?)(?=^- \*\*MCP:\*\*)",
             readme,
         )
         self.assertIsNotNone(plugin_only)
@@ -146,7 +130,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             with self.subTest(standalone_dependency=dependency):
                 self.assertIn(dependency, standalone)
         self.assertIn(
-            "without an MCP package, server, account, tenant, connection",
+            "Main, Work, Verification and exec/loop provide the complete local workflow",
             " ".join(agent.split()),
         )
         manifest_description = manifest["interface"]["longDescription"]
@@ -159,7 +143,8 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         ):
             with self.subTest(manifest_dependency=dependency):
                 self.assertIn(dependency, manifest_description)
-        self.assertIn("absence of MCP is a normal supported mode", " ".join(convention.split()))
+        self.assertIn("../agent/SKILL.md", convention)
+        self.assertIn("../document/SKILL.md", convention)
         for document_type in ("original", "processed", "skills"):
             self.assertIn(
                 f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/", layout
@@ -171,8 +156,6 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         )
         for clause_id in (
             "specification.routing.canonical",
-            "document.future-mcp.cutover",
-            "document.future-mcp.dual-storage",
         ):
             self.assertIn(f"<!-- clause-id: {clause_id} -->", documents)
         distributed_python = "\n".join(
@@ -184,15 +167,12 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         )
         self.assertNotIn("mcp", (ROOT / "requirements.txt").read_text().lower())
 
-    def test_document_package_and_future_cutover_contract(self) -> None:
+    def test_document_package_contract(self) -> None:
         documents = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8") + "\n" + "\n".join(
             (SKILLS / "document" / "references" / name).read_text(encoding="utf-8")
             for name in ("specification.md", "processed.md", "original.md")
         )
         normalized_documents = " ".join(documents.split())
-        storage = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8")
-        dual_storage = re.split(r"(?m)^### (?:[0-9.]+ )?Dual-storage mode$", storage, maxsplit=1)[1]
-        normalized_dual_storage = " ".join(dual_storage.split())
         asset = (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(
             encoding="utf-8"
         )
@@ -201,53 +181,60 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             root = f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/"
             self.assertIn(root, documents)
         for detail in (
-            "source identity",
             "provenance",
             "fidelity",
-            "locators",
-            "whether source content is stored",
-            "only when the Human explicitly requests it",
+            "nonempty `links` list",
+            "Store no copied source body",
             "Every AI-generated durable Document is Processed by default",
             "`interview`",
             "`research`",
             "`analyze`",
-            "does not yet exist",
-            "stable idempotency identifiers",
-            "receiver acknowledgements",
-            "complete bounded inventory",
-            "no automatic deletion",
-            "fails closed",
-            "explicitly requests both canonical local storage and the future cloud",
-            "first mutate the authoritative MCP Document",
-            "expected revision/CAS and idempotency contract",
-            "fetch the committed MCP revision",
-            "never independently from proposed input",
-            "Never write local first",
-            "concurrent bidirectional writes",
-            "silently merge divergent local and MCP state",
-            "outcome is ambiguous, do not mutate the local projection",
-            "local is explicitly stale and pending retry",
-            "without replaying the MCP mutation",
-            "canonical user-language `SKILL.md` and optional `assets/` package",
-            "re-projects that confirmed MCP state to local",
-            "Conflicting pre-existing MCP and local revisions require Human resolution",
-            "never choose authority by timestamps",
-            "dual-storage execution path are not currently implemented",
         ):
             with self.subTest(detail=detail):
                 self.assertIn(detail, normalized_documents)
         self.assertIn(
-            "Only after its acknowledgement succeeds, fetch the committed MCP revision",
-            normalized_dual_storage,
-        )
-        self.assertIn(
             "limited to `info-*`, `rule-*`, and `design-*`",
             normalized_documents,
         )
-        self.assertIn("<plugin-root>/skills/", normalized_documents)
-        self.assertIn("Do not create parallel Provider", normalized_documents)
         self.assertIn("`docs/skills/`", asset)
         self.assertIn("<category>[-<domain>]-<name>/SKILL.md", asset)
+
+    def test_structured_design_json_is_a_linked_asset(self) -> None:
+        document = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8")
+        diagrams = (SKILLS / "convention" / "references" / "diagrams.md").read_text(
+            encoding="utf-8"
+        )
+        normalized = " ".join((document + "\n" + diagrams).split())
+        for detail in (
+            "system architecture",
+            "database/ERD",
+            "API design",
+            "separate JSON file under `assets/`",
+            "descriptive relative Markdown link",
+            "does not embed the JSON object or a fenced JSON copy",
+        ):
+            with self.subTest(detail=detail):
+                self.assertIn(detail, normalized)
+        self.assertIn(
+            "[System architecture](assets/system-architecture.json)", document
+        )
+
+    def test_original_and_processed_catalog_contract(self) -> None:
+        document = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8")
+        original = (SKILLS / "document" / "references" / "original.md").read_text(
+            encoding="utf-8"
+        )
+        normalized = " ".join((document + "\n" + original).split())
+        for detail in (
+            "one `metadata.yaml` with metadata and links only",
+            "stores no copied source body or assets",
+            "Original and Processed packages use the separate local Document catalog",
+            "writes no generated index into the project",
+            "do not activate a Processed Document as a Skill",
+            "nonempty `links` list",
+        ):
+            with self.subTest(detail=detail):
+                self.assertIn(detail, normalized)
 
     def test_agent_prompt_roles(self) -> None:
         prompts = {path.name for path in (SKILLS / "agent" / "prompt").glob("*.md")}
@@ -280,7 +267,9 @@ class ConventionSkillMetadataTests(unittest.TestCase):
     def test_public_skills_expose_only_their_owned_scripts(self) -> None:
         expected = {
             name: ({"exec.py", "loop.py"} if name == "agent"
-                   else {"export_documents.py", "sync_documents.py"} if name == "document" else set())
+                   else {"catalog_documents.py", "export_documents.py",
+                         "search_documents.py", "sync_documents.py"}
+                   if name == "document" else set())
             for name in PUBLIC_SKILLS
         }
         for skill, scripts in expected.items():

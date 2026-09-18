@@ -18,8 +18,8 @@
 
 - Follow [theme.md](theme.md) for portable document behavior and SVG icon rules.
 - Follow [diagrams.md](diagrams.md) for Document assets, diagram semantics and accessibility.
-- Document packages use Archify-based JSON; their viewer integration and ERD support
-  remain follow-up work. This contract authorizes no Archify installation.
+- Use the Document package asset format. Confirm available schema and renderer support
+  before relying on a diagram integration.
 
 <a id="mermaid-integration"></a>
 

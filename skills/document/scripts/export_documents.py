@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy project Document packages from docs into the requested Codex layout."""
+"""Copy project Skill documents from docs/skills into .codex/skills."""
 
 import argparse
 import filecmp
@@ -9,7 +9,7 @@ import shutil
 import sys
 
 
-ROUTES = {"original": "original", "processed": "processed", "skills": "skills"}
+ROUTES = {"skills": "skills"}
 
 
 def check_path(path: Path, root: Path) -> None:
@@ -55,7 +55,7 @@ def export_documents(root: Path, apply: bool = False) -> list[dict[str, str]]:
             raise ValueError(f"Expected directory: {source_root}")
         for source in sorted(source_root.iterdir()):
             files = inventory(source, root)
-            if source_type != "original" and files.get("SKILL.md") != "file":
+            if files.get("SKILL.md") != "file":
                 raise ValueError(f"Document package needs SKILL.md: {source}")
             target = target_root / source.name
             check_path(target, root)

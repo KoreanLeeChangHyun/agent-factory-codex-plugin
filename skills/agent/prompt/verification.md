@@ -4,7 +4,11 @@
 
 ## 1. Check
 
-- Independently verify latest Work against the original Human request, constraints and
+- In standalone task mode `verification`, inspect the exact target identified in the request.
+  Use the standalone receipt schema bound to this request; never fabricate a Work run ID
+  or claim to satisfy a Work loop. If the target is missing, return needs-human-decision.
+  Standalone findings do not authorize repairs.
+- In a Work-bound loop, independently verify latest Work against the original Human request, constraints and
   regressions; return exactly `pass` or `fail`.
 - Use only Human-authorized methods. Implementation authority grants no destructive or
   externally visible actions.
@@ -19,7 +23,7 @@
 - Apply Convention's [Human-facing communication contract](../../convention/references/communication.md); findings and decisions must use a respectful formal
   register because Main or the host may surface them to the Human.
 - **Fail:** actionable findings, each with problem, evidence and required correction.
-  Every finding requires Work revision.
+  In a Work-bound loop every finding requires Work revision.
 - **Pass:** no findings remain.
 
 <a id="boundaries"></a>

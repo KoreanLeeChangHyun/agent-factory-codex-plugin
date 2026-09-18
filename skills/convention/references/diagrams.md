@@ -4,15 +4,18 @@
 
 ## 1. Document assets
 
-- Processed and Specification packages use Archify-based diagram JSON under `assets/`,
-  referenced by relative path where the diagram belongs in `SKILL.md`. Follow
+- Processed and Specification packages store each diagram or structured system
+  architecture, database/ERD or API design model as a separate JSON file under
+  `assets/`. At the relevant location, `SKILL.md` uses a descriptive relative Markdown
+  link to that file; it does not embed the JSON object or a fenced JSON copy. Follow
   [Documents](../../document/SKILL.md#document-package) for the single-source package.
-- The Human-facing viewer is intended to expand those references inline as part of one
-  document. The viewer, Archify rendering integration and ERD support are follow-up
-  implementation work, not capabilities delivered by this contract.
-- Do not invent an Archify JSON schema, install external Archify tools or convert
-  existing diagrams under this guidance. Resolve the supported format in the separately
-  authorized implementation work.
+- Use stable, descriptive kebab-case filenames such as `system-architecture.json`,
+  `database-erd.json` and `api-design.json`. Keep critical meaning in nearby readable
+  text; the linked JSON carries the structured representation.
+- Use an available, documented Archify schema; do not invent one or claim rendering
+  support without an available renderer.
+- Preserve existing diagrams when no supported conversion is available.
+
 - Ground labels and relationships in inspected code, schemas or accepted Specifications.
   Diagrams establish no runtime behavior, authority or completion.
 - Keep critical meaning explicit in nearby text and readable without color or geometry.

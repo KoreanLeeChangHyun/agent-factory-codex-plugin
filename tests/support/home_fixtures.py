@@ -34,26 +34,25 @@ class HomeRuntimeFixture:
             self.skipTest('set AF_LEGACY_RUNTIME to the preserved pre-home runtime')
         return filename
 
-    def legacy(self, *, active=False, malformed=False, status='completed', reporting_config=None):
+    def legacy(self, *, active=False, malformed=False, status='completed'):
         legacy = self.legacy_runtime()
         session = {'schemaVersion': '0.1.0', 'agentId': 'work', 'role': 'work', 'sessionId': 'legacy-exact',
             'projectRoot': str(self.root), 'codex': '/bin/true', 'sandbox': 'workspace-write',
             'maxAttempts': 1, 'heartbeatInterval': 1, 'heartbeatTimeout': 5, 'startTimeout': 5, 'turnTimeout': 20}
         program = r'''
 import importlib.util,json,pathlib,sys
-filename,root,session_json,reporting_json=sys.argv[1:]
+filename,root,session_json=sys.argv[1:]
 spec=importlib.util.spec_from_file_location('isolated_legacy_exec',filename)
 legacy=importlib.util.module_from_spec(spec); spec.loader.exec_module(legacy)
-session=json.loads(session_json); reporting=json.loads(reporting_json)
+session=json.loads(session_json)
 legacy.new_run_id=lambda:'run-one'
-options={'reporting_config':reporting,'reporting_loop_id':'loop-one'} if reporting else {}
 state=legacy.create_run(project_root=pathlib.Path(root),agent_id='work',actor='main',
- request=b'original request\r\n',session=session,**options)
+ request=b'original request\r\n',session=session)
 legacy.atomic_write_json(legacy.session_file(pathlib.Path(root),'work'),session)
 print(json.dumps(state))
 '''
         produced = subprocess.run([sys.executable,'-c',program,str(legacy),str(self.root),
-            json.dumps(session),json.dumps(reporting_config)],capture_output=True,text=True,
+            json.dumps(session)],capture_output=True,text=True,
             timeout=20,check=True)
         state = json.loads(produced.stdout)
         source = Path(state['statePath']).parent
@@ -67,9 +66,6 @@ print(json.dumps(state))
         (source/'state.json').write_text('invalid' if malformed else json.dumps(state))
         return source, state
 
-    def legacy_reporting_subprocess(self, config):
-        """Produce old reporting bytes without loading old modules into this interpreter."""
-        return self.legacy(reporting_config=config)
 
     def control_completion(self, role, request, result, *, work=None):
         rt = migration.runtime_owner()

@@ -10,16 +10,13 @@
   Preserve unrelated work, public contracts and accepted identities.
 - Separate broad formatting/refactoring when it would obscure behavioral review.
 - Reuse existing abstractions and the smallest maintainable implementation. Use
-  `libraries.md` for dependencies and `directory-structure.md` for paths.
+  [Libraries](libraries.md) for dependencies; follow the project's native layout.
 - Resolve filesystem targets and adapters explicitly; never silently broaden, mirror or
   migrate storage. Initialization preserves files unless exact overwrite/merge behavior
   is authorized.
-- Distinguish generated/copied assets from reusable source; document their sync
-  contract.
-  - Provider execution Skills keep reusable code in scripts and conditional guidance in
-    references; Processed and Specification Document packages follow the [Document contract](../../document/SKILL.md) and
-    contain only `SKILL.md` plus optional `assets/`.
-  - Original retains its native or otherwise source-appropriate format.
+- Distinguish generated/copied assets from reusable source; document their sync contract.
+- Agent Factory document paths are not a universal source-code layout.
+- Follow [Testing](testing.md#source-organization) for test placement.
 - Keep domain names/interfaces consistent; separate observed facts, accepted decisions,
   inferences and unresolved questions. Local implementations are not universal
   architecture rules.
@@ -50,32 +47,12 @@
 
 ## 3. Technical documentation
 
-- Apply the mandatory [Document structure](../../document/SKILL.md#document-structure) to Client Documents and Provider Skill guidance. Use
-  numbered headings, lists, Markdown tables and JSON blocks.
-- Skill guidance describes the current accepted state. Keep change logs and past
-  discussions in Processed documents, not Skill guidance. Retain current compatibility,
-  migration and recovery rules as operational requirements.
-- Maintain this plugin's documentation and Provider execution Skill guidance in English.
-  This is the explicit language exception to the Human-language Document package
-  contract in [Documents](../../document/SKILL.md#provider-placement).
-- Preserve Provider `references/`, `scripts/`, `agents/`, `runtime/` and `prompt/`;
-  Document package simplification does not remove execution package components.
-- For Markdown and technical documents, including designs and specifications, default to
-  section headings with concise bullets for parallel requirements/rules and numbered
-  lists for ordered steps. Use only H1/H2/H3 and section numbering through `1.` /
-  `1.1.`; split deeper topics into separate documents.
-- Keep one core point per item and one point per sentence. Use concise technical
-  language. Split long explanations into separate items or nested lists. Place necessary
-  context and rationale in list items.
-- Use Markdown tables in document bodies where shared dimensions clarify comparisons,
-  definitions or mappings, such as roles, ownership, options and reference purposes.
-- Place useful tables, diagrams and images near the text they explain. Use visual aids
-  when they improve understanding, without quotas or decorative requirements; follow
-  [diagrams.md](diagrams.md) for diagram selection and authoring.
-- Keep critical requirements and constraints explicit in text alongside visual aids.
-- Consolidate duplicates in the owning document; preserve constraints and update
-  callers.
-- Store generated documents using [Document routing](../../document/SKILL.md#routing).
+- Follow [Document](../../document/SKILL.md) for language, writing structure, current-state
+  guidance, source ownership and durable storage. Do not duplicate those rules here.
+- Retain current compatibility, migration and recovery requirements when revising technical guidance.
+- Place useful visuals near their explanation; follow [Diagrams](diagrams.md) for semantics
+  and readable text. Avoid decorative or quota-driven visuals.
+- Consolidate duplicate guidance at its owner and update every affected reference.
 
 <a id="comments-and-todos"></a>
 
@@ -107,37 +84,9 @@
 - Commit authority grants no push, amend, force, history rewrite, reset, restore or
   delete. Report staging/commit obstructions without expanding scope.
 
-<a id="plugin-release-readiness"></a>
-
-## 7. Plugin release readiness
-
-- The repository marketplace installs this plugin from `main`.
-- Treat another branch as a release candidate, not as published state.
-
-1. Inspect the candidate diff against the current remote `main`; resolve unrelated
-   changes and confirm the exact release scope.
-2. Update the manifest cachebuster with Plugin Creator's `update_plugin_cachebuster.py`; preserve the base
-   semantic version and keep one `+codex.<cachebuster>` suffix.
-3. Obtain explicit Human verification authority. Run either the manually dispatched
-   `Human-authorized verification` workflow or the exact Human-supplied checks. A full release check covers
-   the configured Python 3.10 and 3.12 baselines and the distribution, contract, runtime
-   and integration suites.
-4. Run the Plugin Creator validator against the candidate checkout. This separately
-   checks the current Codex plugin ingestion shape; repository tests do not replace it.
-5. Recheck the manifest, marketplace source/ref, Skill inventory and release diff.
-   Record the exact verification evidence before an authorized ordinary commit.
-6. Merge or push to `main` only with explicit Human publication authority. Confirm
-   the remote `main` contains the verified commit before describing the release as
-   published, then verify a fresh marketplace installation in a new Codex thread.
-
-- The marketplace/manifest contract test prevents local metadata drift but cannot prove
-  that a remote branch, installation, account or deployment is current.
-- Do not move MCP-owned schemas, services or Workspace assets into the plugin to make a
-  release self-contained.
-
 <a id="sources"></a>
 
-## 8. Sources
+## 7. Sources
 
 - [Google: Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
 - [Google: Code review](https://google.github.io/eng-practices/review/reviewer/looking-for.html)

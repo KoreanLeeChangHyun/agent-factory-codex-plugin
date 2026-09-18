@@ -314,7 +314,8 @@ class Bridge:
         self.goal_enabled = session.get("role") == "main" and self.goal_supported and (
             session.get("goalMode") is not None or bool(session.get("goal")) or bool(state.get("goalAction")))
         self.stopped = False
-        self.planning = state.get("role") == "work" and state.get("executionOptions", {}).get("taskMode") in ("plan-work", "plan-work-verification")
+        self.planning = state.get("role") == "work" and state.get("executionOptions", {}).get("taskMode") in ("plan", "plan-work", "plan-work-verification")
+        self.plan_only = self.planning and state.get("executionOptions", {}).get("taskMode") == "plan"
         self.execution_turn = None
         self.planning_turn_id = None
 
@@ -396,7 +397,7 @@ class Bridge:
                   "approvalPolicy": policy["approvalPolicy"], "config": config,
                   "developerInstructions": prompt}
         if self.planning:
-            params["developerInstructions"] += "\nHost phase contract: while actual collaboration mode is plan, inspect and plan only, produce the planning output schema and no receipt. In default mode implement and follow the original final result/receipt contract. The runtime automatically transitions within this same Work session after a planned result; required unresolved Human choices stop execution.\n"
+            params["developerInstructions"] += "\nHost phase contract: while actual collaboration mode is plan, inspect and plan only, produce the planning output schema and no receipt. In default mode implement and follow the original final result/receipt contract. For taskMode plan, stop after planning; the host records its read-only completion receipt. Other Plan routes automatically transition within this same Work session after a planned result; required unresolved Human choices stop execution.\n"
         if self.session.get("model"):
             params["model"] = self.session["model"]
         prior = self.session.get("sessionId")
@@ -443,7 +444,7 @@ class Bridge:
             self.execution_turn = {**turn, "collaborationMode": {"mode": "default", "settings": settings},
                                    "input": [{"type": "text", "text": "Execute the plan in this same Work session within the already authorized request. Respect unresolved Human decisions. Complete the original result and receipt contract.\n" + prompt}]}
             turn = {**turn, "collaborationMode": {"mode": "plan", "settings": settings},
-                    "input": [*inputs, {"type": "text", "text": "This is the planning phase only. Inspect and plan the bounded request without implementation or a Work receipt. Return the planning schema. Use needs-human-decision only for a required unresolved Human choice; otherwise return planned. The host will transition this same session to execution automatically."}],
+                    "input": [*inputs, {"type": "text", "text": "This is the planning phase only. Inspect and plan the bounded request without implementation or a Work receipt. Return the planning schema. Use needs-human-decision only for a required unresolved Human choice; otherwise return planned. The host stops after planning for taskMode plan; otherwise it transitions this same session to execution automatically."}],
                     "outputSchema": {"type": "object", "additionalProperties": False,
                                      "properties": {"status": {"type": "string", "enum": ["planned", "needs-human-decision"]}, "plan": {"type": "string", "minLength": 1}},
                                      "required": ["status", "plan"]}}
@@ -616,6 +617,23 @@ class Bridge:
                         # Cancellation/input authority is checked again before the automatic transition.
                         current = self.runtime.safe_read_json(Path(self.state["statePath"]))
                         if current.get("cancelRequested"):
+                            return
+                        if self.plan_only:
+                            # Plan mode cannot write files. The host records only read-only completion.
+                            receipt = {"schemaVersion": "0.1.0", "kind": "work-receipt",
+                                       "runId": self.state["runId"],
+                                       "requestHash": self.state.get("receiptRequestHash") or self.state["requestHash"],
+                                       "outcome": "completed", "changedPaths": [], "addressedFindingIds": [],
+                                       "tests": {"run": False, "reason": "work-agent-prohibited"}}
+                            schema = self.runtime.safe_read_json(Path(self.state["receiptSchemaPath"]))
+                            outcomes = schema.get("properties", {}).get("capabilityOutcomes")
+                            if outcomes is not None:
+                                receipt["capabilityOutcomes"] = [
+                                    {**{key: value["const"] for key, value in item["properties"].items() if "const" in value},
+                                     "outcome": "not-invoked"} for item in outcomes["prefixItems"]]
+                            self.runtime.atomic_write(Path(self.state["receiptPath"]), json.dumps(receipt).encode())
+                            self.last_message = json.dumps({"status": "completed", "resultPath": self.state["resultPath"], "resultText": plan["plan"]})
+                            self.finish_turn()
                             return
                         self.planning = False
                         emit({"type": "native.commentary", "text": "Planning is complete. Implementation is starting in the same Work session."})

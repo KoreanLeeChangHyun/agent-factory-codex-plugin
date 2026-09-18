@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synchronize docs to Codex projections, using docs as the authoritative source."""
+"""Synchronize .codex/skills from the authoritative docs/skills source."""
 
 import argparse
 from contextlib import contextmanager
@@ -65,7 +65,7 @@ def sync(root):
         wanted = inventory(source, root)
         for package in source.iterdir():
             entries = inventory(package, root)
-            if kind != "original" and entries.get("SKILL.md") != "file":
+            if entries.get("SKILL.md") != "file":
                 raise ValueError(f"Document package needs SKILL.md: {package}")
         actual = inventory(target, root) if target.is_dir() else {}
         if target.exists() and not target.is_dir():

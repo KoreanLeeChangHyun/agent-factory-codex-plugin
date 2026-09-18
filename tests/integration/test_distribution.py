@@ -25,6 +25,28 @@ class DistributionTests(unittest.TestCase):
                 result = subprocess.run([sys.executable, str(path), "--help"], cwd=cwd,
                                         env=env, capture_output=True, text=True, timeout=20)
                 self.assertEqual(result.returncode, 0, result.stderr)
+            retired_invocations = [
+                ("exec.py", ["reporting-deliver"]),
+                ("exec.py", ["_report-send"]),
+                ("exec.py", ["submit", "--agent", "main", "--role", "main", "--message", "request",
+                             "--reporting-config", "missing.json"]),
+                ("exec.py", ["send", "--agent", "main", "--message", "request",
+                             "--reporting-loop-id", "old-loop"]),
+                ("loop.py", ["start", "--work-agent", "work", "--verification-agent", "verify",
+                             "--request-file", "missing.md", "--work-reporting-config", "missing.json"]),
+                ("loop.py", ["start", "--work-agent", "work", "--verification-agent", "verify",
+                             "--request-file", "missing.md", "--verification-reporting-config", "missing.json"]),
+            ]
+            for name, arguments in retired_invocations:
+                with self.subTest(retired=arguments):
+                    rejected = subprocess.run(
+                        [sys.executable, str(installed / "skills/agent/scripts" / name), *arguments],
+                        cwd=cwd, env=env, capture_output=True, text=True, timeout=20,
+                    )
+                    self.assertNotEqual(rejected.returncode, 0)
+                    self.assertIn("invalid_arguments", rejected.stdout)
+                    self.assertIn("report", rejected.stdout)
+                    self.assertFalse((base / "runtime-home").exists())
             script = installed / "skills/agent/scripts/exec.py"
             location = subprocess.run([sys.executable, str(script), "location", "--project-root", str(cwd)],
                                       env=env, capture_output=True, text=True, timeout=20)
@@ -35,10 +57,10 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(initialized.returncode, 0, initialized.stdout)
             self.assertTrue((base / "runtime-home/registry.json").is_file())
             self.assertFalse((cwd / ".agent-factory").exists())
-            self.assertTrue((installed / "skills/agent/runtime/cloud_reporting.py").is_file())
+            self.assertFalse((installed / "skills/agent/runtime/cloud_reporting.py").exists())
             self.assertFalse((installed / "mcp").exists())
             self.assertFalse((installed / "skills/mcp").exists())
-            layout = (installed / "skills/convention/references/directory-structure.md").read_text()
+            layout = (installed / "skills/document/SKILL.md").read_text()
             normalized_layout = " ".join(layout.split())
             for document_type in ("original", "processed", "skills"):
                 self.assertIn(

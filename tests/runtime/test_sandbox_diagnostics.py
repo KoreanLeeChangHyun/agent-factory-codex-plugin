@@ -69,7 +69,7 @@ def test_cli_diagnostics_and_refusal_do_not_import_posix_runtime(platform, argum
     code = '''import sys, runpy, shutil, subprocess
 class BlockRuntime:
     def find_spec(self, fullname, *args):
-        if fullname in {'paths', 'native_codex', 'cloud_reporting'}:
+        if fullname in {'paths', 'native_codex'}:
             raise ImportError('POSIX runtime must not be loaded')
 sys.meta_path.insert(0, BlockRuntime())
 sys.platform = sys.argv[1]

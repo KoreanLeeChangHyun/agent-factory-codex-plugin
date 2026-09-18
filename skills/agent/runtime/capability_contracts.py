@@ -89,14 +89,8 @@ def result_file_identity(info) -> dict[str, int]:
             ("st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")}
 
 
-def safe_hash_caller_file(path: Path, expected_identity=None) -> str:
-    """Hash a stable regular file through safe traversal, using bounded memory."""
-    return safe_read_caller_file(path, None, digest_only=True, expected_identity=expected_identity)
-
-
-def safe_read_caller_file(path: Path, limit: int | None, *, private: bool = False,
-                          digest_only: bool = False, expected_identity=None,
-                          stable: bool = False) -> bytes | str:
+def safe_read_caller_file(path: Path, limit: int, *,
+                          stable: bool = False) -> bytes:
     """Read an explicit caller file without following any path component."""
     if ".." in path.parts:
         raise ContractError("capability_binding_invalid", "capability binding path contains traversal")
@@ -129,27 +123,8 @@ def safe_read_caller_file(path: Path, limit: int | None, *, private: bool = Fals
         os.close(descriptor)
         descriptor = file_descriptor
         info = os.fstat(descriptor)
-        if private and (info.st_uid != os.getuid() or info.st_mode & 0o077):
-            raise ContractError("reporting_file_unsafe", "Reporting file must be owned by this user and private")
         if not stat.S_ISREG(info.st_mode):
             raise ContractError("capability_binding_invalid", "capability binding is not a regular file")
-        if digest_only:
-            identity = result_file_identity(info)
-            if expected_identity is not None and identity != expected_identity:
-                raise ContractError("reporting_result_changed", "Reporting result identity changed")
-            hasher = hashlib.sha256()
-            remaining = info.st_size + 1
-            count = 0
-            while remaining > 0:
-                chunk = os.read(descriptor, min(remaining, 65536))
-                if not chunk:
-                    break
-                hasher.update(chunk)
-                count += len(chunk)
-                remaining -= len(chunk)
-            if count != info.st_size or result_file_identity(os.fstat(descriptor)) != identity:
-                raise ContractError("reporting_result_changed", "Reporting result changed during capture")
-            return hasher.hexdigest()
         if info.st_size > limit:
             raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
         chunks: list[bytes] = []

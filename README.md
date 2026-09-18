@@ -12,8 +12,8 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 - This plugin is fully installable and usable on its own; the VS Code extension is optional.
 - The Agent Factory VS Code extension requires this plugin to be installed and
-  enabled at the identical semantic base version. For example, extension `1.0.10`
-  accepts plugin `1.0.10+codex.<token>`.
+  enabled at the identical semantic base version. For example, extension `1.0.11`
+  accepts plugin `1.0.11+codex.<token>`.
 
 On activation, the extension:
 
@@ -35,30 +35,37 @@ codex plugin add agent-factory@agent-factory
 - The extension invokes Codex plugin installation; it does not contain or bundle
   the plugin.
 
-## Product modes
+## Distribution units
 
-- **Plugin only:** A complete local workflow. It requires no Agent Factory MCP
+- **Extension + plugin:** A complete local workflow. It requires no Agent Factory MCP
   package, server, account, tenant, connection, or authenticated resource.
-- **MCP only:** An independently installed MCP application owns its Document,
-  Gather, Tool, and Workspace capabilities without requiring this plugin.
-- **Plugin plus MCP:** Explicitly selected and authorized connected capabilities
-  can extend the local workflow. They do not take over graph authority or
-  implicitly transmit local artifacts.
+  The extension and plugin MUST have identical semantic base versions and ship together.
+  Their separate packages form one coordinated release; both must be available before
+  that release is reported complete. The plugin cachebuster is build metadata.
+- **MCP:** An independently versioned and deployed application owns Document, Gather,
+  Tool, and Workspace capabilities. It requires neither the extension nor the plugin.
+  Its version and release schedule are not tied to the extension/plugin pair.
+- These are independent services. This plugin's distributed Skills describe only the
+  extension/plugin service; MCP usage and operations belong to that service.
 
 ## Included Skills and agent model
 
 The plugin exposes three public Skills:
 
-- `agent` supports five per-request execution modes through Main and managed sessions.
+- `agent` supports direct Main input and six per-message execution actions through Main and managed sessions.
 - `convention` owns the core model and shared project conventions.
-- `document` owns Document authoring, classification, storage and Codex synchronization.
+- `document` owns Document authoring, classification, storage, local catalog/search and
+  Codex Skill synchronization.
 
 - Main communicates with the Human, delegates bounded tasks, and integrates results.
-- The default delegates Work without separate Verification; direct mode lets Main
-  perform the task.
+- Ordinary input defaults to direct Main execution. Work, Plan, Verification, Plan·Work,
+  Work·Verification and Plan·Work·Verification actions apply to one message only.
+- Plan alone uses actual Work Plan collaboration mode and stops after planning.
+  Standalone Verification dispatches a managed verifier for an explicit target, otherwise
+  prior completed work in the current chat; missing targets require a Human answer.
 - `plan-work` runs actual Plan then default implementation in the same Work
   thread, followed by Main checks without separate Verification.
-- Verification modes check completed Work independently, with optional actual
+- Work-bound verification modes check completed Work independently, with optional actual
   Plan/default turns in the same Work thread. See the
   [execution modes contract](skills/agent/references/execution-modes.md).
 - Evidence exploration is a Work capability, also available to Main in direct mode.
@@ -109,19 +116,16 @@ Durable contracts remain with their owning Skill and references:
 
 - [Agent Skill](skills/agent/SKILL.md): graph roles, delegation, and execution.
 - [Convention Skill](skills/convention/SKILL.md): shared conventions and ownership.
-- [Core model](skills/convention/references/agent-factory-core.md): roles,
-  capabilities, authority, and product boundaries.
 - [Runtime contract](skills/agent/references/home-runtime.md): managed sessions,
   paths, receipts, recovery, containment, and migration.
-- [Directory structure](skills/convention/references/directory-structure.md):
-  source, installation, runtime, cloud, and legacy layout.
 - [Document Skill](skills/document/SKILL.md): mandatory common writing rules,
-  storage, export and synchronization. Inline asset viewing and ERD support remain
-  follow-up work.
+  storage, Original/Processed catalog and search, export and synchronization.
 - Type-specific writing: [Specification](skills/document/references/specification.md),
   [Processed](skills/document/references/processed.md), and [Original](skills/document/references/original.md).
 - [Development](skills/convention/references/development.md): changes, Git
-  publication, technical documentation, and release readiness.
+  publication authority and technical documentation.
+- Repository development and release rules: `docs/skills/rule-plugin-development/SKILL.md`
+  (project-local; not part of the distributed Skills).
 - [Testing](skills/convention/references/testing.md): test organization and
   verification boundaries.
 - [Native Fast and Goal](skills/agent/references/native-fast-goal.md) and
