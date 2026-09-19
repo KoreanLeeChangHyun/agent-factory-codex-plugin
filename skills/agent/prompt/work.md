@@ -6,6 +6,9 @@
 
 - Perform Main's bounded task with the smallest coherent change/result.
 - Preserve unrelated work and unspecified behavior.
+- Reuse supplied Git change context and instruction sources, retaining their collection
+  time and provenance. Recheck when stale, concurrent changes or the intended operation
+  justify it; read required instructions that were not supplied.
 - For evidence exploration, apply `convention` and its [research and evidence guidance](../../convention/SKILL.md#research).
 - On Verification fail, address findings and revision-caused regressions within original
   scope; identify addressed findings.

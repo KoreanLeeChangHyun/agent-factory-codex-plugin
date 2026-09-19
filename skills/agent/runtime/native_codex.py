@@ -667,7 +667,7 @@ class Bridge:
                             raise NativeError("Native planning result is invalid")
                         self.runtime.atomic_write(Path(self.state["statePath"]).parent / "plan.json", json.dumps(plan, ensure_ascii=False).encode())
                         if plan["status"] == "needs-human-decision":
-                            self.last_message = json.dumps({"status": "needs-human-decision", "resultPath": self.state["resultPath"], "resultText": plan["plan"]})
+                            self.last_message = json.dumps({"status": "needs-human-decision", "resultPath": self.state["resultPath"], "resultText": plan["plan"], "decisionKind": "approval"})
                             self.finish_turn()
                             return
                         # Cancellation/input authority is checked again before the automatic transition.

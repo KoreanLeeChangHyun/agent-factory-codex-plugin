@@ -2,6 +2,7 @@
 import runtime_test_home
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -14,6 +15,65 @@ import process_transport
 
 
 class PromptDeliveryTests(unittest.TestCase):
+    def test_codex_output_schema_requires_every_property_including_nullable_metadata(self):
+        for inline in (True, False):
+            for metadata in (True, False):
+                with self.subTest(inline=inline, metadata=metadata):
+                    schema = process_transport.response_schema_document("/managed/result.md", inline=inline, decision_metadata=metadata)
+                    self.assertEqual(set(schema["required"]), set(schema["properties"]))
+                    self.assertFalse(schema["additionalProperties"])
+                    if inline and metadata:
+                        self.assertIn("null", schema["properties"]["decisionKind"]["type"])
+                        self.assertIn(None, schema["properties"]["decisionKind"]["enum"])
+
+    def test_historical_optional_decision_schema_remains_readable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = {"resultPath": str(Path(directory) / "result.md"),
+                     "responseSchemaPath": str(Path(directory) / "response.schema.json")}
+            schema = process_transport.response_schema_document(state["resultPath"])
+            schema["required"].remove("decisionKind")
+            path = Path(state["responseSchemaPath"])
+            path.write_text(json.dumps(schema))
+            self.assertTrue(process_transport.inline_result(state))
+            terminal = {"status": "completed", "resultPath": state["resultPath"], "resultText": "Done"}
+            self.assertEqual(process_transport.validate_terminal_result(terminal, state), b"Done")
+            self.assertEqual(json.loads(path.read_text()), schema)
+            schema["properties"]["unexpected"] = {"type": "string"}
+            path.write_text(json.dumps(schema))
+            with self.assertRaises(runtime.ContractError):
+                process_transport.inline_result(state)
+
+    def test_decision_metadata_is_explicit_and_legacy_results_are_supported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = {"resultPath": str(Path(directory) / "result.md"),
+                     "responseSchemaPath": str(Path(directory) / "response.schema.json")}
+            for metadata in (True, False):
+                Path(state["responseSchemaPath"]).write_text(json.dumps(process_transport.response_schema_document(state["resultPath"], decision_metadata=metadata)))
+                legacy = {"status": "needs-human-decision", "resultPath": state["resultPath"], "resultText": "Which target?"}
+                self.assertEqual(process_transport.validate_terminal_result(legacy, state), b"Which target?")
+            for kind in ("approval", "clarification", None):
+                terminal = {**legacy, "decisionKind": kind}
+                self.assertEqual(process_transport.validate_terminal_result(terminal, state), b"Which target?")
+            for invalid in ({**legacy, "decisionKind": "guess"},
+                            {**legacy, "status": "completed", "decisionKind": "approval"}):
+                with self.assertRaises(runtime.ContractError):
+                    process_transport.validate_terminal_result(invalid, state)
+
+    def test_development_sources_follow_local_runtime_for_every_role(self):
+        root = Path(process_transport.__file__).resolve().parents[3]
+        with mock.patch.dict(os.environ, {"AGENT_FACTORY_DEV_PLUGIN_ROOT": str(root)}):
+            for role in ("main", "work", "verification"):
+                parts = self.parts(role)
+                for name in ("agent", "convention", "document"):
+                    self.assertIn(str(root / "skills" / name / "SKILL.md"), parts.fixed)
+                self.assertIn("supersede installed/cache catalog paths", parts.fixed)
+        with mock.patch.dict(os.environ, {"AGENT_FACTORY_DEV_PLUGIN_ROOT": ""}):
+            self.assertNotIn("<agent-factory-development-sources>", self.parts().fixed)
+        with mock.patch.dict(os.environ, {"AGENT_FACTORY_DEV_PLUGIN_ROOT": str(root / "wrong")}):
+            with self.assertRaises(runtime.ContractError) as error:
+                self.parts()
+            self.assertEqual(error.exception.code, "development_plugin_invalid")
+
     def parts(self, role="main", run="one", **overrides):
         args = dict(agent_id="agent-" + run, role=role, run_id="run-" + run,
                     request_path=Path("/managed") / run / "request.md",

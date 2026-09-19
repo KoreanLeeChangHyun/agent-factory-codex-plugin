@@ -49,13 +49,16 @@ class AttemptFailure(Exception):
         self.launched = launched
 
 
-def response_schema_document(result_path: str, *, inline: bool = True) -> dict[str, Any]:
+def response_schema_document(result_path: str, *, inline: bool = True, decision_metadata: bool = True) -> dict[str, Any]:
     properties = {
         "status": {"type": "string", "enum": ["completed", "needs-human-decision", "failed"]},
         "resultPath": {"type": "string", "const": result_path},
     }
     if inline:
         properties["resultText"] = {"type": "string", "minLength": 1, "maxLength": MAX_RESULT_TEXT_BYTES}
+    if inline and decision_metadata:
+        properties["decisionKind"] = {"type": ["string", "null"], "enum": ["approval", "clarification", None]}
+    # Codex requires every property, including nullable metadata, in required.
     return {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object",
             "properties": properties, "required": list(properties), "additionalProperties": False}
 
@@ -64,19 +67,28 @@ def inline_result(state: dict[str, Any]) -> bool:
     """Persisted schemas choose the protocol; never reinterpret historical runs."""
     schema = safe_read_json(Path(state["responseSchemaPath"]))
     for inline in (True, False):
-        if schema == response_schema_document(state["resultPath"], inline=inline):
+        if any(schema == response_schema_document(state["resultPath"], inline=inline, decision_metadata=metadata) for metadata in (True, False)):
             return inline
+    # Recognize persisted runs from before nullable decision metadata was required.
+    historical = response_schema_document(state["resultPath"])
+    historical["required"].remove("decisionKind")
+    if schema == historical:
+        return True
     raise ContractError("result_schema_invalid", "Managed response schema is unsupported or mismatched")
 
 
 def validate_terminal_result(terminal: Any, state: dict[str, Any]) -> bytes | None:
     inline = inline_result(state)
     expected = {"status", "resultPath", "resultText"} if inline else {"status", "resultPath"}
-    if (not isinstance(terminal, dict) or set(terminal) != expected
+    allowed = expected | ({"decisionKind"} if inline else set())
+    if (not isinstance(terminal, dict) or not expected <= set(terminal) or not set(terminal) <= allowed
             or not isinstance(terminal.get("status"), str)
             or terminal.get("status") not in {"completed", "needs-human-decision", "failed"}
             or terminal.get("resultPath") != state["resultPath"]):
         raise ContractError("result_invalid", "Codex returned an invalid terminal result")
+    decision = terminal.get("decisionKind")
+    if decision not in (None, "approval", "clarification") or (decision is not None and terminal["status"] != "needs-human-decision"):
+        raise ContractError("result_invalid", "Decision kind is valid only for a Human decision result")
     if not inline:
         return None
     text = terminal["resultText"]
@@ -204,7 +216,11 @@ results, receipts or their hashes. New output still belongs to this exact run.
         f"(nonempty UTF-8 text, at most {MAX_RESULT_TEXT_BYTES} bytes), with `status` and "
         f"`resultPath` set to `{result_path}`. The runtime saves that text atomically. "
         "Do not write or reread your answer file with tools. Return the complete answer once "
-        "in the final response; intermediate messages are progress only."
+        "in the final response; intermediate messages are progress only. "
+        "If the supplied schema supports decisionKind, use approval only when the response presents a concrete "
+        "proposal awaiting explicit authorization; use clarification when information, a choice, or credentials "
+        "are missing. For other statuses use null. Never classify a question as approval merely "
+        "because status is needs-human-decision. Bypass does not require routine proposal approval."
         if inline_response else
         f"This historical run uses the legacy output contract. Write the detailed result to "
         f"`{result_path}`. Then return only the compact JSON required by the supplied output schema."
@@ -234,6 +250,25 @@ The following validated content is the complete `{role}` system-prompt source:
 
 {result_instruction} Run ID: `{run_id}`.
 {human_approval_obligation}{route_instruction(task_mode, role)}{binding_obligation}{receipt_obligation}{migration_obligation}"""
+    development_root = os.environ.get("AGENT_FACTORY_DEV_PLUGIN_ROOT", "").strip()
+    if development_root:
+        root = Path(development_root).resolve()
+        if root != Path(__file__).resolve().parents[3]:
+            raise ContractError("development_plugin_invalid", "Development run must use the local plugin runtime")
+        bindings = "\n".join(
+            f"- agent-factory:{name}: {root / 'skills' / name / 'SKILL.md'}"
+            for name in ("agent", "convention", "document")
+        )
+        fixed += (
+            "\n\n<agent-factory-development-sources>\n"
+            "This run uses the live local development plugin. For Agent Factory skills, "
+            "the following source bindings supersede installed/cache catalog paths and "
+            "previously loaded copies. Read these local SKILL.md files when the operation "
+            "requires the skill; resolve their scripts and references relative to these files. "
+            "Use this same local source for child Work/Verification execution. "
+            "Do not install or refresh the marketplace plugin for this development run.\n"
+            + bindings + "\n</agent-factory-development-sources>"
+        )
     return PromptParts(fixed, dynamic)
 
 

@@ -9,6 +9,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -105,6 +106,12 @@ class AgentRuntime:
             "--dispatch-id", dispatch_id,
             "--human-approval-policy", human_approval_policy,
         ]
+        if execution.get("taskListPath"):
+            import task_binding
+            current_binding = task_binding.load(agent_exec.safe_read_json, Path(execution["taskListPath"]), execution["taskBinding"]["taskId"], request_hash)
+            if current_binding != execution["taskBinding"]:
+                raise agent_exec.ContractError("task_binding_invalid", "The loop task snapshot changed before dispatch")
+            arguments.extend(["--task-list-file", execution["taskListPath"], "--task-id", execution["taskBinding"]["taskId"]])
         if execution.get("executionPolicyPath"):
             if agent_exec.safe_read_json(Path(execution["executionPolicyPath"])) != execution["executionPolicy"]:
                 raise agent_exec.ContractError("execution_policy_mismatch", "Loop execution policy snapshot changed")
@@ -184,6 +191,7 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         "schemaVersion": SCHEMA_VERSION,
         "kind": "work-verification-loop",
         "loopId": state["loopId"],
+        "workflow": state.get("workflow"),
         "taskMode": state.get("execution", {}).get("taskMode", "work-verification"),
         "status": state["status"],
         "phase": state["phase"],
@@ -205,6 +213,36 @@ def write_request(directory: Path, name: str, content: str) -> Path:
     path = directory / name
     agent_exec.atomic_write(path, content.encode("utf-8"))
     return path
+
+
+def assigned_agent(state: dict[str, Any], role: str) -> str:
+    """Keep the loop storage owner stable while routing each task to its assignee."""
+    workflow = state.get("workflow")
+    task = workflow["tasks"][workflow["index"]] if workflow else {}
+    return task.get(role + "AgentId", state[role + "AgentId"])
+
+
+def validate_assignments(tasks, root, work_agent, verification_agent):
+    work_ids, verification_ids = set(), set()
+    for task in tasks:
+        work_ids.add(task.get("workAgentId", work_agent))
+        verifier = task.get("verificationAgentId", verification_agent)
+        if verifier:
+            verification_ids.add(verifier)
+    if tasks[0].get("workAgentId", work_agent) != work_agent:
+        raise agent_exec.ContractError("task_assignment_invalid", "The first task must use --work-agent, the stable loop owner")
+    if work_ids & verification_ids:
+        raise agent_exec.ContractError("agent_identity_conflict", "Work and Verification must use separate sessions across the entire list")
+    for role, identifiers in (("work", work_ids), ("verification", verification_ids)):
+        for agent_id in identifiers:
+            try:
+                session = agent_exec.session_file(root, agent_id)
+            except agent_exec.ContractError as error:
+                if error.code == "project_uninitialized":
+                    continue
+                raise
+            if session.exists() and agent_exec.safe_read_json(session).get("role") != role:
+                raise agent_exec.ContractError("agent_identity_conflict", "An assigned session has a different role")
 
 
 def prepare_dispatch(
@@ -233,7 +271,7 @@ def prepare_dispatch(
         and recovery_of_run_id is None
     ):
         raise agent_exec.ContractError("graph_transition_invalid", "a Work revision requires failed Verification")
-    agent_id = state["workAgentId"] if role == "work" else state["verificationAgentId"]
+    agent_id = assigned_agent(state, role)
     root = Path(state["projectRoot"])
     operation = "send" if agent_exec.session_file(root, agent_id).exists() else "submit"
     if recovery_of_run_id is not None and operation != "send":
@@ -317,7 +355,19 @@ def complete_pending_dispatch(
         expected_tuple.setdefault("executionOptions", {})["taskMode"] = state["execution"]["taskMode"]
     if pending.get("capabilityBindingHash") is not None:
         expected_tuple["capabilityBindingHash"] = pending["capabilityBindingHash"]
+    if state["execution"].get("taskBinding"):
+        expected_tuple["taskBinding"] = state["execution"]["taskBinding"]
     actual_tuple = run.get("dispatchTuple")
+    # Parent linkage is added by exec, independently of the loop's dispatch
+    # intent. Validate it against the accepted run, not the current caller:
+    # reconciliation can be performed by another Main run or the extension.
+    parent_keys = ("parentAgentId", "parentRunId")
+    if isinstance(actual_tuple, dict) and any(key in actual_tuple or key in run for key in parent_keys):
+        for key in parent_keys:
+            value = actual_tuple.get(key)
+            if not isinstance(value, str) or not agent_exec.AGENT_ID.fullmatch(value) or run.get(key) != value:
+                raise agent_exec.ContractError("dispatch_binding_invalid", "managed parent linkage does not match accepted run")
+            expected_tuple[key] = value
     if isinstance(actual_tuple, dict) and "humanApprovalPolicy" not in actual_tuple:
         # Historical managed runs predate this tuple field; omission represented
         # the only then-supported behavior, which is today's required default.
@@ -328,6 +378,11 @@ def complete_pending_dispatch(
     run_id = str(run["runId"])
     state["currentChild"] = {"role": role, "agentId": pending["agentId"], "runId": run_id}
     state["phase"] = f"{role}-running"
+    if state.get("workflow"):
+        task = state["workflow"]["tasks"][state["workflow"]["index"]]
+        task["workStatus" if role == "work" else "verificationStatus"] = "running"
+        task[role + "RunId"] = run_id
+        task[role + "AgentId"] = pending["agentId"]
     if role == "work":
         state["latestWorkRunId"] = run_id
     else:
@@ -371,12 +426,41 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     request = agent_exec.safe_read_bytes(args.request_file, agent_exec.MAX_REQUEST_BYTES)
     if not request.decode("utf-8").strip():
         raise agent_exec.ContractError("request_invalid", "request must not be empty")
+    import task_binding
+    if getattr(args, "task_list_file", None) is None or not getattr(args, "task_id", None):
+        raise agent_exec.ContractError("task_binding_required", "Delegated execution requires --task-list-file and --task-id before dispatch")
+    # Read once, normalize a private snapshot, and hash exactly the bytes we retain.
+    task_document, binding = task_binding.resolve(
+        agent_exec.safe_read_json(args.task_list_file), args.task_id, hashlib.sha256(request).hexdigest())
+    tasks = task_document["tasks"]
+    if args.task_id != tasks[0]["id"]:
+        raise agent_exec.ContractError("task_order_invalid", "Submit the first task; the engine executes the whole list in order")
+    validate_assignments(tasks, root, args.work_agent, args.verification_agent)
+    for task in tasks:
+        task.setdefault("workAgentId", args.work_agent)
+        if args.verification_agent:
+            task.setdefault("verificationAgentId", args.verification_agent)
+    binding = task_binding.validate(task_document, args.task_id, hashlib.sha256(request).hexdigest())
+    task_requests = []
+    for index, task in enumerate(tasks):
+        content = request if index == 0 else agent_exec.safe_read_bytes(Path(task["requestFile"]), agent_exec.MAX_REQUEST_BYTES) if isinstance(task.get("requestFile"), str) else None
+        if content is None or not content.decode("utf-8").strip():
+            raise agent_exec.ContractError("task_request_invalid", "Every subsequent task requires a matching requestFile before execution")
+        task["requestHash"] = hashlib.sha256(content).hexdigest()
+        task_requests.append(content)
     loop_id = f"loop-{uuid.uuid4().hex[:16]}"
     directory = loop_directory(root, args.work_agent, loop_id, create=True)
     # Establish the per-loop lock as part of loop creation so later rejected
     # control-plane operations never create a new artifact.
     with agent_exec.file_lock(directory / ".loop.lock"):
         pass
+    workflow_tasks = []
+    for index, (task, content) in enumerate(zip(tasks, task_requests)):
+        request_path = directory / f"task-{index}.md"
+        agent_exec.atomic_write(request_path, content)
+        workflow_tasks.append({**task, "requestPath": str(request_path), "workStatus": "pending", "verificationStatus": "pending"})
+    task_list_path = directory / "task-list.json"
+    agent_exec.atomic_write_json(task_list_path, task_document)
     original = directory / "original-request.md"
     agent_exec.atomic_write(original, request)
     policy = agent_exec.resolve_execution_policy(args, root)
@@ -438,7 +522,9 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "controlPlaneError": None,
         "receiptRecovery": None,
         "terminalReason": None,
-        "execution": {"taskMode": mode, "codex": args.codex, "model": args.model,
+        "workflow": {"id": task_document["id"], "title": task_document["title"], "index": 0, "tasks": workflow_tasks},
+        "parentStatePath": os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV),
+        "execution": {"taskListPath": str(task_list_path), "taskBinding": binding, "taskMode": mode, "codex": args.codex, "model": args.model,
                       "agentModels": {role: {key: value for key, value in {"model": getattr(args, role + "_model", None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None)}.items() if value} for role in ("work", "verification")},
                       "executionPolicy": policy, "executionPolicyPath": str(policy_path), "agentPermissions": role_permissions},
         "createdAt": created,
@@ -566,7 +652,7 @@ def recover_receipt(args: argparse.Namespace) -> dict[str, Any]:
             recoverable = False
         if not recoverable:
             raise agent_exec.ContractError("receipt_recovery_unsafe", "Child receipt failure can contain unsafe test or capability evidence")
-        session = agent_exec.safe_read_json(agent_exec.session_file(root, state["workAgentId"]))
+        session = agent_exec.safe_read_json(agent_exec.session_file(root, assigned_agent(state, "work")))
         if not isinstance(failed.get("sessionId"), str) or session.get("sessionId") != failed.get("sessionId"):
             raise agent_exec.ContractError("receipt_recovery_session_invalid", "Failed Work run is not bound to the current Work session")
         request = receipt_recovery_request(state, failed, error, path.parent)
@@ -593,6 +679,35 @@ def recover_receipt(args: argparse.Namespace) -> dict[str, Any]:
         return public_state(state, state["currentChild"])
 
 
+def finish_workflow_task(state, path, runtime, reason):
+    workflow = state.get("workflow")
+    if workflow:
+        task = workflow["tasks"][workflow["index"]]
+        task["workStatus"] = "completed"
+        if reason == "pass":
+            task["verificationStatus"] = "completed"
+        if workflow["index"] + 1 < len(workflow["tasks"]):
+            workflow["index"] += 1
+            next_task = workflow["tasks"][workflow["index"]]
+            import task_binding
+            document = agent_exec.safe_read_json(Path(state["execution"]["taskListPath"]))
+            binding = task_binding.validate(document, next_task["id"], next_task["requestHash"])
+            expected = task_binding.validate({"id": workflow["id"], "title": workflow["title"], "tasks": workflow["tasks"]}, next_task["id"], next_task["requestHash"])
+            if binding != expected:
+                raise agent_exec.ContractError("task_binding_invalid", "The submitted task snapshot changed")
+            state["execution"]["taskBinding"] = binding
+            state.update(originalRequestPath=next_task["requestPath"], originalRequestHash=next_task["requestHash"],
+                         latestWorkRunId=None, latestVerificationRunId=None, lastVerificationDecision=None,
+                         pendingFindingIds=[], currentChild=None, humanSkip=None, receiptRecovery=None,
+                         status="active", terminalReason=None)
+            dispatch(state, path, runtime, role="work", request_file=Path(next_task["requestPath"]))
+            return public_state(state, state["currentChild"])
+    state.update(status="completed", phase="ended", currentChild=None,
+                 terminalReason={"code": reason, "message": "All submitted tasks completed"}, updatedAt=now())
+    agent_exec.atomic_write_json(path, state)
+    return public_state(state)
+
+
 def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
     root = agent_exec.resolve_project_root(args.project_root)
     path, state = read_state(root, args.work_agent, args.loop_id)
@@ -612,6 +727,8 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
         if child["status"] not in CHILD_TERMINAL:
             return public_state(state, child)
         if child["status"] != "completed":
+            if state.get("workflow"):
+                state["workflow"]["tasks"][state["workflow"]["index"]]["workStatus" if current["role"] == "work" else "verificationStatus"] = "blocked" if child["status"] == "needs-human-decision" else child["status"]
             state.update({
                 "status": "runtime-error",
                 "phase": "control-plane-error",
@@ -630,14 +747,19 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
             if not pending_findings.issubset(set(receipt["addressedFindingIds"])):
                 raise agent_exec.ContractError("finding_binding_invalid", "Work receipt omitted failed Verification findings")
             if state.get("execution", {}).get("taskMode") in ("work", "plan-work"):
-                state.update({"status": "completed", "phase": "ended", "currentChild": None,
-                              "terminalReason": {"code": "work-completed", "message": "Work completed; separate Verification not requested"}, "updatedAt": now()})
-                agent_exec.atomic_write_json(path, state)
-                return public_state(state)
+                return finish_workflow_task(state, path, runtime, "work-completed")
             if isinstance(state.get("humanSkip"), dict):
+                if state.get("workflow"):
+                    workflow = state["workflow"]
+                    workflow["tasks"][workflow["index"]]["workStatus"] = "completed"
+                    workflow["tasks"][workflow["index"]]["verificationStatus"] = "cancelled"
+                    for remaining in workflow["tasks"][workflow["index"] + 1:]:
+                        remaining.update(workStatus="cancelled", verificationStatus="cancelled")
                 state.update({"status": "completed", "phase": "ended", "currentChild": None, "terminalReason": {"code": "human-skip", "message": "Human skipped Verification"}, "updatedAt": now()})
                 agent_exec.atomic_write_json(path, state)
                 return public_state(state)
+            if state.get("workflow"):
+                state["workflow"]["tasks"][state["workflow"]["index"]]["workStatus"] = "completed"
             request = verification_request(state, child, directory)
             state["pendingFindingIds"] = []
             dispatch(state, path, runtime, role="verification", request_file=request, verified_work_run_id=child["runId"])
@@ -647,9 +769,9 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
         receipt = agent_exec.validate_receipt(root, child, agent_id=current["agentId"], run_id=current["runId"])
         if receipt["decision"] == "pass":
             state["lastVerificationDecision"] = "pass"
-            state.update({"status": "completed", "phase": "ended", "currentChild": None, "terminalReason": {"code": "pass", "message": "Verification passed"}, "updatedAt": now()})
-            agent_exec.atomic_write_json(path, state)
-            return public_state(state)
+            return finish_workflow_task(state, path, runtime, "pass")
+        if state.get("workflow"):
+            state["workflow"]["tasks"][state["workflow"]["index"]]["verificationStatus"] = "pending"
         state["lastVerificationDecision"] = "fail"
         state["pendingFindingIds"] = [finding["id"] for finding in receipt["findings"]]
         request = revision_request(state, child, receipt, directory)
@@ -697,11 +819,52 @@ def skip_loop(args: argparse.Namespace) -> dict[str, Any]:
         return public_state(state, current)
 
 
+def drive_loop(args):
+    """Run the durable graph independently of Main and the chat panel."""
+    root = agent_exec.resolve_project_root(args.project_root)
+    path, _ = read_state(root, args.work_agent, args.loop_id)
+    with agent_exec.file_lock(path.parent / ".driver.lock"):
+        while True:
+            state = agent_exec.safe_read_json(path)
+            if state["status"] != "active":
+                return public_state(state)
+            try:
+                result = reconcile_loop(args)
+            except (agent_exec.ContractError, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+                # Preserve the exact recovery point. Never retry an uncertain dispatch.
+                with agent_exec.file_lock(path.parent / ".loop.lock"):
+                    state = agent_exec.safe_read_json(path)
+                    state.update(status="runtime-error", controlPlaneError={"code": getattr(error, "code", "driver_error"), "message": str(error)})
+                    if state.get("workflow"):
+                        task = state["workflow"]["tasks"][state["workflow"]["index"]]
+                        role = (state.get("currentChild") or {}).get("role", "work")
+                        task["verificationStatus" if role == "verification" else "workStatus"] = "blocked"
+                    agent_exec.atomic_write_json(path, state)
+                return public_state(state)
+            if result["status"] != "active":
+                return result
+            time.sleep(2)
+
+
+def launch_driver(args, result):
+    arguments = [sys.executable, str(Path(__file__).resolve()), "drive", "--project-root", str(args.project_root),
+                 "--work-agent", args.work_agent, "--loop-id", result["loopId"]]
+    for name in ("runtime_home", "project_id"):
+        value = getattr(args, name, None)
+        if value:
+            arguments.extend(["--" + name.replace("_", "-"), str(value)])
+    with open(Path(result["statePath"]).parent / "driver.log", "ab") as log:
+        subprocess.Popen(arguments, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
+                         start_new_session=True, close_fds=True)
+
+
 def build_parser() -> agent_exec.JsonArgumentParser:
     parser = agent_exec.JsonArgumentParser(prog="loop.py")
     commands = parser.add_subparsers(dest="command", required=True)
     start = commands.add_parser("start")
     agent_exec.add_project_argument(start)
+    start.add_argument("--task-list-file", type=Path, required=True)
+    start.add_argument("--task-id", required=True)
     start.add_argument("--request-file", type=Path, required=True)
     start.add_argument("--work-agent", required=True)
     start.add_argument("--task-mode", choices=("work", "plan-work", "work-verification", "plan-work-verification"), default="work-verification")
@@ -715,10 +878,10 @@ def build_parser() -> agent_exec.JsonArgumentParser:
         start.add_argument("--" + role + "-execution-mode", choices=("cli-default", "workspace-write", "danger-full-access", "bypass"))
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
-    for name in ("status", "reconcile", "recover-receipt", "skip"):
+    for name in ("status", "reconcile", "recover-receipt", "skip", "drive"):
         command = commands.add_parser(name)
         agent_exec.add_project_argument(command)
-        if name in {"reconcile", "recover-receipt"}:
+        if name in {"reconcile", "recover-receipt", "drive"}:
             agent_exec.execution_policy.add_policy_arguments(command)
         command.add_argument("--work-agent", required=True)
         command.add_argument("--loop-id", required=True)
@@ -740,8 +903,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         agent_exec.response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "loop.py", "action": args.command})
         agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
-        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop}
-        emit(handlers[args.command](args))
+        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop}
+        result = handlers[args.command](args)
+        if args.command == "start" and result.get("status") == "active":
+            try:
+                launch_driver(args, result)
+            except OSError as error:
+                # Acceptance already happened: retain its identity and stop explicitly.
+                path = Path(result["statePath"])
+                with agent_exec.file_lock(path.parent / ".loop.lock"):
+                    state = agent_exec.safe_read_json(path)
+                    state.update(status="runtime-error", controlPlaneError={"code": "driver_launch_failed", "message": str(error)})
+                    agent_exec.atomic_write_json(path, state)
+                    result = public_state(state, state.get("currentChild"))
+        emit(result)
         return 0
     except agent_exec.ContractError as error:
         emit(agent_exec.error_document(error.code, error.message))

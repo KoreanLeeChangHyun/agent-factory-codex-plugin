@@ -84,6 +84,151 @@ class AgentExecTests(unittest.TestCase):
             self.assertEqual(self.module.public_state(state),
                              {"role": "main", "status": "running"})
 
+    def test_reset_conversation_preserves_history_and_agent_settings(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, \
+                mock.patch.object(self.module, "spawn_worker", return_value=123), \
+                mock.patch.object(self.module, "emit") as emit:
+            root = Path(directory)
+            submit = self.module.parse_args([
+                "submit", "--project-root", directory, "--agent", "main-agent",
+                "--role", "main", "--message", "first conversation",
+                "--model", "gpt-5.6-sol", "--codex", sys.executable,
+            ])
+            self.module.submit(submit, True)
+            run = emit.call_args.args[0]
+            run_path = Path(run["statePath"])
+            self.module.mark_terminal(run_path, "completed")
+            historical = run_path.read_bytes()
+            session_path = self.module.session_file(root, "main-agent")
+            session = self.module.safe_read_json(session_path)
+            session.update({
+                "sessionId": "old-thread", "backend": "app-server",
+                "goal": {"status": "complete"}, "goalObservedAt": "earlier",
+            })
+            self.module.atomic_write_json(session_path, session)
+            self.module.command_reset_conversation(argparse.Namespace(
+                project_root=root, agent="main-agent"))
+
+            reset = emit.call_args.args[0]
+            current = self.module.load_session(root, "main-agent")
+            self.assertEqual(reset["kind"], "conversation-reset")
+            self.assertTrue(reset["conversationId"].startswith("conversation-"))
+            self.assertIsNone(current["sessionId"])
+            self.assertEqual(current["agentId"], "main-agent")
+            self.assertEqual(current["model"], "gpt-5.6-sol")
+            self.assertNotIn("goal", current)
+            self.assertNotIn("backend", current)
+            self.assertEqual(run_path.read_bytes(), historical)
+
+    def test_reset_conversation_rejects_active_run_without_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, \
+                mock.patch.object(self.module, "spawn_worker", return_value=123), \
+                mock.patch.object(self.module, "emit"):
+            root = Path(directory)
+            submit = self.module.parse_args([
+                "submit", "--project-root", directory, "--agent", "main-agent",
+                "--role", "main", "--message", "still running", "--codex", sys.executable,
+            ])
+            self.module.submit(submit, True)
+            session_path = self.module.session_file(root, "main-agent")
+            before = session_path.read_bytes()
+            with self.assertRaises(self.module.ContractError) as raised:
+                self.module.command_reset_conversation(argparse.Namespace(
+                    project_root=root, agent="main-agent"))
+            self.assertEqual(raised.exception.code, "session_busy")
+            self.assertEqual(session_path.read_bytes(), before)
+
+    def test_reset_conversation_rejects_active_or_uncertain_goal(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, \
+                mock.patch.object(self.module, "spawn_worker", return_value=123), \
+                mock.patch.object(self.module, "emit") as emit:
+            root = Path(directory)
+            submit = self.module.parse_args([
+                "submit", "--project-root", directory, "--agent", "main-agent",
+                "--role", "main", "--message", "finished", "--codex", sys.executable,
+            ])
+            self.module.submit(submit, True)
+            run_path = Path(emit.call_args.args[0]["statePath"])
+            self.module.mark_terminal(run_path, "completed")
+            session_path = self.module.session_file(root, "main-agent")
+            for fields, code in [
+                ({"goal": {"status": "active"}}, "goal_active"),
+                ({"goalError": "native state unknown"}, "goal_state_uncertain"),
+            ]:
+                session = self.module.safe_read_json(session_path)
+                session.pop("goal", None)
+                session.pop("goalError", None)
+                session.update(fields)
+                self.module.atomic_write_json(session_path, session)
+                before = session_path.read_bytes()
+                with self.assertRaises(self.module.ContractError) as raised:
+                    self.module.command_reset_conversation(argparse.Namespace(
+                        project_root=root, agent="main-agent"))
+                self.assertEqual(raised.exception.code, code)
+                self.assertEqual(session_path.read_bytes(), before)
+
+    def test_reset_conversation_rejects_active_linked_child_and_latest_decision(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, \
+                mock.patch.object(self.module, "spawn_worker", return_value=123), \
+                mock.patch.object(self.module, "emit") as emit:
+            root = Path(directory)
+            submit = self.module.parse_args([
+                "submit", "--project-root", directory, "--agent", "main-agent",
+                "--role", "main", "--message", "parent", "--codex", sys.executable,
+            ])
+            self.module.submit(submit, True)
+            main_state_path = Path(emit.call_args.args[0]["statePath"])
+            self.module.mark_terminal(main_state_path, "completed")
+            child = self.module.create_run(
+                project_root=root, agent_id="work-child", actor="main",
+                request=b"child", session={"role": "work", "maxAttempts": 1},
+                parent_agent_id="main-agent",
+                parent_run_id=self.module.safe_read_json(main_state_path)["runId"],
+            )
+            with self.assertRaises(self.module.ContractError) as active_child:
+                self.module.command_reset_conversation(argparse.Namespace(
+                    project_root=root, agent="main-agent"))
+            self.assertEqual(active_child.exception.code, "child_agent_active")
+
+            self.module.mark_terminal(Path(child["statePath"]), "completed")
+            self.module.update_json(
+                main_state_path, main_state_path.parent / ".state.lock",
+                lambda value: value.update({"status": "needs-human-decision"}),
+            )
+            with self.assertRaises(self.module.ContractError) as decision:
+                self.module.command_reset_conversation(argparse.Namespace(
+                    project_root=root, agent="main-agent"))
+            self.assertEqual(decision.exception.code, "decision_pending")
+
+    def test_parent_conversation_boundary_is_bound_into_child_run(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            main_directory = self.module.agent_directory(root, "main-agent", create=True)
+            session = {
+                "schemaVersion": self.module.SCHEMA_VERSION, "agentId": "main-agent",
+                "role": "main", "sessionId": None, "projectRoot": str(root),
+                "conversationId": "conversation-current", "codex": sys.executable,
+            }
+            self.module.atomic_write_json(main_directory / "session.json", session)
+            parent = self.module.create_run(
+                project_root=root, agent_id="main-agent", actor="human",
+                request=b"parent", session={**session, "maxAttempts": 1},
+            )
+            identity = {"agentId": "main-agent", "runId": parent["runId"]}
+            self.module.require_current_parent_conversation(root, identity)
+            child = self.module.create_run(
+                project_root=root, agent_id="work-child", actor="main",
+                request=b"child", session={"role": "work", "maxAttempts": 1},
+                parent_agent_id=identity["agentId"], parent_run_id=identity["runId"],
+            )
+            self.assertEqual(child["parentAgentId"], "main-agent")
+            self.assertEqual(child["parentRunId"], parent["runId"])
+            session["conversationId"] = "conversation-reset"
+            self.module.atomic_write_json(main_directory / "session.json", session)
+            with self.assertRaises(self.module.ContractError) as stale:
+                self.module.require_current_parent_conversation(root, identity)
+            self.assertEqual(stale.exception.code, "parent_conversation_reset")
+
     def test_build_prompt_embeds_each_validated_role_prompt(self) -> None:
         for role in ("main", "work", "verification"):
             with self.subTest(role=role):

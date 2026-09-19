@@ -163,6 +163,9 @@ def create_run(
     execution_options: dict[str, Any] | None = None,
     goal_action: str | None = None,
     images: list[dict[str, Any]] | None = None,
+    parent_agent_id: str | None = None,
+    parent_run_id: str | None = None,
+    task_binding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     run_id = new_run_id()
     directory = run_directory(project_root, agent_id, run_id, create=True)
@@ -238,6 +241,13 @@ def create_run(
         "unread": False,
         "error": None,
     }
+    if isinstance(session.get("conversationId"), str):
+        state["conversationId"] = session["conversationId"]
+    if parent_agent_id is not None and parent_run_id is not None:
+        state["parentAgentId"] = parent_agent_id
+        state["parentRunId"] = parent_run_id
+    if task_binding is not None:
+        state["taskBinding"] = task_binding
     state["taskMode"] = (execution_options or {}).get("taskMode", "direct" if role == "main" else "work-verification")
     if image_inputs:
         state["imageInputs"] = image_inputs
@@ -259,6 +269,13 @@ def create_run(
             "verifiedWorkRunId": verified_work_run_id,
             "operation": dispatch_operation,
         }
+        if task_binding is not None:
+            state["dispatchTuple"]["taskBinding"] = task_binding
+        if parent_agent_id is not None and parent_run_id is not None:
+            state["dispatchTuple"].update({
+                "parentAgentId": parent_agent_id,
+                "parentRunId": parent_run_id,
+            })
         if "executionPolicy" in session:
             state["dispatchTuple"]["executionPolicy"] = session["executionPolicy"]
         state["dispatchTuple"]["humanApprovalPolicy"] = state["humanApprovalPolicy"]
@@ -363,6 +380,29 @@ def load_session(project_root: Path, agent_id: str) -> dict[str, Any]:
         raise ContractError("session_invalid", "Codex session identifier is invalid")
     role_path(str(session.get("role", "")))
     return session
+
+
+def managed_parent_identity(project_root: Path) -> dict[str, str] | None:
+    locator = os.environ.get("AGENT_FACTORY_PARENT_STATE")
+    if not locator:
+        return None
+    state_path = Path(locator)
+    state = safe_read_json(state_path)
+    binding = state.get("runtimeBinding")
+    agent_id, run_id = state.get("agentId"), state.get("runId")
+    if (not isinstance(binding, dict) or binding.get("projectRoot") != str(project_root)
+            or not isinstance(agent_id, str) or not AGENT_ID.fullmatch(agent_id)
+            or not isinstance(run_id, str) or not AGENT_ID.fullmatch(run_id)
+            or state_path != agent_directory(project_root, agent_id) / "runs" / run_id / "state.json"):
+        raise ContractError("parent_session_invalid", "Managed parent run binding is invalid")
+    return {"agentId": agent_id, "runId": run_id}
+
+
+def require_current_parent_conversation(project_root: Path, parent: dict[str, str]) -> None:
+    state = safe_read_json(state_file(project_root, parent["agentId"], parent["runId"]))
+    session = load_session(project_root, parent["agentId"])
+    if state.get("conversationId") != session.get("conversationId"):
+        raise ContractError("parent_conversation_reset", "The parent conversation was reset before the child run was accepted")
 
 
 def validate_state_containment_fields(state: dict[str, Any]) -> None:
@@ -631,7 +671,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             raise ContractError("goal_objective_invalid", "Supply --goal-objective with 1–4000 characters for this longer request")
         execution_options["goalObjective"] = request_text
     operation = "submit" if new_agent else "send"
+    parent = managed_parent_identity(project_root) if role in {"work", "verification"} else None
     request_hash = hashlib.sha256(request).hexdigest()
+    binding = None
+    if role in {"work", "verification"}:
+        import task_binding
+        binding = task_binding.load(safe_read_json, getattr(args, "task_list_file", None),
+                                    getattr(args, "task_id", None), request_hash if new_agent and role == "work" else receipt_request_hash or request_hash)
     input_images = [{"mediaType": image["mediaType"], "size": len(image["content"]),
                      "sha256": hashlib.sha256(image["content"]).hexdigest()} for image in images]
     dispatch_tuple = {
@@ -645,6 +691,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "executionPolicy": policy,
         "humanApprovalPolicy": human_approval_policy,
     }
+    if binding is not None:
+        dispatch_tuple["taskBinding"] = binding
+    if parent is not None:
+        dispatch_tuple.update({
+            "parentAgentId": parent["agentId"],
+            "parentRunId": parent["runId"],
+        })
     if input_images:
         dispatch_tuple["imageInputs"] = input_images
     if execution_options:
@@ -654,7 +707,14 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     if capability_binding_hash is not None:
         dispatch_tuple["capabilityBindingHash"] = capability_binding_hash
     agent_path = agent_directory(project_root, args.agent, create=True)
-    with file_lock(agent_path / ".dispatch.lock"):
+    if parent is not None and parent["agentId"] == args.agent:
+        raise ContractError("parent_session_invalid", "A child Agent cannot reuse its parent Agent identity")
+    with contextlib.ExitStack() as locks:
+        if parent is not None:
+            locks.enter_context(file_lock(agent_directory(project_root, parent["agentId"]) / ".dispatch.lock"))
+        locks.enter_context(file_lock(agent_path / ".dispatch.lock"))
+        if parent is not None:
+            require_current_parent_conversation(project_root, parent)
         if not new_agent:
             current_session = load_session(project_root, args.agent)
             policy = resolve_execution_policy(args, project_root, current_session)
@@ -797,6 +857,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             execution_options=execution_options,
             goal_action=goal_action,
             images=images,
+            parent_agent_id=parent["agentId"] if parent else None,
+            parent_run_id=parent["runId"] if parent else None,
+            task_binding=binding,
         )
         if policy_changed or human_approval_policy_changed:
             session_updates = {"humanApprovalPolicy": human_approval_policy}
@@ -1240,6 +1303,8 @@ def run_codex_attempt(
         raise AttemptFailure("result_invalid", "codex returned invalid terminal JSON", True) from error
     try:
         publish_terminal_result(terminal, state)
+        update_json(Path(state["statePath"]), Path(state["statePath"]).parent / ".state.lock",
+                    lambda value: value.update({"decisionKind": terminal.get("decisionKind")}))
     except ContractError as error:
         raise AttemptFailure(error.code, error.message, True) from error
     except OSError as error:
@@ -1508,6 +1573,52 @@ def command_list(args: argparse.Namespace) -> int:
             "agents": agents,
         }
     )
+    return 0
+
+
+def command_reset_conversation(args: argparse.Namespace) -> int:
+    root = resolve_project_root(args.project_root)
+    validate_id(args.agent, AGENT_ID, "agent_id")
+    directory = agent_directory(root, args.agent)
+    with file_lock(directory / ".dispatch.lock"):
+        session = load_session(root, args.agent)
+        if session.get("role") != "main":
+            raise ContractError("conversation_reset_role_invalid", "Conversation reset is available only for Main Agents")
+        if any(state.get("status") in ACTIVE_STATES for state in iter_run_states(root, args.agent)):
+            raise ContractError("session_busy", "Finish or cancel the active run before clearing the conversation")
+        own_runs = list(iter_run_states(root, args.agent))
+        if own_runs and max(own_runs, key=lambda state: str(state.get("acceptedAt", state.get("runId", "")))).get("status") == "needs-human-decision":
+            raise ContractError("decision_pending", "Resolve the pending Human decision before clearing the conversation")
+        active_children = [
+            state for state in iter_run_states(root)
+            if state.get("parentAgentId") == args.agent and state.get("status") in ACTIVE_STATES
+        ]
+        if active_children:
+            raise ContractError("child_agent_active", "Wait for active child Agents to finish before clearing the conversation")
+        if session.get("goalError"):
+            raise ContractError("goal_state_uncertain", "Refresh or resolve the uncertain Goal state before clearing the conversation")
+        goal = session.get("goal")
+        if isinstance(goal, dict) and goal.get("status") == "active":
+            raise ContractError("goal_active", "Pause or cancel the active Goal before clearing the conversation")
+        boundary = f"conversation-{uuid.uuid4().hex}"
+        started_at = now()
+
+        def reset(value: dict[str, Any]) -> None:
+            value["sessionId"] = None
+            value["conversationId"] = boundary
+            value["conversationStartedAt"] = started_at
+            for key in ("backend", "goal", "goalObservedAt", "goalError"):
+                value.pop(key, None)
+
+        update_json(directory / "session.json", directory / ".session-state.lock", reset)
+    emit({
+        "schemaVersion": SCHEMA_VERSION,
+        "kind": "conversation-reset",
+        "agentId": args.agent,
+        "conversationId": boundary,
+        "startedAt": started_at,
+        "historyRetained": True,
+    })
     return 0
 
 
@@ -1956,8 +2067,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             capabilities = dict(native_codex.inspect_capabilities(codex))
             from task_modes import TASK_MODES
             modes = [mode for mode in TASK_MODES if mode not in ("plan", "plan-work", "plan-work-verification") or capabilities["submit"].get("plan") is True]
-            capabilities["submit"] = {**capabilities["submit"], "images": True, "taskModes": modes}
-            capabilities["send"] = {**capabilities["send"], "images": True, "taskModes": modes}
+            capabilities["submit"] = {**capabilities["submit"], "images": True, "taskModes": modes, "automaticRequestHash": True}
+            capabilities["send"] = {**capabilities["send"], "images": True, "taskModes": modes, "automaticRequestHash": True}
             if session is not None and "executionPolicy" in session:
                 capabilities["executionMode"] = (
                     "bypass"
@@ -1979,6 +2090,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return command_result(args)
         if args.command == "list":
             return command_list(args)
+        if args.command == "reset-conversation":
+            return command_reset_conversation(args)
         if args.command == "inbox":
             return command_inbox(args)
         if args.command == "cancel":

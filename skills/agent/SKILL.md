@@ -120,3 +120,37 @@ metadata:
   migration.
 - `references/native-fast-goal.md`: installed Codex Fast and native Goal.
 - `references/project-specialist.md`: project-specialized Work profiles.
+
+### Required task binding before dispatch
+
+Every Work/Verification submission (including sends and standalone verification) requires `--task-list-file <json>` and `--task-id <id>`. Main first consolidates the Human's request and asks about any material missing information. Write a JSON document with `id`, `title`, and a nonempty `tasks` array. Each task requires `id`, `title`, `description` and `completionCriteria`. Do not calculate or supply `requestHash`. Caller-provided hashes are ignored; they never gate task submission. It normalizes a private snapshot without rewriting the submitted task-list file. IDs are at most 128 letters/digits/dots/underscores/hyphens, starting with a letter or digit; titles are at most 300 characters and descriptions/criteria at most 4000. Task IDs must be unique. Pass the same options to `loop.py start`; the loop snapshots the document and preserves the original request hash through revision and verification turns. Never manufacture placeholder task names to bypass this check. The accepted run stores `taskBinding` together with its agent/run identity. Display that submitted task name and content to the Human and track the selected route through completion. Existing historical runs remain readable; new submissions require the binding.
+
+### Supplied preparation context
+
+Use the host-supplied Git change paths, collection time and instruction sources when available. Main consolidates relevant conversation and scope and includes the relevant snapshot with its provenance in the child request. Work consumes that context. Do not repeat Git status or reread identical supplied instructions merely for preparation; recheck when stale, concurrent changes or the intended operation justify it. Unavailable Git data is not a clean tree. Read any required instructions that have not been supplied, and preserve all execution and authorization checks. If an older runtime rejects submission without hashes, report the compatibility limitation instead of adding a manual hash step. Retries and loop revisions retain the accepted immutable request binding.
+
+### Ordered workflow execution
+
+Submit the complete ordered task list once to `loop.py start` with its first task ID. Every subsequent task must include `requestFile`. Submit the request content without calculating or supplying a hash. Legacy caller hash fields are ignored. The engine validates and snapshots all requests before dispatch. Its detached driver executes the graph independently of Main and the chat panel. Work-only routes advance after the Work receipt; Work–Verification routes advance only after a passing Verification receipt, with failed findings returned to the same worker and verifier. Do not dispatch the next task from Main. Runtime errors stop at their recorded recovery point. The host renders the accepted full graph and each stage's stored status.
+
+
+### Main-owned worker assignment
+
+Main chooses worker count and session reuse from context continuity, dependencies, write overlap,
+shared resources and coordination cost. Do not equate task count with worker count or create a
+worker for every domain automatically. Preserve the captured execution route and Human authority.
+
+In an ordered loop, each task may specify `workAgentId` and `verificationAgentId`. Omitted values
+use the corresponding start arguments. The first task must use `--work-agent`; that ID remains the
+loop's storage/control identity for status, reconcile, recovery and skip, even when later tasks use
+other workers. All Work and Verification session identities must be disjoint across the list.
+New assignees are submitted; existing sessions are sent the next request. A failed Verification
+returns to that task's assigned worker and verifier. Assignments are captured with the immutable
+request snapshot; do not edit an accepted list to reassign running work.
+
+Tasks within one loop still execute in list order. For useful independent parallel chains, Main
+submits distinct lists with distinct workflow IDs and worker/verifier sessions, preserving each
+returned loop ID. Do not submit the same full list to multiple workers. Sequence cross-chain
+integration only after its prerequisites complete. There is no automatic cross-loop dependency
+scheduler; Main must track that dependency explicitly. Never share an active worker across
+parallel chains. Reuse one worker for related sequential tasks when that is more efficient.

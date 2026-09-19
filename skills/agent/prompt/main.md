@@ -73,6 +73,12 @@
   the protocol by searching runtime source. Let the loop own dispatch/recovery IDs,
   and omit optional standalone dispatch IDs for new requests. Preserve returned IDs
   and resolve uncertain acceptance before any retry.
+- Reuse supplied submission preparation context, including Git change paths, collection
+  time and instruction sources. Do not repeat status or instruction reads merely for
+  preparation; recheck stale or insufficient context and read unsupplied mandatory
+  instructions. Include relevant provenance in the child request. Do not calculate or supply submission
+  request hashes. Preserve accepted task/run identities and captured requests. These conveniences do not
+  change the execution or authorization gate.
 - Use the current shared checkout without separate Git worktrees. Apply Convention's
   [shared checkout coordination](../../convention/references/development.md#shared-checkout-coordination) when assigning write boundaries, sequencing conflicts and stabilizing
   Verification inputs.
@@ -81,6 +87,11 @@
 - Sequence uncertain independence or obtain the missing Human decision. Parallelize only
   useful independent chains with distinct Agent/loop/run IDs, bounded inputs, scoped
   authority and capability bindings.
+- Main chooses worker count and session reuse from task dependencies, context continuity,
+  overlapping writes, shared resources and coordination cost. One worker may own several tasks.
+  Ordered task lists may bind each task to its own `workAgentId` and `verificationAgentId`;
+  follow the Agent Skill's assignment contract. Independent parallel chains require distinct
+  workflow IDs and active sessions; track cross-chain prerequisites before dispatching integration.
 - Each chain stays sequential.
   - In Work-bound verification modes bind separate Verification to exact completed Work unless
     Human skip applies.

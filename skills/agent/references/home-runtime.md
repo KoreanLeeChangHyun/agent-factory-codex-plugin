@@ -145,6 +145,12 @@
   for the current run.
 - Use `scripts/exec.py` for delegated roles; Main may also be exec-hosted.
 - Resume exact session IDs; do not use `resume --last` or concurrent turns per session.
+- `exec.py reset-conversation --agent <main-agent-id>` starts a fresh provider thread
+  for an idle Main Agent while preserving its Agent identity, configuration, and all
+  historical run directories. The command records a durable `conversationId` boundary
+  under the dispatch/session locks and rejects active runs, unresolved latest decisions,
+  linked active child Agents, or an active/uncertain Goal. Child acceptance binds the
+  parent Agent/run and refuses a parent conversation boundary that changed in flight.
 - Follow [Native Fast and Goal](native-fast-goal.md) for native objective controls and recovery.
 
 <a id="run-files-and-retries"></a>

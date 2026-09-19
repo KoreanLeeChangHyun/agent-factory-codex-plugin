@@ -26,6 +26,8 @@ def add_project_argument(parser: argparse.ArgumentParser) -> None:
 
 
 def add_request_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--task-list-file", type=Path)
+    parser.add_argument("--task-id")
     request = parser.add_mutually_exclusive_group()
     request.add_argument("--request-file", type=Path)
     request.add_argument("--message")
@@ -119,6 +121,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     list_parser = commands.add_parser("list")
     add_project_argument(list_parser)
 
+    reset_parser = commands.add_parser(
+        "reset-conversation",
+        help="Start a fresh provider conversation while preserving the Agent and run history",
+    )
+    add_project_argument(reset_parser)
+    reset_parser.add_argument("--agent", required=True)
+
     inbox_parser = commands.add_parser("inbox")
     add_project_argument(inbox_parser)
     inbox_parser.add_argument("--agent")
@@ -158,4 +167,3 @@ def validate_submit_options(args: argparse.Namespace) -> None:
         )
     if args.max_attempts < 1 or args.max_attempts > 10:
         raise ContractError("invalid_attempts", "max attempts must be between 1 and 10")
-
