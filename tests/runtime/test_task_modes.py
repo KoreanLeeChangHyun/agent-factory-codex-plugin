@@ -10,6 +10,7 @@ from unittest import mock
 
 from native_fixtures import native, runtime, native_fixture
 from task_modes import route_instruction
+from prompt_delivery import PromptParts
 
 
 class TaskModeTests(unittest.TestCase):
@@ -84,6 +85,23 @@ class TaskModeTests(unittest.TestCase):
             completed = [json.loads(line) for line in output.getvalue().splitlines() if json.loads(line).get("type") == "item.completed"]
             self.assertEqual(len(completed), 1)
             self.assertEqual(json.loads(completed[0]["item"]["text"])["resultText"], "Implemented")
+
+    def test_fixed_instructions_stay_in_thread_config_across_plan_transition(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, state = self.fixture(Path(directory))
+            parts = PromptParts("Fixed Work instructions", "Current request and receipt contract")
+            bridge.run(parts)
+            resume = next(params for method, params in rpc.calls if method == "thread/resume")
+            self.assertIn(parts.fixed, resume["developerInstructions"])
+            self.assertIn("Host phase contract", resume["developerInstructions"])
+            turns = [params for method, params in rpc.calls if method == "turn/start"]
+            self.assertEqual(len(turns), 2)
+            for turn in turns:
+                text = "\n".join(item.get("text", "") for item in turn["input"])
+                self.assertIn(parts.dynamic, text)
+                self.assertNotIn(parts.fixed, text)
+                self.assertIsNone(turn["collaborationMode"]["settings"]["developer_instructions"])
+            self.assertEqual(turns[-1]["outputSchema"], runtime.safe_read_json(Path(state["responseSchemaPath"])))
 
     def test_unresolved_human_choice_stops_without_implementation(self):
         with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()) as output:

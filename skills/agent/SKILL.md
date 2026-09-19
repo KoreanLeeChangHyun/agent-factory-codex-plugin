@@ -38,6 +38,38 @@ metadata:
   Record skip before the next Verification; never equate failure/cancellation/input
   requests with completion. Mode selection is independent of Human approval policy.
 
+### Managed execution quick path
+
+- Reuse the installed Skill location and the current project/parent bindings. Do not
+  search the home directory or runtime source to discover how to submit work.
+- `direct` needs no managed commands. For authorized managed work, use the captured
+  route below. Paths are relative to this Skill; invoke the installed absolute script
+  path and pass the actual project root and bounded request file.
+
+| Captured route | Command |
+| --- | --- |
+| `work`, `plan-work` | `python3 scripts/loop.py start --project-root PROJECT --task-mode MODE --work-agent UNIQUE_WORK_ID --request-file REQUEST` |
+| `work-verification`, `plan-work-verification` | Same loop command, plus `--verification-agent UNIQUE_VERIFICATION_ID` |
+| `plan` | `python3 scripts/exec.py submit --project-root PROJECT --role work --task-mode plan --agent UNIQUE_WORK_ID --request-file REQUEST` |
+| `verification` | `python3 scripts/exec.py submit --project-root PROJECT --role verification --task-mode verification --agent UNIQUE_VERIFICATION_ID --request-file REQUEST` |
+
+- Agent IDs are at most 64 ASCII letters/digits/`.`/`_`/`-`, starting with a letter
+  or digit. Use a new identity per independent chain; keep it for revisions.
+- Loops own dispatch IDs, recovery and bound verification transitions. Standalone
+  submit/send generates a dispatch ID when omitted and returns it in the acceptance.
+  Preserve returned identities. A lost acknowledgement is not permission to submit
+  again: inspect the existing Agent first. Explicit recovery keys use
+  `dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}` and the same immutable request.
+- Inspect capabilities once for the selected executable/configuration and reuse
+  that evidence until it changes or a capability-related failure occurs. Do not
+  prepend doctor/capabilities to every submission. Use doctor for first host selection,
+  host changes or relevant failures; launch-time policy/preflight checks still apply.
+- Use `loop.py status/reconcile --project-root PROJECT --work-agent WORK_AGENT_ID --loop-id RETURNED_LOOP_ID`
+  for a loop, or `exec.py status/result --project-root PROJECT --agent AGENT_ID
+  --run-id RETURNED_RUN_ID` for a standalone run. Acceptance is not completion.
+- Keep the inherited execution policy and role model choices. Read the linked
+  mode/runtime reference only for options or recovery details needed by this task.
+
 <a id="delegation"></a>
 
 ## 2. Delegation

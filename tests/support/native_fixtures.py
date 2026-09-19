@@ -39,6 +39,8 @@ class FakeRpc:
             return {}
         if method in ("thread/start", "thread/resume"):
             return {"thread": {"id": "thread-wrong" if self.mismatch else "thread-exact"}, "model": "model-one"}
+        if method == "thread/inject_items":
+            return {}
         if method == "model/list":
             return {"data": [{"model": "model-one", "serviceTiers": [{"id": "priority", "name": "Fast"}]}]}
         if method == "thread/goal/get":

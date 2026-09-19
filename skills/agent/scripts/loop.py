@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import uuid
@@ -92,6 +93,10 @@ class AgentRuntime:
         capability_binding_file: Path | None,
         human_approval_policy: str,
     ) -> dict[str, Any]:
+        profile = execution.get("agentPermissions", {}).get(role)
+        if profile:
+            execution = {**execution, "executionPolicy": profile["policy"], "executionPolicyPath": profile["path"]}
+            human_approval_policy = profile["humanApprovalPolicy"]
         arguments = [
             operation,
             "--agent", agent_id,
@@ -290,6 +295,7 @@ def complete_pending_dispatch(
             human_approval_policy="required",
         )
         run = runtime.status(pending["agentId"], str(acknowledgement["runId"]))
+    role_permission = state["execution"].get("agentPermissions", {}).get(pending["role"], {})
     expected_tuple = {
         "agentId": pending["agentId"],
         "role": pending["role"],
@@ -298,12 +304,12 @@ def complete_pending_dispatch(
         "receiptRequestHash": pending["receiptRequestHash"],
         "verifiedWorkRunId": pending["verifiedWorkRunId"],
         "operation": pending["operation"],
-        "humanApprovalPolicy": "required",
+        "humanApprovalPolicy": role_permission.get("humanApprovalPolicy", "required"),
     }
     if "executionPolicy" in state["execution"] and not (
         pending.get("legacyPolicyUnbound") and "executionPolicy" not in run.get("dispatchTuple", {})
     ):
-        expected_tuple["executionPolicy"] = state["execution"]["executionPolicy"]
+        expected_tuple["executionPolicy"] = role_permission.get("policy", state["execution"]["executionPolicy"])
     model_options = role_model_options(state["execution"], pending["role"], pending["operation"])
     if model_options:
         expected_tuple["executionOptions"] = model_options
@@ -376,6 +382,23 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     policy = agent_exec.resolve_execution_policy(args, root)
     policy_path = directory / "execution-policy.json"
     agent_exec.atomic_write_json(policy_path, policy)
+    role_permissions = {}
+    for role in ("work", "verification"):
+        permission_mode = getattr(args, role + "_execution_mode", None)
+        if permission_mode is None:
+            continue
+        locator = os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV)
+        if locator:
+            captured = agent_exec.safe_read_json(Path(locator)).get("executionOptions", {}).get("agentPermissions", {}).get(role)
+            if captured is not None and permission_mode != captured:
+                raise agent_exec.ContractError("execution_policy_mismatch", "Role permission mode differs from captured Human selection")
+        selected = agent_exec.execution_policy.role_policy(permission_mode, policy, root)
+        authorized = agent_exec.execution_policy.authorized_role_policy(role, policy, str(root))
+        if os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV) and selected != (authorized or policy):
+            raise agent_exec.ContractError("execution_policy_mismatch", "Role permissions differ from captured Human selection")
+        role_path = directory / f"{role}-execution-policy.json"
+        agent_exec.atomic_write_json(role_path, selected)
+        role_permissions[role] = {"policy": selected, "path": str(role_path), "humanApprovalPolicy": "bypass" if permission_mode == "bypass" else "required"}
     capability_bindings: dict[str, dict[str, str | None]] = {}
     for role in ("work", "verification"):
         _binding_document, binding_bytes = agent_exec.read_capability_bindings(
@@ -417,7 +440,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "terminalReason": None,
         "execution": {"taskMode": mode, "codex": args.codex, "model": args.model,
                       "agentModels": {role: {key: value for key, value in {"model": getattr(args, role + "_model", None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None)}.items() if value} for role in ("work", "verification")},
-                      "executionPolicy": policy, "executionPolicyPath": str(policy_path)},
+                      "executionPolicy": policy, "executionPolicyPath": str(policy_path), "agentPermissions": role_permissions},
         "createdAt": created,
         "updatedAt": created,
     }
@@ -689,6 +712,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     for role in ("work", "verification"):
         start.add_argument("--" + role + "-model")
         start.add_argument("--" + role + "-reasoning-effort", choices=("none", "low", "medium", "high", "xhigh", "max"))
+        start.add_argument("--" + role + "-execution-mode", choices=("cli-default", "workspace-write", "danger-full-access", "bypass"))
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
     for name in ("status", "reconcile", "recover-receipt", "skip"):
@@ -710,8 +734,10 @@ def emit(value: dict[str, Any]) -> None:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    operation_token = agent_exec.response_operation.set(None)
     try:
         args = build_parser().parse_args(argv)
+        agent_exec.response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "loop.py", "action": args.command})
         agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
         handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop}
@@ -723,6 +749,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (OSError, UnicodeError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
         emit(agent_exec.error_document("runtime_failure", str(error)))
         return 1
+    finally:
+        agent_exec.response_operation.reset(operation_token)
 
 
 if __name__ == "__main__":

@@ -21,11 +21,11 @@ metadata:
   references for the current accepted state, not historical records. Keep change logs,
   past discussions and superseded decisions in Processed documents. Preserve source
   evidence in Original documents.
-- After creating or updating any package under `docs/skills/`,
+- After creating, modifying or deleting any package under `docs/skills/`,
   you MUST directly run the [synchronization script](#continuous-codex-synchronization) for that document's project and check its result
   before reporting completion.
-  - Hook configuration or an expected future hook run does not satisfy this requirement.
-  - Report failed or conflicted synchronization as incomplete; do not claim completion.
+  - Use the actual project root, inspect the CLI result, and resolve or report conflicts.
+  - Never claim synchronization succeeded when the CLI fails or reports a conflict.
 
 <a id="writing-guides"></a>
 
@@ -155,26 +155,39 @@ metadata:
 
 <a id="continuous-codex-synchronization"></a>
 
-## 10. Continuous Codex synchronization
+## 10. Agent-invoked Codex synchronization
 
-- `docs/skills/` is authoritative for `.codex/skills/`, the only synchronized root.
-  Overwrite differing destination content and remove destination-only files/directories
-  within that active mapped root. Do not merge or protect independent edits there.
-- A missing source root is skipped; an existing empty source root clears its mapped
-  destination. Other `.codex` content, such as configuration and hooks, is untouched.
-- Run `python3 <plugin-root>/skills/document/scripts/sync_documents.py --project-root <project-root>` using the document's actual project root. Inspect the result; rerun
-  after further edits.
-- Synchronization uses no recorded content hashes or conflict resolution. It compares
-  current files, rejects symlinks/unsupported files and serializes runs with
-  `.codex/.document-sync/lock`. Remove a stale lock only after confirming no sync is running.
-- File writes are atomic; a multi-file sync is not. Hold source trees stable and rerun
-  after I/O failures to finish. Relative links and metadata are copied unchanged.
-- `hooks/hooks.json` invokes `--hook` on `PostToolUse` and `Stop` using the event's
-  absolute `cwd`, never an ancestor. Projects without `docs/skills/` are a no-op.
-  It is not a watcher; outside edits wait for
-  the next event. Hooks require trust and an installed configuration.
-- Hook errors emit `systemMessage` without blocking/re-triggering Stop; CLI errors return
-  nonzero. See the [hook contract](https://learn.chatgpt.com/docs/hooks).
+- Run `python3 <plugin-root>/skills/document/scripts/sync_documents.py --project-root <project-root>`
+  after creating, modifying or deleting `docs/skills/` packages, using their actual project root.
+  Inspect the result; resolve or report conflicts before claiming synchronization succeeded.
+- The plugin bundles no automatic hooks. Human edits synchronize only on a subsequent
+  explicit invocation; this CLI is not a watcher. The legacy `--hook` entry is removed.
+- `docs/skills/` supplies only owned output under `.codex/skills/`.
+  `.codex/.document-sync/manifest.json` records managed paths, directories and SHA-256 hashes.
+  Unrelated destination packages and files are preserved.
+- A new package may be created only when its destination does not exist. Existing unowned
+  packages conflict even when byte-identical; legacy mirrors and explicit exports are never
+  automatically adopted. Missing manifests grant no ownership; malformed manifests fail closed.
+- Before any document mutation, all packages are checked for conflicts. Independent edits,
+  additions, deletions or type changes in managed packages block the entire invocation.
+  Back up and reconcile these edits with the source. Move an unowned collision aside only
+  with its owner's approval; the CLI provides no force/adoption option.
+- Removing a source package removes only its unchanged owned output. An empty source root
+  removes only unchanged managed packages; a missing source root is a no-op.
+  Other `.codex` content is untouched.
+- Symlinks, unsupported files and unsafe manifest paths are rejected. The OS lock at
+  `.codex/.document-sync/lock` excludes concurrent sync processes and releases on forced exit.
+  Keep its file in place. A legacy lock directory requires confirming no old writer is running
+  before manual removal.
+- Writes are atomic per file, not across the tree. `pending.json` records previous and planned
+  hashes before mutations. Interrupted writes retain this journal and block automatic retry,
+  including adoption of partial output. Preserve a backup, review both states and actual files,
+  and explicitly reconcile the output and manifest before manually clearing the journal.
+  Do not clear it merely to bypass a conflict.
+- Keep source, destination and state trees stable during invocation. The lock coordinates this
+  CLI, not editors or hostile concurrent filesystem writers. Hashes track content and directory
+  shape, not permission or timestamp edits. Relative links and file bytes remain unchanged.
+- CLI errors return nonzero with an actionable JSON error; report synchronization as incomplete.
 
 <a id="local-document-catalog-and-search"></a>
 

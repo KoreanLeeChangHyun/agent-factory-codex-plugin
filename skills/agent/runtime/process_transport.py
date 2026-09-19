@@ -21,10 +21,13 @@ from process_containment import (
     terminate_verified_group,
 )
 from runtime_errors import ContractError
+from prompt_delivery import PromptParts
 from runtime_storage import reject_symlink, role_path, safe_read_bytes, safe_read_json, atomic_write
 
 HUMAN_APPROVAL_POLICIES = ("required", "bypass")
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
+# Keep unusually large requests on the existing file-based path.
+MAX_INLINE_REQUEST_BYTES = 64 * 1024
 MAX_EVENT_BYTES = 1024 * 1024
 MAX_EVENTS_BYTES = 8 * 1024 * 1024
 MAX_STDERR_BYTES = 4 * 1024 * 1024
@@ -98,7 +101,7 @@ def publish_terminal_result(terminal: Any, state: dict[str, Any]) -> None:
         atomic_write(path, content)
 
 
-def build_prompt(
+def build_prompt_parts(
     *,
     agent_id: str,
     role: str,
@@ -111,7 +114,8 @@ def build_prompt(
     human_approval_policy: str = "required",
     inline_response: bool = True,
     task_mode: str = "work-verification",
-) -> str:
+    request: bytes | None = None,
+) -> PromptParts:
     prompt_path = role_path(role)
     try:
         role_prompt = safe_read_bytes(prompt_path, MAX_REQUEST_BYTES).decode("utf-8")
@@ -122,7 +126,12 @@ def build_prompt(
     communication_obligation = ""
     if role == "main":
         communication_path = prompt_path.parents[2] / "convention" / "references" / "communication.md"
-        communication = safe_read_bytes(communication_path, MAX_REQUEST_BYTES).decode("utf-8")
+        try:
+            communication = safe_read_bytes(communication_path, MAX_REQUEST_BYTES).decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ContractError("communication_invalid", "Communication contract must be UTF-8 text") from error
+        if not communication.strip():
+            raise ContractError("communication_invalid", "Communication contract must not be empty")
         communication_obligation = f"""
 The current communication contract is already loaded below. Apply it directly;
 do not open a Skill or reference file merely to obtain these instructions.
@@ -132,10 +141,8 @@ do not open a Skill or reference file merely to obtain these instructions.
 """
     if human_approval_policy not in HUMAN_APPROVAL_POLICIES:
         raise ContractError("human_approval_policy_invalid", "Human approval policy is invalid")
-    if human_approval_policy == "bypass" and role != "main":
-        raise ContractError("human_approval_policy_invalid", "Human approval bypass is valid only for Main")
     human_approval_obligation = ""
-    if human_approval_policy == "bypass":
+    if human_approval_policy == "bypass" and role == "main":
         human_approval_obligation = """
 This Main run has Human approval policy `bypass`. First distinguish conversation from
 requested work using Main's Conversation or execution rules. Answer conversation
@@ -148,6 +155,15 @@ calls or ordinary in-scope actions. Make bounded reasonable assumptions. Request
 input only when execution truly cannot continue because required credentials or a
 Human-owned choice with materially different outcomes is absent. This policy does not
 expand the request or override the captured task route.
+"""
+    elif human_approval_policy == "bypass":
+        human_approval_obligation = f"""
+This {role} run has Human approval policy `bypass`. Perform the authorized bounded
+request without a separate plan or execution approval. Preserve this role's
+boundaries, the captured task route, capability bindings and explicit authorization
+requirements for destructive or externally visible actions. Request Human input
+when required credentials or a Human-owned decision are missing. This policy does
+not expand the request or grant Main's orchestration authority.
 """
     receipt_obligation = ""
     if receipt_path is not None and receipt_schema_path is not None:
@@ -193,23 +209,46 @@ results, receipts or their hashes. New output still belongs to this exact run.
         f"This historical run uses the legacy output contract. Write the detailed result to "
         f"`{result_path}`. Then return only the compact JSON required by the supplied output schema."
     )
-    return f"""Act as Agent `{agent_id}` for Agent Factory.
+    request_instruction = f"Read the delegated request from `{request_path}`. Keep its scope and authority unchanged."
+    if role == "main" and request is not None and len(request) <= MAX_INLINE_REQUEST_BYTES:
+        request_text = request.decode("utf-8")
+        request_instruction = (
+            "The complete Human request is included below. Respond to it directly; "
+            "do not read the request file merely to obtain its contents. "
+            "Keep its scope and authority unchanged. "
+            f"The runtime retains an identical record at `{request_path}`.\n\n"
+            f"<agent-factory-request>\n{request_text}\n</agent-factory-request>"
+        )
+    fixed = f"""These are the current Agent Factory fixed instructions. They supersede earlier
+Agent Factory role and communication instructions. Apply the latest run's request,
+authority, task route and output contracts; prior run contracts are historical.
 
 The following validated content is the complete `{role}` system-prompt source:
 
 <agent-factory-role-prompt>
 {role_prompt}
 </agent-factory-role-prompt>
-{communication_obligation}
-
-Read the delegated request from `{request_path}`. Keep its scope and authority unchanged.
+{communication_obligation}"""
+    dynamic = f"""Act as Agent `{agent_id}` for Agent Factory.
+{request_instruction}
 
 {result_instruction} Run ID: `{run_id}`.
 {human_approval_obligation}{route_instruction(task_mode, role)}{binding_obligation}{receipt_obligation}{migration_obligation}"""
+    return PromptParts(fixed, dynamic)
+
+
+def build_prompt(**kwargs: Any) -> str:
+    """Keep full-text delivery for legacy callers and CLI exec/resume.
+
+    CLI config overrides would replace the user's existing developer instructions.
+    Until those can be safely composed, do not remove instructions from stdin.
+    """
+    return build_prompt_parts(**kwargs).full
 
 
 def build_codex_command(
-    session: dict[str, Any], state: dict[str, Any], session_id: str | None
+    session: dict[str, Any], state: dict[str, Any], session_id: str | None,
+    *, prompt_parts: bool = False,
 ) -> list[str]:
     codex = str(session["codex"])
     common = []
@@ -217,7 +256,8 @@ def build_codex_command(
         common.extend(["--image", str(image["path"])])
     common.extend(["--json", "--output-schema", str(state["responseSchemaPath"])])
     if session.get("backend") == "app-server":
-        return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"])]
+        return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"]),
+                *(["--prompt-parts"] if prompt_parts else [])]
     policy = execution_policy.session_policy(session)
     common.extend(execution_policy.arguments(policy, Path(state["statePath"]).parent))
     if session.get("fast") is False:

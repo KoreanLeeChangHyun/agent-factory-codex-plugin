@@ -196,6 +196,30 @@ def _managed_parent(snapshot, project_root):
         raise PolicyError("policy_parent_mismatch", "snapshot differs from managed parent session")
 
 
+def role_policy(mode, inherited, project_root):
+    """Resolve an explicit Human mode, or preserve the full inherited snapshot."""
+    if mode == "cli-default":
+        return inherited
+    if mode not in ("workspace-write", "danger-full-access", "bypass"):
+        raise PolicyError("policy_invalid", "invalid role permission mode")
+    sandbox = {"type": "danger-full-access" if mode == "bypass" else mode}
+    if mode == "workspace-write":
+        sandbox["writable_roots"] = [str(project_root)]
+    return normalize({"schemaVersion": 1, "sandboxPolicy": sandbox, "approvalPolicy": "never"})
+
+
+def authorized_role_policy(role, snapshot, project_root):
+    locator = os.environ.get(PARENT_STATE_ENV)
+    if not locator or role not in ("work", "verification"):
+        return None
+    _managed_parent(snapshot, project_root)
+    state = _read(Path(locator))
+    mode = state.get("executionOptions", {}).get("agentPermissions", {}).get(role)
+    if mode is None:
+        return None
+    return role_policy(mode, snapshot, project_root)
+
+
 def _native_selected_policy(rpc, project_root, sandbox, approval):
     params = {"cwd": project_root, "ephemeral": True}
     if sandbox is not None:
@@ -300,7 +324,12 @@ def resolve(args, project_root, *, fallback_policy=None, allow_session_change=Fa
         parent = _rollout_policy(thread)
     policy_file = getattr(args, "execution_policy_file", None)
     selected = normalize(_read(policy_file)) if policy_file else parent
-    if parent is not None and selected != parent:
+    authorized = authorized_role_policy(getattr(args, "role", None), parent, project_root) if parent is not None else None
+    if authorized is not None and not policy_file:
+        selected = authorized
+    if authorized is not None and selected != authorized:
+        raise PolicyError("policy_parent_mismatch", "explicit policy differs from captured role permissions")
+    if parent is not None and selected != parent and selected != authorized:
         raise PolicyError("policy_parent_mismatch", "explicit policy differs from inherited parent permissions")
     changing_session = allow_session_change and has_explicit_policy(args)
     if fallback_policy is not None and not changing_session:

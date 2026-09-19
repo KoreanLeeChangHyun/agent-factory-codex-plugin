@@ -64,6 +64,10 @@ class FakeRuntime:
         }
         if "executionPolicy" in values["execution"]:
             dispatch_tuple["executionPolicy"] = values["execution"]["executionPolicy"]
+        permission = values["execution"].get("agentPermissions", {}).get(values["role"])
+        if permission:
+            dispatch_tuple["executionPolicy"] = permission["policy"]
+            dispatch_tuple["humanApprovalPolicy"] = permission["humanApprovalPolicy"]
         if values["operation"] == "submit" and values["execution"].get("model"):
             dispatch_tuple.setdefault("executionOptions", {})["model"] = values["execution"]["model"]
         profile = values["execution"].get("agentModels", {}).get(values["role"], {})
@@ -497,6 +501,36 @@ class AgentLoopContractTests(unittest.TestCase):
         self.assertEqual(dispatched["human_approval_policy"], "required")
         self.assertEqual(run["dispatchTuple"]["humanApprovalPolicy"], "required")
 
+    def test_role_permissions_survive_verification_and_revision(self) -> None:
+        state = self.start(["--work-execution-mode", "bypass",
+                            "--verification-execution-mode", "workspace-write",
+                            "--work-model", "gpt-5.6-sol", "--verification-model", "gpt-5.6-sol"])
+        self.runtime.complete_work("work-agent", state["latestWorkRunId"])
+        state = self.reconcile(state)
+        self.runtime.complete_verification("verification-agent", state["latestVerificationRunId"], "fail")
+        state = self.reconcile(state)
+        self.runtime.complete_work("work-agent", state["latestWorkRunId"], ["finding-1"])
+        state = self.reconcile(state)
+        self.runtime.complete_verification("verification-agent", state["latestVerificationRunId"], "pass")
+        state = self.reconcile(state)
+        self.assertEqual(state["status"], "completed")
+        self.assertEqual(len(self.runtime.dispatches), 4)
+        for run in self.runtime.runs.values():
+            binding = run["dispatchTuple"]
+            self.assertEqual(binding["humanApprovalPolicy"], "bypass" if run["role"] == "work" else "required")
+            self.assertEqual(binding["executionOptions"]["model"], "gpt-5.6-sol")
+
+    def test_bypass_pending_ack_is_recovered_without_redispatch(self) -> None:
+        self.runtime.lose_ack = True
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.start(["--work-execution-mode", "bypass"])
+        directory = next((self.agent_exec.agent_root(self.root) / "work-agent" / "loops").iterdir())
+        stored = self.agent_exec.safe_read_json(directory / "state.json")
+        child = next(iter(self.runtime.runs.values()))
+        recovered = self.reconcile({"loopId": stored["loopId"]})
+        self.assertEqual(len(self.runtime.dispatches), 1)
+        self.assertEqual(recovered["currentChild"]["runId"], child["runId"])
+
     def test_legacy_pending_ack_without_human_approval_policy_is_adopted(self) -> None:
         self.runtime.lose_ack = True
         with self.assertRaises(self.agent_exec.ContractError):
@@ -809,3 +843,46 @@ class RoleModelDispatchTests(unittest.TestCase):
         self.assertEqual(args.verification_reasoning_effort, "low")
         self.assertEqual(loop.role_model_options({"model": "legacy"}, "work", "submit"), {"model": "legacy"})
         self.assertEqual(loop.role_model_options({"model": "legacy"}, "work", "send"), {})
+
+class RolePermissionDispatchTests(unittest.TestCase):
+    def test_role_policy_is_preserved_on_submit_and_revision(self):
+        exec_module, loop = load_modules()
+        runtime = object.__new__(loop.AgentRuntime)
+        runtime.call = mock.Mock(return_value={"status": "accepted"})
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            profiles = {}
+            for role, mode in (("work", "bypass"), ("verification", "workspace-write")):
+                policy = exec_module.execution_policy.role_policy(mode, None, root)
+                path = root / (role + '.json')
+                path.write_text(json.dumps(policy))
+                profiles[role] = {"policy": policy, "path": str(path), "humanApprovalPolicy": "bypass" if mode == "bypass" else "required"}
+            for operation in ("submit", "send"):
+                for role in profiles:
+                    runtime.dispatch(operation=operation, agent_id=role, role=role,
+                        request_file=root / 'request.md', request_hash='0' * 64,
+                        dispatch_id='dispatch', verified_work_run_id=None,
+                        execution={"codex": '/bin/true', "agentPermissions": profiles},
+                        capability_binding_file=None, human_approval_policy='required')
+                    args = runtime.call.call_args.args[0]
+                    self.assertEqual(args[args.index('--execution-policy-file') + 1], profiles[role]['path'])
+                    self.assertEqual(args[args.index('--human-approval-policy') + 1], profiles[role]['humanApprovalPolicy'])
+            Path(profiles['work']['path']).write_text('{}')
+            with self.assertRaises(exec_module.ContractError):
+                runtime.dispatch(operation='send', agent_id='work', role='work', request_file=root / 'request.md', request_hash='0' * 64,
+                    dispatch_id='dispatch', verified_work_run_id=None, execution={"codex": '/bin/true', "agentPermissions": profiles},
+                    capability_binding_file=None, human_approval_policy='required')
+
+    def test_permission_snapshot_is_validated_and_cannot_be_minted_by_child(self):
+        import argparse
+        import os
+        exec_module, _ = load_modules()
+        with mock.patch.dict(os.environ, {}, clear=True):
+            options = exec_module.requested_execution(argparse.Namespace(agent_permissions='{"work":"workspace-write"}'))
+            self.assertEqual(options["agentPermissions"], {"work": "workspace-write"})
+            for value in ('[]', '{"bad":"bypass"}', '{"work":"root"}'):
+                with self.assertRaises(exec_module.ContractError):
+                    exec_module.requested_execution(argparse.Namespace(agent_permissions=value))
+            os.environ[exec_module.execution_policy.PARENT_STATE_ENV] = '/tmp/parent-state.json'
+            with self.assertRaises(exec_module.ContractError):
+                exec_module.requested_execution(argparse.Namespace(agent_permissions='{"work":"bypass"}'))

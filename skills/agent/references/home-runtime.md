@@ -76,7 +76,9 @@
 
 ### 2.3. Host readiness and diagnostics
 
-- Run `python3 <installed-agent-skill>/scripts/exec.py doctor` before choosing a managed host.
+- Run `python3 <installed-agent-skill>/scripts/exec.py doctor` when first choosing a managed host,
+  when that host changes, or when diagnosing a relevant failure. Reuse the observation
+  for unchanged hosts; it is not a per-submission ceremony or a substitute for launch preflight.
 - Add `--probe` to exercise the system bubblewrap helper on Linux with a five-second
   timeout, read-only filesystem and isolated network.
 - Neither command initializes the runtime registry or changes host policy.
@@ -176,6 +178,16 @@
 <a id="cli-and-receipts"></a>
 
 ### 3.3. CLI and receipts
+
+- Public exec/loop JSON responses include additive `operation` metadata:
+  `{ "schemaVersion": 1, "provider": "agent-factory", "script": "exec.py", "action": "submit" }`.
+  Renderers may use it for activity labels without parsing shell wrappers. Command
+  completion does not mean run completion; use the matching run's status. Older or
+  mixed output remains available as raw evidence, without inventing identities.
+- Standalone submit/send generates and returns `dispatchId` when omitted. A new
+  invocation without an explicit key is a new request, not a retry. For uncertain
+  acceptance, inspect the Agent's existing runs; recover using the original key
+  and immutable inputs. Loops manage this binding automatically.
 
 - `scripts/exec.py`: `submit`, `send`, `status`, `result`, `inbox`,
   `list`, `cancel`, `reconcile`.

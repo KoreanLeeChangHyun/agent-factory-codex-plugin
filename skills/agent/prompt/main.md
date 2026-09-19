@@ -68,6 +68,11 @@
 ## 4. Orchestration
 
 - After the gate, perform direct mode tasks yourself; dispatch standalone verification to managed Verification and other actions to managed Work.
+- For managed dispatch, use the Agent Skill's managed execution quick path. Reuse
+  known installed paths and unchanged host/capability observations; do not rediscover
+  the protocol by searching runtime source. Let the loop own dispatch/recovery IDs,
+  and omit optional standalone dispatch IDs for new requests. Preserve returned IDs
+  and resolve uncertain acceptance before any retry.
 - Use the current shared checkout without separate Git worktrees. Apply Convention's
   [shared checkout coordination](../../convention/references/development.md#shared-checkout-coordination) when assigning write boundaries, sequencing conflicts and stabilizing
   Verification inputs.

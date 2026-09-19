@@ -13,38 +13,60 @@ from contextlib import redirect_stdout
 from native_fixtures import runtime as rt, native_fixture
 
 
+class CapturedInput(io.StringIO):
+    def close(self):
+        self.sent = self.getvalue()
+        super().close()
+
+
 class RuntimeResponseTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
 
-    def new_run(self, role='main'):
+    def new_run(self, role='main', request=b'bounded response'):
         return rt.create_run(project_root=self.root, agent_id=role+'-response', actor='main',
-                             request=b'bounded response', session={'role': role, 'maxAttempts': 1})
+                             request=request, session={'role': role, 'maxAttempts': 1})
 
     def envelope(self, state, **values):
         return {'status': 'completed', 'resultPath': state['resultPath'],
                 'resultText': '안녕하세요!\n**Answer**\n', **values}
 
-    def attempt(self, state, terminal, *, return_code=0):
+    def attempt(self, state, terminal, *, return_code=0, backend=None):
         events = [{'type': 'thread.started', 'thread_id': 'session-response'},
                   {'type': 'item.completed', 'item': {'type': 'agent_message', 'text': 'Progress only'}},
                   {'type': 'item.completed', 'item': {'type': 'agent_message', 'text': json.dumps(terminal)}}]
-        process = Mock(pid=101, stdin=io.StringIO(), stderr=io.StringIO(),
+        self.process_input = CapturedInput()
+        process = Mock(pid=101, stdin=self.process_input, stderr=io.StringIO(),
                        stdout=io.StringIO(''.join(json.dumps(e)+'\n' for e in events)))
         process.wait.return_value = return_code
         session = {'codex': 'codex', 'role': state['role'], 'projectRoot': str(self.root),
                    'executionPolicy': runtime_test_home.policy('workspace-write', self.root),
                    'sessionId': 'session-response', 'startTimeout': 5, 'turnTimeout': 5}
+        if backend:
+            session['backend'] = backend
         rt.atomic_write_json(rt.session_file(self.root, state['agentId']), session)
         identity = {'pid': 101, 'bootId': 'fixture', 'startTicks': 7}
         with patch.object(rt.execution_preflight, 'check', return_value={'passed': True}), \
+             patch.object(rt.native_codex, 'inspect_capabilities', return_value={'send': {'goal': False, 'fast': False, 'plan': False}}), \
              patch.object(rt, 'spawn_contained_process', return_value=(process, identity, 55)), \
              patch.object(rt, 'release_contained_process'), patch.object(rt, 'terminate_attempt_group'):
             return rt.run_codex_attempt(project_root=self.root, session=session, state=state,
                 attempt=1, heartbeat=Mock(), cancel_event=threading.Event(),
                 expected_agent_id=state['agentId'], expected_run_id=state['runId'])
+
+    def test_native_attempt_sends_structured_parts_with_current_inline_request(self):
+        from prompt_delivery import PromptParts
+        state = self.new_run(request=b'current native request')
+        self.attempt(state, self.envelope(state), backend='app-server')
+        parts = PromptParts.decode(self.process_input.sent)
+        self.assertIn('agent-factory-role-prompt', parts.fixed)
+        self.assertNotIn(state['runId'], parts.fixed)
+        self.assertNotIn(state['requestPath'], parts.fixed)
+        self.assertIn('current native request', parts.dynamic)
+        self.assertIn(state['resultPath'], parts.dynamic)
+        self.assertNotIn('agent-factory-role-prompt', parts.dynamic)
 
     def test_attempt_persists_answer_without_model_file_writes(self):
         for status in ('completed', 'needs-human-decision', 'failed'):
@@ -55,6 +77,39 @@ class RuntimeResponseTests(unittest.TestCase):
                 self.assertEqual(self.attempt(state, response), (status, 'session-response'))
                 self.assertEqual(Path(state['resultPath']).read_text(), response['resultText'])
                 self.assertEqual(stat.S_IMODE(Path(state['resultPath']).stat().st_mode), 0o600)
+
+    def test_main_attempt_delivers_exact_request_and_retains_record(self):
+        request = '  안녕하세요!\r\n`code` <tag> & 요청\n'.encode('utf-8')
+        state = self.new_run(request=request)
+        self.attempt(state, self.envelope(state))
+        prompt = self.process_input.sent
+        self.assertIn('<agent-factory-request>\n' + request.decode('utf-8') +
+                      '\n</agent-factory-request>', prompt)
+        self.assertNotIn('Read the delegated request from', prompt)
+        self.assertEqual(Path(state['requestPath']).read_bytes(), request)
+
+    def test_inline_request_byte_boundary_and_managed_role_compatibility(self):
+        for role, request, inline in (
+            ('main', b'a' * (64 * 1024), True),
+            ('main', b'a' * (64 * 1024 + 1), False),
+            ('main', ('가' * 22000).encode('utf-8'), False),
+            ('work', b'bounded work', False),
+            ('verification', b'bounded verification', False),
+        ):
+            with self.subTest(role=role, size=len(request)):
+                prompt = rt.build_prompt(agent_id='test-agent', role=role,
+                    request_path=Path('/managed/request.md'), result_path=Path('/managed/result.md'),
+                    run_id='run-one', request=request)
+                self.assertEqual('<agent-factory-request>' in prompt, inline)
+                self.assertEqual('Read the delegated request from' in prompt, not inline)
+
+    def test_changed_request_is_rejected_before_delivery(self):
+        state = self.new_run()
+        Path(state['requestPath']).write_bytes(b'changed request')
+        with self.assertRaises(rt.AttemptFailure) as raised:
+            self.attempt(state, self.envelope(state))
+        self.assertEqual(raised.exception.code, 'request_changed')
+        self.assertEqual(self.process_input.getvalue(), '')
 
     def test_failed_process_does_not_publish_even_valid_answer(self):
         state = self.new_run()
@@ -153,7 +208,7 @@ class RuntimeResponseTests(unittest.TestCase):
                 session = {'codex': 'codex', 'role': 'main', 'projectRoot': str(self.root),
                            'executionPolicy': runtime_test_home.policy('workspace-write', self.root)}
                 prompt_error = rt.ContractError('role_invalid', 'missing prompt') if failure == 'prompt' else None
-                with patch.object(rt, 'build_prompt', side_effect=prompt_error, wraps=rt.build_prompt), \
+                with patch.object(rt, 'build_prompt_parts', side_effect=prompt_error, wraps=rt.build_prompt_parts), \
                      patch.object(rt.execution_preflight, 'check') as preflight, \
                      patch.object(rt, 'spawn_contained_process') as spawn, \
                      patch.object(rt, 'release_contained_process') as release:

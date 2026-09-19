@@ -38,6 +38,18 @@ class AgentExecTests(unittest.TestCase):
     def setUp(self) -> None:
         self.module = load_module()
 
+    def test_cli_error_has_structured_operation_and_context_does_not_leak(self) -> None:
+        import runtime_storage
+        output = io.StringIO()
+        with mock.patch.object(self.module, "emit", side_effect=lambda value: runtime_storage.emit(value, output)), mock.patch.object(
+            self.module, "require_managed_platform", side_effect=self.module.ContractError("unavailable", "test host")
+        ):
+            self.assertEqual(self.module.main(["capabilities"]), 2)
+        response = json.loads(output.getvalue())
+        self.assertEqual(response["operation"], {"schemaVersion": 1, "provider": "agent-factory", "script": "exec.py", "action": "capabilities"})
+        self.assertEqual(response["error"]["code"], "unavailable")
+        self.assertIsNone(runtime_storage.response_operation.get())
+
     def test_read_request_preserves_safe_caller_path_checks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -100,12 +112,43 @@ class AgentExecTests(unittest.TestCase):
         self.assertIn("authorized execution without a separate proposal", prompt)
         self.assertNotIn("proceed through Main -> Work -> Verification immediately", prompt)
         self.assertIn("Do not return\n`needs-human-decision` merely to approve a plan", prompt)
-        with self.assertRaises(self.module.ContractError):
-            self.module.build_prompt(
-                agent_id="work-agent", role="work",
-                request_path=Path("request.md"), result_path=Path("result.md"),
-                run_id="run-one", human_approval_policy="bypass",
-            )
+    def test_delegated_bypass_prompt_preserves_role_boundaries(self) -> None:
+        for role in ("work", "verification"):
+            with self.subTest(role=role):
+                prompt = self.module.build_prompt(
+                    agent_id=role + "-agent", role=role,
+                    request_path=Path("request.md"), result_path=Path("result.md"),
+                    run_id="run-one", human_approval_policy="bypass",
+                )
+                self.assertIn(f"This {role} run has Human approval policy `bypass`", prompt)
+                self.assertNotIn("This Main run has", prompt)
+                self.assertIn(self.module.role_path(role).read_text(), prompt)
+                with self.assertRaises(self.module.ContractError):
+                    self.module.build_prompt(
+                        agent_id=role + "-agent", role=role,
+                        request_path=Path("request.md"), result_path=Path("result.md"),
+                        run_id="run-one", human_approval_policy="invalid",
+                    )
+
+    def test_delegated_bypass_submit_and_send_preserve_model_and_policy(self) -> None:
+        for role in ("work", "verification"):
+            with self.subTest(role=role), tempfile.TemporaryDirectory() as directory, \
+                    mock.patch.object(self.module, "spawn_worker", return_value=123), \
+                    mock.patch.object(self.module, "emit") as emit:
+                root = Path(directory)
+                for operation in ("submit", "send"):
+                    argv = [operation, "--project-root", directory, "--agent", role + "-agent",
+                            "--message", "bounded request", "--model", "gpt-5.6-sol"]
+                    if operation == "submit":
+                        argv += ["--role", role, "--human-approval-policy", "bypass", "--codex", sys.executable]
+                    if role == "verification":
+                        argv += ["--verified-work-run-id", "run-work"]
+                    self.module.submit(self.module.parse_args(argv), operation == "submit")
+                    state = self.module.safe_read_json(Path(emit.call_args.args[0]["statePath"]))
+                    self.assertEqual(state["humanApprovalPolicy"], "bypass")
+                    self.assertEqual(state["dispatchTuple"]["humanApprovalPolicy"], "bypass")
+                    self.assertEqual(self.module.load_session(root, role + "-agent")["model"], "gpt-5.6-sol")
+                    self.module.mark_terminal(Path(state["statePath"]), "completed")
 
     def test_role_path_rejects_role_outside_graph(self) -> None:
         with self.assertRaises(self.module.ContractError) as raised:
@@ -540,6 +583,25 @@ class AgentExecTests(unittest.TestCase):
             with self.assertRaises(self.module.ContractError) as raised:
                 self.module.submit(self.dispatch_args(directory, "dispatch-one", "different"), True)
             self.assertEqual(raised.exception.code, "dispatch_id_collision")
+
+    def test_generated_dispatch_id_is_persisted_and_can_recover_acceptance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(self.module, "spawn_worker", return_value=123) as spawn, mock.patch.object(self.module, "emit") as emit:
+            self.module.submit(self.dispatch_args(directory, None), True)
+            accepted = emit.call_args.args[0]
+            self.assertRegex(accepted["dispatchId"], self.module.DISPATCH_ID)
+            self.module.submit(self.dispatch_args(directory, accepted["dispatchId"]), True)
+            recovered = emit.call_args.args[0]
+            self.assertEqual(recovered["runId"], accepted["runId"])
+            self.assertTrue(recovered["deduplicated"])
+            spawn.assert_called_once()
+
+    def test_invalid_dispatch_id_explains_format_without_launch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(self.module, "spawn_worker") as spawn:
+            with self.assertRaises(self.module.ContractError) as raised:
+                self.module.submit(self.dispatch_args(directory, "wrong-prefix"), True)
+            self.assertEqual(raised.exception.code, "invalid_dispatch_id")
+            self.assertIn("omit --dispatch-id", raised.exception.message)
+            spawn.assert_not_called()
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are required")
     def test_submit_and_send_reject_symlinked_capability_binding_file(self) -> None:

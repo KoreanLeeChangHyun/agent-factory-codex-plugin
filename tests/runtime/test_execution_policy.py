@@ -196,6 +196,26 @@ class ExecutionPolicyTests(unittest.TestCase):
         (agent / "session.json").write_text(json.dumps(session))
         os.environ.update({policy.SNAPSHOT_ENV: json.dumps(snapshot()), policy.PARENT_STATE_ENV: str(state_file)})
         self.assertEqual(policy.resolve(args(), project), snapshot())
+        state["executionOptions"] = {"agentPermissions": {"work": "workspace-write", "verification": "bypass"}}
+        state_file.write_text(json.dumps(state))
+        parsed = args()
+        parsed.role = "work"
+        restricted = policy.resolve(parsed, project)
+        self.assertEqual(restricted["sandboxPolicy"]["type"], "workspace-write")
+        parsed.role = "verification"
+        self.assertEqual(policy.resolve(parsed, project), snapshot())
+        parsed.role = "work"
+        wrong = self.root / "wrong-policy.json"
+        wrong.write_text(json.dumps(snapshot()))
+        parsed.execution_policy_file = wrong
+        with self.assertRaisesRegex(policy.PolicyError, "captured role permissions"):
+            policy.resolve(parsed, project)
+        wrong.write_text(json.dumps(restricted))
+        self.assertEqual(policy.resolve(parsed, project, fallback_policy=restricted, allow_session_change=True), restricted)
+        del state["executionOptions"]
+        state_file.write_text(json.dumps(state))
+        with self.assertRaisesRegex(policy.PolicyError, "inherited parent permissions"):
+            policy.resolve(parsed, project)
         state["runId"] = "run-other"
         state_file.write_text(json.dumps(state))
         with self.assertRaisesRegex(policy.PolicyError, "registered run"):

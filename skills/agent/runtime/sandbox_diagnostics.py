@@ -120,6 +120,7 @@ def main(argv=None):
     parser.add_argument("--probe", action="store_true", help="Run a bounded, network-isolated system bubblewrap probe")
     args = parser.parse_args(argv)
     result = diagnose(codex=args.codex, probe=args.probe)
+    result["operation"] = {"schemaVersion": 1, "provider": "agent-factory", "script": "exec.py", "action": "doctor"}
     print(json.dumps(result))
     if result["issue"]:
         return 2

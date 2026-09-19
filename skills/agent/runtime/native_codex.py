@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import contextlib
 import fcntl
+import hashlib
 import os
 import shutil
 import stat
@@ -16,9 +17,17 @@ import threading
 import time
 from pathlib import Path
 
+from prompt_delivery import PromptParts
+
 
 class NativeError(Exception):
     pass
+
+
+class RpcError(NativeError):
+    def __init__(self, method, error):
+        self.code = error.get("code") if isinstance(error, dict) else None
+        super().__init__(f"{method}: {json.dumps(error)[:2000]}")
 
 
 def _probe_capabilities(codex: str) -> dict:
@@ -251,7 +260,7 @@ class Rpc:
                 continue
             if value.get("id") == request_id:
                 if "error" in value:
-                    raise NativeError(f"{method}: {json.dumps(value['error'])[:2000]}")
+                    raise RpcError(method, value["error"])
                 return value.get("result", {})
             if len(self.pending) >= 128:
                 raise NativeError("Too many pending app-server notifications")
@@ -375,6 +384,19 @@ class Bridge:
         emit({"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal)}})
 
     def setup(self, prompt):
+        # The core owns reinjection of developer instructions during compaction,
+        # including inside a turn. Never race notifications with a user turn.
+        # Every owned start/resume installs today's fixed text, also for sessions
+        # created before this protocol. A sidecar hash tracks updates without
+        # scanning history markers; the core handles compaction reinjection.
+        parts = prompt if isinstance(prompt, PromptParts) else None
+        if parts is not None:
+            developer_instructions = prompt.fixed
+            full_prompt = prompt.full
+            prompt = prompt.dynamic
+        else:
+            # Historical direct adapter callers retain full-prompt semantics.
+            developer_instructions = full_prompt = prompt
         self.rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
         self.rpc.write({"method": "initialized"})
         wants_goal = self.session.get("goalMode") is True or bool(self.state.get("goalAction"))
@@ -395,7 +417,7 @@ class Bridge:
         params = {"cwd": self.session["projectRoot"],
                   **({"permissions": config["default_permissions"]} if "default_permissions" in config else {"sandbox": policy["sandboxPolicy"]["type"]}),
                   "approvalPolicy": policy["approvalPolicy"], "config": config,
-                  "developerInstructions": prompt}
+                  "developerInstructions": developer_instructions}
         if self.planning:
             params["developerInstructions"] += "\nHost phase contract: while actual collaboration mode is plan, inspect and plan only, produce the planning output schema and no receipt. In default mode implement and follow the original final result/receipt contract. For taskMode plan, stop after planning; the host records its read-only completion receipt. Other Plan routes automatically transition within this same Work session after a planned result; required unresolved Human choices stop execution.\n"
         if self.session.get("model"):
@@ -407,6 +429,35 @@ class Bridge:
         self.thread_id = response["thread"]["id"]
         if prior and prior != self.thread_id:
             raise NativeError("Codex resumed a different session")
+        delivery_record = None
+        if parts is not None:
+            delivery_path = self.runtime.session_file(
+                Path(self.session["projectRoot"]), self.state["agentId"]
+            ).with_name("instruction-delivery.json")
+            delivery_record = {"version": 1, "threadId": self.thread_id,
+                               "fixedSha256": hashlib.sha256(parts.fixed.encode("utf-8")).hexdigest()}
+            try:
+                previous_delivery = self.runtime.safe_read_json(delivery_path)
+            except self.runtime.ContractError as error:
+                if error.code != "file_not_found":
+                    raise
+                previous_delivery = None
+            if prior and previous_delivery != delivery_record:
+                # Resume restores a history baseline; changing configuration alone
+                # need not emit new developer text before the next compaction.
+                # Install updates once, before any model turn, as developer text.
+                # The durable configuration handles all later compactions.
+                try:
+                    self.rpc.call("thread/inject_items", {"threadId": self.thread_id, "items": [
+                        {"type": "message", "role": "developer", "content": [
+                            {"type": "input_text", "text": parts.fixed}]}]})
+                except RpcError as error:
+                    if error.code != -32601:
+                        raise
+                    # A definite method-not-found has no ambiguous side effect.
+                    # Older backends keep their historical full-prompt delivery.
+                    prompt = full_prompt
+                    delivery_record = None
         emit({"type": "thread.started", "thread_id": self.thread_id})
         fast = self.session.get("fast") if self.state.get("goalAction") in (None, "resume", "reopen") else None
         models = []
@@ -473,6 +524,9 @@ class Bridge:
                 else:
                     raise NativeError("Goal needs an objective of 1–4000 characters (--goal-objective)")
         if activate_goal:
+            # Native Goal activation starts without turn/start input. Its owned
+            # reload must retain this run's complete request/result contract.
+            params["developerInstructions"] = full_prompt
             goal = activate_persisted_goal(self.rpc, self.thread_id, params, turn)
             self.turn_id = None
             self.publish_goal(goal)
@@ -481,6 +535,8 @@ class Bridge:
             self.turn_id = result["turn"]["id"]
             if self.planning:
                 self.planning_turn_id = self.turn_id
+        if delivery_record is not None:
+            self.runtime.atomic_write_json(delivery_path, delivery_record)
         return True
 
     def finish_turn(self):
@@ -668,13 +724,18 @@ def main():
     state = runtime.safe_read_json(Path(sys.argv[1]))
     runtime.runtime_paths.bind(state["runtimeBinding"])
     session = runtime.safe_read_json(Path(state["nativeSessionPath"]))
+    prompt = sys.stdin.read()
+    if sys.argv[2:] == ["--prompt-parts"]:
+        prompt = PromptParts.decode(prompt)
+    elif sys.argv[2:]:
+        raise NativeError("Unsupported native prompt transport")
     def process_factory():
         return subprocess.Popen([session["codex"], "app-server", "--listen", "stdio://"],
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr,
                                 text=True, encoding="utf-8", bufsize=1)
     rpc = Rpc(process_factory(), process_factory=process_factory)
     try:
-        Bridge(runtime, session, state, rpc).run(sys.stdin.read())
+        Bridge(runtime, session, state, rpc).run(prompt)
         return 0
     except Exception as error:
         emit({"type": "error", "message": str(error)[:4000]})

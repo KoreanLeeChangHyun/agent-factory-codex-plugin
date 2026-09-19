@@ -41,6 +41,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to direct")
     parser.add_argument("--model")
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
+    parser.add_argument("--agent-permissions", help="Captured Human-selected role permission overrides as JSON")
     parser.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--goal-mode", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--goal-objective", help="Native persisted objective, 1–4000 characters; omitted on send preserves the existing objective")
@@ -52,7 +53,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         "--verified-work-run-id",
         help="exact Work run checked by a Verification Agent (required for Verification runs)",
     )
-    parser.add_argument("--dispatch-id", help="idempotency key scoped to this managed Agent")
+    parser.add_argument("--dispatch-id", help="optional idempotency key: dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}; generated when omitted; reuse the same key only for recovery of the same request")
     parser.add_argument(
         "--capability-binding-file", type=Path,
         help="strict Agent capability/authority/effects binding to preserve in this run",
@@ -157,5 +158,4 @@ def validate_submit_options(args: argparse.Namespace) -> None:
         )
     if args.max_attempts < 1 or args.max_attempts > 10:
         raise ContractError("invalid_attempts", "max attempts must be between 1 and 10")
-
 

@@ -60,6 +60,7 @@ PROMPTS = SKILL_ROOT / "prompt"
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(SKILL_ROOT / "runtime"))
 import sandbox_diagnostics
+from runtime_storage import response_operation
 import permissions as runtime_permissions
 import execution_policy
 import preflight as execution_preflight
@@ -114,7 +115,7 @@ from receipt_contracts import (
 )
 import process_transport
 from process_transport import (
-    AttemptFailure, build_prompt, build_codex_command,
+    AttemptFailure, build_prompt, build_prompt_parts, build_codex_command,
     response_schema_document, inline_result, validate_terminal_result, publish_terminal_result,
     stderr_reports_sandbox_unavailable, process_exit_failure,
     missing_result_failure, result_publication_failure, append_bounded,
@@ -571,6 +572,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     receipt_request_hash = getattr(args, "receipt_request_hash", None)
     verified_work_run_id = getattr(args, "verified_work_run_id", None)
     dispatch_id = getattr(args, "dispatch_id", None)
+    if dispatch_id is None:
+        dispatch_id = f"dispatch-{uuid.uuid4().hex}"
     _capability_document, capability_bindings = read_capability_bindings(
         getattr(args, "capability_binding_file", None)
     )
@@ -579,7 +582,12 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         if capability_bindings is not None else None
     )
     if dispatch_id is not None:
-        validate_id(dispatch_id, DISPATCH_ID, "dispatch_id")
+        if not DISPATCH_ID.fullmatch(dispatch_id):
+            raise ContractError(
+                "invalid_dispatch_id",
+                "dispatch id must match dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}; "
+                "omit --dispatch-id for a new request, or reuse the original key for recovery",
+            )
     if receipt_request_hash is not None and not re.fullmatch(r"[0-9a-f]{64}", receipt_request_hash):
         raise ContractError("receipt_binding_invalid", "receipt request hash is invalid")
     if verified_work_run_id is not None:
@@ -594,11 +602,6 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     args.resolved_execution_policy = policy
     human_approval_policy = resolve_human_approval_policy(args, stored_session)
     args.resolved_human_approval_policy = human_approval_policy
-    if role != "main" and human_approval_policy != "required":
-        raise ContractError(
-            "human_approval_policy_invalid",
-            "Human approval bypass is valid only for Main",
-        )
     standalone = role == "verification" and getattr(args, "task_mode", None) == "verification"
     if standalone and (verified_work_run_id is not None or receipt_request_hash is not None):
         raise ContractError("receipt_binding_invalid", "Standalone verification binds its own target request, not a Work run")
@@ -916,10 +919,11 @@ def run_codex_attempt(
             raise AttemptFailure("input_image_changed", "managed image input changed", False)
     # Validate the output contract and prepare all prompt files before any child launch.
     try:
-        prompt = build_prompt(
+        prompt_parts = build_prompt_parts(
             agent_id=str(state["agentId"]),
             role=str(state["role"]),
             request_path=Path(state["requestPath"]),
+            request=request,
             result_path=Path(state["resultPath"]),
             run_id=str(state["runId"]),
             receipt_path=(Path(state["receiptPath"]) if state.get("receiptPath") else None),
@@ -984,7 +988,9 @@ def run_codex_attempt(
             "goal": session.get("goal"), "goalError": session.get("goalError"),
             "nativeGoalExpected": session.get("goalMode") is True or bool(session.get("goal"))}))
     existing_session = session.get("sessionId")
-    command = build_codex_command(session, state, existing_session)
+    native_prompt = session.get("backend") == "app-server"
+    prompt = prompt_parts.encode() if native_prompt else prompt_parts.full
+    command = build_codex_command(session, state, existing_session, prompt_parts=native_prompt)
     stderr_path = state_path.parent / "stderr.log"
     reject_symlink(stderr_path)
     update_json(
@@ -1785,6 +1791,8 @@ def resolve_execution_policy(args: argparse.Namespace, project_root: Path, sessi
     try:
         stored = execution_policy.session_policy(session) if session is not None and "executionPolicy" in session else None
         policy_args = argparse.Namespace(**vars(args))
+        if session is not None:
+            policy_args.role = session.get("role")
         if session is not None and session.get("codex"):
             policy_args.codex = session["codex"]
         policy = execution_policy.resolve(policy_args, project_root, fallback_policy=stored, allow_session_change=session is not None)
@@ -1799,6 +1807,18 @@ def resolve_execution_policy(args: argparse.Namespace, project_root: Path, sessi
 
 def resolve_human_approval_policy(args: argparse.Namespace, session: dict[str, Any] | None = None) -> str:
     requested = getattr(args, "human_approval_policy", None)
+    locator = os.environ.get(execution_policy.PARENT_STATE_ENV)
+    role = session.get("role") if session is not None else getattr(args, "role", None)
+    if locator and role in ("work", "verification"):
+        parent = safe_read_json(Path(locator))
+        snapshot = json.loads(os.environ.get(execution_policy.SNAPSHOT_ENV, "null"))
+        execution_policy._managed_parent(snapshot, parent.get("runtimeBinding", {}).get("projectRoot"))
+        mode = parent.get("executionOptions", {}).get("agentPermissions", {}).get(role)
+        if mode is not None and mode != "cli-default":
+            expected = "bypass" if mode == "bypass" else "required"
+            if requested is not None and requested != expected:
+                raise ContractError("execution_policy_mismatch", "Human approval policy differs from captured role permissions")
+            requested = expected
     stored = session.get("humanApprovalPolicy", "required") if session is not None else "required"
     if stored not in HUMAN_APPROVAL_POLICIES:
         raise ContractError("human_approval_policy_invalid", "Stored Human approval policy is invalid")
@@ -1811,6 +1831,18 @@ def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
         value = getattr(args, argument, None)
         if value is not None:
             options[key] = value
+    captured = getattr(args, "agent_permissions", None)
+    if captured is not None:
+        try:
+            roles = json.loads(captured)
+            if not isinstance(roles, dict) or any(role not in ("main", "work", "verification") or mode not in ("cli-default", "workspace-write", "danger-full-access", "bypass") for role, mode in roles.items()):
+                raise ValueError("Invalid role permissions")
+            # A child cannot mint new permission authority for its descendants.
+            if os.environ.get(execution_policy.PARENT_STATE_ENV):
+                raise ValueError("Role permission authority must originate at the Human-facing host")
+        except (ValueError, TypeError) as error:
+            raise ContractError("agent_permissions_invalid", str(error)) from error
+        options["agentPermissions"] = roles
     objective = options.get("goalObjective")
     if objective is not None:
         if not isinstance(objective, str) or not objective.strip() or len(objective) > 4000:
@@ -1890,11 +1922,14 @@ def command_goal(args: argparse.Namespace) -> int:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    operation_token = response_operation.set(None)
     try:
         arguments = list(sys.argv[1:] if argv is None else argv)
         if arguments and arguments[0] == "doctor":
             return sandbox_diagnostics.main(arguments[1:])
         args = parse_args(arguments)
+        if not args.command.startswith("_"):
+            response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "exec.py", "action": args.command})
         require_managed_platform()
         if hasattr(args, "project_root") and args.command != "rebind":
             binding = runtime_paths.resolve(args.project_root, create=args.command == "init",
@@ -1961,6 +1996,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (OSError, UnicodeError, ValueError, KeyError, TypeError) as error:
         emit(error_document("runtime_failure", str(error)))
         return 1
+    finally:
+        response_operation.reset(operation_token)
 
 
 if __name__ == "__main__":

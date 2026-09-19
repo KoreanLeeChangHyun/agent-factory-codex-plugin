@@ -94,6 +94,14 @@ codex plugin add agent-factory@agent-factory
 - The three distributed Skills are under `skills/`; they are not mirrored into a
   repository-local `.codex/`.
 
+## Document synchronization
+
+- Agents explicitly invoke the [Document Skill synchronization CLI](skills/document/SKILL.md#continuous-codex-synchronization)
+  after creating, modifying or deleting `docs/skills/` packages and inspect its result.
+- Synchronization manages only manifest-owned output, preserves unowned skills, and reports
+  independent destination changes as conflicts. Existing legacy mirrors are not adopted.
+- No automatic plugin hooks are bundled. Human edits wait for an explicit invocation.
+
 ## Compatibility
 
 - **Operating system:** Managed execution has Linux and macOS backends. WSL must
@@ -124,7 +132,7 @@ Durable contracts remain with their owning Skill and references:
   [Processed](skills/document/references/processed.md), and [Original](skills/document/references/original.md).
 - [Development](skills/convention/references/development.md): changes, Git
   publication authority and technical documentation.
-- Repository development and release rules: `docs/skills/rule-plugin-development/SKILL.md`
+- Repository development and release rules: `../docs/skills/rule-plugin-development/SKILL.md`
   (project-local; not part of the distributed Skills).
 - [Testing](skills/convention/references/testing.md): test organization and
   verification boundaries.
