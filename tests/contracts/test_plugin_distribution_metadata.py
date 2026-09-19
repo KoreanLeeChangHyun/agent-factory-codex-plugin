@@ -18,15 +18,15 @@ SEMVER = re.compile(
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
-CACHEBUSTER_VERSION = re.compile(r"^1\.0\.11\+codex\.\d{14}$")
+CACHEBUSTER_VERSION = re.compile(r"^1\.0\.12\+codex\.\d{14}$")
 README_PATHS = (
     ROOT / "README.md",
     ROOT / "README.ko.md",
 )
 README_CONTRACT_MARKERS = (
     "fully installable and usable on its own",
-    "released together",
-    "does not contain or bundle",
+    "attempts automatic installation when needed",
+    "compatible plugin is used without reinstalling",
 )
 
 
@@ -55,8 +55,8 @@ class PluginDistributionMetadataTests(unittest.TestCase):
                     ), "Former translations must link to the maintained README")
                     continue
                 normalized = " ".join(readme.split())
-                self.assertIn("extension `1.0.11`", normalized)
-                self.assertIn("1.0.11+codex.<token>", readme)
+                self.assertIn("extension `1.0.12`", normalized)
+                self.assertIn("1.0.12+codex.<token>", readme)
                 self.assertIn("agent-factory", readme)
                 for marker in README_CONTRACT_MARKERS:
                     self.assertIn(marker, normalized)
