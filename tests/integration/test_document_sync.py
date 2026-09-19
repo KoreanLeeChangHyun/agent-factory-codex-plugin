@@ -212,9 +212,28 @@ sync.sync(Path(sys.argv[2]))
 
 
 def test_no_bundled_auto_hooks():
-    assert json.loads((ROOT / "hooks/hooks.json").read_text())["hooks"] == {}
+    assert not (ROOT / "hooks/hooks.json").exists()
+    assert "hooks" not in json.loads((ROOT / ".codex-plugin/plugin.json").read_text())
     result = subprocess.run([sys.executable, str(SCRIPT), "--hook"], text=True, capture_output=True)
     assert result.returncode != 0
+
+
+def test_author_then_explicit_sync_preserves_existing_skill(tmp_path):
+    existing = tmp_path / ".codex/skills/personal/SKILL.md"
+    existing.parent.mkdir(parents=True)
+    existing.write_text("User-owned skill")
+    source = package(tmp_path, "skills")
+    target = tmp_path / ".codex/skills/info-example/SKILL.md"
+    assert not target.exists()
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stderr
+    assert target.read_bytes() == (source / "SKILL.md").read_bytes()
+    (source / "SKILL.md").write_text("Revised project document")
+    assert target.read_text() != "Revised project document"
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stderr
+    assert target.read_text() == "Revised project document"
+    assert existing.read_text() == "User-owned skill"
 
 
 def test_cli_runs_from_relocated_document_skill(tmp_path):

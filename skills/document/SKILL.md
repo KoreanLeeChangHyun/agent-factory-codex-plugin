@@ -69,6 +69,14 @@ metadata:
   error fallback. Alternative destinations/formats are additional exports.
 - Preserve existing Documents unless changes are authorized. Keep temporary artifacts in
   run directories.
+- Preserve existing Skills outside managed synchronization. Writing a new document or
+  running synchronization does not authorize rewriting, relocating or adopting them.
+- Migrate existing documents or Skills into the project document structure only when
+  the Human explicitly requests migration. Limit changes to that request, apply the
+  relevant document type guide, and preserve source content and unresolved decisions.
+  Back up affected content before replacing or moving it; a collision is not migration
+  authority. After preparing the authorized `docs/skills/` source and resolving any
+  destination collision within that authority, run synchronization and inspect its result.
 
 <a id="document-package"></a>
 
