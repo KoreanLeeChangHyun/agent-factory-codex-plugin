@@ -65,6 +65,7 @@ import permissions as runtime_permissions
 import execution_policy
 import preflight as execution_preflight
 from runtime_errors import ContractError
+from token_usage import UsageAccumulator, record_attempt
 import process_containment
 from process_containment import (
     require_managed_platform,
@@ -119,7 +120,7 @@ from process_transport import (
     response_schema_document, inline_result, validate_terminal_result, publish_terminal_result,
     stderr_reports_sandbox_unavailable, process_exit_failure,
     missing_result_failure, result_publication_failure, append_bounded,
-    append_event, read_process_lines, stream_stderr, process_group_exists,
+    EventLogWriter, append_event, read_process_lines, stream_stderr, process_group_exists,
     terminate_attempt_group, terminate_verified_group,
 )
 from public_state import public_state as project_public_state
@@ -243,6 +244,8 @@ def create_run(
     }
     if isinstance(session.get("conversationId"), str):
         state["conversationId"] = session["conversationId"]
+    if role == "main":
+        state["taskAnnouncementContract"] = 1
     if parent_agent_id is not None and parent_run_id is not None:
         state["parentAgentId"] = parent_agent_id
         state["parentRunId"] = parent_run_id
@@ -314,6 +317,11 @@ def create_run(
             "observedAt": accepted_at,
         },
     )
+    if parent_agent_id is not None and parent_run_id is not None:
+        # One atomic projection per child avoids rewriting a growing parent index.
+        reference_path = run_directory(project_root, parent_agent_id, parent_run_id) / "children" / f"{agent_id}.json"
+        atomic_write_json(reference_path, {"agentId": agent_id, "runId": run_id,
+            "parentAgentId": parent_agent_id, "parentRunId": parent_run_id, "role": role})
     return state
 
 
@@ -337,13 +345,14 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
     else:
         codex = str(Path(codex).resolve(strict=True))
     options = requested_execution(args)
+    capabilities = native_codex.inspect_capabilities(codex, refresh=True, runtime_home=runtime_paths.resolve(project_root, create=True)["home"])
     if options.get("fast") is True or options.get("goalMode") is True:
-        capabilities = native_codex.inspect_capabilities(codex, refresh=True, runtime_home=runtime_paths.resolve(project_root, create=True)["home"])
         for key, field in (("fast", "fast"), ("goalMode", "goal")):
             if options.get(key) is True and not capabilities["submit"][field]:
                 raise ContractError("native_unsupported", capabilities["diagnostic"] or f"Native {field} unsupported")
     created_at = now()
     session = {
+        **({"backend": "app-server"} if capabilities.get("submit", {}).get("instructionDelivery") is True else {}),
         "schemaVersion": SCHEMA_VERSION,
         "agentId": args.agent,
         "role": role,
@@ -387,7 +396,11 @@ def managed_parent_identity(project_root: Path) -> dict[str, str] | None:
     if not locator:
         return None
     state_path = Path(locator)
-    state = safe_read_json(state_path)
+    try:
+        state = safe_read_json(state_path)
+    except ValueError as error:
+        # Storage validates persisted bindings before the parent fields are available.
+        raise ContractError("parent_session_invalid", f"Managed parent run binding could not be validated: {error}") from error
     binding = state.get("runtimeBinding")
     agent_id, run_id = state.get("agentId"), state.get("runId")
     if (not isinstance(binding, dict) or binding.get("projectRoot") != str(project_root)
@@ -664,8 +677,15 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         if (role == "verification" and not standalone) or (role == "work" and execution_options["taskMode"] in ("direct", "verification")):
             raise ContractError("task_mode_role_invalid", "Task mode is incompatible with this role")
     goal_action = getattr(args, "goal_action", None)
-    if role != "main" and (execution_options.get("goalMode") is True or goal_action):
-        raise ContractError("goal_role_invalid", "Native Goal continuation is Main-only; Work and Verification remain bounded")
+    if role == "main" and execution_options.get("taskMode") != "direct" and execution_options.get("goalMode", (stored_session or {}).get("goalMode")) is True:
+        raise ContractError("goal_role_invalid", "Main Goal is direct-only; delegated execution uses Work's native Goal. Submit the captured route with Main --no-goal-mode")
+    if role == "work":
+        # Each bounded execution/revision owns a fresh objective, including long requests.
+        # The complete request is delivered by the native bridge, never truncated here.
+        from task_modes import work_goal_options
+        execution_options = work_goal_options(execution_options, request_text)
+    if role == "verification" and (execution_options.get("goalMode") is True or goal_action):
+        raise ContractError("goal_role_invalid", "Verification cannot use native Goal continuation")
     if execution_options.get("goalMode") is True and new_agent and "goalObjective" not in execution_options:
         if len(request_text) > 4000:
             raise ContractError("goal_objective_invalid", "Supply --goal-objective with 1–4000 characters for this longer request")
@@ -676,8 +696,22 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     binding = None
     if role in {"work", "verification"}:
         import task_binding
-        binding = task_binding.load(safe_read_json, getattr(args, "task_list_file", None),
-                                    getattr(args, "task_id", None), request_hash if new_agent and role == "work" else receipt_request_hash or request_hash)
+        task_list_file = getattr(args, "task_list_file", None)
+        task_id = getattr(args, "task_id", None)
+        if task_list_file is None or not task_id:
+            raise ContractError("task_binding_required", "Delegated execution requires --task-list-file and --task-id before dispatch")
+        task_document = safe_read_json(task_list_file)
+        # Accepted dispatches retain their immutable tuple and existing deduplication path.
+        accepted_retry = parent is not None and any(value.get("dispatchId") == dispatch_id
+                             for value in iter_run_states(project_root, args.agent))
+        if parent is not None and not accepted_retry:
+            import task_announcement
+            with file_lock(agent_directory(project_root, parent["agentId"]) / ".dispatch.lock"):
+                require_current_parent_conversation(project_root, parent)
+                task_announcement.check_submission(safe_read_json,
+                    state_file(project_root, parent["agentId"], parent["runId"]), parent, task_document)
+        binding = task_binding.resolve(task_document, task_id,
+            request_hash if new_agent and role == "work" else receipt_request_hash or request_hash)[1]
     input_images = [{"mediaType": image["mediaType"], "size": len(image["content"]),
                      "sha256": hashlib.sha256(image["content"]).hexdigest()} for image in images]
     dispatch_tuple = {
@@ -953,11 +987,11 @@ class Heartbeat:
         fact = "process_alive" if process_identity_status(value.get("codexIdentity")) == "match" else "unreachable"
 
 
-def cancel_requested(state_path: Path, cancel_event: threading.Event) -> bool:
+def cancel_requested(state_path: Path, cancel_event: threading.Event, reader=None) -> bool:
     if cancel_event.is_set():
         return True
     with contextlib.suppress(ContractError):
-        return bool(safe_read_json(state_path).get("cancelRequested"))
+        return bool((reader.read() if reader is not None else safe_read_json(state_path)).get("cancelRequested"))
     return False
 
 
@@ -1142,12 +1176,13 @@ def run_codex_attempt(
         raise AttemptFailure(
             "codex_write_failed", "codex exec rejected the prompt", False, True
         ) from error
-    lines: queue.Queue[tuple[str, str | None]] = queue.Queue()
+    lines: queue.Queue[tuple[str, str | None]] = queue.Queue(maxsize=64)
+    readers_stopped = threading.Event()
     threading.Thread(
-        target=read_process_lines, args=(process.stdout, lines), daemon=True
+        target=read_process_lines, args=(process.stdout, lines, readers_stopped), daemon=True
     ).start()
     threading.Thread(
-        target=stream_stderr, args=(process.stderr, stderr_path, lines), daemon=True
+        target=stream_stderr, args=(process.stderr, stderr_path, lines, readers_stopped), daemon=True
     ).start()
     started = False
     active_session: str | None = None
@@ -1158,9 +1193,14 @@ def run_codex_attempt(
     turn_deadline = started_at + float(session["turnTimeout"])
     stdout_eof = False
     stderr_eof = False
+    control_reader = runtime_storage.ChangedJsonReader(state_path, safe_read_json)
+    event_writer = EventLogWriter(Path(state["eventsPath"]))
+    usage = UsageAccumulator()
+    update_json(state_path, state_path.parent / ".state.lock",
+                lambda value: record_attempt(value, attempt, usage.snapshot()))
     try:
         while True:
-            if cancel_requested(state_path, cancel_event):
+            if cancel_requested(state_path, cancel_event, control_reader):
                 stop_attempt()
                 raise AttemptFailure("cancelled", "run was cancelled", started, True)
             current = time.monotonic()
@@ -1211,7 +1251,7 @@ def run_codex_attempt(
                 raise AttemptFailure(
                     "event_invalid", "codex emitted an invalid event", started, True
                 )
-            if not append_event(Path(state["eventsPath"]), line):
+            if not event_writer.append(line):
                 stop_attempt()
                 raise AttemptFailure(
                     "event_log_limit_exceeded",
@@ -1236,6 +1276,9 @@ def run_codex_attempt(
                 message = str(event.get("message", "Native Codex error"))
                 diagnostic = sandbox_diagnostics.sandbox_failure(message)
                 raise AttemptFailure("sandbox_unavailable" if diagnostic else "native_backend_error", diagnostic or message, started, True)
+            if usage.observe(event):
+                update_json(state_path, state_path.parent / ".state.lock",
+                            lambda value: record_attempt(value, attempt, usage.snapshot()))
             if event.get("type") == "goal.error":
                 record_goal_uncertainty(state_path, str(event.get("message", "Native Goal state unconfirmed")))
             if event.get("type") == "thread.started":
@@ -1286,6 +1329,9 @@ def run_codex_attempt(
         raise AttemptFailure(
             "codex_exit_timeout", "codex exec did not exit", started, True
         ) from error
+    finally:
+        readers_stopped.set()
+        event_writer.close()
     # The leader may exit while descendants keep its isolated process group.
     # Contain that group before validating or returning any post-exit outcome.
     stop_attempt()
@@ -2079,6 +2125,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.command == "goal":
             return command_goal(args)
+        if args.command == "announce-tasks":
+            import task_announcement
+            emit(task_announcement.prepare(sys.modules[__name__], args))
+            return 0
         if args.command == "submit":
             validate_submit_options(args)
             return submit(args, True)

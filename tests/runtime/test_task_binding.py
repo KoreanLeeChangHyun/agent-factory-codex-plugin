@@ -11,6 +11,10 @@ from test_agent_exec import load_module
 class TaskBindingTests(unittest.TestCase):
     def setUp(self):
         self.runtime = load_module()
+        capability = mock.patch.object(self.runtime.native_codex, "inspect_capabilities",
+            return_value={"submit": {"goal": True}, "send": {"goal": True}, "diagnostic": None})
+        capability.start()
+        self.addCleanup(capability.stop)
         import task_binding
         self.binding = task_binding
         self.request = 'Implement the named change'

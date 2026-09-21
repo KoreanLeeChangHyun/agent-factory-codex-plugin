@@ -149,10 +149,10 @@ class PlanWorkTests(TaskModeTests):
                     for mode in ("plan", "plan-work", "plan-work-verification"):
                         self.assertEqual(mode in modes, supported)
 
-    def test_main_guidance_requires_own_checks_without_verification(self):
+    def test_main_guidance_reports_work_checks_without_reverification(self):
         instruction = route_instruction("plan-work", "main")
         self.assertIn("loop.py start --task-mode plan-work", instruction)
-        self.assertIn("appropriate own checks", instruction)
+        self.assertIn("do not review implementation or rerun checks", instruction)
         self.assertIn("Do not start separate Verification", instruction)
         self.assertEqual(route_instruction("plan-work", "work"), "")
 

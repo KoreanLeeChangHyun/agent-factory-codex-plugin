@@ -17,6 +17,8 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "maxAttempts",
         "sessionId",
         "executionOptions",
+        "tokenUsage",
+        "usageAttempts",
         "taskMode",
         "taskBinding",
         "executionPolicy",
@@ -61,4 +63,3 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
     if state.get("role") not in {"work", "verification"}:
         public.pop("statePath", None)
     return public
-

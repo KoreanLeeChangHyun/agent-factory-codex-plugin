@@ -61,6 +61,23 @@ for name in ('TurnStartParams', 'ThreadStartParams', 'ThreadResumeParams'):
         self.assertTrue(result["submit"]["fast"])
         self.assertFalse(self.cache.exists())
 
+    def test_instruction_delivery_requires_config_composition_and_injection(self):
+        self.assertFalse(self.probe()["submit"]["instructionDelivery"])
+        self.binary.write_text(self.binary.read_text() + '''
+for name in ('ThreadStartParams', 'ThreadResumeParams'):
+    path = out / 'v2' / (name + '.json')
+    value = json.loads(path.read_text())
+    value['properties']['developerInstructions'] = {}
+    path.write_text(json.dumps(value))
+(out / 'v2/ConfigReadParams.json').write_text(json.dumps({'properties': {'cwd': {}}}))
+(out / 'v2/ConfigReadResponse.json').write_text(json.dumps({'definitions': {'Config': {'properties': {'developer_instructions': {}}}}}))
+path = out / 'ClientRequest.json'
+path.write_text(json.dumps(json.loads(path.read_text()) + ['config/read', 'thread/inject_items']))
+''')
+        self.assertTrue(self.probe()["submit"]["instructionDelivery"])
+        self.binary.write_text(self.binary.read_text().replace("'thread/inject_items'", "'unsupported'"))
+        self.assertFalse(self.probe()["submit"]["instructionDelivery"])
+
     def test_pure_query_does_not_create_or_change_runtime_home(self):
         runtime_home = self.root / 'runtime'
         before = runtime_home.exists()

@@ -47,7 +47,8 @@ class FakeRuntime:
             raise self.agent_exec.ContractError("child_runtime_failure", "crash before call")
         run_id = f"run-{self.next_run}"
         self.next_run += 1
-        request_hash = hashlib.sha256(Path(values["request_file"]).read_bytes()).hexdigest()
+        request = Path(values["request_file"]).read_bytes()
+        request_hash = hashlib.sha256(request).hexdigest()
         binding_hash = (
             hashlib.sha256(Path(values["capability_binding_file"]).read_bytes()).hexdigest()
             if values.get("capability_binding_file") else None
@@ -77,6 +78,10 @@ class FakeRuntime:
             dispatch_tuple.setdefault("executionOptions", {}).update(profile)
         if values["role"] == "work" and values["execution"].get("taskMode"):
             dispatch_tuple.setdefault("executionOptions", {})["taskMode"] = values["execution"]["taskMode"]
+        if values["role"] == "work":
+            from task_modes import work_goal_options
+            dispatch_tuple["executionOptions"] = work_goal_options(
+                dispatch_tuple.get("executionOptions", {}), request.decode("utf-8"))
         if binding_hash is not None:
             dispatch_tuple["capabilityBindingHash"] = binding_hash
         directory = self.agent_exec.agent_root(self.root) / values["agent_id"] / "runs" / run_id
@@ -183,6 +188,54 @@ class AgentLoopContractTests(unittest.TestCase):
         arguments.extend(extra or [])
         args = self.agent_loop.build_parser().parse_args(arguments)
         return self.agent_loop.start_loop(args)
+
+    def close(self, started):
+        args = self.agent_loop.build_parser().parse_args([
+            "close", "--project-root", str(self.root), "--work-agent", "work-agent",
+            "--loop-id", started["loopId"], "--actor", "human",
+            "--authorization-reference", "test-request", "--decision-evidence", "Close failed flow",
+        ])
+        return self.agent_loop.close_loop(args)
+
+    def test_close_failed_preserves_evidence_and_cannot_resume(self):
+        started = self.start()
+        failed = self.fail_work_receipt(started)
+        path = Path(started["statePath"])
+        state = json.loads(path.read_text())
+        state["workflow"]["tasks"].append({"id": "later", "workStatus": "pending", "verificationStatus": "pending"})
+        self.agent_exec.atomic_write_json(path, state)
+        closed = self.close(started)
+        self.assertEqual(closed["status"], "cancelled")
+        self.assertEqual(closed["controlPlaneError"], failed["controlPlaneError"])
+        self.assertEqual(closed["latestWorkRunId"], failed["latestWorkRunId"])
+        self.assertEqual(closed["workflow"]["tasks"][0]["workStatus"], "failed")
+        self.assertEqual(closed["workflow"]["tasks"][1]["workStatus"], "cancelled")
+        self.assertEqual(closed["terminalReason"]["authorizationReference"], "test-request")
+        self.assertEqual(self.close(started), closed)
+        self.assertEqual(self.reconcile(started), closed)
+        self.assertEqual(self.recover_receipt(started), closed)
+        self.assertEqual(len(self.runtime.dispatches), 1)
+        self.assertEqual(self.runtime.runs[("work-agent", started["latestWorkRunId"])]["status"], "failed")
+
+    def test_close_rejects_active_and_uncertain_dispatch(self):
+        started = self.start()
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.close(started)
+        self.fail_work_receipt(started)
+        path = Path(started["statePath"])
+        state = json.loads(path.read_text())
+        state["pendingDispatch"] = {"dispatchId": "uncertain"}
+        self.agent_exec.atomic_write_json(path, state)
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.close(started)
+        self.assertEqual(json.loads(path.read_text())["status"], "runtime-error")
+
+    def test_close_rechecks_child_before_closing(self):
+        started = self.start()
+        self.fail_work_receipt(started)
+        self.runtime.runs[("work-agent", started["latestWorkRunId"])]["status"] = "running"
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.close(started)
 
     def reconcile(self, started):
         args = self.agent_loop.build_parser().parse_args([
@@ -292,23 +345,60 @@ class AgentLoopContractTests(unittest.TestCase):
 
     def test_automatic_hashes_snapshot_all_tasks_without_rewriting_input(self):
         self.add_second_task()
-        self.request.write_bytes('첫 요청\r\n'.encode())
+        first_content = '첫 요청\r\n둘째 줄\n마지막 줄\r\n'.encode('utf-8')
+        second_content = '다음 요청\r\n원문 유지\r\n'.encode('utf-8')
+        self.request.write_bytes(first_content)
         document = json.loads(self.tasks.read_text())
+        Path(document['tasks'][1]['requestFile']).write_bytes(second_content)
         for task in document['tasks']:
             del task['requestHash']
         self.tasks.write_text(json.dumps(document))
         original = self.tasks.read_bytes()
         started = self.start(['--task-mode', 'work'])
-        for task in started['workflow']['tasks']:
+        for task, content in zip(started['workflow']['tasks'], (first_content, second_content)):
             snapshot = Path(task['requestPath']).read_bytes()
+            self.assertEqual(snapshot, content)
             self.assertEqual(task['requestHash'], hashlib.sha256(snapshot).hexdigest())
         self.assertEqual(self.tasks.read_bytes(), original)
+        self.assertEqual(self.request.read_bytes(), first_content)
+        first_run = self.runtime.status('work-agent', started['latestWorkRunId'])
+        self.assertEqual(first_run['dispatchTuple']['executionOptions'], {
+            'taskMode': 'work', 'goalMode': True, 'goalObjective': first_content.decode('utf-8')})
         second = started['workflow']['tasks'][1]
         Path(document['tasks'][1]['requestFile']).write_text('changed after acceptance')
         self.runtime.complete_work('work-agent', started['latestWorkRunId'])
         advanced = self.reconcile(started)
         self.assertEqual(json.loads(Path(advanced['statePath']).read_text())['originalRequestHash'], second['requestHash'])
         self.assertEqual(Path(self.runtime.dispatches[-1]['request_file']).read_bytes(), Path(second['requestPath']).read_bytes())
+        second_run = self.runtime.status('work-agent', advanced['latestWorkRunId'])
+        self.assertEqual(second_run['dispatchTuple']['executionOptions'], {
+            'taskMode': 'work', 'goalMode': True, 'goalObjective': second_content.decode('utf-8')})
+        self.assertEqual(Path(second['requestPath']).read_bytes(), second_content)
+        self.assertEqual(self.tasks.read_bytes(), original)
+        self.assertNotEqual(first_run['runId'], second_run['runId'])
+        self.assertEqual([call['operation'] for call in self.runtime.dispatches], ['submit', 'send'])
+
+    def test_normalized_goal_text_is_rejected_even_when_request_hash_matches(self):
+        content = '원문 요청\r\n다음 줄\r\n'.encode('utf-8')
+        self.request.write_bytes(content)
+        original_list = self.tasks.read_bytes()
+        self.runtime.lose_ack = True
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.start(['--task-mode', 'work'])
+        directory = next((self.agent_exec.agent_root(self.root) / 'work-agent' / 'loops').iterdir())
+        state = self.agent_exec.safe_read_json(directory / 'state.json')
+        pending = state['pendingDispatch']
+        run = self.runtime.status_dispatch(pending['agentId'], pending['dispatchId'])
+        self.assertEqual(run['dispatchTuple']['requestHash'], hashlib.sha256(content).hexdigest())
+        run['dispatchTuple']['executionOptions']['goalObjective'] = content.decode('utf-8').replace('\r\n', '\n')
+        with self.assertRaises(self.agent_exec.ContractError) as error:
+            self.reconcile({'loopId': state['loopId']})
+        self.assertEqual(error.exception.code, 'dispatch_binding_invalid')
+        self.assertEqual(len(self.runtime.dispatches), 1, 'A mismatched accepted run must not be redispatched')
+        self.assertEqual(self.request.read_bytes(), content)
+        self.assertEqual(self.tasks.read_bytes(), original_list)
+        retained = self.agent_exec.safe_read_json(directory / 'state.json')
+        self.assertEqual(retained['pendingDispatch']['dispatchId'], pending['dispatchId'])
 
     def test_caller_hashes_do_not_gate_submission(self):
         self.add_second_task()
@@ -358,6 +448,114 @@ class AgentLoopContractTests(unittest.TestCase):
         self.assertEqual(second["workflow"]["index"], 1)
         self.assertEqual(second["workflow"]["tasks"][0]["verificationStatus"], "completed")
         self.assertEqual([item["role"] for item in self.runtime.dispatches], ["work", "verification", "work", "verification", "work"])
+
+    def six_task_document(self):
+        document = json.loads(self.tasks.read_text())
+        document["tasks"][0]["requestFile"] = str(self.request)
+        for index in range(2, 7):
+            request = self.root / f'request-{index}.md'
+            request.write_text(f'Bounded task {index}\n')
+            document['tasks'].append({'id': f'task-{index}', 'title': f'Task {index}',
+                'description': f'Bounded task {index}', 'completionCriteria': f'Task {index} delivered',
+                'requestFile': str(request)})
+        self.tasks.write_text(json.dumps(document))
+        return document
+
+    def test_six_tasks_reuse_session_with_distinct_runs_and_restore_without_duplicate(self):
+        document = self.six_task_document()
+        contents = []
+        for index, task in enumerate(document['tasks'], 1):
+            content = f'작업 {index}\r\n원문 유지\n마지막 줄\r\n'.encode('utf-8')
+            Path(task['requestFile']).write_bytes(content)
+            task.pop('requestHash', None)
+            contents.append(content)
+        self.tasks.write_text(json.dumps(document))
+        original_list = self.tasks.read_bytes()
+        snapshot = self.start(['--task-mode', 'work'])
+        run_ids = []
+        session_ids = set()
+        for index in range(6):
+            tasks = snapshot['workflow']['tasks']
+            self.assertEqual([task['id'] for task in tasks], [task['id'] for task in document['tasks']])
+            self.assertEqual([task['workStatus'] for task in tasks],
+                ['completed'] * index + ['running'] + ['pending'] * (5 - index))
+            run_id = tasks[index]['workRunId']
+            run_ids.append(run_id)
+            self.assertEqual(tasks[index]['workAgentId'], 'work-agent')
+            self.assertEqual(self.runtime.dispatches[-1]['execution']['taskBinding']['taskId'], tasks[index]['id'])
+            child = self.runtime.status('work-agent', run_id)
+            session_ids.add(child['sessionId'])
+            self.assertEqual(child['dispatchTuple']['executionOptions'], {
+                'taskMode': 'work', 'goalMode': True,
+                'goalObjective': contents[index].decode('utf-8')})
+            self.assertEqual(child['dispatchTuple']['requestHash'], hashlib.sha256(contents[index]).hexdigest())
+            self.assertEqual(Path(tasks[index]['requestPath']).read_bytes(), contents[index])
+            # Every reconcile reloads the persisted snapshot, as a reconnect does.
+            restored = self.reconcile(snapshot)
+            self.assertEqual(restored['workflow'], snapshot['workflow'])
+            self.assertEqual(len(self.runtime.dispatches), index + 1)
+            self.runtime.complete_work('work-agent', run_id)
+            if index == 2:
+                # Lose the fourth task's acknowledgement after acceptance, then
+                # recover that exact dispatch with its original Goal text.
+                self.runtime.lose_ack = True
+                with self.assertRaises(self.agent_exec.ContractError):
+                    self.reconcile(snapshot)
+                pending = self.agent_exec.safe_read_json(Path(snapshot['statePath']))['pendingDispatch']
+                accepted = self.runtime.status_dispatch(pending['agentId'], pending['dispatchId'])
+                accepted_tuple = json.loads(json.dumps(accepted['dispatchTuple']))
+                snapshot = self.reconcile(snapshot)
+                self.assertEqual(snapshot['workflow']['tasks'][3]['workRunId'], accepted['runId'])
+                self.assertEqual(accepted['dispatchTuple'], accepted_tuple)
+                self.assertIsNone(snapshot['pendingDispatch'])
+                self.assertEqual(len(self.runtime.dispatches), 4)
+                continue
+            snapshot = self.reconcile(snapshot)
+        self.assertEqual(len(set(run_ids)), 6)
+        self.assertEqual(len(session_ids), 1)
+        self.assertEqual(self.tasks.read_bytes(), original_list)
+        for task, content in zip(document['tasks'], contents):
+            self.assertEqual(Path(task['requestFile']).read_bytes(), content)
+        self.assertEqual([task['workRunId'] for task in snapshot['workflow']['tasks']], run_ids)
+        self.assertEqual(snapshot['status'], 'completed')
+        self.assertEqual([item['operation'] for item in self.runtime.dispatches], ['submit'] + ['send'] * 5)
+        self.assertEqual(self.reconcile(snapshot)['workflow'], snapshot['workflow'])
+        self.assertEqual(len(self.runtime.dispatches), 6)
+
+    def test_lost_ack_for_second_task_recovers_failed_run_without_dispatching_again(self):
+        self.six_task_document()
+        started = self.start(['--task-mode', 'work'])
+        self.runtime.complete_work('work-agent', started['latestWorkRunId'])
+        self.runtime.lose_ack = True
+        with self.assertRaises(self.agent_exec.ContractError):
+            self.reconcile(started)
+        state = json.loads(Path(started['statePath']).read_text())
+        pending = state['pendingDispatch']
+        child = self.runtime.status_dispatch(pending['agentId'], pending['dispatchId'])
+        child['status'] = 'failed'
+        restored = self.reconcile(started)
+        self.assertEqual([task['workStatus'] for task in restored['workflow']['tasks']],
+                         ['completed', 'failed'] + ['pending'] * 4)
+        self.assertEqual(restored['workflow']['tasks'][1]['workRunId'], child['runId'])
+        stopped = self.reconcile(restored)
+        self.assertEqual(stopped['status'], 'runtime-error')
+        self.assertEqual(len(self.runtime.dispatches), 2)
+
+    def test_readonly_status_projects_blocked_exact_run_without_completing_waiting_tasks(self):
+        self.six_task_document()
+        started = self.start(['--task-mode', 'work'])
+        child = self.runtime.status('work-agent', started['latestWorkRunId'])
+        child['status'] = 'needs-human-decision'
+        original = Path(started['statePath']).read_bytes()
+        args = self.agent_loop.build_parser().parse_args(['status', '--project-root', str(self.root),
+            '--work-agent', 'work-agent', '--loop-id', started['loopId']])
+        snapshot = self.agent_loop.status_loop(args)
+        self.assertEqual([task['workStatus'] for task in snapshot['workflow']['tasks']], ['blocked'] + ['pending'] * 5)
+        self.assertEqual(Path(started['statePath']).read_bytes(), original)
+        child['status'] = 'completed'
+        # Receipt handling has not happened; status alone must not claim completion.
+        self.assertEqual(self.agent_loop.status_loop(args)['workflow']['tasks'][0]['workStatus'], 'running')
+        self.assertEqual(len(self.runtime.dispatches), 1)
 
     def test_driver_advances_without_main_or_panel(self):
         self.add_second_task()
@@ -794,7 +992,7 @@ class AgentLoopContractTests(unittest.TestCase):
         persisted = self.agent_exec.safe_read_json(directory / "state.json")
         self.assertEqual(persisted["pendingDispatch"]["dispatchId"], child["dispatchId"])
 
-    def test_legacy_pending_ack_recovers_original_tuple_without_redispatch(self) -> None:
+    def legacy_pending_ack_fixture(self):
         self.runtime.lose_ack = True
         with self.assertRaises(self.agent_exec.ContractError):
             self.start()
@@ -802,18 +1000,71 @@ class AgentLoopContractTests(unittest.TestCase):
         path = directory / "state.json"
         stored = self.agent_exec.safe_read_json(path)
         stored["execution"] = {"codex": "/bin/true", "sandbox": "danger-full-access", "model": None}
+        # Both sides must predate the Goal contract. Keeping the modern pending
+        # marker while removing the child's Goal options is a real mismatch.
+        stored["pendingDispatch"].pop("workGoal")
+        stored.pop("workflow")
         child = next(iter(self.runtime.runs.values()))
         child["dispatchTuple"].pop("executionPolicy")
         # Historical loop and child fixtures must both predate task-mode options.
         child["dispatchTuple"].pop("executionOptions")
         child["dispatchTuple"].pop("taskBinding")
-        original_tuple = dict(child["dispatchTuple"])
+        self.agent_exec.atomic_write_json(Path(child["statePath"]), child)
         self.agent_exec.atomic_write_json(path, stored)
+        return path, stored, child
+
+    def test_legacy_pending_ack_recovers_original_tuple_without_redispatch(self) -> None:
+        path, stored, child = self.legacy_pending_ack_fixture()
+        original_tuple = dict(child["dispatchTuple"])
+        original_child = Path(child["statePath"]).read_bytes()
+        dispatch_id = stored["pendingDispatch"]["dispatchId"]
+        request = Path(stored["pendingDispatch"]["requestPath"]).read_bytes()
         recovered = self.reconcile({"loopId": stored["loopId"]})
         self.assertEqual(len(self.runtime.dispatches), 1)
         self.assertEqual(child["dispatchTuple"], original_tuple)
+        self.assertEqual(child["dispatchId"], dispatch_id)
+        self.assertEqual(Path(child["statePath"]).read_bytes(), original_child)
+        self.assertEqual(Path(stored["pendingDispatch"]["requestPath"]).read_bytes(), request)
+        self.assertNotIn("executionOptions", child["dispatchTuple"])
         self.assertEqual(recovered["currentChild"]["runId"], child["runId"])
+        self.assertEqual(recovered["currentChild"]["agentId"], child["agentId"])
         self.assertIsNone(recovered["pendingDispatch"])
+        restored = self.reconcile(recovered)
+        self.assertEqual(restored["currentChild"], recovered["currentChild"])
+        self.assertEqual(len(self.runtime.dispatches), 1)
+
+    def test_goal_marked_pending_cannot_accept_a_pre_goal_child(self):
+        path, stored, child = self.legacy_pending_ack_fixture()
+        stored["pendingDispatch"]["workGoal"] = True
+        self.agent_exec.atomic_write_json(path, stored)
+        original_child = Path(child["statePath"]).read_bytes()
+        with self.assertRaises(self.agent_exec.ContractError) as error:
+            self.reconcile({"loopId": stored["loopId"]})
+        self.assertEqual(error.exception.code, "dispatch_binding_invalid")
+        self.assertEqual(len(self.runtime.dispatches), 1)
+        self.assertEqual(Path(child["statePath"]).read_bytes(), original_child)
+        self.assertTrue(self.agent_exec.safe_read_json(path)["pendingDispatch"]["workGoal"])
+
+    def test_legacy_pending_ack_still_rejects_tampered_identity_and_options(self):
+        path, stored, child = self.legacy_pending_ack_fixture()
+        original = json.loads(json.dumps(child))
+        for field, value in (("dispatchId", "dispatch-wrong"), ("agentId", "other-worker"),
+                             ("requestHash", "0" * 64), ("executionOptions", {"goalMode": True})):
+            child.clear()
+            child.update(json.loads(json.dumps(original)))
+            if field == "dispatchId":
+                child[field] = value
+            else:
+                child["dispatchTuple"][field] = value
+            # Model a corrupted response to the exact dispatch lookup, not a new request.
+            with self.subTest(field=field), mock.patch.object(self.runtime, "status_dispatch", return_value=child):
+                with self.assertRaises(self.agent_exec.ContractError) as error:
+                    self.reconcile({"loopId": stored["loopId"]})
+                self.assertEqual(error.exception.code, "dispatch_binding_invalid")
+                self.assertEqual(len(self.runtime.dispatches), 1)
+                retained = self.agent_exec.safe_read_json(path)
+                self.assertEqual(retained["pendingDispatch"]["dispatchId"], stored["pendingDispatch"]["dispatchId"])
+                self.assertIsNone(retained["currentChild"])
 
     def test_crash_before_call_reuses_durable_dispatch_id(self) -> None:
         self.runtime.fail_before_call = True

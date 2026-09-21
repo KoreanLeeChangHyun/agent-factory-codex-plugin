@@ -30,11 +30,10 @@ def receipt_schema_document(
     tests = {
         "type": "object",
         "properties": {
-            "run": {"const": False},
+            "run": {"type": "boolean"},
             "reason": {
-                "const": (
-                    "work-agent-prohibited" if role == "work" else "verification-recorded-separately"
-                )
+                "type": "string", "minLength": 1,
+                "description": "Own check commands/results, or why checks were not run; never an independent Verification pass.",
             },
         },
         "required": ["run", "reason"],
@@ -251,8 +250,26 @@ def validate_receipt(
             raise ContractError("receipt_tests_invalid", "receipt tests proof is missing")
         if set(tests) != {"run", "reason"}:
             raise ContractError("receipt_tests_invalid", "receipt tests proof has unknown or missing fields")
-        if tests != {"run": False, "reason": "work-agent-prohibited"}:
-            raise ContractError("receipt_tests_invalid", "Work receipt must prove Work ran no tests")
+        if type(tests.get("run")) is not bool or not isinstance(tests.get("reason"), str) or not tests["reason"].strip():
+            raise ContractError("receipt_tests_invalid", "Work receipt must record own checks or a reason they were not run")
+        # Old accepted runs retain their captured prohibition; never upgrade their authority.
+        try:
+            schema = json.loads(safe_read_bytes(canonical["receiptSchemaPath"], MAX_RECEIPT_BYTES))
+            if not isinstance(schema, dict):
+                raise ValueError("receipt schema must be an object")
+        except (ValueError, UnicodeDecodeError) as error:
+            raise ContractError("receipt_tests_invalid", "Captured receipt schema is invalid") from error
+        captured_tests = schema.get("properties", {}).get("tests", {}).get("properties", {})
+        if captured_tests.get("run", {}).get("const") is False:
+            if tests["run"] is not False:
+                raise ContractError("receipt_tests_invalid", "Historical Work receipt must retain its no-tests contract: tests.run must be false")
+            expected_reason = captured_tests.get("reason", {}).get("const")
+            if expected_reason is not None and tests["reason"] != expected_reason:
+                raise ContractError(
+                    "receipt_tests_invalid",
+                    "Historical Work receipt tests.reason must exactly match the captured schema literal "
+                    + json.dumps(expected_reason) + "; explanatory prose is not a substitute",
+                )
         if binding_document is not None and (
             ("capabilityOutcomes" in receipt) != ("capabilityOutcomes" in expected_fields)
         ):

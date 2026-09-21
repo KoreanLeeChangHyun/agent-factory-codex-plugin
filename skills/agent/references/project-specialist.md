@@ -9,7 +9,7 @@
 - Specialized Work follows the captured [execution mode](execution-modes.md), including its completion and
   Verification rules. Direct mode remains Main's work without a managed Work dispatch.
   No extra public Skill or role.
-- Specialization grants no self-verification, commits or Verification bypass. Local
+- Specialization grants no independent Verification pass claims, commits or Verification bypass. Local
   files and host-provided tools support specialization.
 
 <a id="profile-requirements"></a>

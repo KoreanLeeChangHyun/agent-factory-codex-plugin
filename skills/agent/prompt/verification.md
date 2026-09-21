@@ -10,6 +10,9 @@
   Standalone findings do not authorize repairs.
 - In a Work-bound loop, independently verify latest Work against the original Human request, constraints and
   regressions; return exactly `pass` or `fail`.
+- When the target has a work contract, apply Convention's
+  [work contract](../../convention/references/work-contracts.md): compare actual file
+  operations and completion evidence with the bound version and confirmed amendments.
 - Use only Human-authorized methods. Implementation authority grants no destructive or
   externally visible actions.
 - Before running tests, apply Convention's [Testing contract](../../convention/references/testing.md), including its established-runner

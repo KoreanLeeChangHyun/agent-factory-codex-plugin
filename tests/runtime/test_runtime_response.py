@@ -33,10 +33,11 @@ class RuntimeResponseTests(unittest.TestCase):
         return {'status': 'completed', 'resultPath': state['resultPath'],
                 'resultText': '안녕하세요!\n**Answer**\n', **values}
 
-    def attempt(self, state, terminal, *, return_code=0, backend=None):
+    def attempt(self, state, terminal, *, return_code=0, backend=None, usage_events=()):
         events = [{'type': 'thread.started', 'thread_id': 'session-response'},
                   {'type': 'item.completed', 'item': {'type': 'agent_message', 'text': 'Progress only'}},
                   {'type': 'item.completed', 'item': {'type': 'agent_message', 'text': json.dumps(terminal)}}]
+        events.extend(usage_events)
         self.process_input = CapturedInput()
         process = Mock(pid=101, stdin=self.process_input, stderr=io.StringIO(),
                        stdout=io.StringIO(''.join(json.dumps(e)+'\n' for e in events)))
@@ -55,6 +56,24 @@ class RuntimeResponseTests(unittest.TestCase):
             return rt.run_codex_attempt(project_root=self.root, session=session, state=state,
                 attempt=1, heartbeat=Mock(), cancel_event=threading.Event(),
                 expected_agent_id=state['agentId'], expected_run_id=state['runId'])
+
+    def test_attempt_persists_reported_usage_even_when_process_fails(self):
+        for return_code in (0, 1):
+            with self.subTest(return_code=return_code):
+                state = self.new_run()
+                event = {"type": "turn.completed", "usage": {
+                    "input_tokens": 900, "cached_input_tokens": 700, "output_tokens": 50}}
+                if return_code:
+                    with self.assertRaises(rt.AttemptFailure):
+                        self.attempt(state, self.envelope(state), return_code=return_code, usage_events=[event])
+                else:
+                    self.attempt(state, self.envelope(state), usage_events=[event])
+                saved = rt.public_state(rt.safe_read_json(Path(state["statePath"])))
+                self.assertEqual(saved["tokenUsage"]["inputTokens"], 900)
+                self.assertEqual(saved["tokenUsage"]["cachedInputTokens"], 700)
+                self.assertEqual(saved["tokenUsage"]["outputTokens"], 50)
+                self.assertIsNone(saved["tokenUsage"]["reasoningOutputTokens"])
+                self.assertEqual(saved["usageAttempts"]["1"]["reports"], 1)
 
     def test_native_attempt_sends_structured_parts_with_current_inline_request(self):
         from prompt_delivery import PromptParts

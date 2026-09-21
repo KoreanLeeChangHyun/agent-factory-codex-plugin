@@ -35,8 +35,88 @@ def load_module():
 
 
 class AgentExecTests(unittest.TestCase):
+    def test_output_queue_applies_backpressure_and_stops_when_consumer_exits(self):
+        import queue
+        import threading
+        output = queue.Queue(maxsize=2)
+        stopped = threading.Event()
+        reader = threading.Thread(target=self.module.read_process_lines,
+                                  args=(io.StringIO("line\n" * 1000), output, stopped))
+        reader.start()
+        deadline = time.monotonic() + 2
+        while not output.full() and time.monotonic() < deadline:
+            time.sleep(.01)
+        try:
+            self.assertEqual(output.qsize(), 2)
+            self.assertTrue(reader.is_alive())
+        finally:
+            stopped.set()
+            reader.join(2)
+        self.assertFalse(reader.is_alive())
+
+    def test_output_reader_preserves_order_eof_and_rejects_oversized_line(self):
+        import queue
+        output = queue.Queue()
+        self.module.read_process_lines(io.StringIO("one\ntwo\n"), output)
+        self.assertEqual([output.get_nowait() for _ in range(3)],
+                         [("line", "one\n"), ("line", "two\n"), ("stdout_eof", None)])
+        self.module.read_process_lines(io.StringIO("x" * (1024 * 1024 + 2)), output)
+        self.assertEqual(output.get_nowait(), ("error", None))
+        self.assertEqual(output.get_nowait(), ("stdout_eof", None))
+
+    def test_child_reference_is_bound_to_parent_and_exact_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.module.create_run(project_root=root, agent_id="main-parent", actor="main",
+                request=b"parent", session={"role": "main", "maxAttempts": 1})
+            child = self.module.create_run(project_root=root, agent_id="work-child", actor="main",
+                request=b"child", session={"role": "work", "maxAttempts": 1},
+                parent_agent_id="main-parent", parent_run_id=parent["runId"])
+            reference = self.module.safe_read_json(Path(parent["statePath"]).parent / "children/work-child.json")
+            self.assertEqual(reference["runId"], child["runId"])
+            self.assertEqual(reference["parentRunId"], parent["runId"])
+            self.assertEqual(reference["agentId"], "work-child")
+
+    def test_changed_state_reader_reuses_and_observes_atomic_replacement(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = self.module.create_run(project_root=Path(directory), agent_id="main-reader", actor="main",
+                request=b"test", session={"role": "main", "maxAttempts": 1})
+            path = Path(state["statePath"])
+            read = mock.Mock(wraps=self.module.safe_read_json)
+            reader = self.module.runtime_storage.ChangedJsonReader(path, read)
+            self.assertFalse(reader.read()["cancelRequested"])
+            self.assertFalse(reader.read()["cancelRequested"])
+            self.assertEqual(read.call_count, 1)
+            self.module.atomic_write_json(path, {"cancelRequested": True})
+            self.assertTrue(reader.read()["cancelRequested"])
+            self.assertEqual(read.call_count, 2)
+
+    def test_event_writer_reuses_descriptor_and_keeps_each_fsync(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "events.jsonl"
+            writer = self.module.EventLogWriter(path)
+            try:
+                with mock.patch("os.open", wraps=os.open) as opened, mock.patch("os.fsync", wraps=os.fsync) as synced:
+                    for _ in range(20):
+                        self.assertTrue(writer.append('{"event":1}\n'))
+                    self.assertEqual(opened.call_count, 1)
+                    self.assertEqual(synced.call_count, 20)
+                self.assertEqual(len(path.read_text().splitlines()), 20)
+                replacement = path.with_suffix(".replacement")
+                replacement.write_text("")
+                replacement.replace(path)
+                with self.assertRaises(self.module.ContractError):
+                    writer.append("unexpected")
+            finally:
+                writer.close()
+            self.assertIsNone(writer.descriptor)
+
     def setUp(self) -> None:
         self.module = load_module()
+        capability = mock.patch.object(self.module.native_codex, "inspect_capabilities",
+            return_value={"submit": {"goal": True}, "send": {"goal": True}, "diagnostic": None})
+        capability.start()
+        self.addCleanup(capability.stop)
 
     def test_cli_error_has_structured_operation_and_context_does_not_leak(self) -> None:
         import runtime_storage
@@ -246,6 +326,16 @@ class AgentExecTests(unittest.TestCase):
                 else:
                     self.assertNotIn("<agent-factory-communication-contract>", prompt)
 
+    def test_new_sessions_use_native_only_with_instruction_delivery_support(self):
+        for supported in (True, False):
+            with self.subTest(supported=supported), tempfile.TemporaryDirectory() as directory:
+                args = self.module.parse_args(["submit", "--project-root", directory, "--agent", "main-native",
+                                               "--role", "main", "--message", "hello", "--codex", sys.executable])
+                with mock.patch.object(self.module.native_codex, "inspect_capabilities", return_value={
+                        "submit": {"instructionDelivery": supported}}):
+                    session = self.module.create_session(args, Path(directory))
+                self.assertEqual(session.get("backend"), "app-server" if supported else None)
+
     def test_main_bypass_prompt_authorizes_direct_delegation_without_plan_approval(self) -> None:
         prompt = self.module.build_prompt(
             agent_id="main-agent", role="main",
@@ -283,7 +373,8 @@ class AgentExecTests(unittest.TestCase):
                 root = Path(directory)
                 for operation in ("submit", "send"):
                     argv = [operation, "--project-root", directory, "--agent", role + "-agent",
-                            "--message", "bounded request", "--model", "gpt-5.6-sol"]
+                            "--message", "bounded request", "--model", "gpt-5.6-sol",
+                            "--task-list-file", str(self.task_list(directory)), "--task-id", "bounded-task"]
                     if operation == "submit":
                         argv += ["--role", role, "--human-approval-policy", "bypass", "--codex", sys.executable]
                     if role == "verification":
@@ -705,10 +796,22 @@ class AgentExecTests(unittest.TestCase):
             self.assertEqual(final["error"]["code"], "run_start_unknown")
             self.assertEqual(emit.call_args.args[0]["runs"][0]["action"], "failed-not-replayable")
 
+    def task_list(self, directory: str) -> Path:
+        path = Path(directory) / "tasks.json"
+        if not path.exists():
+            path.write_text(json.dumps({
+                "id": "dispatch-tests", "title": "Managed dispatch contract",
+                "tasks": [{"id": "bounded-task", "title": "Bounded request",
+                           "description": "Exercise managed dispatch and recovery",
+                           "completionCriteria": "Preserve exact dispatch identity and execution policy"}],
+            }), encoding="utf-8")
+        return path
+
     def dispatch_args(self, directory: str, dispatch_id: str, message: str = "bounded request") -> argparse.Namespace:
         return argparse.Namespace(
             project_root=Path(directory), agent="work-agent", actor="main", message=message,
             request_file=None, receipt_request_hash="a" * 64, verified_work_run_id=None,
+            task_list_file=self.task_list(directory), task_id="bounded-task",
             dispatch_id=dispatch_id, role="work", codex="/bin/true", sandbox=self.module.DEFAULT_SANDBOX,
             model=None, heartbeat_interval=5.0, heartbeat_timeout=20.0,
             start_timeout=60.0, turn_timeout=1800.0, max_attempts=2,
@@ -1546,7 +1649,7 @@ class AgentExecTests(unittest.TestCase):
                 )
             self.assertEqual(invalid_outcome.exception.code, "receipt_binding_invalid")
             receipt["outcome"] = "completed"
-            receipt["tests"]["run"] = True
+            receipt["tests"]["run"] = "true"
             Path(state["receiptPath"]).write_text(json.dumps(receipt), encoding="utf-8")
             with self.assertRaises(self.module.ContractError) as raised:
                 self.module.validate_receipt(

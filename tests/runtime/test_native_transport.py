@@ -74,6 +74,15 @@ class ActivationAndFramingRegressions(unittest.TestCase):
                 self.assertGreater(enabled[0][0], reload_index)
                 self.assertIn('complete Main role and exact managed request', enabled[0][1]['developerInstructions'])
                 self.assertIn(state['resultPath'], enabled[0][1]['developerInstructions'])
+                injected = [(i, params) for i, (method, params) in enumerate(rpc.calls)
+                            if method == 'thread/inject_items' and i > enabled[0][0]]
+                self.assertEqual(len(injected), 1)
+                self.assertEqual(injected[0][1]['threadId'], 'thread-exact')
+                self.assertEqual(injected[0][1]['items'][0]['role'], 'developer')
+                self.assertEqual(injected[0][1]['items'][0]['content'][0]['text'], enabled[0][1]['developerInstructions'])
+                activation = next(i for i, (method, params) in enumerate(rpc.calls)
+                                  if i > reload_index and method == 'thread/goal/set' and params.get('status') == 'active')
+                self.assertLess(injected[0][0], activation)
                 self.assertEqual(rpc.goal['status'], 'active')
                 if existing:
                     self.assertEqual(rpc.goal['tokensUsed'], 25)
@@ -194,5 +203,4 @@ for line in sys.stdin:
                 self.assertEqual(runtime.process_identity_status(child_identity), 'dead')
             finally:
                 runtime.terminate_attempt_group(process, identity)
-
 

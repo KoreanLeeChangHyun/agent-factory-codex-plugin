@@ -145,6 +145,17 @@
   for the current run.
 - Use `scripts/exec.py` for delegated roles; Main may also be exec-hosted.
 - Resume exact session IDs; do not use `resume --last` or concurrent turns per session.
+- New sessions use App Server when the installed protocol advertises `instructionDelivery`:
+  effective developer-configuration reading, developer instructions on start/resume,
+  instruction injection and structured turn output. User/project developer instructions
+  are composed with the managed fixed rules. Unchanged fixed rules are not appended to
+  each user message; changed rules are injected before the next turn and remain available
+  for native compaction. Unsupported installations keep CLI delivery. Existing CLI
+  sessions keep their transport unless an explicitly requested native feature requires it.
+- Extension-managed submission preparation supplies the Agent Skill's source and content
+  hash instead of its full body. Reuse it only when that exact content is loaded in the
+  current context; read it before dispatch when missing, changed or lost after compaction.
+  This instruction hash is not a submission request hash.
 - `exec.py reset-conversation --agent <main-agent-id>` starts a fresh provider thread
   for an idle Main Agent while preserving its Agent identity, configuration, and all
   historical run directories. The command records a durable `conversationId` boundary
@@ -181,6 +192,28 @@
 - Pre-start retries are idempotent. After successful launch, missing start events are
   ambiguous; no automatic replay. External/irreversible retries need Human authority.
 
+#### Reported token usage
+
+- `exec.py status --agent <agent-id> --run-id <run-id>` exposes `run.tokenUsage` and
+  `run.usageAttempts` for runs observed by this runtime. Historical runs without them
+  remain unavailable; they are not backfilled from the latest context size.
+- Counters are `inputTokens`, `cachedInputTokens`, `outputTokens` and
+  `reasoningOutputTokens`. Cached input is a subset of input; reasoning is a subset of
+  output. Do not add subsets again. Missing counters are `null`, never assumed zero.
+- `coverage` is `reported` or `unavailable`. `reports` counts accepted usage reports,
+  not model/tool calls. CLI reports turn usage; native reports use session-counter
+  deltas after the first observed inference, excluding pre-existing session totals.
+  Repeated native totals and identified CLI turns are counted once. Counter resets
+  increment `counterDiscontinuities` and resume counting from the latest reported inference.
+- Attempt snapshots replace previous snapshots for that attempt. Run totals sum distinct
+  attempts; an unavailable counter in any attempt makes that aggregate counter unknown.
+  Reported usage survives later execution failure. Provider omissions, interrupted streams,
+  or notifications arriving after completion can leave consumption unreported.
+- These are backend-reported counters, not a billing estimate, subscription allowance,
+  context occupancy, or proof of a token-saving percentage. Compare equivalent tasks,
+  models and routes, including quality and retries. Prompt byte sizes measure transport
+  size only; loading a referenced Skill still consumes input tokens when needed.
+
 <a id="cli-and-receipts"></a>
 
 ### 3.3. CLI and receipts
@@ -208,7 +241,8 @@
   - Native Goal activation has no image field in the installed app-server schema;
     requests combining images with enabled Goal mode fail before run creation instead of
     silently discarding image content.
-  - Disable Goal for that turn.
+  - For direct Main, disable Goal for that turn. Work requires Goal and reports this
+    unsupported image/Goal combination instead of silently dropping the image or Goal.
 - The `capabilities` response advertises `images: true` independently for `submit` and
   `send`. Clients must require that flag before using `agent-input`; a missing or
   false flag identifies a runtime that cannot guarantee image delivery and must not be
@@ -233,7 +267,7 @@
   - The recovery request forbids repeating completed effects; active, ambiguous, unsafe
     and non-receipt failures fail closed.
   - Reconcile only after the recovered Work actually completes. In `work` mode, end
-    the loop with `work-completed`; Main then performs appropriate own checks and integrates,
+    the loop with `work-completed`; Main acknowledges and reports Work results and own checks,
     with separate Verification `not requested`.
   - In verification modes, start independent Verification with the preserved failed-run
     evidence unless an evidenced Human skip applies. Follow [execution modes](execution-modes.md) for completion

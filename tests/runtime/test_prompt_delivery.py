@@ -15,6 +15,61 @@ import process_transport
 
 
 class PromptDeliveryTests(unittest.TestCase):
+    def test_effective_user_instructions_are_preserved_and_changes_reinjected(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, state = native_fixture(Path(directory), goal=False, existing=False)
+            bridge.session["nativeCapabilities"] = {"instructionDelivery": True}
+            original = rpc.call
+            inherited = "User's project-specific developer instructions."
+            def call(method, params, **kwargs):
+                if method == "config/read":
+                    rpc.calls.append((method, params))
+                    self.assertEqual(params["cwd"], directory)
+                    return {"config": {"developer_instructions": inherited}}
+                return original(method, params, **kwargs)
+            rpc.call = call
+            parts = self.parts()
+            bridge.setup(parts)
+            start = next(p for m, p in rpc.calls if m == "thread/start")
+            self.assertEqual(start["developerInstructions"], inherited + "\n\n" + parts.fixed)
+            bridge.session["sessionId"] = "thread-exact"
+            for changed, expected_updates in ((False, 0), (True, 1)):
+                if changed:
+                    inherited = "Revised user instructions."
+                rpc.calls.clear()
+                native.Bridge(runtime, bridge.session, state, rpc).setup(parts)
+                injections = [p for m, p in rpc.calls if m == "thread/inject_items"]
+                self.assertEqual(len(injections), expected_updates)
+                if injections:
+                    self.assertIn(inherited, injections[0]["items"][0]["content"][0]["text"])
+                turn = next(p for m, p in rpc.calls if m == "turn/start")
+                self.assertEqual(turn["input"][0]["text"], parts.dynamic)
+
+    def test_invalid_user_config_stops_before_thread_creation(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, _ = native_fixture(Path(directory), goal=False, existing=False)
+            bridge.session["nativeCapabilities"] = {"instructionDelivery": True}
+            original = rpc.call
+            def call(method, params, **kwargs):
+                return {"config": {"developer_instructions": []}} if method == "config/read" else original(method, params, **kwargs)
+            rpc.call = call
+            with self.assertRaises(native.NativeError):
+                bridge.setup(self.parts())
+            self.assertFalse(any(m in ("thread/start", "turn/start") for m, _ in rpc.calls))
+
+    def test_goal_activation_retains_inherited_user_instructions(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, _ = native_fixture(Path(directory), goal=True)
+            bridge.session["nativeCapabilities"] = {"instructionDelivery": True}
+            original = rpc.call
+            def call(method, params, **kwargs):
+                return {"config": {"developer_instructions": "Preserved user rule"}} if method == "config/read" else original(method, params, **kwargs)
+            rpc.call = call
+            parts = self.parts()
+            bridge.setup(parts)
+            reload = [p for m, p in rpc.calls if m == "thread/resume"][-1]
+            self.assertIn("Preserved user rule\n\n" + parts.full, reload["developerInstructions"])
+
     def test_codex_output_schema_requires_every_property_including_nullable_metadata(self):
         for inline in (True, False):
             for metadata in (True, False):

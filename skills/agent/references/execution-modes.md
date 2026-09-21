@@ -7,10 +7,10 @@
 | Mode | Implementation | Completion |
 | --- | --- | --- |
 | `direct` (new Main input default) | Main directly | Appropriate Main checks |
-| `work` | Managed Work | Completed Work receipt, appropriate Main checks; separate Verification not requested |
+| `work` | Managed Work | Completed Work Goal and receipt with own checks; separate Verification not requested |
 | `plan` | Actual Work Plan collaboration mode only | Return plan; no execution or Verification |
 | `verification` | Managed standalone Verification | Request-bound standalone receipt and findings; no repairs |
-| `plan-work` | Actual Plan then default execution in the same Work thread | Completed Work receipt, appropriate Main checks; separate Verification not requested |
+| `plan-work` | Actual Plan then default execution in the same Work thread | Completed Work Goal and receipt with own checks; separate Verification not requested |
 | `work-verification` | Managed Work | Separate Verification pass or evidenced Human skip |
 | `plan-work-verification` | Actual Plan then default execution in the same Work thread | Separate Verification pass or evidenced Human skip |
 
@@ -31,8 +31,8 @@
   immutable dispatch tuple.
 - Main performs `direct` work itself; do not create a direct-mode loop.
 - `loop.py start --task-mode work --work-agent ID --request-file PATH` (also `--task-mode plan-work`) needs no Verification identity. Its completed Work
-  receipt ends the loop with terminal reason `work-completed`. Main then performs appropriate
-  checks and integrates.
+  receipt ends the loop with terminal reason `work-completed`. Main acknowledges the bound result/receipt and reports without reviewing implementation
+  or rerunning checks.
 - Work-bound verification modes additionally require `--verification-agent ID`. Failure revises the same Work
   session, then reuses the same Verification session and binds its receipt to the new
   exact Work run. No planning role or extra Agent exists.
@@ -59,7 +59,7 @@
 - Failure or interruption cannot start implementation or Verification.
 - Missing Plan support fails before a model turn; do not imitate the transition in prose.
 - For Plan·Work routes, completed implementation and a valid Work receipt are required.
-- `plan-work` then requires Main checks; `plan-work-verification` requires separate Verification.
+- `plan-work` completes with Work own checks; `plan-work-verification` requires separate Verification.
 
 <a id="reports-and-authority"></a>
 
@@ -67,8 +67,9 @@
 
 - Use `not requested` for separate Verification in direct/work/plan-work modes, not
   `pass` or Human skip.
-- Report Main's own checks separately.
-- Work never self-verifies or commits.
+- Report Main's own checks for direct and Work-reported own checks for delegated work separately
+  from independent Verification. Status and receipt identity checks do not re-verify work.
+- Work performs necessary own checks but never claims independent Verification pass or commits.
 - Permission, approval, publication and destructive-action authority remain independent
   of mode.
 - Mode selection alone sends no messages to external services.

@@ -30,8 +30,23 @@
 
 - `--goal-mode` creates/reopens a persisted native objective. Supply it through the first
   request or `--goal-objective`; never infer a token budget.
-- Goal is Main-only; Work/Verification remain bounded with receipts. Native turns,
-  status and accounting cannot advance loop, replace Verification or establish END.
+- Work execution and revision requests automatically bind a native Goal to their bounded
+  request; necessary own checks belong to Work. Main can use Goal for direct tasks.
+  Verification and plan-only never execute Goals. A delegated route with Main
+  `--goal-mode` is rejected: submit that route without a Main Goal, since Work owns
+  execution continuation. Unsupported Goal fails explicitly;
+  do not replace it with repeated dispatches or silently disable it.
+- Native Goal owns execution continuity. The management loop owns completed Work →
+  independent Verification and failed Verification → the same Work/Verification sessions.
+  Native turns, status and accounting cannot replace a bound receipt or Verification.
+- Each revision receives its current request and result/receipt contract in the same
+  thread. Long requests remain complete in developer instructions. No token budget is invented.
+- Plan·Work uses actual Plan, then a default-mode transition turn without implementation,
+  then native Goal activation in that same thread. Plan-only stops after the plan.
+- Goal `complete` still requires the latest exact turn's valid result and Work receipt.
+  Blocked/paused goals require Human input; usage/budget limits and cleared objectives
+  fail rather than complete. Preserve reported failures and required Human decisions.
+  Cancellation retains its cancelled runtime state. No automatic retry is added.
 - Objective replacement/pause/reopen/clear follows installed host semantics.
 
 <a id="commands"></a>

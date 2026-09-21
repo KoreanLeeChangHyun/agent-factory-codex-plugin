@@ -22,18 +22,20 @@ metadata:
 - **direct:** Main performs bounded work and appropriate own checks directly.
 - **plan:** Work uses actual Plan collaboration mode and returns only a plan; no implementation transition.
 - **verification:** managed standalone Verification of an explicit target, otherwise prior completed work in this chat; ask if no target is available. Its request-bound receipt cannot satisfy a Work loop.
-- **work:** Main delegates Work, then performs appropriate own checks and integrates; no
+- **work:** Main delegates Goal execution and necessary own checks to Work, then reports; no
   separate Verification. Report it as not requested, never a pass or Human skip.
 - **plan-work:** Work plans in actual Codex Plan mode, then automatically executes in
-  default mode within the same session. Main checks and integrates the result. Separate
+  default mode within the same session. Main acknowledges the result/receipt and reports without rechecking implementation. Separate
   Verification is not requested.
 - **work-verification:** Main -> Work -> Verification.
 - **plan-work-verification:** Work plans in actual Codex Plan mode, then automatically
   executes in default mode within the same session. Separate Verification follows.
-- **Work:** execute; no self-verification, coordination or commits.
+- **Work:** execute through native Goal with necessary own checks; no independent
+  Verification pass claims, coordination or commits.
 - **Verification:** independently check the exact completed Work run or an explicitly bound standalone target; no repair.
 - **Fail in Work-bound verification modes:** return to the same Work and Verification sessions.
-- **END:** direct/work/plan-work route completion after appropriate Main checks;
+- **END:** direct completes after Main own checks; work/plan-work complete after
+  Work Goal completion and its bound result/receipt;
   Work-bound verification routes require pass or evidenced Human skip applied after completed Work.
   Record skip before the next Verification; never equate failure/cancellation/input
   requests with completion. Mode selection is independent of Human approval policy.
@@ -123,7 +125,54 @@ metadata:
 
 ### Required task binding before dispatch
 
+Register each task that has its own completion criteria as a separate entry in `tasks`,
+independent of worker count. Preserve the individual tasks communicated to the Human,
+including each task's identity, scope and completion criteria, so its progress, completion,
+waiting or blockage remains separately visible. For example, six announced tasks require
+six registered entries even when one worker executes them sequentially in the same session.
+Do not collapse them into one aggregate task because they share a worker or session.
+
 Every Work/Verification submission (including sends and standalone verification) requires `--task-list-file <json>` and `--task-id <id>`. Main first consolidates the Human's request and asks about any material missing information. Write a JSON document with `id`, `title`, and a nonempty `tasks` array. Each task requires `id`, `title`, `description` and `completionCriteria`. Do not calculate or supply `requestHash`. Caller-provided hashes are ignored; they never gate task submission. It normalizes a private snapshot without rewriting the submitted task-list file. IDs are at most 128 letters/digits/dots/underscores/hyphens, starting with a letter or digit; titles are at most 300 characters and descriptions/criteria at most 4000. Task IDs must be unique. Pass the same options to `loop.py start`; the loop snapshots the document and preserves the original request hash through revision and verification turns. Never manufacture placeholder task names to bypass this check. The accepted run stores `taskBinding` together with its agent/run identity. Display that submitted task name and content to the Human and track the selected route through completion. Existing historical runs remain readable; new submissions require the binding.
+
+### One source for task presentation and submission
+
+Before initial managed dispatch from Main, include an absolute `requestFile` for every
+task (including the first) in the structured task-list document. Run the installed
+`python3 scripts/exec.py announce-tasks --project-root PROJECT --task-list-file FILE`.
+This command requires the active managed Main parent binding; it does not launch work.
+It stores the ordered metadata and exact request bytes under that Main run and returns
+`taskFlow`, `taskListFile`, `taskId` and `requestFile` from the same snapshot.
+Show the returned `taskFlow` unchanged in a commentary fenced `task-flow` JSON block,
+then use the returned paths and ID for `--task-list-file`, `--task-id` and `--request-file`
+on the selected submission route. Do not independently reconstruct the display list or
+parse natural-language tables. Preserve completion criteria as well as IDs, titles,
+order and descriptions. Runtime preparation is neither proof of display nor acceptance.
+
+The runtime owns `task-announcements/<workflow-id>/announcement.json`, `task-list.json`
+and captured request files under the parent run. The announcement records the runtime
+binding and parent Agent/run identity for later submission checks; never trust a UI
+cache or a caller-supplied path as ownership evidence. Repeating the same preparation
+returns the same snapshot; changed content under the same workflow ID is rejected.
+Do not edit these files. If the installed command is unavailable, report the compatibility
+limitation. Revisions retain their already accepted task binding and captured requests.
+After acceptance, update only actual bindings and statuses in the presented flow while
+preserving its task metadata and order.
+
+New Main runs record `taskAnnouncementContract: 1`. Before `loop.py start` or a new
+Work/Verification `submit` or `send` is accepted under that parent, the runtime compares
+the entire submitted list with the parent's stored announcement: workflow identity/title,
+task IDs, count, order, titles, descriptions and completion criteria must match. Missing
+announcements, omitted/merged or duplicate tasks, reordered tasks and changed metadata
+produce specific `task_announcement_*` errors before a child starts. Caller-provided
+counts, hashes and announcement paths cannot substitute for this comparison.
+
+Historical Main runs without the marker retain their prior submission contract unless
+they explicitly prepared announcements. Unparented CLI submissions retain their existing
+task-binding contract. Historical records are not migrated or re-registered. Already
+accepted dispatch retries follow their immutable-tuple deduplication path; continue an
+accepted loop through its stored identity instead of starting it again. Revisions and
+Verification keep the same list metadata; their execution requests may differ. No manual
+request hash is required.
 
 ### Supplied preparation context
 

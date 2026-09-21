@@ -1,6 +1,8 @@
 # Development
 
 - Follow stronger established project conventions.
+- For contract-bound changes, apply [Work Contracts](work-contracts.md) for exact file
+  operations, Human-confirmed amendments and completion reconciliation.
 
 <a id="changes"></a>
 
@@ -75,7 +77,7 @@
 ## 6. Git publication
 
 - Main directly makes authorized ordinary commits after the selected route completes:
-  appropriate own checks in direct/work/plan-work modes, or independent pass/evidenced
+  Main own checks in direct, completed Work with its own checks in work/plan-work, or independent pass/evidenced
   Human skip applied after Work completion in verification modes. Work/Verification
   never commit; add no commit turn, role or graph node.
 - Inspect applicable Work result/receipt, check/pass/skip evidence and current

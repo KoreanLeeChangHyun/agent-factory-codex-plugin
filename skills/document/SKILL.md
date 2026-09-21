@@ -34,6 +34,8 @@ metadata:
 - `references/specification.md`: write accepted facts, rules and designs.
 - `references/processed.md`: write analysis and working knowledge.
 - `references/original.md`: preserve source evidence and metadata.
+- For work contract content, use Convention's [work contract](../convention/references/work-contracts.md);
+  this Skill continues to own durable document language, classification and storage.
 - Read only the guides for the types involved. Use [Convention](../convention/SKILL.md) for shared development,
   themes, diagrams and interviews; [Agent](../agent/SKILL.md) for managed execution, not this Skill.
 

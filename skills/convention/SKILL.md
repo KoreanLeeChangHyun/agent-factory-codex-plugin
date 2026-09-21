@@ -78,6 +78,8 @@ metadata:
   Codex synchronization.
 - `references/development.md`: shared checkout boundaries, changes, technical documentation, comments,
   commits.
+- `references/work-contracts.md`: task-list contracts, required/optional fields, file-level
+  change boundaries, amendments and result reconciliation. Use when preparing or executing a work contract.
 - `references/testing.md`: test organization, selection, parallel execution and execution
   boundaries.
 - `references/libraries.md`: dependencies, renderers.

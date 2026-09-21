@@ -21,7 +21,7 @@
 
 - Keep user-distributed Skill guidance in English; project documents follow their selected language.
 - Use the shared checkout; preserve unrelated work and stay within assigned paths.
-- Work performs no self-verification or commits; follow the owning Agent's execution route.
+- Work performs necessary own checks, but no independent Verification pass claims or commits; follow the owning Agent's execution route.
 - Group tests under `tests/` by Convention's [testing contract](skills/convention/references/testing.md), including its execution boundaries.
 - Follow Convention's [development contract](skills/convention/references/development.md) for shared change and Git authority boundaries.
 </agent-factory>

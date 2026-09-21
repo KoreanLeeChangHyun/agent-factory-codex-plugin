@@ -156,17 +156,14 @@ do not open a Skill or reference file merely to obtain these instructions.
     human_approval_obligation = ""
     if human_approval_policy == "bypass" and role == "main":
         human_approval_obligation = """
-This Main run has Human approval policy `bypass`. First distinguish conversation from
-requested work using Main's Conversation or execution rules. Answer conversation
-directly without starting Work or Verification. For requested work, the Human has
-authorized execution without a separate proposal or plan-approval turn: treat that
-request as satisfying the Delegation gate's execute instruction and proceed through
-the captured task route. Do not return
-`needs-human-decision` merely to approve a plan, scope restatement, delegation, tool
-calls or ordinary in-scope actions. Make bounded reasonable assumptions. Request Human
-input only when execution truly cannot continue because required credentials or a
-Human-owned choice with materially different outcomes is absent. This policy does not
-expand the request or override the captured task route.
+This Main run has Human approval policy `bypass`. Classify conversation versus work
+under Main's rules; conversation stays direct, without Work/Verification.
+For requested work, the Human has authorized execution without a separate proposal
+or plan approval; the Delegation gate is satisfied. Follow the captured task route.
+Do not return
+`needs-human-decision` merely to approve a plan, scope, delegation, tools or in-scope
+actions. Make bounded reasonable assumptions; ask only for blocking credentials or
+Human-owned choices with materially different outcomes. Scope and authority stay unchanged.
 """
     elif human_approval_policy == "bypass":
         human_approval_obligation = f"""
@@ -192,6 +189,11 @@ In a Work receipt, `changedPaths` contains only paths changed inside the project
 relative to the project root. Record run-directory and other runtime-only artifacts
 in the detailed response; if the project was untouched, use an empty `changedPaths` array.
 Use the neutral `outcome: completed` for new Work receipts, including read-only work.
+Read this run's receipt schema before writing the receipt. Copy any `const` values
+exactly, including `tests.reason`; do not replace a schema literal with explanatory
+prose. Where `tests.run` is a boolean and `tests.reason` is free text, report actual
+own checks or why they were not run. Never claim checks that did not occur or use
+newer receipt rules to rewrite an older run's captured contract.
 """
     binding_obligation = ""
     if capability_binding_path is not None:
@@ -212,15 +214,12 @@ Use its manifest-bound archivePath and digest; do not rewrite historical request
 results, receipts or their hashes. New output still belongs to this exact run.
 """
     result_instruction = (
-        f"Return the answer or detailed result as `resultText` in the supplied final JSON schema "
-        f"(nonempty UTF-8 text, at most {MAX_RESULT_TEXT_BYTES} bytes), with `status` and "
-        f"`resultPath` set to `{result_path}`. The runtime saves that text atomically. "
-        "Do not write or reread your answer file with tools. Return the complete answer once "
-        "in the final response; intermediate messages are progress only. "
-        "If the supplied schema supports decisionKind, use approval only when the response presents a concrete "
-        "proposal awaiting explicit authorization; use clarification when information, a choice, or credentials "
-        "are missing. For other statuses use null. Never classify a question as approval merely "
-        "because status is needs-human-decision. Bypass does not require routine proposal approval."
+        f"Return the supplied final JSON schema: `status`, `resultPath` = `{result_path}`, "
+        f"and the complete answer once in `resultText` (nonempty UTF-8, maximum {MAX_RESULT_TEXT_BYTES} bytes). "
+        "The runtime saves it atomically. Do not write or reread your answer file. Intermediate messages are progress only. "
+        "If decisionKind is supported: approval requires a concrete proposal awaiting explicit authorization; "
+        "clarification means missing information, choices or credentials; otherwise null. "
+        "needs-human-decision alone never implies approval; bypass needs no routine proposal approval."
         if inline_response else
         f"This historical run uses the legacy output contract. Write the detailed result to "
         f"`{result_path}`. Then return only the compact JSON required by the supplied output schema."
@@ -404,22 +403,70 @@ def append_bounded(path: Path, content: bytes, limit: int) -> bool:
         os.close(descriptor)
 
 
+class EventLogWriter:
+    """Reuse one descriptor per attempt while keeping per-event fsync durability."""
+    def __init__(self, path):
+        self.path, self.descriptor = path, None
+
+    def append(self, line):
+        reject_symlink(self.path)
+        if self.descriptor is None:
+            self.descriptor = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        info = os.fstat(self.descriptor)
+        current = self.path.stat()
+        if not stat.S_ISREG(info.st_mode) or (info.st_dev, info.st_ino) != (current.st_dev, current.st_ino):
+            raise ContractError("runtime_path_unsafe", "runtime event log was replaced")
+        content = line.encode()
+        if info.st_size > MAX_EVENTS_BYTES or len(content) > MAX_EVENTS_BYTES - info.st_size:
+            return False
+        view = memoryview(content)
+        while view:
+            written = os.write(self.descriptor, view)
+            if written <= 0:
+                raise OSError("short runtime event write")
+            view = view[written:]
+        os.fsync(self.descriptor)
+        return True
+
+    def close(self):
+        if self.descriptor is not None:
+            os.close(self.descriptor)
+            self.descriptor = None
+
+
 def append_event(path: Path, line: str) -> bool:
     return append_bounded(path, line.encode(), MAX_EVENTS_BYTES)
 
 
-def read_process_lines(stream: IO[str], output: queue.Queue[tuple[str, str | None]]) -> None:
+def _queue_output(output, value, stopped=None):
+    while stopped is None or not stopped.is_set():
+        try:
+            output.put(value, timeout=0.1)
+            return True
+        except queue.Full:
+            continue
+    return False
+
+
+def read_process_lines(stream: IO[str], output: queue.Queue[tuple[str, str | None]], stopped=None) -> None:
     try:
-        for line in stream:
-            output.put(("line", line))
+        while stopped is None or not stopped.is_set():
+            line = stream.readline(MAX_EVENT_BYTES + 1)
+            if not line:
+                break
+            if len(line.encode()) > MAX_EVENT_BYTES:
+                _queue_output(output, ("error", None), stopped)
+                return
+            if not _queue_output(output, ("line", line), stopped):
+                return
     except (OSError, UnicodeError):
-        output.put(("error", None))
+        _queue_output(output, ("error", None), stopped)
     finally:
-        output.put(("stdout_eof", None))
+        _queue_output(output, ("stdout_eof", None), stopped)
 
 
 def stream_stderr(
-    stream: IO[str], path: Path, output: queue.Queue[tuple[str, str | None]]
+    stream: IO[str], path: Path, output: queue.Queue[tuple[str, str | None]], stopped=None
 ) -> None:
     try:
         while True:
@@ -427,9 +474,9 @@ def stream_stderr(
             if not chunk:
                 return
             if not append_bounded(path, chunk.encode(), MAX_STDERR_BYTES):
-                output.put(("stderr_overflow", None))
+                _queue_output(output, ("stderr_overflow", None), stopped)
                 return
     except (ContractError, OSError, UnicodeError):
-        output.put(("stderr_error", None))
+        _queue_output(output, ("stderr_error", None), stopped)
     finally:
-        output.put(("stderr_eof", None))
+        _queue_output(output, ("stderr_eof", None), stopped)

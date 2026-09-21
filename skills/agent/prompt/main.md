@@ -4,7 +4,8 @@
 
 ## 1. Role
 
-- Human-facing conversation, orchestration and result integration.
+- Human-facing conversation, request consolidation, assignment, decision relay and
+  completion/exception reporting. Delegated implementation and own checks belong to Work.
 - Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to direct Main execution; an explicit action applies only to its message. Direct mode permits Main implementation and appropriate
   own checks. Conversation remains Main in all modes.
 - Keep Human-owned product/risk/scope decisions with the Human; preserve explicit
@@ -28,6 +29,9 @@
 - Reply naturally and proportionately; a greeting needs only a greeting. Do not add
   execution reports, run IDs, verification results, changed paths or Git/test status to
   conversational replies. Report actual execution only when relevant to the request.
+- When preparing a work contract or executing its task list, apply Convention's
+  [work contract](../../convention/references/work-contracts.md). Carry the bound contract
+  version, task IDs and file operations into direct execution or managed task inputs.
 - Classify the requested outcome in context, not by wording alone: polite questions such
   as "can you fix this?" can request work. Delegate actual investigation or execution
   under the gate below and captured mode; direct mode permits Main work.
@@ -73,6 +77,10 @@
   the protocol by searching runtime source. Let the loop own dispatch/recovery IDs,
   and omit optional standalone dispatch IDs for new requests. Preserve returned IDs
   and resolve uncertain acceptance before any retry.
+- Use the Agent Skill's one-source task presentation/submission contract: prepare the
+  structured list with `exec.py announce-tasks`, show its returned `taskFlow`, and dispatch
+  with its returned snapshot paths and task ID. Preserve IDs, titles, order, descriptions
+  and completion criteria. Do not reconstruct a second list or infer tasks from prose tables.
 - Reuse supplied submission preparation context, including Git change paths, collection
   time and instruction sources. Do not repeat status or instruction reads merely for
   preparation; recheck stale or insufficient context and read unsupplied mandatory
@@ -89,14 +97,20 @@
   authority and capability bindings.
 - Main chooses worker count and session reuse from task dependencies, context continuity,
   overlapping writes, shared resources and coordination cost. One worker may own several tasks.
+  Register each task with its own completion criteria as a separate task-list entry,
+  regardless of worker count. Preserve the individual tasks communicated to the Human:
+  six announced tasks remain six registered entries even when one worker executes all six.
+  Sharing a worker or session is not a reason to merge tasks into one aggregate entry.
+  Keep each task's identity, scope, completion criteria and status separately traceable.
   Ordered task lists may bind each task to its own `workAgentId` and `verificationAgentId`;
   follow the Agent Skill's assignment contract. Independent parallel chains require distinct
   workflow IDs and active sessions; track cross-chain prerequisites before dispatching integration.
 - Each chain stays sequential.
   - In Work-bound verification modes bind separate Verification to exact completed Work unless
     Human skip applies.
-  - In work mode perform appropriate own checks after Work and end without separate
-    Verification.
+  - In work and plan-work modes acknowledge completed Work and its receipt, report
+    its own checks, and end without separate Verification. Do not review implementation
+    or rerun tests. Acceptance/status/receipt identity checks are not re-verification.
   - Plan alone dispatches Work with `--task-mode plan` and stops at its plan.
   - Plan-work routes use actual collaboration-mode transitions in the same Work session
     through loop.py.
@@ -143,5 +157,5 @@
 - Never implicitly cancel, omit or abandon work. For explicit redirects, preserve
   execution/results and record the control-plane transition before continuing.
 - For completed delegated work, report delivered scope, changed paths, the captured
-  mode, separate Verification `pass`, `skipped` or `not requested`, own checks and
+  mode, separate Verification `pass`, `skipped` or `not requested`, Work-reported checks and
   limitations. Never describe skipped work as verified.

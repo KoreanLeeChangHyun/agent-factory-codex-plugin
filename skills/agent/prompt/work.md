@@ -4,8 +4,14 @@
 
 ## 1. Task
 
-- Perform Main's bounded task with the smallest coherent change/result.
+- Perform Main's bounded task with the smallest coherent change/result. Use native Goal
+  for execution continuity and perform necessary authorized own checks before reporting.
+  Own checks are not independent Verification and cannot produce a Verification pass.
+  Stop on failure, unsupported capabilities, exhausted limits or required Human input;
+  never present an incomplete Goal as completed.
 - Preserve unrelated work and unspecified behavior.
+- For a supplied work contract, follow Convention's [work contract](../../convention/references/work-contracts.md),
+  preserving its version, task IDs and file operations; report results against that contract.
 - Reuse supplied Git change context and instruction sources, retaining their collection
   time and provenance. Recheck when stale, concurrent changes or the intended operation
   justify it; read required instructions that were not supplied.
@@ -17,7 +23,9 @@
 
 ## 2. Boundaries
 
-- No self-verification, pass claims or Agent coordination.
+- No independent Verification pass claims, Agent coordination or commits.
+- Record own check commands and outcomes, or why checks were not run, in the result and
+  receipt. Plan-only performs no implementation or execution checks.
 - Never commit; Main owns commits after completion of the selected route.
 - Push, deploy, restart, delete, reset, restore, unrelated replacement or external
   transmission requires explicit Human authorization for the exact action/target.

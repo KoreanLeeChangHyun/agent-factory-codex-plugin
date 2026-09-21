@@ -156,6 +156,26 @@ def safe_read_json(path: Path) -> dict[str, Any]:
     return runtime_paths.project_json(path, value)
 
 
+class ChangedJsonReader:
+    """Reuse a private read-only snapshot only while its exact file identity is stable."""
+    def __init__(self, path, read=safe_read_json):
+        self.path, self.read_json = path, read
+        self.signature, self.value = None, None
+
+    def read(self):
+        reject_symlink(self.path)
+        info = self.path.stat()
+        signature = (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+        if signature == self.signature:
+            return self.value
+        value = self.read_json(self.path)
+        after = self.path.stat()
+        observed = (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns)
+        self.signature = signature if observed == signature else None
+        self.value = value
+        return value
+
+
 def agent_root(project_root: Path, create: bool = True) -> Path:
     binding = runtime_paths.resolve(project_root, create=create)
     runtime_paths.require_ready(binding)

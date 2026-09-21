@@ -76,6 +76,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
     commands.add_parser("doctor", help="Inspect host sandbox prerequisites; use doctor --help for options")
 
+    announcement_parser = commands.add_parser("announce-tasks", help="Prepare one Main-owned task list for presentation and dispatch")
+    add_project_argument(announcement_parser)
+    announcement_parser.add_argument("--task-list-file", type=Path, required=True)
+
     submit_parser = commands.add_parser("submit")
     add_project_argument(submit_parser)
     add_request_arguments(submit_parser)

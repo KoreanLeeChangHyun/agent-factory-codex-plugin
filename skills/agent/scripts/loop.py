@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -186,12 +187,32 @@ def upgrade_execution_policy(state: dict[str, Any], path: Path, args: argparse.N
     agent_exec.atomic_write_json(path, state)
 
 
+def observed_task_status(child):
+    status = child.get("status")
+    if status == "needs-human-decision":
+        return "blocked"
+    if status in {"failed", "cancelled"}:
+        return status
+    # Completion still requires the selected route's receipt processing.
+    return "running"
+
+
 def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> dict[str, Any]:
+    workflow = copy.deepcopy(state.get("workflow"))
+    if workflow and child and state.get("status") == "active":
+        task = workflow["tasks"][workflow["index"]]
+        current = state.get("currentChild") or {}
+        role = current.get("role")
+        if (role in {"work", "verification"} and current.get("runId") == child.get("runId")
+                and current.get("agentId") == child.get("agentId")
+                and task.get(role + "RunId") == child.get("runId")
+                and task.get(role + "AgentId") == child.get("agentId")):
+            task[role + "Status"] = observed_task_status(child)
     return {
         "schemaVersion": SCHEMA_VERSION,
         "kind": "work-verification-loop",
         "loopId": state["loopId"],
-        "workflow": state.get("workflow"),
+        "workflow": workflow,
         "taskMode": state.get("execution", {}).get("taskMode", "work-verification"),
         "status": state["status"],
         "phase": state["phase"],
@@ -283,6 +304,7 @@ def prepare_dispatch(
         "operation": operation,
         "agentId": agent_id,
         "role": role,
+        "workGoal": role == "work",
         "requestPath": str(request_file),
         "requestHash": hashlib.sha256(content).hexdigest(),
         "receiptRequestHash": state["originalRequestHash"],
@@ -357,6 +379,13 @@ def complete_pending_dispatch(
         expected_tuple["capabilityBindingHash"] = pending["capabilityBindingHash"]
     if state["execution"].get("taskBinding"):
         expected_tuple["taskBinding"] = state["execution"]["taskBinding"]
+    if pending.get("workGoal"):
+        from task_modes import work_goal_options
+        content = agent_exec.safe_read_bytes(Path(pending["requestPath"]), agent_exec.MAX_REQUEST_BYTES)
+        if hashlib.sha256(content).hexdigest() != pending["requestHash"]:
+            raise agent_exec.ContractError("dispatch_identity_mismatch", "Pending Work request changed")
+        expected_tuple["executionOptions"] = work_goal_options(
+            expected_tuple.get("executionOptions", {}), content.decode("utf-8"))
     actual_tuple = run.get("dispatchTuple")
     # Parent linkage is added by exec, independently of the loop's dispatch
     # intent. Validate it against the accepted run, not the current caller:
@@ -380,7 +409,7 @@ def complete_pending_dispatch(
     state["phase"] = f"{role}-running"
     if state.get("workflow"):
         task = state["workflow"]["tasks"][state["workflow"]["index"]]
-        task["workStatus" if role == "work" else "verificationStatus"] = "running"
+        task["workStatus" if role == "work" else "verificationStatus"] = observed_task_status(run)
         task[role + "RunId"] = run_id
         task[role + "AgentId"] = pending["agentId"]
     if role == "work":
@@ -430,8 +459,16 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     if getattr(args, "task_list_file", None) is None or not getattr(args, "task_id", None):
         raise agent_exec.ContractError("task_binding_required", "Delegated execution requires --task-list-file and --task-id before dispatch")
     # Read once, normalize a private snapshot, and hash exactly the bytes we retain.
+    submitted_document = agent_exec.safe_read_json(args.task_list_file)
+    parent = agent_exec.managed_parent_identity(root)
+    if parent is not None:
+        import task_announcement
+        with agent_exec.file_lock(agent_exec.agent_directory(root, parent["agentId"]) / ".dispatch.lock"):
+            agent_exec.require_current_parent_conversation(root, parent)
+            task_announcement.check_submission(agent_exec.safe_read_json,
+                agent_exec.state_file(root, parent["agentId"], parent["runId"]), parent, submitted_document)
     task_document, binding = task_binding.resolve(
-        agent_exec.safe_read_json(args.task_list_file), args.task_id, hashlib.sha256(request).hexdigest())
+        submitted_document, args.task_id, hashlib.sha256(request).hexdigest())
     tasks = task_document["tasks"]
     if args.task_id != tasks[0]["id"]:
         raise agent_exec.ContractError("task_order_invalid", "Submit the first task; the engine executes the whole list in order")
@@ -595,6 +632,8 @@ def recover_receipt(args: argparse.Namespace) -> dict[str, Any]:
     path, _state = read_state(root, args.work_agent, args.loop_id)
     with agent_exec.file_lock(path.parent / ".loop.lock"):
         state = agent_exec.safe_read_json(path)
+        if state["status"] == "cancelled":
+            return public_state(state)
         runtime = AgentRuntime(root)
         recovery = state.get("receiptRecovery")
         if isinstance(recovery, dict):
@@ -713,7 +752,7 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
     path, state = read_state(root, args.work_agent, args.loop_id)
     with agent_exec.file_lock(path.parent / ".loop.lock"):
         state = agent_exec.safe_read_json(path)
-        if state["status"] == "completed":
+        if state["status"] in {"completed", "cancelled"}:
             return public_state(state)
         upgrade_execution_policy(state, path, args, root)
         runtime = AgentRuntime(root)
@@ -783,7 +822,7 @@ def status_loop(args: argparse.Namespace) -> dict[str, Any]:
     root = agent_exec.resolve_project_root(args.project_root)
     _path, state = read_state(root, args.work_agent, args.loop_id)
     child = None
-    if isinstance(state.get("currentChild"), dict) and state["status"] != "completed":
+    if isinstance(state.get("currentChild"), dict) and state["status"] not in {"completed", "cancelled"}:
         current = state["currentChild"]
         child = AgentRuntime(root).status(current["agentId"], current["runId"])
     return public_state(state, child)
@@ -800,7 +839,7 @@ def skip_loop(args: argparse.Namespace) -> dict[str, Any]:
         state = agent_exec.safe_read_json(path)
         if state.get("execution", {}).get("taskMode") in ("work", "plan-work"):
             raise agent_exec.ContractError("verification_not_requested", "This mode has no separate Verification to skip")
-        if state["status"] == "completed":
+        if state["status"] in {"completed", "cancelled"}:
             return public_state(state)
         current = state.get("currentChild")
         if not isinstance(current, dict) or current.get("role") != "work":
@@ -819,6 +858,38 @@ def skip_loop(args: argparse.Namespace) -> dict[str, Any]:
         return public_state(state, current)
 
 
+def close_loop(args):
+    """Close a stopped failed workflow without rewriting its execution evidence."""
+    if args.actor != "human" or not args.authorization_reference.strip() or not args.decision_evidence.strip():
+        raise agent_exec.ContractError("loop_close_unauthorized", "Closing requires Human authorization and evidence")
+    root = agent_exec.resolve_project_root(args.project_root)
+    path, _ = read_state(root, args.work_agent, args.loop_id)
+    with agent_exec.file_lock(path.parent / ".loop.lock"):
+        state = agent_exec.safe_read_json(path)
+        if state["status"] == "cancelled":
+            return public_state(state)
+        if state["status"] != "runtime-error" or state.get("pendingDispatch"):
+            raise agent_exec.ContractError("loop_close_not_stopped", "Only failed workflows without uncertain dispatches can be closed")
+        current = state.get("currentChild")
+        if current:
+            child = AgentRuntime(root).status(current["agentId"], current["runId"])
+            if child["status"] not in CHILD_TERMINAL:
+                raise agent_exec.ContractError("loop_close_child_active", "The current child must stop before closing the workflow")
+        workflow = state.get("workflow")
+        if workflow:
+            for task in workflow["tasks"][workflow["index"]:]:
+                for key in ("workStatus", "verificationStatus"):
+                    if task.get(key) not in {None, "completed", "failed", "cancelled"}:
+                        task[key] = "cancelled"
+        state.update(status="cancelled", phase="ended", updatedAt=now(), terminalReason={
+            "code": "human-closed", "message": "Human closed the failed workflow",
+            "actor": args.actor, "authorizationReference": args.authorization_reference.strip(),
+            "decisionEvidence": args.decision_evidence.strip(), "recordedAt": now(),
+        })
+        agent_exec.atomic_write_json(path, state)
+        return public_state(state)
+
+
 def drive_loop(args):
     """Run the durable graph independently of Main and the chat panel."""
     root = agent_exec.resolve_project_root(args.project_root)
@@ -834,6 +905,8 @@ def drive_loop(args):
                 # Preserve the exact recovery point. Never retry an uncertain dispatch.
                 with agent_exec.file_lock(path.parent / ".loop.lock"):
                     state = agent_exec.safe_read_json(path)
+                    if state["status"] == "cancelled":
+                        return public_state(state)
                     state.update(status="runtime-error", controlPlaneError={"code": getattr(error, "code", "driver_error"), "message": str(error)})
                     if state.get("workflow"):
                         task = state["workflow"]["tasks"][state["workflow"]["index"]]
@@ -878,14 +951,14 @@ def build_parser() -> agent_exec.JsonArgumentParser:
         start.add_argument("--" + role + "-execution-mode", choices=("cli-default", "workspace-write", "danger-full-access", "bypass"))
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
-    for name in ("status", "reconcile", "recover-receipt", "skip", "drive"):
+    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close"):
         command = commands.add_parser(name)
         agent_exec.add_project_argument(command)
         if name in {"reconcile", "recover-receipt", "drive"}:
             agent_exec.execution_policy.add_policy_arguments(command)
         command.add_argument("--work-agent", required=True)
         command.add_argument("--loop-id", required=True)
-        if name == "skip":
+        if name in {"skip", "close"}:
             command.add_argument("--actor", choices=agent_exec.ACTORS, required=True)
             command.add_argument("--authorization-reference", required=True)
             command.add_argument("--decision-evidence", required=True)
@@ -903,7 +976,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         agent_exec.response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "loop.py", "action": args.command})
         agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
-        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop}
+        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop}
         result = handlers[args.command](args)
         if args.command == "start" and result.get("status") == "active":
             try:
@@ -913,8 +986,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 path = Path(result["statePath"])
                 with agent_exec.file_lock(path.parent / ".loop.lock"):
                     state = agent_exec.safe_read_json(path)
-                    state.update(status="runtime-error", controlPlaneError={"code": "driver_launch_failed", "message": str(error)})
-                    agent_exec.atomic_write_json(path, state)
+                    if state["status"] != "cancelled":
+                        state.update(status="runtime-error", controlPlaneError={"code": "driver_launch_failed", "message": str(error)})
+                        agent_exec.atomic_write_json(path, state)
                     result = public_state(state, state.get("currentChild"))
         emit(result)
         return 0

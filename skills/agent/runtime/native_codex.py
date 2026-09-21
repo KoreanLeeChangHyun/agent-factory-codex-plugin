@@ -32,7 +32,8 @@ class RpcError(NativeError):
 
 def _probe_capabilities(codex: str) -> dict:
     """Inspect this executable's protocol, never infer support from wrapper flags."""
-    supported = {"model": True, "reasoning": True, "fast": False, "goal": False, "plan": False}
+    supported = {"model": True, "reasoning": True, "fast": False, "goal": False, "plan": False,
+                 "instructionDelivery": False}
     reason = None
     try:
         with tempfile.TemporaryDirectory(prefix="agent-factory-codex-schema-") as directory:
@@ -65,10 +66,23 @@ def _probe_capabilities(codex: str) -> dict:
                         supported[feature] = all(method in methods for method in ("thread/goal/set", "thread/goal/get", "thread/goal/clear")) and all(status in statuses for status in ("active", "paused", "complete")) and "outputSchema" in turn
                 except (OSError, ValueError, KeyError, NativeError):
                     supported[feature] = False
+            try:
+                methods = json.dumps(schema("ClientRequest.json"))
+                start = schema("v2/ThreadStartParams.json")["properties"]
+                resume = schema("v2/ThreadResumeParams.json")["properties"]
+                turn = schema("v2/TurnStartParams.json")["properties"]
+                read = schema("v2/ConfigReadParams.json")["properties"]
+                effective = schema("v2/ConfigReadResponse.json")["definitions"]["Config"]["properties"]
+                supported["instructionDelivery"] = (
+                    all(method in methods for method in ("config/read", "thread/inject_items"))
+                    and all("developerInstructions" in fields for fields in (start, resume))
+                    and "outputSchema" in turn and "cwd" in read and "developer_instructions" in effective)
+            except (OSError, ValueError, KeyError, NativeError):
+                pass
 
     except (OSError, ValueError, KeyError, subprocess.TimeoutExpired, NativeError) as error:
         reason = f"Native Fast/Goal/Plan requires compatible Codex app-server schemas: {error}. Update/select Codex, then retry."
-    if not all(supported.values()) and reason is None:
+    if not all(supported[key] for key in ("model", "reasoning", "fast", "goal", "plan")) and reason is None:
         reason = "Installed Codex protocol lacks required native fields. Update/select Codex, then retry."
     return {"schemaVersion": "0.1.0", "kind": "execution-capabilities", "backend": "codex-app-server-stdio",
             "submit": supported, "send": dict(supported), "diagnostic": reason}
@@ -108,7 +122,9 @@ def _cached_capabilities(paths, file, identity):
             return None
         for verb in ("submit", "send"):
             fields = caps[verb]
-            if not isinstance(fields, dict) or fields != expected or any(type(v) is not bool for v in fields.values()):
+            if (not isinstance(fields, dict) or set(fields) != {*expected, "instructionDelivery"}
+                    or any(fields.get(key) != value for key, value in expected.items())
+                    or any(type(v) is not bool for v in fields.values())):
                 return None
         return caps
     except (OSError, ValueError, TypeError, KeyError, OverflowError):
@@ -306,6 +322,12 @@ def activate_persisted_goal(rpc, thread_id, params, turn):
     for key in ("threadId", "objective", "status", "tokensUsed", "timeUsedSeconds", "tokenBudget"):
         if not after or after.get(key) != before.get(key):
             raise NativeError("Persisted Goal identity/accounting changed during backend reload")
+    # Resuming changes configuration, but existing history can retain the old
+    # developer baseline until compaction. Goal activation supplies no turn input.
+    # Install this run's request and result contract before it can start a turn.
+    rpc.call("thread/inject_items", {"threadId": thread_id, "items": [
+        {"type": "message", "role": "developer", "content": [
+            {"type": "input_text", "text": resume["developerInstructions"]}]}]})
     return rpc.call("thread/goal/set", {"threadId": thread_id, "status": "active"}).get("goal")
 
 
@@ -320,13 +342,17 @@ class Bridge:
         self.completed_turns = {}
         self.control_id = None
         self.goal_supported = session.get("nativeCapabilities", {}).get("goal", True)
-        self.goal_enabled = session.get("role") == "main" and self.goal_supported and (
+        self.goal_enabled = session.get("role") in {"main", "work"} and self.goal_supported and (
             session.get("goalMode") is not None or bool(session.get("goal")) or bool(state.get("goalAction")))
         self.stopped = False
         self.planning = state.get("role") == "work" and state.get("executionOptions", {}).get("taskMode") in ("plan", "plan-work", "plan-work-verification")
         self.plan_only = self.planning and state.get("executionOptions", {}).get("taskMode") == "plan"
         self.execution_turn = None
         self.planning_turn_id = None
+        self.goal_transition_id = None
+        self.goal_start = None
+        self.goal_started = False
+        self.next_idle_goal_check = 0.0
 
     def publish_goal(self, goal):
         if goal is not None and (not isinstance(goal, dict) or goal.get("threadId") != self.thread_id):
@@ -399,6 +425,19 @@ class Bridge:
             developer_instructions = full_prompt = prompt
         self.rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
         self.rpc.write({"method": "initialized"})
+        if self.session.get("nativeCapabilities", {}).get("instructionDelivery") is True:
+            # Compose effective user/project configuration before creating a thread.
+            # A failed/ambiguous read must not silently discard user instructions.
+            effective = self.rpc.call("config/read", {"cwd": self.session["projectRoot"], "includeLayers": False})
+            values = effective.get("config") if isinstance(effective, dict) else None
+            if not isinstance(values, dict):
+                raise NativeError("Effective Codex configuration is unavailable")
+            inherited = values.get("developer_instructions")
+            if inherited is not None and not isinstance(inherited, str):
+                raise NativeError("Invalid configured developer instructions")
+            if inherited:
+                developer_instructions = inherited + "\n\n" + developer_instructions
+                full_prompt = inherited + "\n\n" + full_prompt
         wants_goal = self.session.get("goalMode") is True or bool(self.state.get("goalAction"))
         if wants_goal and not self.goal_supported:
             raise NativeError("Installed backend lacks Goal APIs; update/select Codex to manage this objective")
@@ -435,7 +474,7 @@ class Bridge:
                 Path(self.session["projectRoot"]), self.state["agentId"]
             ).with_name("instruction-delivery.json")
             delivery_record = {"version": 1, "threadId": self.thread_id,
-                               "fixedSha256": hashlib.sha256(parts.fixed.encode("utf-8")).hexdigest()}
+                               "fixedSha256": hashlib.sha256(developer_instructions.encode("utf-8")).hexdigest()}
             try:
                 previous_delivery = self.runtime.safe_read_json(delivery_path)
             except self.runtime.ContractError as error:
@@ -450,7 +489,7 @@ class Bridge:
                 try:
                     self.rpc.call("thread/inject_items", {"threadId": self.thread_id, "items": [
                         {"type": "message", "role": "developer", "content": [
-                            {"type": "input_text", "text": parts.fixed}]}]})
+                            {"type": "input_text", "text": developer_instructions}]}]})
                 except RpcError as error:
                     if error.code != -32601:
                         raise
@@ -523,6 +562,10 @@ class Bridge:
                         self.set_goal(status="paused")
                 else:
                     raise NativeError("Goal needs an objective of 1–4000 characters (--goal-objective)")
+        if activate_goal and self.planning:
+            # Keep Goal paused until an actual default-mode transition completes.
+            self.goal_start = ({**params, "developerInstructions": full_prompt}, self.execution_turn)
+            activate_goal = False
         if activate_goal:
             # Native Goal activation starts without turn/start input. Its owned
             # reload must retain this run's complete request/result contract.
@@ -530,6 +573,7 @@ class Bridge:
             goal = activate_persisted_goal(self.rpc, self.thread_id, params, turn)
             self.turn_id = None
             self.publish_goal(goal)
+            self.goal_started = True
         else:
             result = self.rpc.call("turn/start", turn)
             self.turn_id = result["turn"]["id"]
@@ -539,19 +583,31 @@ class Bridge:
             self.runtime.atomic_write_json(delivery_path, delivery_record)
         return True
 
-    def finish_turn(self):
+    def finish_turn(self, turn_id=None):
         if not self.last_message:
             raise NativeError("Native turn returned no final result")
         message = self.last_message
-        terminal = json.loads(message)
+        try:
+            terminal = json.loads(message)
+        except (json.JSONDecodeError, TypeError) as error:
+            raise NativeError(
+                "Native final result is not valid JSON "
+                f"(stage=finish_turn, turn={turn_id or self.turn_id or 'unknown'}, "
+                f"characters={len(message) if isinstance(message, str) else 'non-text'}). "
+                "The Goal status does not prove managed result completion; the final response must match the result schema."
+            ) from error
         try:
             self.runtime.validate_terminal_result(terminal, self.state)
         except self.runtime.ContractError as error:
             raise NativeError(error.message) from error
-        if self.goal and self.goal.get("status") != "complete":
-            terminal = json.loads(message)
-            terminal["status"] = "needs-human-decision"
-            message = json.dumps(terminal)
+        if self.goal_started and (not self.goal or self.goal.get("status") != "complete"):
+            # Never rewrite a reported failure or a real Human decision as success.
+            if terminal["status"] == "completed":
+                status = self.goal.get("status") if self.goal else "cleared"
+                terminal["status"] = "needs-human-decision" if status in {"blocked", "paused"} else "failed"
+                terminal["decisionKind"] = "clarification" if terminal["status"] == "needs-human-decision" else None
+                terminal["resultText"] = f"Native Goal stopped without completion ({status}).\n" + terminal["resultText"]
+                message = json.dumps(terminal)
         emit({"type": "item.completed", "item": {"type": "agent_message", "text": message}})
 
     def finish_latest_goal_turn(self):
@@ -560,6 +616,8 @@ class Bridge:
         RPC reads can overtake our event consumer. A terminal goal snapshot is
         not a completion marker for whichever turn happened to be consumed last.
         """
+        if self.planning or self.goal_transition_id:
+            return False
         goal = self.get_goal()
         if goal and goal.get("status") == "active":
             return False
@@ -582,15 +640,17 @@ class Bridge:
         if status != "completed" or self.completed_turns[latest_id] != status:
             raise NativeError(f"Native final turn {status}: {json.dumps(latest.get('error'))[:2000]}")
         self.last_message = self.turn_messages.get(latest_id)
-        self.finish_turn()
+        self.finish_turn(turn_id=latest_id)
         return True
 
     def run(self, prompt):
         try:
             if not self.setup(prompt):
                 return
+            from runtime_storage import ChangedJsonReader
+            control_reader = ChangedJsonReader(Path(self.state["statePath"]), self.runtime.safe_read_json)
             while True:
-                current = self.runtime.safe_read_json(Path(self.state["statePath"]))
+                current = control_reader.read()
                 control = current.get("goalControl")
                 if current.get("cancelRequested"):
                     if self.goal_enabled:
@@ -610,13 +670,21 @@ class Bridge:
                     # Recheck authoritative history, never treat an empty queue
                     # itself as evidence that all native work is complete.
                     if self.goal_enabled and self.completed_turns and (self.goal is None or self.goal.get("status") != "active"):
-                        if self.finish_latest_goal_turn():
-                            return
+                        if time.monotonic() >= self.next_idle_goal_check:
+                            self.next_idle_goal_check = time.monotonic() + 1.0
+                            if self.finish_latest_goal_turn():
+                                return
                     continue
                 method, params = event.get("method"), event.get("params", {})
                 if params.get("threadId") not in (None, self.thread_id):
                     continue
-                if method == "thread/goal/updated":
+                if method == "thread/tokenUsage/updated":
+                    # Ignore restored history notifications from earlier managed runs.
+                    owner = params.get("turnId")
+                    if isinstance(owner, str) and (owner == self.turn_id or owner in self.completed_turns):
+                        emit({"type": "token.usage", "turn_id": owner,
+                              "tokenUsage": params.get("tokenUsage")})
+                elif method == "thread/goal/updated":
                     self.publish_goal(params.get("goal"))
                     if self.completed_turns and self.goal and self.goal.get("status") != "active":
                         if self.finish_latest_goal_turn():
@@ -667,7 +735,7 @@ class Bridge:
                             raise NativeError("Native planning result is invalid")
                         self.runtime.atomic_write(Path(self.state["statePath"]).parent / "plan.json", json.dumps(plan, ensure_ascii=False).encode())
                         if plan["status"] == "needs-human-decision":
-                            self.last_message = json.dumps({"status": "needs-human-decision", "resultPath": self.state["resultPath"], "resultText": plan["plan"], "decisionKind": "approval"})
+                            self.last_message = json.dumps({"status": "needs-human-decision", "resultPath": self.state["resultPath"], "resultText": plan["plan"], "decisionKind": "clarification"})
                             self.finish_turn()
                             return
                         # Cancellation/input authority is checked again before the automatic transition.
@@ -680,8 +748,11 @@ class Bridge:
                                        "runId": self.state["runId"],
                                        "requestHash": self.state.get("receiptRequestHash") or self.state["requestHash"],
                                        "outcome": "completed", "changedPaths": [], "addressedFindingIds": [],
-                                       "tests": {"run": False, "reason": "work-agent-prohibited"}}
+                                       "tests": {"run": False, "reason": "plan-only"}}
                             schema = self.runtime.safe_read_json(Path(self.state["receiptSchemaPath"]))
+                            captured_reason = schema.get("properties", {}).get("tests", {}).get("properties", {}).get("reason", {}).get("const")
+                            if captured_reason == "work-agent-prohibited":
+                                receipt["tests"]["reason"] = captured_reason
                             outcomes = schema.get("properties", {}).get("capabilityOutcomes")
                             if outcomes is not None:
                                 receipt["capabilityOutcomes"] = [
@@ -693,9 +764,35 @@ class Bridge:
                             return
                         self.planning = False
                         emit({"type": "native.commentary", "text": "Planning is complete. Implementation is starting in the same Work session."})
-                        result = self.rpc.call("turn/start", self.execution_turn)
+                        execution_turn = self.execution_turn
+                        if self.goal_start:
+                            # This turn switches the persisted collaboration mode only;
+                            # native Goal owns implementation and continued execution.
+                            execution_turn = {**execution_turn,
+                                "input": [{"type": "text", "text": "Switch to default collaboration mode. Do not implement or use tools in this transition turn. Return only {\"status\":\"ready\"}; the host will activate the bounded native Goal next."}],
+                                "outputSchema": {"type": "object", "properties": {"status": {"const": "ready"}},
+                                                 "required": ["status"], "additionalProperties": False}}
+                        result = self.rpc.call("turn/start", execution_turn)
                         self.turn_id = result["turn"]["id"]
+                        if self.goal_start:
+                            self.goal_transition_id = self.turn_id
                         self.last_message = None
+                        continue
+                    if self.goal_transition_id == turn["id"]:
+                        if json.loads(self.last_message or "null") != {"status": "ready"}:
+                            raise NativeError("Native default-mode transition did not complete")
+                        current = self.runtime.safe_read_json(Path(self.state["statePath"]))
+                        if current.get("cancelRequested"):
+                            return
+                        params, execution_turn = self.goal_start
+                        goal = activate_persisted_goal(self.rpc, self.thread_id, params, execution_turn)
+                        self.goal_transition_id = None
+                        self.goal_started = True
+                        self.publish_goal(goal)
+                        self.last_message = None
+                        # Planning and transition output cannot complete the Goal.
+                        self.completed_turns.clear()
+                        self.turn_messages.clear()
                         continue
                     if self.goal_enabled:
                         if self.finish_latest_goal_turn():

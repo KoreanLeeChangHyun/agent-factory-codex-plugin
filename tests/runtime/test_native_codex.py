@@ -15,6 +15,29 @@ from native_fixtures import native, runtime, native_fixture
 
 
 class NativeCodexTests(unittest.TestCase):
+    def test_goal_plain_text_final_is_rejected_with_stage_diagnostic(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()) as output:
+            bridge, _, _ = native_fixture(Path(directory))
+            bridge.goal_started = True
+            bridge.goal = {"status": "complete"}
+            bridge.last_message = "목표 테스트를 완료했습니다."
+            with self.assertRaisesRegex(native.NativeError, "stage=finish_turn"):
+                bridge.finish_turn()
+            self.assertNotIn('agent_message', output.getvalue())
+
+    def test_goal_contract_injection_failure_prevents_activation(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, _ = native_fixture(Path(directory))
+            original = rpc.call
+            def call(method, params, **kwargs):
+                if method == 'thread/inject_items':
+                    raise native.NativeError('contract injection unavailable')
+                return original(method, params, **kwargs)
+            rpc.call = call
+            with self.assertRaisesRegex(native.NativeError, 'contract injection unavailable'):
+                bridge.setup('current request')
+            self.assertEqual(rpc.goal['status'], 'paused')
+
     def test_turn_start_includes_file_backed_local_image(self):
         with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
             bridge, rpc, state = native_fixture(Path(directory), goal=False)
@@ -88,7 +111,7 @@ class NativeCodexTests(unittest.TestCase):
                 bridge, _, _ = native_fixture(Path(directory), statuses=(status,))
                 bridge.run("Main role")
                 final = json.loads(json.loads(output.getvalue().splitlines()[-1])["item"]["text"])
-                self.assertEqual(final["status"], "needs-human-decision")
+                self.assertEqual(final["status"], "needs-human-decision" if status in {"paused", "blocked"} else "failed")
 
     def test_pause_and_clear_are_native_controls_with_no_model_turn(self):
         for action in ("pause", "cancel", "disable"):
@@ -168,11 +191,11 @@ class NativeCodexTests(unittest.TestCase):
             self.assertEqual(sum(method == "turn/start" for method, _ in rpc.calls), 0)
             self.assertEqual(json.loads(output.getvalue().splitlines()[-1])["type"], "item.completed")
 
-    def test_goal_rejected_for_work_before_process_dispatch(self):
+    def test_goal_rejected_for_verification_before_process_dispatch(self):
         with tempfile.TemporaryDirectory() as directory:
-            args = runtime.parse_args(["submit", "--project-root", directory, "--agent", "work-test", "--role", "work", "--message", "hi", "--goal-mode"])
+            args = runtime.parse_args(["submit", "--project-root", directory, "--agent", "verify-test", "--role", "verification", "--task-mode", "verification", "--message", "hi", "--goal-mode"])
             with mock.patch.object(runtime, "resolve_project_root", return_value=Path(directory)), mock.patch.object(runtime, "spawn_worker") as spawn:
-                with self.assertRaisesRegex(runtime.ContractError, "Main-only"):
+                with self.assertRaisesRegex(runtime.ContractError, "Verification cannot"):
                     runtime.submit(args, True)
                 spawn.assert_not_called()
 

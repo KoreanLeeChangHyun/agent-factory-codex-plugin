@@ -74,8 +74,11 @@
 
 ## 4. Agent graph boundary
 
-- Organizing/authoring tests grants no execution authority. Work runs no verification
-  commands. In direct/work/plan-work modes Main performs appropriate authorized own
-  checks; verification modes reserve independent checking for Verification.
+- Organizing/authoring tests grants no execution authority. Within the bounded request,
+  Work performs necessary own checks and records commands/results or reasons not run.
+  These checks never substitute for independent Verification in verification modes.
+  Main performs own checks in direct mode only; for delegated work Main acknowledges
+  the bound result/receipt and reports without reviewing implementation or rerunning tests.
+  Plan-only returns its plan without implementation or execution checks.
 - Verification independently checks exact Work with the smallest authorized tests.
 - Report skipped/unrun tests honestly, never as passes.
