@@ -125,18 +125,19 @@ def safe_read_caller_file(path: Path, limit: int, *,
         info = os.fstat(descriptor)
         if not stat.S_ISREG(info.st_mode):
             raise ContractError("capability_binding_invalid", "capability binding is not a regular file")
-        if info.st_size > limit:
+        if limit is not None and info.st_size > limit:
             raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
         chunks: list[bytes] = []
-        remaining = limit + 1
-        while remaining > 0:
-            chunk = os.read(descriptor, min(remaining, 65536))
+        remaining = limit + 1 if limit is not None else None
+        while remaining is None or remaining > 0:
+            chunk = os.read(descriptor, min(remaining, 65536) if remaining is not None else 65536)
             if not chunk:
                 break
             chunks.append(chunk)
-            remaining -= len(chunk)
+            if remaining is not None:
+                remaining -= len(chunk)
         content = b"".join(chunks)
-        if len(content) > limit:
+        if limit is not None and len(content) > limit:
             raise ContractError("file_too_large", f"file exceeds the size limit: {path}")
         if stable and (len(content) != info.st_size or result_file_identity(os.fstat(descriptor)) != result_file_identity(info)):
             raise ContractError("input_file_changed", "input file changed during capture")

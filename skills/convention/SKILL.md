@@ -16,12 +16,15 @@ metadata:
 | Managed roles, execution modes, sessions and receipts | [Agent](../agent/SKILL.md) |
 | Communication, Human decisions, development, testing, exploration and interview | Convention |
 | Document types, writing, packages, storage and synchronization | [Document](../document/SKILL.md) |
+| Standalone generated files outside Documents | Convention [Artifacts](#artifacts) |
 
 - Select guidance for the requested operation; read only the relevant references.
 - Apply the project's current facts, rules and designs alongside that guidance.
 - Resolve installed Skills through the host; similarly named project files are not replacements.
 - Research and Interview are Convention activities, not additional Skills or roles.
 - Project guidance grants no additional execution or publication authority.
+- Whenever an error or observed Human/AI judgment difference occurs during Agent work, apply the mandatory
+  [Lessons Learned recording contract](../document/references/lessons-learned.md).
 
 <a id="human-communication"></a>
 
@@ -80,8 +83,9 @@ metadata:
   commits.
 - `references/work-contracts.md`: task-list contracts, required/optional fields, file-level
   change boundaries, amendments and result reconciliation. Use when preparing or executing a work contract.
-- `references/testing.md`: test organization, selection, parallel execution and execution
-  boundaries.
+- `references/testing.md`: read before authoring or changing tests; covers meaningful
+  coverage, full-suite cost, reusable preparation, bounded waits, selection, parallel
+  execution and execution boundaries.
 - `references/libraries.md`: dependencies, renderers.
 
 <a id="theme-and-knowledge"></a>
@@ -99,3 +103,26 @@ metadata:
 - Copy `assets/AGENTS.md` only when authorized and project `AGENTS.md` is absent.
 - Preserve existing files. The manifest does not inject project guidance.
 - Bootstrap through the template; no local initializer is available.
+
+<a id="artifacts"></a>
+
+## 7. Artifacts
+
+- Use `<project-root>/artifacts/` for AI-created files outside Document packages:
+  HTML previews or interactive explanations, SVG illustrations, screenshots,
+  generated images and other task deliverables. Create it when an output is needed.
+- Artifacts is a directory, not a Document type or an active Skill. Files need no
+  `SKILL.md`, YAML metadata, document category or mandatory package structure.
+- Prefer `artifacts/<task-or-topic>/` when related files belong together. Keep HTML,
+  SVG, images and supporting files together with working relative links; use clear
+  filenames and preserve existing outputs unless replacement is in scope.
+- Follow the Human's explicit output location when supplied. Keep application source
+  in its owning source tree and canonical Documents in their Document locations.
+  Assets owned by a Document remain in that Document's `assets/` directory.
+- Keep runtime state, logs and disposable execution scratch files in the producing
+  run's storage. Use `artifacts/` for outputs intended to be inspected or reused.
+- Artifact files are not automatically cataloged as Documents, synchronized to
+  `.codex/skills/`, published or committed. Preserve the task's existing permissions.
+- Verify the output using checks appropriate to its format and provide a clickable
+  file link in the result. Distinguish a saved file from a rendered or visually checked
+  result; do not claim browser or image inspection unless it occurred.

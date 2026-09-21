@@ -10,10 +10,8 @@ from capability_contracts import safe_read_caller_file
 from runtime_errors import ContractError
 
 SCHEMA_VERSION = "0.1.0"
-MAX_CONTRACT_BYTES = 8 * 1024 * 1024 + 64 * 1024
-MAX_IMAGE_BYTES = 10 * 1024 * 1024
-MAX_TOTAL_IMAGE_BYTES = 20 * 1024 * 1024
-MAX_IMAGES = 8
+MAX_CONTRACT_BYTES = None
+MAX_IMAGE_BYTES = None
 IMAGE_TYPES = {
     "image/png": ".png",
     "image/jpeg": ".jpg",
@@ -58,9 +56,7 @@ def read_agent_input(path: Path) -> tuple[bytes, list[dict[str, Any]]]:
     if not isinstance(message, str) or not message.strip():
         raise ContractError("request_invalid", "request must not be empty")
     request = message.encode("utf-8")
-    if len(request) > 8 * 1024 * 1024:
-        raise ContractError("request_too_large", "request exceeds the size limit")
-    if not isinstance(images, list) or len(images) > MAX_IMAGES:
+    if not isinstance(images, list):
         raise ContractError("input_contract_invalid", "agent input images exceed the count limit")
     captured: list[dict[str, Any]] = []
     total = 0
@@ -80,7 +76,5 @@ def read_agent_input(path: Path) -> tuple[bytes, list[dict[str, Any]]]:
         total += len(content)
         if not _signature_matches(content, media_type):
             raise ContractError("input_image_invalid", f"agent input image {index} content does not match its media type")
-        if total > MAX_TOTAL_IMAGE_BYTES:
-            raise ContractError("input_images_too_large", "agent input images exceed the total size limit")
         captured.append({"content": content, "mediaType": media_type, "suffix": IMAGE_TYPES[media_type]})
     return request, captured

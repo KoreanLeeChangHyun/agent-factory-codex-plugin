@@ -179,10 +179,79 @@ for line in sys.stdin:
         with self.assertRaisesRegex(native.NativeError, 'timed out'):
             stalled.call('thread/goal/set', {}, timeout=.2)
 
-    def test_pending_queue_overflow_is_bounded(self):
-        _, rpc = self.start_child("import sys,json,time;sys.stdin.readline();[print(json.dumps({'method':'event','params':{}}),flush=True) for _ in range(130)];time.sleep(10)")
-        with self.assertRaisesRegex(native.NativeError, 'pending'):
-            rpc.call('initialize', {}, timeout=2)
+    def test_pending_notifications_above_former_count_limit_are_preserved(self):
+        _, rpc = self.start_child("import sys,json;r=json.loads(sys.stdin.readline());[print(json.dumps({'method':'event','params':{}}),flush=True) for _ in range(130)];print(json.dumps({'id':r['id'],'result':{}}),flush=True)")
+        rpc.call('initialize', {}, timeout=2)
+        self.assertEqual([rpc.event()['method'] for _ in range(130)], ['event'] * 130)
+
+    def test_large_utf8_frame_preserves_following_message(self):
+        # Exercise a real UTF-8 frame above the former 16 MiB transport limit.
+        _, rpc = self.start_child("import json;print(json.dumps({'method':'large','params':{'text':'한'*6000000}},ensure_ascii=False),flush=True);print(json.dumps({'method':'next'}),flush=True)")
+        self.assertEqual(rpc.event()['params']['text'], '한' * 6000000)
+        self.assertEqual(rpc.event()['method'], 'next')
+
+    def test_oversized_frame_reports_bound_without_payload(self):
+        with mock.patch.object(native, 'MAX_RPC_FRAME_BYTES', 128):
+            _, rpc = self.start_child("print('x'*200,flush=True)")
+            with self.assertRaisesRegex(native.NativeError, '128 bytes.*129 bytes'):
+                rpc.event()
+
+    def test_pending_bytes_are_bounded_and_released(self):
+        with mock.patch.object(native, 'MAX_RPC_QUEUE_BYTES', 100):
+            _, rpc = self.start_child("import sys,json; r=json.loads(sys.stdin.readline());print(json.dumps({'method':'event','params':{'text':'x'*30}}),flush=True);print(json.dumps({'id':r['id'],'result':{}}),flush=True)")
+            rpc.call('read', {})
+            self.assertGreater(rpc.pending_bytes, 0)
+            self.assertEqual(rpc.event()['method'], 'event')
+            self.assertEqual(rpc.pending_bytes, 0)
+            _, rpc = self.start_child("import sys,json;sys.stdin.readline();[print(json.dumps({'method':'event','params':{'text':'x'*30}}),flush=True) for _ in range(3)]")
+            with self.assertRaisesRegex(native.NativeError, 'pending'):
+                rpc.call('read', {})
+
+    def test_queue_backpressure_releases_on_consumption(self):
+        import threading
+        with mock.patch.object(native, 'MAX_RPC_QUEUE_BYTES', 8):
+            frames = native.FrameQueue()
+            frames.put(b'12345678')
+            entered, done = threading.Event(), threading.Event()
+            def produce():
+                entered.set()
+                frames.put(b'next')
+                done.set()
+            worker = threading.Thread(target=produce, daemon=True)
+            worker.start()
+            self.assertTrue(entered.wait(1))
+            self.assertFalse(done.is_set())
+            self.assertEqual(frames.get(), b'12345678')
+            self.assertTrue(done.wait(1))
+            worker.join(1)
+            self.assertEqual(frames.get(), b'next')
+            self.assertEqual(frames.wire_bytes, 0)
+
+    def test_completion_burst_coalesces_but_recovers_and_new_turn_forces_read(self):
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            bridge, rpc, _ = native_fixture(Path(directory))
+            bridge.thread_id = 'thread-exact'
+            rpc.goal = {'threadId': 'thread-exact', 'status': 'complete'}
+            rpc.history = [{'id': 'latest', 'status': 'inProgress'}]
+            with mock.patch.object(native.time, 'monotonic', return_value=10):
+                for _ in range(100):
+                    self.assertFalse(bridge.finish_latest_goal_turn())
+            self.assertEqual(sum(m == 'thread/read' for m, _ in rpc.calls), 1)
+            with mock.patch.object(native.time, 'monotonic', return_value=11):
+                self.assertFalse(bridge.finish_latest_goal_turn())
+            self.assertEqual(sum(m == 'thread/read' for m, _ in rpc.calls), 2)
+            # A slow RPC must still leave a full delay after it returns.
+            with mock.patch.object(native.time, 'monotonic', side_effect=[12, 20]):
+                self.assertFalse(bridge.finish_latest_goal_turn())
+            with mock.patch.object(native.time, 'monotonic', return_value=20.5):
+                self.assertFalse(bridge.finish_latest_goal_turn())
+            self.assertEqual(sum(m == 'thread/read' for m, _ in rpc.calls), 3)
+            rpc.history = [{'id': 'latest', 'status': 'completed'}]
+            bridge.completed_turns['latest'] = 'completed'
+            with mock.patch.object(native.time, 'monotonic', return_value=11), mock.patch.object(bridge, 'finish_turn') as finish:
+                self.assertTrue(bridge.finish_latest_goal_turn(force=True))
+                finish.assert_called_once_with(turn_id='latest')
+
 
     def test_managed_group_contains_adapter_and_native_descendant(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -203,4 +272,3 @@ for line in sys.stdin:
                 self.assertEqual(runtime.process_identity_status(child_identity), 'dead')
             finally:
                 runtime.terminate_attempt_group(process, identity)
-

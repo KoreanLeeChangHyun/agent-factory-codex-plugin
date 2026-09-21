@@ -28,7 +28,7 @@ from capability_contracts import safe_read_caller_file
 SCHEMA_VERSION = "0.1.0"
 AGENT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 ROLE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
-MAX_REQUEST_BYTES = 8 * 1024 * 1024
+MAX_REQUEST_BYTES = None
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = SKILL_ROOT / "prompt"
 VALID_ROLES = {"main", "work", "verification"}
@@ -148,7 +148,7 @@ def safe_read_bytes(path: Path, limit: int) -> bytes:
 
 def safe_read_json(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(safe_read_bytes(path, 1024 * 1024))
+        value = json.loads(safe_read_bytes(path, None))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ContractError("state_invalid", f"state file is invalid: {path}") from error
     if not isinstance(value, dict):
@@ -268,12 +268,12 @@ def read_request(args: argparse.Namespace) -> bytes:
     if args.message is not None:
         content = args.message.encode()
     elif not sys.stdin.isatty():
-        content = sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1)
+        content = sys.stdin.buffer.read()
     else:
         raise ContractError(
             "request_missing", "provide --request-file, --message, --input-file, or piped stdin"
         )
-    if len(content) > MAX_REQUEST_BYTES:
+    if MAX_REQUEST_BYTES is not None and len(content) > MAX_REQUEST_BYTES:
         raise ContractError("request_too_large", "request exceeds the size limit")
     return content
 

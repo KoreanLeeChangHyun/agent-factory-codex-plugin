@@ -4,6 +4,14 @@
 
 ## 1. Task
 
+- Record every error (including unresolved and recovered errors) and observed Human/AI
+  judgment difference under [Lessons Learned](../../document/references/lessons-learned.md).
+  Include error causes/solutions or both judgments and reflection on their difference.
+  This record is required in every execution mode.
+- For work, use the [lesson lifecycle CLI](../../document/references/lessons-learned.md#lifecycle-cli)
+  to retrieve scoped lessons before acting, persist errors and Human corrections,
+  and audit observed occurrences before handoff. Record actual rule application outcomes.
+
 - Perform Main's bounded task with the smallest coherent change/result. Use native Goal
   for execution continuity and perform necessary authorized own checks before reporting.
   Own checks are not independent Verification and cannot produce a Verification pass.

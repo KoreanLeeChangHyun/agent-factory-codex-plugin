@@ -9,13 +9,13 @@ def validate(document, task_id, request_hash):
     def fail():
         raise ContractError("task_binding_invalid", "Provide a task list with a selected task ID, title, description, completionCriteria and matching requestHash")
     def text(value, limit):
-        return isinstance(value, str) and bool(value.strip()) and len(value) <= limit
+        return isinstance(value, str) and bool(value.strip())
     def identifier(value):
         return isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", value)
     if not isinstance(document, dict) or not identifier(document.get("id")) or not text(document.get("title"), 300):
         fail()
     tasks = document.get("tasks")
-    if not isinstance(tasks, list) or not 1 <= len(tasks) <= 50:
+    if not isinstance(tasks, list) or not tasks:
         fail()
     ids = set()
     for task in tasks:

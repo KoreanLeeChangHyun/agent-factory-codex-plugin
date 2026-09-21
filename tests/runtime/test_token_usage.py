@@ -24,6 +24,9 @@ class TokenUsageTests(unittest.TestCase):
         self.assertTrue(usage.observe(native_event(1100, 100)))
         self.assertFalse(usage.observe(native_event(1100, 100)))
         self.assertTrue(usage.observe(native_event(1350, 250)))
+        # A delayed replay must not look like a counter reset and get charged again.
+        self.assertFalse(usage.observe(native_event(1100, 100)))
+        self.assertEqual(usage.snapshot()["counterDiscontinuities"], 0)
         result = usage.snapshot()
         self.assertEqual(result["inputTokens"], 350)
         self.assertEqual(result["cachedInputTokens"], 175)
@@ -36,6 +39,9 @@ class TokenUsageTests(unittest.TestCase):
         usage.observe(native_event(200, 200))
         self.assertEqual(usage.snapshot()["inputTokens"], 300)
         self.assertEqual(usage.snapshot()["counterDiscontinuities"], 1)
+        # The same totals in another turn can be a genuine reset, not a replay.
+        usage.observe(native_event(1100, 100, turn_id="next"))
+        self.assertTrue(usage.observe(native_event(200, 200, turn_id="next")))
 
     def test_cli_optional_counters_are_unknown_and_identified_turns_are_unique(self):
         usage = UsageAccumulator()
@@ -54,6 +60,7 @@ class TokenUsageTests(unittest.TestCase):
             self.assertFalse(usage.observe({"type": "turn.completed", "usage": value}))
         self.assertEqual(usage.snapshot()["coverage"], "unavailable")
         self.assertIsNone(usage.snapshot()["inputTokens"])
+        self.assertFalse(usage.observe(native_event(100, 200)))
 
     def test_attempt_snapshots_replace_not_add_and_remain_public(self):
         state = {"role": "main"}

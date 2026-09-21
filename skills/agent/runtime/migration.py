@@ -436,7 +436,7 @@ def managed_completion(state_path, role):
     rt.inline_result(state)  # Validate exact legacy or runtime-owned response schema.
     result = read_bytes(Path(state['resultPath']))
     events = read_bytes(Path(state['eventsPath']))
-    if len(events) > rt.MAX_EVENTS_BYTES:
+    if rt.MAX_EVENTS_BYTES is not None and len(events) > rt.MAX_EVENTS_BYTES:
         raise ValueError('completion events exceed bound')
     terminal = False
     for line in events.splitlines():

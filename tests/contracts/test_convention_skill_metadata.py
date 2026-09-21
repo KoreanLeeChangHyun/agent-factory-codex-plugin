@@ -228,9 +228,9 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         for detail in (
             "one `metadata.yaml` with metadata and links only",
             "stores no copied source body or assets",
-            "Original and Processed packages use the separate local Document catalog",
+            "Original, Processed, Progress and Lessons Learned packages use the separate local Document catalog",
             "writes no generated index into the project",
-            "do not activate a Processed Document as a Skill",
+            "do not activate a Processed, Progress or Lessons Learned Document as a Skill",
             "nonempty `links` list",
         ):
             with self.subTest(detail=detail):
@@ -267,7 +267,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
     def test_public_skills_expose_only_their_owned_scripts(self) -> None:
         expected = {
             name: ({"exec.py", "loop.py"} if name == "agent"
-                   else {"catalog_documents.py", "export_documents.py",
+                   else {"lessons.py", "catalog_documents.py", "export_documents.py",
                          "search_documents.py", "sync_documents.py"}
                    if name == "document" else set())
             for name in PUBLIC_SKILLS

@@ -14,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "skills/document/scripts/sync_documents.py"
 
 
-def run(root):
-    return subprocess.run([sys.executable, str(SCRIPT), "--project-root", str(root)],
+def run(root, *args):
+    return subprocess.run([sys.executable, str(SCRIPT), "--project-root", str(root), *args],
                           text=True, capture_output=True)
 
 
@@ -209,6 +209,13 @@ sync.sync(Path(sys.argv[2]))
     assert pending.read_bytes() == journal
     if output.exists():
         assert output.read_text() == "human recovery edit"
+    result = run(tmp_path, "--reconcile")
+    assert result.returncode == 0, result.stderr
+    backup = tmp_path / json.loads(result.stdout)["changes"][0]["path"]
+    assert (backup / "pending.json").read_bytes() == journal
+    assert output.read_bytes() == (tmp_path / "docs/skills/info-example/SKILL.md").read_bytes()
+    assert not pending.exists()
+    assert json.loads(run(tmp_path).stdout)["changes"] == []
 
 
 def test_no_bundled_auto_hooks():
@@ -397,3 +404,104 @@ def test_preflight_collision_does_not_update_other_owned_package(tmp_path):
     assert "Unowned destination" in result.stderr
     assert target.read_bytes() == before
     assert (unowned / "SKILL.md").read_text() == "new"
+
+
+@pytest.mark.parametrize("state", ["missing", "corrupt", "managed"])
+def test_reconcile_preserves_backup_and_unrelated_packages(tmp_path, state):
+    source = package(tmp_path, "skills")
+    assert run(tmp_path).returncode == 0
+    target = tmp_path / ".codex/skills/info-example"
+    (target / "SKILL.md").write_text("local version")
+    (target / "local.txt").write_text("destination only")
+    (target / "assets/data.bin").unlink()
+    personal = tmp_path / ".codex/skills/personal"
+    personal.mkdir()
+    (personal / "keep").write_text("personal")
+    if state == "missing":
+        manifest(tmp_path).unlink()
+    elif state == "corrupt":
+        manifest(tmp_path).write_text("broken JSON")
+    assert run(tmp_path).returncode == 1
+    result = run(tmp_path, "--reconcile")
+    assert result.returncode == 0, result.stderr
+    backup = tmp_path / json.loads(result.stdout)["changes"][0]["path"]
+    assert (backup / "skills/info-example/SKILL.md").read_text() == "local version"
+    assert (backup / "skills/info-example/local.txt").read_text() == "destination only"
+    if state == "corrupt":
+        assert (backup / "manifest.json").read_text() == "broken JSON"
+    assert (target / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes()
+    assert (target / "assets/data.bin").read_bytes() == (source / "assets/data.bin").read_bytes()
+    assert not (target / "local.txt").exists()
+    assert (personal / "keep").read_text() == "personal"
+    assert json.loads(run(tmp_path).stdout)["changes"] == []
+
+
+def test_reconcile_identical_legacy_export_creates_ownership(tmp_path):
+    source = package(tmp_path, "skills")
+    target = tmp_path / ".codex/skills/info-example"
+    shutil.copytree(source, target)
+    result = run(tmp_path, "--reconcile")
+    assert result.returncode == 0, result.stderr
+    assert manifest(tmp_path).is_file()
+    (source / "SKILL.md").write_text("next update")
+    assert run(tmp_path).returncode == 0
+    assert (target / "SKILL.md").read_text() == "next update"
+
+
+def test_reconcile_corrupt_manifest_empty_source_preserves_unknown_output(tmp_path):
+    (tmp_path / "docs/skills").mkdir(parents=True)
+    manifest(tmp_path).parent.mkdir(parents=True)
+    manifest(tmp_path).write_text("broken")
+    target = tmp_path / ".codex/skills/unknown"
+    target.mkdir(parents=True)
+    (target / "keep").write_text("safe")
+    result = run(tmp_path, "--reconcile")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(manifest(tmp_path).read_text())["entries"] == {}
+    assert (target / "keep").read_text() == "safe"
+
+
+def test_reconcile_backup_failure_does_not_replace_documents(tmp_path):
+    source = package(tmp_path, "skills")
+    target = tmp_path / ".codex/skills/info-example"
+    shutil.copytree(source, target)
+    (target / "SKILL.md").write_text("keep me")
+    state = manifest(tmp_path).parent
+    state.mkdir()
+    (state / "backups").write_text("blocking file")
+    result = run(tmp_path, "--reconcile")
+    assert result.returncode != 0
+    assert (target / "SKILL.md").read_text() == "keep me"
+    assert not manifest(tmp_path).exists()
+    assert not (state / "pending.json").exists()
+
+
+def test_source_change_during_copy_leaves_recoverable_journal(tmp_path):
+    source = package(tmp_path, "skills")
+    code = r"""
+import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import sync_documents as sync
+root = Path(sys.argv[2])
+original = sync.atomic_write
+def mutate_source(path, content):
+    original(path, content)
+    if path == root / '.codex/skills/info-example/SKILL.md':
+        (root / 'docs/skills/info-example/SKILL.md').write_text('new source')
+sync.atomic_write = mutate_source
+try:
+    sync.sync(root)
+except ValueError as error:
+    print(error)
+    sys.exit(1)
+"""
+    result = subprocess.run([sys.executable, "-c", code, str(SCRIPT.parent), str(tmp_path)],
+                            capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "Source changed" in result.stdout
+    assert manifest(tmp_path).with_name("pending.json").exists()
+    result = run(tmp_path, "--reconcile")
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / ".codex/skills/info-example/SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes()
+    assert json.loads(run(tmp_path).stdout)["changes"] == []

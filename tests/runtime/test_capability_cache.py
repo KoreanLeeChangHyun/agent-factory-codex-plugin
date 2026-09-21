@@ -148,6 +148,12 @@ path.write_text(json.dumps(json.loads(path.read_text()) + ['config/read', 'threa
             self.cache.write_text(bad)
             self.assertIsNone(self.probe()['diagnostic'])
         self.assertEqual(self.count(), 7)
+        inconsistent = json.loads(self.cache.read_text())
+        inconsistent['capabilities']['submit']['instructionDelivery'] = True
+        inconsistent['capabilities']['send']['instructionDelivery'] = False
+        self.cache.write_text(json.dumps(inconsistent))
+        self.assertFalse(self.probe()['submit']['instructionDelivery'])
+        self.assertEqual(self.count(), 8)
 
     def test_disabled_and_unwritable_fallback(self):
         with mock.patch.dict(os.environ, {'AF_CODEX_CAPABILITY_CACHE': '0'}):

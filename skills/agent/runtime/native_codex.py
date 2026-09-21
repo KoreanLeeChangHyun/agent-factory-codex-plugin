@@ -1,6 +1,7 @@
 """Local stdio Codex adapter; execution and containment remain exec.py-owned."""
 from __future__ import annotations
 
+from collections import deque
 import contextlib
 import fcntl
 import hashlib
@@ -39,13 +40,11 @@ def _probe_capabilities(codex: str) -> dict:
         with tempfile.TemporaryDirectory(prefix="agent-factory-codex-schema-") as directory:
             with tempfile.TemporaryFile() as output:
                 result = subprocess.run([codex, "app-server", "generate-json-schema", "--experimental", "--out", directory],
-                                        stdout=output, stderr=output, timeout=12, check=False)
+                                        stdout=output, stderr=output, check=False)
                 if result.returncode:
                     raise NativeError("installed Codex cannot generate the experimental app-server schema")
             def schema(name):
                 path = Path(directory) / name
-                if path.stat().st_size > 8 * 1024 * 1024:
-                    raise NativeError("Codex schema exceeds the inspection bound")
                 return json.loads(path.read_text())
             for feature in ("fast", "goal", "plan"):
                 try:
@@ -126,6 +125,8 @@ def _cached_capabilities(paths, file, identity):
                     or any(fields.get(key) != value for key, value in expected.items())
                     or any(type(v) is not bool for v in fields.values())):
                 return None
+        if caps["submit"]["instructionDelivery"] != caps["send"]["instructionDelivery"]:
+            return None
         return caps
     except (OSError, ValueError, TypeError, KeyError, OverflowError):
         return None
@@ -194,14 +195,42 @@ def service_tier(models: list[dict], model: str, fast: bool | None) -> str | Non
     return matches[0]
 
 
+# Defer JSON decoding until consumption; normal execution has no payload ceiling.
+MAX_RPC_FRAME_BYTES = None
+MAX_RPC_QUEUE_BYTES = None
+
+
+class FrameQueue(queue.Queue):
+    def __init__(self):
+        super().__init__()
+        self.wire_bytes = 0
+
+    def put(self, value):
+        size = len(value) if isinstance(value, bytes) else 0
+        with self.not_full:
+            while MAX_RPC_QUEUE_BYTES is not None and self.wire_bytes + size > MAX_RPC_QUEUE_BYTES:
+                self.not_full.wait()
+            self._put(value)
+            self.wire_bytes += size
+            self.unfinished_tasks += 1
+            self.not_empty.notify()
+
+    def _get(self):
+        value = super()._get()
+        self.wire_bytes -= len(value) if isinstance(value, bytes) else 0
+        return value
+
+
 class Rpc:
-    """Bounded JSONL RPC; unsolicited events are retained while awaiting replies."""
+    """JSONL RPC; unsolicited events are retained while awaiting replies."""
     def __init__(self, process, observer=None, process_factory=None):
         self.process_factory = process_factory
         self.observer = observer
         self.process = process
-        self.incoming = queue.Queue(maxsize=128)
-        self.pending = []
+        self.incoming = FrameQueue()
+        self.pending = deque()
+        self.pending_bytes = 0
+        self.last_frame = b""
         self.serial = 0
         self.reader = threading.Thread(target=self._read, daemon=True)
         self.reader.start()
@@ -225,7 +254,7 @@ class Rpc:
                 stream.close()
         factory, observer = self.process_factory, self.observer
         if observer:
-            observer("owned-restart", {"stoppedPid": old_pid, "pending": self.pending})
+            observer("owned-restart", {"stoppedPid": old_pid, "pendingCount": len(self.pending)})
         self.__init__(factory(), observer=observer, process_factory=factory)
         self.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
         self.write({"method": "initialized"})
@@ -233,12 +262,16 @@ class Rpc:
     def _read(self):
         try:
             while True:
-                line = self.process.stdout.readline(1024 * 1024 + 1)
+                stream = getattr(self.process.stdout, "buffer", self.process.stdout)
+                line = stream.readline() if MAX_RPC_FRAME_BYTES is None else stream.readline(MAX_RPC_FRAME_BYTES + 1)
                 if not line:
                     raise NativeError("Codex app-server closed its event stream")
-                if len(line.encode()) > 1024 * 1024:
-                    raise NativeError("Codex app-server event exceeds 1 MiB")
-                self.incoming.put(json.loads(line))
+                if isinstance(line, str):
+                    line = line.encode("utf-8")
+                if MAX_RPC_FRAME_BYTES is not None and len(line) > MAX_RPC_FRAME_BYTES:
+                    raise NativeError(f"Codex app-server frame exceeds {MAX_RPC_FRAME_BYTES} bytes "
+                                      f"(received at least {len(line)} bytes)")
+                self.incoming.put(line)
         except Exception as error:
             self.incoming.put(error)
 
@@ -254,6 +287,8 @@ class Rpc:
             if self.observer is not None:
                 self.observer("read-error", {"message": str(value)})
             raise value
+        self.last_frame = value
+        value = json.loads(value)
         if self.observer is not None:
             self.observer("receive", value)
         if not isinstance(value, dict):
@@ -264,27 +299,36 @@ class Rpc:
             raise NativeError(f"Codex requested interactive input: {value['method']}")
         return value
 
-    def call(self, method, params, timeout=15):
+    def call(self, method, params, timeout=None):
         self.serial += 1
         request_id = self.serial
         self.write({"id": request_id, "method": method, "params": params})
-        deadline = time.monotonic() + timeout
+        deadline = time.monotonic() + timeout if timeout else float("inf")
         while time.monotonic() < deadline:
             try:
                 value = self.receive(min(0.2, max(0.01, deadline - time.monotonic())))
             except queue.Empty:
                 continue
             if value.get("id") == request_id:
+                self.last_frame = b""
                 if "error" in value:
                     raise RpcError(method, value["error"])
                 return value.get("result", {})
-            if len(self.pending) >= 128:
+            if MAX_RPC_QUEUE_BYTES is not None and self.pending_bytes + len(self.last_frame) > MAX_RPC_QUEUE_BYTES:
                 raise NativeError("Too many pending app-server notifications")
-            self.pending.append(value)
+            self.pending.append(self.last_frame)
+            self.pending_bytes += len(self.last_frame)
         raise NativeError(f"{method} timed out; do not replay an ambiguous operation")
 
     def event(self):
-        return self.pending.pop(0) if self.pending else self.receive()
+        if not self.pending:
+            try:
+                return self.receive()
+            finally:
+                self.last_frame = b""
+        frame = self.pending.popleft()
+        self.pending_bytes -= len(frame)
+        return json.loads(frame)
 
 
 def emit(value):
@@ -341,6 +385,7 @@ class Bridge:
         self.turn_messages = {}
         self.completed_turns = {}
         self.control_id = None
+        self.next_completion_check = 0.0
         self.goal_supported = session.get("nativeCapabilities", {}).get("goal", True)
         self.goal_enabled = session.get("role") in {"main", "work"} and self.goal_supported and (
             session.get("goalMode") is not None or bool(session.get("goal")) or bool(state.get("goalAction")))
@@ -428,7 +473,7 @@ class Bridge:
         if self.session.get("nativeCapabilities", {}).get("instructionDelivery") is True:
             # Compose effective user/project configuration before creating a thread.
             # A failed/ambiguous read must not silently discard user instructions.
-            effective = self.rpc.call("config/read", {"cwd": self.session["projectRoot"], "includeLayers": False})
+            effective = self.rpc.call("config/read", {"cwd": self.session.get("workingDirectory", self.session["projectRoot"]), "includeLayers": False})
             values = effective.get("config") if isinstance(effective, dict) else None
             if not isinstance(values, dict):
                 raise NativeError("Effective Codex configuration is unavailable")
@@ -453,7 +498,7 @@ class Bridge:
             config["model_reasoning_effort"] = self.session["reasoningEffort"]
         policy = self.runtime.execution_policy.session_policy(self.session)
         config.update(self.runtime.execution_policy.config(policy, Path(self.state["statePath"]).parent))
-        params = {"cwd": self.session["projectRoot"],
+        params = {"cwd": self.session.get("workingDirectory", self.session["projectRoot"]),
                   **({"permissions": config["default_permissions"]} if "default_permissions" in config else {"sandbox": policy["sandboxPolicy"]["type"]}),
                   "approvalPolicy": policy["approvalPolicy"], "config": config,
                   "developerInstructions": developer_instructions}
@@ -464,7 +509,7 @@ class Bridge:
         prior = self.session.get("sessionId")
         if prior:
             params["threadId"] = prior
-        response = self.rpc.call("thread/resume" if prior else "thread/start", params, timeout=float(self.session["startTimeout"]))
+        response = self.rpc.call("thread/resume" if prior else "thread/start", params, timeout=None)
         self.thread_id = response["thread"]["id"]
         if prior and prior != self.thread_id:
             raise NativeError("Codex resumed a different session")
@@ -502,18 +547,17 @@ class Bridge:
         models = []
         if fast is True:
             cursor = None
-            for _ in range(20):
+            while True:
                 page = self.rpc.call("model/list", {"limit": 100, **({"cursor": cursor} if cursor else {})})
                 models.extend(page.get("data", []))
                 cursor = page.get("nextCursor")
                 if not cursor:
                     break
-            if cursor:
-                raise NativeError("Codex model catalog exceeds pagination bound")
         tier = service_tier(models, response.get("model", self.session.get("model", "")), fast)
         inputs = [{"type": "text", "text": prompt}]
         inputs.extend({"type": "localImage", "path": image["path"]} for image in self.state.get("imageInputs", []))
         turn = {"threadId": self.thread_id, "input": inputs,
+                "cwd": self.session.get("workingDirectory", self.session["projectRoot"]),
                 "outputSchema": self.runtime.safe_read_json(Path(self.state["responseSchemaPath"]))}
         if self.session.get("model"):
             turn["model"] = self.session["model"]
@@ -561,7 +605,7 @@ class Bridge:
                     if activate_goal:
                         self.set_goal(status="paused")
                 else:
-                    raise NativeError("Goal needs an objective of 1–4000 characters (--goal-objective)")
+                    raise NativeError("Goal needs a nonempty objective (--goal-objective)")
         if activate_goal and self.planning:
             # Keep Goal paused until an actual default-mode transition completes.
             self.goal_start = ({**params, "developerInstructions": full_prompt}, self.execution_turn)
@@ -610,7 +654,7 @@ class Bridge:
                 message = json.dumps(terminal)
         emit({"type": "item.completed", "item": {"type": "agent_message", "text": message}})
 
-    def finish_latest_goal_turn(self):
+    def finish_latest_goal_turn(self, *, force=False):
         """Join current native state to consumed events for the same latest turn.
 
         RPC reads can overtake our event consumer. A terminal goal snapshot is
@@ -618,10 +662,15 @@ class Bridge:
         """
         if self.planning or self.goal_transition_id:
             return False
+        now = time.monotonic()
+        if not force and now < self.next_completion_check:
+            return False
+        # New completions bypass coalescing; idle retries retain recovery.
         goal = self.get_goal()
         if goal and goal.get("status") == "active":
             return False
         thread = self.rpc.call("thread/read", {"threadId": self.thread_id, "includeTurns": True}).get("thread", {})
+        self.next_completion_check = time.monotonic() + 1.0
         if thread.get("id") != self.thread_id:
             raise NativeError("Native completion history belongs to a different thread")
         turns = thread.get("turns")
@@ -795,7 +844,7 @@ class Bridge:
                         self.turn_messages.clear()
                         continue
                     if self.goal_enabled:
-                        if self.finish_latest_goal_turn():
+                        if self.finish_latest_goal_turn(force=True):
                             return
                         emit({"type": "goal.continuing", "thread_id": self.thread_id})
                         continue

@@ -1,4 +1,4 @@
-"""Exercise the local Original and Processed Document catalog and search CLIs."""
+"""Exercise the local Document catalog and search CLIs."""
 
 import json
 from pathlib import Path
@@ -130,3 +130,88 @@ def test_search_filters_and_validates_bounds(tmp_path):
     invalid = run(SEARCH, tmp_path, "--query", "example", "--limit", "0")
     assert invalid.returncode == 1
     assert "between 1 and 100" in invalid.stderr
+
+
+def test_progress_catalog_and_search_preserve_legacy_records(tmp_path):
+    legacy = processed(tmp_path, body="Migration pending")
+    legacy_file = legacy / "SKILL.md"
+    legacy_file.write_text(legacy_file.read_text().replace("category: analyze", "category: process"))
+    before = legacy_file.read_bytes()
+    package = tmp_path / "docs/progress/status-migration"
+    package.mkdir(parents=True)
+    content = package / "SKILL.md"
+    content.write_text(
+        "---\ndocument-type: progress\ncategory: status\ndomain: null\n"
+        "name: migration\nlanguage: ko\n---\n\n# 진행 상황\n\n"
+        "## 1. 현재 상태\n\n- Migration 검증 대기 중입니다.\n",
+        encoding="utf-8",
+    )
+    result = run(CATALOG, tmp_path)
+    assert result.returncode == 0, result.stderr
+    entries = json.loads(result.stdout)["documents"]
+    assert [(e["documentType"], e["category"]) for e in entries] == [
+        ("processed", "process"), ("progress", "status")
+    ]
+    result = run(SEARCH, tmp_path, "--query", "검증 대기", "--type", "progress", "--category", "status")
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["count"] == 1
+    assert payload["results"][0]["contentPath"] == "docs/progress/status-migration/SKILL.md"
+    result = run(SEARCH, tmp_path, "--query", "Migration")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["count"] == 2
+    assert legacy_file.read_bytes() == before
+
+    content.write_text(content.read_text().replace("document-type: progress", "document-type: processed"))
+    result = run(CATALOG, tmp_path)
+    assert result.returncode == 1
+    assert "Expected document-type progress" in result.stderr
+
+
+def test_lessons_learned_search_reflects_resolution_update(tmp_path):
+    processed(tmp_path, body="dependency failure analysis")
+    package = tmp_path / "docs/lessons-learned"
+    package.mkdir(parents=True)
+    record = package / "dependency.json"
+    record.write_text(json.dumps({
+        "schemaVersion": 1, "id": "dependency", "category": "error", "title": "의존성 오류",
+        "language": "ko", "scope": "test", "status": "unresolved",
+        "occurrences": [{"cause": "미확인", "solution": "미해결"}],
+        "applications": [], "candidates": [], "publications": []
+    }, ensure_ascii=False), encoding="utf-8")
+    result = run(CATALOG, tmp_path)
+    assert result.returncode == 0, result.stderr
+    entry = json.loads(result.stdout)["documents"][-1]
+    assert entry["documentType"] == "lessons-learned"
+    assert entry["contentPath"] == "docs/lessons-learned/dependency.json"
+    result = run(SEARCH, tmp_path, "--query", "미해결", "--type", "lessons-learned", "--category", "error")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["count"] == 1
+    record.write_text(record.read_text().replace("미해결", "환경 수정 후 검증 통과"))
+    result = run(SEARCH, tmp_path, "--query", "검증 통과", "--type", "lessons-learned")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["count"] == 1
+    result = run(SEARCH, tmp_path, "--query", "미해결", "--type", "lessons-learned")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["count"] == 0
+
+
+def test_json_lessons_reject_mismatch_corruption_and_symlinks(tmp_path):
+    folder = tmp_path / 'docs/lessons-learned'
+    folder.mkdir(parents=True)
+    path = folder / 'wrong.json'
+    record = dict(schemaVersion=1, id='actual', category='error', title='Failure', language='en',
+                  scope='test', status='unresolved', occurrences=[], applications=[], candidates=[], publications=[])
+    path.write_text(json.dumps(record))
+    result = run(CATALOG, tmp_path)
+    assert result.returncode == 1
+    assert 'filename/id mismatch' in result.stderr
+    path.write_text('{broken')
+    assert run(CATALOG, tmp_path).returncode == 1
+    path.unlink()
+    external = tmp_path / 'external.json'
+    external.write_text(json.dumps(record))
+    path.symlink_to(external)
+    result = run(CATALOG, tmp_path)
+    assert result.returncode == 1
+    assert 'Symlinks' in result.stderr

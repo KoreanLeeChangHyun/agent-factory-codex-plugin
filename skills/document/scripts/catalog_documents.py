@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a live catalog for Original and Processed project Documents."""
+"""Build a live catalog for Original, Processed, Progress and Lessons Learned project Documents."""
 
 import argparse
 import json
@@ -11,7 +11,7 @@ import yaml
 from export_documents import check_path, inventory
 
 
-CATALOG_TYPES = ("original", "processed")
+CATALOG_TYPES = ("original", "processed", "progress", "lessons-learned")
 REQUIRED_METADATA = ("document-type", "category", "domain", "name")
 
 
@@ -62,6 +62,38 @@ def validate_metadata(metadata: dict, kind: str, path: Path) -> None:
         raise ValueError(f"Metadata must contain JSON-compatible values: {path}") from error
 
 
+def read_lesson(path: Path) -> dict:
+    record = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(record, dict) or record.get("schemaVersion") != 1:
+        raise ValueError(f"Unsupported lesson schema: {path}")
+    for field in ("id", "category", "title", "language", "scope", "status"):
+        if not isinstance(record.get(field), str) or not record[field].strip():
+            raise ValueError(f"Missing lesson field {field}: {path}")
+    import re
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,100}", record["id"]):
+        raise ValueError(f"Invalid lesson id: {path}")
+    if record["category"] not in ("error", "judgment"):
+        raise ValueError(f"Invalid lesson category: {path}")
+    for field in ("occurrences", "applications", "candidates", "publications"):
+        if not isinstance(record.get(field), list) or any(not isinstance(v, dict) for v in record[field]):
+            raise ValueError(f"Invalid lesson field {field}: {path}")
+    if not (path.name == "lesson.json" and path.parent.name == "assets") and path.name != record["id"] + ".json":
+        raise ValueError(f"Lesson filename/id mismatch: {path}")
+    return record
+
+
+def lesson_entry(root: Path, path: Path) -> dict:
+    record = read_lesson(path)
+    relative = str(path.relative_to(root))
+    metadata = {"document-type": "lessons-learned", "category": record["category"],
+                "domain": None, "name": record["id"], "language": record["language"],
+                "title": record["title"]}
+    return {"documentType": "lessons-learned", "category": record["category"],
+            "domain": None, "name": record["id"], "language": record["language"],
+            "packagePath": relative, "metadataPath": relative, "contentPath": relative,
+            "links": [], "metadata": metadata}
+
+
 def catalog_entry(root: Path, package: Path, kind: str) -> dict:
     files = inventory(package, root)
     if kind == "original":
@@ -79,14 +111,14 @@ def catalog_entry(root: Path, package: Path, kind: str) -> dict:
         content_path = None
     else:
         if files.get("SKILL.md") != "file":
-            raise ValueError(f"Processed package needs SKILL.md: {package}")
+            raise ValueError(f"{kind.capitalize()} package needs SKILL.md: {package}")
         metadata_path = package / "SKILL.md"
         metadata = read_frontmatter(metadata_path)
         links = metadata.get("links", [])
         if not isinstance(links, list) or any(
             not isinstance(link, str) or not link.strip() for link in links
         ):
-            raise ValueError(f"Processed metadata links must be strings: {metadata_path}")
+            raise ValueError(f"{kind.capitalize()} metadata links must be strings: {metadata_path}")
         content_path = str(metadata_path.relative_to(root))
     validate_metadata(metadata, kind, metadata_path)
     return {
@@ -118,9 +150,12 @@ def build_catalog(root: Path) -> dict:
             raise ValueError(f"Expected directory: {source}")
         for package in sorted(source.iterdir()):
             check_path(package, root)
-            if not package.is_dir():
-                raise ValueError(f"Expected package directory: {package}")
-            entry = catalog_entry(root, package, kind)
+            if kind == "lessons-learned" and package.is_file() and package.suffix == ".json":
+                entry = lesson_entry(root, package)
+            else:
+                if not package.is_dir():
+                    raise ValueError(f"Expected package directory: {package}")
+                entry = catalog_entry(root, package, kind)
             identity = tuple(entry[field] for field in ("documentType", "category", "domain", "name"))
             if identity in identities:
                 raise ValueError(f"Duplicate Document identity: {identity}")

@@ -46,7 +46,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--agent-permissions", help="Captured Human-selected role permission overrides as JSON")
     parser.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--goal-mode", action=argparse.BooleanOptionalAction, default=None)
-    parser.add_argument("--goal-objective", help="Native persisted objective, 1–4000 characters; omitted on send preserves the existing objective")
+    parser.add_argument("--goal-objective", help="Native persisted nonempty objective; omitted on send preserves the existing objective")
     parser.add_argument(
         "--receipt-request-hash",
         help="SHA-256 identity the role receipt must bind (defaults to this run request)",
@@ -89,8 +89,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     execution_policy.add_policy_arguments(submit_parser)
     submit_parser.add_argument("--heartbeat-interval", type=float, default=5.0)
     submit_parser.add_argument("--heartbeat-timeout", type=float, default=20.0)
-    submit_parser.add_argument("--start-timeout", type=float, default=60.0)
-    submit_parser.add_argument("--turn-timeout", type=float, default=1800.0)
+    submit_parser.add_argument("--start-timeout", type=float, default=0.0)
+    submit_parser.add_argument("--turn-timeout", type=float, default=0.0)
     submit_parser.add_argument("--max-attempts", type=int, default=2)
 
     send_parser = commands.add_parser("send")
@@ -121,6 +121,16 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     add_project_argument(goal_parser)
     goal_parser.add_argument("--agent", required=True)
     goal_parser.add_argument("action", choices=("get", "refresh", "pause", "cancel", "clear", "disable", "resume", "reopen"))
+
+    worktree_parser = commands.add_parser("worktree", help="Manage a conversation's isolated Git worktree")
+    add_project_argument(worktree_parser)
+    worktree_parser.add_argument("--agent", required=True)
+    worktree_parser.add_argument("action", choices=("status", "create", "merge"))
+    worktree_parser.add_argument("--changes", choices=("reject", "keep", "copy"), default="reject")
+    worktree_parser.add_argument("--path", type=Path)
+    worktree_parser.add_argument("--codex", default="codex")
+    worktree_parser.add_argument("--human-approval-policy", choices=HUMAN_APPROVAL_POLICIES)
+    execution_policy.add_policy_arguments(worktree_parser)
 
     list_parser = commands.add_parser("list")
     add_project_argument(list_parser)
@@ -159,8 +169,6 @@ def validate_submit_options(args: argparse.Namespace) -> None:
     positive = {
         "heartbeat interval": args.heartbeat_interval,
         "heartbeat timeout": args.heartbeat_timeout,
-        "start timeout": args.start_timeout,
-        "turn timeout": args.turn_timeout,
     }
     for label, value in positive.items():
         if value <= 0:

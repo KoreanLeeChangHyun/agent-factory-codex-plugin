@@ -54,14 +54,14 @@ class AgentExecTests(unittest.TestCase):
             reader.join(2)
         self.assertFalse(reader.is_alive())
 
-    def test_output_reader_preserves_order_eof_and_rejects_oversized_line(self):
+    def test_output_reader_preserves_order_eof_and_large_line(self):
         import queue
         output = queue.Queue()
         self.module.read_process_lines(io.StringIO("one\ntwo\n"), output)
         self.assertEqual([output.get_nowait() for _ in range(3)],
                          [("line", "one\n"), ("line", "two\n"), ("stdout_eof", None)])
         self.module.read_process_lines(io.StringIO("x" * (1024 * 1024 + 2)), output)
-        self.assertEqual(output.get_nowait(), ("error", None))
+        self.assertEqual(output.get_nowait(), ("line", "x" * (1024 * 1024 + 2)))
         self.assertEqual(output.get_nowait(), ("stdout_eof", None))
 
     def test_child_reference_is_bound_to_parent_and_exact_run(self):

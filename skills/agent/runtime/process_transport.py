@@ -25,14 +25,12 @@ from prompt_delivery import PromptParts
 from runtime_storage import reject_symlink, role_path, safe_read_bytes, safe_read_json, atomic_write
 
 HUMAN_APPROVAL_POLICIES = ("required", "bypass")
-MAX_REQUEST_BYTES = 8 * 1024 * 1024
+MAX_REQUEST_BYTES = None
 # Keep unusually large requests on the existing file-based path.
 MAX_INLINE_REQUEST_BYTES = 64 * 1024
-MAX_EVENT_BYTES = 1024 * 1024
-MAX_EVENTS_BYTES = 8 * 1024 * 1024
-MAX_STDERR_BYTES = 4 * 1024 * 1024
-# Leave room for JSON escaping and the enclosing JSONL event.
-MAX_RESULT_TEXT_BYTES = 64 * 1024
+MAX_EVENT_BYTES = None
+MAX_EVENTS_BYTES = None
+MAX_STDERR_BYTES = None
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 EXEC_SCRIPT = SKILL_ROOT / "scripts" / "exec.py"
 if sys.platform in {"linux", "darwin"}:
@@ -55,7 +53,7 @@ def response_schema_document(result_path: str, *, inline: bool = True, decision_
         "resultPath": {"type": "string", "const": result_path},
     }
     if inline:
-        properties["resultText"] = {"type": "string", "minLength": 1, "maxLength": MAX_RESULT_TEXT_BYTES}
+        properties["resultText"] = {"type": "string", "minLength": 1}
     if inline and decision_metadata:
         properties["decisionKind"] = {"type": ["string", "null"], "enum": ["approval", "clarification", None]}
     # Codex requires every property, including nullable metadata, in required.
@@ -66,6 +64,10 @@ def response_schema_document(result_path: str, *, inline: bool = True, decision_
 def inline_result(state: dict[str, Any]) -> bool:
     """Persisted schemas choose the protocol; never reinterpret historical runs."""
     schema = safe_read_json(Path(state["responseSchemaPath"]))
+    # Accept existing sessions whose schema captured the former answer ceiling.
+    text_schema = schema.get("properties", {}).get("resultText")
+    if isinstance(text_schema, dict) and text_schema.get("maxLength") == 64 * 1024:
+        text_schema.pop("maxLength")
     for inline in (True, False):
         if any(schema == response_schema_document(state["resultPath"], inline=inline, decision_metadata=metadata) for metadata in (True, False)):
             return inline
@@ -98,8 +100,6 @@ def validate_terminal_result(terminal: Any, state: dict[str, Any]) -> bytes | No
         content = text.encode("utf-8")
     except UnicodeEncodeError as error:
         raise ContractError("result_invalid", "Terminal resultText must be valid UTF-8") from error
-    if len(content) > MAX_RESULT_TEXT_BYTES:
-        raise ContractError("result_invalid", "Terminal resultText exceeds the byte limit")
     return content
 
 
@@ -215,7 +215,7 @@ results, receipts or their hashes. New output still belongs to this exact run.
 """
     result_instruction = (
         f"Return the supplied final JSON schema: `status`, `resultPath` = `{result_path}`, "
-        f"and the complete answer once in `resultText` (nonempty UTF-8, maximum {MAX_RESULT_TEXT_BYTES} bytes). "
+        f"and the complete answer once in `resultText` (nonempty UTF-8). "
         "The runtime saves it atomically. Do not write or reread your answer file. Intermediate messages are progress only. "
         "If decisionKind is supported: approval requires a concrete proposal awaiting explicit authorization; "
         "clarification means missing information, choices or credentials; otherwise null. "
@@ -308,7 +308,7 @@ def build_codex_command(
             codex,
             "exec",
             "--cd",
-            str(session["projectRoot"]),
+            str(session.get("workingDirectory", session["projectRoot"])),
             *common,
             "-",
         ]
@@ -316,7 +316,7 @@ def build_codex_command(
         codex,
         "exec",
         "--cd",
-        str(session["projectRoot"]),
+        str(session.get("workingDirectory", session["projectRoot"])),
         "resume",
         *common,
         session_id,
@@ -389,7 +389,7 @@ def append_bounded(path: Path, content: bytes, limit: int) -> bool:
         info = os.fstat(descriptor)
         if not stat.S_ISREG(info.st_mode):
             raise ContractError("runtime_path_unsafe", "runtime log is not a regular file")
-        if info.st_size > limit or len(content) > limit - info.st_size:
+        if limit is not None and (info.st_size > limit or len(content) > limit - info.st_size):
             return False
         view = memoryview(content)
         while view:
@@ -417,7 +417,7 @@ class EventLogWriter:
         if not stat.S_ISREG(info.st_mode) or (info.st_dev, info.st_ino) != (current.st_dev, current.st_ino):
             raise ContractError("runtime_path_unsafe", "runtime event log was replaced")
         content = line.encode()
-        if info.st_size > MAX_EVENTS_BYTES or len(content) > MAX_EVENTS_BYTES - info.st_size:
+        if MAX_EVENTS_BYTES is not None and (info.st_size > MAX_EVENTS_BYTES or len(content) > MAX_EVENTS_BYTES - info.st_size):
             return False
         view = memoryview(content)
         while view:
@@ -451,10 +451,10 @@ def _queue_output(output, value, stopped=None):
 def read_process_lines(stream: IO[str], output: queue.Queue[tuple[str, str | None]], stopped=None) -> None:
     try:
         while stopped is None or not stopped.is_set():
-            line = stream.readline(MAX_EVENT_BYTES + 1)
+            line = stream.readline()
             if not line:
                 break
-            if len(line.encode()) > MAX_EVENT_BYTES:
+            if MAX_EVENT_BYTES is not None and len(line.encode()) > MAX_EVENT_BYTES:
                 _queue_output(output, ("error", None), stopped)
                 return
             if not _queue_output(output, ("line", line), stopped):

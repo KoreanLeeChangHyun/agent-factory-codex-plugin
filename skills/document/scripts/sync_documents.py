@@ -111,7 +111,7 @@ def read_manifest(path, root):
     return validate_manifest(data)
 
 
-def validate_manifest(data):
+def validate_manifest(data, *, packages=True):
     if (not isinstance(data, dict) or set(data) != {"version", "entries"}
             or type(data["version"]) is not int or data["version"] != 1
             or not isinstance(data["entries"], dict)):
@@ -128,7 +128,7 @@ def validate_manifest(data):
         for size in range(1, len(parts)):
             if entries.get("/".join(parts[:size])) != "dir":
                 raise ValueError(f"Missing manifest parent: {name}")
-        if len(parts) == 1 and (state != "dir" or not isinstance(entries.get(name + "/SKILL.md"), str)
+        if packages and len(parts) == 1 and (state != "dir" or not isinstance(entries.get(name + "/SKILL.md"), str)
                                 or not re.fullmatch(r"sha256:[0-9a-f]{64}", entries[name + "/SKILL.md"])):
             raise ValueError(f"Invalid manifest package: {name}")
     return entries
@@ -138,7 +138,42 @@ def document_state(entries):
     return {"version": 1, "entries": entries}
 
 
-def sync(root):
+def backup_reconciliation(root, state_dir, target, actual, packages):
+    """Durably preserve scoped output and control records before any replacement."""
+    backups = state_dir / "backups"
+    check_path(backups, root)
+    backups.mkdir(exist_ok=True)
+    backup = Path(tempfile.mkdtemp(prefix="reconcile-", dir=backups))
+    sync_directory(backups)
+    for name, state in sorted(actual.items()):
+        if name.split("/")[0] not in packages:
+            continue
+        destination = backup / "skills" / name
+        if state == "dir":
+            destination.mkdir(parents=True, exist_ok=True)
+            sync_directory(destination.parent)
+        else:
+            content = (target / name).read_bytes()
+            if "sha256:" + hashlib.sha256(content).hexdigest() != state:
+                raise ValueError(f"Destination changed during backup: {target / name}")
+            atomic_write(destination, content)
+    for name in ("manifest.json", "pending.json"):
+        path = state_dir / name
+        check_path(path, root)
+        if path.exists():
+            if not path.is_file():
+                raise ValueError(f"Expected regular state file: {path}")
+            atomic_write(backup / name, path.read_bytes())
+    atomic_write(backup / "reconciliation.json", json.dumps({
+        "source": "docs/skills", "packages": sorted(packages),
+        "snapshot": {name: value for name, value in actual.items()
+                     if name.split("/")[0] in packages}}, sort_keys=True).encode())
+    if (snapshot(target, root) if target.exists() else {}) != actual:
+        raise ValueError("Destination changed during backup; no documents replaced")
+    return backup
+
+
+def sync(root, *, reconcile=False):
     root = root.resolve(strict=True)
     source = root / "docs/skills"
     target = root / ".codex/skills"
@@ -155,11 +190,30 @@ def sync(root):
         manifest = state_dir / "manifest.json"
         pending = state_dir / "pending.json"
         check_path(pending, root)
-        if pending.exists():
+        recovery_entries = {}
+        if pending.exists() and not reconcile:
             raise ValueError(f"Interrupted document sync: {pending}. Preserve output and journal; "
-                             "review previous/planned hashes and reconcile with a backup before "
-                             "manually clearing the journal. Automatic retry is blocked.")
-        previous = read_manifest(manifest, root)
+                             "use --reconcile to back up current output and finish from docs/skills. "
+                             "Automatic retry is blocked.")
+        if pending.exists():
+            if not pending.is_file():
+                raise ValueError(f"Expected regular sync journal: {pending}")
+            journal = json.loads(pending.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+            if (not isinstance(journal, dict) or set(journal) != {"version", "previous", "planned"}
+                    or type(journal["version"]) is not int or journal["version"] != 1):
+                raise ValueError("Invalid sync journal; preserve it and restore a trusted backup")
+            for key in ("previous", "planned"):
+                recovery_entries.update(validate_manifest(document_state(journal[key]), packages=False))
+        manifest_invalid = False
+        try:
+            previous = read_manifest(manifest, root)
+        except (ValueError, TypeError):
+            # Explicit recovery can reconstruct only source-named packages when
+            # ownership is unreadable. Never infer deletions from corrupt state.
+            if not reconcile or not manifest.is_file() or manifest.is_symlink():
+                raise
+            previous = {}
+            manifest_invalid = True
         wanted = snapshot(source, root)
         for package in source.iterdir():
             if wanted.get(package.name) != "dir" or not wanted.get(package.name + "/SKILL.md", "").startswith("sha256:"):
@@ -181,17 +235,22 @@ def sync(root):
             for name in sorted(set(before) | set(now)):
                 if before.get(name) != now.get(name):
                     conflicts.append(f"Independent destination change: {target / name}")
-        if conflicts:
+        if conflicts and not reconcile:
             raise ValueError("; ".join(conflicts) + ". No documents changed. Back up and reconcile "
-                             "destination changes with the source; move unowned collisions aside "
-                             "only with the owner's approval, then invoke sync again.")
-        if previous == wanted:
+                             "with --reconcile to preserve existing files and use docs/skills as authoritative.")
+        changes = []
+        if reconcile and (conflicts or pending.exists() or manifest_invalid):
+            packages = owned | requested | {name.split("/")[0] for name in recovery_entries}
+            backup = backup_reconciliation(root, state_dir, target, actual, packages)
+            changes.append({"path": str(backup.relative_to(root)), "action": "backup"})
+            previous = {name: value for name, value in actual.items()
+                        if name.split("/")[0] in packages}
+        if previous == wanted and not pending.exists() and not changes:
             return []
         # Never infer ownership from a partially completed copy. An interrupted run
         # retains both states for explicit recovery and blocks every subsequent write.
         atomic_write(pending, json.dumps({"version": 1, "previous": previous,
                                           "planned": wanted}, sort_keys=True).encode())
-        changes = []
         for name in sorted(previous, key=lambda value: (len(value.split("/")), value), reverse=True):
             if name not in wanted or (previous[name] == "dir") != (wanted[name] == "dir"):
                 path = target / name
@@ -216,6 +275,8 @@ def sync(root):
                     raise ValueError(f"Source changed during sync: {source / name}; review {pending}")
                 atomic_write(path, content)
                 changes.append({"path": str(path.relative_to(root)), "action": "write"})
+        if snapshot(source, root) != wanted:
+            raise ValueError(f"Source changed during sync; use --reconcile to recover {pending}")
         atomic_write(manifest, json.dumps(document_state(wanted), sort_keys=True).encode())
         pending.unlink()
         sync_directory(state_dir)
@@ -225,9 +286,11 @@ def sync(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
+    parser.add_argument("--reconcile", action="store_true",
+                        help="Back up conflicting or interrupted output, then rebuild it from docs/skills.")
     args = parser.parse_args()
     try:
-        operations = sync(args.project_root)
+        operations = sync(args.project_root, reconcile=args.reconcile)
         print(json.dumps({"changes": operations}, ensure_ascii=False))
         return 0
     except (OSError, ValueError, TypeError) as error:

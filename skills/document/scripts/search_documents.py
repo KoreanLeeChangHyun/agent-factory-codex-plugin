@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Search the live Original and Processed Document catalog."""
+"""Search the live Original, Processed, Progress and Lessons Learned Document catalog."""
 
 import argparse
 import json
 from pathlib import Path
 import sys
 
-from catalog_documents import build_catalog
+from catalog_documents import CATALOG_TYPES, build_catalog
 
 
 def search(root: Path, query: str, document_type=None, category=None, limit=20) -> dict:
@@ -50,7 +50,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--query", required=True)
-    parser.add_argument("--type", choices=("original", "processed"))
+    parser.add_argument("--type", choices=CATALOG_TYPES)
     parser.add_argument("--category")
     parser.add_argument("--limit", type=int, default=20)
     args = parser.parse_args()

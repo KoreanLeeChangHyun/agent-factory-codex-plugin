@@ -310,6 +310,7 @@ def has_explicit_policy(args):
 
 def resolve(args, project_root, *, fallback_policy=None, allow_session_change=False):
     project_root = _path(project_root)
+    working_root = _path(getattr(args, "execution_working_directory", project_root))
     parent = None
     snapshot = os.environ.get(SNAPSHOT_ENV)
     thread = os.environ.get("CODEX_THREAD_ID")
@@ -325,6 +326,9 @@ def resolve(args, project_root, *, fallback_policy=None, allow_session_change=Fa
     policy_file = getattr(args, "execution_policy_file", None)
     selected = normalize(_read(policy_file)) if policy_file else parent
     authorized = authorized_role_policy(getattr(args, "role", None), parent, project_root) if parent is not None else None
+    if authorized is not None:
+        from worktrees import relocate_policy
+        authorized = relocate_policy(authorized, Path(project_root), Path(working_root))
     if authorized is not None and not policy_file:
         selected = authorized
     if authorized is not None and selected != authorized:
@@ -346,19 +350,19 @@ def resolve(args, project_root, *, fallback_policy=None, allow_session_change=Fa
         if sandbox is not None and approval is not None:
             raw = {"type": sandbox}
             if sandbox == "workspace-write":
-                raw["writable_roots"] = [project_root, *(roots or [])]
+                raw["writable_roots"] = [working_root, *(roots or [])]
             if network is not None:
                 raw["network_access"] = network
             selected = normalize({"schemaVersion": 1, "sandboxPolicy": raw, "approvalPolicy": approval})
         else:
-            selected = _configured_policy(getattr(args, "codex", None) or "codex", project_root,
+            selected = _configured_policy(getattr(args, "codex", None) or "codex", working_root,
                                           sandbox=sandbox, approval=approval)
     if new_root and (network is not None or roots is not None):
         raw = dict(selected["sandboxPolicy"])
         if network is not None:
             raw["network_access"] = network
         if roots is not None:
-            raw["writable_roots"] = [project_root, *roots]
+            raw["writable_roots"] = [working_root, *roots]
         selected = normalize({**selected, "sandboxPolicy": raw})
     inherited = selected["sandboxPolicy"]
     if sandbox is not None and sandbox != inherited["type"] or approval is not None and approval != selected["approvalPolicy"]:
@@ -366,10 +370,10 @@ def resolve(args, project_root, *, fallback_policy=None, allow_session_change=Fa
     if network is not None and network != inherited["network_access"]:
         raise PolicyError("policy_parent_mismatch", "explicit network access differs from resolved policy")
     if roots is not None:
-        requested = sorted(set([project_root, *(_path(root) for root in roots)]))
+        requested = sorted(set([working_root, *(_path(root) for root in roots)]))
         if inherited["type"] != "workspace-write" or requested != inherited["writable_roots"]:
             raise PolicyError("policy_parent_mismatch", "explicit writable roots differ from resolved policy")
-    if inherited["type"] == "workspace-write" and not any(Path(project_root).is_relative_to(root) for root in inherited["writable_roots"]):
+    if inherited["type"] == "workspace-write" and not any(Path(working_root).is_relative_to(root) for root in inherited["writable_roots"]):
         raise PolicyError("policy_parent_mismatch", "project is outside the inherited writable roots")
     return selected
 

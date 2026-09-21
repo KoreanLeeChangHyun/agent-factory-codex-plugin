@@ -19,7 +19,8 @@ metadata:
   authority.
 - Keep the requested coherent document. Skill documents MUST be self-contained
   references for the current accepted state, not historical records. Keep change logs,
-  past discussions and superseded decisions in Processed documents. Preserve source
+  past discussions and superseded decisions in Processed documents; keep task progress
+  and status in Progress documents. Preserve source
   evidence in Original documents.
 - After creating, modifying or deleting any package under `docs/skills/`,
   you MUST directly run the [synchronization script](#continuous-codex-synchronization) for that document's project and check its result
@@ -34,6 +35,8 @@ metadata:
 - `references/specification.md`: write accepted facts, rules and designs.
 - `references/processed.md`: write analysis and working knowledge.
 - `references/original.md`: preserve source evidence and metadata.
+- [Progress writing](references/progress.md): record task progress, status and remaining work.
+- [Lessons Learned writing](references/lessons-learned.md): record errors and judgment differences; consolidate lessons into Skill rules.
 - For work contract content, use Convention's [work contract](../convention/references/work-contracts.md);
   this Skill continues to own durable document language, classification and storage.
 - Read only the guides for the types involved. Use [Convention](../convention/SKILL.md) for shared development,
@@ -47,10 +50,14 @@ metadata:
 |---|---|
 | Original | Source-faithful metadata and links identifying external evidence. |
 | Processed | Transformed, non-authoritative working knowledge. |
+| Progress | Task progress, current status and remaining work; no Specification authority. |
+| Lessons Learned | Error causes/solutions and Human/AI judgment differences with reflection; no Specification authority. |
 | Skill document (Specification) | Project knowledge explicitly requested as a Specification by the Human. |
 
 - Every AI-generated durable Document is Processed by default unless the Human
-  explicitly requests a Specification. Generation, refinement, format and inferred
+  explicitly requests a Specification, except task progress and status records, which
+  use Progress, and error or Human/AI judgment-difference records, which use Lessons Learned.
+  Generation, refinement, format and inferred
   approval grant no such authority. Resolve unclear classification before writing.
 - These are the only types; Refined and Specification categories add no type.
   `Original -> Processed -> Specification` is optional provenance, never a required pipeline, maturity scale or
@@ -64,13 +71,16 @@ metadata:
 |---|---|
 | Original | `<project-root>/docs/original/<category>[-<domain>]-<name>/` |
 | Processed | `<project-root>/docs/processed/<category>[-<domain>]-<name>/` |
+| Progress | `<project-root>/docs/progress/<category>[-<domain>]-<name>/` |
+| Lessons Learned | `<project-root>/docs/lessons-learned/<id>.json` |
 | Skill document | `<project-root>/docs/skills/<category>[-<domain>]-<name>/` |
 
 <!-- clause-id: specification.routing.canonical -->
 - Maintain one editable source. Local storage is complete standalone behavior, not an
   error fallback. Alternative destinations/formats are additional exports.
-- Preserve existing Documents unless changes are authorized. Keep temporary artifacts in
-  run directories.
+- Preserve existing Documents unless changes are authorized. Keep disposable execution
+  scratch files in run directories. For standalone HTML, SVG, screenshots and other
+  non-Document outputs, use Convention's [Artifacts contract](../convention/SKILL.md#artifacts).
 - Preserve existing Skills outside managed synchronization. Writing a new document or
   running synchronization does not authorize rewriting, relocating or adopting them.
 - Migrate existing documents or Skills into the project document structure only when
@@ -84,18 +94,20 @@ metadata:
 
 ## 5. Document package
 
-- You MUST write Processed and Specification Documents in the Human's language, or their
+- You MUST write Processed, Progress, Lessons Learned and Specification Documents in the Human's language, or their
   explicitly selected document language. Support any user language; never fix these
   Documents to Korean, English or the language of this guidance.
-- Processed/Specification: one `SKILL.md` plus optional `assets/`; no `references/`,
+- Processed/Progress/Specification: one `SKILL.md` plus optional `assets/`; no `references/`,
   `scripts/` or `agents/`. Original contains one `metadata.yaml` with metadata and links
   only; it stores no copied source body or assets. Installed capability packages are
   outside this document format.
-- Preserve source text, quotes, code and identifiers in content-bearing Processed and
+- Preserve source text, quotes, code and identifiers in content-bearing Processed, Progress, Lessons Learned and
   Specification packages. For Original, preserve metadata and link strings exactly.
   Language choice alone permits no translation or conversion. `SKILL.md` does not
-  activate Processed as a Skill.
-- Follow the mandatory [Document structure](#document-structure) for the body.
+  activate Processed, Progress or Lessons Learned as a Skill.
+- Lessons Learned uses a single JSON file containing metadata and structured records;
+  it needs no `SKILL.md`, YAML front matter or `assets/` wrapper. Follow its type guide.
+- Follow the mandatory [Document structure](#document-structure) for Markdown bodies.
 - Body and assets are the editable source, including asset CSV/JSON. Store each diagram,
   system architecture, database/ERD or API design represented as JSON in a separate
   `assets/*.json` file. In `SKILL.md`, reference it where used with a descriptive relative
@@ -132,7 +144,7 @@ metadata:
 - Use `<category>-<name>` or `<category>-<domain>-<name>` only for project-defined domains; brackets in routing
   denote optional text. Preserve resolved names and type-guide categories; never infer
   domains or bulk-rename accepted identities.
-- YAML metadata records `document-type`, `category`, `domain`, `name`, and
+- For Markdown packages and Original, YAML metadata records `document-type`, `category`, `domain`, `name`, and
   applicable `language`/actual provenance. Undefined domain is `null`. Metadata
   grants no authority.
 
@@ -151,7 +163,7 @@ metadata:
 |---|---|
 | `docs/skills/` | `.codex/skills/` |
 
-- Only `docs/skills/` is projected. `docs/original/` and `docs/processed/` remain canonical
+- Only `docs/skills/` is projected. `docs/original/`, `docs/processed/`, `docs/progress/` and `docs/lessons-learned/` remain canonical
   project storage; they require no Codex export or synchronization. Existing
   `.codex/original/` and `.codex/processed/` content is left untouched.
 - Run `scripts/export_documents.py --project-root <project-root>` to preview; add `--apply` to copy. A missing `docs/skills/` root is an empty
@@ -180,8 +192,15 @@ metadata:
   automatically adopted. Missing manifests grant no ownership; malformed manifests fail closed.
 - Before any document mutation, all packages are checked for conflicts. Independent edits,
   additions, deletions or type changes in managed packages block the entire invocation.
-  Back up and reconcile these edits with the source. Move an unowned collision aside only
-  with its owner's approval; the CLI provides no force/adoption option.
+  Ordinary synchronization does not authorize replacing these edits or adopting unowned files.
+- When the Human authorizes recovery using `docs/skills/` as authoritative, invoke the same
+  command with `--reconcile`. It backs up affected output and existing control records under
+  `.codex/.document-sync/backups/` before rebuilding output and ownership. Inspect the returned
+  backup path. Missing or corrupt ownership can recover source-named packages; unrelated
+  packages remain untouched. Valid ownership and journals also identify obsolete managed
+  packages. Destination-only edits within affected packages are preserved in the backup.
+- Legacy explicit exports do not create ownership records. Use synchronization for ongoing
+  maintenance; importing a legacy export requires the explicit recovery authorization above.
 - Removing a source package removes only its unchanged owned output. An empty source root
   removes only unchanged managed packages; a missing source root is a no-op.
   Other `.codex` content is untouched.
@@ -191,9 +210,10 @@ metadata:
   before manual removal.
 - Writes are atomic per file, not across the tree. `pending.json` records previous and planned
   hashes before mutations. Interrupted writes retain this journal and block automatic retry,
-  including adoption of partial output. Preserve a backup, review both states and actual files,
-  and explicitly reconcile the output and manifest before manually clearing the journal.
-  Do not clear it merely to bypass a conflict.
+  including adoption of partial output. Authorized `--reconcile` validates the journal,
+  backs up partial output and finishes synchronization without manually clearing records.
+  Invalid journals still require restoring a trusted record; do not delete them to bypass
+  a conflict. Source changes during copying leave a recoverable journal instead of success.
 - Keep source, destination and state trees stable during invocation. The lock coordinates this
   CLI, not editors or hostile concurrent filesystem writers. Hashes track content and directory
   shape, not permission or timestamp edits. Relative links and file bytes remain unchanged.
@@ -203,16 +223,16 @@ metadata:
 
 ## 11. Local document catalog and search
 
-- Codex discovers Specification packages through its Skill catalog. Original and
-  Processed packages use the separate local Document catalog supplied by this Skill.
+- Codex discovers Specification packages through its Skill catalog. Original, Processed, Progress and
+  Lessons Learned packages use the separate local Document catalog supplied by this Skill.
 - Run `scripts/catalog_documents.py --project-root <project-root>` to emit a current JSON
-  catalog of `docs/original/` and `docs/processed/`. It reads the canonical packages on
+  catalog of `docs/original/`, `docs/processed/`, `docs/progress/` and `docs/lessons-learned/`. It reads the canonical packages on
   demand and writes no generated index into the project.
 - Run `scripts/search_documents.py --project-root <project-root> --query <text>` to search
-  catalog metadata, Original links and Processed Markdown. Optional `--type`,
+  catalog metadata, Original links, Processed/Progress Markdown and Lessons Learned JSON. Optional `--type`,
   `--category` and `--limit` filters narrow results.
 - Catalog and search are read-only discovery operations. They do not activate a
-  Processed Document as a Skill, change document authority or index `docs/skills/`.
+  Processed, Progress or Lessons Learned Document as a Skill, change document authority or index `docs/skills/`.
 - Reject malformed metadata, duplicate identities, links, unsupported package content
   and symlinks instead of silently omitting them from discovery.
 

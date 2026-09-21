@@ -9,7 +9,9 @@
   language. This applies across languages; do not use a fixed default language.
 - Processed is transformed, non-authoritative working knowledge. Every AI-generated
   durable Document is Processed by default unless the Human explicitly requests a
-  Specification; a `SKILL.md` filename does not confer authority.
+  Specification, except task progress and status records, which use
+  [Progress](progress.md), and error or Human/AI judgment-difference records, which use
+  [Lessons Learned](lessons-learned.md). A `SKILL.md` filename does not confer authority.
 - Store the body at `docs/processed/<category>[-<domain>]-<name>/SKILL.md`, with optional `assets/` under the shared package
   rules.
 - Preserve actual provenance and source fidelity as applicable. Distinguish source
@@ -31,10 +33,12 @@
 | `research` | Research. |
 | `analyze` | Internal analysis. |
 | `websearch` | Web search evidence. |
-| `process` | Progress and status. |
+| `process` | Legacy progress and status records; use Progress for new records. |
 | `classification` | Original source classification. |
 | `other` | Other processed knowledge. |
 | `extraction` | Extracted content. |
 | `comparison` | Comparisons. |
 
 - Use `summary` as a section when needed, not as a Processed category.
+- Preserve existing `docs/processed/process-*` packages and links. Move or reclassify
+  them only when the Human explicitly requests migration.

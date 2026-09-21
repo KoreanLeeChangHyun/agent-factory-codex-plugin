@@ -32,10 +32,10 @@ ACTORS = ("main", "human")
 HUMAN_APPROVAL_POLICIES = ("required", "bypass")
 ACTIVE_STATES = {"accepted", "queued", "starting", "running", "cancelling"}
 TERMINAL_STATES = {"completed", "needs-human-decision", "failed", "cancelled"}
-MAX_REQUEST_BYTES = 8 * 1024 * 1024
-MAX_EVENT_BYTES = 1024 * 1024
-MAX_EVENTS_BYTES = 8 * 1024 * 1024
-MAX_STDERR_BYTES = 4 * 1024 * 1024
+MAX_REQUEST_BYTES = None
+MAX_EVENT_BYTES = None
+MAX_EVENTS_BYTES = None
+MAX_STDERR_BYTES = None
 MAX_RECEIPT_BYTES = 1024 * 1024
 MAX_CAPABILITY_BINDING_BYTES = 256 * 1024
 PROCESS_TERM_TIMEOUT = 5.0
@@ -60,6 +60,8 @@ PROMPTS = SKILL_ROOT / "prompt"
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(SKILL_ROOT / "runtime"))
 import sandbox_diagnostics
+import lesson_capture
+import worktrees
 from runtime_storage import response_operation
 import permissions as runtime_permissions
 import execution_policy
@@ -212,6 +214,7 @@ def create_run(
     accepted_at = now()
     state = {
         "runtimeBinding": runtime_paths.resolve(project_root, create=True),
+        "workingDirectory": str(worktrees.checked_path(session)) if "projectRoot" in session else str(project_root),
         "schemaVersion": SCHEMA_VERSION,
         "runId": run_id,
         "agentId": agent_id,
@@ -687,8 +690,6 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     if role == "verification" and (execution_options.get("goalMode") is True or goal_action):
         raise ContractError("goal_role_invalid", "Verification cannot use native Goal continuation")
     if execution_options.get("goalMode") is True and new_agent and "goalObjective" not in execution_options:
-        if len(request_text) > 4000:
-            raise ContractError("goal_objective_invalid", "Supply --goal-objective with 1–4000 characters for this longer request")
         execution_options["goalObjective"] = request_text
     operation = "submit" if new_agent else "send"
     parent = managed_parent_identity(project_root) if role in {"work", "verification"} else None
@@ -744,6 +745,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     if parent is not None and parent["agentId"] == args.agent:
         raise ContractError("parent_session_invalid", "A child Agent cannot reuse its parent Agent identity")
     with contextlib.ExitStack() as locks:
+        locks.enter_context(file_lock(Path(runtime_paths.resolve(project_root)["runtimeRoot"]) / ".worktree.lock"))
         if parent is not None:
             locks.enter_context(file_lock(agent_directory(project_root, parent["agentId"]) / ".dispatch.lock"))
         locks.enter_context(file_lock(agent_path / ".dispatch.lock"))
@@ -859,6 +861,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             session = load_session(project_root, args.agent)
         if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent)):
             raise ContractError("session_busy", "An accepted or active run already owns this exact session")
+        if parent is not None:
+            session = worktrees.inherit(session, load_session(project_root, parent["agentId"]))
+            update_json(session_file(project_root, args.agent), agent_path / ".session-state.lock",
+                        lambda value: value.update({"worktree": session.get("worktree"), "executionPolicy": session.get("executionPolicy")}))
         policy_changed = "executionPolicy" not in session or execution_policy.session_policy(session) != policy
         if policy_changed:
             if "executionPolicy" in session and not execution_policy.has_explicit_policy(args):
@@ -868,6 +874,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         human_approval_policy_changed = session.get("humanApprovalPolicy", "required") != human_approval_policy
         if human_approval_policy_changed:
             session = {**session, "humanApprovalPolicy": human_approval_policy}
+        worktrees.checked_path(session)
         effective = {**session, **execution_options}
         image_input.validate_execution(images, effective)
         if effective.get("taskMode") in ("plan", "plan-work", "plan-work-verification") or effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
@@ -1041,6 +1048,18 @@ def run_codex_attempt(
         raise AttemptFailure("prompt_invalid", "Managed prompt could not be prepared", False) from error
     execution = state.get("executionOptions", {})
     session = dict(session)
+    working_directory = worktrees.checked_path({"projectRoot": str(project_root), **session})
+    if state.get("workingDirectory", str(working_directory)) != str(working_directory):
+        raise AttemptFailure("worktree_binding_changed", "Run working directory no longer matches its conversation", False)
+    session["workingDirectory"] = str(working_directory)
+    if session.get("worktree"):
+        from prompt_delivery import PromptParts
+        location_guidance = ("\nConversation working directory: " + str(working_directory)
+            + ". Perform source edits, commands and tests in this directory. Original workspace: "
+            + str(project_root) + ". This explicit conversation worktree overrides the default shared-checkout rule. "
+            + "Use the original workspace only as --project-root for Agent Factory runtime identity; "
+            + "child Agents inherit this working directory. Do not edit the original checkout while isolated.\n")
+        prompt_parts = PromptParts(prompt_parts.fixed + location_guidance, prompt_parts.dynamic)
     try:
         if "executionPolicy" not in session:
             raise ValueError("Legacy queued run lacks a verified permission snapshot; resubmit with current parent or explicit policy")
@@ -1052,7 +1071,7 @@ def run_codex_attempt(
         raise AttemptFailure("execution_policy_mismatch", str(error), False) from error
     session["executionPolicy"] = policy
     try:
-        checked = execution_preflight.check(str(session["codex"]), policy, project_root, state_path.parent, Path(state["requestPath"]))
+        checked = execution_preflight.check(str(session["codex"]), policy, working_directory, state_path.parent, Path(state["requestPath"]))
     except Exception as error:
         checked = {"passed": False, "error": str(error)}
     if not isinstance(checked, dict):
@@ -1074,8 +1093,6 @@ def run_codex_attempt(
         objective = execution.get("goalObjective")
         if session.get("goalMode") is True and not objective and not session.get("goal"):
             text = request.decode("utf-8")
-            if len(text) > 4000:
-                raise AttemptFailure("goal_objective_invalid", "Supply --goal-objective with 1–4000 characters", False)
             objective = text
         if objective:
             state["goalObjective"] = objective
@@ -1102,7 +1119,7 @@ def run_codex_attempt(
             command,
             env={**os.environ, "AGENT_FACTORY_EXECUTION_POLICY": json.dumps(policy, sort_keys=True),
                  "AGENT_FACTORY_PARENT_STATE": str(state_path)},
-            cwd=project_root,
+            cwd=working_directory,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -1189,8 +1206,9 @@ def run_codex_attempt(
     final_messages: list[str] = []
     publication_failed = False
     started_at = time.monotonic()
-    start_deadline = started_at + float(session["startTimeout"])
-    turn_deadline = started_at + float(session["turnTimeout"])
+    # Legacy session timeout fields must not terminate valid ongoing work.
+    start_deadline = float("inf")
+    turn_deadline = float("inf")
     stdout_eof = False
     stderr_eof = False
     control_reader = runtime_storage.ChangedJsonReader(state_path, safe_read_json)
@@ -1246,7 +1264,7 @@ def run_codex_attempt(
                 if stdout_eof:
                     break
                 continue
-            if line is None or len(line.encode()) > MAX_EVENT_BYTES:
+            if line is None or (MAX_EVENT_BYTES is not None and len(line.encode()) > MAX_EVENT_BYTES):
                 stop_attempt()
                 raise AttemptFailure(
                     "event_invalid", "codex emitted an invalid event", started, True
@@ -1271,6 +1289,7 @@ def run_codex_attempt(
                 raise AttemptFailure(
                     "event_invalid", "codex emitted an invalid event", started, True
                 )
+            capture_lesson(project_root, state, event, attempt)
             if event.get("type") == "error" and session.get("backend") == "app-server":
                 stop_attempt()
                 message = str(event.get("message", "Native Codex error"))
@@ -1347,6 +1366,15 @@ def run_codex_attempt(
         terminal = json.loads(final_messages[-1])
     except json.JSONDecodeError as error:
         raise AttemptFailure("result_invalid", "codex returned invalid terminal JSON", True) from error
+    if isinstance(terminal, dict) and terminal.get("status") == "failed":
+        capture_lesson(project_root, state, {"type": "runtime.failure", "code": "agent_reported_failure"}, attempt)
+    try:
+        lesson_capture.replay(project_root, state)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass  # Durable pending inputs remain visible to the completion audit.
+    saved_state = safe_read_json(Path(state["statePath"]))
+    if lesson_capture.audit(state) or any(not entry.get("saved") and not entry.get("pending") for entry in saved_state.get("lessonRecording", [])):
+        raise AttemptFailure("lesson_recording_incomplete", "Error records remain pending in the run lesson-capture directory", True)
     try:
         publish_terminal_result(terminal, state)
         update_json(Path(state["statePath"]), Path(state["statePath"]).parent / ".state.lock",
@@ -1374,6 +1402,21 @@ def run_codex_attempt(
         except ContractError as error:
             raise AttemptFailure(error.code, error.message, True) from error
     return str(terminal["status"]), active_session
+
+
+def capture_lesson(project_root, state, event, attempt):
+    try:
+        result = lesson_capture.observe(project_root, state, event, attempt)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        result = {"saved": False, "error": type(error).__name__}
+        pending = lesson_capture.audit(state)
+        if pending:
+            result["pending"] = pending[0]
+    if result is not None and not result.get("saved"):
+        state_path = Path(state["statePath"])
+        update_json(state_path, state_path.parent / ".state.lock",
+                    lambda value: value.setdefault("lessonRecording", []).append(result))
+    return result
 
 
 def mark_terminal(
@@ -1458,6 +1501,8 @@ def worker(args: argparse.Namespace) -> int:
                     )
                     return 0 if terminal_status != "failed" else 1
                 except AttemptFailure as failure:
+                    if failure.code not in {"cancelled", "lesson_recording_incomplete"}:
+                        capture_lesson(project_root, state, {"type": "runtime.failure", "code": failure.code}, attempt)
                     disposition = (
                         "started"
                         if failure.started
@@ -1946,8 +1991,16 @@ def command_reconcile(args: argparse.Namespace) -> int:
 
 def resolve_execution_policy(args: argparse.Namespace, project_root: Path, session: dict[str, Any] | None = None) -> dict[str, Any]:
     try:
+        if session is not None and session.get("role") in ("work", "verification") and os.environ.get("AGENT_FACTORY_PARENT_STATE"):
+            parent_state = safe_read_json(Path(os.environ["AGENT_FACTORY_PARENT_STATE"]))
+            session = worktrees.inherit(session, load_session(project_root, parent_state["agentId"]))
         stored = execution_policy.session_policy(session) if session is not None and "executionPolicy" in session else None
         policy_args = argparse.Namespace(**vars(args))
+        if session is not None:
+            policy_args.execution_working_directory = str(worktrees.checked_path({"projectRoot": str(project_root), **session}))
+        elif getattr(args, "role", None) in ("work", "verification") and os.environ.get("AGENT_FACTORY_PARENT_STATE"):
+            parent_state = safe_read_json(Path(os.environ["AGENT_FACTORY_PARENT_STATE"]))
+            policy_args.execution_working_directory = parent_state.get("workingDirectory", str(project_root))
         if session is not None:
             policy_args.role = session.get("role")
         if session is not None and session.get("codex"):
@@ -2002,8 +2055,8 @@ def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
         options["agentPermissions"] = roles
     objective = options.get("goalObjective")
     if objective is not None:
-        if not isinstance(objective, str) or not objective.strip() or len(objective) > 4000:
-            raise ContractError("goal_objective_invalid", "Goal objective must contain 1–4000 characters")
+        if not isinstance(objective, str) or not objective.strip():
+            raise ContractError("goal_objective_invalid", "Goal objective must be nonempty")
         if options.get("goalMode") is False:
             raise ContractError("goal_objective_invalid", "An objective cannot be combined with --no-goal-mode")
         options["goalMode"] = True
@@ -2113,8 +2166,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             capabilities = dict(native_codex.inspect_capabilities(codex))
             from task_modes import TASK_MODES
             modes = [mode for mode in TASK_MODES if mode not in ("plan", "plan-work", "plan-work-verification") or capabilities["submit"].get("plan") is True]
-            capabilities["submit"] = {**capabilities["submit"], "images": True, "taskModes": modes, "automaticRequestHash": True}
-            capabilities["send"] = {**capabilities["send"], "images": True, "taskModes": modes, "automaticRequestHash": True}
+            capabilities["submit"] = {**capabilities["submit"], "images": True, "taskModes": modes, "automaticRequestHash": True, "worktrees": True}
+            capabilities["send"] = {**capabilities["send"], "images": True, "taskModes": modes, "automaticRequestHash": True, "worktrees": True}
             if session is not None and "executionPolicy" in session:
                 capabilities["executionMode"] = (
                     "bypass"
@@ -2123,6 +2176,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
             emit(capabilities)
             return 0
+        if args.command == "worktree":
+            return worktrees.command(sys.modules[__name__], args)
         if args.command == "goal":
             return command_goal(args)
         if args.command == "announce-tasks":
