@@ -13,13 +13,18 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 - This plugin is fully installable and usable on its own; the VS Code extension is optional.
 - The Agent Factory VS Code extension requires this plugin to be installed and
-  enabled at the identical semantic base version. For example, extension `1.0.12`
-  accepts plugin `1.0.12+codex.<token>`.
+  enabled at the identical semantic base version. For example, extension `1.0.13`
+  accepts plugin `1.0.13+codex.<token>`.
 
 - On activation, the extension checks whether the plugin is installed, enabled, and compatible,
   and attempts automatic installation when needed. An already active, compatible plugin is used without reinstalling.
   If compatibility cannot be confirmed afterward, activation stops with an error.
 - To install or update it yourself, see [Manual installation](#manual-installation) below.
+
+## Independent components
+
+- **Extension + plugin:** Main, Work, Verification and exec/loop provide the complete local workflow without Agent Factory MCP. No MCP package, server, account, tenant, connection or authenticated resource is required. The plugin also works without the extension.
+- **MCP:** The service is independently installed and operated; it is not a dependency of the local plugin workflow.
 
 ## Skills
 

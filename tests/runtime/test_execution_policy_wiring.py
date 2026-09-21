@@ -39,9 +39,13 @@ class ExecutionPolicyWiringTests(unittest.TestCase):
     def test_submit_binds_policy_to_session_run_and_dispatch_identity(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.dict(runtime.os.environ, {"AGENT_FACTORY_EXECUTION_POLICY": json.dumps(POLICY)}):
             root = Path(directory)
-            args = runtime.parse_args(["submit", "--project-root", str(root), "--agent", "policy-work", "--role", "work",
+            task_list = root / "tasks.json"
+            task_list.write_text(json.dumps({"id": "policy", "title": "Policy persistence", "tasks": [
+                {"id": "policy", "title": "Policy persistence", "description": "Persist the supplied execution policy",
+                 "completionCriteria": "Session, run and dispatch retain the exact policy"}]}))
+            args = runtime.parse_args(["submit", "--task-list-file", str(task_list), "--task-id", "policy", "--project-root", str(root), "--agent", "policy-work", "--role", "work",
                                        "--codex", "/bin/true", "--message", "bounded", "--dispatch-id", "dispatch-policy"])
-            with mock.patch.object(runtime, "spawn_worker", return_value=123), mock.patch.object(runtime, "emit") as emit:
+            with mock.patch.object(runtime.native_codex, "inspect_capabilities", return_value={"submit": {"goal": True}, "send": {"goal": True}, "diagnostic": None}), mock.patch.object(runtime, "spawn_worker", return_value=123), mock.patch.object(runtime, "emit") as emit:
                 runtime.submit(args, True)
             state = runtime.safe_read_json(runtime.agent_directory(root, "policy-work") / "runs" / emit.call_args.args[0]["runId"] / "state.json")
             self.assertEqual(state["executionPolicy"], POLICY)

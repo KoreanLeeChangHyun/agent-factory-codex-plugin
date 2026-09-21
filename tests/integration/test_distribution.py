@@ -33,9 +33,9 @@ class DistributionTests(unittest.TestCase):
                 ("exec.py", ["send", "--agent", "main", "--message", "request",
                              "--reporting-loop-id", "old-loop"]),
                 ("loop.py", ["start", "--work-agent", "work", "--verification-agent", "verify",
-                             "--request-file", "missing.md", "--work-reporting-config", "missing.json"]),
+                             "--task-list-file", "missing-tasks.json", "--task-id", "task", "--request-file", "missing.md", "--work-reporting-config", "missing.json"]),
                 ("loop.py", ["start", "--work-agent", "work", "--verification-agent", "verify",
-                             "--request-file", "missing.md", "--verification-reporting-config", "missing.json"]),
+                             "--task-list-file", "missing-tasks.json", "--task-id", "task", "--request-file", "missing.md", "--verification-reporting-config", "missing.json"]),
             ]
             for name, arguments in retired_invocations:
                 with self.subTest(retired=arguments):
