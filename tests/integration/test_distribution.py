@@ -62,7 +62,7 @@ class DistributionTests(unittest.TestCase):
             self.assertFalse((installed / "skills/mcp").exists())
             layout = (installed / "skills/document/SKILL.md").read_text()
             normalized_layout = " ".join(layout.split())
-            for document_type in ("original", "processed", "skills"):
+            for document_type in ("original", "refined", "skills"):
                 self.assertIn(
                     f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/",
                     normalized_layout,

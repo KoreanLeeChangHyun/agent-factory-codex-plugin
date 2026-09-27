@@ -18,6 +18,7 @@ from typing import Any, Sequence
 
 sys.dont_write_bytecode = True
 import exec as agent_exec
+import loop_progress
 
 
 SCHEMA_VERSION = "0.1.0"
@@ -35,6 +36,29 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def publish_progress(path, state):
+    try:
+        return {"status": "current", **loop_progress.publish(path, state, agent_exec.atomic_write)}
+    except (OSError, ValueError, TypeError, KeyError, agent_exec.ContractError) as error:
+        # A display failure must never undo a committed dispatch or block execution.
+        print(f"Progress projection failed for {state.get('loopId')}: {error}", file=sys.stderr)
+        return {"status": "stale", "error": str(error), "stateRevision": state.get("stateRevision", 0)}
+
+
+def save_loop_state(path, state):
+    state["stateRevision"] = state.get("stateRevision", 0) + 1
+    agent_exec.atomic_write_json(path, state)
+    publish_progress(path, state)
+
+
+def refresh_progress(args):
+    root = agent_exec.resolve_project_root(args.project_root)
+    path = state_path(root, args.work_agent, args.loop_id)
+    with agent_exec.file_lock(path.parent / ".loop.lock"):
+        state = agent_exec.safe_read_json(path)
+        return {"loopId": state["loopId"], "projection": publish_progress(path, state)}
+
+
 def role_model_options(execution: dict[str, Any], role: str, operation: str) -> dict[str, Any]:
     """Bind role overrides on every turn; retain the legacy shared submit model."""
     profile = execution.get("agentModels", {}).get(role, {})
@@ -47,12 +71,20 @@ def role_model_options(execution: dict[str, Any], role: str, operation: str) -> 
 class AgentRuntime:
     """Call only the public managed-session interface."""
 
-    def __init__(self, project_root: Path) -> None:
+    def __init__(self, project_root: Path, parent_state_path: str | None = None) -> None:
         self.project_root = project_root
         self.runtime_binding = agent_exec.runtime_paths.resolve(project_root, create=True)
         self.script = Path(agent_exec.__file__).resolve()
+        self.parent_state_path = parent_state_path
 
     def call(self, arguments: list[str]) -> dict[str, Any]:
+        environment = os.environ.copy()
+        # The driver outlives its caller. Keep the announcement and child runs
+        # bound to the Main run that accepted the immutable task list.
+        if self.parent_state_path:
+            environment[agent_exec.execution_policy.PARENT_STATE_ENV] = self.parent_state_path
+        else:
+            environment.pop(agent_exec.execution_policy.PARENT_STATE_ENV, None)
         process = subprocess.run(
             [sys.executable, str(self.script), *arguments, "--project-root", str(self.project_root), *agent_exec.runtime_paths.arguments(self.project_root)],
             cwd=self.project_root,
@@ -61,6 +93,7 @@ class AgentRuntime:
             stderr=subprocess.PIPE,
             text=True,
             encoding="utf-8",
+            env=environment,
             timeout=30,
             check=False,
         )
@@ -184,7 +217,7 @@ def upgrade_execution_policy(state: dict[str, Any], path: Path, args: argparse.N
         # An already accepted historical run retains its original immutable tuple.
         state["pendingDispatch"]["legacyPolicyUnbound"] = True
     state["updatedAt"] = now()
-    agent_exec.atomic_write_json(path, state)
+    save_loop_state(path, state)
 
 
 def observed_task_status(child):
@@ -213,6 +246,11 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         "kind": "work-verification-loop",
         "loopId": state["loopId"],
         "workflow": workflow,
+        "contract": copy.deepcopy(state.get("contract")),
+        "updatedAt": state.get("updatedAt"),
+        "stateRevision": state.get("stateRevision", 0),
+        "progressPath": str(Path(state["statePath"]).parent / "progress.md"),
+        "progressProjection": loop_progress.health(Path(state["statePath"]), state),
         "taskMode": state.get("execution", {}).get("taskMode", "work-verification"),
         "status": state["status"],
         "phase": state["phase"],
@@ -316,7 +354,7 @@ def prepare_dispatch(
         state["pendingDispatch"]["recoveryOfRunId"] = recovery_of_run_id
     state["phase"] = f"{role}-dispatching"
     state["updatedAt"] = now()
-    agent_exec.atomic_write_json(path, state)
+    save_loop_state(path, state)
 
 
 def complete_pending_dispatch(
@@ -409,6 +447,10 @@ def complete_pending_dispatch(
     state["phase"] = f"{role}-running"
     if state.get("workflow"):
         task = state["workflow"]["tasks"][state["workflow"]["index"]]
+        if role == "verification":
+            # The Work receipt was validated before this dispatch intent. A
+            # recovered control-plane failure may have projected it as blocked.
+            task["workStatus"] = "completed"
         task["workStatus" if role == "work" else "verificationStatus"] = observed_task_status(run)
         task[role + "RunId"] = run_id
         task[role + "AgentId"] = pending["agentId"]
@@ -425,7 +467,7 @@ def complete_pending_dispatch(
             raise agent_exec.ContractError("receipt_recovery_binding_invalid", "Receipt recovery audit linkage is invalid")
         recovery.update({"recoveryWorkRunId": run_id, "dispatchedAt": now()})
     state["updatedAt"] = now()
-    agent_exec.atomic_write_json(path, state)
+    save_loop_state(path, state)
     return run
 
 
@@ -559,6 +601,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "controlPlaneError": None,
         "receiptRecovery": None,
         "terminalReason": None,
+        "contract": copy.deepcopy(task_document.get("contract")),
         "workflow": {"id": task_document["id"], "title": task_document["title"], "index": 0, "tasks": workflow_tasks},
         "parentStatePath": os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV),
         "execution": {"taskListPath": str(task_list_path), "taskBinding": binding, "taskMode": mode, "codex": args.codex, "model": args.model,
@@ -567,8 +610,8 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "createdAt": created,
         "updatedAt": created,
     }
-    agent_exec.atomic_write_json(path, state)
-    dispatch(state, path, AgentRuntime(root), role="work", request_file=original)
+    save_loop_state(path, state)
+    dispatch(state, path, AgentRuntime(root, state["parentStatePath"]), role="work", request_file=original)
     return public_state(state, state["currentChild"])
 
 
@@ -634,7 +677,7 @@ def recover_receipt(args: argparse.Namespace) -> dict[str, Any]:
         state = agent_exec.safe_read_json(path)
         if state["status"] == "cancelled":
             return public_state(state)
-        runtime = AgentRuntime(root)
+        runtime = AgentRuntime(root, state.get("parentStatePath"))
         recovery = state.get("receiptRecovery")
         if isinstance(recovery, dict):
             if isinstance(state.get("pendingDispatch"), dict):
@@ -708,7 +751,7 @@ def recover_receipt(args: argparse.Namespace) -> dict[str, Any]:
             "dispatchedAt": None,
         }
         state["updatedAt"] = now()
-        agent_exec.atomic_write_json(path, state)
+        save_loop_state(path, state)
         # The accepted recovery intent is durable before any legacy policy publication.
         upgrade_execution_policy(state, path, args, root)
         dispatch(
@@ -743,7 +786,7 @@ def finish_workflow_task(state, path, runtime, reason):
             return public_state(state, state["currentChild"])
     state.update(status="completed", phase="ended", currentChild=None,
                  terminalReason={"code": reason, "message": "All submitted tasks completed"}, updatedAt=now())
-    agent_exec.atomic_write_json(path, state)
+    save_loop_state(path, state)
     return public_state(state)
 
 
@@ -755,7 +798,7 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
         if state["status"] in {"completed", "cancelled"}:
             return public_state(state)
         upgrade_execution_policy(state, path, args, root)
-        runtime = AgentRuntime(root)
+        runtime = AgentRuntime(root, state.get("parentStatePath"))
         if isinstance(state.get("pendingDispatch"), dict):
             child = complete_pending_dispatch(state, path, runtime)
             return public_state(state, child)
@@ -769,15 +812,15 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
             if state.get("workflow"):
                 state["workflow"]["tasks"][state["workflow"]["index"]]["workStatus" if current["role"] == "work" else "verificationStatus"] = "blocked" if child["status"] == "needs-human-decision" else child["status"]
             state.update({
-                "status": "runtime-error",
-                "phase": "control-plane-error",
+                "status": "needs-human-decision" if child["status"] == "needs-human-decision" else "runtime-error",
+                "phase": "waiting-human" if child["status"] == "needs-human-decision" else "control-plane-error",
                 "controlPlaneError": child.get("error") or {
                     "code": child["status"],
                     "message": "managed child did not complete",
                 },
                 "updatedAt": now(),
             })
-            agent_exec.atomic_write_json(path, state)
+            save_loop_state(path, state)
             return public_state(state, child)
         directory = path.parent
         if current["role"] == "work":
@@ -795,7 +838,7 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
                     for remaining in workflow["tasks"][workflow["index"] + 1:]:
                         remaining.update(workStatus="cancelled", verificationStatus="cancelled")
                 state.update({"status": "completed", "phase": "ended", "currentChild": None, "terminalReason": {"code": "human-skip", "message": "Human skipped Verification"}, "updatedAt": now()})
-                agent_exec.atomic_write_json(path, state)
+                save_loop_state(path, state)
                 return public_state(state)
             if state.get("workflow"):
                 state["workflow"]["tasks"][state["workflow"]["index"]]["workStatus"] = "completed"
@@ -854,7 +897,7 @@ def skip_loop(args: argparse.Namespace) -> dict[str, Any]:
             },
             "updatedAt": now(),
         })
-        agent_exec.atomic_write_json(path, state)
+        save_loop_state(path, state)
         return public_state(state, current)
 
 
@@ -868,7 +911,7 @@ def close_loop(args):
         state = agent_exec.safe_read_json(path)
         if state["status"] == "cancelled":
             return public_state(state)
-        if state["status"] != "runtime-error" or state.get("pendingDispatch"):
+        if state["status"] not in {"runtime-error", "needs-human-decision"} or state.get("pendingDispatch"):
             raise agent_exec.ContractError("loop_close_not_stopped", "Only failed workflows without uncertain dispatches can be closed")
         current = state.get("currentChild")
         if current:
@@ -886,7 +929,7 @@ def close_loop(args):
             "actor": args.actor, "authorizationReference": args.authorization_reference.strip(),
             "decisionEvidence": args.decision_evidence.strip(), "recordedAt": now(),
         })
-        agent_exec.atomic_write_json(path, state)
+        save_loop_state(path, state)
         return public_state(state)
 
 
@@ -910,9 +953,9 @@ def drive_loop(args):
                     state.update(status="runtime-error", controlPlaneError={"code": getattr(error, "code", "driver_error"), "message": str(error)})
                     if state.get("workflow"):
                         task = state["workflow"]["tasks"][state["workflow"]["index"]]
-                        role = (state.get("currentChild") or {}).get("role", "work")
+                        role = (state.get("pendingDispatch") or state.get("currentChild") or {}).get("role", "work")
                         task["verificationStatus" if role == "verification" else "workStatus"] = "blocked"
-                    agent_exec.atomic_write_json(path, state)
+                    save_loop_state(path, state)
                 return public_state(state)
             if result["status"] != "active":
                 return result
@@ -926,7 +969,34 @@ def launch_driver(args, result):
         value = getattr(args, name, None)
         if value:
             arguments.extend(["--" + name.replace("_", "-"), str(value)])
-    with open(Path(result["statePath"]).parent / "driver.log", "ab") as log:
+    log_path = Path(result["statePath"]).parent / "driver.log"
+    if sys.platform == "linux":
+        # A new process session still belongs to Main's systemd control group. When
+        # Main ends, KillMode=control-group would otherwise kill this driver too.
+        if not agent_exec.systemd_manager_usable():
+            raise OSError("The user systemd manager is required for a durable loop driver")
+        try:
+            environment_fd, environment_path = agent_exec.create_systemd_environment_file()
+            unit_name = "agent-factory-loop-" + hashlib.sha256(result["loopId"].encode()).hexdigest()[:24] + ".service"
+            try:
+                launched = agent_exec._systemd_command((
+                    "systemd-run", "--user", f"--unit={unit_name}",
+                    "--collect", "--service-type=exec",
+                    "--property=KillMode=control-group",
+                    "--property=Restart=on-failure", "--property=RestartSec=2s",
+                    f"--property=EnvironmentFile={environment_path}",
+                    f"--property=StandardOutput=append:{log_path}",
+                    f"--property=StandardError=append:{log_path}",
+                    f"--working-directory={args.project_root}", "--", *arguments,
+                ))
+            finally:
+                os.close(environment_fd)
+        except agent_exec.ContractError as error:
+            raise OSError(str(error)) from error
+        if launched.returncode != 0:
+            raise OSError("The loop driver service was not accepted: " + launched.stderr.strip())
+        return
+    with open(log_path, "ab") as log:
         subprocess.Popen(arguments, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
                          start_new_session=True, close_fds=True)
 
@@ -951,7 +1021,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
         start.add_argument("--" + role + "-execution-mode", choices=("cli-default", "workspace-write", "danger-full-access", "bypass"))
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
-    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close"):
+    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close", "refresh-progress"):
         command = commands.add_parser(name)
         agent_exec.add_project_argument(command)
         if name in {"reconcile", "recover-receipt", "drive"}:
@@ -976,7 +1046,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         agent_exec.response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "loop.py", "action": args.command})
         agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
-        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop}
+        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop, "refresh-progress": refresh_progress}
         result = handlers[args.command](args)
         if args.command == "start" and result.get("status") == "active":
             try:
@@ -988,7 +1058,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     state = agent_exec.safe_read_json(path)
                     if state["status"] != "cancelled":
                         state.update(status="runtime-error", controlPlaneError={"code": "driver_launch_failed", "message": str(error)})
-                        agent_exec.atomic_write_json(path, state)
+                        save_loop_state(path, state)
                     result = public_state(state, state.get("currentChild"))
         emit(result)
         return 0

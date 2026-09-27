@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 from typing import Any, IO
 
-import execution_policy
 from task_modes import route_instruction
 import sandbox_diagnostics
 from process_containment import (
@@ -280,50 +279,6 @@ def build_prompt(**kwargs: Any) -> str:
     return build_prompt_parts(**kwargs).full
 
 
-def build_codex_command(
-    session: dict[str, Any], state: dict[str, Any], session_id: str | None,
-    *, prompt_parts: bool = False,
-) -> list[str]:
-    codex = str(session["codex"])
-    common = []
-    for image in state.get("imageInputs", []):
-        common.extend(["--image", str(image["path"])])
-    common.extend(["--json", "--output-schema", str(state["responseSchemaPath"])])
-    if session.get("backend") == "app-server":
-        return [sys.executable, str(SKILL_ROOT / "runtime" / "native_codex.py"), str(state["statePath"]),
-                *(["--prompt-parts"] if prompt_parts else [])]
-    policy = execution_policy.session_policy(session)
-    common.extend(execution_policy.arguments(policy, Path(state["statePath"]).parent))
-    if session.get("fast") is False:
-        common.extend(["-c", 'service_tier="default"'])
-    if session.get("reasoningEffort"):
-        common.extend(["-c", "model_reasoning_effort=" + json.dumps(session["reasoningEffort"])])
-    # Bounded roles must never inherit native goal auto-continuation from config.
-    common.extend(["-c", "features.goals=false"])
-    model = session.get("model")
-    if model:
-        common.extend(["--model", str(model)])
-    if session_id is None:
-        return [
-            codex,
-            "exec",
-            "--cd",
-            str(session.get("workingDirectory", session["projectRoot"])),
-            *common,
-            "-",
-        ]
-    return [
-        codex,
-        "exec",
-        "--cd",
-        str(session.get("workingDirectory", session["projectRoot"])),
-        "resume",
-        *common,
-        session_id,
-        "-",
-    ]
-
-
 def stderr_reports_sandbox_unavailable(path: Path) -> bool:
     try:
         stderr = safe_read_bytes(path, MAX_EVENT_BYTES).decode("utf-8")
@@ -480,3 +435,9 @@ def stream_stderr(
         _queue_output(output, ("stderr_error", None), stopped)
     finally:
         _queue_output(output, ("stderr_eof", None), stopped)
+
+
+def build_codex_command(session, state, session_id, *, prompt_parts=False):
+    """Compatibility delegate; new orchestration uses the provider adapter."""
+    from adapters.codex.command import build_codex_command as build
+    return build(session, state, session_id, prompt_parts=prompt_parts)

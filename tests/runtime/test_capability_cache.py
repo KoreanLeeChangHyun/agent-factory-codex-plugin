@@ -51,7 +51,7 @@ for name in ('TurnStartParams', 'ThreadStartParams', 'ThreadResumeParams'):
 
     def child(self):
         source = 'import sys; sys.path.insert(0, sys.argv[1]); import native_codex; native_codex.inspect_capabilities(sys.argv[2], refresh=True, runtime_home=sys.argv[3])'
-        return subprocess.Popen([sys.executable, '-c', source, str(Path(native.__file__).parent),
+        return subprocess.Popen([sys.executable, '-c', source, str(Path(__file__).resolve().parents[2] / 'skills/agent/runtime'),
                                  str(self.binary), str(self.root / 'runtime')], env=dict(os.environ))
 
     def test_missing_plan_schema_is_not_advertised_or_cached_as_supported(self):

@@ -4,7 +4,7 @@
 
 ## 1. Document assets
 
-- Processed and Specification packages store each diagram or structured system
+- Refined and Specification (Skill document) packages store each diagram or structured system
   architecture, database/ERD or API design model as a separate JSON file under
   `assets/`. At the relevant location, `SKILL.md` uses a descriptive relative Markdown
   link to that file; it does not embed the JSON object or a fenced JSON copy. Follow

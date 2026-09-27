@@ -341,3 +341,36 @@
 - Keep archives immutable. An archived or malformed record is not proof of completion.
 - Resolve projects separately; nested checkouts do not share an identity automatically.
 - Report an unavailable mapping or recovery operation instead of editing runtime state.
+
+
+<a id="progress-projection"></a>
+
+## 7. Progress projection and repair
+
+- Loop `state.json` and validated run receipts retain execution authority. Every saved
+  transition increments `stateRevision` and publishes `progress.md`, `progress-state.json`
+  and an immutable `progress-history/revision-<N>.json` beneath the same loop directory.
+  These files are derived views, not an event-sourced execution log or new task authority.
+- `loop.py status` exposes `progressPath`, `stateRevision` and `progressProjection`
+  (`current`, `stale` or `missing`). Freshness compares the committed state with the
+  generated view and its revision snapshot. It does not assert that a live child has
+  finished or that an unprocessed receipt passed.
+- Link the returned progress path from the contract's human-maintained summary. Follow
+  [Progress writing](../../document/references/progress.md) for that document's ownership.
+  Preserve contract versions, task IDs and accepted run bindings in both views.
+- Projection failures are logged and do not block committed execution. Repair the
+  current view without launching or resuming agents:
+
+  ```sh
+  python3 <installed-agent-skill>/scripts/loop.py refresh-progress \
+    --project-root PROJECT --work-agent WORK_AGENT --loop-id LOOP_ID
+  ```
+
+- Repair holds the loop lock, leaves `state.json` unchanged and returns
+  `projection.status` (`current` or `stale`) plus any error. Repeating repair is
+  idempotent. Conflicting history is preserved and reported; investigate it rather
+  than deleting evidence. An interruption can leave missing intermediate projection
+  revisions; repair cannot reconstruct them or authorize replaying completed work.
+- Work-only completion, receipt-processed Verification completion, Human skip,
+  blocked work and cancellation remain distinct. Later direct work never rewrites
+  the cancelled loop's historical outcome.

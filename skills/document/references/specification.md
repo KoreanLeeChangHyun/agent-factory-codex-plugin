@@ -1,17 +1,18 @@
-# Specification writing
+# Specification (Skill document) writing
 
 <a id="authority-and-scope"></a>
 
 ## 1. Authority and scope
 
-- Apply [Document requirements](../SKILL.md). Only the Human's explicit request grants Specification authority;
+- Apply [Document requirements](../SKILL.md). Specification document and Skill document are synonymous.
+  Only the Human's explicit request grants Specification authority;
   generation, format and inferred approval do not.
 - You MUST write in the Human's language, or their explicitly selected document
   language. This applies across languages; do not use a fixed default language.
 - A Skill document MUST present the current accepted state as a self-contained final
   reference. Readers must not reconstruct it from previous revisions.
 - Do not include change logs, past discussions, superseded decisions, historical copies
-  or narratives of how the document evolved. Keep such records in Processed documents
+  or narratives of how the document evolved. Keep such records in Refined documents
   and source evidence in Original documents.
 - Integrate accepted changes into the current clauses. Preserve applicable meaning and
   explicitly unresolved choices without turning them into a decision history.
@@ -49,13 +50,13 @@
    with invented requirements or claim implementation completion.
 6. Review coverage against the accepted content: no missing conditions, contradictory
    clauses, ambiguous subjects or new decisions. Resolve conflicting accepted meaning
-   with the Human; a Processed comparison may support that decision without authority.
+   with the Human; a Refined comparison may support that decision without authority.
 
 <a id="package-and-derived-copies"></a>
 
 ## 4. Package and derived copies
 
-- Store the canonical body at `docs/skills/<category>[-<domain>]-<name>/SKILL.md`, with optional `assets/`. Follow the shared
+- Store the canonical body at `docs/skills/<category>[-<domain>]-<name>/SKILL.md`, with optional `references/` for detailed Markdown and `assets/` for attachments. Follow the shared
   language, heading, metadata and asset rules.
 - Update the canonical source and regenerate `.codex/skills/` or displays from it. Do not
   require an English translation, paired HTML, counterpart metadata or a two-source

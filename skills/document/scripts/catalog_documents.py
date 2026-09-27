@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build a live catalog for Original, Processed, Progress and Lessons Learned project Documents."""
+"""Build a live catalog for Original, Refined, Progress and Lessons Learned project Documents."""
 
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 
 import yaml
@@ -12,7 +13,21 @@ from export_documents import check_path, inventory
 
 
 CATALOG_TYPES = ("original", "processed", "progress", "lessons-learned")
+# Refined keeps the compatible `processed` document type.
+TYPE_ALIASES = {"refined": "processed"}
+SOURCES = (
+    ("original", "docs/original", "canonical"),
+    ("processed", "docs/refined", "canonical"),
+    ("processed", "docs/processed", "legacy"),
+    ("progress", "docs/progress", "canonical"),
+    ("progress", "progress", "legacy"),
+    ("lessons-learned", "docs/lessons-learned", "canonical"),
+)
 REQUIRED_METADATA = ("document-type", "category", "domain", "name")
+CONTRACT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
+CONTRACT_FILE = re.compile(r"contract-v([1-9][0-9]{0,5})\.md")
+MARKDOWN_LINK = re.compile(r"\]\(<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\)")
+TEXT_SUFFIXES = {".md", ".csv", ".json", ".txt", ".yaml", ".yml"}
 
 
 def read_yaml(path: Path) -> dict:
@@ -41,6 +56,16 @@ def read_frontmatter(path: Path) -> dict:
     if not isinstance(value, dict):
         raise ValueError(f"Front matter must be a mapping: {path}")
     return value
+
+
+def document_metadata(frontmatter: dict, path: Path) -> dict:
+    """Accept flat front matter or Skill-style nesting under `metadata`."""
+    if "document-type" in frontmatter:
+        return frontmatter
+    nested = frontmatter.get("metadata")
+    if isinstance(nested, dict) and "document-type" in nested:
+        return nested
+    raise ValueError(f"Metadata missing document-type: {path}")
 
 
 def validate_metadata(metadata: dict, kind: str, path: Path) -> None:
@@ -113,7 +138,7 @@ def catalog_entry(root: Path, package: Path, kind: str) -> dict:
         if files.get("SKILL.md") != "file":
             raise ValueError(f"{kind.capitalize()} package needs SKILL.md: {package}")
         metadata_path = package / "SKILL.md"
-        metadata = read_frontmatter(metadata_path)
+        metadata = document_metadata(read_frontmatter(metadata_path), metadata_path)
         links = metadata.get("links", [])
         if not isinstance(links, list) or any(
             not isinstance(link, str) or not link.strip() for link in links
@@ -130,8 +155,125 @@ def catalog_entry(root: Path, package: Path, kind: str) -> dict:
         "packagePath": str(package.relative_to(root)),
         "metadataPath": str(metadata_path.relative_to(root)),
         "contentPath": content_path,
+        "contentPaths": ([content_path] + [
+            str((package / name).relative_to(root))
+            for name, shape in sorted(files.items())
+            if shape == "file" and name.startswith("references/") and name.endswith(".md")
+        ]) if content_path else [],
         "links": links,
         "metadata": metadata,
+    }
+
+
+def local_links(text: str) -> set[str]:
+    """Return sibling file names linked from Markdown, ignoring anchors and other paths."""
+    names = set()
+    for target in MARKDOWN_LINK.findall(text):
+        target = target.split("#", 1)[0]
+        if target.startswith("./"):
+            target = target[2:]
+        if target and "/" not in target and ":" not in target:
+            names.add(target)
+    return names
+
+
+def task_ids(text: str) -> list[str]:
+    """Collect first-column values of Markdown tables whose first header names an ID."""
+    ids = []
+    lines = text.splitlines()
+    for index, line in enumerate(lines[:-1]):
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        separator = lines[index + 1].strip()
+        if not line.lstrip().startswith("|") or not re.fullmatch(r"\|?[\s:|-]+\|?", separator):
+            continue
+        if not re.search(r"\bID\b", cells[0], re.IGNORECASE):
+            continue
+        for row in lines[index + 2:]:
+            if not row.lstrip().startswith("|"):
+                break
+            value = row.strip().strip("|").split("|")[0].strip().strip("`")
+            if value and value not in ids:
+                ids.append(value)
+    return ids
+
+
+def contract_entry(root: Path, folder: Path) -> dict:
+    """Catalog a contract package below canonical or legacy Progress roots with its versions, task IDs and linked attachments."""
+    contract_id = folder.name
+    if not CONTRACT_ID.fullmatch(contract_id):
+        raise ValueError(f"Invalid contract ID directory: {folder}")
+    files = inventory(folder, root)
+    nested = sorted(name for name, kind in files.items() if kind == "dir")
+    if nested:
+        raise ValueError(f"Contract directory must contain only files: {folder / nested[0]}")
+    if files.get("progress.md") != "file":
+        raise ValueError(f"Contract directory needs progress.md: {folder}")
+    progress_path = folder / "progress.md"
+    metadata = document_metadata(read_frontmatter(progress_path), progress_path)
+    validate_metadata(metadata, "progress", progress_path)
+    if metadata.get("contract-id", contract_id) != contract_id:
+        raise ValueError(f"Progress contract-id does not match its directory: {progress_path}")
+    links = metadata.get("links", [])
+    if not isinstance(links, list) or any(not isinstance(link, str) or not link.strip() for link in links):
+        raise ValueError(f"Progress metadata links must be strings: {progress_path}")
+
+    linked = local_links(progress_path.read_text(encoding="utf-8"))
+    versions = []
+    for name in sorted(files):
+        match = CONTRACT_FILE.fullmatch(name)
+        if not match:
+            continue
+        path = folder / name
+        text = path.read_text(encoding="utf-8")
+        contract = document_metadata(read_frontmatter(path), path)
+        validate_metadata(contract, "processed", path)
+        if contract.get("contract-id") != contract_id:
+            raise ValueError(f"Contract contract-id does not match its directory: {path}")
+        if contract.get("contract-version") != int(match.group(1)):
+            raise ValueError(f"Contract contract-version does not match its filename: {path}")
+        linked |= local_links(text)
+        versions.append({
+            "version": int(match.group(1)),
+            "path": str(path.relative_to(root)),
+            "status": contract.get("status"),
+            "taskIds": task_ids(text),
+        })
+    if not versions:
+        raise ValueError(f"Contract directory needs contract-v<N>.md: {folder}")
+    versions.sort(key=lambda item: item["version"])
+
+    attachments = []
+    for name in sorted(files):
+        if name == "progress.md" or CONTRACT_FILE.fullmatch(name):
+            continue
+        if name not in linked:
+            raise ValueError(f"Contract attachment is not linked from progress.md or a contract: {folder / name}")
+        attachments.append(str((folder / name).relative_to(root)))
+    missing = sorted(name for name in linked if name not in files)
+    if missing:
+        raise ValueError(f"Linked contract attachment does not exist: {folder / missing[0]}")
+
+    content_path = str(progress_path.relative_to(root))
+    return {
+        "documentType": "progress",
+        "category": metadata["category"],
+        "domain": metadata["domain"],
+        "name": metadata["name"],
+        "language": metadata.get("language"),
+        "packagePath": str(folder.relative_to(root)),
+        "metadataPath": content_path,
+        "contentPath": content_path,
+        "contentPaths": [content_path, *(item["path"] for item in versions),
+                         *(path for path in attachments if Path(path).suffix in TEXT_SUFFIXES)],
+        "links": links,
+        "metadata": metadata,
+        "contract": {
+            "id": contract_id,
+            "latestVersion": versions[-1]["version"],
+            "taskIds": versions[-1]["taskIds"],
+            "versions": versions,
+            "attachments": attachments,
+        },
     }
 
 
@@ -140,9 +282,10 @@ def build_catalog(root: Path) -> dict:
     if not root.is_dir():
         raise ValueError(f"Expected project directory: {root}")
     documents = []
-    identities = set()
-    for kind in CATALOG_TYPES:
-        source = root / "docs" / kind
+    identities = {}
+    contracts = {}
+    for kind, relative, location in SOURCES:
+        source = root / relative
         check_path(source, root)
         if not source.exists():
             continue
@@ -155,11 +298,29 @@ def build_catalog(root: Path) -> dict:
             else:
                 if not package.is_dir():
                     raise ValueError(f"Expected package directory: {package}")
-                entry = catalog_entry(root, package, kind)
+                if kind == "progress" and ((package / "progress.md").exists() or any(CONTRACT_FILE.fullmatch(child.name) for child in package.iterdir())):
+                    entry = contract_entry(root, package)
+                else:
+                    entry = catalog_entry(root, package, kind)
+                    if kind == "progress":
+                        entry["location"] = "legacy"
+            entry.setdefault("location", location)
             identity = tuple(entry[field] for field in ("documentType", "category", "domain", "name"))
             if identity in identities:
-                raise ValueError(f"Duplicate Document identity: {identity}")
-            identities.add(identity)
+                raise ValueError(
+                    f"Duplicate Document identity: {identity}: "
+                    f"{identities[identity]} and {entry['packagePath']}"
+                )
+            identities[identity] = entry["packagePath"]
+            if "contract" in entry:
+                # The same contract in canonical and legacy storage is a conflict even when metadata names differ.
+                contract_id = entry["contract"]["id"]
+                if contract_id in contracts:
+                    raise ValueError(
+                        f"Duplicate contract ID: {contract_id}: "
+                        f"{contracts[contract_id]} and {entry['packagePath']}"
+                    )
+                contracts[contract_id] = entry["packagePath"]
             documents.append(entry)
     return {
         "schemaVersion": "0.1.0",

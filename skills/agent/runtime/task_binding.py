@@ -30,6 +30,8 @@ def validate(document, task_id, request_hash):
         if "requestHash" in task and (not isinstance(task["requestHash"], str) or not re.fullmatch(r"[a-f0-9]{64}", task["requestHash"])):
             fail()
     task = next((task for task in tasks if task["id"] == task_id), None)
+    from contract_preflight import validate_contract
+    validate_contract(document)
     if task is None or task.get("requestHash") != request_hash:
         fail()
     return {"workflowId": document["id"], "workflowTitle": document["title"],

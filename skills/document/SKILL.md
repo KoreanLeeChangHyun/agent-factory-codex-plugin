@@ -19,7 +19,7 @@ metadata:
   authority.
 - Keep the requested coherent document. Skill documents MUST be self-contained
   references for the current accepted state, not historical records. Keep change logs,
-  past discussions and superseded decisions in Processed documents; keep task progress
+  past discussions and superseded decisions in Refined documents; keep task progress
   and status in Progress documents. Preserve source
   evidence in Original documents.
 - After creating, modifying or deleting any package under `docs/skills/`,
@@ -33,7 +33,7 @@ metadata:
 ## 2. Writing guides
 
 - `references/specification.md`: write accepted facts, rules and designs.
-- `references/processed.md`: write analysis and working knowledge.
+- `references/refined.md`: write refined analysis and working knowledge.
 - `references/original.md`: preserve source evidence and metadata.
 - [Progress writing](references/progress.md): record task progress, status and remaining work.
 - [Lessons Learned writing](references/lessons-learned.md): record errors and judgment differences; consolidate lessons into Skill rules.
@@ -49,18 +49,19 @@ metadata:
 | Type | Meaning |
 |---|---|
 | Original | Source-faithful metadata and links identifying external evidence. |
-| Processed | Transformed, non-authoritative working knowledge. |
+| Refined | Transformed, non-authoritative working knowledge. Uses the compatible `processed` metadata type. |
 | Progress | Task progress, current status and remaining work; no Specification authority. |
 | Lessons Learned | Error causes/solutions and Human/AI judgment differences with reflection; no Specification authority. |
-| Skill document (Specification) | Project knowledge explicitly requested as a Specification by the Human. |
+| Specification (Skill document) | Project knowledge explicitly requested as a Specification by the Human. The names are synonymous. |
 
-- Every AI-generated durable Document is Processed by default unless the Human
+- Every AI-generated durable Document is Refined by default unless the Human
   explicitly requests a Specification, except task progress and status records, which
   use Progress, and error or Human/AI judgment-difference records, which use Lessons Learned.
   Generation, refinement, format and inferred
   approval grant no such authority. Resolve unclear classification before writing.
-- These are the only types; Refined and Specification categories add no type.
-  `Original -> Processed -> Specification` is optional provenance, never a required pipeline, maturity scale or
+- These are the only types. Refined documents retain `document-type: processed` for compatibility, and
+  Specification document means Skill document.
+  `Original -> Refined -> Specification (Skill)` is optional provenance, never a required pipeline, maturity scale or
   promotion. Preserve actual relationships of any cardinality.
 
 <a id="routing"></a>
@@ -70,10 +71,10 @@ metadata:
 | Type | Canonical project package |
 |---|---|
 | Original | `<project-root>/docs/original/<category>[-<domain>]-<name>/` |
-| Processed | `<project-root>/docs/processed/<category>[-<domain>]-<name>/` |
-| Progress | `<project-root>/docs/progress/<category>[-<domain>]-<name>/` |
+| Refined | `<project-root>/docs/refined/<category>[-<domain>]-<name>/` |
+| Progress | `<project-root>/docs/progress/<contract-id>/progress.md` |
 | Lessons Learned | `<project-root>/docs/lessons-learned/<id>.json` |
-| Skill document | `<project-root>/docs/skills/<category>[-<domain>]-<name>/` |
+| Specification (Skill document) | `<project-root>/docs/skills/<category>[-<domain>]-<name>/` |
 
 <!-- clause-id: specification.routing.canonical -->
 - Maintain one editable source. Local storage is complete standalone behavior, not an
@@ -94,23 +95,36 @@ metadata:
 
 ## 5. Document package
 
-- You MUST write Processed, Progress, Lessons Learned and Specification Documents in the Human's language, or their
+- You MUST write Refined, Progress, Lessons Learned and Specification Documents in the Human's language, or their
   explicitly selected document language. Support any user language; never fix these
   Documents to Korean, English or the language of this guidance.
-- Processed/Progress/Specification: one `SKILL.md` plus optional `assets/`; no `references/`,
-  `scripts/` or `agents/`. Original contains one `metadata.yaml` with metadata and links
+- Refined/Specification: one entry document `SKILL.md`, optional `references/` for
+  detailed Markdown documents, and optional `assets/` for attachments; no `scripts/`
+  or `agents/`. Contract Progress uses `docs/progress/<contract-id>/progress.md` and
+  explicitly linked attachments beside it. Original contains one `metadata.yaml` with metadata and links
   only; it stores no copied source body or assets. Installed capability packages are
   outside this document format.
-- Preserve source text, quotes, code and identifiers in content-bearing Processed, Progress, Lessons Learned and
+- Keep overview, essential guidance and links to detailed topics in `SKILL.md`.
+  Split details into `references/*.md` by coherent topic when a document becomes hard
+  to read or maintain; do not impose an arbitrary file-size threshold or duplicate content.
+- Every reference document MUST be reachable from `SKILL.md` through explicit relative
+  Markdown links. Every asset MUST be referenced by a relative link or image inclusion
+  at its point of use in `SKILL.md` or a reachable reference document. Optional folders
+  may be absent; existing files must not be left unlinked. A link does not require the
+  reader to load every reference for every task.
+- The entry document and its linked references form one canonical document package.
+  References inherit its document type, language, authority and provenance; splitting
+  files does not create a new Specification or an independent competing source.
+- Preserve source text, quotes, code and identifiers in content-bearing Refined, Progress, Lessons Learned and
   Specification packages. For Original, preserve metadata and link strings exactly.
   Language choice alone permits no translation or conversion. `SKILL.md` does not
-  activate Processed, Progress or Lessons Learned as a Skill.
+  activate Refined, Progress or Lessons Learned as a Skill.
 - Lessons Learned uses a single JSON file containing metadata and structured records;
   it needs no `SKILL.md`, YAML front matter or `assets/` wrapper. Follow its type guide.
 - Follow the mandatory [Document structure](#document-structure) for Markdown bodies.
 - Body and assets are the editable source, including asset CSV/JSON. Store each diagram,
   system architecture, database/ERD or API design represented as JSON in a separate
-  `assets/*.json` file. In `SKILL.md`, reference it where used with a descriptive relative
+  `assets/*.json` file. In `SKILL.md` or a linked reference document, reference it where used with a descriptive relative
   Markdown link such as `[System architecture](assets/system-architecture.json)`; do not
   embed or duplicate the JSON in the Markdown body. Put independent CSV datasets and
   needed images in `assets/` as separate files as well. Any display that expands a linked
@@ -163,7 +177,7 @@ metadata:
 |---|---|
 | `docs/skills/` | `.codex/skills/` |
 
-- Only `docs/skills/` is projected. `docs/original/`, `docs/processed/`, `docs/progress/` and `docs/lessons-learned/` remain canonical
+- Only `docs/skills/` is projected. `docs/original/`, `docs/refined/`, `docs/progress/` and `docs/lessons-learned/` remain canonical
   project storage; they require no Codex export or synchronization. Existing
   `.codex/original/` and `.codex/processed/` content is left untouched.
 - Run `scripts/export_documents.py --project-root <project-root>` to preview; add `--apply` to copy. A missing `docs/skills/` root is an empty
@@ -223,16 +237,25 @@ metadata:
 
 ## 11. Local document catalog and search
 
-- Codex discovers Specification packages through its Skill catalog. Original, Processed, Progress and
+- Codex discovers Specification (Skill) packages through its Skill catalog. Original, Refined, Progress and
   Lessons Learned packages use the separate local Document catalog supplied by this Skill.
 - Run `scripts/catalog_documents.py --project-root <project-root>` to emit a current JSON
-  catalog of `docs/original/`, `docs/processed/`, `docs/progress/` and `docs/lessons-learned/`. It reads the canonical packages on
-  demand and writes no generated index into the project.
+  catalog of canonical `docs/original/`, `docs/refined/`, `docs/progress/` and
+  `docs/lessons-learned/`, plus legacy `docs/processed/` and root `progress/`. It reads the
+  packages on demand and writes no generated index into the project.
+- Canonical `docs/progress/<contract-id>/` entries expose the contract ID, latest version, each
+  version's task IDs, `progress.md` and explicitly linked attachments. Missing or
+  unlinked attachments, filename/metadata mismatches, duplicate canonical/legacy
+  identities and the same contract ID in both locations are errors; catalog and search never select one conflicting copy silently.
 - Run `scripts/search_documents.py --project-root <project-root> --query <text>` to search
-  catalog metadata, Original links, Processed/Progress Markdown and Lessons Learned JSON. Optional `--type`,
+  catalog metadata, Original links, Refined/Progress Markdown (including detailed
+  Markdown under `references/`) and Lessons Learned JSON. Optional `--type`,
   `--category` and `--limit` filters narrow results.
+- Search includes every versioned contract and supported text attachment. The `refined`
+  type filter is an alias for the compatible `processed` metadata type; both filters
+  return canonical Refined and legacy Processed records.
 - Catalog and search are read-only discovery operations. They do not activate a
-  Processed, Progress or Lessons Learned Document as a Skill, change document authority or index `docs/skills/`.
+  Refined, Progress or Lessons Learned Document as a Skill, change document authority or index `docs/skills/`.
 - Reject malformed metadata, duplicate identities, links, unsupported package content
   and symlinks instead of silently omitting them from discovery.
 

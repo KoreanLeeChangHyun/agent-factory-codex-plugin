@@ -41,6 +41,16 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
   [실행 방식 안내](skills/agent/references/execution-modes.md)를 참고하십시오.
 - 조사와 인터뷰를 통해 근거를 찾거나 요구사항을 구체화할 수 있습니다.
 
+### Claude 모델
+
+- 에이전트를 Claude Code로도 실행할 수 있습니다. `claude-opus-5-5`, `claude-sonnet-5`,
+  `claude-fable-5-1`, `claude-haiku-4-5-20251001` 같은 `claude-*` 모델이나 `claude-opus`,
+  `claude-sonnet`, `claude-haiku` 별칭을 선택하십시오. `claude` CLI 설치와 로그인이 필요합니다.
+- 모든 실행 방식을 Claude로 사용할 수 있습니다. Plan은 Claude의 plan 모드로 계획한 뒤 같은 세션에서 실행합니다.
+  실행 권한은 가장 가까운 Claude 권한 모드로 연결되며 OS 샌드박스가 아닙니다.
+  자세한 내용은 [실행 방식 안내](skills/agent/references/execution-modes.md#execution-providers)를 참고하십시오.
+- 이 패키지는 Codex로 설치합니다. Claude 실행은 런타임이 시작하며, Claude Code 플러그인은 아닙니다.
+
 ## 수동 설치
 
 - Agent Factory VS Code 확장을 사용하면 기본적으로 플러그인이 자동 설치됩니다.

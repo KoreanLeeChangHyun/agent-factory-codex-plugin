@@ -105,3 +105,35 @@
   shared fallback for initial submissions when no role model is supplied.
 - For standalone `exec.py submit/send`, use `--model` and `--reasoning-effort`.
 - Model settings do not change execution authority or add an agent to the route.
+
+## 7. Execution providers
+
+- Historical sessions remain Codex sessions. `--model claude-opus`, `claude-sonnet`,
+  or `claude-haiku` selects Claude Code's corresponding alias. Full `claude-*`
+  model IDs such as `claude-opus-5-5`, `claude-sonnet-5`, `claude-fable-5-1` and
+  `claude-haiku-4-5-20251001` pass through unchanged; account access is checked by Claude at execution.
+- `exec.py submit` accepts `--provider codex|claude` and `--claude <executable>`.
+  `send` preserves the captured executable and provider unless an unstarted or
+  explicitly cleared conversation selects another provider. Never pass a Codex
+  session ID to Claude, or vice versa. Existing run history is retained.
+- `capabilities --model <model>` reports the selected provider before submission.
+  Do not infer Claude capabilities from Codex's app-server schema.
+- Claude supports every task mode. Work runs to completion in one print run, so native Goal
+  and Fast options are accepted as no-ops. Plan runs in Claude's `plan` permission mode;
+  plan-work routes then resume the same session to execute the approved plan.
+- Execution policies map to the nearest Claude permission mode, always with
+  `--permission-prompts none`:
+
+  | Policy | Claude permission mode |
+  |---|---|
+  | `danger-full-access` | `bypassPermissions` |
+  | `workspace-write` | `acceptEdits`, extra writable roots as `--add-dir` |
+  | `read-only` | `dontAsk` |
+
+  Claude tool permissions are not an OS sandbox: network access is not confined. Without an
+  explicit policy (CLI default), `permissions.defaultMode` from the user, project and local
+  Claude settings selects the policy; an unset or other mode maps to `read-only`.
+- Claude effort values are `low`, `medium`, `high`, `xhigh`, and `max`. `minimal` maps to
+  `low`, `ultra` to `max`, and `none` leaves Claude's default effort.
+- Claude child runs load the user's Claude settings, hooks, tool servers and CLAUDE.md.
+  Each run records `contextUsage` (latest prompt size and context window) in its state.

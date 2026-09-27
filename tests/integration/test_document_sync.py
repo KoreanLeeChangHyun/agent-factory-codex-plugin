@@ -505,3 +505,22 @@ except ValueError as error:
     assert result.returncode == 0, result.stderr
     assert (tmp_path / ".codex/skills/info-example/SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes()
     assert json.loads(run(tmp_path).stdout)["changes"] == []
+
+
+def test_linked_references_and_assets_sync_without_changing_links(tmp_path):
+    source = package(tmp_path, 'skills')
+    (source / 'references').mkdir()
+    entry = '# Entry\n\n- [Detail](references/detail.md)\n'
+    detail = '# Detail\n\n- [Data](../assets/data.bin)\n'
+    (source / 'SKILL.md').write_text(entry)
+    (source / 'references/detail.md').write_text(detail)
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stderr
+    target = tmp_path / '.codex/skills/info-example'
+    assert (target / 'SKILL.md').read_text() == entry
+    assert (target / 'references/detail.md').read_text() == detail
+    assert (target / 'assets/data.bin').read_bytes() == (source / 'assets/data.bin').read_bytes()
+    (source / 'references/detail.md').write_text(detail + '- Updated detail\n')
+    assert run(tmp_path).returncode == 0
+    assert (target / 'references/detail.md').read_bytes() == (source / 'references/detail.md').read_bytes()
+    assert json.loads(run(tmp_path).stdout)['changes'] == []

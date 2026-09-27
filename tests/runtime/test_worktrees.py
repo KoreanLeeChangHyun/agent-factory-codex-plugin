@@ -152,6 +152,18 @@ class WorktreeTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(json.loads(result.stdout)["workingDirectory"], created["workingDirectory"])
 
+    def test_new_claude_conversation_can_start_in_a_worktree(self):
+        from adapters import claude
+        capabilities = {"submit": {"worktrees": True}, "send": {}, "diagnostic": None}
+        with mock.patch.object(claude, "inspect_capabilities", return_value=capabilities), \
+                mock.patch.object(runtime.native_codex, "inspect_capabilities") as codex_probe:
+            created = self.command("create", "--claude", "/bin/true", "--model", "claude-sonnet-5",
+                                   "--sandbox", "danger-full-access", "--approval-policy", "never", agent="main-claude")
+            codex_probe.assert_not_called()
+        session = runtime.load_session(self.root, "main-claude")
+        self.assertEqual((session["provider"], session["model"]), ("claude", "claude-sonnet-5"))
+        self.assertEqual(Path(created["workingDirectory"]), Path(session["worktree"]["path"]))
+
     def test_both_provider_transports_use_worktree_without_replacing_thread(self):
         from native_fixtures import native_fixture
         path = Path(self.command("create")["workingDirectory"])

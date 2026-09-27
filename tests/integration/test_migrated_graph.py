@@ -111,34 +111,18 @@ class MigratedGraphTests(HomeRuntimeFixture, unittest.TestCase):
         migration.activate(plan,evidence)
         return plan
 
-    def test_fail_returns_to_same_work_and_same_verification_then_pass(self):
+    def test_migrated_unbound_loop_cannot_dispatch_again(self):
+        # Loops from before task-bound dispatch carry no task list; they may be skipped or closed only.
         state = self.start(); self.wait_child(self.old,state['currentChild'])
         state = self.command(self.old,'loop.py','reconcile','--work-agent','work','--loop-id',state['loopId'])
         self.wait_child(self.old,state['currentChild'])
         plan = self.migrate()
-        for _ in range(5):
-            state = self.command(self.new,'loop.py','reconcile','--work-agent','work','--loop-id',state['loopId'])
-            if state['status']=='completed': break
-            self.wait_child(self.new,state['currentChild'])
-        self.assertEqual(state['status'],'completed')
+        result = subprocess.run([sys.executable,str(self.new/'loop.py'),'reconcile','--work-agent','work',
+            '--loop-id',state['loopId'],'--project-root',str(self.root)], env=self.env, capture_output=True, text=True, timeout=30)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(json.loads(result.stdout)['error']['code'], 'task_binding_required')
         records = json.loads(self.history.read_text())
-        self.assertEqual([r['role'] for r in records],['work','verification','work','verification'])
-        self.assertEqual([r['resume'] for r in records],[None,None,'exact-work-session','exact-verification-session'])
-        operational = json.loads(Path(state['statePath']).read_text())
-        execution = operational['execution']
-        policy = execution['executionPolicy']
-        self.assertEqual(policy['sandboxPolicy']['type'], 'danger-full-access')
-        self.assertEqual(json.loads(Path(execution['executionPolicyPath']).read_text()), policy)
-        for role in ('work', 'verification'):
-            session = json.loads((Path(paths.resolve(self.root)['agentsRoot']) / role / 'session.json').read_text())
-            self.assertEqual(session['executionPolicy'], policy)
-        preflights = json.loads(self.preflights.read_text())
-        self.assertEqual(len(preflights), 2)
-        for preflight in preflights:
-            self.assertEqual(preflight['permissionProfile'], ':danger-full-access')
-            self.assertEqual(preflight['exitCode'], 0)
-            self.assertEqual(preflight['evidence']['checks'], {
-                'requestRead': True, 'projectDirectoryRead': True, 'runWrite': True, 'projectWrite': 'allowed'})
+        self.assertEqual([r['role'] for r in records],['work','verification'])
         migration.copied_inventory(plan)  # Runtime mutation must never alter archive/projection.
 
     def test_human_skip_after_migrated_work_starts_no_verification(self):

@@ -47,6 +47,17 @@ The plugin exposes three public Skills:
   [execution guide](skills/agent/references/execution-modes.md) for details.
 - Research and interviews help gather evidence and clarify requirements.
 
+### Claude models
+
+- Agents can also run on Claude Code: choose a `claude-*` model such as `claude-opus-5-5`,
+  `claude-sonnet-5`, `claude-fable-5-1` or `claude-haiku-4-5-20251001`, or the aliases
+  `claude-opus`, `claude-sonnet` and `claude-haiku`. The `claude` CLI must be installed and signed in.
+- Every route works with Claude. Plan runs in Claude's plan mode, then the same session executes.
+  Execution permissions map to the nearest Claude permission mode; they are not an OS sandbox.
+  See the [execution guide](skills/agent/references/execution-modes.md#execution-providers).
+- This package is installed through Codex. Claude runs are launched by the runtime; it is not a
+  Claude Code plugin.
+
 ## Manual installation
 
 - The Agent Factory VS Code extension installs the plugin automatically by default.

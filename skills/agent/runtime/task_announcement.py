@@ -40,6 +40,8 @@ def check_submission(read_json, parent_path, parent, document):
     if not isinstance(expected, dict) or expected.get("id") != workflow_id or not expected.get("tasks"):
         raise ContractError("task_announcement_invalid", "Stored announcement is invalid")
     task_binding.resolve(expected, expected["tasks"][0]["id"], "0" * 64)
+    if document.get("contract") != expected.get("contract"):
+        raise ContractError("task_announcement_contract_mismatch", "Contract scope differs from the announcement")
     tasks = document.get("tasks")
     if not isinstance(tasks, list) or not all(isinstance(task, dict) and isinstance(task.get("id"), str) for task in tasks):
         raise ContractError("task_announcement_tasks_invalid", "Submit the complete structured announced task list")
@@ -56,6 +58,8 @@ def check_submission(read_json, parent_path, parent, document):
     if document.get("title") != expected.get("title"):
         raise ContractError("task_announcement_title_mismatch", "Workflow title differs from the announcement")
     for task, announced in zip(tasks, expected["tasks"]):
+        if task.get("requiredFileOperations") != announced.get("requiredFileOperations"):
+            raise ContractError("task_announcement_contract_mismatch", "Required file operations differ from the announcement")
         for key in ("title", "description", "completionCriteria"):
             if task.get(key) != announced.get(key):
                 raise ContractError("task_announcement_metadata_mismatch", f"Task {task['id']!r} field {key!r} differs from the announcement")

@@ -7,7 +7,7 @@
 - Main conducts adaptive elicitation in the current Human conversation only when
   available context cannot resolve a material knowledge/requirement/decision gap.
 - Convention owns the contract; Interview is no public Skill or managed Exec role.
-- Output is Processed by default, never independently accepted Specification truth.
+- Output is Refined by default, never independently accepted Specification/Skill truth.
 - Do not replace ordinary answers, survey external people or dispatch Human
   impersonation.
 
@@ -98,7 +98,7 @@
 
 1. Output a complete interview summary in the Human conversation, covering every
    question, option, recommendation, Human decision, correction and unresolved gap.
-2. Create a durable Processed Document only when the Human requests an artifact or the
+2. Create a durable Refined Document only when the Human requests an artifact or the
    authorized workflow requires one. Include the initial decision inventory, any
    total-count revisions and their reasons, all questions and options, recommendations
    distinguished from Human decisions, the complete decision history and the final

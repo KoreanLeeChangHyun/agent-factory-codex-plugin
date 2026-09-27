@@ -17,6 +17,12 @@
 - Follow [Document](../../document/SKILL.md) when storing a durable contract; ordinary
   chat samples require no file creation. Contract identity does not itself promote a
   document to an accepted Specification.
+- Store a durable contract at `docs/progress/<contract-id>/contract-v<N>.md`, its current task
+  record at `docs/progress/<contract-id>/progress.md`, and explicitly linked attachments in
+  the same directory. Preserve earlier contract versions.
+- Keep the directory contract ID, each filename version and the corresponding metadata
+  equal. Link every attachment from `progress.md` or a contract version so catalog and
+  search can validate and expose it.
 
 <a id="contract-content"></a>
 
@@ -44,6 +50,23 @@
 <a id="execution-rules"></a>
 
 ## 3. Common execution rules
+
+- Main owns the shared `docs/progress/<contract-id>/progress.md` record. Assign its
+  exact modify operation across the contract tasks for Main's result reporting.
+  Work reports progress and blockers in its result; Verification reports its receipt.
+  Neither role must edit the shared progress record to complete its own task.
+- Before announcing a new contract task list, include a structured `contract` object:
+  `id`, positive integer `version`, `progress: {path, owner: "main"}`, and
+  `fileOperations` entries with `taskIds`, `operation`, `path` and (for moves)
+  `destination`. Each task declares `requiredFileOperations` using the same operation
+  fields (an empty list for read-only work). Derive these from the inspected contract
+  file list. The announcement and submission validators reject out-of-scope required
+  operations and worker writes to Main's progress record before launching work.
+  Historical accepted snapshots remain immutable; do not retrofit or replace them.
+- Under bypass, routine reporting within the accepted outcome adds no approval gate.
+  A progress bookkeeping omission alone must not block otherwise authorized Work:
+  report it to Main and continue independent in-scope work. Never expand destructive,
+  external or product scope under this exception.
 
 - Before finalizing file scope, inspect relevant code, specifications, callers and
   dependencies, including needed test, configuration and generated-file changes.

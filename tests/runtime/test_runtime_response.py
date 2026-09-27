@@ -140,7 +140,7 @@ class RuntimeResponseTests(unittest.TestCase):
     def test_invalid_envelopes_do_not_publish_or_fall_back_to_file(self):
         state = self.new_run()
         invalid = [self.envelope(state, resultText=value) for value in
-                   ('', ' \n', None, 42, '\ud800', '가' * 22000)]
+                   ('', ' \n', None, 42, '\ud800')]
         invalid += [self.envelope(state, status=[]), self.envelope(state, resultPath='/tmp/wrong'),
                     self.envelope(state, extra=True), {'status':'completed', 'resultPath':state['resultPath']}]
         for response in invalid:

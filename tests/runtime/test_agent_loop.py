@@ -5,6 +5,7 @@ import runtime_test_home  # Isolate all runtime subprocesses from the real home.
 import importlib.util
 import hashlib
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -174,6 +175,7 @@ class AgentLoopContractTests(unittest.TestCase):
             {"id": "task-one", "title": "Implement work", "description": "bounded work",
              "completionCriteria": "Work passes checks", "requestHash": hashlib.sha256(self.request.read_bytes()).hexdigest()}]}))
         self.runtime = FakeRuntime(self.root, self.agent_exec)
+        self.runtime_class = self.agent_loop.AgentRuntime
         self.runtime_patch = mock.patch.object(self.agent_loop, "AgentRuntime", return_value=self.runtime)
         self.runtime_patch.start()
         self.addCleanup(self.runtime_patch.stop)
@@ -196,6 +198,188 @@ class AgentLoopContractTests(unittest.TestCase):
             "--authorization-reference", "test-request", "--decision-evidence", "Close failed flow",
         ])
         return self.agent_loop.close_loop(args)
+
+    def test_contract_detail_public_identity_is_copied_without_dispatch(self):
+        started = self.start()
+        state = json.loads(Path(started["statePath"]).read_text())
+        state["contract"] = {"id": "WC-test", "version": 2}
+        before = len(self.runtime.dispatches)
+        result = self.agent_loop.public_state(state)
+        self.assertEqual(result["contract"], state["contract"])
+        self.assertEqual(result["updatedAt"], state.get("updatedAt"))
+        result["contract"]["version"] = 9
+        self.assertEqual(state["contract"]["version"], 2)
+        self.assertEqual(len(self.runtime.dispatches), before)
+
+    def test_progress_failure_does_not_block_dispatch_and_refresh_never_dispatches(self):
+        with mock.patch.object(self.agent_loop.loop_progress, "publish", side_effect=OSError("disk full")):
+            started = self.start()
+        self.assertEqual(len(self.runtime.dispatches), 1)
+        self.assertEqual(started["progressProjection"], "missing")
+        path = Path(started["statePath"])
+        before = path.read_bytes()
+        args = self.agent_loop.build_parser().parse_args([
+            "refresh-progress", "--project-root", str(self.root),
+            "--work-agent", "work-agent", "--loop-id", started["loopId"],
+        ])
+        result = self.agent_loop.refresh_progress(args)
+        self.assertEqual(result["projection"]["status"], "current")
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(len(self.runtime.dispatches), 1)
+        self.assertEqual(self.agent_loop.refresh_progress(args), result)
+        with mock.patch.object(self.agent_loop, "emit") as output:
+            exit_code = self.agent_loop.main([
+                "refresh-progress", "--project-root", str(self.root),
+                "--work-agent", "work-agent", "--loop-id", started["loopId"],
+            ])
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(output.call_args.args[0]["projection"]["status"], "current")
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(len(self.runtime.dispatches), 1)
+
+    def test_progress_history_preserves_revisions_and_detects_stale_view(self):
+        started = self.start(["--task-mode", "work"])
+        path = Path(started["statePath"])
+        state = json.loads(path.read_text())
+        history = path.parent / "progress-history"
+        originals = {p.name: p.read_bytes() for p in history.glob("*.json")}
+        self.assertGreaterEqual(len(originals), 2)
+        self.assertEqual(self.agent_loop.loop_progress.health(path, state), "current")
+        (path.parent / "progress.md").write_text("stale")
+        self.assertEqual(self.agent_loop.loop_progress.health(path, state), "stale")
+        self.agent_loop.publish_progress(path, state)
+        self.assertIn("not requested", (path.parent / "progress.md").read_text())
+        self.assertEqual({p.name: p.read_bytes() for p in history.glob("*.json")}, originals)
+        state["phase"] = "test-next-transition"
+        self.agent_loop.save_loop_state(path, state)
+        self.assertEqual(len(list(history.glob("*.json"))), len(originals) + 1)
+        for name, content in originals.items():
+            self.assertEqual((history / name).read_bytes(), content)
+
+    def test_progress_interrupted_publication_repairs_from_committed_state(self):
+        started = self.start()
+        path = Path(started["statePath"])
+        state = json.loads(path.read_text())
+        state["phase"] = "next-committed-phase"
+        state["contract"] = {"id": "WC-TEST", "version": 2}
+        atomic_write = self.agent_exec.atomic_write
+        def interrupted(target, content):
+            if target.name == "progress-state.json":
+                raise OSError("simulated interruption after markdown write")
+            atomic_write(target, content)
+        with mock.patch.object(self.agent_exec, "atomic_write", side_effect=interrupted):
+            self.agent_loop.save_loop_state(path, state)
+        committed = json.loads(path.read_text())
+        self.assertEqual(committed["phase"], "next-committed-phase")
+        self.assertEqual(self.agent_loop.loop_progress.health(path, committed), "stale")
+        before = path.read_bytes()
+        self.assertEqual(self.agent_loop.publish_progress(path, committed)["status"], "current")
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(self.agent_loop.loop_progress.health(path, committed), "current")
+        view = json.loads((path.parent / "progress-state.json").read_text())
+        self.assertEqual(view["contract"], {"id": "WC-TEST", "version": 2})
+        self.assertEqual(len(self.runtime.dispatches), 1)
+
+    def test_progress_human_skip_never_claims_verification_pass(self):
+        started = self.start()
+        state = json.loads(Path(started["statePath"]).read_text())
+        state["humanSkip"] = {"actor": "human", "authorizationReference": "test"}
+        state["workflow"]["tasks"][0].update(workStatus="completed", verificationStatus="pending")
+        rendered = self.agent_loop.loop_progress.render(self.agent_loop.loop_progress.snapshot(state))
+        self.assertIn("| completed | skipped |", rendered)
+        self.assertNotIn("| completed | completed |", rendered)
+
+    def test_progress_conflict_is_reported_without_overwriting_history(self):
+        started = self.start()
+        path = Path(started["statePath"])
+        state = json.loads(path.read_text())
+        history = path.parent / "progress-history" / ("revision-%08d.json" % state["stateRevision"])
+        history.write_text("corrupt existing evidence")
+        result = self.agent_loop.publish_progress(path, state)
+        self.assertEqual(result["status"], "stale")
+        self.assertEqual(history.read_text(), "corrupt existing evidence")
+        self.assertEqual(self.agent_loop.loop_progress.health(path, state), "stale")
+        self.assertEqual(len(self.runtime.dispatches), 1)
+
+    def test_progress_legacy_refresh_preserves_cancelled_and_unverified_states(self):
+        started = self.start()
+        path = Path(started["statePath"])
+        state = json.loads(path.read_text())
+        state.pop("stateRevision")
+        state.update(status="cancelled", phase="ended")
+        state["workflow"]["tasks"][0].update(workStatus="cancelled", verificationStatus="cancelled")
+        result = self.agent_loop.publish_progress(path, state)
+        self.assertEqual(result["stateRevision"], 0)
+        view = json.loads((path.parent / "progress-state.json").read_text())
+        self.assertEqual(view["tasks"][0]["verificationStatus"], "cancelled")
+        self.assertEqual(len(self.runtime.dispatches), 1)
+
+    def test_linux_driver_runs_outside_main_containment(self):
+        args = self.agent_loop.build_parser().parse_args([
+            "drive", "--project-root", str(self.root), "--work-agent", "work-agent",
+            "--loop-id", "loop-test",
+        ])
+        result = {"loopId": "loop-test", "statePath": str(self.root / "state.json")}
+        launched = mock.Mock(returncode=0, stderr="")
+        with mock.patch.object(self.agent_loop.sys, "platform", "linux"), \
+             mock.patch.object(self.agent_exec, "systemd_manager_usable", return_value=True), \
+             mock.patch.object(self.agent_exec, "create_systemd_environment_file",
+                               side_effect=lambda: (os.open(os.devnull, os.O_RDONLY), "/proc/mock/env")), \
+             mock.patch.object(self.agent_exec, "_systemd_command", return_value=launched) as command, \
+             mock.patch.object(self.agent_loop.subprocess, "Popen") as popen:
+            self.agent_loop.launch_driver(args, result)
+        options = command.call_args.args[0]
+        self.assertIn("--user", options)
+        self.assertIn("--service-type=exec", options)
+        self.assertIn("--property=Restart=on-failure", options)
+        self.assertIn("--property=KillMode=control-group", options)
+        self.assertIn(str(self.root), options)
+        popen.assert_not_called()
+
+    def test_linux_driver_fails_closed_without_user_service(self):
+        args = self.agent_loop.build_parser().parse_args([
+            "drive", "--project-root", str(self.root), "--work-agent", "work-agent",
+            "--loop-id", "loop-test",
+        ])
+        with mock.patch.object(self.agent_loop.sys, "platform", "linux"), \
+             mock.patch.object(self.agent_exec, "systemd_manager_usable", return_value=False), \
+             mock.patch.object(self.agent_loop.subprocess, "Popen") as popen:
+            with self.assertRaises(OSError):
+                self.agent_loop.launch_driver(args, {"loopId": "loop-test", "statePath": str(self.root / "state.json")})
+        popen.assert_not_called()
+
+    def test_driver_child_uses_announcing_main_run(self):
+        original = str(self.root / "original-main-state.json")
+        runtime = self.runtime_class(self.root, original)
+        response = mock.Mock(returncode=0, stdout='{"status":"completed"}\n')
+        key = self.agent_exec.execution_policy.PARENT_STATE_ENV
+        with mock.patch.dict(os.environ, {key: str(self.root / "later-main-state.json")}), \
+             mock.patch.object(self.agent_loop.subprocess, "run", return_value=response) as command:
+            runtime.call(["status", "--agent", "work-agent"])
+        self.assertEqual(command.call_args.kwargs["env"][key], original)
+
+    def test_contract_scope_conflict_is_rejected_before_work_dispatch(self):
+        document = json.loads(self.tasks.read_text())
+        document["contract"] = {
+            "id": "C1", "version": 1,
+            "progress": {"path": "docs/progress/C1/progress.md", "owner": "main"},
+            "fileOperations": [{"taskIds": ["task-one"], "operation": "modify", "path": "docs/progress/C1/progress.md"}],
+        }
+        document["tasks"][0]["requiredFileOperations"] = [{"operation": "modify", "path": "unlisted.md"}]
+        self.tasks.write_text(json.dumps(document))
+        with self.assertRaisesRegex(self.agent_exec.ContractError, "outside its contract"):
+            self.start()
+        self.assertEqual(self.runtime.dispatches, [])
+
+    def test_human_can_close_waiting_loop_without_dispatch(self):
+        started = self.start()
+        self.runtime.runs[("work-agent", started["latestWorkRunId"])]["status"] = "needs-human-decision"
+        waiting = self.reconcile(started)
+        self.assertEqual(waiting["status"], "needs-human-decision")
+        closed = self.close(waiting)
+        self.assertEqual(closed["status"], "cancelled")
+        self.assertEqual(closed["latestWorkRunId"], started["latestWorkRunId"])
+        self.assertEqual(len(self.runtime.dispatches), 1)
 
     def test_close_failed_preserves_evidence_and_cannot_resume(self):
         started = self.start()
@@ -637,7 +821,7 @@ class AgentLoopContractTests(unittest.TestCase):
                 started = self.start(["--task-mode", "plan-work"])
                 self.runtime.runs[("work-agent", started["latestWorkRunId"])]["status"] = status
                 ended = self.reconcile(started)
-                self.assertEqual(ended["status"], "runtime-error")
+                self.assertEqual(ended["status"], "needs-human-decision" if status == "needs-human-decision" else "runtime-error")
                 self.assertIsNone(ended["latestVerificationRunId"])
                 self.assertTrue(all(item["role"] == "work" for item in self.runtime.dispatches))
 

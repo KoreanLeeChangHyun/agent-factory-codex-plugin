@@ -101,7 +101,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         documents = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8") + "\n" + "\n".join(
             (SKILLS / "document" / "references" / name).read_text(encoding="utf-8")
-            for name in ("specification.md", "processed.md", "original.md")
+            for name in ("specification.md", "refined.md", "original.md")
         )
         manifest = json.loads(
             (ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
@@ -145,7 +145,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
                 self.assertIn(dependency, manifest_description)
         self.assertIn("../agent/SKILL.md", convention)
         self.assertIn("../document/SKILL.md", convention)
-        for document_type in ("original", "processed", "skills"):
+        for document_type in ("original", "refined", "skills"):
             self.assertIn(
                 f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/", layout
             )
@@ -170,14 +170,14 @@ class ConventionSkillMetadataTests(unittest.TestCase):
     def test_document_package_contract(self) -> None:
         documents = (SKILLS / "document" / "SKILL.md").read_text(encoding="utf-8") + "\n" + "\n".join(
             (SKILLS / "document" / "references" / name).read_text(encoding="utf-8")
-            for name in ("specification.md", "processed.md", "original.md")
+            for name in ("specification.md", "refined.md", "original.md")
         )
         normalized_documents = " ".join(documents.split())
         asset = (SKILLS / "convention" / "assets" / "AGENTS.md").read_text(
             encoding="utf-8"
         )
 
-        for document_type in ("original", "processed", "skills"):
+        for document_type in ("original", "refined", "skills"):
             root = f"<project-root>/docs/{document_type}/<category>[-<domain>]-<name>/"
             self.assertIn(root, documents)
         for detail in (
@@ -185,7 +185,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
             "fidelity",
             "nonempty `links` list",
             "Store no copied source body",
-            "Every AI-generated durable Document is Processed by default",
+            "Every AI-generated durable Document is Refined by default",
             "`interview`",
             "`research`",
             "`analyze`",
@@ -228,9 +228,9 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         for detail in (
             "one `metadata.yaml` with metadata and links only",
             "stores no copied source body or assets",
-            "Original, Processed, Progress and Lessons Learned packages use the separate local Document catalog",
+            "Original, Refined, Progress and Lessons Learned packages use the separate local Document catalog",
             "writes no generated index into the project",
-            "do not activate a Processed, Progress or Lessons Learned Document as a Skill",
+            "do not activate a Refined, Progress or Lessons Learned Document as a Skill",
             "nonempty `links` list",
         ):
             with self.subTest(detail=detail):
@@ -268,7 +268,7 @@ class ConventionSkillMetadataTests(unittest.TestCase):
         expected = {
             name: ({"exec.py", "loop.py"} if name == "agent"
                    else {"lessons.py", "catalog_documents.py", "export_documents.py",
-                         "search_documents.py", "sync_documents.py"}
+                         "migrate_document_paths.py", "search_documents.py", "sync_documents.py"}
                    if name == "document" else set())
             for name in PUBLIC_SKILLS
         }

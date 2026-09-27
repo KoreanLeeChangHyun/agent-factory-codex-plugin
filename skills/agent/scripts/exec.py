@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manage resumable Codex exec roles without blocking the Main Agent."""
+"""Manage provider-neutral resumable Agent execution and result persistence."""
 
 from __future__ import annotations
 
@@ -63,9 +63,7 @@ import sandbox_diagnostics
 import lesson_capture
 import worktrees
 from runtime_storage import response_operation
-import permissions as runtime_permissions
 import execution_policy
-import preflight as execution_preflight
 from runtime_errors import ContractError
 from token_usage import UsageAccumulator, record_attempt
 import process_containment
@@ -133,7 +131,7 @@ from exec_cli import (
 
 # Diagnostic/refusal paths must load even where POSIX runtime imports cannot.
 if sys.platform in {"linux", "darwin"}:
-    import native_codex
+    import adapters
     import paths as runtime_paths
     import image_input
 VALID_ROLES = {"main", "work", "verification"}
@@ -143,8 +141,6 @@ AUTHORITY_KINDS = {
     "host-capability", "external-provider",
 }
 CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
-
-
 
 
 def public_state(state: dict[str, Any]) -> dict[str, Any]:
@@ -213,6 +209,7 @@ def create_run(
         )
     accepted_at = now()
     state = {
+        "provider": session.get("provider", "codex"),
         "runtimeBinding": runtime_paths.resolve(project_root, create=True),
         "workingDirectory": str(worktrees.checked_path(session)) if "projectRoot" in session else str(project_root),
         "schemaVersion": SCHEMA_VERSION,
@@ -337,32 +334,37 @@ def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, An
     role_path(role)
     if not hasattr(args, "resolved_execution_policy"):
         args.resolved_execution_policy = resolve_execution_policy(args, project_root)
-    codex = args.codex
+    provider = adapters.provider_for(args.model, getattr(args, "provider", None))
+    provider_adapter = adapters.adapter(provider)
+    codex = provider_adapter.executable(args)
     if os.sep not in codex:
         from shutil import which
 
         resolved = which(codex)
         if resolved is None:
-            raise ContractError("codex_not_found", "codex executable was not found")
+            raise ContractError(f"{provider}_not_found", f"{provider} executable was not found")
         codex = resolved
     else:
         codex = str(Path(codex).resolve(strict=True))
     options = requested_execution(args)
-    capabilities = native_codex.inspect_capabilities(codex, refresh=True, runtime_home=runtime_paths.resolve(project_root, create=True)["home"])
-    if options.get("fast") is True or options.get("goalMode") is True:
+    capabilities = adapters.adapter(provider).inspect_capabilities(codex, refresh=True, runtime_home=runtime_paths.resolve(project_root, create=True)["home"])
+    # Claude print runs already continue to completion and have no Fast tier; both options are no-ops there.
+    if provider != "claude" and (options.get("fast") is True or options.get("goalMode") is True):
         for key, field in (("fast", "fast"), ("goalMode", "goal")):
             if options.get(key) is True and not capabilities["submit"][field]:
                 raise ContractError("native_unsupported", capabilities["diagnostic"] or f"Native {field} unsupported")
     created_at = now()
     session = {
-        **({"backend": "app-server"} if capabilities.get("submit", {}).get("instructionDelivery") is True else {}),
+        **provider_adapter.session_fields(codex, capabilities),
+        "provider": provider,
         "schemaVersion": SCHEMA_VERSION,
         "agentId": args.agent,
         "role": role,
         "sessionId": None,
         "projectRoot": str(project_root),
         "runtimeBinding": runtime_paths.resolve(project_root, create=True),
-        "codex": codex,
+        # Retain the historical executable field for persisted-session compatibility.
+        "codex": provider_adapter.session_fields(codex, capabilities).get("codex", args.codex),
         "sandbox": args.resolved_execution_policy["sandboxPolicy"]["type"],
         "executionPolicy": args.resolved_execution_policy,
         "humanApprovalPolicy": getattr(args, "resolved_human_approval_policy", "required"),
@@ -654,6 +656,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     else:
         role = load_session(project_root, args.agent).get("role")
     stored_session = None if new_agent else load_session(project_root, args.agent)
+    provider = adapters.provider_for(getattr(args, "model", None), getattr(args, "provider", None), stored_session)
     policy = resolve_execution_policy(args, project_root, stored_session)
     args.resolved_execution_policy = policy
     human_approval_policy = resolve_human_approval_policy(args, stored_session)
@@ -674,6 +677,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     execution_options = requested_execution(args)
     if role == "main":
         execution_options.setdefault("taskMode", "direct")
+    adapters.adapter(provider).validate({**(stored_session or {}), **execution_options,
+                                         "role": role, "executionPolicy": policy})
     from task_modes import validate_mode
     if "taskMode" in execution_options:
         validate_mode(execution_options["taskMode"])
@@ -862,7 +867,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent)):
             raise ContractError("session_busy", "An accepted or active run already owns this exact session")
         if parent is not None:
-            session = worktrees.inherit(session, load_session(project_root, parent["agentId"]))
+            session = worktrees.inherit(session, {"projectRoot": str(project_root), **load_session(project_root, parent["agentId"])})
             update_json(session_file(project_root, args.agent), agent_path / ".session-state.lock",
                         lambda value: value.update({"worktree": session.get("worktree"), "executionPolicy": session.get("executionPolicy")}))
         policy_changed = "executionPolicy" not in session or execution_policy.session_policy(session) != policy
@@ -874,16 +879,20 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         human_approval_policy_changed = session.get("humanApprovalPolicy", "required") != human_approval_policy
         if human_approval_policy_changed:
             session = {**session, "humanApprovalPolicy": human_approval_policy}
-        worktrees.checked_path(session)
+        worktrees.checked_path({"projectRoot": str(project_root), **session})
         effective = {**session, **execution_options}
+        provider_changed = provider != session.get("provider", "codex")
+        if provider_changed:
+            # Only a cleared/unstarted conversation reaches here. Never resume an
+            # ID belonging to the other provider; historical runs remain untouched.
+            from shutil import which
+            executable = which(adapters.adapter(provider).executable(args, session))
+            if executable is None:
+                raise ContractError("provider_not_found", f"{provider} executable was not found")
+            session = {**session, **adapters.adapter(provider).session_fields(executable)}
+            effective = {**session, **execution_options}
+        adapters.adapter(provider).validate_execution(effective, goal_action)
         image_input.validate_execution(images, effective)
-        if effective.get("taskMode") in ("plan", "plan-work", "plan-work-verification") or effective.get("fast") is True or effective.get("goalMode") is True or goal_action or session.get("backend") == "app-server":
-            capabilities = native_codex.inspect_capabilities(str(session["codex"]))
-            required = {"plan": effective.get("taskMode") in ("plan", "plan-work", "plan-work-verification"), "fast": effective.get("fast") is True and goal_action in (None, "resume", "reopen"),
-                        "goal": effective.get("goalMode") is True or bool(goal_action)}
-            for field, needed in required.items():
-                if needed and not capabilities["send"].get(field, False):
-                    raise ContractError("native_unsupported", capabilities["diagnostic"] or f"Native {field} unsupported")
         state = create_run(
             project_root=project_root,
             agent_id=args.agent,
@@ -902,8 +911,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             parent_run_id=parent["runId"] if parent else None,
             task_binding=binding,
         )
-        if policy_changed or human_approval_policy_changed:
+        if policy_changed or human_approval_policy_changed or provider_changed:
             session_updates = {"humanApprovalPolicy": human_approval_policy}
+            if provider_changed:
+                session_updates.update(adapters.for_session(session).persisted_fields(session))
             if policy_changed:
                 session_updates.update({
                     "executionPolicy": policy,
@@ -1070,8 +1081,11 @@ def run_codex_attempt(
     except ValueError as error:
         raise AttemptFailure("execution_policy_mismatch", str(error), False) from error
     session["executionPolicy"] = policy
+    for key in ("model", "reasoningEffort", "fast", "goalMode"):
+        if key in execution:
+            session[key] = execution[key]
     try:
-        checked = execution_preflight.check(str(session["codex"]), policy, working_directory, state_path.parent, Path(state["requestPath"]))
+        checked = adapters.for_session(session).check(session, policy, working_directory, state_path.parent, Path(state["requestPath"]))
     except Exception as error:
         checked = {"passed": False, "error": str(error)}
     if not isinstance(checked, dict):
@@ -1081,30 +1095,12 @@ def run_codex_attempt(
     update_json(state_path, state_path.parent / ".state.lock", lambda value: value.update({"executionPreflight": checked, "executionPolicy": policy}))
     if checked.get("passed") is not True:
         raise AttemptFailure("execution_preflight_failed", str(checked.get("error") or checked.get("diagnostic") or "Execution policy preflight failed"), False)
-    for key in ("model", "reasoningEffort", "fast", "goalMode"):
-        if key in execution:
-            session[key] = execution[key]
-    if execution.get("taskMode") in ("plan", "plan-work", "plan-work-verification") or session.get("backend") == "app-server" or session.get("fast") is True or session.get("goalMode") is True or state.get("goalAction"):
-        session["backend"] = "app-server"
-    # Legacy explicit off is applied as a config override by build_codex_command.
-    if session.get("backend") == "app-server":
-        session["nativeCapabilities"] = native_codex.inspect_capabilities(str(session["codex"]))["send"]
-        state["nativeSessionPath"] = str(state_path.parent / "native-session.json")
-        objective = execution.get("goalObjective")
-        if session.get("goalMode") is True and not objective and not session.get("goal"):
-            text = request.decode("utf-8")
-            objective = text
-        if objective:
-            state["goalObjective"] = objective
-        atomic_write_json(Path(state["nativeSessionPath"]), session)
-        update_json(state_path, state_path.parent / ".state.lock", lambda value: value.update({
-            "nativeSessionPath": state["nativeSessionPath"], "goalObjective": objective, "backend": "app-server",
-            "goal": session.get("goal"), "goalError": session.get("goalError"),
-            "nativeGoalExpected": session.get("goalMode") is True or bool(session.get("goal"))}))
+    provider_adapter = adapters.for_session(session)
+    provider_adapter.prepare(session, state, request)
     existing_session = session.get("sessionId")
-    native_prompt = session.get("backend") == "app-server"
+    native_prompt = provider_adapter.uses_prompt_parts(session)
     prompt = prompt_parts.encode() if native_prompt else prompt_parts.full
-    command = build_codex_command(session, state, existing_session, prompt_parts=native_prompt)
+    command = adapters.for_session(session).build_command(session, state, existing_session, prompt_parts=native_prompt)
     stderr_path = state_path.parent / "stderr.log"
     reject_symlink(stderr_path)
     update_json(
@@ -1135,13 +1131,7 @@ def run_codex_attempt(
             "codex_start_failed", "codex exec could not start", False
         ) from error
     def stop_attempt():
-        if session.get("backend") == "app-server":
-            try:
-                request_native_pause(state_path)
-                wait_native_pause(state_path)
-            except Exception:
-                with contextlib.suppress(Exception):
-                    record_goal_uncertainty(state_path, "Native pause could not be confirmed; refresh Goal before reopening")
+        provider_adapter.before_stop(state_path, session)
         terminate_attempt_group(process, codex_identity)
 
     release_attempted = False
@@ -1290,7 +1280,7 @@ def run_codex_attempt(
                     "event_invalid", "codex emitted an invalid event", started, True
                 )
             capture_lesson(project_root, state, event, attempt)
-            if event.get("type") == "error" and session.get("backend") == "app-server":
+            if event.get("type") == "error" and provider_adapter.fatal_error_events(session):
                 stop_attempt()
                 message = str(event.get("message", "Native Codex error"))
                 diagnostic = sandbox_diagnostics.sandbox_failure(message)
@@ -1298,6 +1288,11 @@ def run_codex_attempt(
             if usage.observe(event):
                 update_json(state_path, state_path.parent / ".state.lock",
                             lambda value: record_attempt(value, attempt, usage.snapshot()))
+            if (event.get("type") == "provider.context" and type(event.get("usedTokens")) is int
+                    and type(event.get("contextWindowTokens")) is int):
+                context_usage = {"usedTokens": event["usedTokens"], "contextWindowTokens": event["contextWindowTokens"]}
+                update_json(state_path, state_path.parent / ".state.lock",
+                            lambda value: value.update({"contextUsage": context_usage}))
             if event.get("type") == "goal.error":
                 record_goal_uncertainty(state_path, str(event.get("message", "Native Goal state unconfirmed")))
             if event.get("type") == "thread.started":
@@ -1331,7 +1326,8 @@ def run_codex_attempt(
                     ),
                 )
                 session_path = session_file(project_root, str(state["agentId"]))
-                saved = {key: session[key] for key in ("model", "reasoningEffort", "fast", "goalMode", "backend") if key in session}
+                saved = {key: session[key] for key in ("model", "reasoningEffort", "fast", "goalMode") if key in session}
+                saved.update(adapters.for_session(session).persisted_fields(session))
                 saved["sessionId"] = observed
                 update_json(session_path, session_path.parent / ".session-state.lock", lambda value: value.update(saved))
             publication_status = result_publication_failure(event, state["resultPath"])
@@ -1777,8 +1773,7 @@ def command_cancel(args: argparse.Namespace) -> int:
         path.parent / ".state.lock",
         lambda value: value.update({"cancelRequested": True, "status": "cancelling"}),
     )
-    if state.get("backend") == "app-server":
-        wait_native_pause(path)
+    adapters.for_session(state).before_stop(path, state, cancel=True)
     containment_value = state.get("containment")
     if containment_value is None:
         validate_state_containment_fields(state)
@@ -1993,9 +1988,10 @@ def resolve_execution_policy(args: argparse.Namespace, project_root: Path, sessi
     try:
         if session is not None and session.get("role") in ("work", "verification") and os.environ.get("AGENT_FACTORY_PARENT_STATE"):
             parent_state = safe_read_json(Path(os.environ["AGENT_FACTORY_PARENT_STATE"]))
-            session = worktrees.inherit(session, load_session(project_root, parent_state["agentId"]))
+            session = worktrees.inherit(session, {"projectRoot": str(project_root), **load_session(project_root, parent_state["agentId"])})
         stored = execution_policy.session_policy(session) if session is not None and "executionPolicy" in session else None
         policy_args = argparse.Namespace(**vars(args))
+        policy_args.provider = adapters.provider_for(getattr(args, "model", None), getattr(args, "provider", None), session)
         if session is not None:
             policy_args.execution_working_directory = str(worktrees.checked_path({"projectRoot": str(project_root), **session}))
         elif getattr(args, "role", None) in ("work", "verification") and os.environ.get("AGENT_FACTORY_PARENT_STATE"):
@@ -2037,6 +2033,8 @@ def resolve_human_approval_policy(args: argparse.Namespace, session: dict[str, A
 
 def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
     options = {}
+    if getattr(args, "provider", None) is not None:
+        options["provider"] = args.provider
     for argument, key in (("task_mode", "taskMode"), ("model", "model"), ("reasoning_effort", "reasoningEffort"), ("fast", "fast"), ("goal_mode", "goalMode"), ("goal_objective", "goalObjective")):
         value = getattr(args, argument, None)
         if value is not None:
@@ -2064,71 +2062,42 @@ def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def request_native_pause(path: Path) -> None:
-    update_json(path, path.parent / ".state.lock", lambda value: value.update({
-        "goalControl": {"id": str(uuid.uuid4()), "action": "pause"}}))
+    """Compatibility delegate for native Goal consumers."""
+    from adapters.codex import control
+    return control.request_native_pause(path)
 
 
 def record_goal_uncertainty(path: Path, message: str) -> None:
-    fields = {"goalError": message}
-    state = update_json(path, path.parent / ".state.lock", lambda value: value.update(fields))
-    target = session_file(runtime_paths.project_for(path), str(state["agentId"]))
-    update_json(target, target.parent / ".session-state.lock", lambda value: value.update(fields))
-    # A full log cannot conceal the diagnostic: status/result and session are
-    # authoritative fallbacks even when no more bounded events fit.
-    with contextlib.suppress(Exception):
-        append_event(Path(state["eventsPath"]), json.dumps({"type": "goal.error", "message": message}) + "\n")
+    """Compatibility delegate for native Goal consumers."""
+    from adapters.codex import control
+    return control.record_goal_uncertainty(path, message)
 
 
 def wait_native_pause(path: Path) -> None:
-    # Give the live RPC owner a bounded opportunity before ordinary containment
-    # termination. Never open a competing app-server against an active thread.
-    deadline = time.monotonic() + 3
-    while time.monotonic() < deadline:
-        state = safe_read_json(path)
-        if state.get("goalError"):
-            return
-        if state.get("goal") and state["goal"].get("status") != "active":
-            return
-        if not state.get("goal") and (state.get("goalObservedAt") or not state.get("nativeGoalExpected")):
-            return
-        time.sleep(0.05)
-    record_goal_uncertainty(path, "Native pause unconfirmed after containment stop; refresh Goal before reopening")
+    """Compatibility delegate for native Goal consumers."""
+    from adapters.codex import control
+    return control.wait_native_pause(path)
 
 
 def command_goal(args: argparse.Namespace) -> int:
+    from adapters.contracts import GoalServices
     root = resolve_project_root(args.project_root)
     session = load_session(root, args.agent)
-    if session["role"] != "main":
-        raise ContractError("goal_role_invalid", "Goal controls belong to Main")
-    if args.action == "get":
-        emit({"kind": "goal", "agentId": args.agent, "sessionId": session.get("sessionId"),
-              "goal": session.get("goal"), "observedAt": session.get("goalObservedAt"),
-              "error": session.get("goalError"), "source": "last-native-observation"})
-        return 0
-    if not session.get("sessionId"):
-        raise ContractError("session_missing", "Start a Main session with a Goal first")
-    directory = agent_directory(root, args.agent)
-    with file_lock(directory / ".dispatch.lock"):
-        active = [state for state in iter_run_states(root, args.agent) if state.get("status") in ACTIVE_STATES]
-        if active:
-            if len(active) != 1 or args.action in ("resume", "reopen"):
-                raise ContractError("session_busy", "Pause the active run before reopening Goal")
-            state = active[0]
-            if state.get("backend") != "app-server":
-                raise ContractError("goal_unavailable", "The active run does not own a native Goal connection")
-            path = Path(state["statePath"])
-            control = {"id": str(uuid.uuid4()), "action": "get" if args.action == "refresh" else args.action}
-            update_json(path, path.parent / ".state.lock", lambda value: value.update({"goalControl": control}))
-            emit({"kind": "goal-control", "status": "accepted", "agentId": args.agent, "runId": state["runId"], **control})
-            return 0
-    # Reuse managed acceptance, locks, process containment, events and run results.
-    if args.action in ("resume", "reopen") and not session.get("goal"):
-        raise ContractError("goal_missing", "Goal was cleared; send a new objective with Goal enabled")
-    send_args = parse_args(["send", "--project-root", str(root), "--agent", args.agent,
-                           "--actor", "human", "--message", "Continue the existing native Goal through the Main → Work → Verification graph.",
-                           *(["--goal-mode"] if args.action in ("resume", "reopen") else ["--no-goal-mode"] if args.action in ("clear", "cancel", "disable") else [])])
-    send_args.goal_action = "get" if args.action == "refresh" else args.action
-    return submit(send_args, False)
+    services = GoalServices(emit, agent_directory, file_lock, iter_run_states, update_json,
+                            parse_args, submit, frozenset(ACTIVE_STATES), SCHEMA_VERSION)
+    return adapters.for_session(session).goal_command(services, args, root, session)
+
+
+def __getattr__(name):
+    # Lazy compatibility exports for existing Python integrations. Execution
+    # itself accesses providers only through adapters.
+    import importlib
+    legacy = {"native_codex": "adapters.codex.transport",
+              "execution_preflight": "adapters.codex.preflight",
+              "runtime_permissions": "adapters.codex.permissions"}
+    if name in legacy:
+        return importlib.import_module(legacy[name])
+    raise AttributeError(name)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -2158,16 +2127,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             emit(runtime_paths.rebind(args.runtime_home, args.project_id, args.from_root, args.project_root))
             return 0
         if args.command == "capabilities":
-            codex = args.codex
             session = None
             if args.agent:
                 session = load_session(resolve_project_root(args.project_root), args.agent)
-                codex = session["codex"]
-            capabilities = dict(native_codex.inspect_capabilities(codex))
-            from task_modes import TASK_MODES
-            modes = [mode for mode in TASK_MODES if mode not in ("plan", "plan-work", "plan-work-verification") or capabilities["submit"].get("plan") is True]
-            capabilities["submit"] = {**capabilities["submit"], "images": True, "taskModes": modes, "automaticRequestHash": True, "worktrees": True}
-            capabilities["send"] = {**capabilities["send"], "images": True, "taskModes": modes, "automaticRequestHash": True, "worktrees": True}
+            provider = adapters.provider_for(args.model, args.provider, {**session, "sessionId": None} if session else None)
+            executable = adapters.adapter(provider).executable(args, session)
+            capabilities = dict(adapters.adapter(provider).inspect_capabilities(executable))
             if session is not None and "executionPolicy" in session:
                 capabilities["executionMode"] = (
                     "bypass"

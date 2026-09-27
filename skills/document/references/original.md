@@ -5,7 +5,7 @@
 ## 1. Fidelity and representation
 
 - Apply the mandatory [Document core requirements](../SKILL.md), using its Original-specific scope rather than the
-  Processed/Specification body format.
+  Refined/Specification (Skill) body format.
 - Original is a source-faithful reference to evidence. Do not copy, rewrite, translate
   or convert the referenced source into the package.
 - Store packages at `docs/original/<category>[-<domain>]-<name>/`.

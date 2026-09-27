@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Search the live Original, Processed, Progress and Lessons Learned Document catalog."""
+"""Search the live Original, Refined, Progress and Lessons Learned Document catalog."""
 
 import argparse
 import json
 from pathlib import Path
 import sys
 
-from catalog_documents import CATALOG_TYPES, build_catalog
+from catalog_documents import CATALOG_TYPES, TYPE_ALIASES, build_catalog
 
 
 def search(root: Path, query: str, document_type=None, category=None, limit=20) -> dict:
@@ -15,6 +15,7 @@ def search(root: Path, query: str, document_type=None, category=None, limit=20) 
         raise ValueError("Search query must contain non-whitespace text")
     if limit < 1 or limit > 100:
         raise ValueError("Search limit must be between 1 and 100")
+    document_type = TYPE_ALIASES.get(document_type, document_type)
     root = root.resolve(strict=True)
     matches = []
     for entry in build_catalog(root)["documents"]:
@@ -23,8 +24,9 @@ def search(root: Path, query: str, document_type=None, category=None, limit=20) 
         if category and entry["category"] != category:
             continue
         searchable = json.dumps(entry["metadata"], ensure_ascii=False)
-        if entry["contentPath"]:
-            searchable += "\n" + (root / entry["contentPath"]).read_text(encoding="utf-8")
+        paths = entry.get("contentPaths") or ([entry["contentPath"]] if entry["contentPath"] else [])
+        for path in paths:
+            searchable += "\n" + (root / path).read_text(encoding="utf-8")
         folded = searchable.casefold()
         if not all(term in folded for term in terms):
             continue
@@ -50,7 +52,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--query", required=True)
-    parser.add_argument("--type", choices=CATALOG_TYPES)
+    parser.add_argument("--type", choices=(*CATALOG_TYPES, *TYPE_ALIASES))
     parser.add_argument("--category")
     parser.add_argument("--limit", type=int, default=20)
     args = parser.parse_args()
