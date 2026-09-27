@@ -9,6 +9,69 @@ Human-facing responses support the language the Human uses or explicitly selects
 Agent Factory is a Codex plugin for Human-directed software delivery. It provides
 a bounded agent workflow, evidence exploration, and shared project conventions.
 
+## Core features
+
+### 1. Document system
+
+- Keep project knowledge in a structured, searchable collection that agents can
+  consult across tasks. Maintain one editable source for each document.
+- Separate source references (**Original**), investigations and working knowledge
+  (**Refined**), accepted facts and rules (**Specification**), execution records
+  (**Progress**), and experience from previous work (**Lessons Learned**).
+- Preserve the distinction between evidence, assumptions, and accepted decisions.
+  Writing or summarizing a document does not automatically make it a project rule.
+- When you request migration, organize existing documents into the project structure
+  while preserving their content and references. Accepted Specification documents
+  can be synchronized into project Skills for agents to use in later work.
+
+### 2. Contracts → Work–Verification loop
+
+- Turn a conversation into a work contract with an intended outcome, individual
+  tasks, and observable completion criteria. For file changes, identify the exact
+  paths and operations so the execution boundary is clear before work begins.
+- Keep each task linked to its scope and results. Contract revisions preserve
+  earlier versions and record confirmed scope changes.
+- In a Work–Verification loop, the agents have distinct responsibilities:
+
+  | Agent | Responsibility |
+  | --- | --- |
+  | Main | Consolidate the request, coordinate execution, and report results. |
+  | Work | Carry out the contracted tasks and perform its own checks. |
+  | Verification | Independently check the completed work against its requirements. |
+
+- Verification findings return to Work for correction, and revised work returns
+  to Verification for another check. A passing result completes the verification
+  stage; unresolved findings remain visible.
+- Choose the execution mode for the task. Direct Main work and Work-only execution
+  are also available; a separate Verification agent runs only when the selected
+  route calls for it.
+
+### 3. Interviews
+
+- Resolve missing requirements and decisions through guided questions in the
+  conversation. The agent uses existing context first and asks about gaps that
+  could materially change the outcome.
+- Address one decision at a time, with meaningful options, their advantages and
+  disadvantages, and a recommendation. Your answers guide the next question.
+- Skip, defer, correct, or narrow a question as needed. Recommendations and
+  assumptions remain distinct from your decisions.
+- Finish with a summary of the decisions and any remaining gaps. Save the interview
+  as a document when requested or required by the workflow, and use it to inform
+  a work contract or further planning.
+
+### 4. Lessons learned
+
+- Preserve errors, including recovered failures, alongside differences between
+  your judgment and the agent's. Record the context, known causes, attempted
+  solutions, and actual outcomes.
+- Retrieve relevant lessons before related work so earlier findings can inform
+  the approach. Keep unknown causes and unresolved issues explicit.
+- Record how a lesson was applied and whether it helped, needed correction, or
+  failed again. Recurrences add evidence without erasing the earlier record.
+- When you request consolidation, turn supported lessons into reusable project
+  rules. Lesson records remain evidence; they do not automatically become accepted
+  Specifications or trigger background changes.
+
 ## VS Code extension
 
 - This plugin is fully installable and usable on its own; the VS Code extension is optional.
@@ -47,11 +110,11 @@ The plugin exposes three public Skills:
   [execution guide](skills/agent/references/execution-modes.md) for details.
 - Research and interviews help gather evidence and clarify requirements.
 
-### Claude models
+### Models and sessions
 
 - Agents can also run on Claude Code: choose a `claude-*` model such as `claude-opus-5-5`,
   `claude-sonnet-5`, `claude-fable-5-1` or `claude-haiku-4-5-20251001`, or the aliases
-  `claude-opus`, `claude-sonnet` and `claude-haiku`. The `claude` CLI must be installed and signed in.
+  `claude-opus`, `claude-sonnet` and `claude-haiku`.
 - Every route works with Claude. Plan runs in Claude's plan mode, then the same session executes.
   Execution permissions map to the nearest Claude permission mode; they are not an OS sandbox.
   See the [execution guide](skills/agent/references/execution-modes.md#execution-providers).
@@ -59,6 +122,8 @@ The plugin exposes three public Skills:
   Claude Code plugin.
 
 ## Manual installation
+
+- Official runtime installation guides: [Codex CLI](https://developers.openai.com/codex/cli/) · [Claude Code](https://code.claude.com/docs/en/setup).
 
 - The Agent Factory VS Code extension installs the plugin automatically by default.
 - To use the plugin on its own or install it manually, run:
