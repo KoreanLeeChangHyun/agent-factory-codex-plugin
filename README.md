@@ -76,8 +76,8 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 - This plugin is fully installable and usable on its own; the VS Code extension is optional.
 - The Agent Factory VS Code extension requires this plugin to be installed and
-  enabled at the identical semantic base version. For example, extension `1.0.15`
-  accepts plugin `1.0.15+codex.<token>`.
+  enabled at the identical semantic base version. For example, extension `1.0.16`
+  accepts plugin `1.0.16+codex.<token>`.
 
 - On activation, the extension checks whether the plugin is installed, enabled, and compatible,
   and attempts automatic installation when needed. An already active, compatible plugin is used without reinstalling.
@@ -157,8 +157,9 @@ The plugin exposes three public Skills:
 
 ## Compatibility
 
-- **Operating system:** Execution supports Linux and macOS; WSL must meet the Linux requirements.
-  Native Windows is unsupported. macOS requires validation in your actual environment.
+- **Operating system:** Execution supports Linux, macOS and native Windows; WSL must meet the Linux requirements.
+  On Windows, use a native Python (python.org or Microsoft Store), for example from Git Bash;
+  MSYS2/Cygwin Python builds are unsupported. macOS and Windows require validation in your actual environment.
 - **Python:** Python 3.10+.
 - **Codex:** Codex CLI must be installed. Required capabilities and environment readiness are checked before execution.
 - See [host readiness](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics)
@@ -171,3 +172,8 @@ Please report bugs by email to [m.leechanghyun@gmail.com](mailto:m.leechanghyun@
 ## License
 
 MIT License. See [LICENSE](LICENSE).
+
+## Source
+
+This repository is generated. Do not edit it directly; changes are made in
+[https://github.com/KoreanLeeChangHyun/agent-factory-plugin-source](https://github.com/KoreanLeeChangHyun/agent-factory-plugin-source) and published with `distribution/port.py`.

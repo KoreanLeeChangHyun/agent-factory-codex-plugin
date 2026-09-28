@@ -11,6 +11,8 @@ metadata:
   conversation runs in Agent Factory.
 - Reuse instructions already present in context; read only references required for the
   next operation.
+- `<plugin-root>` is the installed Agent Factory plugin directory that contains `skills/`,
+  `runtime/` and `scripts/`; it is two levels above this `SKILL.md`.
 
 <a id="roles-and-graph"></a>
 
@@ -50,10 +52,10 @@ metadata:
 
 | Captured route | Command |
 | --- | --- |
-| `work`, `plan-work` | `python3 scripts/loop.py start --project-root PROJECT --task-mode MODE --work-agent UNIQUE_WORK_ID --request-file REQUEST` |
+| `work`, `plan-work` | `python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode MODE --work-agent UNIQUE_WORK_ID --request-file REQUEST` |
 | `work-verification`, `plan-work-verification` | Same loop command, plus `--verification-agent UNIQUE_VERIFICATION_ID` |
-| `plan` | `python3 scripts/exec.py submit --project-root PROJECT --role work --task-mode plan --agent UNIQUE_WORK_ID --request-file REQUEST` |
-| `verification` | `python3 scripts/exec.py submit --project-root PROJECT --role verification --task-mode verification --agent UNIQUE_VERIFICATION_ID --request-file REQUEST` |
+| `plan` | `python3 <plugin-root>/scripts/exec.py submit --project-root PROJECT --role work --task-mode plan --agent UNIQUE_WORK_ID --request-file REQUEST` |
+| `verification` | `python3 <plugin-root>/scripts/exec.py submit --project-root PROJECT --role verification --task-mode verification --agent UNIQUE_VERIFICATION_ID --request-file REQUEST` |
 
 - Agent IDs are at most 64 ASCII letters/digits/`.`/`_`/`-`, starting with a letter
   or digit. Use a new identity per independent chain; keep it for revisions.
@@ -138,7 +140,7 @@ Every Work/Verification submission (including sends and standalone verification)
 
 Before initial managed dispatch from Main, include an absolute `requestFile` for every
 task (including the first) in the structured task-list document. Run the installed
-`python3 scripts/exec.py announce-tasks --project-root PROJECT --task-list-file FILE`.
+`python3 <plugin-root>/scripts/exec.py announce-tasks --project-root PROJECT --task-list-file FILE`.
 This command requires the active managed Main parent binding; it does not launch work.
 It stores the ordered metadata and exact request bytes under that Main run and returns
 `taskFlow`, `taskListFile`, `taskId` and `requestFile` from the same snapshot.

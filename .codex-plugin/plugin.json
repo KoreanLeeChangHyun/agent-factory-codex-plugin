@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "1.0.15+codex.20260927143549",
+  "version": "1.0.16+codex.20260928040539",
   "description": "Agent Factory skills for managed execution, shared conventions, and Document authoring and synchronization.",
   "author": {
     "name": "Agent Factory",

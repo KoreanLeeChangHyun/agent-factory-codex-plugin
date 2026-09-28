@@ -45,8 +45,8 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
 
 - 이 플러그인은 단독으로 설치하고 사용할 수 있으며, VS Code 확장은 선택 사항입니다.
 - Agent Factory VS Code 확장을 사용하려면 동일한 시맨틱 기본 버전의 플러그인이
-  설치되고 활성화되어 있어야 합니다. 예를 들어 확장 `1.0.15`은
-  플러그인 `1.0.15+codex.<token>`을 허용합니다.
+  설치되고 활성화되어 있어야 합니다. 예를 들어 확장 `1.0.16`은
+  플러그인 `1.0.16+codex.<token>`을 허용합니다.
 
 - 확장은 활성화 시 플러그인의 설치·활성화 상태와 버전을 확인하고, 필요한 경우 자동 설치를 시도합니다.
   호환되는 플러그인이 이미 활성화되어 있으면 추가 설치 없이 사용합니다.
@@ -123,8 +123,9 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
 
 ## 호환성
 
-- **운영체제:** Linux와 macOS 실행을 지원하며, WSL에서는 Linux 요구사항을 충족해야 합니다.
-  네이티브 Windows는 지원하지 않습니다. macOS는 실제 사용 환경에서 동작 확인이 필요합니다.
+- **운영체제:** Linux, macOS, 네이티브 Windows 실행을 지원하며, WSL에서는 Linux 요구사항을 충족해야 합니다.
+  Windows에서는 Git Bash 등에서 네이티브 Python(python.org 또는 Microsoft Store)을 사용하십시오.
+  MSYS2/Cygwin용 Python은 지원하지 않습니다. macOS와 Windows는 실제 사용 환경에서 동작 확인이 필요합니다.
 - **Python:** Python 3.10+.
 - **Codex:** Codex CLI가 설치되어 있어야 합니다. 실행 전에 필요한 기능과 환경을 확인합니다.
 - 환경별 조건과 제한은 [호스트 준비 상태 안내](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics)를 참고하십시오.

@@ -103,7 +103,7 @@
 
 ## 6. Lifecycle CLI
 
-- Use `scripts/lessons.py --project-root <root> <action> --input <json-file>` for
+- Use `<plugin-root>/scripts/lessons.py --project-root <root> <action> --input <json-file>` for
   structured records, rule candidates and application evidence. Keep input files in
   the run directory; redact secrets before submitting Human/AI text.
 - The JSON file is the sole editable source for occurrences, resolutions, candidates,

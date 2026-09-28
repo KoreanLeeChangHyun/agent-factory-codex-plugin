@@ -7,6 +7,9 @@ metadata:
 
 # Agent Factory Document
 
+- `<plugin-root>` is the installed Agent Factory plugin directory that contains `skills/`,
+  `runtime/` and `scripts/`; it is two levels above this `SKILL.md`.
+
 <a id="mandatory-compliance"></a>
 
 ## 1. Mandatory compliance
@@ -193,7 +196,7 @@ metadata:
 
 ## 10. Agent-invoked Codex synchronization
 
-- Run `python3 <plugin-root>/skills/document/scripts/sync_documents.py --project-root <project-root>`
+- Run `python3 <plugin-root>/scripts/sync_documents.py --project-root <project-root>`
   after creating, modifying or deleting `docs/skills/` packages, using their actual project root.
   Inspect the result; resolve or report conflicts before claiming synchronization succeeded.
 - The plugin bundles no automatic hooks. Human edits synchronize only on a subsequent
@@ -239,7 +242,7 @@ metadata:
 
 - Codex discovers Specification (Skill) packages through its Skill catalog. Original, Refined, Progress and
   Lessons Learned packages use the separate local Document catalog supplied by this Skill.
-- Run `scripts/catalog_documents.py --project-root <project-root>` to emit a current JSON
+- Run `<plugin-root>/scripts/catalog_documents.py --project-root <project-root>` to emit a current JSON
   catalog of canonical `docs/original/`, `docs/refined/`, `docs/progress/` and
   `docs/lessons-learned/`, plus legacy `docs/processed/` and root `progress/`. It reads the
   packages on demand and writes no generated index into the project.
@@ -247,7 +250,7 @@ metadata:
   version's task IDs, `progress.md` and explicitly linked attachments. Missing or
   unlinked attachments, filename/metadata mismatches, duplicate canonical/legacy
   identities and the same contract ID in both locations are errors; catalog and search never select one conflicting copy silently.
-- Run `scripts/search_documents.py --project-root <project-root> --query <text>` to search
+- Run `<plugin-root>/scripts/search_documents.py --project-root <project-root> --query <text>` to search
   catalog metadata, Original links, Refined/Progress Markdown (including detailed
   Markdown under `references/`) and Lessons Learned JSON. Optional `--type`,
   `--category` and `--limit` filters narrow results.
