@@ -4,10 +4,10 @@ import json
 import time
 import uuid
 from pathlib import Path
-import paths as runtime_paths
-from runtime_storage import update_json, session_file, safe_read_json
-from process_transport import append_event
-from runtime_errors import ContractError
+from storage import paths as runtime_paths
+from storage.files import update_json, session_file, safe_read_json
+from system.transport import append_event
+from storage.errors import ContractError
 
 def request_native_pause(path: Path) -> None:
     update_json(path, path.parent / ".state.lock", lambda value: value.update({
@@ -77,3 +77,14 @@ def goal_command(runtime, args, root, session):
     send_args.goal_action = "get" if args.action == "refresh" else args.action
     return runtime.submit(send_args, False)
 
+
+def before_stop(state_path, state, *, cancel=False):
+    if state.get("backend") != "app-server":
+        return
+    try:
+        if not cancel:
+            request_native_pause(state_path)
+        wait_native_pause(state_path)
+    except Exception:
+        with contextlib.suppress(Exception):
+            record_goal_uncertainty(state_path, "Native pause could not be confirmed; refresh Goal before reopening")

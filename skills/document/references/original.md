@@ -24,7 +24,7 @@
 - Preservation and migration requirements grant no destructive local cleanup rule.
 
 - Catalog and search read this metadata without fetching links. Follow the shared
-  [catalog and search contract](../SKILL.md#local-document-catalog-and-search).
+  [catalog and search contract](host-sync.md#local-document-catalog-and-search).
 
 - Preserve source identifiers, provenance and link strings exactly. A response-language
   choice alone does not authorize translating or rewriting them.

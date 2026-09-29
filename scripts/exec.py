@@ -17,6 +17,7 @@ import sys
 import threading
 import time
 import uuid
+from functools import partial
 from pathlib import Path
 from typing import Any, Callable, IO, Iterator, Sequence
 
@@ -55,20 +56,21 @@ SYSTEMD_REQUIRED_OPTIONS = (
 )
 ENVIRONMENT_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 CGROUP_ROOT = Path("/sys/fs/cgroup")
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_PATH = Path(__file__).resolve()
+PLUGIN_ROOT = SCRIPT_PATH.parents[1]
 PROMPTS = PLUGIN_ROOT / "skills" / "agent" / "prompt"
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(PLUGIN_ROOT / "runtime"))
-import sandbox_diagnostics
-import lesson_capture
-import worktrees
-from runtime_storage import response_operation
-import execution_policy
-from runtime_errors import ContractError
-from token_usage import UsageAccumulator, record_attempt
-import portable
-import process_containment
-from process_containment import (
+from system import sandbox as sandbox_diagnostics
+from execution import lessons as lesson_capture
+from execution import worktrees
+from storage.files import response_operation
+from execution import policy as execution_policy
+from storage.errors import ContractError
+from execution.usage import UsageAccumulator, record_attempt
+from system import portable
+from system import containment as process_containment
+from system.containment import (
     require_managed_platform,
     now,
     parse_time,
@@ -97,26 +99,26 @@ from process_containment import (
     release_contained_process,
     abort_contained_process,
 )
-import runtime_storage
-from runtime_storage import (
+from storage import files as runtime_storage
+from storage.files import (
     emit, error_document, validate_id, resolve_project_root, ensure_directory,
     reject_symlink, atomic_write, find_project_anchor, atomic_write_json,
     safe_read_bytes, safe_read_json, agent_root, agent_directory, run_directory,
     file_lock, update_json, role_path, read_request, new_run_id, session_file,
     dispatch_reservation_file, state_file,
 )
-import capability_contracts
-from capability_contracts import (
+from contracts import capabilities as capability_contracts
+from contracts.capabilities import (
     _bounded_text, validate_capability_bindings, read_capability_bindings,
     safe_read_caller_file,
 )
-import receipt_contracts
-from receipt_contracts import (
+from contracts import receipts as receipt_contracts
+from contracts.receipts import (
     receipt_schema_document, _exact_keys, _string_list,
     _require_managed_directory, _require_managed_file, validate_receipt,
 )
-import process_transport
-from process_transport import (
+from system import transport as process_transport
+from system.transport import (
     AttemptFailure, build_prompt, build_prompt_parts, build_codex_command,
     response_schema_document, inline_result, validate_terminal_result, publish_terminal_result,
     stderr_reports_sandbox_unavailable, process_exit_failure,
@@ -124,8 +126,13 @@ from process_transport import (
     EventLogWriter, append_event, read_process_lines, stream_stderr, process_group_exists,
     terminate_attempt_group, terminate_verified_group,
 )
-from public_state import public_state as project_public_state
-from exec_cli import (
+from storage.public_state import public_state as project_public_state
+from runs import attempt as run_attempt
+from runs import commands as run_commands
+from runs import launch as run_launch
+from runs import records as run_records
+from execution import requests as execution_requests
+from execution.cli import (
     JsonArgumentParser, add_project_argument, add_request_arguments, parse_args,
     validate_submit_options,
 )
@@ -133,8 +140,66 @@ from exec_cli import (
 # Diagnostic/refusal paths must load even where runtime imports cannot.
 if sys.platform in portable.SUPPORTED_PLATFORMS:
     import adapters
-    import paths as runtime_paths
-    import image_input
+    from storage import paths as runtime_paths
+    from execution import images as image_input
+
+
+class _HostView:
+    """Live view of this script's globals for domain modules.
+
+    Domain functions reach host names through it at call time, so later definitions and
+    test patches applied to this module are observed without importing the script again.
+    """
+    __slots__ = ()
+
+    def __getattr__(self, name):
+        try:
+            return _HOST_GLOBALS[name]
+        except KeyError:
+            raise AttributeError(name) from None
+
+
+_HOST_GLOBALS = globals()
+_runtime = _HostView()
+
+# Functions owned by domain modules, bound to this script so host-level patches apply.
+create_run = partial(run_records.create_run, _runtime)
+create_session = partial(run_records.create_session, _runtime)
+load_session = partial(run_records.load_session, _runtime)
+managed_parent_identity = partial(run_records.managed_parent_identity, _runtime)
+require_current_parent_conversation = partial(run_records.require_current_parent_conversation, _runtime)
+validate_state_containment_fields = partial(run_records.validate_state_containment_fields, _runtime)
+_validate_state_containment = partial(run_records._validate_state_containment, _runtime)
+find_run = partial(run_records.find_run, _runtime)
+iter_agent_directories = partial(run_records.iter_agent_directories, _runtime)
+iter_run_states = partial(run_records.iter_run_states, _runtime)
+_launch_systemd_worker = partial(run_launch._launch_systemd_worker, _runtime)
+_launch_fallback_worker = partial(run_launch._launch_fallback_worker, _runtime)
+spawn_worker = partial(run_launch.spawn_worker, _runtime)
+pid_alive = partial(run_launch.pid_alive, _runtime)
+cancel_requested = partial(run_attempt.cancel_requested, _runtime)
+run_codex_attempt = partial(run_attempt.run_codex_attempt, _runtime)
+capture_lesson = partial(run_attempt.capture_lesson, _runtime)
+mark_terminal = partial(run_attempt.mark_terminal, _runtime)
+worker = partial(run_attempt.worker, _runtime)
+command_status = partial(run_commands.command_status, _runtime)
+command_result = partial(run_commands.command_result, _runtime)
+command_list = partial(run_commands.command_list, _runtime)
+command_reset_conversation = partial(run_commands.command_reset_conversation, _runtime)
+command_inbox = partial(run_commands.command_inbox, _runtime)
+command_cancel = partial(run_commands.command_cancel, _runtime)
+heartbeat_stale = partial(run_commands.heartbeat_stale, _runtime)
+event_stream_has_start_marker = partial(run_commands.event_stream_has_start_marker, _runtime)
+durably_never_started = partial(run_commands.durably_never_started, _runtime)
+command_reconcile = partial(run_commands.command_reconcile, _runtime)
+request_native_pause = partial(run_commands.request_native_pause, _runtime)
+record_goal_uncertainty = partial(run_commands.record_goal_uncertainty, _runtime)
+wait_native_pause = partial(run_commands.wait_native_pause, _runtime)
+command_goal = partial(run_commands.command_goal, _runtime)
+resolve_execution_policy = partial(execution_requests.resolve_execution_policy, _runtime)
+resolve_human_approval_policy = partial(execution_requests.resolve_human_approval_policy, _runtime)
+requested_execution = partial(execution_requests.requested_execution, _runtime)
+
 VALID_ROLES = {"main", "work", "verification"}
 CAPABILITY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 AUTHORITY_KINDS = {
@@ -146,476 +211,6 @@ CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
 
 def public_state(state: dict[str, Any]) -> dict[str, Any]:
     return project_public_state(state)
-
-
-def create_run(
-    *,
-    project_root: Path,
-    agent_id: str,
-    actor: str,
-    request: bytes,
-    session: dict[str, Any],
-    receipt_request_hash: str | None = None,
-    verified_work_run_id: str | None = None,
-    dispatch_id: str | None = None,
-    dispatch_operation: str | None = None,
-    capability_bindings: bytes | None = None,
-    execution_options: dict[str, Any] | None = None,
-    goal_action: str | None = None,
-    images: list[dict[str, Any]] | None = None,
-    parent_agent_id: str | None = None,
-    parent_run_id: str | None = None,
-    task_binding: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    run_id = new_run_id()
-    directory = run_directory(project_root, agent_id, run_id, create=True)
-    request_path = directory / "request.md"
-    result_path = directory / "result.md"
-    events_path = directory / "events.jsonl"
-    heartbeat_path = directory / "heartbeat.json"
-    response_schema = directory / "response.schema.json"
-    receipt_path = directory / "receipt.json"
-    receipt_schema = directory / "receipt.schema.json"
-    capability_binding_path = directory / "capability-bindings.json"
-    request_hash = hashlib.sha256(request).hexdigest()
-    atomic_write(request_path, request)
-    image_inputs = []
-    for index, image in enumerate(images or []):
-        image_path = directory / "images" / f"{index:02d}{image['suffix']}"
-        atomic_write(image_path, image["content"])
-        image_inputs.append({
-            "path": str(image_path), "mediaType": image["mediaType"],
-            "size": len(image["content"]),
-            "sha256": hashlib.sha256(image["content"]).hexdigest(),
-        })
-    capability_binding_hash = None
-    capability_binding_document = None
-    if capability_bindings is not None:
-        capability_binding_document = validate_capability_bindings(json.loads(capability_bindings))
-        atomic_write(capability_binding_path, capability_bindings)
-        capability_binding_hash = hashlib.sha256(capability_bindings).hexdigest()
-    atomic_write_json(response_schema, response_schema_document(str(result_path)))
-    role = str(session["role"])
-    if role in {"work", "verification"}:
-        atomic_write_json(
-            receipt_schema,
-            receipt_schema_document(
-                role=role,
-                run_id=run_id,
-                request_hash=receipt_request_hash or request_hash,
-                verified_work_run_id=verified_work_run_id,
-                capability_bindings=capability_binding_document,
-                standalone=(execution_options or {}).get("taskMode") == "verification",
-            ),
-        )
-    accepted_at = now()
-    state = {
-        "provider": session.get("provider", "codex"),
-        "runtimeBinding": runtime_paths.resolve(project_root, create=True),
-        "workingDirectory": str(worktrees.checked_path(session)) if "projectRoot" in session else str(project_root),
-        "schemaVersion": SCHEMA_VERSION,
-        "runId": run_id,
-        "agentId": agent_id,
-        "role": session["role"],
-        "actor": actor,
-        "status": "accepted",
-        "attempt": 0,
-        "startDisposition": "not-started",
-        "maxAttempts": session["maxAttempts"],
-        "requestPath": str(request_path),
-        "requestHash": request_hash,
-        "statePath": str(directory / "state.json"),
-        "resultPath": str(result_path),
-        "eventsPath": str(events_path),
-        "heartbeatPath": str(heartbeat_path),
-        "responseSchemaPath": str(response_schema),
-        "acceptedAt": accepted_at,
-        "updatedAt": accepted_at,
-        "workerPid": None,
-        "workerIdentity": None,
-        "containmentAttempt": 0,
-        "containment": None,
-        "containmentLaunchDisposition": "not-launched",
-        "codexPid": None,
-        "codexIdentity": None,
-        "lastCodexIdentity": None,
-        "cancelRequested": False,
-        "unread": False,
-        "error": None,
-    }
-    if isinstance(session.get("conversationId"), str):
-        state["conversationId"] = session["conversationId"]
-    if role == "main":
-        state["taskAnnouncementContract"] = 1
-    if parent_agent_id is not None and parent_run_id is not None:
-        state["parentAgentId"] = parent_agent_id
-        state["parentRunId"] = parent_run_id
-    if task_binding is not None:
-        state["taskBinding"] = task_binding
-    state["taskMode"] = (execution_options or {}).get("taskMode", "direct" if role == "main" else "work-verification")
-    if image_inputs:
-        state["imageInputs"] = image_inputs
-    if execution_options:
-        state["executionOptions"] = execution_options
-    state["humanApprovalPolicy"] = session.get("humanApprovalPolicy", "required")
-    if "executionPolicy" in session:
-        state["executionPolicy"] = session["executionPolicy"]
-    if goal_action:
-        state["goalAction"] = goal_action
-    if dispatch_id is not None:
-        state["dispatchId"] = dispatch_id
-        state["dispatchTuple"] = {
-            "agentId": agent_id,
-            "role": role,
-            "actor": actor,
-            "requestHash": request_hash,
-            "receiptRequestHash": receipt_request_hash or request_hash,
-            "verifiedWorkRunId": verified_work_run_id,
-            "operation": dispatch_operation,
-        }
-        if task_binding is not None:
-            state["dispatchTuple"]["taskBinding"] = task_binding
-        if parent_agent_id is not None and parent_run_id is not None:
-            state["dispatchTuple"].update({
-                "parentAgentId": parent_agent_id,
-                "parentRunId": parent_run_id,
-            })
-        if "executionPolicy" in session:
-            state["dispatchTuple"]["executionPolicy"] = session["executionPolicy"]
-        state["dispatchTuple"]["humanApprovalPolicy"] = state["humanApprovalPolicy"]
-        if execution_options:
-            state["dispatchTuple"]["executionOptions"] = execution_options
-        if goal_action:
-            state["dispatchTuple"]["goalAction"] = goal_action
-        if capability_binding_hash is not None:
-            state["dispatchTuple"]["capabilityBindingHash"] = capability_binding_hash
-    if role in {"work", "verification"}:
-        state.update(
-            {
-                "receiptPath": str(receipt_path),
-                "receiptSchemaPath": str(receipt_schema),
-                "receiptRequestHash": receipt_request_hash or request_hash,
-            }
-        )
-    if role == "verification":
-        state["verifiedWorkRunId"] = verified_work_run_id
-    if capability_binding_hash is not None:
-        state.update({
-            "capabilityBindingPath": str(capability_binding_path),
-            "capabilityBindingHash": capability_binding_hash,
-        })
-    atomic_write_json(directory / "state.json", state)
-    atomic_write_json(
-        heartbeat_path,
-        {
-            "schemaVersion": SCHEMA_VERSION,
-            "runId": run_id,
-            "attempt": 0,
-            "sequence": 0,
-            "status": "accepted",
-            "workerPid": None,
-            "codexPid": None,
-            "observedAt": accepted_at,
-        },
-    )
-    if parent_agent_id is not None and parent_run_id is not None:
-        # One atomic projection per child avoids rewriting a growing parent index.
-        reference_path = run_directory(project_root, parent_agent_id, parent_run_id) / "children" / f"{agent_id}.json"
-        atomic_write_json(reference_path, {"agentId": agent_id, "runId": run_id,
-            "parentAgentId": parent_agent_id, "parentRunId": parent_run_id, "role": role})
-    return state
-
-
-def create_session(args: argparse.Namespace, project_root: Path) -> dict[str, Any]:
-    directory = agent_directory(project_root, args.agent, create=True)
-    path = directory / "session.json"
-    if path.exists():
-        raise ContractError("agent_exists", "Agent already exists; use send")
-    role = validate_id(args.role, ROLE_ID, "role")
-    role_path(role)
-    if not hasattr(args, "resolved_execution_policy"):
-        args.resolved_execution_policy = resolve_execution_policy(args, project_root)
-    provider = adapters.provider_for(args.model, getattr(args, "provider", None))
-    provider_adapter = adapters.adapter(provider)
-    codex = provider_adapter.executable(args)
-    if os.sep not in codex:
-        from shutil import which
-
-        resolved = which(codex) or portable.find_cli(codex)
-        if resolved is None:
-            raise ContractError(f"{provider}_not_found", f"{provider} executable was not found")
-        codex = resolved
-    else:
-        codex = str(Path(codex).resolve(strict=True))
-    codex = portable.native_executable(codex, provider)
-    options = requested_execution(args)
-    capabilities = adapters.adapter(provider).inspect_capabilities(codex, refresh=True, runtime_home=runtime_paths.resolve(project_root, create=True)["home"])
-    # Claude print runs already continue to completion and have no Fast tier; both options are no-ops there.
-    if provider != "claude" and (options.get("fast") is True or options.get("goalMode") is True):
-        for key, field in (("fast", "fast"), ("goalMode", "goal")):
-            if options.get(key) is True and not capabilities["submit"][field]:
-                raise ContractError("native_unsupported", capabilities["diagnostic"] or f"Native {field} unsupported")
-    created_at = now()
-    session = {
-        **provider_adapter.session_fields(codex, capabilities),
-        "provider": provider,
-        "schemaVersion": SCHEMA_VERSION,
-        "agentId": args.agent,
-        "role": role,
-        "sessionId": None,
-        "projectRoot": str(project_root),
-        "runtimeBinding": runtime_paths.resolve(project_root, create=True),
-        # Retain the historical executable field for persisted-session compatibility.
-        "codex": provider_adapter.session_fields(codex, capabilities).get("codex", args.codex),
-        "sandbox": args.resolved_execution_policy["sandboxPolicy"]["type"],
-        "executionPolicy": args.resolved_execution_policy,
-        "humanApprovalPolicy": getattr(args, "resolved_human_approval_policy", "required"),
-        "model": args.model,
-        "reasoningEffort": getattr(args, "reasoning_effort", None),
-        "heartbeatInterval": args.heartbeat_interval,
-        "heartbeatTimeout": args.heartbeat_timeout,
-        "startTimeout": args.start_timeout,
-        "turnTimeout": args.turn_timeout,
-        "maxAttempts": args.max_attempts,
-        "createdAt": created_at,
-        "updatedAt": created_at,
-    }
-    atomic_write_json(path, session)
-    return session
-
-
-def load_session(project_root: Path, agent_id: str) -> dict[str, Any]:
-    path = session_file(project_root, agent_id)
-    session = safe_read_json(path)
-    if session.get("agentId") != agent_id or session.get("projectRoot") != str(project_root):
-        raise ContractError("session_invalid", "Agent session binding is invalid")
-    session_id = session.get("sessionId")
-    if session_id is not None and (
-        not isinstance(session_id, str) or not SESSION_ID.fullmatch(session_id)
-    ):
-        raise ContractError("session_invalid", "Codex session identifier is invalid")
-    role_path(str(session.get("role", "")))
-    return session
-
-
-def managed_parent_identity(project_root: Path) -> dict[str, str] | None:
-    locator = os.environ.get("AGENT_FACTORY_PARENT_STATE")
-    if not locator:
-        return None
-    state_path = Path(locator)
-    try:
-        state = safe_read_json(state_path)
-    except ValueError as error:
-        # Storage validates persisted bindings before the parent fields are available.
-        raise ContractError("parent_session_invalid", f"Managed parent run binding could not be validated: {error}") from error
-    binding = state.get("runtimeBinding")
-    agent_id, run_id = state.get("agentId"), state.get("runId")
-    if (not isinstance(binding, dict) or binding.get("projectRoot") != str(project_root)
-            or not isinstance(agent_id, str) or not AGENT_ID.fullmatch(agent_id)
-            or not isinstance(run_id, str) or not AGENT_ID.fullmatch(run_id)
-            or state_path != agent_directory(project_root, agent_id) / "runs" / run_id / "state.json"):
-        raise ContractError("parent_session_invalid", "Managed parent run binding is invalid")
-    return {"agentId": agent_id, "runId": run_id}
-
-
-def require_current_parent_conversation(project_root: Path, parent: dict[str, str]) -> None:
-    state = safe_read_json(state_file(project_root, parent["agentId"], parent["runId"]))
-    session = load_session(project_root, parent["agentId"])
-    if state.get("conversationId") != session.get("conversationId"):
-        raise ContractError("parent_conversation_reset", "The parent conversation was reset before the child run was accepted")
-
-
-def validate_state_containment_fields(state: dict[str, Any]) -> None:
-    fields = {"containmentAttempt", "containment", "containmentLaunchDisposition"}
-    present = fields.intersection(state)
-    if not present:
-        return
-    if present != fields:
-        raise ContractError("containment_state_invalid", "containment state fields are incomplete")
-    attempt = state.get("containmentAttempt")
-    disposition = state.get("containmentLaunchDisposition")
-    if not isinstance(attempt, int) or attempt < 0 or disposition not in {
-        "not-launched", "launching", "launched"
-    }:
-        raise ContractError("containment_state_invalid", "containment state fields are invalid")
-    containment = state.get("containment")
-    if containment is None:
-        if attempt != 0 or disposition != "not-launched":
-            raise ContractError("containment_identity_unbound", "launched containment identity is not bound")
-        return
-    validate_containment(containment)
-    if attempt < 1 or disposition == "not-launched":
-        raise ContractError("containment_state_invalid", "containment launch state is invalid")
-
-
-def _validate_state_containment(state: dict[str, Any]) -> dict[str, Any]:
-    validate_state_containment_fields(state)
-    containment = validate_containment(state.get("containment"))
-    if containment["kind"] == "systemd-user-service":
-        attempt = state.get("containmentAttempt")
-        if not isinstance(attempt, int) or attempt < 1 or containment["unitName"] != systemd_unit_name(
-            str(state.get("agentId")), str(state.get("runId")), attempt
-        ):
-            raise ContractError("containment_identity_mismatch", "systemd unit is not bound to this run attempt")
-    elif containment["identity"] != state.get("workerIdentity"):
-        raise ContractError("containment_identity_mismatch", "fallback containment is not bound to this worker")
-    return containment
-
-
-def _launch_systemd_worker(
-    project_root: Path,
-    agent_id: str,
-    run_id: str,
-    command: Sequence[str],
-    environment_resource: tuple[int, str],
-) -> int:
-    environment_fd, environment_path = environment_resource
-    try:
-        path = state_file(project_root, agent_id, run_id)
-        state = safe_read_json(path)
-        attempt = int(state.get("containmentAttempt", 0)) + 1
-        containment = {
-            "kind": "systemd-user-service",
-            "unitName": systemd_unit_name(agent_id, run_id, attempt),
-            "bindingToken": uuid.uuid4().hex,
-            "invocationId": None,
-            "weakerDescendantContainment": False,
-        }
-        update_json(
-            path,
-            path.parent / ".state.lock",
-            lambda value: value.update(
-                {
-                    "containmentAttempt": attempt,
-                    "containment": containment,
-                    "containmentLaunchDisposition": "launching",
-                    "status": "starting",
-                }
-            ),
-        )
-        result = _systemd_command((
-            "systemd-run", "--user", f"--unit={containment['unitName']}",
-            f"--description={SYSTEMD_DESCRIPTION_PREFIX}{containment['bindingToken']}",
-            "--collect", "--service-type=exec",
-            "--property=KillMode=control-group",
-            f"--property=TimeoutStopSec={PROCESS_TERM_TIMEOUT}s",
-            "--property=SendSIGKILL=no",
-            f"--property=EnvironmentFile={environment_path}",
-            f"--working-directory={project_root}", "--", *command,
-        ))
-    finally:
-        with contextlib.suppress(OSError):
-            os.close(environment_fd)
-    if result.returncode != 0:
-        raise ContractError(
-            "containment_launch_failed",
-            "the bound systemd service launch was not acknowledged; the run will not be replayed without reconciliation",
-        )
-    observed = query_systemd_containment(containment)
-    if observed["invocationId"] is None:
-        raise ContractError("containment_launch_ack_missing", "systemd returned no invocation identity")
-    containment = {**containment, "invocationId": observed["invocationId"]}
-    state = update_json(
-        path,
-        path.parent / ".state.lock",
-        lambda value: value.update(
-            {
-                "containment": containment,
-                "containmentLaunchDisposition": "launched",
-                "workerPid": observed["mainPid"],
-                "status": "queued",
-            }
-        ),
-    )
-    worker_pid = state.get("workerPid")
-    return worker_pid if isinstance(worker_pid, int) and worker_pid > 0 else 0
-
-
-def _launch_fallback_worker(
-    project_root: Path, agent_id: str, run_id: str, command: Sequence[str]
-) -> int:
-    command = [
-        *command,
-    ]
-    try:
-        process, identity, release_fd = spawn_contained_process(
-            command,
-            detach=True,
-            cwd=project_root,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-    except ContractError as error:
-        raise ContractError(error.code, error.message) from error
-    except OSError as error:
-        raise ContractError("worker_start_failed", "background worker could not start") from error
-    release_attempted = False
-    try:
-        path = state_file(project_root, agent_id, run_id)
-        update_json(
-            path,
-            path.parent / ".state.lock",
-            lambda state: state.update(
-                {
-                    "workerPid": process.pid,
-                    "workerIdentity": identity,
-                    "containmentAttempt": int(state.get("containmentAttempt", 0)) + 1,
-                    "containment": {
-                        "kind": "windows-job",
-                        "identity": identity,
-                        "weakerDescendantContainment": False,
-                    } if portable.WINDOWS else {
-                        "kind": "process-group",
-                        "identity": identity,
-                        "weakerDescendantContainment": True,
-                    },
-                    "containmentLaunchDisposition": "launched",
-                    "status": "queued",
-                }
-            ),
-        )
-        release_attempted = True
-        release_contained_process(process, identity, release_fd)
-    except (ContractError, OSError) as error:
-        abort_contained_process(
-            process,
-            identity,
-            None if release_attempted else release_fd,
-        )
-        if isinstance(error, ContractError):
-            raise ContractError(error.code, error.message) from error
-        raise ContractError("worker_start_failed", "background worker could not start") from error
-    return process.pid
-
-
-def spawn_worker(project_root: Path, agent_id: str, run_id: str) -> int:
-    command = [
-        sys.executable,
-        str(Path(__file__).resolve()),
-        "_worker",
-        *runtime_paths.arguments(project_root),
-        "--project-root",
-        str(project_root),
-        "--agent",
-        agent_id,
-        "--run-id",
-        run_id,
-    ]
-    if systemd_manager_usable():
-        try:
-            environment_resource = create_systemd_environment_file()
-        except ContractError as error:
-            if error.code not in {
-                "containment_environment_invalid",
-                "containment_environment_unavailable",
-            }:
-                raise
-        else:
-            return _launch_systemd_worker(
-                project_root, agent_id, run_id, command, environment_resource
-            )
-    return _launch_fallback_worker(project_root, agent_id, run_id, command)
 
 
 def submit(args: argparse.Namespace, new_agent: bool) -> int:
@@ -663,7 +258,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     else:
         role = load_session(project_root, args.agent).get("role")
     stored_session = None if new_agent else load_session(project_root, args.agent)
-    provider = adapters.provider_for(getattr(args, "model", None), getattr(args, "provider", None), stored_session)
+    # Not an execution option: the dispatch tuple records only what the caller requested.
+    args.inherited_provider = execution_requests.inherited_provider(_runtime, args) if new_agent else None
+    provider = adapters.provider_for(getattr(args, "model", None), getattr(args, "provider", None) or args.inherited_provider, stored_session)
     policy = resolve_execution_policy(args, project_root, stored_session)
     args.resolved_execution_policy = policy
     human_approval_policy = resolve_human_approval_policy(args, stored_session)
@@ -686,7 +283,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         execution_options.setdefault("taskMode", "direct")
     adapters.adapter(provider).validate({**(stored_session or {}), **execution_options,
                                          "role": role, "executionPolicy": policy})
-    from task_modes import validate_mode
+    from tasks.modes import validate_mode
     if "taskMode" in execution_options:
         validate_mode(execution_options["taskMode"])
         if (role == "verification" and not standalone) or (role == "work" and execution_options["taskMode"] in ("direct", "verification")):
@@ -697,7 +294,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     if role == "work":
         # Each bounded execution/revision owns a fresh objective, including long requests.
         # The complete request is delivered by the native bridge, never truncated here.
-        from task_modes import work_goal_options
+        from tasks.modes import work_goal_options
         execution_options = work_goal_options(execution_options, request_text)
     if role == "verification" and (execution_options.get("goalMode") is True or goal_action):
         raise ContractError("goal_role_invalid", "Verification cannot use native Goal continuation")
@@ -708,7 +305,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     request_hash = hashlib.sha256(request).hexdigest()
     binding = None
     if role in {"work", "verification"}:
-        import task_binding
+        from tasks import binding as task_binding
         task_list_file = getattr(args, "task_list_file", None)
         task_id = getattr(args, "task_id", None)
         if task_list_file is None or not task_id:
@@ -718,7 +315,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         accepted_retry = parent is not None and any(value.get("dispatchId") == dispatch_id
                              for value in iter_run_states(project_root, args.agent))
         if parent is not None and not accepted_retry:
-            import task_announcement
+            from tasks import announcement as task_announcement
             with file_lock(agent_directory(project_root, parent["agentId"]) / ".dispatch.lock"):
                 require_current_parent_conversation(project_root, parent)
                 task_announcement.check_submission(safe_read_json,
@@ -1012,1099 +609,13 @@ class Heartbeat:
         fact = "process_alive" if process_identity_status(value.get("codexIdentity")) == "match" else "unreachable"
 
 
-def cancel_requested(state_path: Path, cancel_event: threading.Event, reader=None) -> bool:
-    if cancel_event.is_set():
-        return True
-    with contextlib.suppress(ContractError):
-        return bool((reader.read() if reader is not None else safe_read_json(state_path)).get("cancelRequested"))
-    return False
-
-
-def run_codex_attempt(
-    *,
-    project_root: Path,
-    session: dict[str, Any],
-    state: dict[str, Any],
-    attempt: int,
-    heartbeat: Heartbeat,
-    cancel_event: threading.Event,
-    expected_agent_id: str,
-    expected_run_id: str,
-) -> tuple[str, str]:
-    state_path = Path(state["requestPath"]).parent / "state.json"
-    request = safe_read_bytes(Path(state["requestPath"]), MAX_REQUEST_BYTES)
-    if hashlib.sha256(request).hexdigest() != state.get("requestHash"):
-        raise AttemptFailure("request_changed", "managed request content changed", False)
-    for image in state.get("imageInputs", []):
-        content = safe_read_bytes(Path(image["path"]), image_input.MAX_IMAGE_BYTES)
-        if len(content) != image.get("size") or hashlib.sha256(content).hexdigest() != image.get("sha256"):
-            raise AttemptFailure("input_image_changed", "managed image input changed", False)
-    # Validate the output contract and prepare all prompt files before any child launch.
-    try:
-        prompt_parts = build_prompt_parts(
-            agent_id=str(state["agentId"]),
-            role=str(state["role"]),
-            request_path=Path(state["requestPath"]),
-            request=request,
-            result_path=Path(state["resultPath"]),
-            run_id=str(state["runId"]),
-            receipt_path=(Path(state["receiptPath"]) if state.get("receiptPath") else None),
-            receipt_schema_path=(
-                Path(state["receiptSchemaPath"]) if state.get("receiptSchemaPath") else None
-            ),
-            capability_binding_path=(
-                Path(state["capabilityBindingPath"])
-                if state.get("capabilityBindingPath") else None
-            ),
-            human_approval_policy=str(state.get("humanApprovalPolicy", "required")),
-            inline_response=inline_result(state),
-            task_mode=state.get("taskMode", state.get("executionOptions", {}).get("taskMode", "work-verification")),
-        )
-    except ContractError as error:
-        raise AttemptFailure(error.code, error.message, False) from error
-    except (OSError, UnicodeError) as error:
-        raise AttemptFailure("prompt_invalid", "Managed prompt could not be prepared", False) from error
-    execution = state.get("executionOptions", {})
-    session = dict(session)
-    working_directory = worktrees.checked_path({"projectRoot": str(project_root), **session})
-    if state.get("workingDirectory", str(working_directory)) != str(working_directory):
-        raise AttemptFailure("worktree_binding_changed", "Run working directory no longer matches its conversation", False)
-    session["workingDirectory"] = str(working_directory)
-    if session.get("worktree"):
-        from prompt_delivery import PromptParts
-        location_guidance = ("\nConversation working directory: " + str(working_directory)
-            + ". Perform source edits, commands and tests in this directory. Original workspace: "
-            + str(project_root) + ". This explicit conversation worktree overrides the default shared-checkout rule. "
-            + "Use the original workspace only as --project-root for Agent Factory runtime identity; "
-            + "child Agents inherit this working directory. Do not edit the original checkout while isolated.\n")
-        prompt_parts = PromptParts(prompt_parts.fixed + location_guidance, prompt_parts.dynamic)
-    try:
-        if "executionPolicy" not in session:
-            raise ValueError("Legacy queued run lacks a verified permission snapshot; resubmit with current parent or explicit policy")
-        stored_policy = execution_policy.session_policy(session)
-        policy = execution_policy.normalize(state["executionPolicy"]) if "executionPolicy" in state else stored_policy
-        if policy != stored_policy:
-            raise ValueError("Run and session execution policies differ")
-    except ValueError as error:
-        raise AttemptFailure("execution_policy_mismatch", str(error), False) from error
-    session["executionPolicy"] = policy
-    for key in ("model", "reasoningEffort", "fast", "goalMode"):
-        if key in execution:
-            session[key] = execution[key]
-    try:
-        checked = adapters.for_session(session).check(session, policy, working_directory, state_path.parent, Path(state["requestPath"]))
-    except Exception as error:
-        checked = {"passed": False, "error": str(error)}
-    if not isinstance(checked, dict):
-        checked = {"passed": False, "error": "Invalid execution preflight response"}
-    state["executionPolicy"] = policy
-    state["executionPreflight"] = checked
-    update_json(state_path, state_path.parent / ".state.lock", lambda value: value.update({"executionPreflight": checked, "executionPolicy": policy}))
-    if checked.get("passed") is not True:
-        raise AttemptFailure("execution_preflight_failed", str(checked.get("error") or checked.get("diagnostic") or "Execution policy preflight failed"), False)
-    provider_adapter = adapters.for_session(session)
-    provider_adapter.prepare(session, state, request)
-    existing_session = session.get("sessionId")
-    native_prompt = provider_adapter.uses_prompt_parts(session)
-    prompt = prompt_parts.encode() if native_prompt else prompt_parts.full
-    command = adapters.for_session(session).build_command(session, state, existing_session, prompt_parts=native_prompt)
-    stderr_path = state_path.parent / "stderr.log"
-    reject_symlink(stderr_path)
-    update_json(
-        state_path,
-        state_path.parent / ".state.lock",
-        lambda value: value.update(
-            {"status": "starting", "attempt": attempt, "startDisposition": "launching"}
-        ),
-    )
-    try:
-        process, codex_identity, release_fd = spawn_contained_process(
-            command,
-            env={**os.environ, "AGENT_FACTORY_EXECUTION_POLICY": json.dumps(policy, sort_keys=True),
-                 "AGENT_FACTORY_PARENT_STATE": str(state_path)},
-            cwd=working_directory,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="strict",
-            shell=False,
-        )
-    except ContractError as error:
-        raise AttemptFailure(error.code, error.message, False) from error
-    except OSError as error:
-        raise AttemptFailure(
-            "codex_start_failed", "codex exec could not start", False
-        ) from error
-    def stop_attempt():
-        provider_adapter.before_stop(state_path, session)
-        terminate_attempt_group(process, codex_identity)
-
-    release_attempted = False
-    try:
-        update_json(
-            state_path,
-            state_path.parent / ".state.lock",
-            lambda value: value.update(
-                {
-                    "status": "starting",
-                    "attempt": attempt,
-                    "codexPid": process.pid,
-                    "codexIdentity": codex_identity,
-                    "lastCodexIdentity": codex_identity,
-                }
-            ),
-        )
-        heartbeat.update(
-            status="starting",
-            attempt=attempt,
-            codex_pid=process.pid,
-            codex_identity=codex_identity,
-        )
-        release_attempted = True
-        release_contained_process(process, codex_identity, release_fd)
-    except (ContractError, OSError) as error:
-        abort_contained_process(
-            process,
-            codex_identity,
-            None if release_attempted else release_fd,
-        )
-        code = error.code if isinstance(error, ContractError) else "codex_start_failed"
-        message = (
-            error.message
-            if isinstance(error, ContractError)
-            else "codex exec could not start"
-        )
-        raise AttemptFailure(code, message, False, False) from error
-    if process.stdin is None or process.stdout is None or process.stderr is None:
-        stop_attempt()
-        raise AttemptFailure(
-            "codex_start_failed", "codex exec pipes are unavailable", False, True
-        )
-    try:
-        process.stdin.write(prompt)
-        process.stdin.close()
-    except (BrokenPipeError, OSError, UnicodeError) as error:
-        stop_attempt()
-        raise AttemptFailure(
-            "codex_write_failed", "codex exec rejected the prompt", False, True
-        ) from error
-    lines: queue.Queue[tuple[str, str | None]] = queue.Queue(maxsize=64)
-    readers_stopped = threading.Event()
-    threading.Thread(
-        target=read_process_lines, args=(process.stdout, lines, readers_stopped), daemon=True
-    ).start()
-    threading.Thread(
-        target=stream_stderr, args=(process.stderr, stderr_path, lines, readers_stopped), daemon=True
-    ).start()
-    started = False
-    active_session: str | None = None
-    final_messages: list[str] = []
-    publication_failed = False
-    started_at = time.monotonic()
-    # Legacy session timeout fields must not terminate valid ongoing work.
-    start_deadline = float("inf")
-    turn_deadline = float("inf")
-    stdout_eof = False
-    stderr_eof = False
-    control_reader = runtime_storage.ChangedJsonReader(state_path, safe_read_json)
-    event_writer = EventLogWriter(Path(state["eventsPath"]))
-    usage = UsageAccumulator()
-    update_json(state_path, state_path.parent / ".state.lock",
-                lambda value: record_attempt(value, attempt, usage.snapshot()))
-    try:
-        while True:
-            if cancel_requested(state_path, cancel_event, control_reader):
-                stop_attempt()
-                raise AttemptFailure("cancelled", "run was cancelled", started, True)
-            current = time.monotonic()
-            if not started and current >= start_deadline:
-                stop_attempt()
-                raise AttemptFailure(
-                    "start_timeout", "codex exec sent no start ACK", False, True
-                )
-            if current >= turn_deadline:
-                stop_attempt()
-                raise AttemptFailure(
-                    "turn_timeout", "codex exec exceeded its turn timeout", started, True
-                )
-            try:
-                kind, line = lines.get(timeout=0.5)
-            except queue.Empty:
-                continue
-            if kind == "error":
-                stop_attempt()
-                raise AttemptFailure(
-                    "event_read_failed", "codex event stream failed", started, True
-                )
-            if kind == "stderr_error":
-                stop_attempt()
-                raise AttemptFailure(
-                    "stderr_log_failed", "Codex stderr log could not be persisted", started, True
-                )
-            if kind == "stderr_overflow":
-                stop_attempt()
-                raise AttemptFailure(
-                    "stderr_log_limit_exceeded",
-                    "Codex stderr exceeded the per-run byte limit",
-                    started,
-                    True,
-                )
-            if kind == "stdout_eof":
-                stdout_eof = True
-                if stderr_eof:
-                    break
-                continue
-            if kind == "stderr_eof":
-                stderr_eof = True
-                if stdout_eof:
-                    break
-                continue
-            if line is None or (MAX_EVENT_BYTES is not None and len(line.encode()) > MAX_EVENT_BYTES):
-                stop_attempt()
-                raise AttemptFailure(
-                    "event_invalid", "codex emitted an invalid event", started, True
-                )
-            if not event_writer.append(line):
-                stop_attempt()
-                raise AttemptFailure(
-                    "event_log_limit_exceeded",
-                    "Codex events exceeded the per-run byte limit",
-                    started,
-                    True,
-                )
-            try:
-                event = json.loads(line)
-            except json.JSONDecodeError as error:
-                stop_attempt()
-                raise AttemptFailure(
-                    "event_invalid", "codex emitted malformed JSONL", started, True
-                ) from error
-            if not isinstance(event, dict):
-                stop_attempt()
-                raise AttemptFailure(
-                    "event_invalid", "codex emitted an invalid event", started, True
-                )
-            capture_lesson(project_root, state, event, attempt)
-            if event.get("type") == "error" and provider_adapter.fatal_error_events(session):
-                stop_attempt()
-                message = str(event.get("message", "Native Codex error"))
-                diagnostic = sandbox_diagnostics.sandbox_failure(message)
-                raise AttemptFailure("sandbox_unavailable" if diagnostic else "native_backend_error", diagnostic or message, started, True)
-            if usage.observe(event):
-                update_json(state_path, state_path.parent / ".state.lock",
-                            lambda value: record_attempt(value, attempt, usage.snapshot()))
-            if (event.get("type") == "provider.context" and type(event.get("usedTokens")) is int
-                    and type(event.get("contextWindowTokens")) is int):
-                context_usage = {"usedTokens": event["usedTokens"], "contextWindowTokens": event["contextWindowTokens"]}
-                update_json(state_path, state_path.parent / ".state.lock",
-                            lambda value: value.update({"contextUsage": context_usage}))
-            if event.get("type") == "goal.error":
-                record_goal_uncertainty(state_path, str(event.get("message", "Native Goal state unconfirmed")))
-            if event.get("type") == "thread.started":
-                observed = event.get("thread_id")
-                if not isinstance(observed, str) or not SESSION_ID.fullmatch(observed):
-                    stop_attempt()
-                    raise AttemptFailure(
-                        "session_invalid", "codex returned an invalid session", started, True
-                    )
-                if existing_session is not None and observed != existing_session:
-                    stop_attempt()
-                    raise AttemptFailure(
-                        "session_mismatch", "codex resumed a different session", started, True
-                    )
-                active_session = observed
-                started = True
-                heartbeat.update(
-                    status="running",
-                    attempt=attempt,
-                    codex_pid=process.pid,
-                    codex_identity=codex_identity,
-                )
-                update_json(
-                    state_path,
-                    state_path.parent / ".state.lock",
-                    lambda value: value.update(
-                        {
-                            "status": "running", "sessionId": observed,
-                            "startedAt": now(), "startDisposition": "started",
-                        }
-                    ),
-                )
-                session_path = session_file(project_root, str(state["agentId"]))
-                saved = {key: session[key] for key in ("model", "reasoningEffort", "fast", "goalMode") if key in session}
-                saved.update(adapters.for_session(session).persisted_fields(session))
-                saved["sessionId"] = observed
-                update_json(session_path, session_path.parent / ".session-state.lock", lambda value: value.update(saved))
-            publication_status = result_publication_failure(event, state["resultPath"])
-            if publication_status is not None:
-                publication_failed = publication_status
-            item = event.get("item") if event.get("type") == "item.completed" else None
-            if isinstance(item, dict) and item.get("type") in (None, "agent_message"):
-                text = item.get("text")
-                if isinstance(text, str):
-                    final_messages.append(text)
-        return_code = process.wait(timeout=10)
-    except subprocess.TimeoutExpired as error:
-        stop_attempt()
-        raise AttemptFailure(
-            "codex_exit_timeout", "codex exec did not exit", started, True
-        ) from error
-    finally:
-        readers_stopped.set()
-        event_writer.close()
-    # The leader may exit while descendants keep its isolated process group.
-    # Contain that group before validating or returning any post-exit outcome.
-    stop_attempt()
-    if return_code != 0:
-        raise process_exit_failure(return_code, stderr_path, started)
-    if not started or active_session is None:
-        raise AttemptFailure(
-            "start_ack_missing", "codex exec returned no start ACK", False, True
-        )
-    if not final_messages:
-        raise AttemptFailure("result_missing", "codex exec returned no terminal result", True)
-    try:
-        terminal = json.loads(final_messages[-1])
-    except json.JSONDecodeError as error:
-        raise AttemptFailure("result_invalid", "codex returned invalid terminal JSON", True) from error
-    if isinstance(terminal, dict) and terminal.get("status") == "failed":
-        capture_lesson(project_root, state, {"type": "runtime.failure", "code": "agent_reported_failure"}, attempt)
-    try:
-        lesson_capture.replay(project_root, state)
-    except (OSError, ValueError, subprocess.SubprocessError):
-        pass  # Durable pending inputs remain visible to the completion audit.
-    saved_state = safe_read_json(Path(state["statePath"]))
-    if lesson_capture.audit(state) or any(not entry.get("saved") and not entry.get("pending") for entry in saved_state.get("lessonRecording", [])):
-        raise AttemptFailure("lesson_recording_incomplete", "Error records remain pending in the run lesson-capture directory", True)
-    try:
-        publish_terminal_result(terminal, state)
-        update_json(Path(state["statePath"]), Path(state["statePath"]).parent / ".state.lock",
-                    lambda value: value.update({"decisionKind": terminal.get("decisionKind")}))
-    except ContractError as error:
-        raise AttemptFailure(error.code, error.message, True) from error
-    except OSError as error:
-        raise AttemptFailure("result_file_write_failed", "Runtime could not persist the terminal response", True) from error
-    result_path = Path(state["resultPath"])
-    try:
-        result_info = os.lstat(result_path)
-    except FileNotFoundError as error:
-        raise missing_result_failure(stderr_path, publication_failed) from error
-    if (
-        stat.S_ISLNK(result_info.st_mode)
-        or not stat.S_ISREG(result_info.st_mode)
-        or result_info.st_size == 0
-    ):
-        raise AttemptFailure("result_file_invalid", "Agent result path is unsafe", True)
-    validated_receipt = None
-    if terminal["status"] == "completed" and state.get("role") in {"work", "verification"}:
-        try:
-            validated_receipt = validate_receipt(
-                project_root, state, agent_id=expected_agent_id, run_id=expected_run_id)
-        except ContractError as error:
-            raise AttemptFailure(error.code, error.message, True) from error
-    return str(terminal["status"]), active_session
-
-
-def capture_lesson(project_root, state, event, attempt):
-    try:
-        result = lesson_capture.observe(project_root, state, event, attempt)
-    except (OSError, ValueError, subprocess.SubprocessError) as error:
-        result = {"saved": False, "error": type(error).__name__}
-        pending = lesson_capture.audit(state)
-        if pending:
-            result["pending"] = pending[0]
-    if result is not None and not result.get("saved"):
-        state_path = Path(state["statePath"])
-        update_json(state_path, state_path.parent / ".state.lock",
-                    lambda value: value.setdefault("lessonRecording", []).append(result))
-    return result
-
-
-def mark_terminal(
-    state_path: Path,
-    status: str,
-    error: dict[str, str] | None = None,
-    *,
-    attempt: int | None = None,
-    start_disposition: str | None = None,
-) -> None:
-    def change(value: dict[str, Any]) -> None:
-        value.update(
-            {
-                "status": status,
-                "codexPid": None,
-                "codexIdentity": None,
-                "finishedAt": now(),
-                "unread": True,
-                "error": error,
-            }
-        )
-        if attempt is not None:
-            value["attempt"] = attempt
-        if start_disposition is not None:
-            value["startDisposition"] = start_disposition
-
-    update_json(state_path, state_path.parent / ".state.lock", change)
-
-
-def worker(args: argparse.Namespace) -> int:
-    project_root = resolve_project_root(args.project_root)
-    state_path = state_file(project_root, args.agent, args.run_id)
-    state = find_run(project_root, args.agent, args.run_id)
-    worker_identity = process_identity(os.getpid())
-    update_json(
-        state_path,
-        state_path.parent / ".state.lock",
-        lambda value: value.update(
-            {"workerPid": os.getpid(), "workerIdentity": worker_identity}
-        ),
-    )
-    session = load_session(project_root, args.agent)
-    heartbeat = Heartbeat(
-        Path(state["heartbeatPath"]), state_path, float(session["heartbeatInterval"])
-    )
-    cancel_event = threading.Event()
-
-    def request_cancel(_signum: int, _frame: object) -> None:
-        cancel_event.set()
-
-    signal.signal(signal.SIGTERM, request_cancel)
-    signal.signal(signal.SIGINT, request_cancel)
-    heartbeat.start()
-    lock_path = agent_directory(project_root, args.agent) / ".session.lock"
-    try:
-        with file_lock(lock_path):
-            state = safe_read_json(state_path)
-            if state.get("status") in TERMINAL_STATES:
-                return 0
-            if state.get("cancelRequested") is True:
-                mark_terminal(state_path, "cancelled")
-                heartbeat.update(status="cancelled", attempt=0, codex_pid=None)
-                return 1
-            max_attempts = int(state["maxAttempts"])
-            while int(state.get("attempt", 0)) < max_attempts:
-                attempt = int(state.get("attempt", 0)) + 1
-                try:
-                    attempt_state = safe_read_json(state_path)
-                    terminal_status, _session_id = run_codex_attempt(
-                        project_root=project_root,
-                        session=load_session(project_root, args.agent),
-                        state=attempt_state,
-                        attempt=attempt,
-                        heartbeat=heartbeat,
-                        cancel_event=cancel_event,
-                        expected_agent_id=args.agent,
-                        expected_run_id=args.run_id,
-                    )
-                    mark_terminal(state_path, terminal_status)
-                    heartbeat.update(
-                        status=terminal_status, attempt=attempt, codex_pid=None
-                    )
-                    return 0 if terminal_status != "failed" else 1
-                except AttemptFailure as failure:
-                    if failure.code not in {"cancelled", "lesson_recording_incomplete"}:
-                        capture_lesson(project_root, state, {"type": "runtime.failure", "code": failure.code}, attempt)
-                    disposition = (
-                        "started"
-                        if failure.started
-                        else "launching"
-                        if failure.launched
-                        else "not-started"
-                    )
-                    if failure.code == "cancelled":
-                        mark_terminal(
-                            state_path,
-                            "cancelled",
-                            attempt=attempt,
-                            start_disposition=disposition,
-                        )
-                        heartbeat.update(status="cancelled", attempt=attempt, codex_pid=None)
-                        return 1
-                    if failure.started or failure.launched or attempt >= max_attempts or failure.code in {"execution_preflight_failed", "execution_policy_mismatch"}:
-                        mark_terminal(
-                            state_path,
-                            "failed",
-                            {"code": failure.code, "message": failure.message},
-                            attempt=attempt,
-                            start_disposition=disposition,
-                        )
-                        heartbeat.update(
-                            status="failed", attempt=attempt, codex_pid=None
-                        )
-                        return 1
-                    state = update_json(
-                        state_path,
-                        state_path.parent / ".state.lock",
-                        lambda value: value.update(
-                            {
-                                "attempt": attempt,
-                                "codexPid": None,
-                                "codexIdentity": None,
-                                "status": "queued",
-                                "startDisposition": disposition,
-                            }
-                        ),
-                    )
-                    heartbeat.update(status="queued", attempt=attempt, codex_pid=None)
-            failure = AttemptFailure(
-                "attempts_exhausted", "no execution attempt remained", False
-            )
-            mark_terminal(
-                state_path,
-                "failed",
-                {"code": failure.code, "message": failure.message},
-            )
-            heartbeat.update(
-                status="failed", attempt=int(state.get("attempt", 0)), codex_pid=None
-            )
-            return 1
-    except ContractError as error:
-        with contextlib.suppress(Exception):
-            mark_terminal(
-                state_path, "failed", {"code": error.code, "message": error.message}
-            )
-        heartbeat.update(status="failed", attempt=0, codex_pid=None)
-        return 1
-    except (OSError, UnicodeError, ValueError, KeyError, TypeError) as error:
-        with contextlib.suppress(Exception):
-            mark_terminal(
-                state_path,
-                "failed",
-                {"code": "worker_failure", "message": str(error)},
-            )
-        heartbeat.update(status="failed", attempt=0, codex_pid=None)
-        return 1
-    finally:
-        heartbeat.close()
-
-
-def find_run(project_root: Path, agent_id: str, run_id: str) -> dict[str, Any]:
-    path = state_file(project_root, agent_id, run_id)
-    state = safe_read_json(path)
-    if state.get("agentId") != agent_id or state.get("runId") != run_id:
-        raise ContractError("state_invalid", "run identity does not match its managed directory")
-    for field, name in {"statePath": "state.json", "requestPath": "request.md", "resultPath": "result.md",
-                        "eventsPath": "events.jsonl", "heartbeatPath": "heartbeat.json",
-                        "responseSchemaPath": "response.schema.json", "receiptPath": "receipt.json",
-                        "receiptSchemaPath": "receipt.schema.json", "capabilityBindingPath": "capability-bindings.json"}.items():
-        if state.get(field) is not None and state[field] != str(path.parent / name):
-            raise ContractError("state_invalid", "run file path escaped its managed binding")
-    return state
-
-
-def command_status(args: argparse.Namespace) -> int:
-    root = resolve_project_root(args.project_root)
-    dispatch_id = getattr(args, "dispatch_id", None)
-    if dispatch_id is not None:
-        validate_id(dispatch_id, DISPATCH_ID, "dispatch_id")
-        matches = [state for state in iter_run_states(root, args.agent) if state.get("dispatchId") == dispatch_id]
-        if not matches:
-            raise ContractError("dispatch_not_found", "dispatch identifier has no managed run")
-        if len(matches) != 1:
-            raise ContractError("dispatch_id_collision", "dispatch identifier is not unique")
-        state = matches[0]
-    else:
-        state = find_run(root, args.agent, args.run_id)
-    heartbeat_path = Path(state["heartbeatPath"])
-    heartbeat = safe_read_json(heartbeat_path)
-    emit(
-        {
-            "schemaVersion": SCHEMA_VERSION,
-            "kind": "status",
-            "run": public_state(state),
-            "heartbeat": heartbeat,
-        }
-    )
-    return 0
-
-
-def command_result(args: argparse.Namespace) -> int:
-    root = resolve_project_root(args.project_root)
-    state = find_run(root, args.agent, args.run_id)
-    if state.get("status") not in TERMINAL_STATES:
-        raise ContractError("result_not_ready", "run has no terminal result")
-    emit(
-        {
-            "schemaVersion": SCHEMA_VERSION,
-            "kind": "result",
-            "run": public_state(state),
-        }
-    )
-    if args.ack:
-        path = state_file(root, args.agent, args.run_id)
-        update_json(
-            path,
-            path.parent / ".state.lock",
-            lambda value: value.update({"unread": False, "readAt": now()}),
-        )
-    return 0
-
-
-def iter_agent_directories(root: Path) -> Iterator[Path]:
-    if not runtime_paths.resolve(root)["registered"]:
-        return
-    agents = agent_root(root, create=False)
-    if not agents.exists():
-        return
-    reject_symlink(agents)
-    for item in sorted(agents.iterdir(), key=lambda path: path.name):
-        if AGENT_ID.fullmatch(item.name) and item.is_dir() and not item.is_symlink():
-            yield item
-
-
-def command_list(args: argparse.Namespace) -> int:
-    root = resolve_project_root(args.project_root)
-    agents = []
-    for directory in iter_agent_directories(root):
-        with contextlib.suppress(ContractError):
-            agents.append(safe_read_json(directory / "session.json"))
-    emit(
-        {
-            "schemaVersion": SCHEMA_VERSION,
-            "kind": "agent-list",
-            "agents": agents,
-        }
-    )
-    return 0
-
-
-def command_reset_conversation(args: argparse.Namespace) -> int:
-    root = resolve_project_root(args.project_root)
-    validate_id(args.agent, AGENT_ID, "agent_id")
-    directory = agent_directory(root, args.agent)
-    with file_lock(directory / ".dispatch.lock"):
-        session = load_session(root, args.agent)
-        if session.get("role") != "main":
-            raise ContractError("conversation_reset_role_invalid", "Conversation reset is available only for Main Agents")
-        if any(state.get("status") in ACTIVE_STATES for state in iter_run_states(root, args.agent)):
-            raise ContractError("session_busy", "Finish or cancel the active run before clearing the conversation")
-        own_runs = list(iter_run_states(root, args.agent))
-        if own_runs and max(own_runs, key=lambda state: str(state.get("acceptedAt", state.get("runId", "")))).get("status") == "needs-human-decision":
-            raise ContractError("decision_pending", "Resolve the pending Human decision before clearing the conversation")
-        active_children = [
-            state for state in iter_run_states(root)
-            if state.get("parentAgentId") == args.agent and state.get("status") in ACTIVE_STATES
-        ]
-        if active_children:
-            raise ContractError("child_agent_active", "Wait for active child Agents to finish before clearing the conversation")
-        if session.get("goalError"):
-            raise ContractError("goal_state_uncertain", "Refresh or resolve the uncertain Goal state before clearing the conversation")
-        goal = session.get("goal")
-        if isinstance(goal, dict) and goal.get("status") == "active":
-            raise ContractError("goal_active", "Pause or cancel the active Goal before clearing the conversation")
-        boundary = f"conversation-{uuid.uuid4().hex}"
-        started_at = now()
-
-        def reset(value: dict[str, Any]) -> None:
-            value["sessionId"] = None
-            value["conversationId"] = boundary
-            value["conversationStartedAt"] = started_at
-            for key in ("backend", "goal", "goalObservedAt", "goalError"):
-                value.pop(key, None)
-
-        update_json(directory / "session.json", directory / ".session-state.lock", reset)
-    emit({
-        "schemaVersion": SCHEMA_VERSION,
-        "kind": "conversation-reset",
-        "agentId": args.agent,
-        "conversationId": boundary,
-        "startedAt": started_at,
-        "historyRetained": True,
-    })
-    return 0
-
-
-def iter_run_states(root: Path, selected_agent: str | None = None) -> Iterator[dict[str, Any]]:
-    for directory in iter_agent_directories(root):
-        if selected_agent is not None and directory.name != selected_agent:
-            continue
-        runs = directory / "runs"
-        if not runs.exists() or runs.is_symlink():
-            continue
-        for item in sorted(runs.iterdir(), key=lambda path: path.name):
-            if item.is_dir() and not item.is_symlink():
-                with contextlib.suppress(ContractError):
-                    yield safe_read_json(item / "state.json")
-
-
-def command_inbox(args: argparse.Namespace) -> int:
-    root = resolve_project_root(args.project_root)
-    if args.agent is not None:
-        validate_id(args.agent, AGENT_ID, "agent_id")
-    states = [
-        state
-        for state in iter_run_states(root, args.agent)
-        if state.get("status") in TERMINAL_STATES and state.get("unread") is True
-    ]
-    states.sort(key=lambda value: str(value.get("finishedAt", value.get("updatedAt", ""))))
-    emit(
-        {
-            "schemaVersion": SCHEMA_VERSION,
-            "kind": "inbox",
-            "runs": [public_state(state) for state in states],
-        }
-    )
-    if args.ack:
-        for state in states:
-            path = state_file(root, str(state["agentId"]), str(state["runId"]))
-            update_json(
-                path,
-                path.parent / ".state.lock",
-                lambda value: value.update({"unread": False, "readAt": now()}),
-            )
-    return 0
-
-
-def pid_alive(pid: object) -> bool:
-    if not isinstance(pid, int) or pid <= 0:
-        return False
-    if portable.WINDOWS:
-        # os.kill(pid, 0) would terminate the process on Windows.
-        return process_containment.process_group_exists(pid)
-    try:
-        os.kill(pid, 0)
-        return True
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-
-
-def command_cancel(args: argparse.Namespace) -> int:
-    root = resolve_project_root(args.project_root)
-    path = state_file(root, args.agent, args.run_id)
-    state = safe_read_json(path)
-    if state.get("status") in TERMINAL_STATES:
-        raise ContractError("run_terminal", "run is already terminal")
-    state = update_json(
-        path,
-        path.parent / ".state.lock",
-        lambda value: value.update({"cancelRequested": True, "status": "cancelling"}),
-    )
-    adapters.for_session(state).before_stop(path, state, cancel=True)
-    containment_value = state.get("containment")
-    if containment_value is None:
-        validate_state_containment_fields(state)
-        identities = (
-            ("Codex", state.get("codexIdentity")),
-            ("worker", state.get("workerIdentity")),
-        )
-        statuses = [(label, identity, process_identity_status(identity)) for label, identity in identities if identity is not None]
-        if any(status in {"unknown", "mismatch"} for _label, _identity, status in statuses):
-            raise ContractError(
-                "process_identity_mismatch",
-                "managed process identity could not be verified; refusing to signal",
-            )
-        if "containmentAttempt" in state and statuses:
-            raise ContractError(
-                "containment_identity_unbound",
-                "managed processes exist without a bound containment identity; refusing to signal",
-            )
-        # Migration compatibility for runs accepted before containment binding existed.
-        codex_identity = state.get("codexIdentity")
-        if isinstance(codex_identity, dict) and process_identity_status(codex_identity) in {"match", "dead"}:
-            terminate_verified_group(codex_identity)
-        worker_identity = state.get("workerIdentity")
-        if isinstance(worker_identity, dict) and process_identity_status(worker_identity) == "match":
-            with contextlib.suppress(ProcessLookupError):
-                os.kill(int(worker_identity["pid"]), signal.SIGTERM)
-    else:
-        containment = _validate_state_containment(state)
-        if containment["kind"] in {"process-group", "windows-job"}:
-            codex_identity = state.get("codexIdentity")
-            if codex_identity is not None and process_identity_status(codex_identity) in {"unknown", "mismatch"}:
-                raise ContractError(
-                    "process_identity_mismatch",
-                    "managed Codex identity could not be verified; refusing to signal",
-                )
-            if isinstance(codex_identity, dict):
-                terminate_verified_group(codex_identity)
-        request_containment_stop(containment)
-        if not wait_containment_empty(containment, PROCESS_TERM_TIMEOUT):
-            force_containment_stop(containment)
-        if not wait_containment_empty(containment, PROCESS_KILL_TIMEOUT):
-            raise ContractError("containment_not_empty", "managed containment did not become empty")
-    emit(
-        {
-            "schemaVersion": SCHEMA_VERSION,
-            "kind": "ack",
-            "status": "cancelling",
-            "agentId": args.agent,
-            "runId": args.run_id,
-        }
-    )
-    return 0
-
-
-def heartbeat_stale(state: dict[str, Any], session: dict[str, Any]) -> bool:
-    try:
-        heartbeat = safe_read_json(Path(state["heartbeatPath"]))
-    except ContractError:
-        return True
-    observed = parse_time(heartbeat.get("observedAt"))
-    return observed is None or time.time() - observed > float(session["heartbeatTimeout"])
-
-
-def event_stream_has_start_marker(state: dict[str, Any]) -> bool:
-    try:
-        content = safe_read_bytes(Path(state["eventsPath"]), MAX_REQUEST_BYTES)
-    except ContractError as error:
-        if error.code == "file_not_found":
-            return False
-        return True
-    try:
-        lines = content.decode("utf-8", "strict").splitlines()
-    except UnicodeDecodeError:
-        return True
-    for line in lines:
-        try:
-            event = json.loads(line)
-        except json.JSONDecodeError:
-            return True
-        if isinstance(event, dict) and event.get("type") == "thread.started":
-            return True
-    return False
-
-
-def durably_never_started(state: dict[str, Any]) -> bool:
-    return (
-        state.get("startDisposition") == "not-started"
-        and state.get("containmentLaunchDisposition") != "launching"
-        and state.get("status") in {"accepted", "queued"}
-        and state.get("startedAt") is None
-        and state.get("sessionId") is None
-        and not event_stream_has_start_marker(state)
-    )
-
-
-def command_reconcile(args: argparse.Namespace) -> int:
-    root = resolve_project_root(args.project_root)
-    if args.agent is not None:
-        validate_id(args.agent, AGENT_ID, "agent_id")
-    reconciled: list[dict[str, Any]] = []
-    for state in iter_run_states(root, args.agent):
-        if state.get("status") not in ACTIVE_STATES:
-            continue
-        agent_id = str(state["agentId"])
-        session = load_session(root, agent_id)
-        if not heartbeat_stale(state, session):
-            continue
-        containment_value = state.get("containment")
-        if containment_value is not None:
-            try:
-                containment = _validate_state_containment(state)
-                if not containment_is_empty(containment):
-                    reconciled.append(
-                        {"agentId": agent_id, "runId": state["runId"], "action": "stale-alive"}
-                    )
-                    continue
-            except ContractError:
-                reconciled.append(
-                    {"agentId": agent_id, "runId": state["runId"], "action": "stale-containment-unknown"}
-                )
-                continue
-            # A positively empty bound containment is evaluated below against
-            # semantic start evidence; it is never inferred from a numeric PID.
-            identity_statuses: list[str] = ["dead"]
-        else:
-            try:
-                validate_state_containment_fields(state)
-            except ContractError:
-                reconciled.append(
-                    {"agentId": agent_id, "runId": state["runId"], "action": "stale-containment-unknown"}
-                )
-                continue
-            if "containmentAttempt" in state and (
-                state.get("workerIdentity") is not None or state.get("codexIdentity") is not None
-            ):
-                reconciled.append(
-                    {"agentId": agent_id, "runId": state["runId"], "action": "stale-containment-unknown"}
-                )
-                continue
-            # Legacy states retain their exact boot-ID/start-ticks behavior.
-            identity_statuses = [
-                process_identity_status(identity)
-                for identity in (state.get("workerIdentity"), state.get("codexIdentity"))
-                if identity is not None
-            ]
-        if any(status == "match" for status in identity_statuses):
-            reconciled.append(
-                {"agentId": agent_id, "runId": state["runId"], "action": "stale-alive"}
-            )
-            continue
-        if not identity_statuses or any(status == "unknown" for status in identity_statuses):
-            reconciled.append(
-                {
-                    "agentId": agent_id,
-                    "runId": state["runId"],
-                    "action": "stale-identity-unknown",
-                }
-            )
-            continue
-        if not durably_never_started(state):
-            path = state_file(root, agent_id, str(state["runId"]))
-            started = (
-                state.get("startDisposition") == "started"
-                or state.get("startedAt") is not None
-                or state.get("sessionId") is not None
-                or event_stream_has_start_marker(state)
-            )
-            code = "started_run_not_replayable" if started else "run_start_unknown"
-            mark_terminal(
-                path,
-                "failed",
-                {
-                    "code": code,
-                    "message": "stale managed run cannot be replayed without durable proof that its semantic turn never started",
-                },
-            )
-            reconciled.append(
-                {"agentId": agent_id, "runId": state["runId"], "action": "failed-not-replayable"}
-            )
-            continue
-        if int(state.get("attempt", 0)) >= int(state.get("maxAttempts", 1)):
-            path = state_file(root, agent_id, str(state["runId"]))
-            mark_terminal(
-                path,
-                "failed",
-                {"code": "heartbeat_timeout", "message": "worker heartbeat expired"},
-            )
-            reconciled.append(
-                {"agentId": agent_id, "runId": state["runId"], "action": "failed"}
-            )
-            continue
-        pid = spawn_worker(root, agent_id, str(state["runId"]))
-        reconciled.append(
-            {
-                "agentId": agent_id,
-                "runId": state["runId"],
-                "action": "resubmitted",
-                "workerPid": pid,
-            }
-        )
-    emit(
-        {
-            "schemaVersion": SCHEMA_VERSION,
-            "kind": "reconcile",
-            "runs": reconciled,
-        }
-    )
-    return 0
-
-
-def resolve_execution_policy(args: argparse.Namespace, project_root: Path, session: dict[str, Any] | None = None) -> dict[str, Any]:
-    try:
-        if session is not None and session.get("role") in ("work", "verification") and os.environ.get("AGENT_FACTORY_PARENT_STATE"):
-            parent_state = safe_read_json(Path(os.environ["AGENT_FACTORY_PARENT_STATE"]))
-            session = worktrees.inherit(session, {"projectRoot": str(project_root), **load_session(project_root, parent_state["agentId"])})
-        stored = execution_policy.session_policy(session) if session is not None and "executionPolicy" in session else None
-        policy_args = argparse.Namespace(**vars(args))
-        policy_args.provider = adapters.provider_for(getattr(args, "model", None), getattr(args, "provider", None), session)
-        if session is not None:
-            policy_args.execution_working_directory = str(worktrees.checked_path({"projectRoot": str(project_root), **session}))
-        elif getattr(args, "role", None) in ("work", "verification") and os.environ.get("AGENT_FACTORY_PARENT_STATE"):
-            parent_state = safe_read_json(Path(os.environ["AGENT_FACTORY_PARENT_STATE"]))
-            policy_args.execution_working_directory = parent_state.get("workingDirectory", str(project_root))
-        if session is not None:
-            policy_args.role = session.get("role")
-        if session is not None and session.get("codex"):
-            policy_args.codex = session["codex"]
-        policy = execution_policy.resolve(policy_args, project_root, fallback_policy=stored, allow_session_change=session is not None)
-        if stored is not None and policy != stored and not execution_policy.has_explicit_policy(args):
-            raise ContractError("execution_policy_mismatch", "Changing an idle session policy requires a complete explicit policy")
-        if session is not None and stored is None and session.get("sandbox") != policy["sandboxPolicy"]["type"] and not execution_policy.has_explicit_policy(args):
-            raise ContractError("execution_policy_mismatch", "Legacy session sandbox differs from current authorized policy")
-        return policy
-    except (ValueError, OSError) as error:
-        raise ContractError("execution_policy_invalid", str(error)) from error
-
-
-def resolve_human_approval_policy(args: argparse.Namespace, session: dict[str, Any] | None = None) -> str:
-    requested = getattr(args, "human_approval_policy", None)
-    locator = os.environ.get(execution_policy.PARENT_STATE_ENV)
-    role = session.get("role") if session is not None else getattr(args, "role", None)
-    if locator and role in ("work", "verification"):
-        parent = safe_read_json(Path(locator))
-        snapshot = json.loads(os.environ.get(execution_policy.SNAPSHOT_ENV, "null"))
-        execution_policy._managed_parent(snapshot, parent.get("runtimeBinding", {}).get("projectRoot"))
-        mode = parent.get("executionOptions", {}).get("agentPermissions", {}).get(role)
-        if mode is not None and mode != "cli-default":
-            expected = "bypass" if mode == "bypass" else "required"
-            if requested is not None and requested != expected:
-                raise ContractError("execution_policy_mismatch", "Human approval policy differs from captured role permissions")
-            requested = expected
-    stored = session.get("humanApprovalPolicy", "required") if session is not None else "required"
-    if stored not in HUMAN_APPROVAL_POLICIES:
-        raise ContractError("human_approval_policy_invalid", "Stored Human approval policy is invalid")
-    return requested if requested is not None else stored
-
-
-def requested_execution(args: argparse.Namespace) -> dict[str, Any]:
-    options = {}
-    if getattr(args, "provider", None) is not None:
-        options["provider"] = args.provider
-    for argument, key in (("task_mode", "taskMode"), ("model", "model"), ("reasoning_effort", "reasoningEffort"), ("fast", "fast"), ("goal_mode", "goalMode"), ("goal_objective", "goalObjective")):
-        value = getattr(args, argument, None)
-        if value is not None:
-            options[key] = value
-    captured = getattr(args, "agent_permissions", None)
-    if captured is not None:
-        try:
-            roles = json.loads(captured)
-            if not isinstance(roles, dict) or any(role not in ("main", "work", "verification") or mode not in ("cli-default", "workspace-write", "danger-full-access", "bypass") for role, mode in roles.items()):
-                raise ValueError("Invalid role permissions")
-            # A child cannot mint new permission authority for its descendants.
-            if os.environ.get(execution_policy.PARENT_STATE_ENV):
-                raise ValueError("Role permission authority must originate at the Human-facing host")
-        except (ValueError, TypeError) as error:
-            raise ContractError("agent_permissions_invalid", str(error)) from error
-        options["agentPermissions"] = roles
-    objective = options.get("goalObjective")
-    if objective is not None:
-        if not isinstance(objective, str) or not objective.strip():
-            raise ContractError("goal_objective_invalid", "Goal objective must be nonempty")
-        if options.get("goalMode") is False:
-            raise ContractError("goal_objective_invalid", "An objective cannot be combined with --no-goal-mode")
-        options["goalMode"] = True
-    return options
-
-
-def request_native_pause(path: Path) -> None:
-    """Compatibility delegate for native Goal consumers."""
-    from adapters.codex import control
-    return control.request_native_pause(path)
-
-
-def record_goal_uncertainty(path: Path, message: str) -> None:
-    """Compatibility delegate for native Goal consumers."""
-    from adapters.codex import control
-    return control.record_goal_uncertainty(path, message)
-
-
-def wait_native_pause(path: Path) -> None:
-    """Compatibility delegate for native Goal consumers."""
-    from adapters.codex import control
-    return control.wait_native_pause(path)
-
-
-def command_goal(args: argparse.Namespace) -> int:
-    from adapters.contracts import GoalServices
-    root = resolve_project_root(args.project_root)
-    session = load_session(root, args.agent)
-    services = GoalServices(emit, agent_directory, file_lock, iter_run_states, update_json,
-                            parse_args, submit, frozenset(ACTIVE_STATES), SCHEMA_VERSION)
-    return adapters.for_session(session).goal_command(services, args, root, session)
-
-
 def __getattr__(name):
     # Lazy compatibility exports for existing Python integrations. Execution
     # itself accesses providers only through adapters.
     import importlib
     legacy = {"native_codex": "adapters.codex.transport",
               "execution_preflight": "adapters.codex.preflight",
-              "runtime_permissions": "adapters.codex.permissions"}
+              "runtime_permissions": "adapters.codex.policy"}
     if name in legacy:
         return importlib.import_module(legacy[name])
     raise AttributeError(name)
@@ -2143,6 +654,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             provider = adapters.provider_for(args.model, args.provider, {**session, "sessionId": None} if session else None)
             executable = adapters.adapter(provider).executable(args, session)
             capabilities = dict(adapters.adapter(provider).inspect_capabilities(executable))
+            if session is not None and session.get("sessionId"):
+                # A started conversation keeps its provider; hosts can mark models on other providers.
+                capabilities["send"] = {**capabilities["send"], "sessionProvider": session.get("provider", "codex")}
             if session is not None and "executionPolicy" in session:
                 capabilities["executionMode"] = (
                     "bypass"
@@ -2156,7 +670,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "goal":
             return command_goal(args)
         if args.command == "announce-tasks":
-            import task_announcement
+            from tasks import announcement as task_announcement
             emit(task_announcement.prepare(sys.modules[__name__], args))
             return 0
         if args.command == "submit":

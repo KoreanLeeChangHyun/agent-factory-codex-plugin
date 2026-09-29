@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synchronize .codex/skills from the authoritative docs/skills source."""
+"""Synchronize .codex/skills and .claude/skills from the authoritative docs/skills source."""
 
 import argparse
 from contextlib import contextmanager
@@ -173,17 +173,36 @@ def backup_reconciliation(root, state_dir, target, actual, packages):
     return backup
 
 
-def sync(root, *, reconcile=False):
+# Agent hosts that load project Skills; each keeps its own owned output and sync state.
+HOSTS = ("codex", "claude")
+
+
+def sync(root, *, reconcile=False, hosts=HOSTS):
+    """Synchronize every host; a conflict in one host does not block the others."""
+    changes, errors = [], []
+    for host in hosts:
+        try:
+            changes += sync_host(root, host, reconcile=reconcile)
+        except ValueError as error:
+            errors.append(f"{host}: {error}")
+    if errors:
+        raise ValueError(" | ".join(errors))
+    return changes
+
+
+def sync_host(root, host, *, reconcile=False):
+    if host not in HOSTS:
+        raise ValueError(f"Unknown host: {host}")
     root = root.resolve(strict=True)
     source = root / "docs/skills"
-    target = root / ".codex/skills"
+    target = root / f".{host}/skills"
     check_path(source, root)
     if not source.exists():
         return []
     check_path(target, root)
     if target.exists() and not target.is_dir():
         raise ValueError(f"Expected directory: {target}")
-    state_dir = root / ".codex/.document-sync"
+    state_dir = root / f".{host}/.document-sync"
     check_path(state_dir, root)
     state_dir.mkdir(parents=True, exist_ok=True)
     with locked(state_dir):
@@ -286,11 +305,14 @@ def sync(root, *, reconcile=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
+    parser.add_argument("--host", choices=[*HOSTS, "all"], default="all",
+                        help="Destination host; default synchronizes every host.")
     parser.add_argument("--reconcile", action="store_true",
                         help="Back up conflicting or interrupted output, then rebuild it from docs/skills.")
     args = parser.parse_args()
     try:
-        operations = sync(args.project_root, reconcile=args.reconcile)
+        hosts = HOSTS if args.host == "all" else (args.host,)
+        operations = sync(args.project_root, reconcile=args.reconcile, hosts=hosts)
         print(json.dumps({"changes": operations}, ensure_ascii=False))
         return 0
     except (OSError, ValueError, TypeError) as error:

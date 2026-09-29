@@ -6,7 +6,7 @@ from . import command
 
 def inspect_capabilities(executable, **kwargs):
     capabilities = dict(native_codex.inspect_capabilities(executable, **kwargs))
-    from task_modes import TASK_MODES
+    from tasks.modes import TASK_MODES
     modes = [mode for mode in TASK_MODES if mode not in ("plan", "plan-work", "plan-work-verification")
              or capabilities.get("submit", {}).get("plan") is True]
     for operation in ("submit", "send"):
@@ -40,7 +40,7 @@ def validate(session, **kwargs):
 
 
 def validate_execution(session, goal_action=None):
-    from runtime_errors import ContractError
+    from storage.errors import ContractError
     required = {"plan": session.get("taskMode") in ("plan", "plan-work", "plan-work-verification"),
                 "fast": session.get("fast") is True and goal_action in (None, "resume", "reopen"),
                 "goal": session.get("goalMode") is True or bool(goal_action)}
@@ -53,17 +53,20 @@ def validate_execution(session, goal_action=None):
 
 def discover_policy(args, working_root, **kwargs):
     # Compatibility entry point also preserves existing policy-discovery mocks.
-    from execution_policy import _configured_policy
+    from execution.policy import _configured_policy
     return _configured_policy(getattr(args, "codex", None) or "codex", working_root, **kwargs)
 
 
 def prepare(session, state, request):
     from pathlib import Path
-    from runtime_storage import atomic_write_json, update_json
+    from storage.files import atomic_write_json, update_json
     execution = state.get("executionOptions", {})
     if (execution.get("taskMode") in ("plan", "plan-work", "plan-work-verification")
             or session.get("backend") == "app-server" or session.get("fast") is True
             or session.get("goalMode") is True or state.get("goalAction")):
+        session["backend"] = "app-server"
+    elif "backend" not in session and inspect_capabilities(str(session["codex"]))["send"].get("instructionDelivery") is True:
+        # Legacy exec sessions move to app-server once it can deliver instructions, so replies stream.
         session["backend"] = "app-server"
     if session.get("backend") != "app-server":
         return
@@ -91,17 +94,8 @@ def fatal_error_events(session):
 
 
 def before_stop(state_path, state, *, cancel=False):
-    if state.get("backend") != "app-server":
-        return
-    from . import control
-    import contextlib
-    try:
-        if not cancel:
-            control.request_native_pause(state_path)
-        control.wait_native_pause(state_path)
-    except Exception:
-        with contextlib.suppress(Exception):
-            control.record_goal_uncertainty(state_path, "Native pause could not be confirmed; refresh Goal before reopening")
+    from .control import before_stop as stop
+    stop(state_path, state, cancel=cancel)
 
 
 def persisted_fields(session):

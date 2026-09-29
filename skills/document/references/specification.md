@@ -58,6 +58,6 @@
 
 - Store the canonical body at `docs/skills/<category>[-<domain>]-<name>/SKILL.md`, with optional `references/` for detailed Markdown and `assets/` for attachments. Follow the shared
   language, heading, metadata and asset rules.
-- Update the canonical source and regenerate `.codex/skills/` or displays from it. Do not
+- Update the canonical source and regenerate `.codex/skills/`, `.claude/skills/` or displays from it. Do not
   require an English translation, paired HTML, counterpart metadata or a two-source
   synchronization transaction. A stale copy gains no competing authority.

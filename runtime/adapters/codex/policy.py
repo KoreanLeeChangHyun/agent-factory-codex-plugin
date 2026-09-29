@@ -2,8 +2,104 @@
 import json
 import subprocess
 from pathlib import Path
-from . import permissions
-from execution_policy import PolicyError, normalize, _path, session_policy, SNAPSHOT_ENV, PARENT_STATE_ENV
+from execution.policy import PolicyError, normalize, _path, session_policy, SNAPSHOT_ENV, PARENT_STATE_ENV
+import hashlib
+import os
+import re
+from execution.policy import _open_regular, _json
+
+
+# Exact-run named permissions; never grant the read-only code root write access.
+def permission_profile(run_directory, *, network=False):
+    directory = Path(run_directory)
+    if not directory.is_absolute() or '..' in directory.parts:
+        raise ValueError('managed permission target must be absolute')
+    name = 'agent_factory_run_' + hashlib.sha256(str(directory).encode()).hexdigest()[:24]
+    policy = {'filesystem': {'/': 'read', str(directory): 'write'}, 'network': {'enabled': network}}
+    return name, policy
+
+
+def permission_config(run_directory, *, network=False):
+    name, policy = permission_profile(run_directory, network=network)
+    return {'default_permissions': name, 'permissions.' + name: policy}
+
+
+def permission_toml(value):
+    if isinstance(value, dict):
+        return '{' + ', '.join(json.dumps(k) + '=' + permission_toml(v) for k, v in value.items()) + '}'
+    return json.dumps(value)
+
+
+def permission_arguments(run_directory, *, network=False):
+    result = []
+    for key, value in permission_config(run_directory, network=network).items():
+        result.extend(['-c', key + '=' + permission_toml(value)])
+    return result
+
+
+# Read the invoking Codex session policy without widening its permissions.
+def _last_context(filename):
+    # Walk backward so long-running session histories need no full-file scan.
+    with _open_regular(filename) as stream:
+        position = stream.seek(0, 2)
+        buffer = b""
+        trailing = False
+        if position:
+            stream.seek(position - 1)
+            trailing = stream.read(1) != b"\n"
+        while position:
+            length = min(position, 65536)
+            position -= length
+            stream.seek(position)
+            buffer = stream.read(length) + buffer
+            lines = buffer.split(b"\n")
+            buffer = lines.pop(0)
+            for line in reversed(lines):
+                partial = trailing
+                trailing = False
+                if not line.strip():
+                    continue
+                try:
+                    event = _json(line)
+                except PolicyError:
+                    if partial:
+                        continue  # Only an unterminated EOF line may be incomplete.
+                    raise
+                if isinstance(event, dict) and event.get("type") == "turn_context":
+                    return event.get("payload")
+            if len(buffer) > 16 * 1024 * 1024:
+                raise PolicyError("policy_unavailable", "rollout event exceeds inspection bound")
+        if buffer.strip():
+            event = _json(buffer)
+            if isinstance(event, dict) and event.get("type") == "turn_context":
+                return event.get("payload")
+    raise PolicyError("policy_unavailable", "parent rollout has no turn_context")
+
+
+def _rollout_policy(thread_id):
+    if not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", thread_id):
+        raise PolicyError("policy_invalid", "invalid CODEX_THREAD_ID")
+    home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
+    files = list((home / "sessions").rglob(f"rollout-*-{thread_id}.jsonl"))
+    if not files:
+        raise PolicyError("policy_unavailable", "parent Codex rollout is unavailable; cannot infer its permissions")
+    filename = max(files, key=lambda item: item.stat().st_mtime_ns)
+    _path(filename)
+    context = _last_context(filename)
+    if not isinstance(context, dict):
+        raise PolicyError("policy_invalid", "parent turn_context is invalid")
+    sandbox = dict(context.get("sandbox_policy") or {})
+    profile = context.get("permission_profile")
+    # Stock disabled enforcement is exactly representable by full access. Named
+    # profiles and richer filesystem rules still require a managed snapshot.
+    disabled_full_access = profile == {"type": "disabled"} and sandbox.get("type") == "danger-full-access"
+    if (profile is not None and not disabled_full_access
+            or any(context.get(key) is not None for key in ("permissions", "file_system_sandbox_policy"))):
+        raise PolicyError("policy_unsupported", "parent uses a permission profile without a canonical managed snapshot")
+    if sandbox.get("type") == "workspace-write":
+        sandbox["writable_roots"] = [*sandbox.get("writable_roots", []), _path(context.get("cwd"))]
+    return normalize({"schemaVersion": 1, "sandboxPolicy": sandbox, "approvalPolicy": context.get("approval_policy")})
+
 
 def _native_selected_policy(rpc, project_root, sandbox, approval):
     params = {"cwd": project_root, "ephemeral": True}
@@ -85,7 +181,7 @@ def config(policy, run_directory):
     mode = sandbox["type"]
     result = {"approval_policy": policy["approvalPolicy"]}
     if mode == "read-only":
-        result.update(permissions.config(directory, network=sandbox["network_access"]))
+        result.update(permission_config(directory, network=sandbox["network_access"]))
     else:
         result["sandbox_mode"] = mode
         if mode == "danger-full-access":
@@ -102,7 +198,7 @@ def config(policy, run_directory):
 def arguments(policy, run_directory):
     result = []
     for key, value in config(policy, run_directory).items():
-        result.extend(["-c", key + "=" + permissions.toml(value)])
+        result.extend(["-c", key + "=" + permission_toml(value)])
     return result
 
 

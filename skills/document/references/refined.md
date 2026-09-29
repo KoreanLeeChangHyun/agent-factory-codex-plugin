@@ -21,7 +21,7 @@
 - A comparison may support a Human decision without acquiring Specification authority.
   Do not require a progression from Original to Refined to Specification (Skill).
 - Refined packages are discovered through the shared
-  [catalog and search contract](../SKILL.md#local-document-catalog-and-search); catalog
+  [catalog and search contract](host-sync.md#local-document-catalog-and-search); catalog
   presence does not activate them as Skills.
 
 <a id="refined-categories"></a>

@@ -1,7 +1,7 @@
 {
   "generatedBy": "distribution/port.py",
   "host": "codex",
-  "version": "1.0.16+codex.20260928040539",
+  "version": "1.0.17+codex.20260929163906",
   "source": "https://github.com/KoreanLeeChangHyun/agent-factory-plugin-source",
-  "sourceCommit": "88d3b9f243e24a5b894c6babef6978b53258b4f7"
+  "sourceCommit": "1a244224e881b04457df9811e0e6ba61ffcfd07d"
 }

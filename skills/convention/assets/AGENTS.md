@@ -36,7 +36,7 @@
 - Keep canonical Refined and Human-requested Specification (Skill document) packages below `docs/refined/`
   and `docs/skills/`, using `<category>[-<domain>]-<name>/SKILL.md` in the Human's language plus optional `assets/`
   under the Documents contract.
-- Optional `.codex/skills/` Specification/Skill exposure derives from that same source, never a
+- Optional `.codex/skills/` and `.claude/skills/` Specification/Skill exposure derives from that same source, never a
   separate editable original.
 - Refined uses `document-type: processed` for compatibility and is not automatically an active Skill or Specification.
 - Route Original packages below `docs/original/`.

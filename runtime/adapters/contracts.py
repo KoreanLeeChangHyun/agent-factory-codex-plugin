@@ -41,3 +41,6 @@ class GoalServices:
     submit: Callable
     active_states: frozenset[str]
     schema_version: str
+    # Stop an active run (agent_id, run_id) without emitting a response; providers without
+    # live Goal controls use it to pause or clear a Goal mid-run.
+    stop_run: Callable | None = None

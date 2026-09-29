@@ -1,6 +1,6 @@
 {
   "name": "agent-factory",
-  "version": "1.0.16+codex.20260928040539",
+  "version": "1.0.17+codex.20260929163906",
   "description": "Agent Factory skills for managed execution, shared conventions, and Document authoring and synchronization.",
   "author": {
     "name": "Agent Factory",
@@ -25,7 +25,7 @@
   "interface": {
     "displayName": "Agent Factory",
     "shortDescription": "Run managed agents with shared project conventions.",
-    "longDescription": "Provides three public Skills: Agent for complete local workflows in direct, work, work-verification, and plan-work-verification modes Convention for shared rules, authority, and core semantics, and Document for authoring, storage, and Codex synchronization. No MCP package, server, account, tenant, connection, or authenticated resource is required.",
+    "longDescription": "Provides four public Skills: Agent for complete local workflows in direct, work, work-verification, and plan-work-verification modes, Convention for shared rules, authority, and core semantics, Document for authoring, storage, and Codex synchronization, and Tool, a catalog of the plugin scripts. No MCP package, server, account, tenant, connection, or authenticated resource is required.",
     "developerName": "Agent Factory",
     "category": "Productivity",
     "websiteURL": "https://github.com/KoreanLeeChangHyun/agent-factory-codex-plugin",

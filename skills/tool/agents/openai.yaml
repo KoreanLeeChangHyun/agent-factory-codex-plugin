@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Factory Tool"
+  short_description: "Find the plugin script for an operation and its owning rules."
+  default_prompt: "Use $tool to find which Agent Factory plugin script performs this operation."

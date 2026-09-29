@@ -11,7 +11,17 @@
 - For work, use the [lesson lifecycle CLI](../../document/references/lessons-learned.md#lifecycle-cli)
   to retrieve scoped lessons before acting, persist errors and Human corrections,
   and audit observed occurrences before handoff. Record actual rule application outcomes.
-
+- **MUST NOT create any new directory the Human has not agreed to** — not in the project root,
+  not beside source, not anywhere in the project. This includes temporary, scratch, output,
+  backup, test and tool directories. Existing directories, paths the task explicitly
+  names and the agreed standard locations (`docs/artifact/`, `docs/progress/`,
+  `docs/lessons-learned/` and the other Document locations) are allowed; anything else
+  requires the Human's explicit agreement first.
+- **MUST use `docs/artifact/` for every generated output** (HTML/SVG previews, screenshots,
+  images, reports, exports and other deliverables): one `docs/artifact/<task-or-topic>/`
+  per task, per Convention's [Artifacts](../../convention/references/artifacts.md). Only a
+  location the Human names overrides it. Keep disposable scratch in the run's storage or the
+  system temp directory and remove it when done.
 - In standalone task mode `verification`, inspect the exact target identified in the request.
   Use the standalone receipt schema bound to this request; never fabricate a Work run ID
   or claim to satisfy a Work loop. If the target is missing, return needs-human-decision.

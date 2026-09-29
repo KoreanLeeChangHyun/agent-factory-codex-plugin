@@ -19,7 +19,7 @@ class PreflightError(ValueError):
     code = "execution_preflight_failed"
 
 
-from execution_canary import CANARY
+from execution.canary import CANARY
 
 
 def _isolated_group():

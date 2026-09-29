@@ -76,8 +76,8 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 - This plugin is fully installable and usable on its own; the VS Code extension is optional.
 - The Agent Factory VS Code extension requires this plugin to be installed and
-  enabled at the identical semantic base version. For example, extension `1.0.16`
-  accepts plugin `1.0.16+codex.<token>`.
+  enabled at the identical semantic base version. For example, extension `1.0.17`
+  accepts plugin `1.0.17+codex.<token>`.
 
 - On activation, the extension checks whether the plugin is installed, enabled, and compatible,
   and attempts automatic installation when needed. An already active, compatible plugin is used without reinstalling.
@@ -91,7 +91,7 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 ## Skills
 
-The plugin exposes three public Skills:
+The plugin exposes four public Skills:
 
 - [Agent](skills/agent/SKILL.md): Dispatches Work and Verification agents and manages
   their sessions, execution progress, and results.
@@ -99,6 +99,7 @@ The plugin exposes three public Skills:
   user decisions, development, testing, research, and interviews.
 - [Document](skills/document/SKILL.md): Guides project document writing, organization,
   storage, and search, and synchronizes project specifications to Codex Skills.
+- [Tool](skills/tool/SKILL.md): Lists the plugin scripts and points to the Skill that owns each one.
 
 ### Agent execution
 
@@ -117,9 +118,12 @@ The plugin exposes three public Skills:
   `claude-opus`, `claude-sonnet` and `claude-haiku`.
 - Every route works with Claude. Plan runs in Claude's plan mode, then the same session executes.
   Execution permissions map to the nearest Claude permission mode; they are not an OS sandbox.
-  See the [execution guide](skills/agent/references/execution-modes.md#execution-providers).
-- This package is installed through Codex. Claude runs are launched by the runtime; it is not a
-  Claude Code plugin.
+  See the [execution guide](skills/agent/references/execution-modes.md#7-execution-providers).
+- The Antigravity CLI (`agy`) can also run agents with Google AI subscription models: `gemini-*`
+  models select it, and its other models are named `antigravity/<id>`. Antigravity runs are
+  text-only. See [Antigravity](skills/agent/references/execution-modes.md#71-antigravity).
+- This package is installed through Codex, and the runtime launches Claude and Antigravity runs.
+  For Claude Code, install the separate [Claude Code distribution](https://github.com/KoreanLeeChangHyun/agent-factory-claude-plugin).
 
 ## Manual installation
 
@@ -145,9 +149,10 @@ The plugin exposes three public Skills:
 ## Document synchronization
 
 - Project specification documents written according to Agent Factory rules in `docs/skills/`
-  are synchronized to `.codex/skills/`, making them available to Codex as project Skills.
+  are synchronized to `.codex/skills/` and `.claude/skills/`, making them available to Codex
+  and Claude Code as project Skills.
 - After writing project specification documents in `docs/skills/`, agents run the
-  [Document Skill synchronization script](skills/document/SKILL.md#continuous-codex-synchronization)
+  [Document Skill synchronization script](skills/document/references/host-sync.md#continuous-codex-synchronization)
   and check the result. They also run it after modifying or deleting these documents.
 - If synchronized documents are edited independently, synchronization reports a conflict
   and stops to preserve those changes.
@@ -162,7 +167,7 @@ The plugin exposes three public Skills:
   MSYS2/Cygwin Python builds are unsupported. macOS and Windows require validation in your actual environment.
 - **Python:** Python 3.10+.
 - **Codex:** Codex CLI must be installed. Required capabilities and environment readiness are checked before execution.
-- See [host readiness](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics)
+- See [host readiness](skills/agent/references/installation.md#host-readiness-and-diagnostics)
   for environment-specific requirements and limitations.
 
 ## Bug reports

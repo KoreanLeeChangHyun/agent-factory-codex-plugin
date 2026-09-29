@@ -18,7 +18,7 @@ from typing import Any, Sequence
 
 sys.dont_write_bytecode = True
 import exec as agent_exec
-import loop_progress
+from tasks import progress as loop_progress
 
 
 SCHEMA_VERSION = "0.1.0"
@@ -141,7 +141,7 @@ class AgentRuntime:
             "--human-approval-policy", human_approval_policy,
         ]
         if execution.get("taskListPath"):
-            import task_binding
+            from tasks import binding as task_binding
             current_binding = task_binding.load(agent_exec.safe_read_json, Path(execution["taskListPath"]), execution["taskBinding"]["taskId"], request_hash)
             if current_binding != execution["taskBinding"]:
                 raise agent_exec.ContractError("task_binding_invalid", "The loop task snapshot changed before dispatch")
@@ -418,7 +418,7 @@ def complete_pending_dispatch(
     if state["execution"].get("taskBinding"):
         expected_tuple["taskBinding"] = state["execution"]["taskBinding"]
     if pending.get("workGoal"):
-        from task_modes import work_goal_options
+        from tasks.modes import work_goal_options
         content = agent_exec.safe_read_bytes(Path(pending["requestPath"]), agent_exec.MAX_REQUEST_BYTES)
         if hashlib.sha256(content).hexdigest() != pending["requestHash"]:
             raise agent_exec.ContractError("dispatch_identity_mismatch", "Pending Work request changed")
@@ -497,14 +497,14 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     request = agent_exec.safe_read_bytes(args.request_file, agent_exec.MAX_REQUEST_BYTES)
     if not request.decode("utf-8").strip():
         raise agent_exec.ContractError("request_invalid", "request must not be empty")
-    import task_binding
+    from tasks import binding as task_binding
     if getattr(args, "task_list_file", None) is None or not getattr(args, "task_id", None):
         raise agent_exec.ContractError("task_binding_required", "Delegated execution requires --task-list-file and --task-id before dispatch")
     # Read once, normalize a private snapshot, and hash exactly the bytes we retain.
     submitted_document = agent_exec.safe_read_json(args.task_list_file)
     parent = agent_exec.managed_parent_identity(root)
     if parent is not None:
-        import task_announcement
+        from tasks import announcement as task_announcement
         with agent_exec.file_lock(agent_exec.agent_directory(root, parent["agentId"]) / ".dispatch.lock"):
             agent_exec.require_current_parent_conversation(root, parent)
             task_announcement.check_submission(agent_exec.safe_read_json,
@@ -771,7 +771,7 @@ def finish_workflow_task(state, path, runtime, reason):
         if workflow["index"] + 1 < len(workflow["tasks"]):
             workflow["index"] += 1
             next_task = workflow["tasks"][workflow["index"]]
-            import task_binding
+            from tasks import binding as task_binding
             document = agent_exec.safe_read_json(Path(state["execution"]["taskListPath"]))
             binding = task_binding.validate(document, next_task["id"], next_task["requestHash"])
             expected = task_binding.validate({"id": workflow["id"], "title": workflow["title"], "tasks": workflow["tasks"]}, next_task["id"], next_task["requestHash"])
@@ -999,7 +999,7 @@ def launch_driver(args, result):
     with open(log_path, "ab") as log:
         if sys.platform == "win32":
             # Leave Main's kill-on-close job so the driver outlives the Main run.
-            import windows_process
+            from system import windows as windows_process
             for detach in (True, False):
                 try:
                     subprocess.Popen(arguments, stdin=subprocess.DEVNULL, stdout=log, stderr=log, close_fds=True,

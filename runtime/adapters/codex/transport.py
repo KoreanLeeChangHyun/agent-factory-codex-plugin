@@ -19,161 +19,13 @@ from pathlib import Path
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-import portable
-from prompt_delivery import PromptParts
-
-
-class NativeError(Exception):
-    pass
-
-
-class RpcError(NativeError):
-    def __init__(self, method, error):
-        self.code = error.get("code") if isinstance(error, dict) else None
-        super().__init__(f"{method}: {json.dumps(error)[:2000]}")
-
-
-def _probe_capabilities(codex: str) -> dict:
-    """Inspect this executable's protocol, never infer support from wrapper flags."""
-    supported = {"model": True, "reasoning": True, "fast": False, "goal": False, "plan": False,
-                 "instructionDelivery": False}
-    reason = None
-    try:
-        with tempfile.TemporaryDirectory(prefix="agent-factory-codex-schema-") as directory:
-            with tempfile.TemporaryFile() as output:
-                result = subprocess.run([codex, "app-server", "generate-json-schema", "--experimental", "--out", directory],
-                                        stdout=output, stderr=output, check=False)
-                if result.returncode:
-                    raise NativeError("installed Codex cannot generate the experimental app-server schema")
-            def schema(name):
-                path = Path(directory) / name
-                return json.loads(path.read_text())
-            for feature in ("fast", "goal", "plan"):
-                try:
-                    turn = schema("v2/TurnStartParams.json")["properties"]
-                    if feature == "fast":
-                        start = schema("v2/ThreadStartParams.json")["properties"]
-                        resume = schema("v2/ThreadResumeParams.json")["properties"]
-                        catalog = schema("v2/ModelListResponse.json")["definitions"]["Model"]["properties"]
-                        supported[feature] = all("serviceTier" in fields for fields in (start, resume, turn)) and "serviceTiers" in catalog
-                    elif feature == "plan":
-                        methods = json.dumps(schema("ClientRequest.json"))
-                        definition = schema("v2/TurnStartParams.json")
-                        modes = definition.get("definitions", {}).get("ModeKind", {}).get("enum", [])
-                        supported[feature] = "outputSchema" in turn and "collaborationMode" in turn and "collaborationMode/list" in methods and all(mode in modes for mode in ("plan", "default"))
-                    else:
-                        methods = json.dumps(schema("ClientRequest.json"))
-                        statuses = schema("v2/ThreadGoalSetParams.json")["definitions"]["ThreadGoalStatus"]["enum"]
-                        supported[feature] = all(method in methods for method in ("thread/goal/set", "thread/goal/get", "thread/goal/clear")) and all(status in statuses for status in ("active", "paused", "complete")) and "outputSchema" in turn
-                except (OSError, ValueError, KeyError, NativeError):
-                    supported[feature] = False
-            try:
-                methods = json.dumps(schema("ClientRequest.json"))
-                start = schema("v2/ThreadStartParams.json")["properties"]
-                resume = schema("v2/ThreadResumeParams.json")["properties"]
-                turn = schema("v2/TurnStartParams.json")["properties"]
-                read = schema("v2/ConfigReadParams.json")["properties"]
-                effective = schema("v2/ConfigReadResponse.json")["definitions"]["Config"]["properties"]
-                supported["instructionDelivery"] = (
-                    all(method in methods for method in ("config/read", "thread/inject_items"))
-                    and all("developerInstructions" in fields for fields in (start, resume))
-                    and "outputSchema" in turn and "cwd" in read and "developer_instructions" in effective)
-            except (OSError, ValueError, KeyError, NativeError):
-                pass
-
-    except (OSError, ValueError, KeyError, subprocess.TimeoutExpired, NativeError) as error:
-        reason = f"Native Fast/Goal/Plan requires compatible Codex app-server schemas: {error}. Update/select Codex, then retry."
-    if not all(supported[key] for key in ("model", "reasoning", "fast", "goal", "plan")) and reason is None:
-        reason = "Installed Codex protocol lacks required native fields. Update/select Codex, then retry."
-    return {"schemaVersion": "0.1.0", "kind": "execution-capabilities", "backend": "codex-app-server-stdio",
-            "submit": supported, "send": dict(supported), "diagnostic": reason}
-
-
-
-# One bounded entry per operational home; account/model availability is never stored.
-CAPABILITY_CACHE_TTL = 60
-
-
-def _capability_identity(codex):
-    executable = shutil.which(codex)
-    if not executable:
-        raise OSError("Codex executable not found")
-    path = Path(executable).resolve(strict=True)
-    info = path.stat()
-    if not stat.S_ISREG(info.st_mode):
-        raise OSError("Codex executable is not a regular file")
-    return {"path": str(path), "device": info.st_dev, "inode": info.st_ino,
-            "size": info.st_size, "mtimeNs": info.st_mtime_ns, "ctimeNs": info.st_ctime_ns,
-            "codexHome": str(Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")).resolve())}
-
-
-def _cached_capabilities(paths, file, identity):
-    try:
-        value = paths.read(file)
-        if (not isinstance(value, dict) or set(value) != {"version", "identity", "created", "capabilities"}
-                or value["version"] != 1 or value["identity"] != identity
-                or type(value["created"]) not in (int, float)
-                or not 0 <= time.time() - value["created"] < CAPABILITY_CACHE_TTL):
-            return None
-        caps = value["capabilities"]
-        expected = {"model": True, "reasoning": True, "fast": True, "goal": True, "plan": True}
-        if (not isinstance(caps, dict) or set(caps) != {"schemaVersion", "kind", "backend", "submit", "send", "diagnostic"}
-                or caps["schemaVersion"] != "0.1.0" or caps["kind"] != "execution-capabilities"
-                or caps["backend"] != "codex-app-server-stdio" or caps["diagnostic"] is not None):
-            return None
-        for verb in ("submit", "send"):
-            fields = caps[verb]
-            if (not isinstance(fields, dict) or set(fields) != {*expected, "instructionDelivery"}
-                    or any(fields.get(key) != value for key, value in expected.items())
-                    or any(type(v) is not bool for v in fields.values())):
-                return None
-        if caps["submit"]["instructionDelivery"] != caps["send"]["instructionDelivery"]:
-            return None
-        return caps
-    except (OSError, ValueError, TypeError, KeyError, OverflowError):
-        return None
-
-
-def inspect_capabilities(codex: str, *, refresh: bool = False, runtime_home=None) -> dict:
-    """Reuse only recent successful protocol probes for this binary and Codex home."""
-    if os.environ.get("AF_CODEX_CAPABILITY_CACHE") == "0":
-        return _probe_capabilities(codex)
-    result = None
-    try:
-        import paths
-        identity = _capability_identity(codex)
-        directory = paths.home_path(runtime_home) / "cache" / "native-capabilities"
-        file = directory / "capabilities.json"
-        cached = _cached_capabilities(paths, file, identity)
-        if cached is not None:
-            return cached
-        if not refresh:
-            return _probe_capabilities(codex)
-        paths.mkdir(directory)
-        # A short bounded wait coalesces ordinary concurrent probes; a stuck
-        # writer cannot add its full probe timeout to another caller's latency.
-        fd = os.open(directory / ".lock", os.O_RDWR | os.O_CREAT | portable.O_NOFOLLOW | portable.O_NONBLOCK, 0o600)
-        try:
-            info = os.fstat(fd)
-            if not stat.S_ISREG(info.st_mode) or not portable.private_to_user(info):
-                raise ValueError("unsafe capability cache lock")
-            try:
-                portable.lock_descriptor(fd, timeout=.5)
-            except BlockingIOError:
-                raise OSError("capability cache lock busy") from None
-            cached = _cached_capabilities(paths, file, identity)
-            if cached is not None:
-                return cached
-            result = _probe_capabilities(codex)
-            # Missing/failed/partial schemas are retried next time. A replacement
-            # during inspection cannot publish support for the old identity.
-            if result["diagnostic"] is None and _capability_identity(codex) == identity:
-                paths.write(file, {"version": 1, "identity": identity, "created": time.time(), "capabilities": result})
-            return result
-        finally:
-            os.close(fd)
-    except (OSError, ValueError, ImportError):
-        return result if result is not None else _probe_capabilities(codex)
+from system import portable
+from execution.prompts import PromptParts
+from execution.streaming import DeltaBuffer, JsonStringField
+from adapters.codex.capabilities import (  # noqa: F401 - re-exported; callers patch these names here
+    NativeError, RpcError, CAPABILITY_CACHE_TTL, _cached_capabilities, _capability_identity, _probe_capabilities, inspect_capabilities,
+)
+from adapters.codex.events import NotificationHandlers
 
 
 def service_tier(models: list[dict], model: str, fast: bool | None) -> str | None:
@@ -229,6 +81,7 @@ class Rpc:
         self.pending_bytes = 0
         self.last_frame = b""
         self.serial = 0
+        self.initialized = False
         self.reader = threading.Thread(target=self._read, daemon=True)
         self.reader.start()
 
@@ -255,6 +108,7 @@ class Rpc:
         self.__init__(factory(), observer=observer, process_factory=factory)
         self.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
         self.write({"method": "initialized"})
+        self.initialized = True
 
     def _read(self):
         try:
@@ -372,7 +226,7 @@ def activate_persisted_goal(rpc, thread_id, params, turn):
     return rpc.call("thread/goal/set", {"threadId": thread_id, "status": "active"}).get("goal")
 
 
-class Bridge:
+class Bridge(NotificationHandlers):
     def __init__(self, runtime, session, state, rpc):
         self.runtime, self.session, self.state, self.rpc = runtime, session, state, rpc
         self.thread_id = None
@@ -380,6 +234,9 @@ class Bridge:
         self.goal = None
         self.last_message = None
         self.turn_messages = {}
+        # Live previews of agent messages keyed by item id; see stream_text.
+        self.deltas = DeltaBuffer()
+        self.streams = {}
         self.completed_turns = {}
         self.control_id = None
         self.next_completion_check = 0.0
@@ -465,8 +322,10 @@ class Bridge:
         else:
             # Historical direct adapter callers retain full-prompt semantics.
             developer_instructions = full_prompt = prompt
-        self.rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
-        self.rpc.write({"method": "initialized"})
+        if not getattr(self.rpc, "initialized", False):
+            self.rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
+            self.rpc.write({"method": "initialized"})
+            self.rpc.initialized = True
         if self.session.get("nativeCapabilities", {}).get("instructionDelivery") is True:
             # Compose effective user/project configuration before creating a thread.
             # A failed/ambiguous read must not silently discard user instructions.
@@ -506,6 +365,12 @@ class Bridge:
         prior = self.session.get("sessionId")
         if prior:
             params["threadId"] = prior
+        if getattr(self.rpc, "retained_thread", None):
+            # Run-scoped environment (parent state and permission snapshot) changes
+            # on every send. Unload before resume so a loaded thread cannot retain
+            # the previous run's configuration. The app-server process stays alive.
+            self.rpc.call("thread/unload", {"threadId": self.rpc.retained_thread})
+            self.rpc.retained_thread = None
         response = self.rpc.call("thread/resume" if prior else "thread/start", params, timeout=None)
         self.thread_id = response["thread"]["id"]
         if prior and prior != self.thread_id:
@@ -693,7 +558,7 @@ class Bridge:
         try:
             if not self.setup(prompt):
                 return
-            from runtime_storage import ChangedJsonReader
+            from storage.files import ChangedJsonReader
             control_reader = ChangedJsonReader(Path(self.state["statePath"]), self.runtime.safe_read_json)
             while True:
                 current = control_reader.read()
@@ -712,6 +577,8 @@ class Bridge:
                 try:
                     event = self.rpc.event()
                 except queue.Empty:
+                    for pending in self.deltas.flush():
+                        emit(pending)
                     # A native idle/status transition can lag turn completion.
                     # Recheck authoritative history, never treat an empty queue
                     # itself as evidence that all native work is complete.
@@ -724,119 +591,8 @@ class Bridge:
                 method, params = event.get("method"), event.get("params", {})
                 if params.get("threadId") not in (None, self.thread_id):
                     continue
-                if method == "thread/tokenUsage/updated":
-                    # Ignore restored history notifications from earlier managed runs.
-                    owner = params.get("turnId")
-                    if isinstance(owner, str) and (owner == self.turn_id or owner in self.completed_turns):
-                        emit({"type": "token.usage", "turn_id": owner,
-                              "tokenUsage": params.get("tokenUsage")})
-                elif method == "thread/goal/updated":
-                    self.publish_goal(params.get("goal"))
-                    if self.completed_turns and self.goal and self.goal.get("status") != "active":
-                        if self.finish_latest_goal_turn():
-                            return
-                elif method == "thread/goal/cleared":
-                    self.publish_goal(None)
-                    if self.completed_turns and self.finish_latest_goal_turn():
-                        return
-                elif method == "thread/status/changed":
-                    if self.goal_enabled and self.completed_turns and params.get("status", {}).get("type") == "idle":
-                        if self.finish_latest_goal_turn():
-                            return
-                elif method == "turn/started":
-                    self.turn_id = params["turn"]["id"]
-                    self.last_message = None
-                    emit({"type": "turn.started", "turn_id": self.turn_id})
-                elif method in ("item/started", "item/completed"):
-                    item = dict(params.get("item", {}))
-                    kind = item.get("type")
-                    if kind == "agentMessage":
-                        if method == "item/completed" and item.get("phase") != "commentary":
-                            owner = params.get("turnId", self.turn_id)
-                            if not isinstance(owner, str):
-                                raise NativeError("Native final message has no turn identity")
-                            self.turn_messages[owner] = item.get("text")
-                        # Retain commentary; terminal messages are emitted only at run end.
-                        if item.get("phase") == "commentary":
-                            emit({"type": "native.commentary", "text": item.get("text", "")})
-                    else:
-                        item["type"] = {"commandExecution": "command_execution", "fileChange": "file_change", "mcpToolCall": "mcp_tool_call"}.get(kind, kind)
-                        if "exitCode" in item:
-                            item["exit_code"] = item.pop("exitCode")
-                        emit({"type": method.replace("/", "."), "item": item})
-                elif method == "turn/completed":
-                    turn = params["turn"]
-                    if self.turn_id == turn["id"]:
-                        self.turn_id = None
-                    self.completed_turns[turn["id"]] = turn.get("status")
-                    self.last_message = self.turn_messages.get(turn["id"])
-                    emit({"type": "turn.completed", "turn_id": turn["id"]})
-                    if turn.get("status") != "completed":
-                        raise NativeError(f"Native turn {turn.get('status')}: {json.dumps(turn.get('error'))[:2000]}")
-                    if self.planning and turn["id"] == self.planning_turn_id:
-                        plan = json.loads(self.last_message or "null")
-                        if (not isinstance(plan, dict) or set(plan) != {"status", "plan"}
-                                or plan.get("status") not in {"planned", "needs-human-decision"}
-                                or not isinstance(plan.get("plan"), str) or not plan["plan"].strip()):
-                            raise NativeError("Native planning result is invalid")
-                        from plan_receipt import record_plan, record_plan_only_receipt
-                        record_plan(self.state, plan)
-                        if plan["status"] == "needs-human-decision":
-                            self.last_message = json.dumps({"status": "needs-human-decision", "resultPath": self.state["resultPath"], "resultText": plan["plan"], "decisionKind": "clarification"})
-                            self.finish_turn()
-                            return
-                        # Cancellation/input authority is checked again before the automatic transition.
-                        current = self.runtime.safe_read_json(Path(self.state["statePath"]))
-                        if current.get("cancelRequested"):
-                            return
-                        if self.plan_only:
-                            # Plan mode cannot write files. The host records only read-only completion.
-                            record_plan_only_receipt(self.state)
-                            self.last_message = json.dumps({"status": "completed", "resultPath": self.state["resultPath"], "resultText": plan["plan"]})
-                            self.finish_turn()
-                            return
-                        self.planning = False
-                        emit({"type": "native.commentary", "text": "Planning is complete. Implementation is starting in the same Work session."})
-                        execution_turn = self.execution_turn
-                        if self.goal_start:
-                            # This turn switches the persisted collaboration mode only;
-                            # native Goal owns implementation and continued execution.
-                            execution_turn = {**execution_turn,
-                                "input": [{"type": "text", "text": "Switch to default collaboration mode. Do not implement or use tools in this transition turn. Return only {\"status\":\"ready\"}; the host will activate the bounded native Goal next."}],
-                                "outputSchema": {"type": "object", "properties": {"status": {"const": "ready"}},
-                                                 "required": ["status"], "additionalProperties": False}}
-                        result = self.rpc.call("turn/start", execution_turn)
-                        self.turn_id = result["turn"]["id"]
-                        if self.goal_start:
-                            self.goal_transition_id = self.turn_id
-                        self.last_message = None
-                        continue
-                    if self.goal_transition_id == turn["id"]:
-                        if json.loads(self.last_message or "null") != {"status": "ready"}:
-                            raise NativeError("Native default-mode transition did not complete")
-                        current = self.runtime.safe_read_json(Path(self.state["statePath"]))
-                        if current.get("cancelRequested"):
-                            return
-                        params, execution_turn = self.goal_start
-                        goal = activate_persisted_goal(self.rpc, self.thread_id, params, execution_turn)
-                        self.goal_transition_id = None
-                        self.goal_started = True
-                        self.publish_goal(goal)
-                        self.last_message = None
-                        # Planning and transition output cannot complete the Goal.
-                        self.completed_turns.clear()
-                        self.turn_messages.clear()
-                        continue
-                    if self.goal_enabled:
-                        if self.finish_latest_goal_turn(force=True):
-                            return
-                        emit({"type": "goal.continuing", "thread_id": self.thread_id})
-                        continue
-                    self.finish_turn()
+                if self.handle(method, params):
                     return
-                elif method == "error":
-                    if not params.get("willRetry"):
-                        raise NativeError(json.dumps(params.get("error", params))[:2000])
         except Exception:
             # Best effort only: state/events report an unconfirmed pause if RPC fails.
             if self.thread_id and self.goal_enabled and self.goal and self.goal.get("status") == "active":
@@ -847,11 +603,236 @@ class Bridge:
             raise
 
 
+def bridge_services():
+    """Explicit services consumed by the native bridge; no CLI orchestrator import."""
+    from types import SimpleNamespace
+    from storage import paths as runtime_paths
+    from adapters.codex import policy as execution_policy
+    from adapters.codex.control import record_goal_uncertainty
+    from storage.errors import ContractError
+    from storage.files import atomic_write, atomic_write_json, safe_read_json, session_file, update_json
+    from system.containment import now
+    from system.transport import inline_result, validate_terminal_result
+    return SimpleNamespace(**{name: value for name, value in locals().items() if name != "SimpleNamespace"})
+
+
+# A pool is owned by the extension's stdin pipe, never by an individual run.
+# Workers retain their own containment and are exclusively leased per agent.
+def connection_worker():
+    runtime = bridge_services()
+    rpc = None
+    try:
+        for line in sys.stdin:
+            request = json.loads(line)
+            state = runtime.safe_read_json(Path(request["statePath"]))
+            runtime.runtime_paths.bind(state["runtimeBinding"])
+            session = runtime.safe_read_json(Path(state["nativeSessionPath"]))
+            if rpc is None:
+                def factory():
+                    return subprocess.Popen([session["codex"], "app-server", "--listen", "stdio://"],
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr,
+                        text=True, encoding="utf-8", bufsize=1)
+                rpc = Rpc(factory(), process_factory=factory)
+            prompt = PromptParts.decode(request["prompt"]) if request["parts"] else request["prompt"]
+            bridge = Bridge(runtime, session, state, rpc)
+            bridge.run(prompt)
+            rpc.retained_thread = bridge.thread_id
+            # A cancelled turn must not continue in a retained server.
+            if runtime.safe_read_json(Path(request["statePath"])).get("cancelRequested"):
+                emit({"poolDone": True, "reusable": False})
+                return 0
+            emit({"poolDone": True, "reusable": True})
+    except Exception as error:
+        emit({"type": "error", "message": str(error)[:4000]})
+        emit({"poolDone": True, "reusable": False, "failed": True})
+        return 1
+    finally:
+        if rpc is not None:
+            with contextlib.suppress(Exception):
+                rpc.process.stdin.close()
+                rpc.process.terminate()
+                rpc.process.wait(timeout=2)
+    return 0
+
+
+def pool_identity(state, session):
+    # Include effective policy/configuration and runtime binding; never reuse a
+    # loaded thread after privilege, provider, model, working directory or role changes.
+    fields = ("codex", "projectRoot", "workingDirectory", "executionPolicy", "model",
+              "reasoningEffort", "fast", "role", "taskMode", "nativeCapabilities", "goalMode")
+    values = {key: session.get(key) for key in fields}
+    return json.dumps([state["runtimeBinding"], state["agentId"], values], sort_keys=True)
+
+
+def connection_host():
+    import secrets
+    import socket
+    from system.containment import spawn_contained_process, release_contained_process, terminate_attempt_group
+    token = secrets.token_hex(32)
+    listener = socket.socket()
+    listener.bind(("127.0.0.1", 0))
+    listener.listen()
+    workers, lock = {}, threading.RLock()
+    closing = threading.Event()
+
+    def stop(worker):
+        terminate_attempt_group(worker["process"], worker["identity"])
+        for stream in (worker["process"].stdin, worker["process"].stdout):
+            with contextlib.suppress(Exception):
+                stream.close()
+
+    def shutdown():
+        # EOF is the extension lifetime signal, including crashes and reloads.
+        sys.stdin.buffer.read()
+        closing.set()
+        # Closing a UI host must not cancel accepted background work. Drain
+        # active leases; their run proxies still own cancellation and completion.
+        while True:
+            with lock:
+                idle = [(key, worker) for key, worker in workers.items() if not worker["busy"]]
+                for key, worker in idle:
+                    del workers[key]
+                active = bool(workers)
+            for _, worker in idle:
+                with contextlib.suppress(Exception):
+                    stop(worker)
+            if not active:
+                break
+            time.sleep(0.1)
+        os._exit(0)
+
+    def serve(connection):
+        worker = None
+        leased = False
+        finished = threading.Event()
+        disconnected = threading.Event()
+        wire = connection.makefile("rwb")
+        try:
+            request = json.loads(wire.readline())
+            if not secrets.compare_digest(str(request.pop("token", "")), token):
+                raise NativeError("Invalid connection pool credential")
+            runtime = bridge_services()
+            state = runtime.safe_read_json(Path(request["statePath"]))
+            session = runtime.safe_read_json(Path(state["nativeSessionPath"]))
+            key = json.dumps([state["runtimeBinding"], state["agentId"]], sort_keys=True)
+            fingerprint = pool_identity(state, session)
+            with lock:
+                if closing.is_set():
+                    raise NativeError("Connection host is closing")
+                worker = workers.get(key)
+                if worker and worker["busy"]:
+                    worker = None
+                    raise NativeError("Agent connection already has an active request")
+                if worker and (worker["fingerprint"] != fingerprint or worker["process"].poll() is not None):
+                    stop(worker)
+                    del workers[key]
+                    worker = None
+                if worker is None:
+                    environment = {**os.environ, "AGENT_FACTORY_EXECUTION_POLICY": json.dumps(runtime.execution_policy.session_policy(session))}
+                    environment.pop("AGENT_FACTORY_CODEX_POOL", None)
+                    process, identity, barrier = spawn_contained_process(
+                        [sys.executable, str(Path(__file__).resolve()), "--connection-worker"],
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr,
+                        text=True, encoding="utf-8", env=environment,
+                        cwd=session.get("workingDirectory", session["projectRoot"]))
+                    worker = {"process": process, "identity": identity, "fingerprint": fingerprint, "busy": True}
+                    workers[key] = worker
+                    release_contained_process(process, identity, barrier)
+                worker["busy"] = True
+                leased = True
+
+            def watch_disconnect():
+                # The client sends nothing after its request. EOF during a turn
+                # kills the worker's entire containment, not just the proxy.
+                try:
+                    connection.recv(1)
+                except OSError:
+                    pass
+                disconnected.set()
+                if not finished.is_set():
+                    with contextlib.suppress(Exception):
+                        stop(worker)
+            threading.Thread(target=watch_disconnect, daemon=True).start()
+            worker["process"].stdin.write(json.dumps(request) + "\n")
+            worker["process"].stdin.flush()
+            reusable = False
+            for output in worker["process"].stdout:
+                event = json.loads(output)
+                if event.get("poolDone"):
+                    reusable = event.get("reusable") is True and not disconnected.is_set() and not closing.is_set()
+                    # Cleanup must complete before acknowledging a cancelled turn.
+                    if not reusable:
+                        stop(worker)
+                    finished.set()
+                    with lock:
+                        wire.write(output.encode("utf-8"))
+                        wire.flush()
+                        if reusable:
+                            worker["busy"] = False
+                        elif workers.get(key) is worker:
+                            del workers[key]
+                    break
+                wire.write(output.encode("utf-8"))
+                wire.flush()
+            else:
+                raise NativeError("Retained Codex worker closed before completion; request was not replayed")
+        except Exception as error:
+            if leased:
+                with contextlib.suppress(Exception):
+                    stop(worker)
+                with lock:
+                    if workers.get(key) is worker:
+                        del workers[key]
+            finished.set()
+            with contextlib.suppress(Exception):
+                wire.write((json.dumps({"type": "error", "message": str(error)}) + "\n").encode())
+                wire.flush()
+        finally:
+            finished.set()
+            with contextlib.suppress(OSError):
+                connection.shutdown(socket.SHUT_RDWR)
+            wire.close()
+            connection.close()
+
+    threading.Thread(target=shutdown, daemon=True).start()
+    emit({"port": listener.getsockname()[1], "token": token})
+    while not closing.is_set():
+        connection, _ = listener.accept()
+        threading.Thread(target=serve, args=(connection,), daemon=True).start()
+    return 0
+
+
+def pooled_request():
+    import socket
+    endpoint = json.loads(os.environ["AGENT_FACTORY_CODEX_POOL"])
+    request = {"statePath": str(Path(sys.argv[1]).resolve()), "prompt": sys.stdin.read(),
+               "parts": sys.argv[2:] == ["--prompt-parts"], "token": endpoint["token"]}
+    # No automatic replay: a disconnected request may already have started work.
+    with socket.create_connection(("127.0.0.1", endpoint["port"])) as connection:
+        with connection.makefile("rwb") as wire:
+            wire.write((json.dumps(request) + "\n").encode())
+            wire.flush()
+            for line in wire:
+                event = json.loads(line)
+                if event.get("poolDone"):
+                    return 1 if event.get("failed") else 0
+                sys.stdout.write(line.decode("utf-8"))
+                sys.stdout.flush()
+    raise NativeError("Connection host closed before completion; request was not replayed")
+
+
 def main():
-    from adapters.codex import bridge_services as runtime
+    if sys.argv[1:] == ["--connection-host"]:
+        return connection_host()
+    if sys.argv[1:] == ["--connection-worker"]:
+        return connection_worker()
+    runtime = bridge_services()
     state = runtime.safe_read_json(Path(sys.argv[1]))
     runtime.runtime_paths.bind(state["runtimeBinding"])
     session = runtime.safe_read_json(Path(state["nativeSessionPath"]))
+    if (os.environ.get("AGENT_FACTORY_CODEX_POOL") and session.get("role") == "main"
+            and not session.get("goalMode") and not session.get("goal") and not state.get("goalAction")):
+        return pooled_request()
     prompt = sys.stdin.read()
     if sys.argv[2:] == ["--prompt-parts"]:
         prompt = PromptParts.decode(prompt)

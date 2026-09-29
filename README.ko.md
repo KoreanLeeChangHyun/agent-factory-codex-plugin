@@ -45,8 +45,8 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
 
 - 이 플러그인은 단독으로 설치하고 사용할 수 있으며, VS Code 확장은 선택 사항입니다.
 - Agent Factory VS Code 확장을 사용하려면 동일한 시맨틱 기본 버전의 플러그인이
-  설치되고 활성화되어 있어야 합니다. 예를 들어 확장 `1.0.16`은
-  플러그인 `1.0.16+codex.<token>`을 허용합니다.
+  설치되고 활성화되어 있어야 합니다. 예를 들어 확장 `1.0.17`은
+  플러그인 `1.0.17+codex.<token>`을 허용합니다.
 
 - 확장은 활성화 시 플러그인의 설치·활성화 상태와 버전을 확인하고, 필요한 경우 자동 설치를 시도합니다.
   호환되는 플러그인이 이미 활성화되어 있으면 추가 설치 없이 사용합니다.
@@ -60,7 +60,7 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
 
 ## 스킬
 
-플러그인은 세 가지 공개 스킬을 제공합니다.
+플러그인은 네 가지 공개 스킬을 제공합니다.
 
 - [Agent](skills/agent/SKILL.md): Work·Verification 에이전트에 작업을 위임하고,
   세션과 실행 진행 상황 및 결과를 관리합니다.
@@ -68,6 +68,7 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
   조사와 인터뷰에 적용하는 공통 규칙을 제공합니다.
 - [Document](skills/document/SKILL.md): 프로젝트 문서의 작성·분류·저장·검색을 안내하고,
   프로젝트 명세 문서를 Codex 스킬로 동기화합니다.
+- [Tool](skills/tool/SKILL.md): 플러그인 스크립트 목록과 각 스크립트의 규칙을 담당하는 스킬을 안내합니다.
 
 ### 에이전트 실행 방식
 
@@ -85,8 +86,12 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
   `claude-sonnet`, `claude-haiku` 별칭을 선택하십시오.
 - 모든 실행 방식을 Claude로 사용할 수 있습니다. Plan은 Claude의 plan 모드로 계획한 뒤 같은 세션에서 실행합니다.
   실행 권한은 가장 가까운 Claude 권한 모드로 연결되며 OS 샌드박스가 아닙니다.
-  자세한 내용은 [실행 방식 안내](skills/agent/references/execution-modes.md#execution-providers)를 참고하십시오.
-- 이 패키지는 Codex로 설치합니다. Claude 실행은 런타임이 시작하며, Claude Code 플러그인은 아닙니다.
+  자세한 내용은 [실행 방식 안내](skills/agent/references/execution-modes.md#7-execution-providers)를 참고하십시오.
+- Antigravity CLI(`agy`)로 Google AI 구독 모델을 사용해 에이전트를 실행할 수도 있습니다. `gemini-*` 모델은
+  Antigravity를 선택하며, 그 밖의 모델은 `antigravity/<id>` 형식으로 지정합니다. Antigravity 실행은 텍스트만 지원합니다.
+  자세한 내용은 [Antigravity](skills/agent/references/execution-modes.md#71-antigravity)를 참고하십시오.
+- 이 패키지는 Codex로 설치하며, Claude와 Antigravity 실행은 런타임이 시작합니다.
+  Claude Code에서는 별도의 [Claude Code 배포판](https://github.com/KoreanLeeChangHyun/agent-factory-claude-plugin)을 설치하십시오.
 
 ## 수동 설치
 
@@ -112,9 +117,9 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
 ## 문서 동기화
 
 - Agent Factory 규칙에 따라 `docs/skills/`에 작성한 프로젝트 명세 문서는
-  `.codex/skills/`로 동기화되어 Codex에서 프로젝트 스킬로 활용됩니다.
+  `.codex/skills/`와 `.claude/skills/`로 동기화되어 Codex와 Claude Code에서 프로젝트 스킬로 활용됩니다.
 - 에이전트는 `docs/skills/`에 프로젝트 명세 문서를 작성한 후
-  [Document 스킬의 동기화 스크립트](skills/document/SKILL.md#continuous-codex-synchronization)를
+  [Document 스킬의 동기화 스크립트](skills/document/references/host-sync.md#continuous-codex-synchronization)를
   실행하고 결과를 확인합니다. 문서를 수정하거나 삭제한 후에도 실행합니다.
 - 동기화된 문서를 별도로 편집한 경우 충돌을 보고하고 동기화를 중단하여 변경 내용을 보호합니다.
 - 동기화 관리 대상이 아닌 기존 스킬은 수정하지 않고 보존합니다.
@@ -128,7 +133,7 @@ Agent Factory는 사용자가 주도하는 소프트웨어 개발·전달을 위
   MSYS2/Cygwin용 Python은 지원하지 않습니다. macOS와 Windows는 실제 사용 환경에서 동작 확인이 필요합니다.
 - **Python:** Python 3.10+.
 - **Codex:** Codex CLI가 설치되어 있어야 합니다. 실행 전에 필요한 기능과 환경을 확인합니다.
-- 환경별 조건과 제한은 [호스트 준비 상태 안내](skills/agent/references/home-runtime.md#host-readiness-and-diagnostics)를 참고하십시오.
+- 환경별 조건과 제한은 [호스트 준비 상태 안내](skills/agent/references/installation.md#host-readiness-and-diagnostics)를 참고하십시오.
 
 ## 버그 문의
 

@@ -29,12 +29,15 @@
 - Record the contract ID, contract version, task IDs, status, check evidence and blockers
   in `progress.md`. Preserve prior contract versions instead of overwriting them.
 - Each `contract-v<N>.md` records the same contract ID and numeric version represented by
-  its directory and filename. Link every sibling attachment from `progress.md` or a
+  its directory and filename: metadata `document-type: processed`, `contract-id: <id>` and
+  integer `contract-version: <N>`. `progress.md` uses `document-type: progress` and the same
+  `contract-id`. After writing, run `catalog_documents.py --project-root <root>` and fix
+  every reported error before claiming the contract was saved. Link every sibling attachment from `progress.md` or a
   contract version; missing, unlinked or nested attachment content is invalid.
 - Use `status` for a current snapshot and `worklog` for chronological progress.
 - Catalog and search discover canonical `docs/progress/` records, legacy root `progress/` contracts and older `SKILL.md` packages;
   they are not activated as Skills
-  or exported to `.codex/skills/`.
+  or exported to `.codex/skills/` or `.claude/skills/`.
 - Catalog entries expose contract versions, task IDs and attachments. Canonical/legacy
   duplicate identities and inconsistent contract metadata fail instead of being hidden.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy project Skill documents from docs/skills into .codex/skills."""
+"""Copy project Skill documents from docs/skills into .codex/skills and .claude/skills."""
 
 import argparse
 import filecmp
@@ -10,6 +10,7 @@ import sys
 
 
 ROUTES = {"skills": "skills"}
+HOSTS = (".codex", ".claude")
 
 
 def check_path(path: Path, root: Path) -> None:
@@ -42,9 +43,9 @@ def export_documents(root: Path, apply: bool = False) -> list[dict[str, str]]:
     if not root.is_dir():
         raise ValueError(f"Expected project directory: {root}")
     plan = []
-    for source_type, destination_type in ROUTES.items():
+    for (source_type, destination_type), host in ((route, host) for route in ROUTES.items() for host in HOSTS):
         source_root = root / "docs" / source_type
-        target_root = root / ".codex" / destination_type
+        target_root = root / host / destination_type
         check_path(source_root, root)
         check_path(target_root, root)
         if target_root.exists() and not target_root.is_dir():

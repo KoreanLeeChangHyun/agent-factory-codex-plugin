@@ -11,7 +11,17 @@
 - For work, use the [lesson lifecycle CLI](../../document/references/lessons-learned.md#lifecycle-cli)
   to retrieve scoped lessons before acting, persist errors and Human corrections,
   and audit observed occurrences before handoff. Record actual rule application outcomes.
-
+- **MUST NOT create any new directory the Human has not agreed to** — not in the project root,
+  not beside source, not anywhere in the project. This includes temporary, scratch, output,
+  backup, test and tool directories. Existing directories, paths the task explicitly
+  names and the agreed standard locations (`docs/artifact/`, `docs/progress/`,
+  `docs/lessons-learned/` and the other Document locations) are allowed; anything else
+  requires the Human's explicit agreement first.
+- **MUST use `docs/artifact/` for every generated output** (HTML/SVG previews, screenshots,
+  images, reports, exports and other deliverables): one `docs/artifact/<task-or-topic>/`
+  per task, per Convention's [Artifacts](../../convention/references/artifacts.md). Only a
+  location the Human names overrides it. Keep disposable scratch in the run's storage or the
+  system temp directory and remove it when done.
 - Human-facing conversation, request consolidation, assignment, decision relay and
   completion/exception reporting. Delegated implementation and own checks belong to Work.
 - Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to direct Main execution; an explicit action applies only to its message. Direct mode permits Main implementation and appropriate
@@ -80,21 +90,12 @@
 ## 4. Orchestration
 
 - After the gate, perform direct mode tasks yourself; dispatch standalone verification to managed Verification and other actions to managed Work.
-- For managed dispatch, use the Agent Skill's managed execution quick path. Reuse
-  known installed paths and unchanged host/capability observations; do not rediscover
-  the protocol by searching runtime source. Let the loop own dispatch/recovery IDs,
-  and omit optional standalone dispatch IDs for new requests. Preserve returned IDs
-  and resolve uncertain acceptance before any retry.
-- Use the Agent Skill's one-source task presentation/submission contract: prepare the
-  structured list with `exec.py announce-tasks`, show its returned `taskFlow`, and dispatch
-  with its returned snapshot paths and task ID. Preserve IDs, titles, order, descriptions
-  and completion criteria. Do not reconstruct a second list or infer tasks from prose tables.
-- Reuse supplied submission preparation context, including Git change paths, collection
-  time and instruction sources. Do not repeat status or instruction reads merely for
-  preparation; recheck stale or insufficient context and read unsupplied mandatory
-  instructions. Include relevant provenance in the child request. Do not calculate or supply submission
-  request hashes. Preserve accepted task/run identities and captured requests. These conveniences do not
-  change the execution or authorization gate.
+- Before managed dispatch, read the Agent Skill's [task dispatch](../references/task-dispatch.md)
+  contract; it alone defines task binding, `announce-tasks` presentation, loop submission,
+  supplied preparation context and worker assignment. Reuse known installed paths and
+  unchanged host/capability observations; do not rediscover the protocol by searching
+  runtime source. Preserve returned IDs and resolve uncertain acceptance before any retry.
+  These conveniences do not change the execution or authorization gate.
 - Use the current shared checkout without separate Git worktrees. Apply Convention's
   [shared checkout coordination](../../convention/references/development.md#shared-checkout-coordination) when assigning write boundaries, sequencing conflicts and stabilizing
   Verification inputs.
@@ -103,16 +104,6 @@
 - Sequence uncertain independence or obtain the missing Human decision. Parallelize only
   useful independent chains with distinct Agent/loop/run IDs, bounded inputs, scoped
   authority and capability bindings.
-- Main chooses worker count and session reuse from task dependencies, context continuity,
-  overlapping writes, shared resources and coordination cost. One worker may own several tasks.
-  Register each task with its own completion criteria as a separate task-list entry,
-  regardless of worker count. Preserve the individual tasks communicated to the Human:
-  six announced tasks remain six registered entries even when one worker executes all six.
-  Sharing a worker or session is not a reason to merge tasks into one aggregate entry.
-  Keep each task's identity, scope, completion criteria and status separately traceable.
-  Ordered task lists may bind each task to its own `workAgentId` and `verificationAgentId`;
-  follow the Agent Skill's assignment contract. Independent parallel chains require distinct
-  workflow IDs and active sessions; track cross-chain prerequisites before dispatching integration.
 - Each chain stays sequential.
   - In Work-bound verification modes bind separate Verification to exact completed Work unless
     Human skip applies.
