@@ -367,9 +367,11 @@ class Bridge(NotificationHandlers):
             params["threadId"] = prior
         if getattr(self.rpc, "retained_thread", None):
             # Run-scoped environment (parent state and permission snapshot) changes
-            # on every send. Unload before resume so a loaded thread cannot retain
-            # the previous run's configuration. The app-server process stays alive.
-            self.rpc.call("thread/unload", {"threadId": self.rpc.retained_thread})
+            # on every send. Restart our owned server before resume so a loaded
+            # thread cannot retain the previous run's configuration. Codex has no
+            # thread/unload RPC; thread/unsubscribe leaves it loaded for a grace
+            # period and therefore cannot provide this configuration boundary.
+            self.rpc.restart_owned()
             self.rpc.retained_thread = None
         response = self.rpc.call("thread/resume" if prior else "thread/start", params, timeout=None)
         self.thread_id = response["thread"]["id"]
