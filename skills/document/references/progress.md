@@ -37,7 +37,7 @@
 - Use `status` for a current snapshot and `worklog` for chronological progress.
 - Catalog and search discover canonical `docs/progress/` records, legacy root `progress/` contracts and older `SKILL.md` packages;
   they are not activated as Skills
-  or exported to `.codex/skills/` or `.claude/skills/`.
+  or exported to `.codex/skills/`, `.claude/skills/` or `.agents/skills/`.
 - Catalog entries expose contract versions, task IDs and attachments. Canonical/legacy
   duplicate identities and inconsistent contract metadata fail instead of being hidden.
 

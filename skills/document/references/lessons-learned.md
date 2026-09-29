@@ -36,7 +36,7 @@
   Preserve actual provenance in occurrence sources and candidate sources.
   The directory identifies the document type; the catalog derives `name` from `id`.
 - Catalog and search discover these records. They are not activated as Skills,
-  exported to `.codex/skills/` or `.claude/skills/` or treated as accepted Specifications.
+  exported to `.codex/skills/`, `.claude/skills/` or `.agents/skills/` or treated as accepted Specifications.
 - Keep one canonical record for the same incident or known recurring cause. Link it
   from Progress or task results rather than copying its contents there.
 

@@ -23,6 +23,25 @@
   inferences and unresolved questions. Local implementations are not universal
   architecture rules.
 
+<a id="commands-and-paths"></a>
+
+### 1.1. Commands and paths
+
+- Locate a file with a file listing, search or an explicit link before reading, editing
+  or passing it to a command. Do not guess names from a feature, and do not reuse paths
+  from an earlier conversation or version without rechecking them.
+- Fix the working directory of each command. In nested repositories, run each
+  repository's commands from its own root or with an explicit prefix (`git -C`,
+  `npm --prefix`); do not repeat a relative `cd` or duplicate a directory prefix that
+  the working directory already supplies.
+- Probe optional paths with an existence check. Distinguish "no match" exits (such as
+  `rg` exit 1) from command errors and do not report them as failures.
+- Write portable shell: avoid globs that may match nothing (zsh aborts on them), keep
+  commands and arguments in arrays rather than string variables, delimit variables as
+  `${NAME}` before adjacent text, and move deeply nested quoting into a script.
+- Keep each tool output within its budget: read targeted ranges or narrowed searches,
+  and write large surveys to a temporary file before reviewing them in parts.
+
 <a id="shared-checkout-coordination"></a>
 
 ## 2. Shared checkout coordination

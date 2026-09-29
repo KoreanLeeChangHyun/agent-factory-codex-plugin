@@ -91,6 +91,10 @@
 - Never encode a development sibling's environment path as a durable repository command.
   An evidenced adjacent shared environment may be used only as a local execution
   fallback when its compatibility is checked for the selected test.
+- Before attributing a failure to the change, reproduce the same check against the
+  unchanged baseline (for example a temporary copy of `HEAD`). Report failures that
+  also occur on the baseline separately as pre-existing, and do not repair unrelated
+  product code or shared tests outside the task's scope to make them pass.
 - Broaden only when focused evidence demonstrates cross-domain impact or the Human
   explicitly requests broader coverage.
 - Run a full suite only on explicit Human request.

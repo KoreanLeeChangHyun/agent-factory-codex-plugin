@@ -120,6 +120,8 @@ Read only the file for the operation at hand:
     transitions and providers.
   - `references/task-dispatch.md`: task binding, one-source announcement, ordered loop
     submission and worker assignment.
+  - `references/orchestration.md`: chain sequencing, parallelism, Verification failure
+    and Human skip.
 - While a run executes or is inspected:
   - `references/managed-execution.md`: prompts, sessions, run files, retries, CLI responses
     and receipts.

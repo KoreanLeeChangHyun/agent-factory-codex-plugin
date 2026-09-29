@@ -35,7 +35,11 @@ def identifier(value):
 
 def required(data, fields):
     for field in fields:
-        if not isinstance(data.get(field), str) or not data[field].strip():
+        value = data.get(field)
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f'Field {field} must be a nonempty string, not {type(value).__name__}; '
+                             f'for example "{field}": "extension"')
+        if not isinstance(value, str) or not value.strip():
             raise ValueError(f'Missing nonempty field: {field}')
 
 
@@ -253,7 +257,8 @@ def operate(root, action, data):
         elif action == 'apply':
             required(data, ['runId', 'outcome', 'evidence'])
             if record['status'] != 'active':
-                raise ValueError('Only active rules may be applied')
+                raise ValueError('Only active rules may be applied; record a recurrence with record '
+                                 '(new occurrenceId) or a confirmed fix with resolve')
             publication = record['publications'][-1]
             rule_path = safe(root, publication['path'])
             if hashlib.sha256(rule_path.read_bytes()).hexdigest() != publication['fileHash']:

@@ -8,7 +8,7 @@
 
 | Source | Derived destination |
 |---|---|
-| `docs/skills/` | `.codex/skills/` (Codex) and `.claude/skills/` (Claude Code) |
+| `docs/skills/` | `.codex/skills/` (Codex), `.claude/skills/` (Claude Code) and `.agents/skills/` (Antigravity) |
 
 - Only `docs/skills/` is projected. `docs/original/`, `docs/refined/`, `docs/progress/` and `docs/lessons-learned/` remain canonical
   project storage; they require no host export or synchronization. Existing
@@ -31,10 +31,11 @@
   Inspect the result; resolve or report conflicts before claiming synchronization succeeded.
 - The plugin bundles no automatic hooks. Human edits synchronize only on a subsequent
   explicit invocation; this CLI is not a watcher. The legacy `--hook` entry is removed.
-- `docs/skills/` supplies only owned output under `.codex/skills/` and `.claude/skills/`.
-  Each host keeps its own `.<host>/.document-sync/manifest.json` of managed paths, directories
-  and SHA-256 hashes. A conflict in one host does not block the other; `--host codex|claude`
-  limits a run to one host.
+- `docs/skills/` supplies only owned output under `.codex/skills/`, `.claude/skills/` and
+  `.agents/skills/`. Each host directory keeps its own `.document-sync/manifest.json` of managed
+  paths, directories and SHA-256 hashes. Every run updates all three together: all hosts are
+  checked first, and a conflict in any host changes none of them, so the copies never diverge.
+  `--check` reports outdated or conflicting hosts without changing anything (exit 1 if any).
   Unrelated destination packages and files are preserved.
 - A new package may be created only when its destination does not exist. Existing unowned
   packages conflict even when byte-identical; legacy mirrors and explicit exports are never
@@ -44,7 +45,7 @@
   Ordinary synchronization does not authorize replacing these edits or adopting unowned files.
 - When the Human authorizes recovery using `docs/skills/` as authoritative, invoke the same
   command with `--reconcile`. It backs up affected output and existing control records under
-  `.<host>/.document-sync/backups/` before rebuilding output and ownership. Inspect the returned
+  `<host-directory>/.document-sync/backups/` before rebuilding output and ownership. Inspect the returned
   backup path. Missing or corrupt ownership can recover source-named packages; unrelated
   packages remain untouched. Valid ownership and journals also identify obsolete managed
   packages. Destination-only edits within affected packages are preserved in the backup.

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Synchronize .codex/skills and .claude/skills from the authoritative docs/skills source."""
+"""Keep .codex/skills, .claude/skills and .agents/skills identical to the authoritative docs/skills source."""
 
 import argparse
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 import hashlib
 import json
 import os
@@ -173,39 +173,62 @@ def backup_reconciliation(root, state_dir, target, actual, packages):
     return backup
 
 
-# Agent hosts that load project Skills; each keeps its own owned output and sync state.
-HOSTS = ("codex", "claude")
+# Agent hosts that load project Skills and the project directory each reads them from; each host
+# keeps its own owned output and sync state. The Antigravity CLI (agy) discovers `.agents/skills/`.
+HOST_DIRECTORIES = {"codex": ".codex", "claude": ".claude", "antigravity": ".agents"}
+HOSTS = tuple(HOST_DIRECTORIES)
 
 
 def sync(root, *, reconcile=False, hosts=HOSTS):
-    """Synchronize every host; a conflict in one host does not block the others."""
-    changes, errors = [], []
+    """Keep every host identical to docs/skills: check all hosts first and change none if any fails."""
+    errors = []
+    for host in hosts:
+        try:
+            sync_host(root, host, reconcile=reconcile, dry_run=True)
+        except ValueError as error:
+            errors.append(f"{host}: {error}")
+    if errors:
+        raise ValueError(" | ".join(errors) + " | No host changed; hosts stay identical.")
+    changes = []
     for host in hosts:
         try:
             changes += sync_host(root, host, reconcile=reconcile)
         except ValueError as error:
-            errors.append(f"{host}: {error}")
-    if errors:
-        raise ValueError(" | ".join(errors))
+            # Only a race after the preflight reaches here; the host's journal records it for --reconcile.
+            raise ValueError(f"{host}: {error}") from error
     return changes
 
 
-def sync_host(root, host, *, reconcile=False):
+def check(root, *, hosts=HOSTS):
+    """Report hosts that differ from docs/skills without changing anything."""
+    drift, errors = [], []
+    for host in hosts:
+        try:
+            if sync_host(root, host, dry_run=True):
+                drift.append(host)
+        except ValueError as error:
+            errors.append(f"{host}: {error}")
+    return drift, errors
+
+
+def sync_host(root, host, *, reconcile=False, dry_run=False):
     if host not in HOSTS:
         raise ValueError(f"Unknown host: {host}")
     root = root.resolve(strict=True)
     source = root / "docs/skills"
-    target = root / f".{host}/skills"
+    target = root / HOST_DIRECTORIES[host] / "skills"
     check_path(source, root)
     if not source.exists():
         return []
     check_path(target, root)
     if target.exists() and not target.is_dir():
         raise ValueError(f"Expected directory: {target}")
-    state_dir = root / f".{host}/.document-sync"
+    state_dir = root / HOST_DIRECTORIES[host] / ".document-sync"
     check_path(state_dir, root)
-    state_dir.mkdir(parents=True, exist_ok=True)
-    with locked(state_dir):
+    if not dry_run:
+        state_dir.mkdir(parents=True, exist_ok=True)
+    # A dry run only reads; the real run re-checks everything under the lock.
+    with nullcontext() if dry_run else locked(state_dir):
         manifest = state_dir / "manifest.json"
         pending = state_dir / "pending.json"
         check_path(pending, root)
@@ -257,6 +280,9 @@ def sync_host(root, host, *, reconcile=False):
         if conflicts and not reconcile:
             raise ValueError("; ".join(conflicts) + ". No documents changed. Back up and reconcile "
                              "with --reconcile to preserve existing files and use docs/skills as authoritative.")
+        if dry_run:
+            outdated = previous != wanted or pending.exists() or bool(conflicts) or manifest_invalid
+            return [{"path": str(target.relative_to(root)), "action": "update"}] if outdated else []
         changes = []
         if reconcile and (conflicts or pending.exists() or manifest_invalid):
             packages = owned | requested | {name.split("/")[0] for name in recovery_entries}
@@ -305,14 +331,19 @@ def sync_host(root, host, *, reconcile=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
-    parser.add_argument("--host", choices=[*HOSTS, "all"], default="all",
-                        help="Destination host; default synchronizes every host.")
-    parser.add_argument("--reconcile", action="store_true",
-                        help="Back up conflicting or interrupted output, then rebuild it from docs/skills.")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--reconcile", action="store_true",
+                      help="Back up conflicting or interrupted output, then rebuild it from docs/skills.")
+    mode.add_argument("--check", action="store_true",
+                      help="Report hosts that differ from docs/skills; exit 1 when any differs. Changes nothing.")
     args = parser.parse_args()
     try:
-        hosts = HOSTS if args.host == "all" else (args.host,)
-        operations = sync(args.project_root, reconcile=args.reconcile, hosts=hosts)
+        if args.check:
+            drift, errors = check(args.project_root)
+            print(json.dumps({"hosts": list(HOSTS), "outdated": drift, "errors": errors}, ensure_ascii=False))
+            return 1 if drift or errors else 0
+        # Every run updates all hosts together so .codex, .claude and .agents never diverge.
+        operations = sync(args.project_root, reconcile=args.reconcile)
         print(json.dumps({"changes": operations}, ensure_ascii=False))
         return 0
     except (OSError, ValueError, TypeError) as error:

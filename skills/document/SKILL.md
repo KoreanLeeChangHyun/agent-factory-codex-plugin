@@ -177,7 +177,7 @@ metadata:
 ## 9. Host export, synchronization and catalog
 
 - Read [host-sync.md](references/host-sync.md) before exporting or synchronizing `docs/skills/`
-  to `.codex/skills/` and `.claude/skills/`, or cataloging and searching project Documents.
+  to `.codex/skills/`, `.claude/skills/` and `.agents/skills/`, or cataloging and searching project Documents.
 
 <a id="boundaries"></a>
 

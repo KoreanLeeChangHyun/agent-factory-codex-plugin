@@ -23,7 +23,7 @@
 - Never create ad-hoc temporary or scratch directories or files in the project root or
   alongside source; use the run's storage or the system temp directory and clean it up.
 - Artifact files are not automatically cataloged as Documents, synchronized to
-  `.codex/skills/`, `.claude/skills/`, published or committed. Preserve the task's existing permissions.
+  `.codex/skills/`, `.claude/skills/`, `.agents/skills/`, published or committed. Preserve the task's existing permissions.
 - Verify the output using checks appropriate to its format and provide a clickable
   file link in the result. Distinguish a saved file from a rendered or visually checked
   result; do not claim browser or image inspection unless it occurred.
