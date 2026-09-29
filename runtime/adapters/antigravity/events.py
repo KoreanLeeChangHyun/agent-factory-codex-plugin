@@ -202,6 +202,10 @@ class Events:
             # A Goal turn that only confirms the condition leaves the request turn's answer as the result.
             answer = self.request_answer
         terminal = {**{key: None for key in self.nullable}, **strip_markers(answer)}
+        if "decisionKind" in self.nullable and terminal.get("status") != "needs-human-decision":
+            # Gemini's schema cannot express "only with needs-human-decision", and Gemini models do
+            # fill the optional field on completed results; it carries no meaning there.
+            terminal["decisionKind"] = None
         self.finished, self.structured, self.result_event = True, terminal, result
         pending = self.deltas.flush()
         # The final response carries the result object; only prose around it is commentary.

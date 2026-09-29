@@ -644,6 +644,17 @@ def connection_worker():
                 emit({"poolDone": True, "reusable": False})
                 return 0
             emit({"poolDone": True, "reusable": True})
+            # Complete the accepted request before preparing the next connection.
+            # Only initialize a fresh server here: no thread, model call or tool.
+            # A subsequent request remains serial and applies its own configuration.
+            try:
+                rpc.restart_owned()
+                rpc.retained_thread = None
+            except Exception as error:
+                # The preceding terminal response has already been delivered.
+                # Do not emit another result or replay a queued request on failure.
+                print(f"Codex connection preparation failed: {error}", file=sys.stderr, flush=True)
+                return 1
     except Exception as error:
         emit({"type": "error", "message": str(error)[:4000]})
         emit({"poolDone": True, "reusable": False, "failed": True})

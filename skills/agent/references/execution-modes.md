@@ -147,9 +147,9 @@
   models select it. Name its other models `antigravity/<id>` (for example
   `antigravity/claude-sonnet-4-6`) or pass `--provider antigravity` with the plain `<id>`;
   a plain `claude-*` model always selects Claude Code.
-- Runs use the `agent-factory` custom agent, which the runtime writes to
-  `~/.gemini/config/agents/agent-factory/agent.md`. It replaces agy's default system prompt and
-  keeps only file, shell, web, image generation and `finish` tools; project rules (`AGENTS.md`, `GEMINI.md`) still
+- Runs use an `agent-factory-<id>` custom agent, which each installed plugin copy writes to
+  `~/.gemini/config/agents/agent-factory-<id>/agent.md` and prunes when its copy is removed. It replaces agy's default system prompt and
+  keeps only file, shell, web, image generation and `finish` tools and the Agent Factory Skills; project rules (`AGENTS.md`, `GEMINI.md`) still
   apply, and the user's agy tool servers are not loaded.
 - Every task mode and Goal are supported; Fast is a no-op and images are rejected (text only).
   Plan runs by instruction without skipped permissions, because agy's `plan` mode waits for review.

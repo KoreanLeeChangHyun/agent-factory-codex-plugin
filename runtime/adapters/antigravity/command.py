@@ -1,8 +1,10 @@
 """Antigravity print launch: phases, CLI arguments and the stream-json user message."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import sys
 import tempfile
@@ -23,7 +25,8 @@ EXECUTE_REQUEST = ("The plan above is approved. Implement it now in this session
 # subagents, ...). A custom agent replaces the prompt text and lists only the tools a managed run
 # uses; agy keeps its workspace components and, like Codex and Claude, the project's rule files
 # (AGENTS.md/GEMINI.md). `finish` must be listed: it carries --json-schema results.
-AGENT_NAME = "agent-factory"
+AGENT_PREFIX = "agent-factory-"
+AGENT_DESCRIPTION = "Agent Factory managed runs (installed by the Agent Factory runtime)."
 AGENT_TOOLS = ("view_file", "list_dir", "find_by_name", "grep_search", "write_to_file", "replace_file_content",
                "multi_replace_file_content", "notebook_edit", "run_command", "search_web", "read_url_content", "generate_image", "finish")
 AGENT_PROMPT = ("You are an autonomous coding agent launched by Agent Factory in headless print mode. The user "
@@ -35,14 +38,23 @@ AGENT_PROMPT = ("You are an autonomous coding agent launched by Agent Factory in
                 "result fields instead of setting them to null.")
 
 
-def agent_definition():
+# Agent Factory's own Skills (agent, convention, document, tool), listed for agy's progressive
+# disclosure like Codex and Claude plugin Skills: names and descriptions up front, bodies read on demand.
+SKILLS_ROOT = Path(__file__).resolve().parents[3] / "skills"
+# agy reads agents from one global directory, while Codex, Claude and a source checkout each run their
+# own plugin copy. Each copy owns an agent named for its location, so copies never overwrite each other.
+AGENT_NAME = AGENT_PREFIX + hashlib.sha256(str(SKILLS_ROOT).encode("utf-8")).hexdigest()[:12]
+
+
+def agent_definition(skills_root=SKILLS_ROOT):
     return ("---\n"
             f"name: {AGENT_NAME}\n"
-            "description: Agent Factory managed runs (installed by the Agent Factory runtime).\n"
+            f"description: {AGENT_DESCRIPTION}\n"
             "mainAgent: true\n"
             "hidden: true\n"
             "inheritCustomizations: true\n"
             "inheritMcp: false\n"
+            f"skills: [{json.dumps(str(skills_root))}]\n"
             f"tools: [{', '.join(AGENT_TOOLS)}]\n"
             "---\n"
             "# System Prompt\n"
@@ -51,7 +63,9 @@ def agent_definition():
 
 def install_agent(home=None):
     """Write the agent where agy discovers global agents; the user's project stays untouched."""
-    path = Path(home or Path.home()) / ".gemini" / "config" / "agents" / AGENT_NAME / "agent.md"
+    agents = Path(home or Path.home()) / ".gemini" / "config" / "agents"
+    path = agents / AGENT_NAME / "agent.md"
+    prune_agents(agents)
     content = agent_definition().encode("utf-8")
     try:
         if path.read_bytes() == content:
@@ -69,6 +83,24 @@ def install_agent(home=None):
         Path(temporary).unlink(missing_ok=True)
         raise
     return path
+
+
+def prune_agents(agents):
+    """Remove agents this runtime wrote for plugin copies that no longer exist (e.g. replaced versions)."""
+    try:
+        candidates = [path for path in agents.iterdir() if path.name.startswith(AGENT_PREFIX) and path.name != AGENT_NAME]
+    except OSError:
+        return
+    for directory in candidates:
+        try:
+            text = (directory / "agent.md").read_text(encoding="utf-8")
+            match = re.search(r'^skills: \[(".*")\]$', text, re.MULTILINE)
+            if f"description: {AGENT_DESCRIPTION}\n" not in text or not match or Path(json.loads(match.group(1))).exists():
+                continue  # Not ours, or its plugin copy is still installed.
+            (directory / "agent.md").unlink()
+            directory.rmdir()
+        except (OSError, ValueError):
+            continue  # Best effort: a leftover agent is harmless.
 
 
 def build_command(session, state, session_id, *, prompt_parts=False):
@@ -134,7 +166,7 @@ def cli_command(session, state, parts, phase=None):
     if phase == "plan" or sandbox(session)["type"] != "danger-full-access":
         # Without skipped permissions agy denies reads outside its workspace; the run's own files and the
         # Agent Factory Skills its instructions reference are needed.
-        command += ["--add-dir", str(Path(state["statePath"]).parent), "--add-dir", str(root / "skills")]
+        command += ["--add-dir", str(Path(state["statePath"]).parent), "--add-dir", str(SKILLS_ROOT)]
     command += [] if phase == "plan" else permission_arguments(session, working_directory)
     if session.get("sessionId"):
         command += ["--conversation", session["sessionId"]]
