@@ -88,8 +88,12 @@ def validate_terminal_result(terminal: Any, state: dict[str, Any]) -> bytes | No
             or terminal.get("resultPath") != state["resultPath"]):
         raise ContractError("result_invalid", "Codex returned an invalid terminal result")
     decision = terminal.get("decisionKind")
-    if decision not in (None, "approval", "clarification") or (decision is not None and terminal["status"] != "needs-human-decision"):
-        raise ContractError("result_invalid", "Decision kind is valid only for a Human decision result")
+    if decision not in (None, "approval", "clarification"):
+        raise ContractError("result_invalid", "Decision kind must be approval, clarification or null")
+    if decision is not None and terminal["status"] != "needs-human-decision":
+        # The flat schema cannot tie decisionKind to status, and models do fill it on
+        # completed or failed results; it carries no meaning there, so drop it.
+        terminal["decisionKind"] = None
     if not inline:
         return None
     text = terminal["resultText"]
