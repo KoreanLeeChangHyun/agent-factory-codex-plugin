@@ -32,15 +32,17 @@
 
 | Contract section | Required content |
 |---|---|
-| 목표 | Which work to do, its boundary and observable completion criteria |
-| 구조 | Exact project-relative file paths and intended add/modify/delete/move operations, shown as a directory tree with Git-style `+` and `-` markers |
-| 작업자 | Stable task IDs and the planned Main, Work and Verification assignments for each task |
-| 순서 | Task IDs, affected files, assigned Agents, dependencies and execution order |
+| 계약 정보 | A metadata table with contract ID, positive version, project root and governing specifications |
+| 작업 고용 | Planned Agent IDs and roles, including Main, Work and Verification when the selected route uses them |
+| 작업 목표 | Stable task IDs, the assigned Agent IDs, work and scope, and observable completion criteria |
+| 제약 조건 | A table of important constraints, exclusions and task dependencies, keyed by task ID where applicable |
+| 파일 구조 | Exact project-relative paths in a directory tree, with intended add/modify/delete/move operation, task ID and file-specific goal adjacent to each file |
+| 작업 순서 | A task-level diagram whose nodes use the same task IDs and whose edges visualize the dependencies recorded in 제약 조건 |
 
-- Keep the contract ID, positive version, project root and governing specifications in
-  metadata or a compact identification block, outside these four contract sections.
-- Add a separate `<!-- contract-execution-record -->` marker after the four sections,
-  followed by an `실행 기록` heading. This is an execution log, not a fifth contract
+- Keep the document front matter required by Document; the 계약 정보 table is the
+  Human-facing identification view and must agree with that front matter.
+- Add a separate `<!-- contract-execution-record -->` marker after the six sections,
+  followed by an `실행 기록` heading. This is an execution log, not a seventh contract
   section. Include the marker even before the first execution.
 - Record each execution under its bound contract version and stable task IDs, with
   workflow/run IDs, actual Agents, Work and Verification status, evidence, timestamps
@@ -49,12 +51,16 @@
 - Record the project or repository root when needed to resolve paths unambiguously.
 - Include governing specifications with path/link, relevant section and version when
   applicable; explicitly distinguish no applicable specification from one not yet found.
-- Include dependencies and task-specific constraints, preserved behavior and exclusions
-  when applicable. Separate governing specifications from optional reference material.
+- Record dependencies once in the 제약 조건 table. The 작업 순서 diagram derives its
+  arrows from those entries and must not introduce unlisted dependencies. Include
+  task-specific constraints, preserved behavior and exclusions when applicable.
+  Separate governing specifications from optional reference material.
 - Reference material, priority and desired schedule are optional; do not invent them.
-- A brief file-change purpose may aid review. Function designs, internal algorithms,
+- A brief file-specific goal is required for every planned file operation; do not
+  invent one for a historical row where it was not recorded. Function designs, internal algorithms,
   code-region tracking and detailed diffs are not required contract fields.
-- Task IDs link goals, structure, assignments, order and results. `T1` is an example, not a required
+- Task IDs link goals, constraints, files, order and results; Agent IDs link hiring,
+  goals and diagram nodes. `T1` is an example, not a required
   prefix. Preserve existing IDs and never renumber them merely to change display order.
 - Keep task-specific content in the Human-facing contract. Do not copy the common
   execution rules below or explanatory user instructions into every contract.
@@ -104,7 +110,7 @@
 - At completion, compare actual file operations with the bound version, accounting
   for the starting state; report missing or unexpected changes and task completion
   evidence. Do not call blocked, failed or unchecked work complete.
-- Update execution results under the same task IDs without rewriting the four
+- Update execution results under the same task IDs without rewriting the six
   contract sections. Revise those sections only in a new contract version.
   Report file-level outcomes and completion criteria; distinguish own checks from
   independent Verification, and retain the selected route's reporting obligations.
@@ -115,46 +121,63 @@
 
 - The paths and specification below are illustrative, not inspected project facts.
 
-### 4.1. 목표
+### 4.1. 계약 정보
 
-| Task ID | Work and boundary | Completion criteria |
+| Field | Value |
+|---|---|
+| Contract ID | `WC-example` |
+| Version | 1 |
+| Project root | `/example/project` |
+| Governing specification | None identified in this example |
+
+### 4.2. 작업 고용
+
+| Agent ID | Role |
+|---|---|
+| `main-example` | Main: coordination and execution record |
+| `work-example` | Work: implement T1 and T2 |
+| `verify-example` | Verification: independently check T1 and T2 |
+
+### 4.3. 작업 목표
+
+| Task ID | Agent IDs | Work and boundary | Completion criteria |
+|---|---|---|---|
+| T1 | `work-example`, `verify-example` | Add task selection | Individual and all-item selection can be set and cleared |
+| T2 | `work-example`, `verify-example` | Submit selected tasks | Only selected tasks are submitted; an empty selection does not execute |
+
+### 4.4. 제약 조건
+
+| Task ID | Kind | Constraint or dependency |
 |---|---|---|
-| T1 | Add task selection | Individual and all-item selection can be set and cleared |
-| T2 | Submit selected tasks | Only selected tasks are submitted; an empty selection does not execute |
+| T2 | Dependency | T1 must finish before T2 starts |
 
-### 4.2. 구조
+### 4.5. 파일 구조
 
 ```text
+Path / tree                    Change  Task ID  File goal
 src/
 ├── ui/
-│   └── +/- TaskList.tsx          T1: selection controls
+│   └── TaskList.tsx             +/-     T1      Selection controls
 ├── state/
-│   └── + taskSelection.ts       T1,T2: selection state
+│   └── taskSelection.ts         +       T1,T2   Selection state
 └── actions/
-    └── +/- submitTasks.ts      T2: submit selected tasks
+    └── submitTasks.ts           +/-     T2      Submit selected tasks
 ```
 
 - `+` means add; `-` means delete; `+/-` means modify. A move states source and
   destination explicitly. Each path also appears as an exact file operation in the
   machine-bound file list or attachment.
 
-### 4.3. 작업자
+### 4.6. 작업 순서
 
-| Task ID | Main | Work | Verification |
-|---|---|---|---|
-| T1 | Request and report | Assigned worker | Assigned verifier |
-| T2 | Request and report | Assigned worker | Assigned verifier |
-
-### 4.4. 순서
-
-| Order | Task ID | Files | Agent | Dependency |
-|---|---|---|---|---|
-| 1 | T1 | `src/ui/TaskList.tsx`, `src/state/taskSelection.ts` | Assigned worker → verifier | None |
-| 2 | T2 | `src/state/taskSelection.ts`, `src/actions/submitTasks.ts` | Assigned worker → verifier | T1 |
+```mermaid
+flowchart LR
+    T1["T1 · work-example → verify-example"] --> T2["T2 · work-example → verify-example"]
+```
 
 <!-- contract-execution-record -->
 
-### 4.5. 실행 기록
+### 4.7. 실행 기록
 
 - The actual contract file starts this separate section empty and Main records
   bound execution IDs and evidence here as work proceeds.
