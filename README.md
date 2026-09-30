@@ -26,10 +26,11 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 ### 2. Contracts → Work–Verification loop
 
-- Turn a conversation into a work contract with four sections: the **goal** with its
-  boundary and observable completion criteria, the **structure** of exact file changes
-  shown as a tree with add/modify/delete markers, the **workers** assigned to each task,
-  and the execution **order** with dependencies.
+- Turn a conversation into a work contract with six sections: contract information,
+  hired workers and their IDs, task goals with assigned worker IDs and completion criteria,
+  important constraints including task dependencies, a file tree showing each change
+  operation and file-specific goal beside its task ID, and a task-level order diagram.
+  The constraints table is the source for the diagram’s dependency arrows.
 - Each contract version at `docs/progress/<contract-id>/contract-v<N>.md` also holds
   its execution record: runs, agents, Work and Verification status, and evidence per
   task. Revisions create a new version and preserve earlier ones.
