@@ -75,7 +75,7 @@ metadata:
 |---|---|
 | Original | `<project-root>/docs/original/<category>[-<domain>]-<name>/` |
 | Refined | `<project-root>/docs/refined/<category>[-<domain>]-<name>/` |
-| Progress | `<project-root>/docs/progress/<contract-id>/progress.md` |
+| Progress | `<project-root>/docs/progress/<contract-id>/progress.md` catalog index and the execution record in the bound `contract-v<N>.md` |
 | Lessons Learned | `<project-root>/docs/lessons-learned/<id>.json` |
 | Specification (Skill document) | `<project-root>/docs/skills/<category>[-<domain>]-<name>/` |
 
@@ -103,8 +103,9 @@ metadata:
   Documents to Korean, English or the language of this guidance.
 - Refined/Specification: one entry document `SKILL.md`, optional `references/` for
   detailed Markdown documents, and optional `assets/` for attachments; no `scripts/`
-  or `agents/`. Contract Progress uses `docs/progress/<contract-id>/progress.md` and
-  explicitly linked attachments beside it. Original contains one `metadata.yaml` with metadata and links
+  or `agents/`. Contract Progress uses a `docs/progress/<contract-id>/progress.md`
+  catalog index and an execution record in the bound `contract-v<N>.md`, with
+  explicitly linked attachments beside them. Original contains one `metadata.yaml` with metadata and links
   only; it stores no copied source body or assets. Installed capability packages are
   outside this document format.
 - Keep overview, essential guidance and links to detailed topics in `SKILL.md`.

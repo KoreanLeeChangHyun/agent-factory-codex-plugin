@@ -12,6 +12,7 @@ import tempfile
 from adapters.antigravity.control import goal_commands
 from adapters.antigravity.policy import NOTICES, effort_arguments, native_model, permission_arguments, sandbox, validate
 from storage.errors import ContractError
+from tasks import orchestrator_guard
 from storage.files import atomic_write_json, safe_read_json
 
 TRANSPORT = Path(__file__).with_name("transport.py")
@@ -83,6 +84,65 @@ def install_agent(home=None):
         Path(temporary).unlink(missing_ok=True)
         raise
     return path
+
+
+# agy runs plugin hooks for every session, so the guard stays inert unless the runtime arms it
+# (orchestrate Main only). Named per plugin copy like the agent, and pruned the same way.
+GUARD_PLUGIN = AGENT_NAME + "-guard"
+GUARD_DESCRIPTION = "Agent Factory orchestrator-mode guard (installed by the Agent Factory runtime)."
+
+
+def guard_files():
+    manifest = {"name": GUARD_PLUGIN, "version": "1.0.0", "description": GUARD_DESCRIPTION}
+    hooks = {"agent-factory-orchestrator-guard": {"PreToolUse": [{"matcher": "*", "hooks": [
+        {"type": "command", "command": orchestrator_guard.HOOK_COMMAND, "timeout": 30}]}]}}
+    return {"plugin.json": json.dumps(manifest, indent=2) + "\n", "hooks.json": json.dumps(hooks, indent=2) + "\n"}
+
+
+def install_guard(home=None):
+    """Write the guard plugin where agy discovers global plugins."""
+    plugins = Path(home or Path.home()) / ".gemini" / "config" / "plugins"
+    directory = plugins / GUARD_PLUGIN
+    prune_guards(plugins)
+    for name, text in guard_files().items():
+        path = directory / name
+        try:
+            if path.read_text(encoding="utf-8") == text:
+                continue
+        except OSError:
+            pass
+        directory.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary = tempfile.mkstemp(prefix=f".{name}.", dir=directory)
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as file:
+                file.write(text)
+            os.replace(temporary, path)
+        except BaseException:
+            Path(temporary).unlink(missing_ok=True)
+            raise
+    return directory
+
+
+def prune_guards(plugins):
+    """Remove guard plugins whose plugin copy no longer exists."""
+    try:
+        candidates = [path for path in plugins.iterdir()
+                      if path.name.startswith(AGENT_PREFIX) and path.name.endswith("-guard") and path.name != GUARD_PLUGIN]
+    except OSError:
+        return
+    for directory in candidates:
+        try:
+            if json.loads((directory / "plugin.json").read_text(encoding="utf-8")).get("description") != GUARD_DESCRIPTION:
+                continue
+            hooks = (directory / "hooks.json").read_text(encoding="utf-8")
+            command = json.loads(hooks)["agent-factory-orchestrator-guard"]["PreToolUse"][0]["hooks"][0]["command"]
+            if Path(command.split(" ", 1)[1].strip("'\"")).exists():
+                continue  # Its plugin copy is still installed.
+            for name in ("plugin.json", "hooks.json"):
+                (directory / name).unlink(missing_ok=True)
+            directory.rmdir()
+        except (OSError, ValueError, KeyError, IndexError, TypeError):
+            continue  # Best effort: a leftover inert guard is harmless.
 
 
 def prune_agents(agents):

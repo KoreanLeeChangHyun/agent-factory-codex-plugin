@@ -40,7 +40,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         "--human-approval-policy", choices=HUMAN_APPROVAL_POLICIES,
         help="Main delegation approval policy; omitted sends preserve the session policy",
     )
-    parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to direct")
+    parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to orchestrate")
     parser.add_argument("--model")
     parser.add_argument("--provider", choices=("codex", "claude", "antigravity"))
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))

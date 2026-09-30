@@ -33,7 +33,7 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--input-file INPUT_FILE`: versioned agent-input JSON with sibling, file-backed images
 - `--actor {main,human}`
 - `--human-approval-policy {required,bypass}`: Main delegation approval policy; omitted sends preserve the session policy
-- `--task-mode {direct,work,plan,verification,plan-work,work-verification,plan-work-verification}`: Captured execution route; new Main requests default to direct
+- `--task-mode {orchestrate,direct,work,plan,verification,plan-work,work-verification,plan-work-verification}`: Captured execution route; new Main requests default to orchestrate
 - `--model MODEL`
 - `--provider {codex,claude,antigravity}`
 - `--reasoning-effort {none,minimal,low,medium,high,xhigh,max,ultra}`
@@ -69,7 +69,7 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--input-file INPUT_FILE`: versioned agent-input JSON with sibling, file-backed images
 - `--actor {main,human}`
 - `--human-approval-policy {required,bypass}`: Main delegation approval policy; omitted sends preserve the session policy
-- `--task-mode {direct,work,plan,verification,plan-work,work-verification,plan-work-verification}`: Captured execution route; new Main requests default to direct
+- `--task-mode {orchestrate,direct,work,plan,verification,plan-work,work-verification,plan-work-verification}`: Captured execution route; new Main requests default to orchestrate
 - `--model MODEL`
 - `--provider {codex,claude,antigravity}`
 - `--reasoning-effort {none,minimal,low,medium,high,xhigh,max,ultra}`

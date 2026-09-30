@@ -15,7 +15,9 @@
     executes them sequentially in the same session.
   - Do not collapse them into one aggregate task because they share a worker or session.
 - Every Work/Verification submission (including sends and standalone verification) requires
-  `--task-list-file <json>` and `--task-id <id>`.
+  `--task-list-file <json>` and `--task-id <id>`, except an orchestrator brief: `loop.py start`
+  without them derives a single task from the brief (see
+  [execution modes](execution-modes.md#runtime-interface)) and skips announcements.
   - Main first consolidates the Human's request and asks about any material missing information.
   - Write a JSON document with `id`, `title`, and a nonempty `tasks` array. Each task requires
     `id`, `title`, `description` and `completionCriteria`.

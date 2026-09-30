@@ -35,3 +35,16 @@ def permission_arguments(session, working_directory):
             if str(root) != str(working_directory):
                 arguments += ["--add-dir", str(root)]
     return arguments
+
+
+def orchestrator_arguments(plugin_root, run_directory):
+    """Orchestrate Main may read, write its own run files and run Agent Factory scripts; nothing else.
+
+    The run's sandbox policy is unchanged so delegated Work keeps its own permissions."""
+    # Claude permission rules spell absolute paths with a leading "//".
+    run_files = "/" + str(run_directory) + "/**"
+    # No web tools: web search is research and is delegated to Work.
+    tools = ["Read", "Grep", "Glob", f"Edit({run_files})", f"Write({run_files})",
+             f"Bash(python3 {plugin_root}/scripts/*)",
+             "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)"]
+    return ["--permission-mode", "dontAsk", "--permission-prompts", "none", "--allowedTools", ",".join(tools)]

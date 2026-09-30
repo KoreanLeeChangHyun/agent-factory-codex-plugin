@@ -1,7 +1,7 @@
 """Per-request execution routes; missing historical values retain the fixed graph."""
 from storage.errors import ContractError
 
-TASK_MODES = ("direct", "work", "plan", "verification", "plan-work", "work-verification", "plan-work-verification")
+TASK_MODES = ("orchestrate", "direct", "work", "plan", "verification", "plan-work", "work-verification", "plan-work-verification")
 LEGACY_MODE = "work-verification"
 
 
@@ -16,6 +16,12 @@ def route_instruction(mode, role):
     if role != "main":
         return ""
     routes = {
+        "orchestrate": ("Orchestrator mode. Handle conversation, planning, Interview, requirement shaping, routing and light lookups of local project files and state directly as Main. "
+                        "Any project change, web search, URL fetch or external lookup (research, however small) is delegated with a brief, not a work contract: write one request file containing Goal (one or two sentences), Scope (target files or research topic, and what not to do, e.g. no commits), Done (what must be true when finished) and Report (result summary, changed paths, sources for research), then run "
+                        "`python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode work --work-agent UNIQUE_ID --request-file BRIEF` plus the Work profile flags. No task-list JSON, announce-tasks, task-flow block, contract, progress document or lesson retrieval is needed; the runtime derives the single task shown in the panel. "
+                        "Choose the profile: workLight for bounded, already-decided changes and simple lookups; work for multi-file, design, unknown-cause or multi-source research; pass exact model IDs and efforts as --work-model/--work-reasoning-effort and retry a failed workLight attempt once with the work profile. Never pass a profile word such as light or heavy as a model; without profiles omit --work-model. "
+                        "Start separate Verification only when the Human explicitly requests it (--task-mode work-verification with --verification-agent). After acceptance, finish this turn with the accepted IDs; on the completion notification, acknowledge the exact result/receipt and report without reviewing or rerunning checks. Report separate Verification as not requested unless it ran. "
+                        "The runtime enforces Main's tool limits: read with read tools or single read-only shell commands (no redirection, chaining or substitution); write only the brief and other files inside this run's directory; run each Agent Factory script as its own `python3 <plugin-root>/scripts/` command; never edit project files or commit. If the Human asks for a commit or a direct edit, ask them to resend it in direct mode. The work-contract procedure (announcements, contract files, progress documents) belongs to Human-selected contract workflows only."),
         "direct": "Perform the bounded task directly as Main, including appropriate own checks. Do not dispatch Work or Verification for this task.",
         "plan": "Dispatch role work using exec.py submit --role work --task-mode plan. The runtime uses actual Codex Plan collaboration mode and stops after planning. Return that plan without implementation, verification, or an automatic execution transition. Do not send literal /plan text as a substitute.",
         "verification": "Resolve the inspection target from explicit input first, otherwise prior completed work in this current chat. If neither supplies an unambiguous target, ask the Human for the target; never invent Work evidence. Dispatch a managed Verification agent using exec.py submit --role verification --task-mode verification with a bounded request identifying the exact target and authorized checks. Do not pass --verified-work-run-id or --receipt-request-hash: standalone receipts bind their own target request and cannot satisfy a Work loop. Report its findings without repair or a Work dispatch.",

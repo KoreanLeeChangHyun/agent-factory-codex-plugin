@@ -6,7 +6,8 @@
 
 | Mode | Implementation | Completion |
 | --- | --- | --- |
-| `direct` (new Main input default) | Main directly | Appropriate Main checks |
+| `orchestrate` (orchestrator mode, new Main input default) | Main routes; managed Work for changes and research | Completed Work Goal and receipt with own checks; separate Verification only on explicit Human request |
+| `direct` (worker mode) | Main directly | Appropriate Main checks |
 | `work` | Managed Work | Completed Work Goal and receipt with own checks; separate Verification not requested |
 | `plan` | Actual Work Plan collaboration mode only | Return plan; no execution or Verification |
 | `verification` | Managed standalone Verification | Request-bound standalone receipt and findings; no repairs |
@@ -15,6 +16,29 @@
 | `plan-work-verification` | Actual Plan then default execution in the same Work thread | Separate Verification pass or evidenced Human skip |
 
 - Conversation and Human Interview always remain Main.
+- The Human chooses between orchestrator mode (`orchestrate`) and worker mode (`direct`).
+  In orchestrator mode Main keeps conversation, planning, Interview, requirement shaping,
+  routing, reporting, commits and light lookups (a known file or fact). It delegates every
+  project change and broader research to Work, sizing the Work model light (bounded,
+  already-decided change) or heavy (multi-file, design or unknown cause) and retrying a
+  failed light attempt once with the heavy profile. It adds Verification only when the
+  Human explicitly requests it. In worker mode Main implements directly.
+- An orchestrator brief is not a work contract. The brief carries Goal, Scope (including what
+  not to do), Done and Report; Main writes no task-list JSON, announcement, contract,
+  progress document or lesson retrieval for it. Work contracts remain the Human-selected
+  long-running procedure between the Human and Main.
+- Orchestrator mode is enforced per provider by tool permissions, not model choice. Main may
+  read, write inside its own run directory, run `python3 <plugin-root>/scripts/*` of an
+  installed Agent Factory copy and read-only Git (`status`, `diff`, `log`, `show`); it
+  cannot edit project files or commit. Commits and direct edits are requested in worker mode.
+  The run's sandbox policy is unchanged, so delegated Work keeps its permissions.
+  - Claude: `dontAsk` with an `--allowedTools` list.
+  - Codex: a session-flag `PreToolUse` hook (`runtime/tasks/orchestrator_guard.py`) on
+    `Bash` and `apply_patch`. The runtime adds an exact-hash `hooks.state` trust entry to the
+    user's Codex config on first use and fails the run if Codex does not trust the hook.
+  - Antigravity: the same guard as a global plugin hook (`~/.gemini/config/plugins/
+    agent-factory-<id>-guard/`). It is inert unless the runtime arms it through the
+    `AGENT_FACTORY_ORCHESTRATOR_GUARD` environment of an orchestrate Main run.
 - Selecting a mode does not satisfy the independent Human approval gate or expand
   execution permissions.
 - Composer actions send the current draft through Main immediately and are never persisted.
@@ -26,10 +50,15 @@
 
 ## 2. Runtime interface
 
-- `exec.py submit/send --task-mode MODE` snapshots the route. New Main requests without a flag capture `direct`;
+- `exec.py submit/send --task-mode MODE` snapshots the route. New Main requests without a flag capture `orchestrate`;
   persisted runs with no mode use `work-verification`. Explicit flags participate in the
   immutable dispatch tuple.
-- Main performs `direct` work itself; do not create a direct-mode loop.
+- `loop.py start` without `--task-list-file`/`--task-id` is the orchestrator brief route: the
+  runtime derives one task (title from the brief's first line) so the panel shows it; no
+  announcement check applies. Announced lists keep their full binding contract.
+- Main performs `direct` work itself; do not create a direct-mode loop. `orchestrate` is
+  Main-only: Main starts `loop.py start --task-mode work` (or a verification route on
+  explicit request) and never submits Work with `--task-mode orchestrate`.
 - `loop.py start --task-mode work --work-agent ID --request-file PATH` (also `--task-mode plan-work`) needs no Verification identity. Its completed Work
   receipt ends the loop with terminal reason `work-completed`. Main acknowledges the bound result/receipt and reports without reviewing implementation
   or rerunning checks.
@@ -65,7 +94,7 @@
 
 ## 4. Reports and authority
 
-- Use `not requested` for separate Verification in direct/work/plan-work modes, not
+- Use `not requested` for separate Verification in orchestrate/direct/work/plan-work modes, not
   `pass` or Human skip.
 - Report Main's own checks for direct and Work-reported own checks for delegated work separately
   from independent Verification. Status and receipt identity checks do not re-verify work.

@@ -26,6 +26,8 @@ from adapters.codex.capabilities import (  # noqa: F401 - re-exported; callers p
     NativeError, RpcError, CAPABILITY_CACHE_TTL, _cached_capabilities, _capability_identity, _probe_capabilities, inspect_capabilities,
 )
 from adapters.codex.events import NotificationHandlers
+from adapters.codex import policy as codex_policy
+from tasks import orchestrator_guard
 
 
 def service_tier(models: list[dict], model: str, fast: bool | None) -> str | None:
@@ -326,6 +328,8 @@ class Bridge(NotificationHandlers):
             self.rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
             self.rpc.write({"method": "initialized"})
             self.rpc.initialized = True
+        if orchestrator_guard.orchestrating(self.state, self.session):
+            codex_policy.ensure_guard_trusted(self.rpc, self.session.get("workingDirectory", self.session["projectRoot"]))
         if self.session.get("nativeCapabilities", {}).get("instructionDelivery") is True:
             # Compose effective user/project configuration before creating a thread.
             # A failed/ambiguous read must not silently discard user instructions.
@@ -623,18 +627,26 @@ def bridge_services():
 def connection_worker():
     runtime = bridge_services()
     rpc = None
+    current = {}
     try:
         for line in sys.stdin:
             request = json.loads(line)
             state = runtime.safe_read_json(Path(request["statePath"]))
             runtime.runtime_paths.bind(state["runtimeBinding"])
             session = runtime.safe_read_json(Path(state["nativeSessionPath"]))
+            current.update(state=state, session=session)
             if rpc is None:
                 def factory():
-                    return subprocess.Popen([session["codex"], "app-server", "--listen", "stdio://"],
+                    command, environment = codex_policy.app_server(current["session"], current["state"])
+                    return subprocess.Popen(command,
                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr,
-                        text=True, encoding="utf-8", bufsize=1)
+                        text=True, encoding="utf-8", bufsize=1, env=environment)
                 rpc = Rpc(factory(), process_factory=factory)
+                rpc.guard_signature = codex_policy.guard_signature(state, session)
+            elif rpc.guard_signature != codex_policy.guard_signature(state, session):
+                # The hook and its arming variable are process-wide; switch them with the run's mode.
+                rpc.restart_owned()
+                rpc.guard_signature = codex_policy.guard_signature(state, session)
             prompt = PromptParts.decode(request["prompt"]) if request["parts"] else request["prompt"]
             bridge = Bridge(runtime, session, state, rpc)
             bridge.run(prompt)
@@ -852,9 +864,9 @@ def main():
     elif sys.argv[2:]:
         raise NativeError("Unsupported native prompt transport")
     def process_factory():
-        return subprocess.Popen([session["codex"], "app-server", "--listen", "stdio://"],
-                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr,
-                                text=True, encoding="utf-8", bufsize=1)
+        command, environment = codex_policy.app_server(session, state)
+        return subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr,
+                                text=True, encoding="utf-8", bufsize=1, env=environment)
     rpc = Rpc(process_factory(), process_factory=process_factory)
     try:
         Bridge(runtime, session, state, rpc).run(prompt)

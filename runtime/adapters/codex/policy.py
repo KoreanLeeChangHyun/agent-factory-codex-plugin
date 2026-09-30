@@ -7,6 +7,7 @@ import hashlib
 import os
 import re
 from execution.policy import _open_regular, _json
+from tasks import orchestrator_guard
 
 
 # Exact-run named permissions; never grant the read-only code root write access.
@@ -216,3 +217,51 @@ def command_params(policy, run_directory):
         "excludeSlashTmp": sandbox["exclude_slash_tmp"],
     }}
 
+
+# Orchestrator-mode enforcement for Codex Main through a session-flag PreToolUse hook.
+GUARD_MATCHER = "^(Bash|apply_patch)$"
+
+
+def guard_hook_toml():
+    handler = f'{{type="command", command={json.dumps(orchestrator_guard.HOOK_COMMAND)}, timeout=30}}'
+    return f'hooks.PreToolUse=[{{matcher={json.dumps(GUARD_MATCHER)}, hooks=[{handler}]}}]'
+
+
+def app_server(session, state):
+    """App-server argv and environment; only orchestrate Main runs carry the hook and its arming variable."""
+    command = [session["codex"], "app-server", "--listen", "stdio://"]
+    environment = dict(os.environ)
+    environment.pop(orchestrator_guard.ENV, None)
+    if orchestrator_guard.orchestrating(state, session):
+        command += ["-c", guard_hook_toml()]
+        environment.update(orchestrator_guard.environment(state))
+    return command, environment
+
+
+def guard_signature(state, session):
+    return json.dumps(app_server({"codex": ""}, state)[0] + [json.dumps(
+        orchestrator_guard.environment(state) if orchestrator_guard.orchestrating(state, session) else {})])
+
+
+def ensure_guard_trusted(rpc, cwd):
+    """Codex runs session-flag hooks only when the user config trusts their exact hash.
+
+    Trust exactly this hook definition (an additive hooks.state entry), then confirm it is active."""
+    def ours():
+        listing = rpc.call("hooks/list", {"cwds": [cwd]})
+        for entry in listing.get("data", []):
+            for hook in entry.get("hooks", []):
+                if (hook.get("source") == "sessionFlags" and hook.get("eventName") == "preToolUse"
+                        and hook.get("command") == orchestrator_guard.HOOK_COMMAND):
+                    return hook
+        return None
+    hook = ours()
+    if hook is None:
+        raise RuntimeError("Codex did not load the orchestrator guard hook")
+    if hook.get("trustStatus") in ("trusted", "managed"):
+        return
+    rpc.call("config/value/write", {"keyPath": "hooks.state", "mergeStrategy": "upsert",
+                                    "value": {hook["key"]: {"trusted_hash": hook["currentHash"]}}})
+    hook = ours()
+    if not hook or hook.get("trustStatus") not in ("trusted", "managed"):
+        raise RuntimeError("Codex did not trust the orchestrator guard hook; orchestrator mode cannot be enforced")

@@ -23,11 +23,13 @@
 
 ## 2. Package and metadata
 
-- Store each contract and its progress at `docs/progress/<contract-id>/`. Use `contract-v<N>.md`
-  for immutable contract versions, `progress.md` for current task status, and explicitly
-  linked sibling files for detailed attachments.
-- Record the contract ID, contract version, task IDs, status, check evidence and blockers
-  in `progress.md`. Preserve prior contract versions instead of overwriting them.
+- Store each contract at `docs/progress/<contract-id>/`. Use `contract-v<N>.md` for
+  versioned contract sections and the execution record bound to that version.
+  Keep `progress.md` as the catalog entry and contract version index. Existing
+  `progress.md` task records retain their historical content.
+- Record task IDs, actual status, check evidence and blockers in the bound contract
+  version's execution-record section. Preserve prior contract sections; revise them
+  only by writing a new version. Link sibling attachments from the contract or index.
 - Each `contract-v<N>.md` records the same contract ID and numeric version represented by
   its directory and filename: metadata `document-type: processed`, `contract-id: <id>` and
   integer `contract-version: <N>`. `progress.md` uses `document-type: progress` and the same

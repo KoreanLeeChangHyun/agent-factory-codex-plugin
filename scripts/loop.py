@@ -498,17 +498,26 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     if not request.decode("utf-8").strip():
         raise agent_exec.ContractError("request_invalid", "request must not be empty")
     from tasks import binding as task_binding
-    if getattr(args, "task_list_file", None) is None or not getattr(args, "task_id", None):
-        raise agent_exec.ContractError("task_binding_required", "Delegated execution requires --task-list-file and --task-id before dispatch")
-    # Read once, normalize a private snapshot, and hash exactly the bytes we retain.
-    submitted_document = agent_exec.safe_read_json(args.task_list_file)
+    if (getattr(args, "task_list_file", None) is None) != (not getattr(args, "task_id", None)):
+        raise agent_exec.ContractError("task_binding_required", "--task-list-file and --task-id are supplied together")
     parent = agent_exec.managed_parent_identity(root)
-    if parent is not None:
-        from tasks import announcement as task_announcement
-        with agent_exec.file_lock(agent_exec.agent_directory(root, parent["agentId"]) / ".dispatch.lock"):
-            agent_exec.require_current_parent_conversation(root, parent)
-            task_announcement.check_submission(agent_exec.safe_read_json,
-                agent_exec.state_file(root, parent["agentId"], parent["runId"]), parent, submitted_document)
+    if getattr(args, "task_list_file", None) is None:
+        # Orchestrator dispatch: one brief, one task. The runtime derives the list so Main
+        # writes no task-list JSON or announcement; the panel still shows this single task.
+        submitted_document = task_binding.brief_document(request.decode("utf-8"))
+        args.task_id = submitted_document["tasks"][0]["id"]
+        if parent is not None:
+            with agent_exec.file_lock(agent_exec.agent_directory(root, parent["agentId"]) / ".dispatch.lock"):
+                agent_exec.require_current_parent_conversation(root, parent)
+    else:
+        # Read once, normalize a private snapshot, and hash exactly the bytes we retain.
+        submitted_document = agent_exec.safe_read_json(args.task_list_file)
+        if parent is not None:
+            from tasks import announcement as task_announcement
+            with agent_exec.file_lock(agent_exec.agent_directory(root, parent["agentId"]) / ".dispatch.lock"):
+                agent_exec.require_current_parent_conversation(root, parent)
+                task_announcement.check_submission(agent_exec.safe_read_json,
+                    agent_exec.state_file(root, parent["agentId"], parent["runId"]), parent, submitted_document)
     task_document, binding = task_binding.resolve(
         submitted_document, args.task_id, hashlib.sha256(request).hexdigest())
     tasks = task_document["tasks"]
@@ -1017,8 +1026,8 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     start = commands.add_parser("start")
     agent_exec.add_project_argument(start)
-    start.add_argument("--task-list-file", type=Path, required=True)
-    start.add_argument("--task-id", required=True)
+    start.add_argument("--task-list-file", type=Path, help="Announced task list; omitted for an orchestrator brief, which becomes a single runtime-derived task")
+    start.add_argument("--task-id", help="Selected task in --task-list-file")
     start.add_argument("--request-file", type=Path, required=True)
     start.add_argument("--work-agent", required=True)
     start.add_argument("--task-mode", choices=("work", "plan-work", "work-verification", "plan-work-verification"), default="work-verification")

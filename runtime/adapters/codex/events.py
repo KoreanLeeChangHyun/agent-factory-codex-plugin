@@ -20,9 +20,46 @@ def item_event(method: str, item: dict) -> dict:
     return {"type": method.replace("/", "."), "item": item}
 
 
+class CommentaryText:
+    """Stream plain commentary verbatim or extract resultText from schema JSON."""
+
+    def __init__(self):
+        self.buffer = ""
+        self.decoder = None
+
+    def feed(self, fragment: str) -> str:
+        if self.decoder is False:
+            return fragment
+        if self.decoder is not None:
+            return self.decoder.feed(fragment)
+        self.buffer += fragment
+        stripped = self.buffer.lstrip()
+        if not stripped:
+            return ""
+        if not stripped.startswith("{"):
+            text, self.buffer, self.decoder = self.buffer, "", False
+            return text
+        self.decoder = JsonStringField()
+        text, self.buffer = self.buffer, ""
+        return self.decoder.feed(text)
+
+
 def agent_message_stream(item: dict):
-    """Live-preview stream for an agent message: commentary verbatim, the final message's resultText."""
-    return ("commentary", None) if item.get("phase") == "commentary" else ("final", JsonStringField())
+    """Live-preview stream for an agent message, unwrapping structured resultText."""
+    return ("commentary", CommentaryText()) if item.get("phase") == "commentary" else ("final", JsonStringField())
+
+
+def commentary_text(item: dict) -> str:
+    """Return the authoritative commentary text without exposing its schema envelope."""
+    text = item.get("text", "")
+    if not isinstance(text, str):
+        return ""
+    try:
+        structured = json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return text
+    result = structured.get("resultText") if isinstance(structured, dict) else None
+    return result if isinstance(result, str) else text
 
 
 def emit(event):
@@ -95,7 +132,7 @@ class NotificationHandlers:
         if kind == "agentMessage":
             identity = str(item.get("id", ""))
             if method == "item/started":
-                # Commentary streams verbatim; the final message is schema JSON, so preview its resultText.
+                # Current Codex versions can schema-wrap commentary as well as the final message.
                 self.streams[identity] = agent_message_stream(item)
             else:
                 for pending in self.deltas.flush(identity):
@@ -108,7 +145,7 @@ class NotificationHandlers:
                 self.turn_messages[owner] = item.get("text")
             # Retain commentary; terminal messages are emitted only at run end.
             if item.get("phase") == "commentary":
-                emit({"type": "native.commentary", "text": item.get("text", "")})
+                emit({"type": "native.commentary", "text": commentary_text(item)})
         else:
             emit(item_event(method, item))
         return False

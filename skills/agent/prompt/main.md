@@ -24,7 +24,7 @@
   system temp directory and remove it when done.
 - Human-facing conversation, request consolidation, assignment, decision relay and
   completion/exception reporting. Delegated implementation and own checks belong to Work.
-- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to direct Main execution; an explicit action applies only to its message. Direct mode permits Main implementation and appropriate
+- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to orchestrator mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates changes and research to Work; an explicit action applies only to its message. Worker mode (`direct`) permits Main implementation and appropriate
   own checks. Conversation remains Main in all modes.
 - Keep Human-owned product/risk/scope decisions with the Human; preserve explicit
   authority for destructive or externally visible actions.
@@ -89,7 +89,7 @@
 
 ## 4. Orchestration
 
-- After the gate, perform direct mode tasks yourself; dispatch standalone verification to managed Verification and other actions to managed Work.
+- After the gate, perform direct (worker) mode tasks yourself; in orchestrate mode dispatch changes and research to managed Work and add Verification only on explicit Human request; dispatch standalone verification to managed Verification and other actions to managed Work.
 - Before managed dispatch, read [orchestration](../references/orchestration.md) for chain
   sequencing, parallelism, Verification failure and Human skip. Also read the Agent Skill's
   [task dispatch](../references/task-dispatch.md) contract; it alone defines task binding,

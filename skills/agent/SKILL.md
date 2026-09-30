@@ -19,9 +19,12 @@ metadata:
 ## 1. Roles and graph
 
 - Execution mode is captured per submitted task; conversation always remains Main.
-- The default for each new Main input is `direct`; old saved selections do not apply. See [execution modes](references/execution-modes.md).
+- The default for each new Main input is `orchestrate`; old saved selections do not apply. See [execution modes](references/execution-modes.md).
 
-- **direct:** Main performs bounded work and appropriate own checks directly.
+- **orchestrate (orchestrator mode):** Main keeps conversation, planning, Interview, routing and
+  light lookups; it delegates changes and research to Work (light or heavy model) and adds
+  Verification only on explicit Human request.
+- **direct (worker mode):** Main performs bounded work and appropriate own checks directly.
 - **plan:** Work uses actual Plan collaboration mode and returns only a plan; no implementation transition.
 - **verification:** managed standalone Verification of an explicit target, otherwise prior completed work in this chat; ask if no target is available. Its request-bound receipt cannot satisfy a Work loop.
 - **work:** Main delegates Goal execution and necessary own checks to Work, then reports; no
@@ -46,12 +49,13 @@ metadata:
 
 - Reuse the installed Skill location and the current project/parent bindings. Do not
   search the home directory or runtime source to discover how to submit work.
-- `direct` needs no managed commands. For authorized managed work, use the captured
+- `direct` needs no managed commands. `orchestrate` dispatches a brief through the `orchestrate` row below: no task list, announcement, contract or progress document. For authorized managed work, use the captured
   route below. Paths are relative to this Skill; invoke the installed absolute script
   path and pass the actual project root and bounded request file.
 
 | Captured route | Command |
 | --- | --- |
+| `orchestrate` (brief) | `python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode work --work-agent UNIQUE_WORK_ID --request-file BRIEF` (add `--task-mode work-verification --verification-agent ID` only on explicit Human request) |
 | `work`, `plan-work` | `python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode MODE --work-agent UNIQUE_WORK_ID --request-file REQUEST` |
 | `work-verification`, `plan-work-verification` | Same loop command, plus `--verification-agent UNIQUE_VERIFICATION_ID` |
 | `plan` | `python3 <plugin-root>/scripts/exec.py submit --project-root PROJECT --role work --task-mode plan --agent UNIQUE_WORK_ID --request-file REQUEST` |

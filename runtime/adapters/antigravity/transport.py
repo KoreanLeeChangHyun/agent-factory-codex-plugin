@@ -17,7 +17,7 @@ if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from adapters.antigravity.command import (  # noqa: F401 - re-exported for callers and tests
-    EXECUTE_REQUEST, PLAN_MODES, PLAN_REQUEST, build_command, cli_command, install_agent, planning_phases, result_schema,
+    EXECUTE_REQUEST, PLAN_MODES, PLAN_REQUEST, build_command, cli_command, install_agent, install_guard, planning_phases, result_schema,
 )
 from adapters.antigravity.control import goal_record, publish_goal
 from adapters.antigravity.events import Events  # noqa: F401
@@ -26,6 +26,7 @@ from adapters.antigravity.policy import effort, native_model, validate
 from execution.prompts import PromptParts
 from storage import paths as runtime_paths
 from storage.errors import ContractError
+from tasks import orchestrator_guard
 from storage.files import now, safe_read_json
 
 # Host markers that describe the invoking agent, never this child.
@@ -110,8 +111,12 @@ def main():
         session = safe_read_json(Path(sys.argv[2]))
         validate({**session, **state.get("executionOptions", {})})
         parts = PromptParts.decode(sys.stdin.read())
-        environment = {key: value for key, value in os.environ.items() if key not in HOST_MARKERS}
+        environment = {key: value for key, value in os.environ.items()
+                       if key not in HOST_MARKERS and key != orchestrator_guard.ENV}
         install_agent()
+        install_guard()
+        if orchestrator_guard.orchestrating(state, session):
+            environment.update(orchestrator_guard.environment(state))
         # Base Gemini ids take --effort only at levels the model offers (gemini-3.1-pro: low and high).
         levels = {}
         if effort(session.get("reasoningEffort")) and str(native_model(session.get("model")) or "").startswith("gemini-"):

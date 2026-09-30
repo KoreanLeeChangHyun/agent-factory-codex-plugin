@@ -9,7 +9,7 @@ import uuid
 
 from adapters.claude.capabilities import MODELS
 from adapters.claude.control import goal_commands
-from adapters.claude.policy import effort, permission_arguments, validate
+from adapters.claude.policy import effort, orchestrator_arguments, permission_arguments, validate
 from storage.files import atomic_write, atomic_write_json, safe_read_bytes, safe_read_json
 
 TRANSPORT = Path(__file__).with_name("transport.py")
@@ -57,6 +57,8 @@ def cli_command(session, state, parts, phase=None):
     working_directory = session.get("workingDirectory", session.get("projectRoot"))
     if phase == "plan":
         command += ["--permission-mode", "plan", "--permission-prompts", "none"]
+    elif state.get("role") == "main" and state.get("executionOptions", {}).get("taskMode") == "orchestrate":
+        command += orchestrator_arguments(root, directory)
     else:
         command += permission_arguments(session, working_directory)
     if session.get("sessionId"):

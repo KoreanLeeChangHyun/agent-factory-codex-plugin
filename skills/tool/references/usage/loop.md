@@ -6,7 +6,9 @@ Rules for when and why to run it stay in the owning Skill listed in [SKILL.md](.
 Every subcommand with options also accepts: `--project-root PROJECT_ROOT`, `--runtime-home RUNTIME_HOME`, `--project-id PROJECT_ID`.
 
 ## `start`
-Required: `--task-list-file TASK_LIST_FILE`, `--task-id TASK_ID`, `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
+Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
+- `--task-list-file TASK_LIST_FILE`: Announced task list; omitted for an orchestrator brief, which becomes a single runtime-derived task
+- `--task-id TASK_ID`: Selected task in --task-list-file
 - `--task-mode {work,plan-work,work-verification,plan-work-verification}`
 - `--verification-agent VERIFICATION_AGENT`
 - `--codex CODEX`

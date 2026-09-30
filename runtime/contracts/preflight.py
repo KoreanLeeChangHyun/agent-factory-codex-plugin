@@ -28,8 +28,10 @@ def validate_contract(document):
     if not isinstance(progress, dict) or progress.get("owner") != "main":
         fail("Main must own the shared contract progress record")
     progress_path = path(progress.get("path"))
-    if progress_path != f"docs/progress/{contract['id']}/progress.md":
-        fail("Progress path must match the contract ID")
+    legacy_path = f"docs/progress/{contract['id']}/progress.md"
+    contract_path = f"docs/progress/{contract['id']}/contract-v{contract['version']}.md"
+    if progress_path not in {legacy_path, contract_path}:
+        fail("Progress path must match the contract ID and version")
     operations = contract.get("fileOperations")
     if not isinstance(operations, list):
         fail("Declare the contract file operations")
@@ -45,7 +47,7 @@ def validate_contract(document):
         destination = path(item.get("destination")) if item["operation"] == "move" else None
         allowed.update((task, item["operation"], target, destination) for task in ids)
     if not any(item.get("path") == progress_path and item.get("operation") == "modify" for item in operations):
-        fail("Include Main's progress update in the contract file operations")
+        fail("Include Main's execution record update in the contract file operations")
     for task in document["tasks"]:
         required = task.get("requiredFileOperations")
         if not isinstance(required, list):

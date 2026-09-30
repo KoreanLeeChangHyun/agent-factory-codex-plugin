@@ -280,13 +280,13 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         )
     execution_options = requested_execution(args)
     if role == "main":
-        execution_options.setdefault("taskMode", "direct")
+        execution_options.setdefault("taskMode", "orchestrate")
     adapters.adapter(provider).validate({**(stored_session or {}), **execution_options,
                                          "role": role, "executionPolicy": policy})
     from tasks.modes import validate_mode
     if "taskMode" in execution_options:
         validate_mode(execution_options["taskMode"])
-        if (role == "verification" and not standalone) or (role == "work" and execution_options["taskMode"] in ("direct", "verification")):
+        if (role == "verification" and not standalone) or (role == "work" and execution_options["taskMode"] in ("orchestrate", "direct", "verification")):
             raise ContractError("task_mode_role_invalid", "Task mode is incompatible with this role")
     goal_action = getattr(args, "goal_action", None)
     if role == "main" and execution_options.get("taskMode") != "direct" and execution_options.get("goalMode", (stored_session or {}).get("goalMode")) is True:
@@ -314,7 +314,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         # Accepted dispatches retain their immutable tuple and existing deduplication path.
         accepted_retry = parent is not None and any(value.get("dispatchId") == dispatch_id
                              for value in iter_run_states(project_root, args.agent))
-        if parent is not None and not accepted_retry:
+        # A runtime-derived orchestrator brief has no announcement by design.
+        if parent is not None and not accepted_retry and task_document.get("brief") is not True:
             from tasks import announcement as task_announcement
             with file_lock(agent_directory(project_root, parent["agentId"]) / ".dispatch.lock"):
                 require_current_parent_conversation(project_root, parent)

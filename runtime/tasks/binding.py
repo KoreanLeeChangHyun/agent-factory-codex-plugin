@@ -1,6 +1,7 @@
 """Required task identity for delegated execution, independent of UI messages."""
 from __future__ import annotations
 import copy
+import hashlib
 import re
 from storage.errors import ContractError
 
@@ -55,3 +56,22 @@ def load(read_json, path, task_id, request_hash):
     if path is None or not task_id:
         raise ContractError("task_binding_required", "Delegated execution requires --task-list-file and --task-id before dispatch")
     return resolve(read_json(path), task_id, request_hash)[1]
+
+
+def brief_document(request):
+    """A single-task list derived from an orchestrator brief.
+
+    The title is the brief's first content line: label-only lines such as "# Brief" or
+    "Goal:" are skipped, and a "Goal: text" line contributes its text."""
+    text = request.strip()
+    title = "Task"
+    for line in text.splitlines():
+        candidate = re.sub(r"^[#>*\-\s]+", "", line).strip()
+        candidate = re.sub(r"^(?:brief|goal|objective|task)\s*[:\-]?\s*", "", candidate, flags=re.I).strip()
+        if candidate and not re.fullmatch(r"(?:scope|done|report|constraints?)\s*:?", candidate, flags=re.I):
+            title = candidate[:120]
+            break
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+    return {"id": f"brief-{digest}", "title": title, "brief": True, "tasks": [
+        {"id": f"task-{digest}", "title": title, "description": text[:4000],
+         "completionCriteria": "The brief's stated result is produced and its own checks pass."}]}
