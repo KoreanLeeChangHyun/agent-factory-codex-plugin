@@ -12,6 +12,9 @@ def inspect_capabilities(executable, **kwargs):
     for operation in ("submit", "send"):
         capabilities[operation] = {**capabilities.get(operation, {}), "images": True, "taskModes": modes,
                                    "automaticRequestHash": True, "worktrees": True}
+        if capabilities[operation].get("instructionDelivery") is True:
+            # workSubagents: a Work launch on the app-server backend lets the model start no sub-agent.
+            capabilities[operation]["workSubagents"] = "none"
     return capabilities
 
 
@@ -87,6 +90,14 @@ def prepare(session, state, request):
 
 def uses_prompt_parts(session):
     return session.get("backend") == "app-server"
+
+
+def final_output_schema(session, goal_action=None):
+    """Every Codex final result is schema-constrained.
+
+    A native Goal turn cannot carry a per-turn outputSchema and follows instructions only; when its
+    final message does not satisfy the result contract, the bridge asks once more in a turn that does."""
+    return True
 
 
 def fatal_error_events(session):

@@ -23,13 +23,16 @@ def create_run(
     verified_work_run_id: str | None = None,
     dispatch_id: str | None = None,
     dispatch_operation: str | None = None,
+    requested_codex: str | None = None,
     capability_bindings: bytes | None = None,
     execution_options: dict[str, Any] | None = None,
+    work_profile: str | None = None,
     goal_action: str | None = None,
     images: list[dict[str, Any]] | None = None,
     parent_agent_id: str | None = None,
     parent_run_id: str | None = None,
     task_binding: dict[str, Any] | None = None,
+    response_contract: int | None = None,
 ) -> dict[str, Any]:
     run_id = runtime.new_run_id()
     directory = runtime.run_directory(project_root, agent_id, run_id, create=True)
@@ -58,8 +61,12 @@ def create_run(
         capability_binding_document = runtime.validate_capability_bindings(json.loads(capability_bindings))
         runtime.atomic_write(capability_binding_path, capability_bindings)
         capability_binding_hash = hashlib.sha256(capability_bindings).hexdigest()
-    runtime.atomic_write_json(response_schema, runtime.response_schema_document(str(result_path)))
     role = str(session["role"])
+    structured_receipt = structured_receipt_run(
+        runtime, session, execution_options, goal_action,
+        bound=capability_bindings is not None, requested=response_contract)
+    runtime.atomic_write_json(
+        response_schema, runtime.response_schema_document(str(result_path), receipt=structured_receipt))
     if role in {"work", "verification"}:
         runtime.atomic_write_json(
             receipt_schema,
@@ -111,6 +118,9 @@ def create_run(
         state["conversationId"] = session["conversationId"]
     if role == "main":
         state["taskAnnouncementContract"] = 1
+    if structured_receipt:
+        # Captured once: this run finishes under the contract it started with.
+        state["responseContract"] = runtime.receipt_contracts.STRUCTURED_RESPONSE_CONTRACT
     if parent_agent_id is not None and parent_run_id is not None:
         state["parentAgentId"] = parent_agent_id
         state["parentRunId"] = parent_run_id
@@ -121,6 +131,8 @@ def create_run(
         state["imageInputs"] = image_inputs
     if execution_options:
         state["executionOptions"] = execution_options
+    if work_profile is not None:
+        state["workProfile"] = work_profile
     state["humanApprovalPolicy"] = session.get("humanApprovalPolicy", "required")
     if "executionPolicy" in session:
         state["executionPolicy"] = session["executionPolicy"]
@@ -137,6 +149,8 @@ def create_run(
             "verifiedWorkRunId": verified_work_run_id,
             "operation": dispatch_operation,
         }
+        if requested_codex is not None:
+            state["dispatchTuple"]["requestedCodex"] = requested_codex
         if task_binding is not None:
             state["dispatchTuple"]["taskBinding"] = task_binding
         if parent_agent_id is not None and parent_run_id is not None:
@@ -149,6 +163,8 @@ def create_run(
         state["dispatchTuple"]["humanApprovalPolicy"] = state["humanApprovalPolicy"]
         if execution_options:
             state["dispatchTuple"]["executionOptions"] = execution_options
+        if work_profile is not None:
+            state["dispatchTuple"]["workProfile"] = work_profile
         if goal_action:
             state["dispatchTuple"]["goalAction"] = goal_action
         if capability_binding_hash is not None:
@@ -188,6 +204,23 @@ def create_run(
         runtime.atomic_write_json(reference_path, {"agentId": agent_id, "runId": run_id,
             "parentAgentId": parent_agent_id, "parentRunId": parent_run_id, "role": role})
     return state
+
+
+def structured_receipt_run(runtime, session, execution_options, goal_action, *, bound, requested) -> bool:
+    """Whether a new run returns its Work receipt in the structured final output (response contract 2).
+
+    The file contract stays for a caller that captured it (`requested`), for plan-only Work
+    (the host records that receipt), for capability-bound runs (their outcomes carry fixed
+    bindings) and where the provider cannot attach the response schema to the final turn."""
+    contracts = runtime.receipt_contracts
+    if requested is not None and requested not in contracts.RESPONSE_CONTRACTS:
+        raise runtime.ContractError("response_contract_invalid", "Response contract version is unsupported")
+    options = execution_options or {}
+    if (session.get("role") != "work" or requested == contracts.FILE_RESPONSE_CONTRACT or bound
+            or options.get("taskMode") == "plan"):
+        return False
+    effective = {**session, **{key: options[key] for key in ("goalMode",) if key in options}}
+    return runtime.adapters.for_session(session).final_output_schema(effective, goal_action) is True
 
 
 def create_session(runtime, args: argparse.Namespace, project_root: Path) -> dict[str, Any]:

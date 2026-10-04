@@ -9,8 +9,9 @@ import uuid
 
 from adapters.claude.capabilities import MODELS
 from adapters.claude.control import goal_commands
-from adapters.claude.policy import effort, orchestrator_arguments, permission_arguments, validate
+from adapters.claude.policy import effort, orchestrator_arguments, permission_arguments, validate, work_subagent_arguments
 from storage.files import atomic_write, atomic_write_json, safe_read_bytes, safe_read_json
+from contracts.receipts import result_only_schema
 
 TRANSPORT = Path(__file__).with_name("transport.py")
 
@@ -50,6 +51,8 @@ def cli_command(session, state, parts, phase=None):
     # those constraints and leave the persisted runtime schema unchanged.
     schema = dict(safe_read_json(Path(state["responseSchemaPath"])))
     schema.pop("$schema", None)
+    if phase == "plan":
+        schema = result_only_schema(schema)  # A plan completes no Work, so it returns no receipt fields.
     # Partial messages stream text as it is generated; every CLI with the options below supports them.
     command = [session["claude"], "-p", "--input-format", "stream-json", "--output-format", "stream-json",
                "--verbose", "--include-partial-messages", "--replay-user-messages", "--append-system-prompt-file", str(fixed), "--system-prompt-snapshot", "off",
@@ -61,6 +64,8 @@ def cli_command(session, state, parts, phase=None):
         command += orchestrator_arguments(root, directory)
     else:
         command += permission_arguments(session, working_directory)
+    if state.get("role") == "work":
+        command += work_subagent_arguments()  # Every Work phase, including plan.
     if session.get("sessionId"):
         command += ["--resume", session["sessionId"]]
     if session.get("model"):

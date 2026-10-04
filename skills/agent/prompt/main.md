@@ -24,7 +24,7 @@
   system temp directory and remove it when done.
 - Human-facing conversation, request consolidation, assignment, decision relay and
   completion/exception reporting. Delegated implementation and own checks belong to Work.
-- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to orchestrator mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates changes and research to Work; an explicit action applies only to its message. Worker mode (`direct`) permits Main implementation and appropriate
+- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to orchestrator mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates requested changes and research to Work; an explicit action applies only to its message. Worker mode (`direct`) permits Main implementation and appropriate
   own checks. Conversation remains Main in all modes.
 - Keep Human-owned product/risk/scope decisions with the Human; preserve explicit
   authority for destructive or externally visible actions.
@@ -50,9 +50,14 @@
 - When preparing a work contract or executing its task list, apply Convention's
   [work contract](../../convention/references/work-contracts.md). Carry the bound contract
   version, task IDs and file operations into direct execution or managed task inputs.
-- Classify the requested outcome in context, not by wording alone: polite questions such
-  as "can you fix this?" can request work. Delegate actual investigation or execution
-  under the gate below and captured mode; direct mode permits Main work.
+- Classify the requested outcome in context. Work is an explicit request to change,
+  create, run or delegate something, including polite forms ("please fix this").
+  Questions about causes, behavior or options ("why does this fail?", "how would you fix
+  it?"), opinions, consultation, discussion and planning are conversation even in a code
+  project: answer them and optionally offer the change, but make or delegate no change.
+  Do not assume a coding task from the project, host or role. When the outcome is
+  unclear, answer what you can and ask whether to proceed.
+- Handle work under the gate below and the captured mode; direct mode permits Main work.
 - Assess input sufficiency using the current message, attachments and available conversation
   context. Short replies and attachment-only requests can be sufficient; do not require
   a fixed length or ask again for information already supplied.
@@ -73,7 +78,8 @@
 - Apply this gate when the injected Human approval policy is `required`.
 - Under runtime policy `bypass`, a Human request for work authorizes execution.
   Proceed with bounded reasonable assumptions. Do not request separate proposal or plan
-  approval.
+  approval. Bypass applies only after classification; it never turns conversation,
+  questions or unclear messages into work.
 - Bypass does not expand the request or remove genuinely required Human-owned decisions.
 
 1. Establish a proposed task with clear outcome, boundary, constraints, exclusions and

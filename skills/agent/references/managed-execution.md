@@ -42,8 +42,9 @@
 - Text is limited to 64 KiB (and 65,536 characters in the output schema), leaving room
   inside the bounded JSONL stream. Keep large artifacts in task-owned files and
   summarize them in the response.
-- Work and Verification write separate machine receipts. Completed runs retain all
-  request, role, capability and exact-Work receipt validation.
+- Work and Verification have separate machine receipts: Work returns its receipt fields in
+  the final output and the runtime writes the file; Verification writes its own. Completed
+  runs retain all request, role, capability and exact-Work receipt validation.
 - Runs with persisted file-based response schemas use their bound completion contract.
   New turns use the structured response schema, including in existing sessions. Preserve
   completed runs and result paths. Native Goal controls use structured response
@@ -117,12 +118,47 @@
   authorization reference and decision evidence; missing evidence fails closed. Timing and END
   follow [the Agent graph](../SKILL.md#roles-and-graph).
 - Completed runs publish validated `receipt.json` beside `result.md`.
+- Unsaved error captures never fail a run: its status reports them as `pendingLessons` and a
+  later writable run records them ([lifecycle CLI](../../document/references/lessons-learned.md#lifecycle-cli)).
 - Work receipts identify the request, project-root-relative changed paths and addressed
   finding IDs for revisions.
+- Each Work run captures its response contract at creation (`responseContract` in its status;
+  `capabilities` advertises the newest as `responseContract`):
+  - `2`: the final output also carries `outcome`, `changedPaths`, `tests` (`run`, `reason`) and
+    `addressedFindingIds`. On `completed` the runtime adds `schemaVersion`, `kind`, `runId` and
+    `requestHash`, validates the whole receipt and writes `receipt.json`. It never fills a
+    judgment value: omitted fields fail as `receipt_missing` and nothing is written.
+  - `1` (runs without the field): Work writes `receipt.json` itself. It remains for
+    capability-bound runs, plan-only Work (host-recorded) and loops started before contract 2,
+    whose later runs are dispatched with `--response-contract 1`. A run always finishes under
+    the contract it captured.
+  - A Codex native Goal turn takes no per-turn `outputSchema`. When its completed final
+    message lacks valid receipt fields, the adapter asks once more in a schema-constrained turn.
+  - A well-formed receipt is not proof of its values; independent Verification judges them.
 - Runtime-only artifacts remain in the detailed result; `changedPaths` is empty when the
   project was untouched.
-- Write `outcome: completed` in receipts, including for read-only Work. Receipt version 0.1.0
-  also accepts `implemented` for compatibility.
+- Receipts use `outcome: completed`, including for read-only Work. Receipt version 0.1.0
+  file receipts also accept `implemented` for compatibility.
+- A loop started with `--receipt-recovery auto` (the default) gives Work one repair turn
+  for the allowlisted receipt failures below instead of stopping: the driver dispatches the
+  same recovery request once per task and records `receiptRecovery.automatic`. A second
+  receipt failure, any other failure, `--receipt-recovery manual` and loops persisted before
+  the setting stop as before.
+- A stopped loop reports `failureClass` beside `controlPlaneError`; `capabilities` advertises
+  `failureClass`. The runtime never re-dispatches Work; Main acts on the class:
+  - `contract`: the Agent's output broke its contract. Automatic receipt recovery handles it;
+    report a run that still ends failed.
+  - `transient`: control plane. Run `loop.py reconcile`, read the status once more, then decide.
+  - `provider`: model backend. Report its message; dispatch again only when the Human asks.
+  - `environment`: the host or policy must change first. Stop and report the cause.
+  - `human`: pass the decision to the Human. Anything else is `unknown`.
+  - The one `workLight` to `work` retry applies only to `contract` or no class.
+- Work sub-agents are limited per provider; see
+  [enforcement](execution-modes.md#captured-routes).
+- Status reads retry a transient control-plane failure three times with backoff. A dispatch
+  is never replayed; its durable intent is completed by `reconcile`.
+- The driver periodically runs exec `reconcile` for a running child, so a run whose worker
+  died becomes a recorded failure instead of an endless `running`.
 - `recover-receipt` is an explicit, allowlisted recovery for a loop stopped on a deterministic
   Work receipt missing, format or changed-path-contract failure:
   - Test-proof, core/capability-binding, and unsafe path failures are not recoverable.

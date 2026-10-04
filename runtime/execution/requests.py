@@ -24,7 +24,7 @@ def resolve_execution_policy(runtime, args: argparse.Namespace, project_root: Pa
         if session is not None:
             policy_args.role = session.get("role")
         if session is not None and session.get("codex"):
-            policy_args.codex = session["codex"]
+            policy_args.codex = getattr(args, "codex", None) or session["codex"]
         policy = runtime.execution_policy.resolve(policy_args, project_root, fallback_policy=stored, allow_session_change=session is not None)
         if stored is not None and policy != stored and not runtime.execution_policy.has_explicit_policy(args):
             raise runtime.ContractError("execution_policy_mismatch", "Changing an idle session policy requires a complete explicit policy")

@@ -140,12 +140,17 @@
   revision or retirement. Compare actual outcomes, not merely the number of stored rules.
 - Managed execution captures nonzero completed command exits, failed tool calls,
   backend/Goal errors and attempt failures. Captures omit raw payloads and point to
-  the run; the Agent must add diagnosis and solution. A pending capture prevents a
-  clean completion report. Providers that do not emit a failure event still require
-  Agent recording and occurrence auditing before handoff.
+  the run; the Agent must add diagnosis and solution. A pending capture never fails or
+  delays a run; the run's public state counts it as `pendingLessons`. Providers that do not
+  emit a failure event still require Agent recording and occurrence auditing before handoff.
 - Read-only execution leaves a pending record in runtime storage instead of writing
   the project through the host. Report the storage constraint; do not bypass it.
-- Recording failures remain in the run's `lesson-capture/` directory. Retry the
-  `record` action using the pending JSON; managed completion also retries unsaved captures and reconciles receipts. This retries documentation only, never the failed tool.
+- The runtime owns `lesson-capture/` and names its captures `<24 hex digits>.json`; only
+  those count as pending. Keep your own CLI input files beside it in the run directory.
+- Recording failures remain in the run's `lesson-capture/` directory. Managed completion
+  retries them, and every later run that may write the project records what earlier runs
+  left pending once its own outcome is stored: idempotent per occurrence, bounded per
+  sweep and never changing that run's result. You may also retry `record` with the pending
+  JSON. This retries documentation only, never the failed tool.
 - This workflow has no background scheduler. Perform consolidation at an authorized
   task boundary; an unrelated session does not authorize project-wide rule changes.

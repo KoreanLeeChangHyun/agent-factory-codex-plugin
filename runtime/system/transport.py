@@ -20,6 +20,9 @@ from system.containment import (
     terminate_verified_group,
 )
 from storage.errors import ContractError
+from contracts.receipts import (
+    RECEIPT_JUDGMENT_FIELDS, STRUCTURED_RESPONSE_CONTRACT, receipt_judgment_schema, response_contract,
+)
 from execution.prompts import PromptParts
 from storage.files import reject_symlink, role_path, safe_read_bytes, safe_read_json, atomic_write
 
@@ -46,7 +49,8 @@ class AttemptFailure(Exception):
         self.launched = launched
 
 
-def response_schema_document(result_path: str, *, inline: bool = True, decision_metadata: bool = True) -> dict[str, Any]:
+def response_schema_document(result_path: str, *, inline: bool = True, decision_metadata: bool = True,
+                             receipt: bool = False) -> dict[str, Any]:
     properties = {
         "status": {"type": "string", "enum": ["completed", "needs-human-decision", "failed"]},
         "resultPath": {"type": "string", "const": result_path},
@@ -55,6 +59,10 @@ def response_schema_document(result_path: str, *, inline: bool = True, decision_
         properties["resultText"] = {"type": "string", "minLength": 1}
     if inline and decision_metadata:
         properties["decisionKind"] = {"type": ["string", "null"], "enum": ["approval", "clarification", None]}
+    if receipt:
+        # Response contract 2: a Work run returns its receipt judgment here (flat, always required
+        # because Codex requires every property); the runtime reads it only on `completed`.
+        properties.update(receipt_judgment_schema())
     # Codex requires every property, including nullable metadata, in required.
     return {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object",
             "properties": properties, "required": list(properties), "additionalProperties": False}
@@ -63,6 +71,15 @@ def response_schema_document(result_path: str, *, inline: bool = True, decision_
 def inline_result(state: dict[str, Any]) -> bool:
     """Persisted schemas choose the protocol; never reinterpret historical runs."""
     schema = safe_read_json(Path(state["responseSchemaPath"]))
+    if structured_receipt(state):
+        # Later runtimes may reword field descriptions; the captured field set selects the protocol.
+        properties = schema.get("properties", {})
+        expected = set(response_schema_document(state["resultPath"], receipt=True)["properties"])
+        if (isinstance(properties, dict) and set(properties) == expected
+                and isinstance(properties.get("resultPath"), dict)
+                and properties["resultPath"].get("const") == state["resultPath"]):
+            return True
+        raise ContractError("result_schema_invalid", "Managed response schema is unsupported or mismatched")
     # Accept existing sessions whose schema captured the former answer ceiling.
     text_schema = schema.get("properties", {}).get("resultText")
     if isinstance(text_schema, dict) and text_schema.get("maxLength") == 64 * 1024:
@@ -78,10 +95,18 @@ def inline_result(state: dict[str, Any]) -> bool:
     raise ContractError("result_schema_invalid", "Managed response schema is unsupported or mismatched")
 
 
+def structured_receipt(state: dict[str, Any]) -> bool:
+    """True when this run returns its Work receipt in the final output (response contract 2)."""
+    return response_contract(state) == STRUCTURED_RESPONSE_CONTRACT
+
+
 def validate_terminal_result(terminal: Any, state: dict[str, Any]) -> bytes | None:
     inline = inline_result(state)
     expected = {"status", "resultPath", "resultText"} if inline else {"status", "resultPath"}
     allowed = expected | ({"decisionKind"} if inline else set())
+    if structured_receipt(state):
+        # Receipt fields are judged only for `completed`, by the receipt rules after the answer is saved.
+        allowed |= set(RECEIPT_JUDGMENT_FIELDS)
     if (not isinstance(terminal, dict) or not expected <= set(terminal) or not set(terminal) <= allowed
             or not isinstance(terminal.get("status"), str)
             or terminal.get("status") not in {"completed", "needs-human-decision", "failed"}
@@ -116,6 +141,47 @@ def publish_terminal_result(terminal: Any, state: dict[str, Any]) -> None:
         atomic_write(path, content)
 
 
+def receipt_constants(schema_path: Path) -> str:
+    """Name the receipt fields this run fixes, so the Agent copies them instead of deriving them."""
+    try:
+        properties = safe_read_json(schema_path).get("properties", {})
+    except (ContractError, OSError, ValueError, AttributeError):
+        return ""
+    constants = {name: value["const"] for name, value in properties.items()
+                 if isinstance(value, dict) and "const" in value}
+    if not constants:
+        return ""
+    return ("These receipt fields are fixed for this run; copy them exactly and add the other "
+            f"required fields from the schema: `{json.dumps(constants, ensure_ascii=False)}`\n")
+
+
+def completion_checks(role: str, task_mode: str, has_receipt: bool, structured: bool = False) -> str:
+    """Last words of the run prompt: the steps a finished Agent most often leaves undone."""
+    if role == "work" and task_mode != "plan":
+        checks = [
+            "Errors met in this run are recorded with the lesson CLI.",
+            "Own checks are reported as own checks. Do not start a sub-agent, reviewer or other Agent to "
+            "verify this work, and never report a Verification pass.",
+            "Return the final result now. The runtime or Main starts Verification, commits and reports after "
+            "this run ends; do not wait for them or return `needs-human-decision` because they have not happened.",
+        ]
+        if structured:
+            checks.insert(0, "The final JSON carries the receipt fields above with this run's real values; "
+                             "you wrote no receipt file.")
+        elif has_receipt:
+            checks.insert(0, "The receipt file above exists and matches its schema; without it the run fails "
+                             "although the work is done.")
+        subject = "Work"
+    elif role == "verification" and has_receipt:
+        checks = ["The receipt file above exists and matches its schema: `pass` with no findings, or `fail` "
+                  "with every finding."]
+        subject = "Verification"
+    else:
+        return ""
+    return (f"\nBefore you return `completed` for this {subject} run, confirm:\n"
+            + "".join(f"{number}. {check}\n" for number, check in enumerate(checks, 1)))
+
+
 def build_prompt_parts(
     *,
     agent_id: str,
@@ -130,6 +196,7 @@ def build_prompt_parts(
     inline_response: bool = True,
     task_mode: str = "work-verification",
     request: bytes | None = None,
+    structured_receipt: bool = False,
 ) -> PromptParts:
     prompt_path = role_path(role)
     try:
@@ -160,7 +227,9 @@ do not open a Skill or reference file merely to obtain these instructions.
     if human_approval_policy == "bypass" and role == "main":
         human_approval_obligation = """
 This Main run has Human approval policy `bypass`. Classify conversation versus work
-under Main's rules; conversation stays direct, without Work/Verification.
+under Main's rules first. Questions, consultation, discussion, planning and unclear
+messages are conversation: answer them without editing files, running changes or
+delegating changes. Bypass never turns them into work.
 For requested work, the Human has authorized execution without a separate proposal
 or plan approval; the Delegation gate is satisfied. Follow the captured task route.
 Do not return
@@ -178,14 +247,26 @@ when required credentials or a Human-owned decision are missing. This policy doe
 not expand the request or grant Main's orchestration authority.
 """
     receipt_obligation = ""
-    if receipt_path is not None and receipt_schema_path is not None:
+    if structured_receipt:
+        receipt_obligation = """
+For a `completed` result the final JSON is also this run's Work receipt: `outcome`,
+`changedPaths`, `tests` and `addressedFindingIds`. The runtime adds the run binding,
+validates the receipt and writes the receipt file; do not write one yourself.
+`changedPaths` lists only paths changed inside the project, relative to the project
+root (empty when untouched); runtime-only artifacts belong in the detailed response.
+`tests` reports actual own checks, or why they were not run; never claim checks that
+did not occur. `addressedFindingIds` lists the Verification findings this run
+addressed, otherwise it is empty. With any other status the schema still requires
+these fields but the runtime ignores them: use empty arrays and `tests.run` false.
+"""
+    elif receipt_path is not None and receipt_schema_path is not None:
         receipt_obligation = f"""
 For a `completed` result, also write the role-specific machine receipt to
 `{receipt_path}`. Its exact contract is `{receipt_schema_path}`. The receipt
 must bind this run and request exactly and contain no unknown fields. A
 completed run with a missing or invalid receipt will fail at the runtime
 boundary.
-"""
+""" + receipt_constants(receipt_schema_path)
         if role == "work":
             receipt_obligation += """
 In a Work receipt, `changedPaths` contains only paths changed inside the project,
@@ -251,7 +332,7 @@ The following validated content is the complete `{role}` system-prompt source:
 {request_instruction}
 
 {result_instruction} Run ID: `{run_id}`.
-{human_approval_obligation}{route_instruction(task_mode, role)}{binding_obligation}{receipt_obligation}{migration_obligation}"""
+{human_approval_obligation}{route_instruction(task_mode, role)}{binding_obligation}{receipt_obligation}{migration_obligation}{completion_checks(role, task_mode, bool(receipt_obligation), structured_receipt)}"""
     development_root = os.environ.get("AGENT_FACTORY_DEV_PLUGIN_ROOT", "").strip()
     if development_root:
         root = Path(development_root).resolve()

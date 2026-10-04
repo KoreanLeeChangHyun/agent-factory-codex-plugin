@@ -45,6 +45,27 @@
   fields for other Human-selected languages. The structure names below are explanatory
   and are not part of the response.
 
+- Prefer a structured question channel over Markdown shape recognition.
+  - When Codex exposes `request_user_input` in the active collaboration mode, use it.
+    Use an ID ending in `{current}-of-{known total}`. Give each option a label and one
+    description in the exact form `Pros: {advantage}; Cons: {disadvantage}`. Append
+    `(Recommended)` to the recommended label.
+  - Do not assume that a native tool exists merely because another execution mode or
+    provider supports it. Installed Claude Code print mode and Antigravity use the
+    Agent Factory marker below unless their active tool list actually exposes an
+    equivalent question tool.
+  - For the marker channel, emit one exact single-line marker before the terminal
+    answer. Do not wrap it in a code fence or duplicate the Markdown table:
+
+- Marker:
+  `<agent-factory-interview-question>{"id":"interview-1-of-3","current":1,"total":3,"text":"{question}","options":[{"value":"1","label":"{decision}","pros":"{advantage}","cons":"{disadvantage}"},{"value":"2","label":"{decision}","pros":"{advantage}","cons":"{disadvantage}"}],"recommendedValue":"1","yesNo":false}</agent-factory-interview-question>`
+
+  - Keep the terminal answer nonempty and concise after the marker. The adapter removes
+    a valid marker and emits `interview.question`; an invalid marker remains visible and
+    must not become a clickable question.
+  - Use the Markdown structures below only as the compatibility fallback when no
+    structured channel can be emitted. They also preserve old conversation replay.
+
 **Korean structure**
 
 **질문 [{current}/{known total}]:** {question}

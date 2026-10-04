@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Sequence
 
 from execution import policy as execution_policy
-from tasks.modes import TASK_MODES
+from tasks.modes import TASK_MODES, WORK_PROFILES
 from storage.errors import ContractError
 
 ACTORS = ("main", "human")
@@ -41,6 +41,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         help="Main delegation approval policy; omitted sends preserve the session policy",
     )
     parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to orchestrate")
+    parser.add_argument("--work-profile", choices=WORK_PROFILES, help="Work profile label Main chose (work = Expert, workLight = Worker); recorded for display only, selects no model or authority")
     parser.add_argument("--model")
     parser.add_argument("--provider", choices=("codex", "claude", "antigravity"))
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
@@ -51,6 +52,11 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--receipt-request-hash",
         help="SHA-256 identity the role receipt must bind (defaults to this run request)",
+    )
+    parser.add_argument(
+        "--response-contract", type=int, choices=(1, 2),
+        help="Work response contract: 1 = the Agent writes receipt.json, 2 = receipt fields in the structured "
+             "final output (default where the provider attaches the schema to the final turn)",
     )
     parser.add_argument(
         "--verified-work-run-id",
@@ -100,6 +106,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     add_project_argument(send_parser)
     add_request_arguments(send_parser)
     send_parser.add_argument("--agent", required=True)
+    send_parser.add_argument("--codex")
     execution_policy.add_policy_arguments(send_parser)
 
     for name in ("status", "result", "cancel"):
@@ -117,7 +124,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
     capability_parser = commands.add_parser("capabilities")
     add_project_argument(capability_parser)
-    capability_parser.add_argument("--codex", default="codex")
+    capability_parser.add_argument("--codex")
     capability_parser.add_argument("--claude", default="claude")
     capability_parser.add_argument("--agy", default="agy")
     capability_parser.add_argument("--provider", choices=("codex", "claude", "antigravity"))

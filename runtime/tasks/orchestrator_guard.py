@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""PreToolUse hook that keeps an orchestrator-mode Main from changing the project.
+"""PreToolUse hook that keeps an orchestrator-mode Main from changing the project and a Codex Work
+run from starting sub-agents.
 
-Codex and Antigravity run this for Main tool calls. It is inert unless the provider process
-carries AGENT_FACTORY_ORCHESTRATOR_GUARD, which the runtime sets only for orchestrate Main runs.
-Allowed: reading, Agent Factory scripts, read-only Git and file writes inside the run directory.
+Codex and Antigravity run this for tool calls. It is inert unless the provider process carries
+AGENT_FACTORY_ORCHESTRATOR_GUARD, which the runtime sets only for orchestrate Main runs and Codex
+Work runs; the variable's content selects the rules.
+Main: reading, Agent Factory scripts, read-only Git and file writes inside the run directory.
+Work: everything except the tools that start a sub-agent.
 Standard library only: hooks start a fresh interpreter for every tool call.
 """
 import json
@@ -25,6 +28,13 @@ OPERATORS = {";", "&", "&&", "||", "<", ">", ">>", "<<", "<<<", ">|", "&>", ">&"
 AGY_READS = {"view_file", "list_dir", "find_by_name", "grep_search", "finish"}
 AGY_WRITES = {"write_to_file", "replace_file_content", "multi_replace_file_content", "notebook_edit"}
 PATH_ARGUMENTS = ("TargetFile", "AbsolutePath", "FilePath", "Path", "NotebookPath")
+# Codex tools that start a sub-agent or reopen a closed one; hook tool names may carry a namespace prefix.
+SUBAGENT_TOOLS = ("spawn_agent", "resume_agent")
+# Codex 0.159 lets the model choose no sub-agent type and every sub-agent inherits the parent's
+# sandbox, so none is a read-only exploration agent: Work may start none.
+WORK_REASON = ("Codex Work cannot start sub-agents: Codex has no read-only exploration sub-agent. Do the "
+               "search and the work yourself; never use a sub-agent to review or verify this run's own work.")
+WORK_ENVIRONMENT = {ENV: json.dumps({"role": "work"})}
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
@@ -33,13 +43,18 @@ HOOK_COMMAND = "python3 " + shlex.quote(str(Path(__file__).resolve()))
 
 
 def orchestrating(state, session=None):
-    """True for an orchestrate-mode Main run, the only run the guard constrains."""
+    """True for an orchestrate-mode Main run, which the guard keeps from changing the project."""
     role = state.get("role") or (session or {}).get("role")
     return role == "main" and state.get("taskMode") == "orchestrate"
 
 
+def working(state, session=None):
+    """True for a Work run, whose Codex launch the guard keeps from starting sub-agents."""
+    return (state.get("role") or (session or {}).get("role")) == "work"
+
+
 def environment(state):
-    """Provider-process variables that arm the guard for this run."""
+    """Provider-process variables that arm the guard for this orchestrate Main run."""
     return {ENV: json.dumps({"pluginRoot": str(PLUGIN_ROOT), "writeRoot": str(Path(state["statePath"]).parent)},
                             sort_keys=True)}
 
@@ -125,6 +140,11 @@ def codex_decision(event, config):
     return True
 
 
+def work_decision(event):
+    tool = event.get("tool_name")
+    return not (isinstance(tool, str) and any(name in tool for name in SUBAGENT_TOOLS))
+
+
 def agy_decision(event, config):
     call = event.get("toolCall") or {}
     tool, arguments = call.get("name"), call.get("args") or {}
@@ -143,19 +163,23 @@ def main():
     event = json.load(sys.stdin)
     agy = "toolCall" in event
     raw = os.environ.get(ENV)
+    reason = REASON
     if not raw:
         allowed = True
     else:
         try:
             config = json.loads(raw)
-            allowed = agy_decision(event, config) if agy else codex_decision(event, config)
+            if config.get("role") == "work":
+                allowed, reason = work_decision(event), WORK_REASON
+            else:
+                allowed = agy_decision(event, config) if agy else codex_decision(event, config)
         except Exception:
             allowed = False  # Fail closed while guarding.
     if agy:
-        print(json.dumps({"decision": "allow" if allowed else "deny", **({} if allowed else {"reason": REASON})}))
+        print(json.dumps({"decision": "allow" if allowed else "deny", **({} if allowed else {"reason": reason})}))
     elif not allowed:
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
-                                                 "permissionDecisionReason": REASON}}))
+                                                 "permissionDecisionReason": reason}}))
     return 0
 
 

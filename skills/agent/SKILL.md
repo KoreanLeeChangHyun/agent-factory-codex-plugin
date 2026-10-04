@@ -55,7 +55,7 @@ metadata:
 
 | Captured route | Command |
 | --- | --- |
-| `orchestrate` (brief) | `python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode work --work-agent UNIQUE_WORK_ID --request-file BRIEF` (add `--task-mode work-verification --verification-agent ID` only on explicit Human request) |
+| `orchestrate` (brief) | `python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode work --work-agent UNIQUE_WORK_ID --request-file BRIEF --work-profile PROFILE` (`PROFILE` is `work` or `workLight`; add `--task-mode work-verification --verification-agent ID` only on explicit Human request) |
 | `work`, `plan-work` | `python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode MODE --work-agent UNIQUE_WORK_ID --request-file REQUEST` |
 | `work-verification`, `plan-work-verification` | Same loop command, plus `--verification-agent UNIQUE_VERIFICATION_ID` |
 | `plan` | `python3 <plugin-root>/scripts/exec.py submit --project-root PROJECT --role work --task-mode plan --agent UNIQUE_WORK_ID --request-file REQUEST` |

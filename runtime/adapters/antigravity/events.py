@@ -6,6 +6,7 @@ import uuid
 
 from adapters.antigravity.control import COMPLETE, strip_markers
 from execution.streaming import DeltaBuffer, JsonStringField
+from execution.interview import extract_markers
 
 # agy tools that change files, and the parameter naming the changed path.
 FILE_TOOLS = {"write_to_file": "TargetFile", "replace_file_content": "TargetFile",
@@ -202,6 +203,9 @@ class Events:
             # A Goal turn that only confirms the condition leaves the request turn's answer as the result.
             answer = self.request_answer
         terminal = {**{key: None for key in self.nullable}, **strip_markers(answer)}
+        questions = []
+        if isinstance(terminal.get("resultText"), str):
+            terminal["resultText"], questions = extract_markers(terminal["resultText"])
         if "decisionKind" in self.nullable and terminal.get("status") != "needs-human-decision":
             # Gemini's schema cannot express "only with needs-human-decision", and Gemini models do
             # fill the optional field on completed results; it carries no meaning there.
@@ -226,5 +230,5 @@ class Events:
                                "output_tokens": count("output_tokens"), "reasoning_output_tokens": count("thinking_tokens")}}
         if not self.terminal:
             return [*pending, *commentary, completed]
-        return [*pending, *commentary, completed,
+        return [*pending, *commentary, completed, *questions,
                 {"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal, ensure_ascii=False)}}]

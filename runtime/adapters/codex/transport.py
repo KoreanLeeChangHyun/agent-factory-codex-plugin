@@ -20,14 +20,15 @@ if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from system import portable
+from contracts.receipts import receipt_judgment_defect
 from execution.prompts import PromptParts
 from execution.streaming import DeltaBuffer, JsonStringField
+from execution.interview import codex_request_events, extract_markers
 from adapters.codex.capabilities import (  # noqa: F401 - re-exported; callers patch these names here
     NativeError, RpcError, CAPABILITY_CACHE_TTL, _cached_capabilities, _capability_identity, _probe_capabilities, inspect_capabilities,
 )
 from adapters.codex.events import NotificationHandlers
 from adapters.codex import policy as codex_policy
-from tasks import orchestrator_guard
 
 
 def service_tier(models: list[dict], model: str, fast: bool | None) -> str | None:
@@ -84,6 +85,7 @@ class Rpc:
         self.last_frame = b""
         self.serial = 0
         self.initialized = False
+        self.server_request_handler = None
         self.reader = threading.Thread(target=self._read, daemon=True)
         self.reader.start()
 
@@ -104,10 +106,11 @@ class Rpc:
         for stream in (self.process.stdout, self.process.stderr):
             if stream is not None:
                 stream.close()
-        factory, observer = self.process_factory, self.observer
+        factory, observer, server_request_handler = self.process_factory, self.observer, self.server_request_handler
         if observer:
             observer("owned-restart", {"stoppedPid": old_pid, "pendingCount": len(self.pending)})
         self.__init__(factory(), observer=observer, process_factory=factory)
+        self.server_request_handler = server_request_handler
         self.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
         self.write({"method": "initialized"})
         self.initialized = True
@@ -135,22 +138,26 @@ class Rpc:
         self.process.stdin.flush()
 
     def receive(self, timeout=0.2):
-        value = self.incoming.get(timeout=timeout)
-        if isinstance(value, Exception):
+        while True:
+            value = self.incoming.get(timeout=timeout)
+            if isinstance(value, Exception):
+                if self.observer is not None:
+                    self.observer("read-error", {"message": str(value)})
+                raise value
+            self.last_frame = value
+            value = json.loads(value)
             if self.observer is not None:
-                self.observer("read-error", {"message": str(value)})
-            raise value
-        self.last_frame = value
-        value = json.loads(value)
-        if self.observer is not None:
-            self.observer("receive", value)
-        if not isinstance(value, dict):
-            raise NativeError("Invalid app-server message")
-        if "method" in value and "id" in value:
-            # Interactive approvals cannot be silently granted by a background host.
-            self.write({"id": value["id"], "error": {"code": -32601, "message": "Interactive request unsupported in managed run; use Human input"}})
-            raise NativeError(f"Codex requested interactive input: {value['method']}")
-        return value
+                self.observer("receive", value)
+            if not isinstance(value, dict):
+                raise NativeError("Invalid app-server message")
+            if "method" not in value or "id" not in value:
+                return value
+            result = self.server_request_handler(value["method"], value.get("params")) if self.server_request_handler else None
+            if result is None:
+                # Interactive approvals cannot be silently granted by a background host.
+                self.write({"id": value["id"], "error": {"code": -32601, "message": "Interactive request unsupported in managed run; use Human input"}})
+                raise NativeError(f"Codex requested interactive input: {value['method']}")
+            self.write({"id": value["id"], "result": result})
 
     def call(self, method, params, timeout=None):
         self.serial += 1
@@ -186,6 +193,22 @@ class Rpc:
 
 def emit(value):
     print(json.dumps(value, ensure_ascii=False), flush=True)
+
+
+# A Goal turn cannot carry a per-turn outputSchema, so its final message is constrained by
+# instructions only. One schema-constrained turn restates the result instead of failing finished work;
+# a final message that already satisfies the contract starts no extra turn.
+RESULT_REPAIR_REQUEST = (
+    "Your previous final message did not satisfy this run's result contract: {reason}\n"
+    "The work itself is not in question. Do not use tools, change files or repeat any work in this turn. "
+    "Return only the final JSON required by the output schema: the status you reached, `resultPath` exactly "
+    "as required, and the complete answer you already reached in `resultText`."
+)
+# Response contract 2: the same turn also returns the receipt judgment, which only the Agent knows.
+RECEIPT_REPAIR_REQUEST = (
+    " The schema's receipt fields (`outcome`, `changedPaths`, `tests`, `addressedFindingIds`) must carry "
+    "this run's real values: the project-root-relative paths you changed and the own checks you actually ran."
+)
 
 
 def activate_persisted_goal(rpc, thread_id, params, turn):
@@ -254,6 +277,22 @@ class Bridge(NotificationHandlers):
         self.goal_start = None
         self.goal_started = False
         self.next_idle_goal_check = 0.0
+        # The run's own result turn parameters, and the single repair turn started from them.
+        self.result_turn = None
+        self.repair_turn_id = None
+        self.rpc.server_request_handler = self.handle_server_request
+
+    def handle_server_request(self, method, params):
+        """Surface Plan-mode request_user_input without inventing a Human answer."""
+        if method != "item/tool/requestUserInput":
+            return None
+        events = codex_request_events(params)
+        if not events:
+            raise NativeError("Codex request_user_input did not match the Interview question contract")
+        for event in events:
+            emit(event)
+        return {"answers": {question["id"]: {"answers": []}
+                            for question in (params or {}).get("questions", [])}}
 
     def publish_goal(self, goal):
         if goal is not None and (not isinstance(goal, dict) or goal.get("threadId") != self.thread_id):
@@ -328,7 +367,7 @@ class Bridge(NotificationHandlers):
             self.rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
             self.rpc.write({"method": "initialized"})
             self.rpc.initialized = True
-        if orchestrator_guard.orchestrating(self.state, self.session):
+        if codex_policy.guard_environment(self.state, self.session):
             codex_policy.ensure_guard_trusted(self.rpc, self.session.get("workingDirectory", self.session["projectRoot"]))
         if self.session.get("nativeCapabilities", {}).get("instructionDelivery") is True:
             # Compose effective user/project configuration before creating a thread.
@@ -433,6 +472,7 @@ class Bridge(NotificationHandlers):
             turn["effort"] = self.session["reasoningEffort"]
         if tier is not None and self.session.get("nativeCapabilities", {}).get("fast", True):
             turn["serviceTier"] = tier
+        self.result_turn = {key: value for key, value in turn.items() if key != "input"}
         if self.planning:
             if self.session.get("nativeCapabilities", {}).get("plan") is not True:
                 raise NativeError("Installed Codex lacks genuine Plan collaboration mode")
@@ -495,22 +535,50 @@ class Bridge(NotificationHandlers):
             self.runtime.atomic_write_json(delivery_path, delivery_record)
         return True
 
+    def start_result_repair(self, reason):
+        """Start the one repair turn for an invalid final result; False when none is available."""
+        if self.repair_turn_id is not None or self.result_turn is None or self.planning:
+            return False
+        request = RESULT_REPAIR_REQUEST.format(reason=reason)
+        if self.runtime.structured_receipt(self.state):
+            request += RECEIPT_REPAIR_REQUEST
+        try:
+            result = self.rpc.call("turn/start", {**self.result_turn, "input": [{"type": "text", "text": request}]})
+        except RpcError:
+            return False  # Report the original contract failure, not the failed repair.
+        self.repair_turn_id = self.turn_id = result["turn"]["id"]
+        self.last_message = None
+        emit({"type": "native.commentary",
+              "text": "The final response did not match the result contract; the runtime requested it once more."})
+        return True
+
     def finish_turn(self, turn_id=None):
+        """Emit the terminal result. False means a repair turn started and the run continues."""
         if not self.last_message:
             raise NativeError("Native turn returned no final result")
         message = self.last_message
         try:
             terminal = json.loads(message)
         except (json.JSONDecodeError, TypeError) as error:
-            raise NativeError(
+            failure = (
                 "Native final result is not valid JSON "
                 f"(stage=finish_turn, turn={turn_id or self.turn_id or 'unknown'}, "
                 f"characters={len(message) if isinstance(message, str) else 'non-text'}). "
                 "The Goal status does not prove managed result completion; the final response must match the result schema."
-            ) from error
+            )
+            if self.start_result_repair(failure):
+                return False
+            raise NativeError(failure) from error
+        if isinstance(terminal, dict) and isinstance(terminal.get("resultText"), str):
+            terminal["resultText"], questions = extract_markers(terminal["resultText"])
+            for question in questions:
+                emit(question)
+            message = json.dumps(terminal, ensure_ascii=False)
         try:
             self.runtime.validate_terminal_result(terminal, self.state)
         except self.runtime.ContractError as error:
+            if self.start_result_repair(error.message):
+                return False
             raise NativeError(error.message) from error
         if self.goal_started and (not self.goal or self.goal.get("status") != "complete"):
             # Never rewrite a reported failure or a real Human decision as success.
@@ -520,7 +588,14 @@ class Bridge(NotificationHandlers):
                 terminal["decisionKind"] = "clarification" if terminal["status"] == "needs-human-decision" else None
                 terminal["resultText"] = f"Native Goal stopped without completion ({status}).\n" + terminal["resultText"]
                 message = json.dumps(terminal)
+        if terminal["status"] == "completed" and self.runtime.structured_receipt(self.state):
+            # The runtime never fills receipt values. Ask the Agent once, schema-constrained; a result
+            # still lacking them is emitted as returned and fails as `receipt_missing` at the run boundary.
+            defect = receipt_judgment_defect(terminal)
+            if defect and self.start_result_repair(f"the result is `completed` but {defect}."):
+                return False
         emit({"type": "item.completed", "item": {"type": "agent_message", "text": message}})
+        return True
 
     def finish_latest_goal_turn(self, *, force=False):
         """Join current native state to consumed events for the same latest turn.
@@ -530,6 +605,8 @@ class Bridge(NotificationHandlers):
         """
         if self.planning or self.goal_transition_id:
             return False
+        if self.repair_turn_id is not None and self.repair_turn_id not in self.completed_turns:
+            return False  # The repair turn owns the result; never re-judge the turn it replaces.
         now = time.monotonic()
         if not force and now < self.next_completion_check:
             return False
@@ -557,8 +634,7 @@ class Bridge(NotificationHandlers):
         if status != "completed" or self.completed_turns[latest_id] != status:
             raise NativeError(f"Native final turn {status}: {json.dumps(latest.get('error'))[:2000]}")
         self.last_message = self.turn_messages.get(latest_id)
-        self.finish_turn(turn_id=latest_id)
-        return True
+        return self.finish_turn(turn_id=latest_id)
 
     def run(self, prompt):
         try:
@@ -618,7 +694,7 @@ def bridge_services():
     from storage.errors import ContractError
     from storage.files import atomic_write, atomic_write_json, safe_read_json, session_file, update_json
     from system.containment import now
-    from system.transport import inline_result, validate_terminal_result
+    from system.transport import inline_result, structured_receipt, validate_terminal_result
     return SimpleNamespace(**{name: value for name, value in locals().items() if name != "SimpleNamespace"})
 
 

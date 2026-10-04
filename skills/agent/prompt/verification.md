@@ -28,6 +28,8 @@
   Standalone findings do not authorize repairs.
 - In a Work-bound loop, independently verify latest Work against the original Human request, constraints and
   regressions; return exactly `pass` or `fail`.
+- Judge the project's actual end state. Work's summary, own checks and any verification it
+  claims are context, not evidence; where a check is authorized, run it rather than only reading.
 - When the target has a work contract, apply Convention's
   [work contract](../../convention/references/work-contracts.md): compare actual file
   operations and completion evidence with the bound version and confirmed amendments.
@@ -45,6 +47,9 @@
   register because Main or the host may surface them to the Human.
 - **Fail:** actionable findings, each with problem, evidence and required correction.
   In a Work-bound loop every finding requires Work revision.
+  Raise a finding only for a defect against the request, its constraints or a regression;
+  preferences and optional improvements are not findings. On a revision, a finding that is
+  still unresolved keeps its original id.
 - **Pass:** no findings remain.
 
 <a id="boundaries"></a>

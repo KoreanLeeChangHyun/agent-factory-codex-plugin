@@ -6,6 +6,7 @@ import subprocess
 import time
 
 from tasks.modes import TASK_MODES
+from tasks.subagent_guard import ALLOWED_TYPE
 
 MODELS = {"claude-opus": "opus", "claude-sonnet": "sonnet", "claude-haiku": "haiku"}
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
@@ -66,9 +67,10 @@ def _probe(executable):
     except (OSError, subprocess.TimeoutExpired) as error:
         diagnostic = f"Claude CLI unavailable: {error}"
     # Claude has no Fast tier. Goal uses Claude's own /goal command, which print mode supports.
+    # workSubagents: the only sub-agent type a Work launch lets the model start.
     supported = {"model": available, "reasoning": available, "fast": False, "goal": available,
                  "plan": available, "instructionDelivery": available, "images": available,
                  "taskModes": list(TASK_MODES) if available else [], "automaticRequestHash": True,
-                 "worktrees": available}
+                 "worktrees": available, "workSubagents": ALLOWED_TYPE}
     return {"schemaVersion": "0.1.0", "kind": "execution-capabilities", "backend": "claude-print",
             "submit": supported, "send": dict(supported), "diagnostic": diagnostic}

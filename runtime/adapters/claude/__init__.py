@@ -58,6 +58,11 @@ def uses_prompt_parts(session):
     return True
 
 
+def final_output_schema(session, goal_action=None):
+    """`--json-schema` constrains the final result of every print turn, Goal included."""
+    return True
+
+
 def fatal_error_events(session):
     return True
 

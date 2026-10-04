@@ -34,11 +34,21 @@
   The run's sandbox policy is unchanged, so delegated Work keeps its permissions.
   - Claude: `dontAsk` with an `--allowedTools` list.
   - Codex: a session-flag `PreToolUse` hook (`runtime/tasks/orchestrator_guard.py`) on
-    `Bash` and `apply_patch`. The runtime adds an exact-hash `hooks.state` trust entry to the
-    user's Codex config on first use and fails the run if Codex does not trust the hook.
+    `Bash`, `apply_patch` and the sub-agent start tools. The runtime adds an exact-hash
+    `hooks.state` trust entry to the user's Codex config on first use and fails the run if
+    Codex does not trust the hook.
   - Antigravity: the same guard as a global plugin hook (`~/.gemini/config/plugins/
     agent-factory-<id>-guard/`). It is inert unless the runtime arms it through the
     `AGENT_FACTORY_ORCHESTRATOR_GUARD` environment of an orchestrate Main run.
+- Work may start only read-only exploration sub-agents; `capabilities` reports the result
+  as `workSubagents`.
+  - Claude: a PreToolUse hook allows only `Explore`.
+  - Codex: `none`. The model can choose no sub-agent type and sub-agents inherit the parent's
+    sandbox, so none is read-only. Work carries Main's hook definition (Codex keeps one trust
+    hash for session-flag hooks), armed with Work rules that deny `spawn_agent` and
+    `resume_agent`. A hook is a guardrail, not a complete boundary: a shell command that
+    launches another agent CLI and the legacy `codex exec` backend are not covered.
+  - Antigravity: the managed agent lists no sub-agent tool.
 - Selecting a mode does not satisfy the independent Human approval gate or expand
   execution permissions.
 - Composer actions send the current draft through Main immediately and are never persisted.
@@ -65,6 +75,14 @@
 - Work-bound verification modes additionally require `--verification-agent ID`. Failure revises the same Work
   session, then reuses the same Verification session and binds its receipt to the new
   exact Work run. No planning role or extra Agent exists.
+- A task gets at most `--max-revisions` Work revisions (default 3; `0` is unlimited). The next
+  failed Verification stops the loop as `needs-human-decision` with `revision_limit_reached`
+  and the open finding IDs. Only a Human continues it, with
+  `loop.py extend-revisions --actor human --authorization-reference REF --decision-evidence TEXT [--additional N]`,
+  or ends it with `loop.py close`. Loops persisted before the limit stay unbounded.
+  The loop's public state carries the stop as `pause` (`code`, `revisionCount`, `maxRevisions`,
+  `pendingFindingIds`, `findings`), `null` otherwise; `capabilities` advertises
+  `revisionLimitPause` so a host can offer the Human both decisions.
 - The low-level loop CLI's omitted flag retains `work-verification` for existing callers.
   Persisted loops without the field use `work-verification`. New Main uses its captured mode
   explicitly when starting a loop.
@@ -127,12 +145,19 @@
 
 ## 6. Role-specific model overrides
 
-- `loop.py start` accepts `--work-model`, `--work-reasoning-effort`,
-  `--verification-model`, and `--verification-reasoning-effort`. These overrides
+- `loop.py start` accepts `--work-model`, `--work-reasoning-effort`, `--work-fast`/`--no-work-fast`,
+  `--verification-model`, `--verification-reasoning-effort`, and `--verification-fast`/`--no-verification-fast`. These overrides
   are captured with the loop and passed to both initial and revision turns for
   that role. Plan uses the same Work profile. The existing `--model` remains a
   shared fallback for initial submissions when no role model is supplied.
-- For standalone `exec.py submit/send`, use `--model` and `--reasoning-effort`.
+- An orchestrator brief also passes `--work-profile work` (Expert, heavy) or
+  `--work-profile workLight` (Worker, light) naming the profile Main chose, together with
+  that profile's exact model ID and effort; the one retry after a failed light attempt
+  passes `--work-profile work`. The label is stored with the loop and each of its Work
+  runs, including revision and receipt-recovery turns, so hosts display the choice
+  instead of inferring it from model settings. It selects no model.
+- For standalone `exec.py submit/send`, use `--model`, `--reasoning-effort`, and `--fast`/`--no-fast`.
+- Fast selects Codex's service tier independently of reasoning effort. Preserve both values exactly. Role Fast is omitted for non-Codex providers.
 - Model settings do not change execution authority or add an agent to the route.
 
 ## 7. Execution providers

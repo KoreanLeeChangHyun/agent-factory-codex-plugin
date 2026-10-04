@@ -5,6 +5,7 @@ import json
 import uuid
 
 from execution.streaming import DeltaBuffer, JsonStringField
+from execution.interview import extract_markers
 
 # Claude tools that change files, and the input field naming the changed path.
 FILE_TOOLS = {"Write": "file_path", "Edit": "file_path", "MultiEdit": "file_path", "NotebookEdit": "notebook_path"}
@@ -147,6 +148,10 @@ class Events:
             terminal = event.get("structured_output")
             if not isinstance(terminal, dict):
                 raise ValueError("Claude returned no schema-validated structured_output")
+            questions = []
+            if isinstance(terminal.get("resultText"), str):
+                terminal = dict(terminal)
+                terminal["resultText"], questions = extract_markers(terminal["resultText"])
             self.finished = True
             self.structured = terminal
             self.result_event = event
@@ -168,7 +173,7 @@ class Events:
                        if windows and self.context_tokens is not None else [])
             if not self.terminal:
                 return [*pending, completed, *context]
-            return [*pending, completed, *context, {"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal, ensure_ascii=False)}}]
+            return [*pending, completed, *context, *questions, {"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal, ensure_ascii=False)}}]
         return []
 
     def stream(self, event):

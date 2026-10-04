@@ -64,6 +64,7 @@ def run_codex_attempt(
             human_approval_policy=str(state.get("humanApprovalPolicy", "required")),
             inline_response=runtime.inline_result(state),
             task_mode=state.get("taskMode", state.get("executionOptions", {}).get("taskMode", "work-verification")),
+            structured_receipt=runtime.structured_receipt(state),
         )
     except runtime.ContractError as error:
         raise runtime.AttemptFailure(error.code, error.message, False) from error
@@ -387,10 +388,9 @@ def run_codex_attempt(
     try:
         runtime.lesson_capture.replay(project_root, state)
     except (OSError, ValueError, subprocess.SubprocessError):
-        pass  # Durable pending inputs remain visible to the completion audit.
-    saved_state = runtime.safe_read_json(Path(state["statePath"]))
-    if runtime.lesson_capture.audit(state) or any(not entry.get("saved") and not entry.get("pending") for entry in saved_state.get("lessonRecording", [])):
-        raise runtime.AttemptFailure("lesson_recording_incomplete", "Error records remain pending in the run lesson-capture directory", True)
+        pass  # Unsaved captures stay pending in the run and never gate its completion.
+    # Persist the answer before any bookkeeping gate: a run failed for a receipt defect
+    # keeps its result as evidence instead of losing the work.
     try:
         runtime.publish_terminal_result(terminal, state)
         runtime.update_json(Path(state["statePath"]), Path(state["statePath"]).parent / ".state.lock",
@@ -413,6 +413,10 @@ def run_codex_attempt(
     validated_receipt = None
     if terminal["status"] == "completed" and state.get("role") in {"work", "verification"}:
         try:
+            if runtime.structured_receipt(state):
+                # Contract 2: the runtime writes the receipt from the Agent's own judgment fields.
+                runtime.publish_structured_receipt(
+                    project_root, state, terminal, agent_id=expected_agent_id, run_id=expected_run_id)
             validated_receipt = runtime.validate_receipt(
                 project_root, state, agent_id=expected_agent_id, run_id=expected_run_id)
         except runtime.ContractError as error:
@@ -518,7 +522,7 @@ def worker(runtime, args: argparse.Namespace) -> int:
                     )
                     return 0 if terminal_status != "failed" else 1
                 except runtime.AttemptFailure as failure:
-                    if failure.code not in {"cancelled", "lesson_recording_incomplete"}:
+                    if failure.code != "cancelled":
                         runtime.capture_lesson(project_root, state, {"type": "runtime.failure", "code": failure.code}, attempt)
                     disposition = (
                         "started"
@@ -591,4 +595,8 @@ def worker(runtime, args: argparse.Namespace) -> int:
         heartbeat.update(status="failed", attempt=0, codex_pid=None)
         return 1
     finally:
+        # The run's outcome is stored; now record what earlier runs could not write. Best effort:
+        # it never changes this run's status and whatever fails stays pending.
+        with contextlib.suppress(Exception):
+            runtime.lesson_capture.apply_pending(project_root, state)
         heartbeat.close()

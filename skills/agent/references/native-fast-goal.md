@@ -47,6 +47,9 @@
   Blocked/paused goals require Human input; usage/budget limits and cleared objectives
   fail rather than complete. Preserve reported failures and required Human decisions.
   Cancellation retains its cancelled runtime state. No automatic retry is added.
+- A final message that is not the result JSON gets one schema-constrained repair turn in
+  the same thread, which restates the result without tools or further work. A second
+  invalid result fails the run as before.
 - Objective replacement/pause/reopen/clear follows installed host semantics.
 
 <a id="commands"></a>

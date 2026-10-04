@@ -34,6 +34,7 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--actor {main,human}`
 - `--human-approval-policy {required,bypass}`: Main delegation approval policy; omitted sends preserve the session policy
 - `--task-mode {orchestrate,direct,work,plan,verification,plan-work,work-verification,plan-work-verification}`: Captured execution route; new Main requests default to orchestrate
+- `--work-profile {work,workLight}`: Work profile label Main chose (work = Expert, workLight = Worker); recorded for display only, selects no model or authority
 - `--model MODEL`
 - `--provider {codex,claude,antigravity}`
 - `--reasoning-effort {none,minimal,low,medium,high,xhigh,max,ultra}`
@@ -42,6 +43,7 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--goal-mode | --no-goal-mode`
 - `--goal-objective GOAL_OBJECTIVE`: Native persisted nonempty objective; omitted on send preserves the existing objective
 - `--receipt-request-hash RECEIPT_REQUEST_HASH`: SHA-256 identity the role receipt must bind (defaults to this run request)
+- `--response-contract {1,2}`: Work response contract: 1 = the Agent writes receipt.json, 2 = receipt fields in the structured final output (default where the provider attaches the schema to the final turn)
 - `--verified-work-run-id VERIFIED_WORK_RUN_ID`: exact Work run checked by a Verification Agent (required for Verification runs)
 - `--dispatch-id DISPATCH_ID`: optional idempotency key: dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}; generated when omitted; reuse the same key only for recovery of the same request
 - `--capability-binding-file CAPABILITY_BINDING_FILE`: strict Agent capability/authority/effects binding to preserve in this run
@@ -70,6 +72,7 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--actor {main,human}`
 - `--human-approval-policy {required,bypass}`: Main delegation approval policy; omitted sends preserve the session policy
 - `--task-mode {orchestrate,direct,work,plan,verification,plan-work,work-verification,plan-work-verification}`: Captured execution route; new Main requests default to orchestrate
+- `--work-profile {work,workLight}`: Work profile label Main chose (work = Expert, workLight = Worker); recorded for display only, selects no model or authority
 - `--model MODEL`
 - `--provider {codex,claude,antigravity}`
 - `--reasoning-effort {none,minimal,low,medium,high,xhigh,max,ultra}`
@@ -78,9 +81,11 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--goal-mode | --no-goal-mode`
 - `--goal-objective GOAL_OBJECTIVE`: Native persisted nonempty objective; omitted on send preserves the existing objective
 - `--receipt-request-hash RECEIPT_REQUEST_HASH`: SHA-256 identity the role receipt must bind (defaults to this run request)
+- `--response-contract {1,2}`: Work response contract: 1 = the Agent writes receipt.json, 2 = receipt fields in the structured final output (default where the provider attaches the schema to the final turn)
 - `--verified-work-run-id VERIFIED_WORK_RUN_ID`: exact Work run checked by a Verification Agent (required for Verification runs)
 - `--dispatch-id DISPATCH_ID`: optional idempotency key: dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}; generated when omitted; reuse the same key only for recovery of the same request
 - `--capability-binding-file CAPABILITY_BINDING_FILE`: strict Agent capability/authority/effects binding to preserve in this run
+- `--codex CODEX`
 - `--sandbox {read-only,workspace-write,danger-full-access}`
 - `--execution-policy-file EXECUTION_POLICY_FILE`
 - `--approval-policy {never,on-request,untrusted,on-failure}`

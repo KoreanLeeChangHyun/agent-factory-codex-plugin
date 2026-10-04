@@ -227,8 +227,7 @@ class NotificationHandlers:
                 return True
             emit({"type": "goal.continuing", "thread_id": self.thread_id})
             return False
-        self.finish_turn()
-        return True
+        return self.finish_turn()
 
     def on_error(self, method, params):
         if not params.get("willRetry"):

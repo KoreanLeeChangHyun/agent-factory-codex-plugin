@@ -104,6 +104,25 @@ def safe(root, relative):
     return path
 
 
+def superproject(root):
+    """Return the workspace whose .gitmodules registers root as a submodule path."""
+    for parent in root.parents:
+        modules = parent / '.gitmodules'
+        if modules.is_file():
+            relative = re.escape(root.relative_to(parent).as_posix())
+            if re.search(rf'^\s*path\s*=\s*{relative}\s*$', modules.read_text(encoding='utf-8'), re.M):
+                return parent
+    return None
+
+
+def check_root(root):
+    # A submodule root would split lessons away from the workspace record.
+    parent = superproject(root)
+    if parent and (parent / 'docs/lessons-learned').is_dir():
+        raise ValueError(f'Project root {root} is a submodule of {parent}; '
+                         f'use --project-root {parent} so lessons stay in {parent / "docs/lessons-learned"}')
+
+
 def records(root):
     directory = safe(root, 'docs/lessons-learned')
     if not directory.exists():
@@ -149,6 +168,7 @@ def candidate_hash(candidate):
 
 def operate(root, action, data):
     root = Path(root).resolve(strict=True)
+    check_root(root)
     with locked(root):
         if action == 'record':
             required(data, ['category', 'title', 'language', 'occurrenceId', 'source', 'scope'])
@@ -274,7 +294,7 @@ def operate(root, action, data):
             if hashlib.sha256(path.read_bytes()).hexdigest() != publication['fileHash']:
                 raise ValueError('Rule changed concurrently')
             record.setdefault('retirements', []).append({**data, 'recordedAt': stamp()})
-            original = path.read_text()
+            original = path.read_text(encoding='utf-8')
             record['retirements'][-1]['previousRule'] = original
             meta = yaml.safe_load(original.split('---', 2)[1])
             meta['description'] = 'Inactive rule; do not apply.'
@@ -301,7 +321,7 @@ def main():
     parser.add_argument('--input', required=True, type=Path)
     args = parser.parse_args()
     try:
-        print(json.dumps(operate(args.project_root, args.action, json.loads(args.input.read_text())), ensure_ascii=False))
+        print(json.dumps(operate(args.project_root, args.action, json.loads(args.input.read_text(encoding='utf-8'))), ensure_ascii=False))
         return 0
     except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
         print(json.dumps({'error': str(error)}, ensure_ascii=False))

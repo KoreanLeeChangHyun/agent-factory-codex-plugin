@@ -20,12 +20,17 @@ Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
 - `--model MODEL`
 - `--work-model WORK_MODEL`
 - `--work-reasoning-effort {none,low,medium,high,xhigh,max}`
+- `--work-fast | --no-work-fast`
 - `--work-execution-mode {cli-default,workspace-write,danger-full-access,bypass}`
 - `--verification-model VERIFICATION_MODEL`
 - `--verification-reasoning-effort {none,low,medium,high,xhigh,max}`
+- `--verification-fast | --no-verification-fast`
 - `--verification-execution-mode {cli-default,workspace-write,danger-full-access,bypass}`
+- `--work-profile {work,workLight}`: Work profile label Main chose (work = Expert, workLight = Worker); recorded for display only, selects no model or authority
 - `--work-capability-binding-file WORK_CAPABILITY_BINDING_FILE`
 - `--verification-capability-binding-file VERIFICATION_CAPABILITY_BINDING_FILE`
+- `--max-revisions MAX_REVISIONS`: Work revisions per task after failed Verification before the loop stops for a Human decision; 0 is unlimited
+- `--receipt-recovery {auto,manual}`: auto gives Work one repair turn for an allowlisted receipt failure; manual stops for recover-receipt
 
 ## `status`
 Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`
@@ -62,3 +67,12 @@ Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`
 
 ## `refresh-progress`
 Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`
+
+## `extend-revisions`
+Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`
+- `--sandbox {read-only,workspace-write,danger-full-access}`
+- `--execution-policy-file EXECUTION_POLICY_FILE`
+- `--approval-policy {never,on-request,untrusted,on-failure}`
+- `--network-access | --no-network-access`
+- `--writable-root WRITABLE_ROOT`
+- `--additional ADDITIONAL`: Further Work revisions the Human authorizes after the limit stopped the loop

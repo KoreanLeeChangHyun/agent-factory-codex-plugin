@@ -115,12 +115,13 @@ from contracts.capabilities import (
 from contracts import receipts as receipt_contracts
 from contracts.receipts import (
     receipt_schema_document, _exact_keys, _string_list,
-    _require_managed_directory, _require_managed_file, validate_receipt,
+    _require_managed_directory, _require_managed_file, validate_receipt, publish_structured_receipt,
 )
 from system import transport as process_transport
 from system.transport import (
     AttemptFailure, build_prompt, build_prompt_parts, build_codex_command,
     response_schema_document, inline_result, validate_terminal_result, publish_terminal_result,
+    structured_receipt,
     stderr_reports_sandbox_unavailable, process_exit_failure,
     missing_result_failure, result_publication_failure, append_bounded,
     EventLogWriter, append_event, read_process_lines, stream_stderr, process_group_exists,
@@ -210,7 +211,9 @@ CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
 
 
 def public_state(state: dict[str, Any]) -> dict[str, Any]:
-    return project_public_state(state)
+    # Live count of this run's error captures the project does not hold yet. They never gate
+    # completion; a later run that may write the project records them.
+    return {**project_public_state(state), "pendingLessons": lesson_capture.pending_count(state)}
 
 
 def submit(args: argparse.Namespace, new_agent: bool) -> int:
@@ -288,6 +291,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         validate_mode(execution_options["taskMode"])
         if (role == "verification" and not standalone) or (role == "work" and execution_options["taskMode"] in ("orchestrate", "direct", "verification")):
             raise ContractError("task_mode_role_invalid", "Task mode is incompatible with this role")
+    work_profile = getattr(args, "work_profile", None)
+    if work_profile is not None and role != "work":
+        raise ContractError("work_profile_role_invalid", "--work-profile labels Work runs only")
     goal_action = getattr(args, "goal_action", None)
     if role == "main" and execution_options.get("taskMode") != "direct" and execution_options.get("goalMode", (stored_session or {}).get("goalMode")) is True:
         raise ContractError("goal_role_invalid", "Main Goal is direct-only; delegated execution uses Work's native Goal. Submit the captured route with Main --no-goal-mode")
@@ -336,6 +342,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "executionPolicy": policy,
         "humanApprovalPolicy": human_approval_policy,
     }
+    if not new_agent and getattr(args, "codex", None) is not None:
+        dispatch_tuple["requestedCodex"] = args.codex
     if binding is not None:
         dispatch_tuple["taskBinding"] = binding
     if parent is not None:
@@ -347,6 +355,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         dispatch_tuple["imageInputs"] = input_images
     if execution_options:
         dispatch_tuple["executionOptions"] = execution_options
+    if work_profile is not None:
+        dispatch_tuple["workProfile"] = work_profile
     if goal_action:
         dispatch_tuple["goalAction"] = goal_action
     if capability_binding_hash is not None:
@@ -487,6 +497,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         worktrees.checked_path({"projectRoot": str(project_root), **session})
         effective = {**session, **execution_options}
         provider_changed = provider != session.get("provider", "codex")
+        codex_changed = False
         if provider_changed:
             # Only a cleared/unstarted conversation reaches here. Never resume an
             # ID belonging to the other provider; historical runs remain untouched.
@@ -496,6 +507,30 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
                 raise ContractError("provider_not_found", f"{provider} executable was not found")
             session = {**session, **adapters.adapter(provider).session_fields(executable)}
             effective = {**session, **execution_options}
+        elif provider == "codex" and not new_agent and getattr(args, "codex", None):
+            # A resumed conversation keeps its native thread ID and history, but each
+            # accepted turn uses the CLI currently selected by the extension host.
+            requested_codex = args.codex
+            if os.sep not in requested_codex:
+                from shutil import which
+                resolved_codex = which(requested_codex) or portable.find_cli(requested_codex)
+            else:
+                try:
+                    resolved_codex = str(Path(requested_codex).resolve(strict=True))
+                except OSError as error:
+                    raise ContractError("codex_not_found", f"Codex executable was not found: {requested_codex}") from error
+            if not resolved_codex or not Path(resolved_codex).is_file() or not os.access(resolved_codex, os.X_OK):
+                raise ContractError("codex_not_found", f"Codex executable was not found: {requested_codex}")
+            resolved_codex = portable.native_executable(resolved_codex, "codex")
+            codex_changed = resolved_codex != session.get("codex")
+            if codex_changed:
+                capabilities = adapters.adapter("codex").inspect_capabilities(
+                    resolved_codex, refresh=True,
+                    runtime_home=runtime_paths.resolve(project_root, create=True)["home"])
+                if session.get("backend") == "app-server" and capabilities.get("send", {}).get("instructionDelivery") is not True:
+                    raise ContractError("native_unsupported", "The selected Codex CLI cannot resume this app-server conversation")
+                session = {**session, "codex": resolved_codex}
+                effective = {**session, **execution_options}
         adapters.adapter(provider).validate_execution(effective, goal_action)
         image_input.validate_execution(images, effective)
         state = create_run(
@@ -508,17 +543,20 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             verified_work_run_id=verified_work_run_id,
             dispatch_id=dispatch_id,
             dispatch_operation=operation,
+            requested_codex=getattr(args, "codex", None) if not new_agent else None,
             capability_bindings=capability_bindings,
             execution_options=execution_options,
+            work_profile=work_profile,
             goal_action=goal_action,
             images=images,
             parent_agent_id=parent["agentId"] if parent else None,
             parent_run_id=parent["runId"] if parent else None,
             task_binding=binding,
+            response_contract=getattr(args, "response_contract", None),
         )
-        if policy_changed or human_approval_policy_changed or provider_changed:
+        if policy_changed or human_approval_policy_changed or provider_changed or codex_changed:
             session_updates = {"humanApprovalPolicy": human_approval_policy}
-            if provider_changed:
+            if provider_changed or codex_changed:
                 session_updates.update(adapters.for_session(session).persisted_fields(session))
             if policy_changed:
                 session_updates.update({
@@ -653,8 +691,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             if args.agent:
                 session = load_session(resolve_project_root(args.project_root), args.agent)
             provider = adapters.provider_for(args.model, args.provider, {**session, "sessionId": None} if session else None)
-            executable = adapters.adapter(provider).executable(args, session)
+            executable = (args.codex or (session or {}).get("codex") or "codex") if provider == "codex" else adapters.adapter(provider).executable(args, session)
             capabilities = dict(adapters.adapter(provider).inspect_capabilities(executable))
+            # Provider-independent runtime features. Hosts pass --work-profile and give per-class failure
+            # guidance only when reported; `pendingLessons` marks runs that complete with unsaved captures.
+            # `responseContract` is the newest Work response contract this runtime creates runs under
+            # (2: receipt fields in the structured final output); `revisionLimitPause` marks loops whose
+            # public state carries the structured `pause` a Human decides on.
+            for operation in ("submit", "send"):
+                capabilities[operation] = {**capabilities[operation], "workProfile": True, "failureClass": True,
+                                           "pendingLessons": True,
+                                           "responseContract": receipt_contracts.RESPONSE_CONTRACTS[-1],
+                                           "revisionLimitPause": True}
             if session is not None and session.get("sessionId"):
                 # A started conversation keeps its provider; hosts can mark models on other providers.
                 capabilities["send"] = {**capabilities["send"], "sessionProvider": session.get("provider", "codex")}

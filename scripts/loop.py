@@ -19,6 +19,7 @@ from typing import Any, Sequence
 sys.dont_write_bytecode = True
 import exec as agent_exec
 from tasks import progress as loop_progress
+from tasks.modes import WORK_PROFILES
 
 
 SCHEMA_VERSION = "0.1.0"
@@ -30,6 +31,54 @@ LEGACY_PATH_CONTRACT_ERRORS = {
     "changedPaths must be bounded relative paths",
     "changedPaths must contain only project-root-relative paths",
 }
+# A failed Verification returns to Work at most this many times per task before a Human decides.
+DEFAULT_MAX_REVISIONS = 3
+# Reading a run's status has no side effect, so a transient failure is retried; a dispatch never is.
+STATUS_READ_ATTEMPTS = 3
+STATUS_READ_BACKOFF_SECONDS = 0.5
+TRANSIENT_READ_ERRORS = {"child_runtime_failure", "runtime_failure"}
+# How often the driver asks exec to reconcile a child whose worker may have died.
+STALE_CHECK_SECONDS = 30.0
+# Human-invoked commands that return a stopped loop to `active`.
+RESUMING_COMMANDS = {"recover-receipt", "extend-revisions"}
+# What a stopped loop means for its caller. `contract`: the Agent's output broke its contract; a
+# repair turn or a stronger profile can fix it. `transient`: the control plane failed; inspect and
+# reconcile, the work itself is not at fault. `provider`: the model backend failed. `environment`:
+# the host or policy must change first; another attempt fails the same way. `human`: a Human decides.
+FAILURE_CLASSES = {
+    "contract": {
+        "receipt_missing", "receipt_format_invalid", "receipt_path_contract_invalid", "receipt_invalid",
+        "receipt_binding_invalid", "receipt_tests_invalid", "receipt_decision_invalid",
+        "receipt_capability_invalid", "finding_binding_invalid", "result_invalid", "result_missing",
+        "result_file_missing", "result_file_invalid",
+    },
+    "transient": {
+        "child_runtime_failure", "runtime_failure", "driver_error", "driver_launch_failed",
+        "heartbeat_timeout", "event_read_failed", "codex_exit_timeout", "worker_failure",
+        "started_run_not_replayable", "run_start_unknown",
+    },
+    "provider": {
+        "native_backend_error", "codex_failed", "event_invalid", "turn_timeout", "start_timeout",
+        "start_ack_missing", "session_invalid", "session_mismatch",
+    },
+    "environment": {
+        "sandbox_unavailable", "execution_preflight_failed", "execution_policy_mismatch",
+        "provider_not_found", "codex_start_failed", "worktree_binding_changed",
+    },
+    "human": {"needs-human-decision", "revision_limit_reached", "cancelled"},
+}
+
+
+# Codes the runtime no longer raises; loops stopped by them before keep their class.
+RETIRED_FAILURE_CODES = {"lesson_recording_incomplete": "contract"}
+
+
+def failure_class(error: Any) -> str | None:
+    """Classify a recorded stop so callers pick repair, re-inspection, escalation or a Human."""
+    if not isinstance(error, dict) or not isinstance(error.get("code"), str):
+        return None
+    return next((name for name, codes in FAILURE_CLASSES.items() if error["code"] in codes),
+                RETIRED_FAILURE_CODES.get(error["code"], "unknown"))
 
 
 def now() -> str:
@@ -77,7 +126,22 @@ class AgentRuntime:
         self.script = Path(agent_exec.__file__).resolve()
         self.parent_state_path = parent_state_path
 
-    def call(self, arguments: list[str]) -> dict[str, Any]:
+    def call(self, arguments: list[str], *, idempotent: bool = False) -> dict[str, Any]:
+        """Run one exec command. Only side-effect-free reads retry a transient failure."""
+        attempts = STATUS_READ_ATTEMPTS if idempotent else 1
+        for attempt in range(1, attempts + 1):
+            try:
+                return self._call(arguments)
+            except agent_exec.ContractError as error:
+                if error.code not in TRANSIENT_READ_ERRORS or attempt == attempts:
+                    raise
+            except (subprocess.TimeoutExpired, OSError):
+                if attempt == attempts:
+                    raise
+            time.sleep(STATUS_READ_BACKOFF_SECONDS * 2 ** (attempt - 1))
+        raise agent_exec.ContractError("child_runtime_failure", "Agent runtime returned no response")
+
+    def _call(self, arguments: list[str]) -> dict[str, Any]:
         environment = os.environ.copy()
         # The driver outlives its caller. Keep the announcement and child runs
         # bound to the Main run that accepted the immutable task list.
@@ -156,9 +220,21 @@ class AgentRuntime:
                 "--codex", str(execution["codex"]),
             ])
         for key, value in role_model_options(execution, role, operation).items():
-            arguments.extend(["--model" if key == "model" else "--reasoning-effort", str(value)])
+            if key == "model":
+                arguments.extend(["--model", str(value)])
+            elif key == "reasoningEffort":
+                arguments.extend(["--reasoning-effort", str(value)])
+            elif key == "fast":
+                arguments.append("--fast" if value else "--no-fast")
         if role == "work" and execution.get("taskMode"):
             arguments.extend(["--task-mode", execution["taskMode"]])
+        if role == "work" and execution.get("workProfile"):
+            arguments.extend(["--work-profile", execution["workProfile"]])
+        if role == "work":
+            # A loop finishes under the response contract it captured at start; loops persisted
+            # before the field keep the file contract (1) for every later Work run.
+            arguments.extend(["--response-contract",
+                              str(execution.get("responseContract", agent_exec.receipt_contracts.FILE_RESPONSE_CONTRACT))])
         if verified_work_run_id is not None:
             arguments.extend(["--verified-work-run-id", verified_work_run_id])
         if capability_binding_file is not None:
@@ -166,10 +242,14 @@ class AgentRuntime:
         return self.call(arguments)
 
     def status(self, agent_id: str, run_id: str) -> dict[str, Any]:
-        return self.call(["status", "--agent", agent_id, "--run-id", run_id])["run"]
+        return self.call(["status", "--agent", agent_id, "--run-id", run_id], idempotent=True)["run"]
 
     def status_dispatch(self, agent_id: str, dispatch_id: str) -> dict[str, Any]:
-        return self.call(["status", "--agent", agent_id, "--dispatch-id", dispatch_id])["run"]
+        return self.call(["status", "--agent", agent_id, "--dispatch-id", dispatch_id], idempotent=True)["run"]
+
+    def reconcile_stale(self, agent_id: str) -> list[dict[str, Any]]:
+        """Let exec settle this Agent's runs whose worker heartbeat expired; live runs are untouched."""
+        return self.call(["reconcile", "--agent", agent_id]).get("runs", [])
 
 
 def loop_directory(root: Path, work_agent: str, loop_id: str, *, create: bool = False) -> Path:
@@ -230,6 +310,22 @@ def observed_task_status(child):
     return "running"
 
 
+def revision_pause(state: dict[str, Any]) -> dict[str, Any] | None:
+    """A stop on the revision limit as data a host can render and a Human decides on."""
+    error = state.get("controlPlaneError")
+    if (state.get("status") != "needs-human-decision" or not isinstance(error, dict)
+            or error.get("code") != "revision_limit_reached"):
+        return None
+    return {
+        "code": "revision_limit_reached",
+        "revisionCount": state.get("revisionCount", 0),
+        "maxRevisions": state.get("execution", {}).get("maxRevisions"),
+        "pendingFindingIds": list(state.get("pendingFindingIds", [])),
+        # Summaries exist only for loops stopped by a runtime that records them.
+        "findings": copy.deepcopy(state.get("revisionLimitFindings") or []),
+    }
+
+
 def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> dict[str, Any]:
     workflow = copy.deepcopy(state.get("workflow"))
     if workflow and child and state.get("status") == "active":
@@ -247,11 +343,14 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         "loopId": state["loopId"],
         "workflow": workflow,
         "contract": copy.deepcopy(state.get("contract")),
+        "createdAt": state.get("createdAt"),
         "updatedAt": state.get("updatedAt"),
         "stateRevision": state.get("stateRevision", 0),
         "progressPath": str(Path(state["statePath"]).parent / "progress.md"),
         "progressProjection": loop_progress.health(Path(state["statePath"]), state),
         "taskMode": state.get("execution", {}).get("taskMode", "work-verification"),
+        # Present only when Main recorded its choice at start; older loops keep their shape.
+        **({"workProfile": state["execution"]["workProfile"]} if state.get("execution", {}).get("workProfile") else {}),
         "status": state["status"],
         "phase": state["phase"],
         "workAgentId": state["workAgentId"],
@@ -261,7 +360,11 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         "humanSkip": state.get("humanSkip"),
         "pendingDispatch": state.get("pendingDispatch"),
         "controlPlaneError": state.get("controlPlaneError"),
+        "failureClass": failure_class(state.get("controlPlaneError")),
         "receiptRecovery": state.get("receiptRecovery"),
+        "revisionCount": state.get("revisionCount", 0),
+        "maxRevisions": state.get("execution", {}).get("maxRevisions"),
+        "pause": revision_pause(state),
         "currentChild": child,
         "terminalReason": state.get("terminalReason"),
         "statePath": state["statePath"],
@@ -415,6 +518,8 @@ def complete_pending_dispatch(
         expected_tuple.setdefault("executionOptions", {})["taskMode"] = state["execution"]["taskMode"]
     if pending.get("capabilityBindingHash") is not None:
         expected_tuple["capabilityBindingHash"] = pending["capabilityBindingHash"]
+    if pending["role"] == "work" and state["execution"].get("workProfile"):
+        expected_tuple["workProfile"] = state["execution"]["workProfile"]
     if state["execution"].get("taskBinding"):
         expected_tuple["taskBinding"] = state["execution"]["taskBinding"]
     if pending.get("workGoal"):
@@ -494,6 +599,12 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         agent_exec.validate_id(args.verification_agent, agent_exec.AGENT_ID, "verification_agent")
     if args.work_agent == args.verification_agent:
         raise agent_exec.ContractError("agent_identity_conflict", "Work and Verification require different Agent sessions")
+    max_revisions = getattr(args, "max_revisions", DEFAULT_MAX_REVISIONS)
+    if type(max_revisions) is not int or max_revisions < 0:
+        raise agent_exec.ContractError("revision_limit_invalid", "--max-revisions must be 0 (unlimited) or a positive integer")
+    work_profile = getattr(args, "work_profile", None)
+    if work_profile is not None and work_profile not in WORK_PROFILES:
+        raise agent_exec.ContractError("work_profile_invalid", "--work-profile must be work or workLight")
     request = agent_exec.safe_read_bytes(args.request_file, agent_exec.MAX_REQUEST_BYTES)
     if not request.decode("utf-8").strip():
         raise agent_exec.ContractError("request_invalid", "request must not be empty")
@@ -604,6 +715,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "latestVerificationRunId": None,
         "lastVerificationDecision": None,
         "pendingFindingIds": [],
+        "revisionCount": 0,
         "currentChild": None,
         "humanSkip": None,
         "pendingDispatch": None,
@@ -614,8 +726,14 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "workflow": {"id": task_document["id"], "title": task_document["title"], "index": 0, "tasks": workflow_tasks},
         "parentStatePath": os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV),
         "execution": {"taskListPath": str(task_list_path), "taskBinding": binding, "taskMode": mode, "codex": args.codex, "model": args.model,
-                      "agentModels": {role: {key: value for key, value in {"model": getattr(args, role + "_model", None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None)}.items() if value} for role in ("work", "verification")},
-                      "executionPolicy": policy, "executionPolicyPath": str(policy_path), "agentPermissions": role_permissions},
+                      "agentModels": {role: {key: value for key, value in {"model": getattr(args, role + "_model", None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None), "fast": getattr(args, role + "_fast", None)}.items() if value is not None} for role in ("work", "verification")},
+                      "executionPolicy": policy, "executionPolicyPath": str(policy_path), "agentPermissions": role_permissions,
+                      # Loops persisted before these fields keep the unbounded, explicit-recovery graph.
+                      "maxRevisions": max_revisions, "receiptRecovery": getattr(args, "receipt_recovery", "auto"),
+                      # Captured once; every Work run of this loop is dispatched under it.
+                      "responseContract": agent_exec.receipt_contracts.RESPONSE_CONTRACTS[-1],
+                      # Loops started without the flag keep no profile record.
+                      **({"workProfile": work_profile} if work_profile else {})},
         "createdAt": created,
         "updatedAt": created,
     }
@@ -624,7 +742,21 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     return public_state(state, state["currentChild"])
 
 
-def verification_request(state: dict[str, Any], work: dict[str, Any], directory: Path) -> Path:
+def verification_request(
+    state: dict[str, Any], work: dict[str, Any], directory: Path,
+    addressed_finding_ids: Sequence[str] = (),
+) -> Path:
+    revision_context = ""
+    if addressed_finding_ids:
+        # Context only: the verifier still judges the whole request. Stable ids let Work,
+        # the Human and the revision limit tell an unresolved finding from a new one.
+        revision_context = f"""
+Revision context:
+- This Work run revises the Work that failed your Verification run {state.get('latestVerificationRunId')}.
+- Finding IDs Work reports as addressed: {json.dumps(list(addressed_finding_ids), ensure_ascii=False)}
+- Check each of them first, then regressions the revision may have caused and the rest of the request.
+- A finding that is still unresolved keeps its original id; use a new id only for a new defect.
+"""
     recovery_evidence = ""
     recovery = state.get("receiptRecovery")
     if isinstance(recovery, dict) and recovery.get("recoveryWorkRunId") == work.get("runId"):
@@ -640,7 +772,7 @@ Original request: {state['originalRequestPath']}
 Work run: {work['runId']}
 Work result: {work['resultPath']}
 Work receipt: {work['receiptPath']}
-{recovery_evidence}
+{revision_context}{recovery_evidence}
 """)
 
 
@@ -665,13 +797,14 @@ def receipt_recovery_request(
 Original request: {state['originalRequestPath']}
 Failed Work run: {failed['runId']}
 Preserved result: {failed['resultPath']}
-Preserved receipt: {failed['receiptPath']}
+Preserved receipt (absent when none was published): {failed['receiptPath']}
 Failure: {error['code']}: {error['message']}
 Required addressed finding IDs: {finding_ids}
 
 Do not repeat any already performed tool effect, external action, or project modification.
-Do not modify the failed run or its artifacts. Use the preserved evidence to write a
-fresh result and a corrected receipt for this recovery run. In `changedPaths`, report
+Do not modify the failed run or its artifacts. Use the preserved evidence to return a
+fresh result and a corrected receipt for this recovery run, delivered the way this
+run's instructions require. In `changedPaths`, report
 only project-root-relative paths changed by the failed Work; report runtime-only
 artifacts in the detailed result and use an empty array when the project was untouched.
 Capability outcomes must describe this recovery run; do not re-invoke a capability
@@ -718,56 +851,88 @@ def recover_receipt(args: argparse.Namespace) -> dict[str, Any]:
                 raise agent_exec.ContractError("receipt_recovery_binding_invalid", "Recovery run no longer matches the loop child")
             child = runtime.status(current["agentId"], current["runId"])
             return public_state(state, child)
-        if state.get("status") != "runtime-error" or state.get("phase") != "control-plane-error":
-            raise agent_exec.ContractError("receipt_recovery_unavailable", "Loop is not stopped on a recoverable receipt failure")
-        if state.get("pendingDispatch") is not None:
-            raise agent_exec.ContractError("receipt_recovery_ambiguous", "Loop has an unresolved dispatch intent")
-        current = state.get("currentChild")
-        if (
-            not isinstance(current, dict) or current.get("role") != "work"
-            or current.get("runId") != state.get("latestWorkRunId")
-        ):
-            raise agent_exec.ContractError("receipt_recovery_binding_invalid", "Receipt recovery requires the failed latest Work child")
-        failed = runtime.status(current["agentId"], current["runId"])
-        error = state.get("controlPlaneError")
-        if failed.get("status") != "failed" or not isinstance(error, dict) or failed.get("error") != error:
-            raise agent_exec.ContractError("receipt_recovery_unsafe", "Child state is active, ambiguous, or not an allowlisted receipt failure")
-        error_code = error.get("code")
-        legacy_path_error = (
-            error_code == "receipt_invalid"
-            and error.get("message") in LEGACY_PATH_CONTRACT_ERRORS
-            and failed.get("capabilityBindingHash") is None
-        )
-        recoverable = error_code in RECEIPT_RECOVERY_ERRORS or legacy_path_error
-        if error_code in {"receipt_missing", "receipt_format_invalid"} and failed.get("capabilityBindingHash") is not None:
-            recoverable = False
-        if not recoverable:
-            raise agent_exec.ContractError("receipt_recovery_unsafe", "Child receipt failure can contain unsafe test or capability evidence")
-        session = agent_exec.safe_read_json(agent_exec.session_file(root, assigned_agent(state, "work")))
-        if not isinstance(failed.get("sessionId"), str) or session.get("sessionId") != failed.get("sessionId"):
-            raise agent_exec.ContractError("receipt_recovery_session_invalid", "Failed Work run is not bound to the current Work session")
-        request = receipt_recovery_request(state, failed, error, path.parent)
-        request_hash = hashlib.sha256(agent_exec.safe_read_bytes(request, agent_exec.MAX_REQUEST_BYTES)).hexdigest()
-        state["receiptRecovery"] = {
-            "failedWorkRunId": failed["runId"],
-            "failure": error,
-            "failedResultPath": failed["resultPath"],
-            "failedReceiptPath": failed["receiptPath"],
-            "requestPath": str(request),
-            "requestHash": request_hash,
-            "recoveryWorkRunId": None,
-            "requestedAt": now(),
-            "dispatchedAt": None,
-        }
-        state["updatedAt"] = now()
-        save_loop_state(path, state)
+        request = prepare_receipt_recovery(state, path, runtime, root)
         # The accepted recovery intent is durable before any legacy policy publication.
         upgrade_execution_policy(state, path, args, root)
         dispatch(
             state, path, runtime, role="work", request_file=request,
-            recovery_of_run_id=failed["runId"],
+            recovery_of_run_id=state["receiptRecovery"]["failedWorkRunId"],
         )
         return public_state(state, state["currentChild"])
+
+
+def prepare_receipt_recovery(
+    state: dict[str, Any], path: Path, runtime: AgentRuntime, root: Path, *, automatic: bool = False,
+) -> Path:
+    """Validate a loop stopped on an allowlisted receipt failure and durably record the recovery intent."""
+    if state.get("status") != "runtime-error" or state.get("phase") != "control-plane-error":
+        raise agent_exec.ContractError("receipt_recovery_unavailable", "Loop is not stopped on a recoverable receipt failure")
+    if state.get("pendingDispatch") is not None:
+        raise agent_exec.ContractError("receipt_recovery_ambiguous", "Loop has an unresolved dispatch intent")
+    current = state.get("currentChild")
+    if (
+        not isinstance(current, dict) or current.get("role") != "work"
+        or current.get("runId") != state.get("latestWorkRunId")
+    ):
+        raise agent_exec.ContractError("receipt_recovery_binding_invalid", "Receipt recovery requires the failed latest Work child")
+    failed = runtime.status(current["agentId"], current["runId"])
+    error = state.get("controlPlaneError")
+    if failed.get("status") != "failed" or not isinstance(error, dict) or failed.get("error") != error:
+        raise agent_exec.ContractError("receipt_recovery_unsafe", "Child state is active, ambiguous, or not an allowlisted receipt failure")
+    error_code = error.get("code")
+    legacy_path_error = (
+        error_code == "receipt_invalid"
+        and error.get("message") in LEGACY_PATH_CONTRACT_ERRORS
+        and failed.get("capabilityBindingHash") is None
+    )
+    recoverable = error_code in RECEIPT_RECOVERY_ERRORS or legacy_path_error
+    if error_code in {"receipt_missing", "receipt_format_invalid"} and failed.get("capabilityBindingHash") is not None:
+        recoverable = False
+    if not recoverable:
+        raise agent_exec.ContractError("receipt_recovery_unsafe", "Child receipt failure can contain unsafe test or capability evidence")
+    session = agent_exec.safe_read_json(agent_exec.session_file(root, assigned_agent(state, "work")))
+    if not isinstance(failed.get("sessionId"), str) or session.get("sessionId") != failed.get("sessionId"):
+        raise agent_exec.ContractError("receipt_recovery_session_invalid", "Failed Work run is not bound to the current Work session")
+    request = receipt_recovery_request(state, failed, error, path.parent)
+    request_hash = hashlib.sha256(agent_exec.safe_read_bytes(request, agent_exec.MAX_REQUEST_BYTES)).hexdigest()
+    state["receiptRecovery"] = {
+        "failedWorkRunId": failed["runId"],
+        "failure": error,
+        "failedResultPath": failed["resultPath"],
+        "failedReceiptPath": failed["receiptPath"],
+        "requestPath": str(request),
+        "requestHash": request_hash,
+        "recoveryWorkRunId": None,
+        "requestedAt": now(),
+        "dispatchedAt": None,
+    }
+    if automatic:
+        state["receiptRecovery"]["automatic"] = True
+    state["updatedAt"] = now()
+    save_loop_state(path, state)
+    return request
+
+
+def automatic_receipt_recovery(
+    state: dict[str, Any], path: Path, runtime: AgentRuntime, root: Path,
+) -> dict[str, Any] | None:
+    """Give Work one repair turn for a deterministic receipt defect instead of stopping the loop.
+
+    Uses the explicit recovery's allowlist and durable dispatch. A task gets one recovery,
+    automatic or explicit; a second receipt failure, or any other failure, stays stopped.
+    """
+    if state.get("execution", {}).get("receiptRecovery") != "auto" or state.get("receiptRecovery") is not None:
+        return None
+    try:
+        request = prepare_receipt_recovery(state, path, runtime, root, automatic=True)
+    except agent_exec.ContractError:
+        # Not an allowlisted, safely bound receipt failure: keep the recorded stop.
+        return None
+    dispatch(
+        state, path, runtime, role="work", request_file=request,
+        recovery_of_run_id=state["receiptRecovery"]["failedWorkRunId"],
+    )
+    return public_state(state, state["currentChild"])
 
 
 def finish_workflow_task(state, path, runtime, reason):
@@ -789,7 +954,7 @@ def finish_workflow_task(state, path, runtime, reason):
             state["execution"]["taskBinding"] = binding
             state.update(originalRequestPath=next_task["requestPath"], originalRequestHash=next_task["requestHash"],
                          latestWorkRunId=None, latestVerificationRunId=None, lastVerificationDecision=None,
-                         pendingFindingIds=[], currentChild=None, humanSkip=None, receiptRecovery=None,
+                         pendingFindingIds=[], revisionCount=0, currentChild=None, humanSkip=None, receiptRecovery=None,
                          status="active", terminalReason=None)
             dispatch(state, path, runtime, role="work", request_file=Path(next_task["requestPath"]))
             return public_state(state, state["currentChild"])
@@ -830,6 +995,10 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
                 "updatedAt": now(),
             })
             save_loop_state(path, state)
+            if current["role"] == "work" and child["status"] == "failed":
+                recovered = automatic_receipt_recovery(state, path, runtime, root)
+                if recovered is not None:
+                    return recovered
             return public_state(state, child)
         directory = path.parent
         if current["role"] == "work":
@@ -851,7 +1020,7 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
                 return public_state(state)
             if state.get("workflow"):
                 state["workflow"]["tasks"][state["workflow"]["index"]]["workStatus"] = "completed"
-            request = verification_request(state, child, directory)
+            request = verification_request(state, child, directory, state.get("pendingFindingIds", []))
             state["pendingFindingIds"] = []
             dispatch(state, path, runtime, role="verification", request_file=request, verified_work_run_id=child["runId"])
             return public_state(state, state["currentChild"])
@@ -865,7 +1034,78 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
             state["workflow"]["tasks"][state["workflow"]["index"]]["verificationStatus"] = "pending"
         state["lastVerificationDecision"] = "fail"
         state["pendingFindingIds"] = [finding["id"] for finding in receipt["findings"]]
+        limit = state.get("execution", {}).get("maxRevisions")
+        if limit and state.get("revisionCount", 0) >= limit:
+            # Further automatic rounds rarely converge; stop with the evidence for a Human decision.
+            if state.get("workflow"):
+                state["workflow"]["tasks"][state["workflow"]["index"]]["verificationStatus"] = "blocked"
+            state.update({
+                "status": "needs-human-decision",
+                "phase": "waiting-human",
+                "controlPlaneError": {
+                    "code": "revision_limit_reached",
+                    "message": (
+                        f"Verification still fails after {limit} Work revision(s); open findings: "
+                        + ", ".join(state["pendingFindingIds"])
+                        + ". A Human authorizes more with `loop.py extend-revisions` or ends it with `loop.py close`."
+                    ),
+                },
+                "revisionLimitFindings": [
+                    {"id": finding["id"], "path": finding["path"], "problem": finding["problem"][:500]}
+                    for finding in receipt["findings"]
+                ],
+                "updatedAt": now(),
+            })
+            save_loop_state(path, state)
+            return public_state(state, child)
         request = revision_request(state, child, receipt, directory)
+        state["revisionCount"] = state.get("revisionCount", 0) + 1
+        dispatch(state, path, runtime, role="work", request_file=request)
+        return public_state(state, state["currentChild"])
+
+
+def extend_revisions(args: argparse.Namespace) -> dict[str, Any]:
+    """Human-authorized continuation of a loop stopped on its revision limit."""
+    if args.actor != "human" or not args.authorization_reference.strip() or not args.decision_evidence.strip():
+        raise agent_exec.ContractError("revision_extension_unauthorized", "Extending revisions requires Human authorization and evidence")
+    if args.additional < 1:
+        raise agent_exec.ContractError("revision_limit_invalid", "--additional must be a positive integer")
+    root = agent_exec.resolve_project_root(args.project_root)
+    path, _state = read_state(root, args.work_agent, args.loop_id)
+    with agent_exec.file_lock(path.parent / ".loop.lock"):
+        state = agent_exec.safe_read_json(path)
+        error = state.get("controlPlaneError")
+        if (
+            state.get("status") != "needs-human-decision" or state.get("pendingDispatch") is not None
+            or not isinstance(error, dict) or error.get("code") != "revision_limit_reached"
+        ):
+            raise agent_exec.ContractError("revision_extension_unavailable", "Loop is not stopped on its revision limit")
+        current = state.get("currentChild")
+        if (
+            not isinstance(current, dict) or current.get("role") != "verification"
+            or current.get("runId") != state.get("latestVerificationRunId")
+        ):
+            raise agent_exec.ContractError("loop_state_invalid", "The revision limit must bind the failed latest Verification")
+        upgrade_execution_policy(state, path, args, root)
+        runtime = AgentRuntime(root, state.get("parentStatePath"))
+        child = runtime.status(current["agentId"], current["runId"])
+        receipt = agent_exec.validate_receipt(root, child, agent_id=current["agentId"], run_id=current["runId"])
+        if receipt["decision"] != "fail":
+            raise agent_exec.ContractError("loop_state_invalid", "The bound Verification did not fail")
+        state["execution"]["maxRevisions"] = int(state["execution"]["maxRevisions"]) + args.additional
+        state.setdefault("revisionExtensions", []).append({
+            "actor": "human",
+            "authorizationReference": args.authorization_reference.strip(),
+            "decisionEvidence": args.decision_evidence.strip(),
+            "additional": args.additional,
+            "recordedAt": now(),
+        })
+        if state.get("workflow"):
+            state["workflow"]["tasks"][state["workflow"]["index"]]["verificationStatus"] = "pending"
+        state.update({"status": "active", "controlPlaneError": None, "revisionLimitFindings": None,
+                      "pendingFindingIds": [finding["id"] for finding in receipt["findings"]]})
+        request = revision_request(state, child, receipt, path.parent)
+        state["revisionCount"] = state.get("revisionCount", 0) + 1
         dispatch(state, path, runtime, role="work", request_file=request)
         return public_state(state, state["currentChild"])
 
@@ -942,11 +1182,27 @@ def close_loop(args):
         return public_state(state)
 
 
+def settle_stale_child(root: Path, observed: dict[str, Any]) -> None:
+    """Best effort: a child whose worker died would otherwise stay `running` and stall the loop.
+
+    exec's reconcile only acts on an expired heartbeat with no live process, so a healthy
+    run is untouched; the next reconcile then sees the settled terminal state.
+    """
+    child = observed.get("currentChild")
+    if not isinstance(child, dict) or child.get("status") in CHILD_TERMINAL or not child.get("agentId"):
+        return
+    try:
+        AgentRuntime(root).reconcile_stale(str(child["agentId"]))
+    except (agent_exec.ContractError, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+        print(f"Stale child check failed for {observed.get('loopId')}: {error}", file=sys.stderr)
+
+
 def drive_loop(args):
     """Run the durable graph independently of Main and the chat panel."""
     root = agent_exec.resolve_project_root(args.project_root)
     path, _ = read_state(root, args.work_agent, args.loop_id)
     with agent_exec.file_lock(path.parent / ".driver.lock"):
+        next_stale_check = time.monotonic() + STALE_CHECK_SECONDS
         while True:
             state = agent_exec.safe_read_json(path)
             if state["status"] != "active":
@@ -968,6 +1224,9 @@ def drive_loop(args):
                 return public_state(state)
             if result["status"] != "active":
                 return result
+            if time.monotonic() >= next_stale_check:
+                next_stale_check = time.monotonic() + STALE_CHECK_SECONDS
+                settle_stale_child(root, result)
             time.sleep(2)
 
 
@@ -1038,20 +1297,30 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     for role in ("work", "verification"):
         start.add_argument("--" + role + "-model")
         start.add_argument("--" + role + "-reasoning-effort", choices=("none", "low", "medium", "high", "xhigh", "max"))
+        start.add_argument("--" + role + "-fast", action=argparse.BooleanOptionalAction, default=None)
         start.add_argument("--" + role + "-execution-mode", choices=("cli-default", "workspace-write", "danger-full-access", "bypass"))
+    start.add_argument("--work-profile", choices=WORK_PROFILES,
+                       help="Work profile label Main chose (work = Expert, workLight = Worker); recorded for display only, selects no model or authority")
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
-    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close", "refresh-progress"):
+    start.add_argument("--max-revisions", type=int, default=DEFAULT_MAX_REVISIONS,
+                       help="Work revisions per task after failed Verification before the loop stops for a Human decision; 0 is unlimited")
+    start.add_argument("--receipt-recovery", choices=("auto", "manual"), default="auto",
+                       help="auto gives Work one repair turn for an allowlisted receipt failure; manual stops for recover-receipt")
+    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close", "refresh-progress", "extend-revisions"):
         command = commands.add_parser(name)
         agent_exec.add_project_argument(command)
-        if name in {"reconcile", "recover-receipt", "drive"}:
+        if name in {"reconcile", "recover-receipt", "drive", "extend-revisions"}:
             agent_exec.execution_policy.add_policy_arguments(command)
         command.add_argument("--work-agent", required=True)
         command.add_argument("--loop-id", required=True)
-        if name in {"skip", "close"}:
+        if name in {"skip", "close", "extend-revisions"}:
             command.add_argument("--actor", choices=agent_exec.ACTORS, required=True)
             command.add_argument("--authorization-reference", required=True)
             command.add_argument("--decision-evidence", required=True)
+        if name == "extend-revisions":
+            command.add_argument("--additional", type=int, default=1,
+                                 help="Further Work revisions the Human authorizes after the limit stopped the loop")
     return parser
 
 
@@ -1066,8 +1335,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         agent_exec.response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "loop.py", "action": args.command})
         agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
-        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop, "refresh-progress": refresh_progress}
+        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop, "refresh-progress": refresh_progress, "extend-revisions": extend_revisions}
         result = handlers[args.command](args)
+        if args.command in RESUMING_COMMANDS and result.get("status") == "active":
+            # The driver left when the loop stopped. A duplicate is harmless (.driver.lock), and
+            # without one the resumed loop still advances through reconcile, so never fail here.
+            try:
+                launch_driver(args, result)
+            except OSError as error:
+                print(f"Loop driver was not relaunched for {result.get('loopId')}: {error}", file=sys.stderr)
         if args.command == "start" and result.get("status") == "active":
             try:
                 launch_driver(args, result)

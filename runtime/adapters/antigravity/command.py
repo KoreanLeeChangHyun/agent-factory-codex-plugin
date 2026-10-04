@@ -14,6 +14,7 @@ from adapters.antigravity.policy import NOTICES, effort_arguments, native_model,
 from storage.errors import ContractError
 from tasks import orchestrator_guard
 from storage.files import atomic_write_json, safe_read_json
+from contracts.receipts import result_only_schema
 
 TRANSPORT = Path(__file__).with_name("transport.py")
 PLAN_MODES = ("plan", "plan-work", "plan-work-verification")
@@ -30,9 +31,10 @@ AGENT_PREFIX = "agent-factory-"
 AGENT_DESCRIPTION = "Agent Factory managed runs (installed by the Agent Factory runtime)."
 AGENT_TOOLS = ("view_file", "list_dir", "find_by_name", "grep_search", "write_to_file", "replace_file_content",
                "multi_replace_file_content", "notebook_edit", "run_command", "search_web", "read_url_content", "generate_image", "finish")
-AGENT_PROMPT = ("You are an autonomous coding agent launched by Agent Factory in headless print mode. The user "
-                "message holds your role instructions and the current request; follow them exactly. Nobody can "
-                "answer questions or approve actions during the run. Use absolute paths with the file tools. "
+AGENT_PROMPT = ("You are an Agent Factory agent launched in headless print mode. The user message holds your "
+                "role instructions and the current request; follow them exactly, including whether the request is "
+                "conversation or work. Nobody can reply during the run; put any required Human decision in the final "
+                "result. Use absolute paths with the file tools. "
                 "Use generate_image when the request needs a generated picture; it saves outside the workspace, "
                 "so copy the file where the request expects it. "
                 "End every turn by calling finish once with the final result the request requires; omit optional "
@@ -216,6 +218,8 @@ def cli_command(session, state, parts, phase=None):
         "Agent Factory installed skill sources (read only when needed):\n" + "\n".join(
         f"- agent-factory:{name}: {root / 'skills' / name / 'SKILL.md'}" for name in ("agent", "convention", "document", "tool"))
     schema, _ = result_schema(state)
+    if phase == "plan":
+        schema = result_only_schema(schema)  # A plan completes no Work, so it returns no receipt fields.
     working_directory = session.get("workingDirectory", session.get("projectRoot"))
     goal = [] if phase == "plan" else goal_commands(session, state)
     command = [session["agy"], "--input-format", "stream-json", "--output-format", "stream-json",

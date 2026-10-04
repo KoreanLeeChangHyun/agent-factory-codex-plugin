@@ -140,7 +140,7 @@ def _configured_policy(codex, project_root, *, sandbox=None, approval=None):
     try:
         process = subprocess.Popen([codex, "app-server", "--listen", "stdio://"], cwd=project_root,
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                                   text=True)
+                                   text=True, encoding="utf-8")
         rpc = Rpc(process)
         rpc.call("initialize", {"clientInfo": {"name": "agent_factory_policy", "version": "0.1.0"},
                                 "capabilities": {"experimentalApi": True}}, timeout=3)
@@ -218,8 +218,10 @@ def command_params(policy, run_directory):
     }}
 
 
-# Orchestrator-mode enforcement for Codex Main through a session-flag PreToolUse hook.
-GUARD_MATCHER = "^(Bash|apply_patch)$"
+# Orchestrator-mode Main and Work enforcement through one session-flag PreToolUse hook. Codex keeps a
+# single trust hash for the session-flag hook key, so both roles carry this exact definition and the
+# guard script picks its rules from the arming variable.
+GUARD_MATCHER = "^(Bash|apply_patch|.*(spawn|resume)_agent.*)$"
 
 
 def guard_hook_toml():
@@ -227,20 +229,29 @@ def guard_hook_toml():
     return f'hooks.PreToolUse=[{{matcher={json.dumps(GUARD_MATCHER)}, hooks=[{handler}]}}]'
 
 
+def guard_environment(state, session=None):
+    """Variables arming the guard for this run: orchestrate Main rules, Work rules or none."""
+    if orchestrator_guard.orchestrating(state, session):
+        return orchestrator_guard.environment(state)
+    if orchestrator_guard.working(state, session):
+        return dict(orchestrator_guard.WORK_ENVIRONMENT)
+    return {}
+
+
 def app_server(session, state):
-    """App-server argv and environment; only orchestrate Main runs carry the hook and its arming variable."""
+    """App-server argv and environment; only orchestrate Main and Work runs carry the hook and its arming variable."""
     command = [session["codex"], "app-server", "--listen", "stdio://"]
     environment = dict(os.environ)
     environment.pop(orchestrator_guard.ENV, None)
-    if orchestrator_guard.orchestrating(state, session):
+    arming = guard_environment(state, session)
+    if arming:
         command += ["-c", guard_hook_toml()]
-        environment.update(orchestrator_guard.environment(state))
+        environment.update(arming)
     return command, environment
 
 
 def guard_signature(state, session):
-    return json.dumps(app_server({"codex": ""}, state)[0] + [json.dumps(
-        orchestrator_guard.environment(state) if orchestrator_guard.orchestrating(state, session) else {})])
+    return json.dumps(app_server({"codex": ""}, state)[0] + [json.dumps(guard_environment(state, session))])
 
 
 def ensure_guard_trusted(rpc, cwd):
@@ -257,11 +268,11 @@ def ensure_guard_trusted(rpc, cwd):
         return None
     hook = ours()
     if hook is None:
-        raise RuntimeError("Codex did not load the orchestrator guard hook")
+        raise RuntimeError("Codex did not load the Agent Factory guard hook")
     if hook.get("trustStatus") in ("trusted", "managed"):
         return
     rpc.call("config/value/write", {"keyPath": "hooks.state", "mergeStrategy": "upsert",
                                     "value": {hook["key"]: {"trusted_hash": hook["currentHash"]}}})
     hook = ours()
     if not hook or hook.get("trustStatus") not in ("trusted", "managed"):
-        raise RuntimeError("Codex did not trust the orchestrator guard hook; orchestrator mode cannot be enforced")
+        raise RuntimeError("Codex did not trust the Agent Factory guard hook; its Main and Work rules cannot be enforced")

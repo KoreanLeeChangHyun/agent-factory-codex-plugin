@@ -167,14 +167,14 @@ def command_cancel(runtime, args: argparse.Namespace) -> int:
 def stop_run(runtime, root: Path, agent: str, run_id: str) -> None:
     """Request cancellation and empty the run's containment without emitting a response."""
     path = runtime.state_file(root, agent, run_id)
-    state = runtime.safe_read_json(path)
-    if state.get("status") in runtime.TERMINAL_STATES:
-        raise runtime.ContractError("run_terminal", "run is already terminal")
-    state = runtime.update_json(
-        path,
-        path.parent / ".state.lock",
-        lambda value: value.update({"cancelRequested": True, "status": "cancelling"}),
-    )
+
+    def request(value: dict[str, Any]) -> None:
+        # Checked under the state lock: a run that just finished must keep its terminal status.
+        if value.get("status") in runtime.TERMINAL_STATES:
+            raise runtime.ContractError("run_terminal", "run is already terminal")
+        value.update({"cancelRequested": True, "status": "cancelling"})
+
+    state = runtime.update_json(path, path.parent / ".state.lock", request)
     runtime.adapters.for_session(state).before_stop(path, state, cancel=True)
     containment_value = state.get("containment")
     if containment_value is None:

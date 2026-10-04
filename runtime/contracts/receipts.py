@@ -12,7 +12,7 @@ from typing import Any
 
 from contracts.capabilities import validate_capability_bindings
 from storage.errors import ContractError
-from storage.files import agent_root, resolve_project_root, safe_read_bytes, validate_id
+from storage.files import agent_root, atomic_write_json, resolve_project_root, safe_read_bytes, validate_id
 
 SCHEMA_VERSION = "0.1.0"
 AGENT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
@@ -21,6 +21,86 @@ MAX_RECEIPT_BYTES = 1024 * 1024
 MAX_CAPABILITY_BINDING_BYTES = 256 * 1024
 CAPABILITY_OUTCOMES = {"succeeded", "failed", "unknown", "not-invoked"}
 WORK_OUTCOMES = {"completed", "implemented"}
+# How a Work run delivers its receipt, captured per run as `responseContract` at creation.
+# 1 (also every run without the field): the Agent writes receipt.json itself.
+# 2: the Agent returns the judgment fields in its structured final output; the runtime adds
+#    the fixed fields, validates the whole receipt and writes receipt.json.
+FILE_RESPONSE_CONTRACT = 1
+STRUCTURED_RESPONSE_CONTRACT = 2
+RESPONSE_CONTRACTS = (FILE_RESPONSE_CONTRACT, STRUCTURED_RESPONSE_CONTRACT)
+RECEIPT_JUDGMENT_FIELDS = ("outcome", "changedPaths", "tests", "addressedFindingIds")
+
+
+def response_contract(state: dict[str, Any]) -> int:
+    """The response contract this run captured; runs created before the field keep contract 1."""
+    version = state.get("responseContract", FILE_RESPONSE_CONTRACT)
+    if type(version) is not int or version not in RESPONSE_CONTRACTS:
+        raise ContractError("response_contract_invalid", "Run response contract version is unsupported")
+    return version
+
+
+def receipt_judgment_schema() -> dict[str, Any]:
+    """Receipt judgment fields as final-output properties.
+
+    Only keywords every provider's output schema accepts; `validate_receipt` enforces the
+    remaining rules (unique values, project-relative paths) on the receipt the runtime builds."""
+    return {
+        "outcome": {"type": "string", "enum": ["completed"]},
+        "changedPaths": {
+            "type": "array", "items": {"type": "string", "minLength": 1},
+            "description": "Project-root-relative paths this Work changed; empty when the project is untouched.",
+        },
+        "tests": {
+            "type": "object",
+            "properties": {
+                "run": {"type": "boolean"},
+                "reason": {"type": "string", "minLength": 1},
+            },
+            "required": ["run", "reason"],
+            "additionalProperties": False,
+            "description": "Own check commands and results, or why checks were not run; never a Verification pass.",
+        },
+        "addressedFindingIds": {
+            "type": "array", "items": {"type": "string", "minLength": 1},
+            "description": "Verification finding IDs this run addressed; empty when none were assigned.",
+        },
+    }
+
+
+def receipt_judgment_defect(terminal: Any) -> str | None:
+    """Why a final output cannot supply the receipt judgment as returned, or None.
+
+    Covers only what `receipt_judgment_schema` constrains, for a final turn that could not carry
+    the schema (a Codex native Goal turn); `validate_receipt` still applies every receipt rule."""
+    if not isinstance(terminal, dict):
+        return "the final output is not a JSON object"
+    missing = [field for field in RECEIPT_JUDGMENT_FIELDS if field not in terminal]
+    if missing:
+        return "the final JSON omitted the receipt fields: " + ", ".join(missing)
+
+    def strings(value: Any) -> bool:
+        return isinstance(value, list) and all(isinstance(item, str) and item for item in value)
+    tests = terminal["tests"]
+    valid = {
+        "outcome": terminal["outcome"] in WORK_OUTCOMES,
+        "changedPaths": strings(terminal["changedPaths"]),
+        "tests": (isinstance(tests, dict) and set(tests) == {"run", "reason"} and type(tests["run"]) is bool
+                  and isinstance(tests["reason"], str) and bool(tests["reason"])),
+        "addressedFindingIds": strings(terminal["addressedFindingIds"]),
+    }
+    malformed = [field for field in RECEIPT_JUDGMENT_FIELDS if not valid[field]]
+    if malformed:
+        return "these receipt fields do not match the output schema: " + ", ".join(malformed)
+    return None
+
+
+def result_only_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """A response schema without receipt fields, for a phase that completes no Work (planning)."""
+    properties = {key: value for key, value in schema.get("properties", {}).items()
+                  if key not in RECEIPT_JUDGMENT_FIELDS}
+    return {**schema, "properties": properties,
+            "required": [key for key in schema.get("required", []) if key in properties]}
+
 
 def receipt_schema_document(
     *, role: str, run_id: str, request_hash: str, verified_work_run_id: str | None,
@@ -181,7 +261,9 @@ def validate_receipt(
     *,
     agent_id: str,
     run_id: str,
+    candidate: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Validate the run's published receipt, or `candidate` before the runtime publishes it."""
     root = resolve_project_root(project_root)
     role = state.get("role")
     standalone = role == "verification" and state.get("taskMode") == "verification"
@@ -211,16 +293,19 @@ def validate_receipt(
     _require_managed_file(canonical["receiptSchemaPath"])
     _require_managed_file(canonical["receiptPath"], allow_missing=True)
     receipt_path = canonical["receiptPath"]
-    try:
-        receipt = json.loads(safe_read_bytes(receipt_path, MAX_RECEIPT_BYTES))
-    except FileNotFoundError as error:
-        raise ContractError("receipt_missing", "Agent did not publish its receipt") from error
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ContractError("receipt_format_invalid", "Agent receipt is malformed JSON") from error
-    except ContractError as error:
-        if error.code == "file_not_found":
+    if candidate is not None:
+        receipt = candidate
+    else:
+        try:
+            receipt = json.loads(safe_read_bytes(receipt_path, MAX_RECEIPT_BYTES))
+        except FileNotFoundError as error:
             raise ContractError("receipt_missing", "Agent did not publish its receipt") from error
-        raise ContractError("receipt_path_invalid", "Agent receipt path is unsafe") from error
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ContractError("receipt_format_invalid", "Agent receipt is malformed JSON") from error
+        except ContractError as error:
+            if error.code == "file_not_found":
+                raise ContractError("receipt_missing", "Agent did not publish its receipt") from error
+            raise ContractError("receipt_path_invalid", "Agent receipt path is unsafe") from error
     if not isinstance(receipt, dict):
         raise ContractError("receipt_format_invalid", "Agent receipt must be a JSON object")
     expected_hash = state.get("receiptRequestHash") or state.get("requestHash")
@@ -374,3 +459,30 @@ def validate_receipt(
     return validated_receipt
 
 
+def publish_structured_receipt(
+    project_root: Path,
+    state: dict[str, Any],
+    terminal: dict[str, Any],
+    *,
+    agent_id: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Write receipt.json for a contract-2 Work run from its completed final output.
+
+    The runtime supplies only the fixed binding fields. Judgment fields are copied as the
+    Agent returned them and never defaulted: an omitted field leaves the run without a receipt.
+    """
+    missing = [field for field in RECEIPT_JUDGMENT_FIELDS if field not in terminal]
+    if missing:
+        raise ContractError(
+            "receipt_missing", "Final output omitted the receipt fields: " + ", ".join(missing))
+    receipt = {
+        "schemaVersion": SCHEMA_VERSION,
+        "kind": "work-receipt",
+        "runId": state.get("runId"),
+        "requestHash": state.get("receiptRequestHash") or state.get("requestHash"),
+        **{field: terminal[field] for field in RECEIPT_JUDGMENT_FIELDS},
+    }
+    validated = validate_receipt(project_root, state, agent_id=agent_id, run_id=run_id, candidate=receipt)
+    atomic_write_json(Path(state["receiptPath"]), validated)
+    return validated

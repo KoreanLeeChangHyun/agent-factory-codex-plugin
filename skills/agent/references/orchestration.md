@@ -35,7 +35,8 @@
 ## 2. Verification and skip
 
 - **Fail:** send findings to the same Work Agent; send revisions to the same
-  Verification Agent.
+  Verification Agent. At the loop's revision limit, report the open findings and ask the
+  Human whether to extend or close; never extend on your own.
 - **Pass:** integrate and report.
 - **Human skip:** record actor, authorization reference and decision evidence before the
   next Verification. Intent alone is no transition. Apply only after current

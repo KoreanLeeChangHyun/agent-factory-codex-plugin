@@ -1,6 +1,9 @@
 """Claude permission mapping and unrestricted host readiness check."""
+import json
+
 from execution import policy as execution_policy
 from storage.errors import ContractError
+from tasks import subagent_guard
 from .capabilities import EFFORTS, EFFORT_ALIASES
 
 # Nearest Claude permission mode for each Agent Factory sandbox type. Claude tool permissions are
@@ -35,6 +38,18 @@ def permission_arguments(session, working_directory):
             if str(root) != str(working_directory):
                 arguments += ["--add-dir", str(root)]
     return arguments
+
+
+def work_subagent_arguments():
+    """Work may start only the read-only Explore sub-agent; every other sub-agent type is denied.
+
+    Claude's `Agent(type)` allowlist applies only to a `--agent` main thread and deny rules name single
+    types, so a PreToolUse hook decides. Hooks run before the permission mode, so the denial holds under
+    bypassPermissions, acceptEdits, dontAsk and plan. Workflow scripts start sub-agents without the
+    Agent tool, so that tool is removed."""
+    hook = {"matcher": subagent_guard.MATCHER,
+            "hooks": [{"type": "command", "command": subagent_guard.HOOK_COMMAND, "timeout": 30}]}
+    return ["--settings", json.dumps({"hooks": {"PreToolUse": [hook]}}), "--disallowedTools", "Workflow"]
 
 
 def orchestrator_arguments(plugin_root, run_directory):

@@ -38,7 +38,7 @@ def _probe_capabilities(codex: str) -> dict:
                     raise NativeError("installed Codex cannot generate the experimental app-server schema")
             def schema(name):
                 path = Path(directory) / name
-                return json.loads(path.read_text())
+                return json.loads(path.read_text(encoding="utf-8"))
             for feature in ("fast", "goal", "plan"):
                 try:
                     turn = schema("v2/TurnStartParams.json")["properties"]

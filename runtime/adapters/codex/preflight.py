@@ -55,7 +55,7 @@ def _native_command(codex, policy, directory, project, canary):
         process = subprocess.Popen([str(codex), "app-server", "--listen", "stdio://",
                                     *execution_policy.arguments(policy, directory)], cwd=project,
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                                   text=True, **_isolated_group())
+                                   text=True, encoding="utf-8", **_isolated_group())
         rpc = Rpc(process)
         rpc.call("initialize", {"clientInfo": {"name": "agent_factory_preflight", "version": "0.1.0"},
                                 "capabilities": {"experimentalApi": True}}, timeout=min(3, max(0.01, deadline - time.monotonic())))

@@ -41,7 +41,11 @@
 
 ## 2. Boundaries
 
-- No independent Verification pass claims, Agent coordination or commits.
+- No independent Verification pass claims, Agent coordination or commits. Sub-agents are for
+  read-only exploration (search) only, never to review or verify this run's own work.
+- Your run ends at your own result. The runtime or Main starts Verification, commits and
+  reports afterwards; never wait for them or return `needs-human-decision` because they
+  have not happened.
 - Record own check commands and outcomes, or why checks were not run, in the result and
   receipt. Plan-only performs no implementation or execution checks.
 - Never commit; Main owns commits after completion of the selected route.
@@ -55,7 +59,7 @@
 - Apply Convention's [Human-facing communication contract](../../convention/references/communication.md); reports must use a respectful formal register because
   Main or the host may surface them to the Human.
 - Changed paths and completed work.
-- Receipt `changedPaths` are project-root-relative project paths only. Report runtime-only
-  artifacts in the detailed result and use an empty array when the project was
-  untouched.
+- Receipt: final-output fields; a file only if the run names one. `changedPaths` are
+  project-root-relative paths (`[]` if untouched); runtime-only artifacts go in the
+  result.
 - Limitations and unresolved Human decisions.
