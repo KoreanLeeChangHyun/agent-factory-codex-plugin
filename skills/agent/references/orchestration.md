@@ -6,9 +6,13 @@
 
 ## 1. Chains and shared resources
 
-- Use the current shared checkout without separate Git worktrees. Apply Convention's
+- Work isolation off (the default): use the current shared checkout without separate Git
+  worktrees. Apply Convention's
   [shared checkout coordination](../../convention/references/development.md#shared-checkout-coordination) when assigning write boundaries, sequencing conflicts and stabilizing
   Verification inputs.
+- Work isolation on (the Human's toggle, captured as `workIsolation` on the Main run): every
+  delegated Work uses a Main-chosen [task Work Unit](task-dispatch.md#task-workspaces); the
+  runtime integrates and cleans up without Human waits.
 - Assess dependencies across repository paths/writes and shared mutable resources: Git
   index/worktree, Agent/session/loop/run IDs, databases, ports and external systems.
 - Sequence uncertain independence or obtain the missing Human decision. Parallelize only

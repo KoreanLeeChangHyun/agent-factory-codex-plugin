@@ -46,8 +46,10 @@
 
 ## 2. Shared checkout coordination
 
-- Use the current shared checkout; do not create or switch to separate Git worktrees for
-  ordinary or parallel Agent tasks.
+- Explicit shared-checkout requests and accepted legacy tasks use the current shared checkout;
+  do not create or switch their Git worktrees. New code tasks with captured
+  [task Work Units](../../agent/references/task-dispatch.md#task-workspaces) use the runtime's
+  bound isolated directory. This exception grants no manual worktree or Git publication authority.
 - Before dispatch, Main explicitly assigns each Work bounded read and write scopes.
   Reads may overlap, but concurrent writes must be disjoint. Prefer directory or module
   ownership, narrowed to exact files when necessary.
@@ -97,7 +99,9 @@
 
 - Main directly makes authorized ordinary commits after the selected route completes:
   Main own checks in direct, completed Work with its own checks in work/plan-work, or independent pass/evidenced
-  Human skip applied after Work completion in verification modes. Work/Verification
+  Human skip applied after Work completion in verification modes. Captured task Work Units may
+  use Main's runtime-owned checked integration path described in Agent's
+  [task Work Units](../../agent/references/task-dispatch.md#task-workspaces). Work/Verification
   never commit; add no commit turn, role or graph node.
 - Inspect applicable Work result/receipt, check/pass/skip evidence and current
   status/diff. Stage only bound paths, excluding unrelated dirty, untracked, generated

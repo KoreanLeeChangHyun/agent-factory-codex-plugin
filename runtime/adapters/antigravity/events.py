@@ -5,12 +5,13 @@ import json
 import uuid
 
 from adapters.antigravity.control import COMPLETE, strip_markers
+from adapters.tool_arguments import tool_item
 from execution.streaming import DeltaBuffer, JsonStringField
 from execution.interview import extract_markers
 
 # agy tools that change files, and the parameter naming the changed path.
 FILE_TOOLS = {"write_to_file": "TargetFile", "replace_file_content": "TargetFile",
-              "multi_replace_file_content": "TargetFile", "sed_file": "TargetFile", "notebook_edit": "TargetFile"}
+              "multi_replace_file_content": "TargetFile", "sed_file": "TargetFile", "notebook_edit": "NotebookPath"}
 MAX_TOOL_OUTPUT_CHARACTERS = 64 * 1024
 
 
@@ -133,7 +134,7 @@ class Events:
             if identity in self.tools:
                 return []
             arguments = info.get("parameters") if isinstance(info.get("parameters"), dict) else {}
-            item = {"id": identity, "type": "mcp_tool_call", "server": "antigravity", "tool": name}
+            item = tool_item(identity, "antigravity", name, arguments)
             if name == "run_command":
                 item = {"id": identity, "type": "command_execution", "command": str(arguments.get("CommandLine", ""))}
             elif name in FILE_TOOLS:

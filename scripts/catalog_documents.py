@@ -26,6 +26,7 @@ SOURCES = (
 REQUIRED_METADATA = ("document-type", "category", "domain", "name")
 CONTRACT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 CONTRACT_FILE = re.compile(r"contract-v([1-9][0-9]{0,5})\.md")
+DIRECT_EXECUTION = "direct-execution"
 MARKDOWN_LINK = re.compile(r"\]\(<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\)")
 TEXT_SUFFIXES = {".md", ".csv", ".json", ".txt", ".yaml", ".yml"}
 
@@ -238,7 +239,11 @@ def contract_entry(root: Path, folder: Path) -> dict:
             "status": contract.get("status"),
             "taskIds": task_ids(text),
         })
-    if not versions:
+    # A direct-execution record documents work run without a contract, so it has no versions.
+    direct = metadata.get("record-type") == DIRECT_EXECUTION
+    if direct and (versions or "contract-version" in metadata):
+        raise ValueError(f"Direct-execution record cannot carry contract versions: {folder}")
+    if not versions and not direct:
         raise ValueError(f"Contract directory needs contract-v<N>.md: {folder}")
     versions.sort(key=lambda item: item["version"])
 
@@ -269,8 +274,8 @@ def contract_entry(root: Path, folder: Path) -> dict:
         "metadata": metadata,
         "contract": {
             "id": contract_id,
-            "latestVersion": versions[-1]["version"],
-            "taskIds": versions[-1]["taskIds"],
+            "latestVersion": versions[-1]["version"] if versions else None,
+            "taskIds": versions[-1]["taskIds"] if versions else [],
             "versions": versions,
             "attachments": attachments,
         },

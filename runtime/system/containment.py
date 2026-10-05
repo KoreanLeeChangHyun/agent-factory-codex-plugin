@@ -11,14 +11,12 @@ import select
 import threading
 import shutil
 import signal
-import stat
 import subprocess
 import sys
 import time
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, IO, Sequence
+from typing import Any, Sequence
 
 from storage.errors import ContractError
 from system import sandbox as sandbox_diagnostics

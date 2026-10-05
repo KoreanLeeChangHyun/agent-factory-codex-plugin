@@ -9,6 +9,8 @@ Every subcommand with options also accepts: `--project-root PROJECT_ROOT`, `--ru
 Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
 - `--task-list-file TASK_LIST_FILE`: Announced task list; omitted for an orchestrator brief, which becomes a single runtime-derived task
 - `--task-id TASK_ID`: Selected task in --task-list-file
+- `--workspace-file WORKSPACE_FILE`: Captured code/shared/read-only plan with exact repositories, target branches and integration check argv arrays
+- `--work-isolation | --no-work-isolation`: Work isolation toggle; inherited from the managed Main run when captured there. On requires --workspace-file (code or read-only), defaults targets to each repository's current branch and preserves unmergeable branches without a Human wait
 - `--task-mode {work,plan-work,work-verification,plan-work-verification}`
 - `--verification-agent VERIFICATION_AGENT`
 - `--codex CODEX`
@@ -64,6 +66,9 @@ Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`
 
 ## `close`
 Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`
+
+## `stop-task`
+Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`, `--workflow-id WORKFLOW_ID`, `--task-id TASK_ID`
 
 ## `refresh-progress`
 Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`

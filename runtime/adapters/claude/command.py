@@ -54,8 +54,13 @@ def cli_command(session, state, parts, phase=None):
     if phase == "plan":
         schema = result_only_schema(schema)  # A plan completes no Work, so it returns no receipt fields.
     # Partial messages stream text as it is generated; every CLI with the options below supports them.
+    # Print mode leaves thinking display to the model default, which is empty on current models; the chat
+    # shows the summarized thinking. `--help` omits this flag, and the showThinkingSummaries setting has no
+    # effect in print mode. CLIs older than 2.1.40 reject it, so it is added only when the probe recorded support.
     command = [session["claude"], "-p", "--input-format", "stream-json", "--output-format", "stream-json",
-               "--verbose", "--include-partial-messages", "--replay-user-messages", "--append-system-prompt-file", str(fixed), "--system-prompt-snapshot", "off",
+               "--verbose", "--include-partial-messages",
+               *(["--thinking-display", "summarized"] if session.get("thinkingDisplay") else []),
+               "--replay-user-messages", "--append-system-prompt-file", str(fixed), "--system-prompt-snapshot", "off",
                "--json-schema", json.dumps(schema)]
     working_directory = session.get("workingDirectory", session.get("projectRoot"))
     if phase == "plan":

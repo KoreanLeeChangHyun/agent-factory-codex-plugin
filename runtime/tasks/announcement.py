@@ -57,10 +57,10 @@ def check_submission(read_json, parent_path, parent, document):
         raise ContractError("task_announcement_order_mismatch", f"Submit tasks in announced order: {expected_ids}")
     if document.get("title") != expected.get("title"):
         raise ContractError("task_announcement_title_mismatch", "Workflow title differs from the announcement")
-    for task, announced in zip(tasks, expected["tasks"]):
+    for task, announced in zip(tasks, expected["tasks"], strict=False):
         if task.get("requiredFileOperations") != announced.get("requiredFileOperations"):
             raise ContractError("task_announcement_contract_mismatch", "Required file operations differ from the announcement")
-        for key in ("title", "description", "completionCriteria"):
+        for key in ("title", "description", "completionCriteria", "workspace"):
             if task.get(key) != announced.get(key):
                 raise ContractError("task_announcement_metadata_mismatch", f"Task {task['id']!r} field {key!r} differs from the announcement")
 
@@ -113,7 +113,7 @@ def prepare(runtime, args):
                 raise ContractError("task_announcement_conflict", "This Main run already announced different content for this workflow ID")
         else:
             directory.mkdir(parents=True, exist_ok=True)
-            for task, content in zip(document["tasks"], requests):
+            for task, content in zip(document["tasks"], requests, strict=False):
                 runtime.atomic_write(Path(task["requestFile"]), content)
             runtime.atomic_write_json(task_list_path, document)
             # Publish provenance last, after every request and the submission source exist.

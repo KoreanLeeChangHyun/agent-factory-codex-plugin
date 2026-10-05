@@ -26,6 +26,7 @@ Required: `--task-list-file TASK_LIST_FILE`
 ## `submit`
 Required: `--agent AGENT`, `--role ROLE`
 One of: `--request-file` | `--message` | `--input-file`
+- `--task-workspace-file TASK_WORKSPACE_FILE`: Runtime-owned task Work Unit binding captured by loop.py
 - `--task-list-file TASK_LIST_FILE`
 - `--task-id TASK_ID`
 - `--request-file REQUEST_FILE`
@@ -39,6 +40,7 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--provider {codex,claude,antigravity}`
 - `--reasoning-effort {none,minimal,low,medium,high,xhigh,max,ultra}`
 - `--agent-permissions AGENT_PERMISSIONS`: Captured Human-selected role permission overrides as JSON
+- `--work-isolation {on,off}`: Captured Human-selected Work isolation toggle; on requires AI-chosen task Work Units for delegated Work
 - `--fast | --no-fast`
 - `--goal-mode | --no-goal-mode`
 - `--goal-objective GOAL_OBJECTIVE`: Native persisted nonempty objective; omitted on send preserves the existing objective
@@ -64,6 +66,7 @@ One of: `--request-file` | `--message` | `--input-file`
 ## `send`
 Required: `--agent AGENT`
 One of: `--request-file` | `--message` | `--input-file`
+- `--task-workspace-file TASK_WORKSPACE_FILE`: Runtime-owned task Work Unit binding captured by loop.py
 - `--task-list-file TASK_LIST_FILE`
 - `--task-id TASK_ID`
 - `--request-file REQUEST_FILE`
@@ -77,6 +80,7 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--provider {codex,claude,antigravity}`
 - `--reasoning-effort {none,minimal,low,medium,high,xhigh,max,ultra}`
 - `--agent-permissions AGENT_PERMISSIONS`: Captured Human-selected role permission overrides as JSON
+- `--work-isolation {on,off}`: Captured Human-selected Work isolation toggle; on requires AI-chosen task Work Units for delegated Work
 - `--fast | --no-fast`
 - `--goal-mode | --no-goal-mode`
 - `--goal-objective GOAL_OBJECTIVE`: Native persisted nonempty objective; omitted on send preserves the existing objective

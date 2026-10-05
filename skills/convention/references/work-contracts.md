@@ -4,8 +4,22 @@
 
 ## 1. Scope
 
-- Apply when the Human requests a work contract, consolidates requests into a task
-  list for subsequent execution, or executes an existing contract.
+- Every project change runs under a contract of one of two kinds. Questions,
+  consultation and planning create neither.
+  - A **long-term contract** is the durable contract this reference defines: a
+    multi-task outcome the Human and Main agree on and revise by version across
+    conversations.
+  - A **short-term contract** is the task brief of one dispatch (an orchestrator brief
+    or a submitted task list). Its loop state is its record; it needs no separate
+    document, announcement or `docs/progress/` package.
+  - A brief that executes tasks of a long-term contract carries that contract's
+    structured `contract` binding (see [execution rules](#execution-rules)); a brief
+    outside any long-term contract leaves it unset and must not invent one.
+  - Both kinds are project records, not conversation records: list and resolve them
+    across every conversation of the project.
+- Apply the long-term rules below when the Human requests a work contract,
+  consolidates requests into a task list for subsequent execution, or executes an
+  existing contract.
 - Main derives the contract from the conversation, attachments and relevant source
   inspection. Required fields are Main's preparation responsibility, not a form the
   Human must fill out. Preserve original requirements and source references.
@@ -84,6 +98,9 @@
   Historical accepted snapshots remain immutable; do not retrofit or replace them.
 - Historical contracts bound to `progress.md` keep that path and its original
   recording contract. Do not rewrite or migrate their accepted snapshots.
+- Work run without a contract creates no `docs/progress/<contract-id>/` and claims no
+  `contract-version`. Existing contract-less records use the Document
+  [direct-execution record](../../document/references/progress.md#package-and-metadata) form.
 - Under bypass, routine reporting within the accepted outcome adds no approval gate.
   A progress bookkeeping omission alone must not block otherwise authorized Work:
   report it to Main and continue independent in-scope work. Never expand destructive,

@@ -1,5 +1,6 @@
 """Claude CLI capabilities and supported public model aliases."""
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -17,6 +18,8 @@ EFFORT_ALIASES = {"none": None, "minimal": "low", "ultra": "max"}
 REQUIRED_OPTIONS = ("--print", "--output-format", "--input-format", "--json-schema", "--permission-prompts",
                     "--system-prompt-snapshot", "--replay-user-messages", "--include-partial-messages")
 CAPABILITY_CACHE_TTL = 60
+# `--thinking-display` is absent from `--help`; 2.1.39 and older reject it as an unknown option.
+THINKING_DISPLAY_VERSION = (2, 1, 40)
 
 
 def inspect_capabilities(executable, *, refresh=False, runtime_home=None, **_kwargs):
@@ -66,11 +69,22 @@ def _probe(executable):
                           if missing else f"Claude CLI --help exited with {result.returncode}")
     except (OSError, subprocess.TimeoutExpired) as error:
         diagnostic = f"Claude CLI unavailable: {error}"
+    thinking_display = available and (_version(executable) or ()) >= THINKING_DISPLAY_VERSION
     # Claude has no Fast tier. Goal uses Claude's own /goal command, which print mode supports.
     # workSubagents: the only sub-agent type a Work launch lets the model start.
     supported = {"model": available, "reasoning": available, "fast": False, "goal": available,
                  "plan": available, "instructionDelivery": available, "images": available,
                  "taskModes": list(TASK_MODES) if available else [], "automaticRequestHash": True,
-                 "worktrees": available, "workSubagents": ALLOWED_TYPE}
+                 "worktrees": available, "workSubagents": ALLOWED_TYPE, "thinkingDisplay": thinking_display}
     return {"schemaVersion": "0.1.0", "kind": "execution-capabilities", "backend": "claude-print",
             "submit": supported, "send": dict(supported), "diagnostic": diagnostic}
+
+
+def _version(executable):
+    """Return `claude --version` as a tuple such as (2, 1, 285), or None when it cannot be read."""
+    try:
+        result = subprocess.run([executable, "--version"], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    match = re.match(r"\s*(\d+)\.(\d+)\.(\d+)", result.stdout or "") if result.returncode == 0 else None
+    return tuple(int(part) for part in match.groups()) if match else None

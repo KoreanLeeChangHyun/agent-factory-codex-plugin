@@ -80,10 +80,10 @@ def ensure_directory(path: Path, anchor: Path) -> None:
         except FileNotFoundError:
             try:
                 os.mkdir(cursor, 0o700)
-            except FileExistsError:
+            except FileExistsError as error:
                 current = os.lstat(cursor)
                 if portable.is_link(current) or not stat.S_ISDIR(current.st_mode):
-                    raise ContractError("runtime_path_unsafe", "runtime path is unsafe")
+                    raise ContractError("runtime_path_unsafe", "runtime path is unsafe") from error
             continue
         if portable.is_link(current) or not stat.S_ISDIR(current.st_mode):
             raise ContractError("runtime_path_unsafe", "runtime path is unsafe")

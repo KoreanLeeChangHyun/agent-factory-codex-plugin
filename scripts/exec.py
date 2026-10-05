@@ -346,6 +346,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         dispatch_tuple["requestedCodex"] = args.codex
     if binding is not None:
         dispatch_tuple["taskBinding"] = binding
+    if getattr(args, "resolved_task_workspace", None):
+        dispatch_tuple["taskWorkspaceId"] = args.resolved_task_workspace["id"]
     if parent is not None:
         dispatch_tuple.update({
             "parentAgentId": parent["agentId"],
@@ -485,6 +487,12 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             session = worktrees.inherit(session, {"projectRoot": str(project_root), **load_session(project_root, parent["agentId"])})
             update_json(session_file(project_root, args.agent), agent_path / ".session-state.lock",
                         lambda value: value.update({"worktree": session.get("worktree"), "executionPolicy": session.get("executionPolicy")}))
+        from tasks import workspaces as task_workspaces
+        task_workspace = task_workspaces.dispatch_binding(_runtime, args, project_root)
+        if task_workspace:
+            session = task_workspaces.bind(session, task_workspace)
+            update_json(session_file(project_root, args.agent), agent_path / ".session-state.lock",
+                        lambda value: value.update({"taskWorkspace": task_workspace, "executionPolicy": policy}))
         policy_changed = "executionPolicy" not in session or execution_policy.session_policy(session) != policy
         if policy_changed:
             if "executionPolicy" in session and not execution_policy.has_explicit_policy(args):
@@ -552,6 +560,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             parent_agent_id=parent["agentId"] if parent else None,
             parent_run_id=parent["runId"] if parent else None,
             task_binding=binding,
+            task_workspace_id=dispatch_tuple.get("taskWorkspaceId"),
             response_contract=getattr(args, "response_contract", None),
         )
         if policy_changed or human_approval_policy_changed or provider_changed or codex_changed:
@@ -645,7 +654,7 @@ class Heartbeat:
                 "observedAt": now(),
             }
         atomic_write_json(self.path, value)
-        fact = "process_alive" if process_identity_status(value.get("codexIdentity")) == "match" else "unreachable"
+        fact = "process_alive" if process_identity_status(value.get("codexIdentity")) == "match" else "unreachable"  # noqa: F841 - unused, but the identity probe stays: removing a call is not a lint-only change
 
 
 def __getattr__(name):
@@ -698,11 +707,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             # `responseContract` is the newest Work response contract this runtime creates runs under
             # (2: receipt fields in the structured final output); `revisionLimitPause` marks loops whose
             # public state carries the structured `pause` a Human decides on.
+            # `workIsolation`: Main runs accept --work-isolation on|off and loops inherit it.
             for operation in ("submit", "send"):
                 capabilities[operation] = {**capabilities[operation], "workProfile": True, "failureClass": True,
                                            "pendingLessons": True,
                                            "responseContract": receipt_contracts.RESPONSE_CONTRACTS[-1],
-                                           "revisionLimitPause": True}
+                                           "revisionLimitPause": True, "taskWorkspaces": True,
+                                           "workIsolation": True}
             if session is not None and session.get("sessionId"):
                 # A started conversation keeps its provider; hosts can mark models on other providers.
                 capabilities["send"] = {**capabilities["send"], "sessionProvider": session.get("provider", "codex")}

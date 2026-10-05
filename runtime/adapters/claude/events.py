@@ -2,14 +2,20 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 
+from adapters.plan_progress import plan_progress
+from adapters.tool_arguments import tool_item
 from execution.streaming import DeltaBuffer, JsonStringField
 from execution.interview import extract_markers
 
 # Claude tools that change files, and the input field naming the changed path.
 FILE_TOOLS = {"Write": "file_path", "Edit": "file_path", "MultiEdit": "file_path", "NotebookEdit": "notebook_path"}
 MAX_TOOL_OUTPUT_CHARACTERS = 64 * 1024
+MAX_THINKING_CHARACTERS = 16 * 1024
+# A failed Bash result starts with Claude Code's own exit status line.
+BASH_EXIT = re.compile(r"\AExit code (\d+)\b")
 
 
 class Events:
@@ -34,6 +40,9 @@ class Events:
         self.deltas = DeltaBuffer()
         self.message_id = None
         self.blocks = {}
+        # Thinking blocks seen while streaming; complete messages then do not repeat them.
+        self.thinking = {}
+        self.streamed_messages = set()
 
     def translate(self, event):
         if not isinstance(event, dict):
@@ -100,11 +109,16 @@ class Events:
                 if all(type(value) is int and value >= 0 for value in parts):
                     # The prompt size of the latest main-thread request is the context currently in use.
                     self.context_tokens = sum(parts)
-            for block in event.get("message", {}).get("content", []):
+            for position, block in enumerate(event.get("message", {}).get("content", [])):
                 if not isinstance(block, dict):
                     continue
                 if block.get("type") == "text" and kind == "assistant" and not parent:
                     result.append({"type": "native.commentary", "text": block.get("text", "")})
+                elif block.get("type") == "thinking" and kind == "assistant" and not parent:
+                    message_id = event.get("message", {}).get("id")
+                    if message_id not in self.streamed_messages:
+                        # Without partial messages only the finished thought is observed.
+                        result.append(reasoning_item(f"{message_id}:thinking:{position}", block.get("thinking")))
                 elif block.get("type") == "tool_use" and block.get("name") == "StructuredOutput" and not parent:
                     # The final answer's transport; it arrives as the result, not a visible tool.
                     self.hidden_tools.add(block.get("id"))
@@ -112,7 +126,7 @@ class Events:
                     name, arguments = block.get("name"), block.get("input", {})
                     if not isinstance(arguments, dict):
                         arguments = {}
-                    item = {"id": block["id"], "type": "mcp_tool_call", "server": "claude", "tool": name}
+                    item = tool_item(block["id"], "claude", name, arguments)
                     if name == "Bash":
                         item = {"id": block["id"], "type": "command_execution", "command": arguments.get("command", "")}
                     elif name in FILE_TOOLS:
@@ -123,6 +137,9 @@ class Events:
                         item["parentToolUseId"] = parent
                     self.tools[block["id"]] = item
                     result.append({"type": "item.started", "item": dict(item)})
+                    progress = plan_progress(arguments.get("todos")) if name == "TodoWrite" and not parent else None
+                    if progress:
+                        result.append(progress)
                 elif block.get("type") == "tool_result" and block.get("tool_use_id") in self.hidden_tools:
                     self.hidden_tools.discard(block.get("tool_use_id"))
                 elif block.get("type") == "tool_result":
@@ -133,6 +150,9 @@ class Events:
                         if block.get("is_error"):
                             # is_error is not an OS exit code; keep the tool's own message.
                             item["error"] = output[:2000] or "Claude tool reported failure"
+                            exit_code = BASH_EXIT.match(output) if item["type"] == "command_execution" else None
+                            if exit_code:
+                                item["exit_code"] = int(exit_code.group(1))
                         if item["type"] == "command_execution":
                             item["aggregated_output"] = json.dumps(block.get("content"), ensure_ascii=False)
                         elif output:
@@ -186,12 +206,26 @@ class Events:
             message = data.get("message")
             self.message_id = message.get("id") if isinstance(message, dict) else None
             self.blocks = {}
+            self.thinking = {}
+            if self.message_id:
+                self.streamed_messages.add(self.message_id)
         elif kind == "content_block_start" and isinstance(data.get("content_block"), dict):
             block = data["content_block"]
             if block.get("type") == "text":
                 self.blocks[index] = ("commentary", f"{self.message_id}:{index}", None)
             elif block.get("type") == "tool_use" and block.get("name") == "StructuredOutput" and self.terminal:
                 self.blocks[index] = ("final", str(block.get("id") or index), JsonStringField())
+            elif block.get("type") in ("thinking", "redacted_thinking"):
+                identity = f"{self.message_id}:thinking:{index}"
+                self.thinking[index] = [identity, ""]
+                return [{"type": "item.started", "item": {"id": identity, "type": "reasoning"}}]
+        elif kind == "content_block_delta" and index in self.thinking and isinstance(data.get("delta"), dict):
+            delta = data["delta"]
+            if delta.get("type") == "thinking_delta" and len(self.thinking[index][1]) < MAX_THINKING_CHARACTERS:
+                self.thinking[index][1] += str(delta.get("thinking", ""))
+        elif kind == "content_block_stop" and index in self.thinking:
+            identity, text = self.thinking.pop(index)
+            return [reasoning_item(identity, text)]
         elif kind == "content_block_delta" and index in self.blocks and isinstance(data.get("delta"), dict):
             stream, identity, field = self.blocks[index]
             delta = data["delta"]
@@ -202,6 +236,14 @@ class Events:
         elif kind == "content_block_stop" and index in self.blocks:
             return self.deltas.flush(self.blocks.pop(index)[1])
         return []
+
+
+def reasoning_item(identity, text):
+    """A finished thinking block; its text is the reasoning summary the user can open."""
+    item = {"id": identity, "type": "reasoning"}
+    if isinstance(text, str) and text.strip():
+        item["summary"] = [text.strip()[:MAX_THINKING_CHARACTERS]]
+    return {"type": "item.completed", "item": item}
 
 
 def tool_output(content):

@@ -63,6 +63,9 @@ def repository_root(session):
 
 
 def checked_path(session):
+    if session.get("taskWorkspace"):
+        from tasks import workspaces
+        return workspaces.checked_path(session["taskWorkspace"])
     root = repository_root(session)
     value = session.get("worktree")
     if value and value.get("workUnit") and value.get("phase") == "merged":
@@ -107,6 +110,8 @@ def relocate_policy(policy, original, destination):
 
 
 def inherit(session, parent):
+    if session.get("taskWorkspace"):
+        return session
     previous = session.get("worktree")
     original = Path(previous["path"]) if previous and previous["phase"] != "merged" else Path(session["projectRoot"])
     destination = checked_path(parent)

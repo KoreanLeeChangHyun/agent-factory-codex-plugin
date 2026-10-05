@@ -10,6 +10,11 @@ from typing import Any
 
 def resolve_execution_policy(runtime, args: argparse.Namespace, project_root: Path, session: dict[str, Any] | None = None) -> dict[str, Any]:
     try:
+        from tasks import workspaces
+        workspace = workspaces.dispatch_binding(runtime, args, project_root)
+        args.resolved_task_workspace = workspace
+        if workspace:
+            session = workspaces.bind(session or {"projectRoot": str(project_root), "role": getattr(args, "role", None)}, workspace)
         if session is not None and session.get("role") in ("work", "verification") and os.environ.get("AGENT_FACTORY_PARENT_STATE"):
             parent_state = runtime.safe_read_json(Path(os.environ["AGENT_FACTORY_PARENT_STATE"]))
             session = runtime.worktrees.inherit(session, {"projectRoot": str(project_root), **runtime.load_session(project_root, parent_state["agentId"])})
@@ -28,7 +33,7 @@ def resolve_execution_policy(runtime, args: argparse.Namespace, project_root: Pa
         policy = runtime.execution_policy.resolve(policy_args, project_root, fallback_policy=stored, allow_session_change=session is not None)
         if stored is not None and policy != stored and not runtime.execution_policy.has_explicit_policy(args):
             raise runtime.ContractError("execution_policy_mismatch", "Changing an idle session policy requires a complete explicit policy")
-        if session is not None and stored is None and session.get("sandbox") != policy["sandboxPolicy"]["type"] and not runtime.execution_policy.has_explicit_policy(args):
+        if session is not None and session.get("sandbox") is not None and stored is None and session.get("sandbox") != policy["sandboxPolicy"]["type"] and not runtime.execution_policy.has_explicit_policy(args):
             raise runtime.ContractError("execution_policy_mismatch", "Legacy session sandbox differs from current authorized policy")
         return policy
     except (ValueError, OSError) as error:
@@ -75,6 +80,12 @@ def requested_execution(runtime, args: argparse.Namespace) -> dict[str, Any]:
         except (ValueError, TypeError) as error:
             raise runtime.ContractError("agent_permissions_invalid", str(error)) from error
         options["agentPermissions"] = roles
+    isolation = getattr(args, "work_isolation", None)
+    if isolation is not None:
+        # Like role permissions, the toggle is Human authority captured by the host.
+        if os.environ.get(runtime.execution_policy.PARENT_STATE_ENV):
+            raise runtime.ContractError("work_isolation_invalid", "Work isolation must originate at the Human-facing host")
+        options["workIsolation"] = isolation == "on"
     objective = options.get("goalObjective")
     if objective is not None:
         if not isinstance(objective, str) or not objective.strip():

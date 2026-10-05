@@ -26,6 +26,7 @@ def add_project_argument(parser: argparse.ArgumentParser) -> None:
 
 
 def add_request_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--task-workspace-file", type=Path, help="Runtime-owned task Work Unit binding captured by loop.py")
     parser.add_argument("--task-list-file", type=Path)
     parser.add_argument("--task-id")
     request = parser.add_mutually_exclusive_group()
@@ -46,6 +47,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--provider", choices=("codex", "claude", "antigravity"))
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
     parser.add_argument("--agent-permissions", help="Captured Human-selected role permission overrides as JSON")
+    parser.add_argument("--work-isolation", choices=("on", "off"), help="Captured Human-selected Work isolation toggle; on requires AI-chosen task Work Units for delegated Work")
     parser.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--goal-mode", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--goal-objective", help="Native persisted nonempty objective; omitted on send preserves the existing objective")

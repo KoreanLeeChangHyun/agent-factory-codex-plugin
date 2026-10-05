@@ -26,6 +26,7 @@ def snapshot(state):
         )} for task in workflow.get("tasks", [])],
         "terminalReason": state.get("terminalReason"),
         "humanSkip": state.get("humanSkip"),
+        "taskWorkspaces": state.get("taskWorkspaces", {}),
         "controlPlaneError": state.get("controlPlaneError"),
         "pendingDispatchId": (state.get("pendingDispatch") or {}).get("dispatchId"),
     }
@@ -58,6 +59,12 @@ def render(view):
         rows += ["- Last recorded exception (may be historical): " + cell(json.dumps(view["controlPlaneError"], ensure_ascii=False))]
     if view.get("terminalReason"):
         rows += ["- Terminal reason: " + cell(json.dumps(view["terminalReason"], ensure_ascii=False))]
+    for workspace in view.get("taskWorkspaces", {}).values():
+        for unit in workspace.get("repositories", []):
+            rows += ["- Work Unit: " + cell(unit.get("path")) + "; branch: " + cell(unit.get("branch"))
+                     + " → " + cell(unit.get("targetBranch")) + "; state: " + cell(unit.get("phase"))
+                     + "; base/result/merge: " + "/".join(cell(unit.get(key)) for key in ("baseCommit", "resultCommit", "mergeCommit"))
+                     + "; source changes excluded: true; cleanup: " + cell(unit.get("cleanupPending", unit.get("cleaned")))]
     return "\n".join(rows) + "\n"
 
 

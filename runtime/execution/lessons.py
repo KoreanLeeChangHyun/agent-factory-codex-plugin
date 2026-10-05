@@ -41,6 +41,41 @@ def read_only(state):
     return state.get('executionPolicy', {}).get('sandboxPolicy', {}).get('type') == 'read-only'
 
 
+def record_root(project_root, state):
+    """Where a run's captures belong: the code Work Unit that holds the project's lessons, else the project.
+
+    An isolated run's lessons are committed and merged with its task instead of dirtying the
+    source checkout the task integrates into. Shared, read-only and unbound runs keep the project."""
+    root = Path(project_root)
+    workspace = state.get('taskWorkspace')
+    if not isinstance(workspace, dict) or workspace.get('mode') != 'code':
+        return root
+    for unit in workspace.get('repositories') or []:
+        if not isinstance(unit, dict) or not unit.get('repositoryRoot') or not unit.get('path'):
+            continue
+        source = Path(unit['repositoryRoot'])
+        if root.is_relative_to(source):
+            return Path(unit['path']) / root.relative_to(source)
+    return root
+
+
+def recorded_paths(states, workspace_id):
+    """Project-relative lesson files the runtime recorded into one code Work Unit."""
+    paths = set()
+    for state in states:
+        workspace = state.get('taskWorkspace')
+        if not isinstance(workspace, dict) or workspace.get('id') != workspace_id:
+            continue
+        for pending in captures(state):
+            try:
+                receipt = json.loads(pending.with_suffix('.receipt').read_text())
+            except (OSError, ValueError):
+                continue
+            if isinstance(receipt, dict) and receipt.get('saved') is True and isinstance(receipt.get('path'), str):
+                paths.add(receipt['path'])
+    return paths
+
+
 def pending_count(state):
     """Captures of this run that the project does not hold yet; never raises."""
     try:
@@ -83,7 +118,7 @@ def observe(project_root, state, event, attempt=0):
         pending.write_text(json.dumps(payload), encoding='utf-8')
     if read_only(state):
         return {'saved': False, 'pending': str(pending), 'reason': 'project-read-only'}
-    result = subprocess.run([sys.executable, str(SCRIPT), '--project-root', str(project_root),
+    result = subprocess.run([sys.executable, str(SCRIPT), '--project-root', str(record_root(project_root, state)),
                              'record', '--input', str(pending)], capture_output=True, text=True, timeout=20)
     receipt = capture_dir / f'{key}.receipt'
     if result.returncode:
@@ -106,6 +141,7 @@ def replay(project_root, state):
     """
     if read_only(state):
         return
+    root = record_root(project_root, state)
     for attempt in range(REPLAY_ATTEMPTS):
         remaining = [pending for pending in captures(state) if not is_saved(pending)]
         if not remaining:
@@ -114,7 +150,7 @@ def replay(project_root, state):
             time.sleep(REPLAY_BACKOFF_SECONDS * attempt)
         for pending in remaining:
             try:
-                result = subprocess.run([sys.executable, str(SCRIPT), '--project-root', str(project_root),
+                result = subprocess.run([sys.executable, str(SCRIPT), '--project-root', str(root),
                                          'record', '--input', str(pending)], capture_output=True, text=True, timeout=20)
             except subprocess.TimeoutExpired:
                 continue
@@ -129,13 +165,26 @@ def apply_pending(project_root, state, *, clock=time.monotonic):
     A read-only run cannot write the project and a failed write stays in its run, so the next run that
     may write the project records them, after its own outcome is stored. Recording is idempotent per
     occurrence, so concurrent sweeps and repeats never duplicate a record. The sweep is bounded by
-    count, time and attempts per capture; whatever it cannot save stays pending in its run."""
+    count, time and attempts per capture; whatever it cannot save stays pending in its run.
+
+    Captures of a run bound to a code Work Unit belong to that Unit, and only their own run records
+    them there. While the Unit exists the sweep leaves them pending: recording them into the project
+    would dirty the checkout the task integrates into, and writing into the Unit could race its
+    integration commit. Every capture the sweep records has a unique runtime name that no task
+    branch contains, so it never overlaps a merge and cannot block integration."""
     run_directory = Path(state['statePath']).parent
     if read_only(state) or run_directory.parent.name != 'runs':
         return 0
     deadline = clock() + APPLY_BUDGET_SECONDS
     applied = 0
     for directory in sorted(run_directory.parents[2].glob('*/runs/*/lesson-capture')):
+        try:
+            owner = json.loads((directory.parent / 'state.json').read_text())
+        except (OSError, ValueError):
+            owner = {}
+        owned = record_root(project_root, owner) if isinstance(owner, dict) else Path(project_root)
+        if owned != Path(project_root) and owned.exists():
+            continue
         for pending in sorted(path for path in directory.glob('*.json') if CAPTURE_NAME.fullmatch(path.name)):
             if applied >= APPLY_LIMIT or clock() >= deadline:
                 return applied

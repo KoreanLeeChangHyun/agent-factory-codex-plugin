@@ -5,9 +5,8 @@ import argparse
 import json
 import os
 from pathlib import Path
-import re
 import stat
-import subprocess
+import subprocess  # noqa: F401 - tests patch subprocess through this module
 
 from storage.files import AGENT_ID
 
@@ -189,6 +188,11 @@ def resolve(args, project_root, *, fallback_policy=None, allow_session_change=Fa
     policy_file = getattr(args, "execution_policy_file", None)
     selected = normalize(_read(policy_file)) if policy_file else parent
     authorized = authorized_role_policy(getattr(args, "role", None), parent, project_root) if parent is not None else None
+    comparison_parent = parent
+    if getattr(args, "task_workspace_file", None) and working_root != project_root:
+        from execution.worktrees import relocate_policy
+        selected = relocate_policy(selected, Path(project_root), Path(working_root)) if selected else None
+        comparison_parent = relocate_policy(parent, Path(project_root), Path(working_root)) if parent else None
     if authorized is not None:
         from execution.worktrees import relocate_policy
         authorized = relocate_policy(authorized, Path(project_root), Path(working_root))
@@ -196,7 +200,7 @@ def resolve(args, project_root, *, fallback_policy=None, allow_session_change=Fa
         selected = authorized
     if authorized is not None and selected != authorized:
         raise PolicyError("policy_parent_mismatch", "explicit policy differs from captured role permissions")
-    if parent is not None and selected != parent and selected != authorized:
+    if parent is not None and selected != comparison_parent and selected != authorized:
         raise PolicyError("policy_parent_mismatch", "explicit policy differs from inherited parent permissions")
     changing_session = allow_session_change and has_explicit_policy(args)
     if fallback_policy is not None and not changing_session:

@@ -2,7 +2,7 @@
 import json
 import subprocess
 from pathlib import Path
-from execution.policy import PolicyError, normalize, _path, session_policy, SNAPSHOT_ENV, PARENT_STATE_ENV
+from execution.policy import PolicyError, normalize, _path, session_policy, SNAPSHOT_ENV, PARENT_STATE_ENV  # noqa: F401 - session_policy is re-exported; the native bridge calls it through this module
 import hashlib
 import os
 import re

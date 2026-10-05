@@ -11,7 +11,9 @@ def executable(args, session=None):
 
 
 def session_fields(executable, capabilities=None):
-    return {"provider": "claude", "claude": executable, "backend": "claude-print"}
+    # Older CLIs reject --thinking-display; record support so the launch adds it only when accepted.
+    supported = bool(((capabilities or {}).get("submit") or {}).get("thinkingDisplay"))
+    return {"provider": "claude", "claude": executable, "backend": "claude-print", "thinkingDisplay": supported}
 
 
 def validate_execution(session, goal_action=None):

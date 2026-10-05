@@ -23,10 +23,12 @@
   already-decided change) or heavy (multi-file, design or unknown cause) and retrying a
   failed light attempt once with the heavy profile. It adds Verification only when the
   Human explicitly requests it. In worker mode Main implements directly.
-- An orchestrator brief is not a work contract. The brief carries Goal, Scope (including what
-  not to do), Done and Report; Main writes no task-list JSON, announcement, contract,
-  progress document or lesson retrieval for it. Work contracts remain the Human-selected
-  long-running procedure between the Human and Main.
+- An orchestrator brief is the short-term contract of its change, not a long-term work
+  contract. The brief carries Goal, Scope (including what not to do), Done and Report, and
+  its loop state is the project's record of it; Main writes no task-list JSON, announcement,
+  long-term contract, progress document or lesson retrieval for it. Long-term work contracts
+  remain the Human-selected multi-task procedure between the Human and Main (Convention's
+  [work contracts](../../convention/references/work-contracts.md#scope)).
 - Orchestrator mode is enforced per provider by tool permissions, not model choice. Main may
   read, write inside its own run directory, run `python3 <plugin-root>/scripts/*` of an
   installed Agent Factory copy and read-only Git (`status`, `diff`, `log`, `show`); it

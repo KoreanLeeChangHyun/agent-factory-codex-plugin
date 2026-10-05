@@ -60,6 +60,9 @@ metadata:
 - Preserve source identity and location, collection context, fidelity and limitations.
 - Distinguish observations, analysis, hypotheses, conclusions, contradictions and
   unresolved gaps. Findings do not themselves authorize decisions or change accepted Specifications.
+- When checkable data exists, verify distribution, ratio or primary-cause claims before
+  stating them, and never base a recommendation on an unverified estimate. If checking
+  is blocked (e.g. permission denied), label the estimate, its basis and how to verify it.
 - Follow [Agent](../agent/SKILL.md) for execution roles and authority, and
   [Testing](references/testing.md#agent-graph-boundary) for checks under the captured route.
 - Use [Document](../document/SKILL.md#document-package) for durable evidence and analysis,

@@ -30,6 +30,8 @@ def validate(document, task_id, request_hash):
             fail()
         if "requestHash" in task and (not isinstance(task["requestHash"], str) or not re.fullmatch(r"[a-f0-9]{64}", task["requestHash"])):
             fail()
+        if "workspace" in task and (not isinstance(task["workspace"], dict) or task["workspace"].get("mode") not in {"code", "shared", "read-only"}):
+            fail()
     task = next((task for task in tasks if task["id"] == task_id), None)
     from contracts.preflight import validate_contract
     validate_contract(document)
@@ -37,7 +39,7 @@ def validate(document, task_id, request_hash):
         fail()
     return {"workflowId": document["id"], "workflowTitle": document["title"],
             "taskId": task["id"], **{key: task[key] for key in ("title", "description", "completionCriteria", "requestHash")},
-            **{key: task[key] for key in ("workAgentId", "verificationAgentId") if key in task}}
+            **{key: copy.deepcopy(task[key]) for key in ("workAgentId", "verificationAgentId", "workspace") if key in task}}
 
 
 def resolve(document, task_id, request_hash):

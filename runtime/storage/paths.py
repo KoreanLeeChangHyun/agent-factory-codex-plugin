@@ -268,7 +268,6 @@ def project_json(path, value):
     binding = next(b for b in _BINDINGS.values() if b['runtimeRoot'] == str(runtime))
     if path.name not in {'state.json', 'session.json', 'native-session.json', 'response.schema.json'}:
         return value
-    mapping = {}
     if marker.exists():
         from storage import migration
         record = read(marker)
@@ -276,7 +275,6 @@ def project_json(path, value):
         if record.get('schemaVersion') != 1 or record.get('planPath') != str(expected):
             raise ValueError('invalid migration overlay')
         plan = migration.validate(read(expected), historical=True)
-        mapping = plan['mapping']
     import copy
     result = copy.deepcopy(value)
     def locator(item):

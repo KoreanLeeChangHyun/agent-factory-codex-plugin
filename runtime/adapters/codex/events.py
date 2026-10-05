@@ -6,6 +6,7 @@ from pathlib import Path
 
 from execution.streaming import JsonStringField
 from adapters.codex.capabilities import NativeError
+from adapters.plan_progress import plan_progress
 
 # app-server item types -> runtime item types shared with the Claude adapter and the extension.
 ITEM_TYPES = {"commandExecution": "command_execution", "fileChange": "file_change", "mcpToolCall": "mcp_tool_call"}
@@ -86,6 +87,7 @@ class NotificationHandlers:
         "item/completed": "on_item",
         "item/agentMessage/delta": "on_agent_message_delta",
         "turn/completed": "on_turn_completed",
+        "turn/plan/updated": "on_plan_updated",
         "error": "on_error",
     }
 
@@ -148,6 +150,14 @@ class NotificationHandlers:
                 emit({"type": "native.commentary", "text": commentary_text(item)})
         else:
             emit(item_event(method, item))
+        return False
+
+    def on_plan_updated(self, method, params):
+        # Only this run's turn counts; restored history can replay an earlier plan.
+        if params.get("turnId") == self.turn_id:
+            progress = plan_progress(params.get("plan"))
+            if progress:
+                emit(progress)
         return False
 
     def on_agent_message_delta(self, method, params):

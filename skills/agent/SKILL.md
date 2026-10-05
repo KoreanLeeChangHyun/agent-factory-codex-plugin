@@ -100,8 +100,10 @@ metadata:
 - CLI (default), exec and VS Code expose the same Main role.
 - Parallelize only independent paths, writes and shared resources. Give chains distinct
   Agent/loop/run IDs, bounded inputs, authority and capabilities. Main sequences
-  dependencies/integration and owns conflict avoidance. Use one shared checkout without
-  separate Git worktrees; follow Convention's [shared checkout coordination](../convention/references/development.md#shared-checkout-coordination).
+  dependencies/integration and owns conflict avoidance. With the Human's Work isolation toggle on,
+  delegated Work uses [captured task Work Units](references/task-dispatch.md#task-workspaces).
+  Isolation off, explicit shared-checkout requests and accepted legacy runs retain Convention's
+  [shared checkout coordination](../convention/references/development.md#shared-checkout-coordination).
 
 <a id="execution-and-shared-contracts"></a>
 

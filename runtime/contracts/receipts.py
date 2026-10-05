@@ -430,7 +430,7 @@ def validate_receipt(
         bindings = binding_document["bindings"]
         if not isinstance(outcomes, list) or len(outcomes) != len(bindings):
             raise ContractError("receipt_capability_invalid", "capability outcomes must match bound capabilities")
-        for outcome, binding in zip(outcomes, bindings):
+        for outcome, binding in zip(outcomes, bindings, strict=False):
             expected_outcome_fields = {"requestHash", "runId", "capabilityId", "authority", "exactTarget", "outcome"}
             if not isinstance(outcome, dict):
                 raise ContractError("receipt_capability_invalid", "capability outcome must be an object")

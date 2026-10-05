@@ -7,14 +7,13 @@ import json
 import os
 import queue
 import stat
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any, IO
 
 from tasks.modes import route_instruction
 from system import sandbox as sandbox_diagnostics
-from system.containment import (
+from system.containment import (  # noqa: F401 - re-exported; scripts/exec.py imports these names from here
     process_group_exists,
     terminate_attempt_group,
     terminate_verified_group,

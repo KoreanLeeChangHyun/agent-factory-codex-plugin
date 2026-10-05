@@ -36,6 +36,12 @@
   `contract-id`. After writing, run `catalog_documents.py --project-root <root>` and fix
   every reported error before claiming the contract was saved. Link every sibling attachment from `progress.md` or a
   contract version; missing, unlinked or nested attachment content is invalid.
+- A direct-execution record documents work that ran without a contract. Its
+  `progress.md` sets `record-type: direct-execution`, omits `contract-version` and has no
+  `contract-v<N>.md`; the catalog lists it with no contract versions. Use it only to keep
+  existing contract-less records; new direct (worker mode) work needs no
+  `docs/progress/` record unless the Human requests one. Do not write a contract after
+  the fact to fill the gap.
 - Use `status` for a current snapshot and `worklog` for chronological progress.
 - Catalog and search discover canonical `docs/progress/` records, legacy root `progress/` contracts and older `SKILL.md` packages;
   they are not activated as Skills

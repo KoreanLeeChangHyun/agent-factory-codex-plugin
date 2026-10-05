@@ -5,13 +5,10 @@ from collections import deque
 import contextlib
 import hashlib
 import os
-import shutil
-import stat
 import json
 import queue
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 from pathlib import Path
@@ -19,10 +16,9 @@ from pathlib import Path
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from system import portable
 from contracts.receipts import receipt_judgment_defect
 from execution.prompts import PromptParts
-from execution.streaming import DeltaBuffer, JsonStringField
+from execution.streaming import DeltaBuffer
 from execution.interview import codex_request_events, extract_markers
 from adapters.codex.capabilities import (  # noqa: F401 - re-exported; callers patch these names here
     NativeError, RpcError, CAPABILITY_CACHE_TTL, _cached_capabilities, _capability_identity, _probe_capabilities, inspect_capabilities,
@@ -390,7 +386,8 @@ class Bridge(NotificationHandlers):
                 "Goal APIs unavailable: off disables continuation locally but native clearing is unconfirmed; restore Goal support and refresh")
         # Loading a persisted active goal must not race schema installation.
         # Native lifecycle RPCs remain available with continuation disabled.
-        config = {"features.goals": False}
+        # Reasoning items carry an empty summary unless one is requested; the chat shows this summary.
+        config = {"features.goals": False, "model_reasoning_summary": "auto"}
         if self.session.get("fast") is False:
             config["service_tier"] = "default"
         if self.session.get("reasoningEffort"):
@@ -688,13 +685,13 @@ class Bridge(NotificationHandlers):
 def bridge_services():
     """Explicit services consumed by the native bridge; no CLI orchestrator import."""
     from types import SimpleNamespace
-    from storage import paths as runtime_paths
-    from adapters.codex import policy as execution_policy
-    from adapters.codex.control import record_goal_uncertainty
-    from storage.errors import ContractError
-    from storage.files import atomic_write, atomic_write_json, safe_read_json, session_file, update_json
-    from system.containment import now
-    from system.transport import inline_result, structured_receipt, validate_terminal_result
+    from storage import paths as runtime_paths  # noqa: F401 - collected through locals() below
+    from adapters.codex import policy as execution_policy  # noqa: F401 - collected through locals() below
+    from adapters.codex.control import record_goal_uncertainty  # noqa: F401 - collected through locals() below
+    from storage.errors import ContractError  # noqa: F401 - collected through locals() below
+    from storage.files import atomic_write, atomic_write_json, safe_read_json, session_file, update_json  # noqa: F401 - collected through locals() below
+    from system.containment import now  # noqa: F401 - collected through locals() below
+    from system.transport import inline_result, structured_receipt, validate_terminal_result  # noqa: F401 - collected through locals() below
     return SimpleNamespace(**{name: value for name, value in locals().items() if name != "SimpleNamespace"})
 
 
@@ -791,7 +788,7 @@ def connection_host():
         while True:
             with lock:
                 idle = [(key, worker) for key, worker in workers.items() if not worker["busy"]]
-                for key, worker in idle:
+                for key, _ in idle:
                     del workers[key]
                 active = bool(workers)
             for _, worker in idle:

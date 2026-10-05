@@ -11,7 +11,7 @@ def counts(value, names=FIELDS):
     if not isinstance(value, dict):
         return None
     result = {}
-    for target, name in zip(FIELDS, names):
+    for target, name in zip(FIELDS, names, strict=False):
         number = value.get(name)
         result[target] = number if type(number) is int and number >= 0 else None
     if result["inputTokens"] is None or result["outputTokens"] is None:

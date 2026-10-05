@@ -32,6 +32,7 @@ def create_run(
     parent_agent_id: str | None = None,
     parent_run_id: str | None = None,
     task_binding: dict[str, Any] | None = None,
+    task_workspace_id: str | None = None,
     response_contract: int | None = None,
 ) -> dict[str, Any]:
     run_id = runtime.new_run_id()
@@ -116,6 +117,8 @@ def create_run(
     }
     if isinstance(session.get("conversationId"), str):
         state["conversationId"] = session["conversationId"]
+    if session.get("taskWorkspace"):
+        state["taskWorkspace"] = session["taskWorkspace"]
     if role == "main":
         state["taskAnnouncementContract"] = 1
     if structured_receipt:
@@ -153,6 +156,9 @@ def create_run(
             state["dispatchTuple"]["requestedCodex"] = requested_codex
         if task_binding is not None:
             state["dispatchTuple"]["taskBinding"] = task_binding
+        if task_workspace_id is not None:
+            # Part of the immutable dispatch identity exec deduplicates and loop reconciles against.
+            state["dispatchTuple"]["taskWorkspaceId"] = task_workspace_id
         if parent_agent_id is not None and parent_run_id is not None:
             state["dispatchTuple"].update({
                 "parentAgentId": parent_agent_id,

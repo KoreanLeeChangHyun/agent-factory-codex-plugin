@@ -69,6 +69,14 @@ FAILURE_CLASSES = {
 }
 
 
+# Integration refusals that keep Work Units unmerged. Under the Human's Work isolation toggle they end the
+# task with the preserved branches reported instead of waiting for a Human; busy targets stay transient.
+PRESERVED_INTEGRATION_ERRORS = {
+    "task_target_dirty", "task_integration_check_failed", "task_check_modified_sources", "task_merge_failed",
+    "task_target_changed", "task_changes_outside_receipt", "task_target_checkout_exists",
+}
+
+
 # Codes the runtime no longer raises; loops stopped by them before keep their class.
 RETIRED_FAILURE_CODES = {"lesson_recording_incomplete": "contract"}
 
@@ -214,6 +222,8 @@ class AgentRuntime:
             if agent_exec.safe_read_json(Path(execution["executionPolicyPath"])) != execution["executionPolicy"]:
                 raise agent_exec.ContractError("execution_policy_mismatch", "Loop execution policy snapshot changed")
             arguments.extend(["--execution-policy-file", execution["executionPolicyPath"]])
+        if execution.get("taskWorkspacePath"):
+            arguments.extend(["--task-workspace-file", execution["taskWorkspacePath"]])
         if operation == "submit":
             arguments.extend([
                 "--role", role,
@@ -337,9 +347,12 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
                 and task.get(role + "RunId") == child.get("runId")
                 and task.get(role + "AgentId") == child.get("agentId")):
             task[role + "Status"] = observed_task_status(child)
+            if state.get("phase") == "integrating" and role == "work":
+                task["workStatus"] = "running"
     return {
         "schemaVersion": SCHEMA_VERSION,
         "kind": "work-verification-loop",
+        "taskWorkspaces": copy.deepcopy(state.get("taskWorkspaces", {})),
         "loopId": state["loopId"],
         "workflow": workflow,
         "contract": copy.deepcopy(state.get("contract")),
@@ -366,6 +379,7 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         "maxRevisions": state.get("execution", {}).get("maxRevisions"),
         "pause": revision_pause(state),
         "currentChild": child,
+        "stopPending": state.get("stopPending", False),
         "terminalReason": state.get("terminalReason"),
         "statePath": state["statePath"],
     }
@@ -431,10 +445,14 @@ def prepare_dispatch(
         role == "work" and state.get("latestWorkRunId") is not None
         and state.get("lastVerificationDecision") != "fail"
         and recovery_of_run_id is None
+        and not state.get("integrationRevisionPending")
     ):
         raise agent_exec.ContractError("graph_transition_invalid", "a Work revision requires failed Verification")
     agent_id = assigned_agent(state, role)
     root = Path(state["projectRoot"])
+    if role == "work":
+        from tasks import workspaces
+        workspaces.prepare(agent_exec, state, path, lambda: save_loop_state(path, state))
     operation = "send" if agent_exec.session_file(root, agent_id).exists() else "submit"
     if recovery_of_run_id is not None and operation != "send":
         raise agent_exec.ContractError("receipt_recovery_session_invalid", "Receipt recovery requires the existing Work session")
@@ -456,6 +474,7 @@ def prepare_dispatch(
     if recovery_of_run_id is not None:
         state["pendingDispatch"]["recoveryOfRunId"] = recovery_of_run_id
     state["phase"] = f"{role}-dispatching"
+    state.pop("integrationRevisionPending", None)
     state["updatedAt"] = now()
     save_loop_state(path, state)
 
@@ -511,6 +530,10 @@ def complete_pending_dispatch(
         pending.get("legacyPolicyUnbound") and "executionPolicy" not in run.get("dispatchTuple", {})
     ):
         expected_tuple["executionPolicy"] = role_permission.get("policy", state["execution"]["executionPolicy"])
+        if state["execution"].get("taskWorkspacePath"):
+            workspace = agent_exec.safe_read_json(Path(state["execution"]["taskWorkspacePath"]))
+            expected_tuple["executionPolicy"] = agent_exec.worktrees.relocate_policy(expected_tuple["executionPolicy"], Path(state["projectRoot"]), Path(workspace["path"]))
+            expected_tuple["taskWorkspaceId"] = workspace["id"]
     model_options = role_model_options(state["execution"], pending["role"], pending["operation"])
     if model_options:
         expected_tuple["executionOptions"] = model_options
@@ -544,6 +567,13 @@ def complete_pending_dispatch(
         # Historical managed runs predate this tuple field; omission represented
         # the only then-supported behavior, which is today's required default.
         actual_tuple = {**actual_tuple, "humanApprovalPolicy": "required"}
+    if isinstance(actual_tuple, dict) and "taskWorkspaceId" in expected_tuple and "taskWorkspaceId" not in actual_tuple:
+        # Runs accepted before the tuple carried the workspace still recorded the
+        # exec-validated binding itself; accept only that exact workspace.
+        recorded = agent_exec.safe_read_json(
+            agent_exec.state_file(Path(state["projectRoot"]), pending["agentId"], str(run["runId"]))).get("taskWorkspace")
+        if isinstance(recorded, dict) and recorded.get("id") == expected_tuple["taskWorkspaceId"] and recorded.get("path") == workspace["path"]:
+            actual_tuple = {**actual_tuple, "taskWorkspaceId": recorded["id"]}
     if run.get("dispatchId") != pending["dispatchId"] or actual_tuple != expected_tuple:
         raise agent_exec.ContractError("dispatch_binding_invalid", "managed run does not match durable dispatch intent")
     role = pending["role"]
@@ -589,7 +619,58 @@ def dispatch(
     return complete_pending_dispatch(state, path, runtime)
 
 
+def work_isolation(args: argparse.Namespace) -> bool:
+    """The Human's Work isolation toggle captured on the managed parent; a direct CLI start may pass the flag."""
+    requested = getattr(args, "work_isolation", None)
+    locator = os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV)
+    captured = agent_exec.safe_read_json(Path(locator)).get("executionOptions", {}).get("workIsolation") if locator else None
+    if captured is not None and requested is not None and requested != captured:
+        raise agent_exec.ContractError("work_isolation_mismatch", "Work isolation differs from the captured Human selection")
+    return (captured if captured is not None else requested) is True
+
+
 def start_loop(args: argparse.Namespace) -> dict[str, Any]:
+    args.work_isolation_enabled = work_isolation(args)
+    document = agent_exec.safe_read_json(args.task_list_file) if getattr(args, "task_list_file", None) else None
+    declared = agent_exec.safe_read_json(args.workspace_file) if getattr(args, "workspace_file", None) else next((task.get("workspace") for task in (document or {}).get("tasks", []) if task.get("id") == getattr(args, "task_id", None)), None)
+    if declared is None:
+        if args.work_isolation_enabled:
+            raise agent_exec.ContractError("task_workspace_required", "Work isolation is on; supply --workspace-file with a code or read-only plan")
+        return start_loop_captured(args)
+    root = agent_exec.resolve_project_root(args.project_root)
+    agent_exec.runtime_paths.resolve(root, create=True)
+    agent_exec.validate_id(args.work_agent, agent_exec.AGENT_ID, "work_agent")
+    from tasks import workspaces
+    selected = None
+    parent = agent_exec.managed_parent_identity(root)
+    if parent:
+        selected = agent_exec.load_session(root, parent["agentId"]).get("worktree")
+    captured = workspaces.plan(root, declared, selected, args.work_isolation_enabled)
+    args.captured_workspace_plan = captured
+    if captured["mode"] != "code":
+        return start_loop_captured(args)
+    agent = agent_exec.agent_directory(root, args.work_agent, create=True)
+    with agent_exec.file_lock(agent / ".task-workspace-start.lock"):
+        request_hash = hashlib.sha256(agent_exec.safe_read_bytes(args.request_file, agent_exec.MAX_REQUEST_BYTES)).hexdigest()
+        acceptance = {"requestHash": request_hash, "workspace": captured,
+                      "taskDocument": document, "options": {key: value for key, value in vars(args).items() if key in (
+                          "task_id", "task_mode", "work_agent", "verification_agent", "work_model", "verification_model",
+                          "work_reasoning_effort", "verification_reasoning_effort", "work_fast", "verification_fast",
+                          "work_execution_mode", "verification_execution_mode", "work_profile", "max_revisions", "receipt_recovery")},
+                      **({"workIsolation": True} if args.work_isolation_enabled else {})}
+        args.workspace_acceptance_key = hashlib.sha256(json.dumps(acceptance, sort_keys=True).encode()).hexdigest()
+        for previous_path in sorted((agent / "loops").glob("*/state.json")):
+            previous = agent_exec.safe_read_json(previous_path)
+            if previous.get("acceptedRequestHash", previous.get("originalRequestHash")) != request_hash or not previous.get("execution", {}).get("workspacePlan"):
+                continue
+            if (previous.get("workspaceAcceptanceKey") != args.workspace_acceptance_key or previous["execution"]["taskMode"] != args.task_mode or
+                    previous.get("verificationAgentId") != args.verification_agent):
+                raise agent_exec.ContractError("task_workspace_acceptance_collision", "This task was already accepted with different workspace or route bindings")
+            return public_state(previous)
+        return start_loop_captured(args)
+
+
+def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
     root = agent_exec.resolve_project_root(args.project_root)
     agent_exec.validate_id(args.work_agent, agent_exec.AGENT_ID, "work_agent")
     mode = getattr(args, "task_mode", "work-verification")
@@ -631,7 +712,15 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
                     agent_exec.state_file(root, parent["agentId"], parent["runId"]), parent, submitted_document)
     task_document, binding = task_binding.resolve(
         submitted_document, args.task_id, hashlib.sha256(request).hexdigest())
+    from tasks import workspaces
+    workspace_plan = getattr(args, "captured_workspace_plan", None)
     tasks = task_document["tasks"]
+    selected_unit = agent_exec.load_session(root, parent["agentId"]).get("worktree") if parent else None
+    isolation = getattr(args, "work_isolation_enabled", False)
+    workspace_plans = {task["id"]: workspaces.plan(root, task["workspace"], selected_unit, isolation) for task in tasks if "workspace" in task}
+    workspace_plan = workspace_plans.get(args.task_id, workspace_plan)
+    if isolation and any(task["id"] not in workspace_plans for task in tasks) and not getattr(args, "captured_workspace_plan", None):
+        raise agent_exec.ContractError("task_workspace_required", "Work isolation is on; every task requires a code or read-only workspace plan")
     if args.task_id != tasks[0]["id"]:
         raise agent_exec.ContractError("task_order_invalid", "Submit the first task; the engine executes the whole list in order")
     validate_assignments(tasks, root, args.work_agent, args.verification_agent)
@@ -654,7 +743,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     with agent_exec.file_lock(directory / ".loop.lock"):
         pass
     workflow_tasks = []
-    for index, (task, content) in enumerate(zip(tasks, task_requests)):
+    for index, (task, content) in enumerate(zip(tasks, task_requests, strict=False)):
         request_path = directory / f"task-{index}.md"
         agent_exec.atomic_write(request_path, content)
         workflow_tasks.append({**task, "requestPath": str(request_path), "workStatus": "pending", "verificationStatus": "pending"})
@@ -708,6 +797,8 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "statePath": str(path),
         "originalRequestPath": str(original),
         "originalRequestHash": hashlib.sha256(request).hexdigest(),
+        "acceptedRequestHash": hashlib.sha256(request).hexdigest(),
+        **({"workspaceAcceptanceKey": args.workspace_acceptance_key} if getattr(args, "workspace_acceptance_key", None) else {}),
         "capabilityBindings": capability_bindings,
         "workAgentId": args.work_agent,
         "verificationAgentId": args.verification_agent,
@@ -726,6 +817,12 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
         "workflow": {"id": task_document["id"], "title": task_document["title"], "index": 0, "tasks": workflow_tasks},
         "parentStatePath": os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV),
         "execution": {"taskListPath": str(task_list_path), "taskBinding": binding, "taskMode": mode, "codex": args.codex, "model": args.model,
+                      "contextWorkingDirectory": agent_exec.safe_read_json(agent_exec.state_file(root, parent["agentId"], parent["runId"])).get("workingDirectory", str(root)) if parent else str(root),
+                      **({"workspacePlan": workspace_plan} if workspace_plan else {}),
+                      **({"defaultWorkspacePlan": getattr(args, "captured_workspace_plan", None)} if getattr(args, "workspace_file", None) else {}),
+                      **({"workspacePlans": workspace_plans} if workspace_plans else {}),
+                      # Present only when the Human turned Work isolation on; integration then never waits for a Human.
+                      **({"workIsolation": True} if isolation else {}),
                       "agentModels": {role: {key: value for key, value in {"model": getattr(args, role + "_model", None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None), "fast": getattr(args, role + "_fast", None)}.items() if value is not None} for role in ("work", "verification")},
                       "executionPolicy": policy, "executionPolicyPath": str(policy_path), "agentPermissions": role_permissions,
                       # Loops persisted before these fields keep the unbounded, explicit-recovery graph.
@@ -935,7 +1032,86 @@ def automatic_receipt_recovery(
     return public_state(state, state["currentChild"])
 
 
+def preserve_integration(state, path, code, message, files=None):
+    """Work isolation: end the task without a Human wait, keeping every unmerged Work Unit branch and path."""
+    value = state.get("taskWorkspaces", {}).get(state["execution"]["taskBinding"]["taskId"]) or {}
+    preserved = [{"repositoryRoot": unit["repositoryRoot"], "targetBranch": unit["targetBranch"], "branch": unit["branch"],
+                  "path": unit["path"], "phase": unit["phase"]} for unit in value.get("repositories", []) if unit["phase"] != "merged"]
+    merged = [unit["repositoryRoot"] for unit in value.get("repositories", []) if unit["phase"] == "merged"]
+    if value:
+        value.update(preserved=True, preservedReason={"code": code, "message": message})
+    workflow = state.get("workflow")
+    if workflow:
+        workflow["tasks"][workflow["index"]]["workStatus"] = "completed"
+        # Later tasks may depend on the unmerged changes; they do not start.
+        for remaining in workflow["tasks"][workflow["index"] + 1:]:
+            remaining.update(workStatus="cancelled", verificationStatus="cancelled")
+    summary = ("Work completed but was not merged (" + code + "): " + message + ". Preserved unmerged branches: "
+               + "; ".join(item["branch"] + " at " + item["path"] + " (target " + item["targetBranch"] + " in " + item["repositoryRoot"] + ")" for item in preserved)
+               + (". Already merged: " + ", ".join(merged) if merged else ""))
+    state.update(status="completed", phase="ended", currentChild=None, controlPlaneError=None, updatedAt=now(),
+                 terminalReason={"code": "integration_preserved", "message": summary, "cause": code,
+                                 "preserved": preserved, "merged": merged, **({"files": files} if files else {})})
+    save_loop_state(path, state)
+    return public_state(state)
+
+
 def finish_workflow_task(state, path, runtime, reason):
+    if state.get("taskWorkspaces"):
+        state["phase"] = "integrating"
+        save_loop_state(path, state)
+        from tasks import workspaces
+        root = Path(state["projectRoot"])
+        isolation = state["execution"].get("workIsolation") is True
+        work = runtime.status(assigned_agent(state, "work"), state["latestWorkRunId"])
+        receipt = agent_exec.validate_receipt(root, work, agent_id=work["agentId"], run_id=work["runId"])
+        try:
+            outcome = workspaces.integrate(agent_exec, state, work, receipt, lambda: save_loop_state(path, state))
+        except agent_exec.ContractError as error:
+            if isolation and error.code in PRESERVED_INTEGRATION_ERRORS:
+                return preserve_integration(state, path, error.code, error.message, getattr(error, "files", None))
+            raise
+        if outcome["status"] == "target-changed":
+            state["integrationRetries"] = state.get("integrationRetries", 0) + 1
+            limit = state["execution"].get("maxRevisions", DEFAULT_MAX_REVISIONS)
+            if limit and state["integrationRetries"] > limit:
+                if isolation:
+                    return preserve_integration(state, path, "task_target_changed", "Target kept changing during checks")
+                raise agent_exec.ContractError("task_target_changed", "Target kept changing during checks; Work Units preserved for a decision")
+            save_loop_state(path, state)
+            return public_state(state)
+        if outcome["status"] == "conflict":
+            fingerprint = hashlib.sha256(agent_exec.worktrees.git(outcome["unit"]["path"], "ls-files", "--unmerged", "-z").stdout).hexdigest()
+            if state.get("lastIntegrationConflict") == fingerprint and isolation:
+                return preserve_integration(state, path, "task_conflict_unresolved", "Conflict stages did not change after the Work revision", outcome["files"])
+            if state.get("lastIntegrationConflict") == fingerprint:
+                state.update(status="needs-human-decision", phase="waiting-human", controlPlaneError={"code": "task_conflict_unresolved", "message": "Conflict stages did not change after the Work revision; choose the unresolved semantics", "files": outcome["files"]})
+                save_loop_state(path, state)
+                return public_state(state)
+            state["lastIntegrationConflict"] = fingerprint
+            limit = state["execution"].get("maxRevisions")
+            if limit and state.get("revisionCount", 0) >= limit and isolation:
+                return preserve_integration(state, path, "task_conflict_revision_limit", "Conflict revision limit reached", outcome["files"])
+            if limit and state.get("revisionCount", 0) >= limit:
+                state.update(status="needs-human-decision", phase="waiting-human", controlPlaneError={"code": "task_conflict_revision_limit", "message": "Conflict revision limit reached; managed Work Units preserved", "files": outcome["files"]})
+                save_loop_state(path, state)
+                return public_state(state)
+            unit = outcome["unit"]
+            request = write_request(path.parent, "integration-revision-" + str(state.get("revisionCount", 0)) + ".md",
+                agent_exec.safe_read_bytes(Path(state["originalRequestPath"]), agent_exec.MAX_REQUEST_BYTES).decode("utf-8")
+                + "\n\nRuntime integration conflict in the SAME task/session. Repository: " + unit["repositoryRoot"]
+                + "\nIsolated directory: " + unit["path"] + "\nCaptured base: " + unit["baseCommit"]
+                + "\nLatest target: " + unit["targetBefore"] + "\nConflict files: " + json.dumps(outcome["files"])
+                + "\nInspect Git stages 1/2/3 and the accepted original scope. Resolve only evidence-supported changes, explicitly git add the resolved files, and rerun the original checks. "
+                + "Do not commit or choose ours/theirs blindly, overwrite whole unrelated files, weaken assertions, skip checks or change product/authority decisions. "
+                + ("Work isolation is on: resolve the conflict yourself and never return needs-human-decision for it. Leave only semantically unresolvable files unstaged and explain them in the result; the runtime then preserves the unmerged branch. "
+                   if isolation else "Return needs-human-decision with specific unresolved choices when necessary. ")
+                + "Receipt paths stay original-project-relative. Runtime will commit, recheck and integrate.")
+            state.update(integrationRevisionPending=True, revisionCount=state.get("revisionCount", 0) + 1,
+                         latestVerificationRunId=None, lastVerificationDecision=None)
+            save_loop_state(path, state)
+            dispatch(state, path, runtime, role="work", request_file=request)
+            return public_state(state, state["currentChild"])
     workflow = state.get("workflow")
     if workflow:
         task = workflow["tasks"][workflow["index"]]
@@ -952,10 +1128,16 @@ def finish_workflow_task(state, path, runtime, reason):
             if binding != expected:
                 raise agent_exec.ContractError("task_binding_invalid", "The submitted task snapshot changed")
             state["execution"]["taskBinding"] = binding
+            plans = state["execution"].get("workspacePlans", {})
+            if plans:
+                state["execution"]["workspacePlan"] = plans.get(next_task["id"], state["execution"].get("defaultWorkspacePlan") or {"mode": "shared"})
+            state["execution"].pop("taskWorkspacePath", None)
             state.update(originalRequestPath=next_task["requestPath"], originalRequestHash=next_task["requestHash"],
                          latestWorkRunId=None, latestVerificationRunId=None, lastVerificationDecision=None,
                          pendingFindingIds=[], revisionCount=0, currentChild=None, humanSkip=None, receiptRecovery=None,
                          status="active", terminalReason=None)
+            state.pop("lastIntegrationConflict", None)
+            state.pop("integrationRetries", None)
             dispatch(state, path, runtime, role="work", request_file=Path(next_task["requestPath"]))
             return public_state(state, state["currentChild"])
     state.update(status="completed", phase="ended", currentChild=None,
@@ -982,6 +1164,10 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
         child = runtime.status(current["agentId"], current["runId"])
         if child["status"] not in CHILD_TERMINAL:
             return public_state(state, child)
+        if (child["status"] == "needs-human-decision" and current["role"] == "work" and state.get("lastIntegrationConflict")
+                and state.get("execution", {}).get("workIsolation") is True):
+            # Work isolation never waits for a Human on conflicts; the unmerged branch stays for inspection.
+            return preserve_integration(state, path, "task_conflict_unresolved", "Work could not resolve the integration conflict")
         if child["status"] != "completed":
             if state.get("workflow"):
                 state["workflow"]["tasks"][state["workflow"]["index"]]["workStatus" if current["role"] == "work" else "verificationStatus"] = "blocked" if child["status"] == "needs-human-decision" else child["status"]
@@ -1009,6 +1195,8 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
             if state.get("execution", {}).get("taskMode") in ("work", "plan-work"):
                 return finish_workflow_task(state, path, runtime, "work-completed")
             if isinstance(state.get("humanSkip"), dict):
+                if state.get("taskWorkspaces"):
+                    return finish_workflow_task(state, path, runtime, "human-skip")
                 if state.get("workflow"):
                     workflow = state["workflow"]
                     workflow["tasks"][workflow["index"]]["workStatus"] = "completed"
@@ -1150,6 +1338,48 @@ def skip_loop(args: argparse.Namespace) -> dict[str, Any]:
         return public_state(state, current)
 
 
+def stop_task(args):
+    """Stop one single-task engine before cancelling its child through exec."""
+    if args.actor != "human" or not args.authorization_reference.strip() or not args.decision_evidence.strip():
+        raise agent_exec.ContractError("loop_stop_unauthorized", "Stopping requires Human authorization and evidence")
+    root = agent_exec.resolve_project_root(args.project_root)
+    path, _ = read_state(root, args.work_agent, args.loop_id)
+    with agent_exec.file_lock(path.parent / ".loop.lock"):
+        state = agent_exec.safe_read_json(path)
+        workflow = state.get("workflow") or {}
+        tasks = workflow.get("tasks", [])
+        if workflow.get("id") != args.workflow_id or len(tasks) != 1 or tasks[0].get("id") != args.task_id:
+            raise agent_exec.ContractError("loop_stop_scope", "Only an exactly bound single-task Loop can be stopped")
+        if state.get("pendingDispatch"):
+            raise agent_exec.ContractError("loop_stop_dispatch_uncertain", "Resolve the uncertain dispatch before stopping this task")
+        if state["status"] in {"completed", "cancelled"} and not state.get("stopPending"):
+            return public_state(state)
+        current = state.get("currentChild")
+        state.update(status="cancelled", phase="ended", stopPending=True, updatedAt=now(), terminalReason={
+            "code": "human-stopped-task", "message": "Human stopped this task",
+            "actor": args.actor, "authorizationReference": args.authorization_reference.strip(),
+            "decisionEvidence": args.decision_evidence.strip(), "recordedAt": now(),
+        })
+        # The engine lock serializes this transition with dispatch/reconcile. Persist first:
+        # a cancellation failure must never restart Work or dispatch Verification.
+        save_loop_state(path, state)
+        runtime = AgentRuntime(root, state.get("parentStatePath"))
+        if current:
+            child = runtime.status(current["agentId"], current["runId"])
+            if child["status"] not in CHILD_TERMINAL:
+                try:
+                    runtime.call(["cancel", "--agent", current["agentId"], "--run-id", current["runId"]])
+                except agent_exec.ContractError as error:
+                    if error.code != "run_terminal":
+                        raise
+        for key in ("workStatus", "verificationStatus"):
+            if tasks[0].get(key) not in {None, "completed", "failed", "cancelled"}:
+                tasks[0][key] = "cancelled"
+        state.update(stopPending=False, updatedAt=now())
+        save_loop_state(path, state)
+        return public_state(state)
+
+
 def close_loop(args):
     """Close a stopped failed workflow without rewriting its execution evidence."""
     if args.actor != "human" or not args.authorization_reference.strip() or not args.decision_evidence.strip():
@@ -1288,6 +1518,10 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--task-list-file", type=Path, help="Announced task list; omitted for an orchestrator brief, which becomes a single runtime-derived task")
     start.add_argument("--task-id", help="Selected task in --task-list-file")
     start.add_argument("--request-file", type=Path, required=True)
+    start.add_argument("--workspace-file", type=Path, help="Captured code/shared/read-only plan with exact repositories, target branches and integration check argv arrays")
+    start.add_argument("--work-isolation", action=argparse.BooleanOptionalAction, default=None,
+                       help="Work isolation toggle; inherited from the managed Main run when captured there. On requires --workspace-file "
+                            "(code or read-only), defaults targets to each repository's current branch and preserves unmergeable branches without a Human wait")
     start.add_argument("--work-agent", required=True)
     start.add_argument("--task-mode", choices=("work", "plan-work", "work-verification", "plan-work-verification"), default="work-verification")
     start.add_argument("--verification-agent")
@@ -1307,17 +1541,20 @@ def build_parser() -> agent_exec.JsonArgumentParser:
                        help="Work revisions per task after failed Verification before the loop stops for a Human decision; 0 is unlimited")
     start.add_argument("--receipt-recovery", choices=("auto", "manual"), default="auto",
                        help="auto gives Work one repair turn for an allowlisted receipt failure; manual stops for recover-receipt")
-    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close", "refresh-progress", "extend-revisions"):
+    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close", "stop-task", "refresh-progress", "extend-revisions"):
         command = commands.add_parser(name)
         agent_exec.add_project_argument(command)
         if name in {"reconcile", "recover-receipt", "drive", "extend-revisions"}:
             agent_exec.execution_policy.add_policy_arguments(command)
         command.add_argument("--work-agent", required=True)
         command.add_argument("--loop-id", required=True)
-        if name in {"skip", "close", "extend-revisions"}:
+        if name in {"skip", "close", "stop-task", "extend-revisions"}:
             command.add_argument("--actor", choices=agent_exec.ACTORS, required=True)
             command.add_argument("--authorization-reference", required=True)
             command.add_argument("--decision-evidence", required=True)
+        if name == "stop-task":
+            command.add_argument("--workflow-id", required=True)
+            command.add_argument("--task-id", required=True)
         if name == "extend-revisions":
             command.add_argument("--additional", type=int, default=1,
                                  help="Further Work revisions the Human authorizes after the limit stopped the loop")
@@ -1335,7 +1572,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         agent_exec.response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "loop.py", "action": args.command})
         agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
-        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop, "refresh-progress": refresh_progress, "extend-revisions": extend_revisions}
+        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop, "stop-task": stop_task, "refresh-progress": refresh_progress, "extend-revisions": extend_revisions}
         result = handlers[args.command](args)
         if args.command in RESUMING_COMMANDS and result.get("status") == "active":
             # The driver left when the loop stopped. A duplicate is harmless (.driver.lock), and
