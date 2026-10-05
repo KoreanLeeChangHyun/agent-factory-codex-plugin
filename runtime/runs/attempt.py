@@ -78,6 +78,9 @@ def run_codex_attempt(
     if state.get("workingDirectory", str(working_directory)) != str(working_directory):
         raise runtime.AttemptFailure("worktree_binding_changed", "Run working directory no longer matches its conversation", False)
     session["workingDirectory"] = str(working_directory)
+    from tasks.orchestrator_guard import profile_instruction
+    from execution.prompts import PromptParts
+    prompt_parts = PromptParts(prompt_parts.fixed + profile_instruction(state, project_root, working_directory), prompt_parts.dynamic)
     if session.get("worktree") or session.get("taskWorkspace"):
         from execution.prompts import PromptParts
         location_guidance = ("\nConversation working directory: " + str(working_directory)
@@ -153,9 +156,14 @@ def run_codex_attempt(
         raise runtime.AttemptFailure(
             "codex_start_failed", "codex exec could not start", False
         ) from error
+    attempt_stopped = False
     def stop_attempt():
+        nonlocal attempt_stopped
+        if attempt_stopped:
+            return
         provider_adapter.before_stop(state_path, session)
         runtime.terminate_attempt_group(process, codex_identity)
+        attempt_stopped = True
 
     release_attempted = False
     try:
@@ -218,7 +226,7 @@ def run_codex_attempt(
     active_session: str | None = None
     final_messages: list[str] = []
     publication_failed = False
-    started_at = time.monotonic()  # noqa: F841 - unused, but the clock read stays: tests sequence time.monotonic calls
+    time.monotonic()  # result unused, but the clock read stays: tests sequence time.monotonic calls
     # Legacy session timeout fields must not terminate valid ongoing work.
     start_deadline = float("inf")
     turn_deadline = float("inf")
@@ -230,7 +238,13 @@ def run_codex_attempt(
     runtime.update_json(state_path, state_path.parent / ".state.lock",
                 lambda value: runtime.record_attempt(value, attempt, usage.snapshot()))
     try:
+        leader_exit_observed = False
         while True:
+            # EOF belongs to pipes; it does not establish leader liveness. An
+            # inherited pipe must not prevent cleanup of our exited containment.
+            if process.poll() is not None and not leader_exit_observed:
+                leader_exit_observed = True
+                stop_attempt()
             if runtime.cancel_requested(state_path, cancel_event, control_reader):
                 stop_attempt()
                 raise runtime.AttemptFailure("cancelled", "run was cancelled", started, True)
@@ -308,7 +322,16 @@ def run_codex_attempt(
                 stop_attempt()
                 message = str(event.get("message", "Native Codex error"))
                 diagnostic = runtime.sandbox_diagnostics.sandbox_failure(message)
-                raise runtime.AttemptFailure("sandbox_unavailable" if diagnostic else "native_backend_error", diagnostic or message, started, True)
+                code = event.get("code")
+                if code not in {"result_invalid", "result_missing", "authentication_required", "rate_limit_exceeded", "rpc_disconnected"}:
+                    code = "native_backend_error"
+                details = {key: event[key] for key in ("code", "stage", "turnId", "requestId", "acceptance") if key in event}
+                runtime.update_json(state_path, state_path.parent / ".state.lock",
+                                    lambda value: value.update(adapterError=details))
+                raise runtime.AttemptFailure("sandbox_unavailable" if diagnostic else code, diagnostic or message, started, True)
+            if event.get("type") == "rpc.waiting":
+                runtime.update_json(state_path, state_path.parent / ".state.lock",
+                                    lambda value: value.update(pendingRpc={**event, "observedAt": runtime.now()}))
             if usage.observe(event):
                 runtime.update_json(state_path, state_path.parent / ".state.lock",
                             lambda value: runtime.record_attempt(value, attempt, usage.snapshot()))
@@ -415,7 +438,7 @@ def run_codex_attempt(
     try:
         runtime.publish_terminal_result(terminal, state)
         runtime.update_json(Path(state["statePath"]), Path(state["statePath"]).parent / ".state.lock",
-                    lambda value: value.update({"decisionKind": terminal.get("decisionKind")}))
+                    lambda value: value.update({"decisionKind": terminal.get("decisionKind"), "decisionScope": terminal.get("decisionScope")}))
     except runtime.ContractError as error:
         raise runtime.AttemptFailure(error.code, error.message, True) from error
     except OSError as error:
@@ -432,6 +455,10 @@ def run_codex_attempt(
     ):
         raise runtime.AttemptFailure("result_file_invalid", "Agent result path is unsafe", True)
     if terminal["status"] == "completed" and state.get("role") in {"work", "verification"}:
+        if state.get("goalObjective") or state.get("executionOptions", {}).get("goalObjective"):
+            observation = runtime.safe_read_json(state_path)
+            if observation.get("goalError") or (observation.get("goal") or {}).get("status") != "complete":
+                raise runtime.AttemptFailure("goal_completion_unconfirmed", "The same run has no confirmed completed Goal; stored result preserved", True)
         try:
             if runtime.structured_receipt(state):
                 # Contract 2: the runtime writes the receipt from the Agent's own judgment fields.
@@ -467,8 +494,12 @@ def mark_terminal(
     *,
     attempt: int | None = None,
     start_disposition: str | None = None,
-) -> None:
+    active_only: bool = False,
+) -> bool:
+    """Write a terminal status; with active_only, a run that already ended keeps its own."""
     def change(value: dict[str, Any]) -> None:
+        if active_only and value.get("status") not in runtime.ACTIVE_STATES:
+            raise runtime.ContractError("run_terminal", "run is already terminal")
         value.update(
             {
                 "status": status,
@@ -484,7 +515,13 @@ def mark_terminal(
         if start_disposition is not None:
             value["startDisposition"] = start_disposition
 
-    runtime.update_json(state_path, state_path.parent / ".state.lock", change)
+    try:
+        runtime.update_json(state_path, state_path.parent / ".state.lock", change)
+    except runtime.ContractError as error:
+        if not active_only or error.code != "run_terminal":
+            raise
+        return False
+    return True
 
 
 def worker(runtime, args: argparse.Namespace) -> int:
@@ -618,5 +655,8 @@ def worker(runtime, args: argparse.Namespace) -> int:
         # The run's outcome is stored; now record what earlier runs could not write. Best effort:
         # it never changes this run's status and whatever fails stays pending.
         with contextlib.suppress(Exception):
+            runtime.lesson_capture.replay(project_root, state)
             runtime.lesson_capture.apply_pending(project_root, state)
+            runtime.update_json(state_path, state_path.parent / ".state.lock",
+                                lambda value: value.update(pendingLessons=len(runtime.lesson_capture.audit(state))))
         heartbeat.close()

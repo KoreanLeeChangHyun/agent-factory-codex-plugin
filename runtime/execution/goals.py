@@ -12,8 +12,9 @@ from storage.files import session_file, update_json
 # Native /goal commands reject longer conditions; the full request still arrives as the run's message.
 MAX_OBJECTIVE_CHARACTERS = 4000
 BOUNDED_OBJECTIVE = ("Complete this run's bounded request supplied in the current message, including necessary "
-                     "own checks and the exact result/receipt contract. Stop on failure or a required unresolved "
-                     "Human decision.")
+                     "own checks and the exact result/receipt contract. Repair in-scope implementation and check failures "
+                     "and rerun affected checks until they pass. Preserve progress and stop only for cancellation, "
+                     "an unavailable external prerequisite, exhausted provider limits or a required unresolved Human decision.")
 GOAL_ROLES = ("main", "work")
 PAUSED = "paused"
 

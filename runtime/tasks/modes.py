@@ -3,12 +3,22 @@ from storage.errors import ContractError
 
 TASK_MODES = ("orchestrate", "direct", "work", "plan", "verification", "plan-work", "work-verification", "plan-work-verification")
 LEGACY_MODE = "work-verification"
-# Display label for the Work profile Main chose; it selects no model, permission or agent.
-WORK_PROFILES = ("work", "workLight")
+# Work profile Main chose. It selects no model or agent: work (Expert) and workLight (Worker) are labels only;
+# explore (Explorer) and scribe (Scribe) also narrow the run's tools below its authorized permissions.
+WORK_PROFILES = ("work", "workLight", "explore", "scribe")
+RESTRICTED_PROFILES = ("explore", "scribe")
 # What orchestrator Main does with a stopped loop's `failureClass`. Guidance only: the runtime never re-dispatches Work.
 FAILURE_CLASS_ACTIONS = ("A stopped loop reports failureClass; act on it: contract - the runtime's automatic receipt recovery already ran, so report a run that still ended failed; "
                          "transient - run loop.py reconcile, read the status once more, then decide; environment - stop and report the cause to the Human; "
                          "human - pass the decision to the Human; provider - report the provider's message and do not dispatch again unless the Human asks. ")
+
+# Scribe drafts and lesson consolidation: the Human reviews every draft before anything is kept.
+SCRIBE_REVIEW = ("A Scribe's changes are drafts: with Work isolation on give scribe the read-only workspace plan (the shared checkout), never a code plan. "
+                 "A completed scribe loop reports draftReview with the changed paths; report them and ask the Human to accept, request changes or discard, "
+                 "then record the answer with loop.py review --actor human --decision accepted|changes-requested|discarded. For requested changes dispatch scribe again with the Human's notes; "
+                 "committing an accepted draft or reverting a discarded one happens only in direct mode with the Human's explicit consent. "
+                 "To turn lessons into Skill drafts, dispatch scribe to group recurring docs/lessons-learned records and prepare rule candidates with lessons.py candidate, citing the Human's request as authority; "
+                 "publishing a candidate needs the Human's approval of that draft. ")
 
 
 def validate_mode(mode):
@@ -25,7 +35,9 @@ def route_instruction(mode, role):
         "orchestrate": ("Orchestrator mode. Handle conversation, planning, Interview, requirement shaping, routing and light lookups of local project files and state directly as Main. "
                         "A project change the Human explicitly requests, and any web search, URL fetch or external lookup (research, however small), is delegated with a brief, not a work contract: write one request file containing Goal (one or two sentences), Scope (target files or research topic, and what not to do, e.g. no commits), Done (what must be true when finished) and Report (result summary, changed paths, sources for research), then run "
                         "`python3 <plugin-root>/scripts/loop.py start --project-root PROJECT --task-mode work --work-agent UNIQUE_ID --request-file BRIEF` plus the Work profile flags. No task-list JSON, announce-tasks, task-flow block, contract, progress document or lesson retrieval is needed; the runtime derives the single task shown in the panel. "
-                        "Choose the profile: workLight for bounded, already-decided changes and simple lookups; work for multi-file, design, unknown-cause or multi-source research; pass --work-profile work or --work-profile workLight naming that choice, together with the profile's exact model ID and effort as --work-model/--work-reasoning-effort, and retry a failed workLight attempt once with the work profile (--work-profile work) only when its failureClass is contract or absent. --work-profile only records the choice for the task panel; never pass a profile word such as light or heavy as a model, and without configured profile models omit --work-model but keep --work-profile. "
+                        "Choose the profile: explore for research, web search and code exploration that change nothing; scribe for changes confined to the project's docs/ (Documents, records, lessons); workLight for other bounded, already-decided changes; work for multi-file, design or unknown-cause changes. Code changes that also need document updates stay with workLight or work; after such a run, dispatch scribe only when its reported changes affect documents. Pass --work-profile naming that choice, together with the profile's exact model ID and effort as --work-model/--work-reasoning-effort (explore and scribe use the workLight settings unless their own are supplied), and retry a failed workLight or scribe attempt once with the work profile (--work-profile work) only when its failureClass is contract or absent; a failed explore run is reported, not retried with write access. "
+                        "explore runs read-only with web access; scribe writes only inside docs/ and has no web access; work and workLight are labels that select no model or authority. Never pass a profile word such as light or heavy as a model, and without configured profile models omit --work-model but keep --work-profile. "
+                        + SCRIBE_REVIEW +
                         "Start separate Verification only when the Human explicitly requests it (--task-mode work-verification with --verification-agent). After acceptance, finish this turn with the accepted IDs; on the completion notification, acknowledge the exact result/receipt and report without reviewing or rerunning checks. Report separate Verification as not requested unless it ran. "
                         + FAILURE_CLASS_ACTIONS +
                         "The runtime enforces Main's tool limits: read with read tools or single read-only shell commands (no redirection, chaining or substitution); write only the brief and other files inside this run's directory; run each Agent Factory script as its own `python3 <plugin-root>/scripts/` command; never edit project files or commit. If the Human asks for a commit or a direct edit, ask them to resend it in direct mode. The work-contract procedure (announcements, contract files, progress documents) belongs to Human-selected contract workflows only."),
@@ -55,5 +67,7 @@ def work_goal_options(options, request_text):
     options.setdefault("goalObjective", request_text if len(request_text) <= 4000 else
                        "Complete this run's bounded request supplied in the developer instructions, "
                        "including necessary own checks and the exact result/receipt contract. "
-                       "Stop on failure or a required unresolved Human decision.")
+                       "Repair in-scope implementation and check failures and rerun affected checks until they pass. "
+                       "Preserve progress and stop only for cancellation, an unavailable external prerequisite, "
+                       "exhausted provider limits or a required unresolved Human decision.")
     return options

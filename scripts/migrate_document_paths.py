@@ -14,6 +14,9 @@ import shutil
 import sys
 import tempfile
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runtime"))
+from storage import document_migration  # noqa: E402
+
 
 MANIFEST_NAME = "migration-manifest.json"
 MARKDOWN_LINK = re.compile(r"(?P<prefix>\]\()(?P<target>[^)\n]+)(?P<suffix>\))")
@@ -332,15 +335,41 @@ def public_plan(plan: list[dict[str, object]]) -> list[dict[str, object]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
-    parser.add_argument("--operations", type=Path, required=True)
+    parser.add_argument("--operations", type=Path, help="Contract-listed file moves (required without --storage-layout)")
+    parser.add_argument("--storage-layout", action="store_true", help="Migrate legacy JSON lessons and flat refined packages")
+    parser.add_argument("--documents-root", type=Path, help="Physical workspace containing docs; runtime identity stays --project-root")
+    parser.add_argument("--language", help="Selected lesson body language; preserves original language and quoted source text")
+    parser.add_argument("--classifications", type=Path, help="JSON mapping of source package paths to categories after inspecting their bodies")
+    parser.add_argument("--exclude-path", action="append", default=[], help="Preserve a dirty/untracked document or package; repeat as needed")
     parser.add_argument("--task-id", default="T3")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--backup", action="store_true", help="Create and verify a backup after preview.")
-    mode.add_argument("--apply", action="store_true", help="Apply only after a matching backup exists.")
+    mode.add_argument("--apply", action="store_true", help="Apply contract moves after backup, or create a recoverable storage-layout backup and apply.")
     parser.add_argument("--backup-dir", type=Path)
     args = parser.parse_args()
     try:
         root = args.project_root.resolve(strict=True)
+        if args.storage_layout:
+            docs = (args.documents_root or root).resolve(strict=True)
+            classifications = {} if args.classifications is None else json.loads(args.classifications.read_text(encoding="utf-8"))
+            if not isinstance(classifications, dict) or any(value not in document_migration.CATEGORIES for value in classifications.values()):
+                raise ValueError("Classifications must map document paths to supported refined categories")
+            if args.backup or args.operations:
+                raise ValueError("--storage-layout uses dry-run or --apply --backup-dir, without --operations/--backup")
+            if args.apply:
+                if args.backup_dir is None:
+                    raise ValueError("--apply requires --backup-dir")
+                result = document_migration.apply(root, docs, args.backup_dir, classifications, args.exclude_path, args.language)
+            else:
+                plan = document_migration.preview(root, docs, classifications, args.exclude_path, args.language)
+                result = {"mode": "dry-run", **document_migration.summary(plan)}
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
+        if args.operations is None:
+            raise ValueError("--operations is required without --storage-layout")
+        if args.classifications or args.exclude_path or args.language:
+            raise ValueError("--classifications, --exclude-path and --language require --storage-layout")
+        root = (args.documents_root or root).resolve(strict=True)
         operations = args.operations.resolve(strict=True)
         if (args.backup or args.apply) and args.backup_dir is None:
             raise ValueError("--backup and --apply require --backup-dir")

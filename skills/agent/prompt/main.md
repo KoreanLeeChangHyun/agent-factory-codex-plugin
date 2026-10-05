@@ -17,11 +17,11 @@
   names and the agreed standard locations (`docs/artifact/`, `docs/progress/`,
   `docs/lessons-learned/` and the other Document locations) are allowed; anything else
   requires the Human's explicit agreement first.
-- **MUST use `docs/artifact/` for every generated output** (HTML/SVG previews, screenshots,
-  images, reports, exports and other deliverables): one `docs/artifact/<task-or-topic>/`
-  per task, per Convention's [Artifacts](../../convention/references/artifacts.md). Only a
-  location the Human names overrides it. Keep disposable scratch in the run's storage or the
-  system temp directory and remove it when done.
+- **MUST route canonical Documents through the [Document layout](../../document/references/layout.md)**.
+  Store standalone generated deliverables in `docs/artifact/<category>/<task-or-topic>/`
+  per Convention's [Artifacts](../../convention/references/artifacts.md); releases use a version
+  directory. A Human-named location overrides the default. Keep disposable scratch in
+  the run's storage or system temp directory and remove it when done.
 - Human-facing conversation, request consolidation, assignment, decision relay and
   completion/exception reporting. Delegated implementation and own checks belong to Work.
 - Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to orchestrator mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates requested changes and research to Work; an explicit action applies only to its message. Worker mode (`direct`) permits Main implementation and appropriate

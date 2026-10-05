@@ -6,6 +6,7 @@ import contextlib
 import json
 import os
 import queue
+import shlex
 import stat
 import sys
 from pathlib import Path
@@ -49,7 +50,7 @@ class AttemptFailure(Exception):
 
 
 def response_schema_document(result_path: str, *, inline: bool = True, decision_metadata: bool = True,
-                             receipt: bool = False) -> dict[str, Any]:
+                             receipt: bool = False, decision_scope: bool = True) -> dict[str, Any]:
     properties = {
         "status": {"type": "string", "enum": ["completed", "needs-human-decision", "failed"]},
         "resultPath": {"type": "string", "const": result_path},
@@ -58,6 +59,8 @@ def response_schema_document(result_path: str, *, inline: bool = True, decision_
         properties["resultText"] = {"type": "string", "minLength": 1}
     if inline and decision_metadata:
         properties["decisionKind"] = {"type": ["string", "null"], "enum": ["approval", "clarification", None]}
+        if decision_scope:
+            properties["decisionScope"] = {"type": ["string", "null"], "enum": ["task-execution", "scope-expansion", "external-prerequisite", None]}
     if receipt:
         # Response contract 2: a Work run returns its receipt judgment here (flat, always required
         # because Codex requires every property); the runtime reads it only on `completed`.
@@ -74,7 +77,7 @@ def inline_result(state: dict[str, Any]) -> bool:
         # Later runtimes may reword field descriptions; the captured field set selects the protocol.
         properties = schema.get("properties", {})
         expected = set(response_schema_document(state["resultPath"], receipt=True)["properties"])
-        if (isinstance(properties, dict) and set(properties) == expected
+        if (isinstance(properties, dict) and set(properties) in (expected, expected - {"decisionScope"})
                 and isinstance(properties.get("resultPath"), dict)
                 and properties["resultPath"].get("const") == state["resultPath"]):
             return True
@@ -84,10 +87,11 @@ def inline_result(state: dict[str, Any]) -> bool:
     if isinstance(text_schema, dict) and text_schema.get("maxLength") == 64 * 1024:
         text_schema.pop("maxLength")
     for inline in (True, False):
-        if any(schema == response_schema_document(state["resultPath"], inline=inline, decision_metadata=metadata) for metadata in (True, False)):
+        if any(schema == response_schema_document(state["resultPath"], inline=inline, decision_metadata=metadata, decision_scope=scope)
+               for metadata in (True, False) for scope in (True, False)):
             return inline
     # Recognize persisted runs from before nullable decision metadata was required.
-    historical = response_schema_document(state["resultPath"])
+    historical = response_schema_document(state["resultPath"], decision_scope=False)
     historical["required"].remove("decisionKind")
     if schema == historical:
         return True
@@ -102,7 +106,7 @@ def structured_receipt(state: dict[str, Any]) -> bool:
 def validate_terminal_result(terminal: Any, state: dict[str, Any]) -> bytes | None:
     inline = inline_result(state)
     expected = {"status", "resultPath", "resultText"} if inline else {"status", "resultPath"}
-    allowed = expected | ({"decisionKind"} if inline else set())
+    allowed = expected | ({"decisionKind", "decisionScope"} if inline else set())
     if structured_receipt(state):
         # Receipt fields are judged only for `completed`, by the receipt rules after the answer is saved.
         allowed |= set(RECEIPT_JUDGMENT_FIELDS)
@@ -112,12 +116,15 @@ def validate_terminal_result(terminal: Any, state: dict[str, Any]) -> bytes | No
             or terminal.get("resultPath") != state["resultPath"]):
         raise ContractError("result_invalid", "Codex returned an invalid terminal result")
     decision = terminal.get("decisionKind")
+    if terminal.get("decisionScope") not in (None, "task-execution", "scope-expansion", "external-prerequisite"):
+        raise ContractError("result_invalid", "Decision scope must identify the task, expanded scope or external prerequisite")
     if decision not in (None, "approval", "clarification"):
         raise ContractError("result_invalid", "Decision kind must be approval, clarification or null")
     if decision is not None and terminal["status"] != "needs-human-decision":
         # The flat schema cannot tie decisionKind to status, and models do fill it on
         # completed or failed results; it carries no meaning there, so drop it.
         terminal["decisionKind"] = None
+        terminal["decisionScope"] = None
     if not inline:
         return None
     text = terminal["resultText"]
@@ -302,12 +309,29 @@ results, receipts or their hashes. New output still belongs to this exact run.
         "The runtime saves it atomically. Do not write or reread your answer file. Intermediate messages are progress only. "
         "If decisionKind is supported: approval requires a concrete proposal awaiting explicit authorization; "
         "clarification means missing information, choices or credentials; otherwise null. "
-        "needs-human-decision alone never implies approval; bypass needs no routine proposal approval."
+        "needs-human-decision alone never implies approval; bypass needs no routine proposal approval. "
+        "If decisionScope is supported, use task-execution only for already bounded task permission, "
+        "scope-expansion for new authority, external-prerequisite for missing external input, otherwise null."
         if inline_response else
         f"This historical run uses the legacy output contract. Write the detailed result to "
         f"`{result_path}`. Then return only the compact JSON required by the supplied output schema."
     )
     request_instruction = f"Read the delegated request from `{request_path}`. Keep its scope and authority unchanged."
+    project = "PROJECT"
+    with contextlib.suppress(ValueError, ContractError):
+        project = str(runtime_paths.project_for(request_path))
+    read_command = shlex.join(["python3", str(EXEC_SCRIPT), "status", "--project-root", project,
+                              "--agent", agent_id, "--run-id", run_id, "--document", "request"])
+    request_instruction += (
+        "\nFor large files or a single long JSON line, use the read-only Unicode page command "
+        f"`{read_command} --offset 0 --length 4000`. "
+        "Concatenate each returned text verbatim; continue at nextOffset with --revision from the first page "
+        "until nextOffset is null. A changed revision requires restarting the read. "
+        "Offsets count Unicode characters, not bytes or lines; reduce --length if the reading tool needs smaller pages. "
+        "This paging has no total input limit. Do not treat one page as the complete request. "
+        "For task details use --document state (optional --field JSON_POINTER); request, result, receipt, "
+        "capability and loop select recorded documents. Do not infer authority or a decision from an index alone."
+    )
     if role == "main" and request is not None and len(request) <= MAX_INLINE_REQUEST_BYTES:
         request_text = request.decode("utf-8")
         request_instruction = (
@@ -418,7 +442,7 @@ def result_publication_failure(event: dict[str, Any], result_path: str) -> bool 
     return None
 
 
-def append_bounded(path: Path, content: bytes, limit: int) -> bool:
+def append_bounded(path: Path, content: bytes, limit: int | None) -> bool:
     reject_symlink(path)
     flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
     if hasattr(os, "O_NOFOLLOW"):

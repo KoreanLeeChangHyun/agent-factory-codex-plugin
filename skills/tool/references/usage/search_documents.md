@@ -7,3 +7,5 @@ Required: `--project-root PROJECT_ROOT`, `--query QUERY`
 - `--type {original,processed,progress,lessons-learned,refined}`
 - `--category CATEGORY`
 - `--limit LIMIT`
+- `--scope SCOPE`
+- `--documents-root DOCUMENTS_ROOT`: Physical workspace containing docs; runtime identity stays --project-root

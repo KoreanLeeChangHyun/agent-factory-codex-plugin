@@ -71,12 +71,15 @@ metadata:
 
 ## 4. Routing
 
+- Use the [complete project directory map and storage boundaries](references/layout.md)
+  when placing or reorganizing `docs/`, including artifact and runtime boundaries.
+
 | Type | Canonical project package |
 |---|---|
 | Original | `<project-root>/docs/original/<category>[-<domain>]-<name>/` |
-| Refined | `<project-root>/docs/refined/<category>[-<domain>]-<name>/` |
+| Refined | `<project-root>/docs/refined/<category>/<topic>/` |
 | Progress | `<project-root>/docs/progress/<contract-id>/progress.md` catalog index and the execution record in the bound `contract-v<N>.md` |
-| Lessons Learned | `<project-root>/docs/lessons-learned/<id>.json` |
+| Lessons Learned | `<project-root>/docs/lessons-learned/{errors,judgment-differences}/<readable-name>.md` |
 | Specification (Skill document) | `<project-root>/docs/skills/<category>[-<domain>]-<name>/` |
 
 <!-- clause-id: specification.routing.canonical -->
@@ -123,8 +126,8 @@ metadata:
   Specification packages. For Original, preserve metadata and link strings exactly.
   Language choice alone permits no translation or conversion. `SKILL.md` does not
   activate Refined, Progress or Lessons Learned as a Skill.
-- Lessons Learned uses a single JSON file containing metadata and structured records;
-  it needs no `SKILL.md`, YAML front matter or `assets/` wrapper. Follow its type guide.
+- Lessons Learned uses a Markdown body and runtime-only machine metadata, with no
+  `SKILL.md` or `assets/` wrapper. Follow its type guide for identity, status and history.
 - Follow the mandatory [Document structure](#document-structure) for Markdown bodies.
 - Body and assets are the editable source, including asset CSV/JSON. Store each diagram,
   system architecture, database/ERD or API design represented as JSON in a separate
@@ -159,7 +162,8 @@ metadata:
 
 ## 7. Naming and metadata
 
-- Use `<category>-<name>` or `<category>-<domain>-<name>` only for project-defined domains; brackets in routing
+- Refined uses the category hierarchy in its type guide; do not repeat category prefixes
+  in topic names. Other packages use `<category>-<name>` or `<category>-<domain>-<name>` only for project-defined domains; brackets in routing
   denote optional text. Preserve resolved names and type-guide categories; never infer
   domains or bulk-rename accepted identities.
 - For Markdown packages and Original, YAML metadata records `document-type`, `category`, `domain`, `name`, and

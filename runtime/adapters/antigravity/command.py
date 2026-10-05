@@ -89,7 +89,7 @@ def install_agent(home=None):
 
 
 # agy runs plugin hooks for every session, so the guard stays inert unless the runtime arms it
-# (orchestrate Main only). Named per plugin copy like the agent, and pruned the same way.
+# (orchestrate Main and explore/scribe Work). Named per plugin copy like the agent, and pruned the same way.
 GUARD_PLUGIN = AGENT_NAME + "-guard"
 GUARD_DESCRIPTION = "Agent Factory orchestrator-mode guard (installed by the Agent Factory runtime)."
 

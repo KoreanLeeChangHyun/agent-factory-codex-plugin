@@ -294,6 +294,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     work_profile = getattr(args, "work_profile", None)
     if work_profile is not None and role != "work":
         raise ContractError("work_profile_role_invalid", "--work-profile labels Work runs only")
+    if work_profile == "scribe" and not getattr(args, "resolved_task_workspace", None) and not (project_root / "docs").is_dir():
+        raise ContractError("scribe_docs_missing", "Scribe writes only inside docs/, which this project does not have")
     goal_action = getattr(args, "goal_action", None)
     if role == "main" and execution_options.get("taskMode") != "direct" and execution_options.get("goalMode", (stored_session or {}).get("goalMode")) is True:
         raise ContractError("goal_role_invalid", "Main Goal is direct-only; delegated execution uses Work's native Goal. Submit the captured route with Main --no-goal-mode")
@@ -481,7 +483,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             )
         else:
             session = load_session(project_root, args.agent)
-        if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent)):
+        if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent, strict=True)):
             raise ContractError("session_busy", "An accepted or active run already owns this exact session")
         if parent is not None:
             session = worktrees.inherit(session, {"projectRoot": str(project_root), **load_session(project_root, parent["agentId"])})
@@ -654,7 +656,7 @@ class Heartbeat:
                 "observedAt": now(),
             }
         atomic_write_json(self.path, value)
-        fact = "process_alive" if process_identity_status(value.get("codexIdentity")) == "match" else "unreachable"  # noqa: F841 - unused, but the identity probe stays: removing a call is not a lint-only change
+        process_identity_status(value.get("codexIdentity"))  # result unused, but the identity probe stays: it can raise and tests patch it
 
 
 def __getattr__(name):
@@ -708,8 +710,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             # (2: receipt fields in the structured final output); `revisionLimitPause` marks loops whose
             # public state carries the structured `pause` a Human decides on.
             # `workIsolation`: Main runs accept --work-isolation on|off and loops inherit it.
+            # `restrictedWorkProfiles`: --work-profile also accepts explore (read-only) and scribe (docs/ only).
             for operation in ("submit", "send"):
-                capabilities[operation] = {**capabilities[operation], "workProfile": True, "failureClass": True,
+                capabilities[operation] = {**capabilities[operation], "workProfile": True, "restrictedWorkProfiles": True,
+                                           "failureClass": True,
                                            "pendingLessons": True,
                                            "responseContract": receipt_contracts.RESPONSE_CONTRACTS[-1],
                                            "revisionLimitPause": True, "taskWorkspaces": True,

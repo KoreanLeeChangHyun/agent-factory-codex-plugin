@@ -152,12 +152,30 @@
   are captured with the loop and passed to both initial and revision turns for
   that role. Plan uses the same Work profile. The existing `--model` remains a
   shared fallback for initial submissions when no role model is supplied.
-- An orchestrator brief also passes `--work-profile work` (Expert, heavy) or
-  `--work-profile workLight` (Worker, light) naming the profile Main chose, together with
-  that profile's exact model ID and effort; the one retry after a failed light attempt
-  passes `--work-profile work`. The label is stored with the loop and each of its Work
-  runs, including revision and receipt-recovery turns, so hosts display the choice
-  instead of inferring it from model settings. It selects no model.
+- An orchestrator brief also passes `--work-profile` naming the profile Main chose, together
+  with that profile's exact model ID and effort; the one retry after a failed `workLight` or
+  `scribe` attempt passes `--work-profile work`. The profile is stored with the loop and each
+  of its Work runs, including revision and receipt-recovery turns, so hosts display the
+  choice instead of inferring it from model settings. It selects no model.
+
+  | Profile | Role | Tools |
+  |---|---|---|
+  | `work` | Expert (heavy) | Authorized permissions |
+  | `workLight` | Worker (light) | Authorized permissions |
+  | `explore` | Explorer | Read-only, web lookups |
+  | `scribe` | Scribe | Writes only inside `docs/`, no web lookups |
+
+  Explorer and Scribe narrow tools below the authorized permissions and never widen them:
+  Claude through an allowed-tool list, Codex and Antigravity through the runtime's tool guard.
+  Each may run only its Agent Factory Document scripts, never `exec.py` or `loop.py`, and
+  neither may start sub-agents, so only Main dispatches agents.
+- A Scribe's changes are drafts for Human review. `loop.py start` rejects a scribe code
+  Work Unit (`scribe_draft_review_required`), because Work Units merge automatically; with
+  Work isolation on, Scribe uses the read-only plan in the shared checkout. A completed
+  scribe loop reports `draftReview` with the changed paths. Main relays them and records
+  the Human's answer with `loop.py review --decision accepted|changes-requested|discarded`;
+  the runtime records only and never commits or reverts. Rule candidates that a Scribe
+  prepares from Lessons Learned are drafts in the same way; publication needs Human approval.
 - For standalone `exec.py submit/send`, use `--model`, `--reasoning-effort`, and `--fast`/`--no-fast`.
 - Fast selects Codex's service tier independently of reasoning effort. Preserve both values exactly. Role Fast is omitted for non-Codex providers.
 - Model settings do not change execution authority or add an agent to the route.

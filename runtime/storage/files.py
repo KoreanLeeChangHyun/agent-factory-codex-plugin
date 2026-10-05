@@ -132,7 +132,7 @@ def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
     )
 
 
-def safe_read_bytes(path: Path, limit: int) -> bytes:
+def safe_read_bytes(path: Path, limit: int | None) -> bytes:
     try:
         return safe_read_caller_file(path, limit)
     except ContractError as error:

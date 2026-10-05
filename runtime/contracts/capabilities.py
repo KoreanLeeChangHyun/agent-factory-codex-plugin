@@ -121,7 +121,7 @@ def _open_caller_file_windows(absolute: Path) -> int:
     return descriptor
 
 
-def safe_read_caller_file(path: Path, limit: int, *,
+def safe_read_caller_file(path: Path, limit: int | None, *,
                           stable: bool = False) -> bytes:
     """Read an explicit caller file without following any path component."""
     if ".." in path.parts:

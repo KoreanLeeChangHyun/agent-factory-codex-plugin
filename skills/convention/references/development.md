@@ -13,6 +13,8 @@
 - Separate broad formatting/refactoring when it would obscure behavioral review.
 - Reuse existing abstractions and the smallest maintainable implementation. Use
   [Libraries](libraries.md) for dependencies; follow the project's native layout.
+- Before changing any UI, apply [Theme and visual acceptance](theme.md); include its
+  applicable checks in the task's completion criteria.
 - Resolve filesystem targets and adapters explicitly; never silently broaden, mirror or
   migrate storage. Initialization preserves files unless exact overwrite/merge behavior
   is authorized.

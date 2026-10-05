@@ -25,6 +25,13 @@ def add_project_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--project-id")
 
 
+def add_read_page_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--field", help="Select a JSON Pointer before paging; strings are returned verbatim")
+    parser.add_argument("--offset", type=int, help="Zero-based Unicode character offset (enables paging)")
+    parser.add_argument("--length", type=int, help="Characters per page, default 4000; no total document limit")
+    parser.add_argument("--revision", help="Require the SHA-256 returned by the first page; changed data fails closed")
+
+
 def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--task-workspace-file", type=Path, help="Runtime-owned task Work Unit binding captured by loop.py")
     parser.add_argument("--task-list-file", type=Path)
@@ -42,7 +49,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         help="Main delegation approval policy; omitted sends preserve the session policy",
     )
     parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to orchestrate")
-    parser.add_argument("--work-profile", choices=WORK_PROFILES, help="Work profile label Main chose (work = Expert, workLight = Worker); recorded for display only, selects no model or authority")
+    parser.add_argument("--work-profile", choices=WORK_PROFILES, help="Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore runs read-only and scribe writes only inside docs/")
     parser.add_argument("--model")
     parser.add_argument("--provider", choices=("codex", "claude", "antigravity"))
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
@@ -119,6 +126,9 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
             identity = command_parser.add_mutually_exclusive_group(required=True)
             identity.add_argument("--run-id")
             identity.add_argument("--dispatch-id")
+            command_parser.add_argument("--document", choices=("state", "request", "result", "receipt", "capability", "loop"),
+                                        help="Read a document as lossless Unicode text pages (default page: 4000 characters)")
+            add_read_page_arguments(command_parser)
         else:
             command_parser.add_argument("--run-id", required=True)
         if name == "result":
@@ -158,6 +168,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
     list_parser = commands.add_parser("list")
     add_project_argument(list_parser)
+    add_read_page_arguments(list_parser)
 
     reset_parser = commands.add_parser(
         "reset-conversation",

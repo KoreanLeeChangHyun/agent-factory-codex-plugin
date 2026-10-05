@@ -9,19 +9,22 @@ import sys
 from catalog_documents import CATALOG_TYPES, TYPE_ALIASES, build_catalog
 
 
-def search(root: Path, query: str, document_type=None, category=None, limit=20) -> dict:
+def search(root: Path, query: str, document_type=None, category=None, limit=20, scope=None, documents_root=None) -> dict:
     terms = [term.casefold() for term in query.split() if term]
     if not terms:
         raise ValueError("Search query must contain non-whitespace text")
     if limit < 1 or limit > 100:
         raise ValueError("Search limit must be between 1 and 100")
     document_type = TYPE_ALIASES.get(document_type, document_type)
-    root = root.resolve(strict=True)
+    identity_root = root.resolve(strict=True)
+    root = (documents_root or root).resolve(strict=True)
     matches = []
-    for entry in build_catalog(root)["documents"]:
+    for entry in build_catalog(identity_root, root)["documents"]:
         if document_type and entry["documentType"] != document_type:
             continue
         if category and entry["category"] != category:
+            continue
+        if scope and entry.get("scope", entry["metadata"].get("scope")) != scope:
             continue
         searchable = json.dumps(entry["metadata"], ensure_ascii=False)
         paths = entry.get("contentPaths") or ([entry["contentPath"]] if entry["contentPath"] else [])
@@ -55,9 +58,11 @@ def main() -> int:
     parser.add_argument("--type", choices=(*CATALOG_TYPES, *TYPE_ALIASES))
     parser.add_argument("--category")
     parser.add_argument("--limit", type=int, default=20)
+    parser.add_argument("--scope")
+    parser.add_argument("--documents-root", type=Path, help="Physical workspace containing docs; runtime identity stays --project-root")
     args = parser.parse_args()
     try:
-        results = search(args.project_root, args.query, args.type, args.category, args.limit)
+        results = search(args.project_root, args.query, args.type, args.category, args.limit, args.scope, args.documents_root)
     except (OSError, TypeError, ValueError) as error:
         print(json.dumps({"error": str(error)}, ensure_ascii=False), file=sys.stderr)
         return 1

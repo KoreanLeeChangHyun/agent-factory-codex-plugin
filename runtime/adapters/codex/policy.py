@@ -230,9 +230,11 @@ def guard_hook_toml():
 
 
 def guard_environment(state, session=None):
-    """Variables arming the guard for this run: orchestrate Main rules, Work rules or none."""
+    """Variables arming the guard for this run: orchestrate Main, Explorer/Scribe, Work rules or none."""
     if orchestrator_guard.orchestrating(state, session):
         return orchestrator_guard.environment(state)
+    if orchestrator_guard.work_profile(state, session):
+        return orchestrator_guard.profile_environment(state, session or {})
     if orchestrator_guard.working(state, session):
         return dict(orchestrator_guard.WORK_ENVIRONMENT)
     return {}
@@ -251,7 +253,7 @@ def app_server(session, state):
 
 
 def guard_signature(state, session):
-    return json.dumps(app_server({"codex": ""}, state)[0] + [json.dumps(guard_environment(state, session))])
+    return json.dumps(app_server({**(session or {}), "codex": ""}, state)[0] + [json.dumps(guard_environment(state, session))])
 
 
 def ensure_guard_trusted(rpc, cwd):

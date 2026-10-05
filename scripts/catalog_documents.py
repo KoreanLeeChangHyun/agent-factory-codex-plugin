@@ -9,7 +9,12 @@ import sys
 
 import yaml
 
-from export_documents import check_path, inventory
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runtime"))
+from storage import lessons as body_store  # noqa: E402
+
+REFINED_CATEGORIES = ("analysis", "research", "interview", "comparison", "history")
+
+from export_documents import check_path, inventory  # noqa: E402
 
 
 CATALOG_TYPES = ("original", "processed", "progress", "lessons-learned")
@@ -108,16 +113,29 @@ def read_lesson(path: Path) -> dict:
     return record
 
 
-def lesson_entry(root: Path, path: Path) -> dict:
-    record = read_lesson(path)
+def lesson_entry(root: Path, path: Path, identity_root=None) -> dict:
+    record = (body_store.read(identity_root or root, path, root) if path.suffix == ".md"
+              else read_lesson(path))
     relative = str(path.relative_to(root))
     metadata = {"document-type": "lessons-learned", "category": record["category"],
                 "domain": None, "name": record["id"], "language": record["language"],
-                "title": record["title"]}
+                "title": record["title"], "scope": record["scope"], "status": record["status"]}
+    related = list(dict.fromkeys(name for event in record['occurrences'] for name in event.get('relatedIds', [])))
+    metadata['relatedIds'] = related
+    related_links = []
+    for name in related:
+        meta = body_store.metadata_path(identity_root or root, name)
+        if meta is not None and meta.exists():
+            info = body_store.paths.read(meta)
+            related_links.append(info['documentPath'])
+        elif (root / f'docs/lessons-learned/{name}.json').is_file():
+            related_links.append(f'docs/lessons-learned/{name}.json')
     return {"documentType": "lessons-learned", "category": record["category"],
             "domain": None, "name": record["id"], "language": record["language"],
-            "packagePath": relative, "metadataPath": relative, "contentPath": relative,
-            "links": [], "metadata": metadata}
+            "packagePath": relative, "metadataPath": (str(body_store.metadata_path(identity_root or root, record["id"]))
+                if path.suffix == ".md" else relative), "contentPath": relative,
+            "scope": record["scope"], "status": record["status"],
+            "relatedIds": related, "links": list(dict.fromkeys(o.get("source", "") for o in record["occurrences"])) + related_links, "metadata": metadata}
 
 
 def catalog_entry(root: Path, package: Path, kind: str) -> dict:
@@ -282,8 +300,9 @@ def contract_entry(root: Path, folder: Path) -> dict:
     }
 
 
-def build_catalog(root: Path) -> dict:
-    root = root.resolve(strict=True)
+def build_catalog(root: Path, documents_root=None) -> dict:
+    identity_root = root.resolve(strict=True)
+    root = body_store.document_root(identity_root, documents_root)
     if not root.is_dir():
         raise ValueError(f"Expected project directory: {root}")
     documents = []
@@ -296,10 +315,25 @@ def build_catalog(root: Path) -> dict:
             continue
         if not source.is_dir():
             raise ValueError(f"Expected directory: {source}")
-        for package in sorted(source.iterdir()):
+        packages = []
+        for child in sorted(source.iterdir()):
+            check_path(child, root)
+            nested = (kind == "processed" and child.name in REFINED_CATEGORIES and not (child / "SKILL.md").exists())
+            typed = kind == "lessons-learned" and child.name in body_store.FOLDERS.values()
+            if nested or typed:
+                if not child.is_dir():
+                    raise ValueError(f"Expected category directory: {child}")
+                packages.extend(sorted(child.iterdir()))
+            else:
+                packages.append(child)
+        for package in packages:
             check_path(package, root)
-            if kind == "lessons-learned" and package.is_file() and package.suffix == ".json":
-                entry = lesson_entry(root, package)
+            if kind == "lessons-learned" and package.is_file() and package.suffix in (".json", ".md"):
+                entry = lesson_entry(root, package, identity_root)
+            elif kind == "lessons-learned" and package.is_dir() and (package / "assets/lesson.json").is_file():
+                check_path(package / "assets/lesson.json", root)
+                entry = lesson_entry(root, package / "assets/lesson.json", identity_root)
+                entry["location"] = "legacy"
             else:
                 if not package.is_dir():
                     raise ValueError(f"Expected package directory: {package}")
@@ -337,9 +371,10 @@ def build_catalog(root: Path) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
+    parser.add_argument("--documents-root", type=Path, help="Physical workspace containing docs; runtime identity stays --project-root")
     args = parser.parse_args()
     try:
-        catalog = build_catalog(args.project_root)
+        catalog = build_catalog(args.project_root, args.documents_root)
     except (OSError, TypeError, ValueError) as error:
         print(json.dumps({"error": str(error)}, ensure_ascii=False), file=sys.stderr)
         return 1

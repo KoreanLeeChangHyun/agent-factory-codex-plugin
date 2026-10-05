@@ -197,6 +197,7 @@ def create_systemd_environment_file(environment: dict[str, str] | None = None) -
     values = dict(os.environ if environment is None else environment)
     if not systemd_environment_supported(values):
         raise ContractError("containment_environment_invalid", "caller environment is not safely transferable")
+    descriptor: int | None = None
     try:
         descriptor = os.memfd_create("agent-factory-environment", flags=getattr(os, "MFD_CLOEXEC", 0))
         for name, value in sorted(values.items()):
@@ -208,10 +209,20 @@ def create_systemd_environment_file(environment: dict[str, str] | None = None) -
                 remaining = remaining[written:]
         os.lseek(descriptor, 0, os.SEEK_SET)
     except (OSError, UnicodeError) as error:
-        if "descriptor" in locals():
+        if descriptor is not None:
             os.close(descriptor)
         raise ContractError("containment_environment_unavailable", "caller environment could not be transferred") from error
     return descriptor, f"/proc/{os.getpid()}/fd/{descriptor}"
+
+
+def systemd_environment_content(environment: dict[str, str] | None = None) -> bytes:
+    """EnvironmentFile content for a unit systemd may restart after its launcher exits.
+
+    The memfd path from create_systemd_environment_file is readable only while the
+    launching process lives, so a restarting unit needs a private file instead.
+    """
+    values = dict(os.environ if environment is None else environment)
+    return b"".join(_systemd_environment_line(name, value) for name, value in sorted(values.items()))
 
 
 def systemd_unit_name(agent_id: str, run_id: str, attempt: int) -> str:
@@ -468,6 +479,7 @@ def spawn_contained_process(
         os.close(ready_read)
         os.close(release_write)
         raise
+    identity: dict[str, Any] | None = None
     try:
         identity = process_identity(process.pid)
         if process_identity_status(identity) != "match":
@@ -490,7 +502,7 @@ def spawn_contained_process(
             )
         return process, identity, release_write
     except Exception:
-        if "identity" in locals():
+        if identity is not None:
             abort_contained_process(process, identity, release_write)
         else:
             os.close(release_write)
@@ -558,6 +570,7 @@ def _spawn_windows(
         os.close(ready_read)
         os.close(release_write)
         raise
+    identity: dict[str, Any] | None = None
     try:
         identity = process_identity(process.pid)
         if process_identity_status(identity) != "match":
@@ -572,7 +585,7 @@ def _spawn_windows(
             )
         return process, identity, release_write
     except Exception:
-        if "identity" in locals():
+        if identity is not None:
             abort_contained_process(process, identity, release_write)
         else:
             os.close(release_write)

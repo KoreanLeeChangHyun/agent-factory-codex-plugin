@@ -28,7 +28,7 @@ Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
 - `--verification-reasoning-effort {none,low,medium,high,xhigh,max}`
 - `--verification-fast | --no-verification-fast`
 - `--verification-execution-mode {cli-default,workspace-write,danger-full-access,bypass}`
-- `--work-profile {work,workLight}`: Work profile label Main chose (work = Expert, workLight = Worker); recorded for display only, selects no model or authority
+- `--work-profile {work,workLight,explore,scribe}`: Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore runs read-only and scribe writes only inside docs/
 - `--work-capability-binding-file WORK_CAPABILITY_BINDING_FILE`
 - `--verification-capability-binding-file VERIFICATION_CAPABILITY_BINDING_FILE`
 - `--max-revisions MAX_REVISIONS`: Work revisions per task after failed Verification before the loop stops for a Human decision; 0 is unlimited
@@ -81,3 +81,19 @@ Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`
 - `--network-access | --no-network-access`
 - `--writable-root WRITABLE_ROOT`
 - `--additional ADDITIONAL`: Further Work revisions the Human authorizes after the limit stopped the loop
+
+## `answer`
+Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`
+One of: `--response-file` | `--response-json`
+- `--response-file RESPONSE_FILE`: Exact decision identity and Human answer JSON
+- `--response-json RESPONSE_JSON`: Inline exact decision identity and Human answer JSON
+
+## `steer`
+Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`, `--task-id TASK_ID`, `--run-id RUN_ID`, `--message MESSAGE`
+
+## `retry-preparation`
+Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`, `--task-id TASK_ID`
+
+## `review`
+Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`, `--decision {accepted,changes-requested,discarded}`
+- `--note NOTE`: The Human's requested changes or reason

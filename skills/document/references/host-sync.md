@@ -85,8 +85,11 @@
   identities and the same contract ID in both locations are errors; catalog and search never select one conflicting copy silently.
 - Run `<plugin-root>/scripts/search_documents.py --project-root <project-root> --query <text>` to search
   catalog metadata, Original links, Refined/Progress Markdown (including detailed
-  Markdown under `references/`) and Lessons Learned JSON. Optional `--type`,
-  `--category` and `--limit` filters narrow results.
+  Markdown under `references/`) and Lessons Learned Markdown joined with runtime metadata.
+  Optional `--type`, `--category`, `--scope` and `--limit` filters narrow results.
+- Catalog and search accept `--documents-root <physical-workspace-containing-docs>` while
+  `--project-root` retains runtime identity. New category hierarchies and legacy layouts
+  are both discovered; duplicate identities fail instead of choosing a copy.
 - Search includes every versioned contract and supported text attachment. The `refined`
   type filter is an alias for the compatible `processed` metadata type; both filters
   return canonical Refined and legacy Processed records.
@@ -94,3 +97,45 @@
   Refined, Progress or Lessons Learned Document as a Skill, change document authority or index `docs/skills/`.
 - Reject malformed metadata, duplicate identities, links, unsupported package content
   and symlinks instead of silently omitting them from discovery.
+
+
+<a id="document-layout-migration"></a>
+
+## 4. Document layout migration
+
+- Run `python3 <plugin-root>/scripts/migrate_document_paths.py --project-root <original-project>
+  --documents-root <physical-workspace-containing-docs> --storage-layout` for a read-only
+  dry-run. Inspect `moves`, `conflicts`, `unclassified`, `excluded` and `languages`.
+- A physical workspace contains `docs/`; for a docs repository worktree at
+  `<worktree-workspace>/docs`, pass `<worktree-workspace>` as `--documents-root`.
+  Runtime identity remains the original registered project, not that temporary worktree.
+- Select lesson body language explicitly with `--language <tag>` when it differs from
+  legacy record language. The source language and quoted original text remain preserved;
+  this does not translate historical prose or change Refined package languages. Without
+  this option, document languages are retained. Dry-run separates source/body language counts.
+- For ambiguous Refined packages, inspect the body and supply `--classifications <json>`
+  mapping project-relative source package paths to `analysis`, `research`, `interview`,
+  `comparison` or `history`. Classification changes metadata only, preserves prior category
+  evidence and never rewrites historical content into current rules.
+- Preserve pre-existing dirty/untracked content with repeated `--exclude-path <relative-path>`.
+  Excluding a member preserves its whole moving package. Review incoming links in excluded
+  content separately; migration never changes those files.
+- Only explicit migration authorization permits apply and source retirement. Add
+  `--apply --backup-dir <authorized-outside-workspace-backup>` after resolving conflicts
+  and unclassified packages. The backup holds exact source/target bytes, hashes and mapping.
+- Backups may use an existing run's storage below its `agents/<agent>/runs/<run>/`
+  directory, or another authorized location outside the physical document workspace.
+  Runtime control and lesson metadata directories are not backup destinations.
+- Verify all output hashes and complete lesson history round trips before removing old files.
+  Attachments and empty package directories are preserved. Local Markdown links in entries,
+  references and incoming project documents follow moved targets.
+- Retry with the same backup after a partial failure. The manifest permits only its original
+  and expected bytes; changed sources, independently edited targets, duplicate identities
+  and existing unowned destinations require reconciliation, never silent replacement.
+- After apply, run catalog and scoped search with the same two roots, inspect language,
+  body meaning, links and history, and retain the backup as restoration evidence.
+  Refined never needs host synchronization. Synchronize only affected Specification sources
+  through the existing host contract; this migration does not authorize host overwrite.
+- Without `--storage-layout`, the existing contract-listed `--operations` preview/backup/apply
+  interface remains available; `--documents-root` selects its physical file workspace too.
+  No separate README catalog, database or document system is created.

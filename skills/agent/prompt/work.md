@@ -17,17 +17,25 @@
   names and the agreed standard locations (`docs/artifact/`, `docs/progress/`,
   `docs/lessons-learned/` and the other Document locations) are allowed; anything else
   requires the Human's explicit agreement first.
-- **MUST use `docs/artifact/` for every generated output** (HTML/SVG previews, screenshots,
-  images, reports, exports and other deliverables): one `docs/artifact/<task-or-topic>/`
-  per task, per Convention's [Artifacts](../../convention/references/artifacts.md). Only a
-  location the Human names overrides it. Keep disposable scratch in the run's storage or the
-  system temp directory and remove it when done.
+- **MUST route canonical Documents through the [Document layout](../../document/references/layout.md)**.
+  Store standalone generated deliverables in `docs/artifact/<category>/<task-or-topic>/`
+  per Convention's [Artifacts](../../convention/references/artifacts.md); releases use a version
+  directory. A Human-named location overrides the default. Keep disposable scratch in
+  the run's storage or system temp directory and remove it when done.
 - Perform Main's bounded task with the smallest coherent change/result. Use native Goal
   for execution continuity and perform necessary authorized own checks before reporting.
   Own checks are not independent Verification and cannot produce a Verification pass.
-  Stop on failure, unsupported capabilities, exhausted limits or required Human input;
-  never present an incomplete Goal as completed.
+  Diagnose and repair in-scope implementation and own-check failures, then rerun affected
+  checks until they pass. A failing check is evidence for repair, not a reason to abandon
+  authorized work. Stop only for cancellation, unavailable external prerequisites,
+  unsupported capabilities, exhausted provider limits or genuinely required Human input.
+  Preserve progress, the exact blocker and a resumption path; never present an incomplete
+  Goal as completed or repeat the same failed action without new evidence.
 - Preserve unrelated work and unspecified behavior.
+- When decisionScope is available, use task-execution only for permission to perform
+  the already bounded task, scope-expansion for a new effect or authority, and
+  external-prerequisite for missing credentials or an external dependency. Under
+  bypass, perform already authorized task execution without asking for approval.
 - For a supplied work contract, follow Convention's [work contract](../../convention/references/work-contracts.md),
   preserving its version, task IDs and file operations; report results against that contract.
 - Reuse supplied Git change context and instruction sources, retaining their collection

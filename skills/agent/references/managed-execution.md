@@ -119,7 +119,7 @@
   follow [the Agent graph](../SKILL.md#roles-and-graph).
 - Completed runs publish validated `receipt.json` beside `result.md`.
 - Unsaved error captures never fail a run: its status reports them as `pendingLessons` and a
-  later writable run records them ([lifecycle CLI](../../document/references/lessons-learned.md#lifecycle-cli)).
+  later writable run records them ([runtime capture](../../document/references/lessons-learned.md#runtime-capture)).
 - Work receipts identify the request, project-root-relative changed paths and addressed
   finding IDs for revisions.
 - Each Work run captures its response contract at creation (`responseContract` in its status;
@@ -152,13 +152,24 @@
   - `provider`: model backend. Report its message; dispatch again only when the Human asks.
   - `environment`: the host or policy must change first. Stop and report the cause.
   - `human`: pass the decision to the Human. Anything else is `unknown`.
-  - The one `workLight` to `work` retry applies only to `contract` or no class.
+  - The one `workLight` or `scribe` to `work` retry applies only to `contract` or no class;
+    a failed `explore` run is reported, not retried with write access.
+- `task_repository_invalid` and `parent_session_invalid` are environment/binding failures,
+  not Work failures. Preserve the accepted loop, results and parent identity. Do not
+  switch `--project-root`, strip the managed parent environment or repeatedly assign a
+  stronger worker. A different project requires its own correctly bound Main request.
 - Work sub-agents are limited per provider; see
   [enforcement](execution-modes.md#captured-routes).
 - Status reads retry a transient control-plane failure three times with backoff. A dispatch
   is never replayed; its durable intent is completed by `reconcile`.
 - The driver periodically runs exec `reconcile` for a running child, so a run whose worker
   died becomes a recorded failure instead of an endless `running`.
+- A worker that cannot start fails its run (`worker_start_failed`). A stale run that never
+  launched a worker is resubmitted by exec `reconcile`, or cancelled when cancellation was
+  requested; `cancel` ends such a run immediately.
+- A loop whose first dispatch fails stops as `runtime-error`, keeping its dispatch intent for
+  `reconcile`. Commands that leave a loop `active` launch a driver only when none runs; a
+  repeated `start` returns the accepted loop unchanged.
 - `recover-receipt` is an explicit, allowlisted recovery for a loop stopped on a deterministic
   Work receipt missing, format or changed-path-contract failure:
   - Test-proof, core/capability-binding, and unsafe path failures are not recoverable.

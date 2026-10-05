@@ -187,16 +187,50 @@
   Verification pass or recorded Human skip, runtime commits receipt-bound changes and prepares
   a checked ordinary two-parent target merge. Integration locks serialize each repository.
   Latest-target checks precede the target update; external updates require rechecking.
+- An active competing checkout owner or integration lock keeps the loop `active` in
+  `integrating`, with `integrationWait` evidence. The driver retries the same completed
+  Work and receipt, without re-dispatch. New lifecycle-versioned loops preserve this wait
+  across restarts without an arbitrary observation limit; historical loops keep their captured budget.
+  Only the exact accepted parent Main is
+  exempt on the target; another Main, queued runs and uncertain process ownership block.
+  Expired runs are ignored only with positive empty containment or dead identity evidence.
+  Historical busy stops can be reconciled
+  in their original loop. Project bindings, provider failures and Human decisions remain enforced.
 - Conflicts remain isolated. Runtime sends exact files/base/target and Git-stage instructions
   to the same Work session. Work stages justified resolutions and rechecks without committing.
   Requested Verification runs again. Without isolation, revision limits and unchanged conflict
   stages stop for concrete Human decisions. Never force ours/theirs, rewrite unrelated files or weaken tests.
 - Under isolation conflicts never wait for a Human. Unchanged stages, the revision limit, a dirty
-  target, failed checks or another unmergeable outcome end the loop `completed` with
-  `terminalReason.code` `integration_preserved`, listing preserved branches and paths. Report them.
+  target or another unmergeable outcome preserve branches and paths. New loops report
+  `runtime-error` and `completion.integration=preserved|partial`; historical
+  `completed/integration_preserved` records remain unchanged. Failed integration checks
+  send their exact evidence back to Work for repair; unchanged failure evidence is preserved
+  instead of repeatedly spending model tokens on the same repair.
 - Failure, cancellation, dirty/active targets and failed checks preserve Work Units without
   reporting integration complete. Multi-repository outcomes are partial and resumable, not atomic.
   Cleanup retains unpreserved/ignored files and active runs; it removes only proven merged units.
 - Inspect `taskWorkspaces` in loop status/progress for paths, branches, base/result/merge commits,
   check evidence, conflict/error and cleanup state. Chat/run/receipt history remains accessible.
   Supply exact integration commits for rollback; execute no revert, push, deploy or history rewrite.
+
+### Durable continuation
+
+- New loops snapshot linked local guidance and prepare lockfile-bound npm dependencies before
+  model dispatch. `preflight` exposes the exact operation and output path; failed preparation
+  preserves the pending task without consuming a Work turn.
+  After resolving its external cause, the Human can use `loop.py retry-preparation`
+  with the exact task ID, authorization reference and decision evidence. Each retry
+  preserves prior operations and refuses an uncertain or still-live previous owner.
+- Checks run under detached owners with persisted command, commit, process identity, output
+  and exit evidence. UI status requests never drive or kill checks. An unknown exit is
+  interrupted, never success; inspect its evidence before retrying.
+- A pending decision binds project, task, role, child run, policy and question hash.
+  `loop.py answer` accepts an exact Human response and resumes that same session once.
+  Use `--response-file` or `--response-json` with decisionId, questionHash, projectRoot,
+  loopId, taskId, runId and answer; include the Human authorization reference and evidence.
+  Under bypass, only an explicitly classified task-execution approval receives one policy
+  correction. Credentials, unknown scopes and expanded effects are never auto-approved.
+- `loop.py steer` records an authorized in-scope addition bound to task/run IDs. Queued means
+  waiting for a safe Work turn boundary, not live delivery; delivered records the accepted
+  continuation run. Reuse the authorization reference to deduplicate a repeated submission.
+- Reconcile a completed loop to retry safe pending cleanup. Unpreserved files remain intact.

@@ -93,7 +93,9 @@ metadata:
 
 ### 5.2. Theme and knowledge
 
-- `references/theme.md`: interface themes, browser documents and SVG icons.
+- `references/theme.md`: mandatory design/theme consistency, stable tab geometry,
+  visual acceptance checks, browser documents and SVG icons. Read before any UI
+  creation or modification, including layout-only changes.
 - `references/diagrams.md`: ERD, behavior and sequence diagrams.
 - `references/interview.md`: Main's Human elicitation.
 
@@ -109,7 +111,8 @@ metadata:
 
 ## 7. Artifacts
 
-- **Mandatory:** never create a directory the Human has not agreed to; put every generated
-  output in `docs/artifact/<task-or-topic>/` unless the Human names another location.
+- **Mandatory:** never create a directory the Human has not agreed to; put standalone generated
+  deliverables in `docs/artifact/<category>/<task-or-topic>/` unless the Human names another location.
+- Route canonical Documents through [Document's directory map](../document/references/layout.md).
 - Before creating standalone HTML, SVG, images, screenshots or other non-Document
   deliverables, read [artifact storage and delivery — `references/artifacts.md`](references/artifacts.md).

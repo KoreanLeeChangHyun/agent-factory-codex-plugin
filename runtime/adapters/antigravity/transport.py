@@ -117,6 +117,8 @@ def main():
         install_guard()
         if orchestrator_guard.orchestrating(state, session):
             environment.update(orchestrator_guard.environment(state))
+        elif orchestrator_guard.work_profile(state, session):
+            environment.update(orchestrator_guard.profile_environment(state, session))
         # Base Gemini ids take --effort only at levels the model offers (gemini-3.1-pro: low and high).
         levels = {}
         if effort(session.get("reasoningEffort")) and str(native_model(session.get("model")) or "").startswith("gemini-"):
@@ -154,7 +156,8 @@ def main():
                     emit(item)
             code = process.wait()
             if code != 0 or not events.finished:
-                raise ValueError(f"Antigravity exited with {code}; terminal result received: {events.finished}")
+                raise ContractError("native_backend_error" if code else "result_missing",
+                                    f"Antigravity exited with {code}; terminal result received: {events.finished}")
             if goal:
                 goal.finish(events, succeeded=True)
             session_id = events.session
@@ -166,7 +169,9 @@ def main():
         if goal is not None:
             with contextlib.suppress(Exception):
                 goal.finish(events, succeeded=False)
-        emit({"type": "error", "message": str(error)})
+        emit({"type": "error", "message": str(error),
+              "code": getattr(error, "code", "result_invalid" if isinstance(error, (ValueError, KeyError)) else "native_backend_error"),
+              "stage": "adapter", "acceptance": "started" if events and events.started else "unknown"})
         return 1
     finally:
         if process is not None:

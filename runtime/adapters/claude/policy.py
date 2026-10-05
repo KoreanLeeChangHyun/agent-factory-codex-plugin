@@ -3,7 +3,7 @@ import json
 
 from execution import policy as execution_policy
 from storage.errors import ContractError
-from tasks import subagent_guard
+from tasks import orchestrator_guard, subagent_guard
 from .capabilities import EFFORTS, EFFORT_ALIASES
 
 # Nearest Claude permission mode for each Agent Factory sandbox type. Claude tool permissions are
@@ -40,7 +40,7 @@ def permission_arguments(session, working_directory):
     return arguments
 
 
-def work_subagent_arguments():
+def work_subagent_arguments(restricted=False):
     """Work may start only the read-only Explore sub-agent; every other sub-agent type is denied.
 
     Claude's `Agent(type)` allowlist applies only to a `--agent` main thread and deny rules name single
@@ -49,7 +49,35 @@ def work_subagent_arguments():
     Agent tool, so that tool is removed."""
     hook = {"matcher": subagent_guard.MATCHER,
             "hooks": [{"type": "command", "command": subagent_guard.HOOK_COMMAND, "timeout": 30}]}
-    return ["--settings", json.dumps({"hooks": {"PreToolUse": [hook]}}), "--disallowedTools", "Workflow"]
+    hooks = [hook]
+    if restricted:
+        hooks.append({"matcher": "Bash", "hooks": [{"type": "command", "command": orchestrator_guard.HOOK_COMMAND, "timeout": 30}]})
+    return ["--settings", json.dumps({"hooks": {"PreToolUse": hooks}}), "--disallowedTools", "Workflow"]
+
+
+def inspection_arguments(plugin_root):
+    """Allow only the existing read-only inspectors, including their page options."""
+    script = str(plugin_root / "scripts" / "exec.py")
+    return ["--allowedTools", ",".join(f"Bash(python3 {script} {command} *)" for command in ("status", "list"))]
+
+
+# Read-only Git inspection shared by every allowlist below.
+GIT_READS = ["Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)"]
+
+
+def profile_arguments(plugin_root, profile, write_root):
+    """Explorer reads and searches the web; Scribe also edits inside docs/ but has no web tools.
+
+    dontAsk denies every tool not listed, under any authorized permission mode, so the profile only narrows it.
+    Each may run only its Agent Factory Document scripts, never exec.py or loop.py."""
+    tools = ["Read", "Grep", "Glob", *GIT_READS,
+             *(f"Bash(python3 {plugin_root}/scripts/{name} *)" for name in orchestrator_guard.PROFILE_SCRIPTS[profile])]
+    if profile == "explore":
+        tools += ["WebSearch", "WebFetch"]
+    else:
+        files = "/" + str(write_root) + "/**"  # Claude permission rules spell absolute paths with a leading "//".
+        tools += [f"Edit({files})", f"Write({files})"]
+    return ["--permission-mode", "dontAsk", "--permission-prompts", "none", "--allowedTools", ",".join(tools)]
 
 
 def orchestrator_arguments(plugin_root, run_directory):
@@ -60,6 +88,5 @@ def orchestrator_arguments(plugin_root, run_directory):
     run_files = "/" + str(run_directory) + "/**"
     # No web tools: web search is research and is delegated to Work.
     tools = ["Read", "Grep", "Glob", f"Edit({run_files})", f"Write({run_files})",
-             f"Bash(python3 {plugin_root}/scripts/*)",
-             "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)"]
+             f"Bash(python3 {plugin_root}/scripts/*)", *GIT_READS]
     return ["--permission-mode", "dontAsk", "--permission-prompts", "none", "--allowedTools", ",".join(tools)]

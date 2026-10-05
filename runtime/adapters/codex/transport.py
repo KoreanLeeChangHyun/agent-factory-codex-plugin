@@ -160,10 +160,20 @@ class Rpc:
         request_id = self.serial
         self.write({"id": request_id, "method": method, "params": params})
         deadline = time.monotonic() + timeout if timeout else float("inf")
+        next_observation = time.monotonic() + 30
         while time.monotonic() < deadline:
             try:
                 value = self.receive(min(0.2, max(0.01, deadline - time.monotonic())))
             except queue.Empty:
+                if self.process.poll() is not None:
+                    error = NativeError(f"{method}: app-server exited before acknowledgement; reconcile before replay")
+                    error.code, error.stage, error.request_id = "rpc_disconnected", method, request_id
+                    raise error
+                if time.monotonic() >= next_observation:
+                    next_observation = time.monotonic() + 30
+                    emit({"type": "rpc.waiting", "requestId": request_id, "method": method,
+                          "acceptance": "unknown", "processAlive": True,
+                          "nextAction": "Observe or cancel this owned request; do not submit a duplicate"})
                 continue
             if value.get("id") == request_id:
                 self.last_frame = b""
@@ -565,7 +575,9 @@ class Bridge(NotificationHandlers):
             )
             if self.start_result_repair(failure):
                 return False
-            raise NativeError(failure) from error
+            defect = NativeError(failure)
+            defect.code, defect.stage, defect.turn_id = "result_invalid", "finish_turn", turn_id or self.turn_id
+            raise defect from error
         if isinstance(terminal, dict) and isinstance(terminal.get("resultText"), str):
             terminal["resultText"], questions = extract_markers(terminal["resultText"])
             for question in questions:
@@ -576,13 +588,15 @@ class Bridge(NotificationHandlers):
         except self.runtime.ContractError as error:
             if self.start_result_repair(error.message):
                 return False
-            raise NativeError(error.message) from error
+            defect = NativeError(error.message)
+            defect.code, defect.stage, defect.turn_id = error.code, "finish_turn", turn_id or self.turn_id
+            raise defect from error
         if self.goal_started and (not self.goal or self.goal.get("status") != "complete"):
             # Never rewrite a reported failure or a real Human decision as success.
             if terminal["status"] == "completed":
                 status = self.goal.get("status") if self.goal else "cleared"
-                terminal["status"] = "needs-human-decision" if status in {"blocked", "paused"} else "failed"
-                terminal["decisionKind"] = "clarification" if terminal["status"] == "needs-human-decision" else None
+                terminal["status"] = "failed"
+                terminal["decisionKind"] = None
                 terminal["resultText"] = f"Native Goal stopped without completion ({status}).\n" + terminal["resultText"]
                 message = json.dumps(terminal)
         if terminal["status"] == "completed" and self.runtime.structured_receipt(self.state):
@@ -741,7 +755,11 @@ def connection_worker():
                 print(f"Codex connection preparation failed: {error}", file=sys.stderr, flush=True)
                 return 1
     except Exception as error:
-        emit({"type": "error", "message": str(error)[:4000]})
+        emit({"type": "error", "message": str(error)[:4000],
+              "code": getattr(error, "code", "native_backend_error"),
+              "stage": getattr(error, "stage", "adapter"), "turnId": getattr(error, "turn_id", None),
+              "requestId": getattr(error, "request_id", None),
+              "acceptance": "started"})
         emit({"poolDone": True, "reusable": False, "failed": True})
         return 1
     finally:

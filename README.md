@@ -42,6 +42,16 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
   | Work | Carry out the contracted tasks and perform its own checks. |
   | Verification | Independently check the completed work against its requirements. |
 
+  ```mermaid
+  flowchart LR
+    accTitle: Work–Verification loop
+    accDescr: Work carries out the contracted tasks and runs its own checks. Verification independently checks the result; findings return to Work for correction until Verification passes.
+    C["Work contract"] --> W["Work agent"]
+    W --> V["Verification agent"]
+    V -->|"findings"| W
+    V -->|"pass"| R["Main reports"]
+  ```
+
 - Verification findings return to Work for correction, and revised work returns
   to Verification for another check. A passing result completes the verification
   stage; unresolved findings remain visible.
@@ -79,8 +89,8 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 
 - This plugin is fully installable and usable on its own; the VS Code extension is optional.
 - The Agent Factory VS Code extension requires this plugin to be installed and
-  enabled at the identical semantic base version. For example, extension `1.0.26`
-  accepts plugin `1.0.26+codex.<token>`.
+  enabled at the identical semantic base version. For example, extension `1.0.27`
+  accepts plugin `1.0.27+codex.<token>`.
 
 - On activation, the extension checks whether the plugin is installed, enabled, and compatible,
   and attempts automatic installation when needed. An already active, compatible plugin is used without reinstalling.
@@ -106,7 +116,9 @@ The plugin exposes four public Skills:
 
 ### Agent execution
 
-- Main communicates with you and handles tasks in ordinary messages directly by default.
+- By default (orchestrator mode) Main converses, plans and routes, and delegates changes
+  and research to Work; Verification runs only when you ask for it. In worker mode Main
+  handles tasks directly.
 - For each message, you can select Work (delegate a task), Plan (create a plan only),
   or Verification (check existing work). Combine planning, work, and verification with
   Plan·Work, Work·Verification, or Plan·Work·Verification.

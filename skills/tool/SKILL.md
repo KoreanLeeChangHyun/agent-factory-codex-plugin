@@ -24,8 +24,9 @@ metadata:
 | [`exec.py`](references/usage/exec.md) | One managed run | [Agent](../agent/SKILL.md) |
 | [`loop.py`](references/usage/loop.md) | Announced Work/Verification loop | [Agent](../agent/SKILL.md) |
 | [`lessons.py`](references/usage/lessons.md) | Lessons and published rules | [Lessons](../document/references/lessons-learned.md#lifecycle-cli) |
+| [`migrate_runtime_lessons.py`](references/usage/migrate_runtime_lessons.md) | Merge legacy runtime captures by signature | [Lessons](../document/references/lessons-learned.md#runtime-capture) |
 | [`sync_documents.py`](references/usage/sync_documents.md) | Continuous host synchronization | [Host sync](../document/references/host-sync.md#continuous-codex-synchronization) |
 | [`export_documents.py`](references/usage/export_documents.md) | One-time host export | [Export](../document/references/host-sync.md#explicit-codex-export) |
 | [`catalog_documents.py`](references/usage/catalog_documents.md) | Live Document catalog | [Document](../document/SKILL.md) |
 | [`search_documents.py`](references/usage/search_documents.md) | Search that catalog | [Document](../document/SKILL.md) |
-| [`migrate_document_paths.py`](references/usage/migrate_document_paths.md) | Contract-listed document moves | [Document](../document/SKILL.md) |
+| [`migrate_document_paths.py`](references/usage/migrate_document_paths.md) | Document layout migration and contract-listed moves | [Document](../document/SKILL.md) |

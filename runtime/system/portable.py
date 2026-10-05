@@ -69,14 +69,6 @@ def private_to_user(info: os.stat_result) -> bool:
     return info.st_uid == os.getuid() and not info.st_mode & 0o077
 
 
-def user_tag() -> str:
-    """A stable per-user name component for shared temporary directories."""
-    if WINDOWS:
-        import getpass
-        return "".join(character if character.isalnum() else "_" for character in getpass.getuser()) or "user"
-    return str(os.getuid())
-
-
 def fsync_directory(path: os.PathLike[str] | str) -> None:
     """Persist a directory entry where the platform exposes directory descriptors."""
     if WINDOWS:
