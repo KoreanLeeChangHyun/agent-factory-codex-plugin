@@ -33,3 +33,19 @@ print(json.dumps({'schemaVersion':1,'passed':True,'checks':{
     'requestRead':True,'projectDirectoryRead':True,'runWrite':True,'projectWrite':project_write}}))
 '''
 
+
+
+def host_readiness(working_directory, run_directory, request_path, *, backend):
+    """Check unrestricted host readiness; this is never sandbox enforcement evidence."""
+    import json
+    import subprocess
+    import sys
+    import uuid
+    from storage.errors import ContractError
+
+    result = subprocess.run([sys.executable, "-I", "-c", CANARY, str(request_path), str(working_directory),
+                             str(run_directory), ".agent-factory-preflight-" + uuid.uuid4().hex,
+                             "danger-full-access"], capture_output=True, text=True, timeout=8)
+    if result.returncode:
+        raise ContractError("execution_preflight_failed", result.stderr[-4000:])
+    return {**json.loads(result.stdout), "backend": backend, "sandbox": "danger-full-access"}

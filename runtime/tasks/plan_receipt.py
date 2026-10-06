@@ -25,3 +25,26 @@ def record_plan_only_receipt(state):
             {**{key: value["const"] for key, value in item["properties"].items() if "const" in value},
              "outcome": "not-invoked"} for item in outcomes["prefixItems"]]
     atomic_write(Path(state["receiptPath"]), json.dumps(receipt).encode())
+
+
+def finish_planning(state, structured, *, execute_next, provider, emit):
+    """Publish a print adapter's plan result and decide whether execution may start."""
+    text = str(structured.get("resultText", "")).strip()
+    if structured.get("status") == "failed" or not text:
+        raise ValueError(f"{provider} planning result is invalid")
+    decision = structured.get("status") == "needs-human-decision"
+    record_plan(state, {"status": "needs-human-decision" if decision else "planned", "plan": text})
+    terminal = None
+    if decision:
+        terminal = {"status": "needs-human-decision", "resultPath": state["resultPath"], "resultText": text,
+                    "decisionKind": "clarification"}
+    elif not execute_next:
+        record_plan_only_receipt(state)
+        terminal = {"status": "completed", "resultPath": state["resultPath"], "resultText": text}
+    elif safe_read_json(Path(state["statePath"])).get("cancelRequested"):
+        return False
+    if terminal is not None:
+        emit({"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal, ensure_ascii=False)}})
+        return False
+    emit({"type": "native.commentary", "text": "Planning is complete. Implementation is starting in the same Work session."})
+    return True

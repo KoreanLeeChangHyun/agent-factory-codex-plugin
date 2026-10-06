@@ -25,16 +25,23 @@
   Human explicitly requests it. In worker mode Main implements directly.
 - An orchestrator brief is the short-term contract of its change, not a long-term work
   contract. The brief carries Goal, Scope (including what not to do), Done and Report, and
-  its loop state is the project's record of it; Main writes no task-list JSON, announcement,
-  long-term contract, progress document or lesson retrieval for it. Long-term work contracts
+  its loop state is the project's record of it. A read-only brief needs no task-list JSON,
+  announcement or long-term contract. Exact Explorer Document assignments use the existing
+  task-list/task-ID binding, not prose path inference. Long-term work contracts
   remain the Human-selected multi-task procedure between the Human and Main (Convention's
   [work contracts](../../convention/references/work-contracts.md#scope)).
 - Orchestrator mode is enforced per provider by tool permissions, not model choice. Main may
   read, write inside its own run directory, run `python3 <plugin-root>/scripts/*` of an
   installed Agent Factory copy and read-only Git (`status`, `diff`, `log`, `show`); it
-  cannot edit project files or commit. Commits and direct edits are requested in worker mode.
+  cannot edit implementation. It may perform an approved ordinary local commit through
+  the [receipt-bound commit tool](role-exceptions.md#ordinary-local-commit); raw Git mutation stays denied.
+  Bounded fact/link confirmation from existing context is direct, including web tools;
+  multi-source analysis, specialist research and implementation remain delegated. Classify
+  by purpose, responsibility and effect, never arbitrary time or file-count limits.
   The run's sandbox policy is unchanged, so delegated Work keeps its permissions.
-  - Claude: `dontAsk` with an `--allowedTools` list.
+  - Claude: `dontAsk` with an `--allowedTools` list and a `PreToolUse` hook on shell/edit tools.
+    Explorer native Write/Edit permissions name exact assigned files; the hook also rejects
+    symlink traversal. Main retains bounded web confirmation tools.
   - Codex: a session-flag `PreToolUse` hook (`runtime/tasks/orchestrator_guard.py`) on
     `Bash`, `apply_patch` and the sub-agent start tools. The runtime adds an exact-hash
     `hooks.state` trust entry to the user's Codex config on first use and fails the run if
@@ -162,13 +169,15 @@
   |---|---|---|
   | `work` | Expert (heavy) | Authorized permissions |
   | `workLight` | Worker (light) | Authorized permissions |
-  | `explore` | Explorer | Read-only, web lookups |
+  | `explore` | Explorer | Source reads, web lookups, exact assigned evidence Documents and own records |
   | `scribe` | Scribe | Writes only inside `docs/`, no web lookups |
 
   Explorer and Scribe narrow tools below the authorized permissions and never widen them:
   Claude through an allowed-tool list, Codex and Antigravity through the runtime's tool guard.
   Each may run only its Agent Factory Document scripts, never `exec.py` or `loop.py`, and
   neither may start sub-agents, so only Main dispatches agents.
+- Use the [direct role exceptions](role-exceptions.md) for exact Explorer assignments,
+  shared Document ownership, own records, captured authority and ordinary local commits.
 - A Scribe's changes are drafts for Human review. `loop.py start` rejects a scribe code
   Work Unit (`scribe_draft_review_required`), because Work Units merge automatically; with
   Work isolation on, Scribe uses the read-only plan in the shared checkout. A completed

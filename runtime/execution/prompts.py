@@ -2,9 +2,20 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from dataclasses import dataclass
 
 from storage.errors import ContractError
+
+
+def inline_request(text: str) -> str:
+    """Delimit literal Human content without letting embedded tags close it."""
+    tag = "agent-factory-request"
+    if f"<{tag}>" in text or f"</{tag}>" in text:
+        tag += "-" + hashlib.sha256(text.encode("utf-8")).hexdigest()
+        while f"<{tag}>" in text or f"</{tag}>" in text:
+            tag += "-"
+    return f"<{tag}>\n{text}\n</{tag}>"
 
 
 @dataclass(frozen=True)

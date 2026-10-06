@@ -135,7 +135,9 @@
   without creating an input file; `audit` accepts `--input-json '{"occurrenceIds":[]}'`.
   Both query actions avoid write locks. Restricted runs use literal absolute paths and one
   command per call, never `$PWD`, heredocs, redirection or multiline shell lists. Scribe may
-  use the Document CLI; Explorer may only retrieve/audit and reports pending error records.
+  use the Document CLI. New Explorer runs may record their own occurrence and resolve only
+  a record whose every occurrence belongs to that same run. Use the captured roots and
+  source equal to the run directory. Rule adoption/publication stays forbidden.
 - Add `--documents-root <physical-workspace-containing-docs>` for an isolated document
   worktree while keeping `--project-root <original-project>` as runtime identity. Neither
   path is inferred from the other; host publication acts on the physical workspace.
@@ -149,7 +151,7 @@
 | `record` | `id` (optional stable incident ID), `category`, `title`, `language`, `occurrenceId`, `source`, `scope`; errors require `symptom`, `cause`, `solution`, `verification`; judgments require `humanJudgment`, `humanReason`, `aiJudgment`, `aiReason`, `difference`, `reflection`, `outcome`. |
 | `recover` | `id`; completes an interrupted two-file write only if body and metadata still match its recorded old/new states. Independent edits require manual reconciliation. |
 | `resolve` | Errors: `id`, `cause`, `solution`, `verification`, `evidence`. Judgments: `id`, `outcome`, `reflection`, `evidence`. Appends the category-specific resolution without erasing occurrences. |
-| `retrieve` | `query`, exact `scope`; returns matching records including rule status and evidence. |
+| `retrieve` | `query`, exact `scope`; returns matching records including rule status and evidence. Optional `match: any` explores partial lexical matches (default `all`). Explicit `scopeMode: discover` searches topics across scopes (default `exact`), retaining each scope/status and returning `discoveryOnly: true`; it grants no rule application or consolidation authority. |
 | `audit` | `occurrenceIds`; returns observed occurrences not yet recorded. |
 | `candidate` | `id`, `ruleName` beginning with `rule-`, complete Human-language Specification `ruleText`, `trigger`, `exceptions`, exact `scope`, actual Human `authority` reference; optional `lessonIds` collect related same-scope records. Returns the candidate hash. |
 | `evaluate` | `id`, `candidateHash`, `caseId`, `kind` (`original` or `held-out`), boolean `passed`, actual `evidence`; stale candidate results are rejected. |
@@ -201,7 +203,7 @@
   and occurrence auditing before handoff.
 - Restricted-run hooks persist redacted rejection occurrences directly into the bound run's
   pending capture storage even when the provider emits no failed-tool event. The runtime
-  later records them where permitted. Explorer never writes project lessons through this path.
+  later records them where permitted. The hook preserves a pending runtime occurrence; only an authorized writable run replays it.
 - `migrate_runtime_lessons.py` previews merging older per-occurrence captures into signature
   records, keeping each original ID and source on its occurrence; resolved, reviewed and
   Agent-written records stay. It changes files only with `--apply` and an empty backup directory,

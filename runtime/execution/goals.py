@@ -32,6 +32,16 @@ def goal_objective(session, state, request):
     return objective if len(objective) <= MAX_OBJECTIVE_CHARACTERS else BOUNDED_OBJECTIVE
 
 
+def prepare_command_goal(session, state, request, *, backend):
+    """Capture the request's Goal before a print adapter starts its conversation."""
+    session["backend"] = backend
+    objective = goal_objective(session, state, request)
+    state["goalObjective"] = objective
+    path = Path(state["statePath"])
+    update_json(path, path.parent / ".state.lock", lambda value: value.update({
+        "goalObjective": objective, "goal": session.get("goal"), "goalError": session.get("goalError")}))
+
+
 def goal_commands(session, state):
     """Slash commands sent before the request: clear a stale Goal, or set this run's Goal."""
     objective = state.get("goalObjective")

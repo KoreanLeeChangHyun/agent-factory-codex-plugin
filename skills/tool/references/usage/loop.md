@@ -9,6 +9,7 @@ Every subcommand with options also accepts: `--project-root PROJECT_ROOT`, `--ru
 Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
 - `--task-list-file TASK_LIST_FILE`: Announced task list; omitted for an orchestrator brief, which becomes a single runtime-derived task
 - `--task-id TASK_ID`: Selected task in --task-list-file
+- `--allocation-file ALLOCATION_FILE`: Optional schemaVersion 1 allocation evidence for a single brief; stored in its taskBinding, selects no model or authority
 - `--workspace-file WORKSPACE_FILE`: Captured code/shared/read-only plan with exact repositories, target branches and integration check argv arrays
 - `--work-isolation | --no-work-isolation`: Work isolation toggle; inherited from the managed Main run when captured there. On requires --workspace-file (code or read-only), defaults targets to each repository's current branch and preserves unmergeable branches without a Human wait
 - `--task-mode {work,plan-work,work-verification,plan-work-verification}`
@@ -28,7 +29,7 @@ Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
 - `--verification-reasoning-effort {none,low,medium,high,xhigh,max}`
 - `--verification-fast | --no-verification-fast`
 - `--verification-execution-mode {cli-default,workspace-write,danger-full-access,bypass}`
-- `--work-profile {work,workLight,explore,scribe}`: Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore runs read-only and scribe writes only inside docs/
+- `--work-profile {work,workLight,explore,scribe}`: Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore writes exact task-bound evidence Documents and scribe writes only inside docs/
 - `--work-capability-binding-file WORK_CAPABILITY_BINDING_FILE`
 - `--verification-capability-binding-file VERIFICATION_CAPABILITY_BINDING_FILE`
 - `--max-revisions MAX_REVISIONS`: Work revisions per task after failed Verification before the loop stops for a Human decision; 0 is unlimited

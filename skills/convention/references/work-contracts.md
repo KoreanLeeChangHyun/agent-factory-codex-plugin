@@ -86,6 +86,9 @@
 - Main owns the execution-record section of the bound
   `docs/progress/<contract-id>/contract-v<N>.md`. Assign its exact modify operation
   across the contract tasks for Main's result reporting.
+  Main may append sourced control/decision entries through
+  [coordination.py](../../agent/references/role-exceptions.md#coordination-records), which
+  validates the existing announcement and preserves the accepted contract bytes.
   Work reports progress and blockers in its result; Verification reports its receipt.
   Neither role must edit the shared record to complete its own task.
 - Before announcing a new contract task list, include a structured `contract` object:

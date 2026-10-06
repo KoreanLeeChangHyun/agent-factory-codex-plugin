@@ -32,6 +32,9 @@
   Preserve progress, the exact blocker and a resumption path; never present an incomplete
   Goal as completed or repeat the same failed action without new evidence.
 - Preserve unrelated work and unspecified behavior.
+- Every Work profile may record its own work, sources, checks, errors and judgment
+  differences in its designated result/records. This grants no rule adoption/publication
+  authority. Follow the runtime's exact Explorer/Scribe path binding and tool limits.
 - When decisionScope is available, use task-execution only for permission to perform
   the already bounded task, scope-expansion for a new effect or authority, and
   external-prerequisite for missing credentials or an external dependency. Under

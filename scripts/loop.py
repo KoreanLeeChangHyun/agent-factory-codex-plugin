@@ -585,6 +585,8 @@ def complete_pending_dispatch(
         expected_tuple["workProfile"] = state["execution"]["workProfile"]
     if state["execution"].get("taskBinding"):
         expected_tuple["taskBinding"] = state["execution"]["taskBinding"]
+        if "documentContext" in state["execution"]["taskBinding"]:
+            expected_tuple.setdefault("executionOptions", {})["documentContext"] = state["execution"]["taskBinding"]["documentContext"]
     if pending.get("workGoal"):
         from tasks.modes import work_goal_options
         content = agent_exec.safe_read_bytes(Path(pending["requestPath"]), agent_exec.MAX_REQUEST_BYTES)
@@ -678,6 +680,7 @@ def work_isolation(args: argparse.Namespace) -> bool:
 
 def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     args.work_isolation_enabled = work_isolation(args)
+    args.captured_allocation = agent_exec.safe_read_json(args.allocation_file) if getattr(args, "allocation_file", None) else None
     document = agent_exec.safe_read_json(args.task_list_file) if getattr(args, "task_list_file", None) else None
     declared = agent_exec.safe_read_json(args.workspace_file) if getattr(args, "workspace_file", None) else next((task.get("workspace") for task in (document or {}).get("tasks", []) if task.get("id") == getattr(args, "task_id", None)), None)
     if declared is None:
@@ -700,7 +703,7 @@ def start_loop(args: argparse.Namespace) -> dict[str, Any]:
     with agent_exec.file_lock(agent / ".task-workspace-start.lock"):
         request_hash = hashlib.sha256(agent_exec.safe_read_bytes(args.request_file, agent_exec.MAX_REQUEST_BYTES)).hexdigest()
         acceptance = {"requestHash": request_hash, "workspace": captured,
-                      "taskDocument": document, "options": {key: value for key, value in vars(args).items() if key in (
+                      "taskDocument": document, **({"allocation": args.captured_allocation} if args.captured_allocation is not None else {}), "options": {key: value for key, value in vars(args).items() if key in (
                           "task_id", "task_mode", "work_agent", "verification_agent", "work_model", "verification_model",
                           "work_reasoning_effort", "verification_reasoning_effort", "work_fast", "verification_fast",
                           "work_execution_mode", "verification_execution_mode", "work_profile", "max_revisions", "receipt_recovery")},
@@ -745,12 +748,15 @@ def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
     if getattr(args, "task_list_file", None) is None:
         # Orchestrator dispatch: one brief, one task. The runtime derives the list so Main
         # writes no task-list JSON or announcement; the panel still shows this single task.
-        submitted_document = task_binding.brief_document(request.decode("utf-8"))
+        submitted_document = task_binding.brief_document(request.decode("utf-8"),
+            getattr(args, "captured_allocation", None))
         args.task_id = submitted_document["tasks"][0]["id"]
         if parent is not None:
             with agent_exec.file_lock(agent_exec.agent_directory(root, parent["agentId"]) / ".dispatch.lock"):
                 agent_exec.require_current_parent_conversation(root, parent)
     else:
+        if getattr(args, "allocation_file", None):
+            raise agent_exec.ContractError("task_allocation_invalid", "Use task entries allocation with --task-list-file; --allocation-file is brief-only")
         # Read once, normalize a private snapshot, and hash exactly the bytes we retain.
         submitted_document = agent_exec.safe_read_json(args.task_list_file)
         if parent is not None:
@@ -1822,6 +1828,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     agent_exec.add_project_argument(start)
     start.add_argument("--task-list-file", type=Path, help="Announced task list; omitted for an orchestrator brief, which becomes a single runtime-derived task")
     start.add_argument("--task-id", help="Selected task in --task-list-file")
+    start.add_argument("--allocation-file", type=Path, help="Optional schemaVersion 1 allocation evidence for a single brief; stored in its taskBinding, selects no model or authority")
     start.add_argument("--request-file", type=Path, required=True)
     start.add_argument("--workspace-file", type=Path, help="Captured code/shared/read-only plan with exact repositories, target branches and integration check argv arrays")
     start.add_argument("--work-isolation", action=argparse.BooleanOptionalAction, default=None,
@@ -1839,7 +1846,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
         start.add_argument("--" + role + "-fast", action=argparse.BooleanOptionalAction, default=None)
         start.add_argument("--" + role + "-execution-mode", choices=("cli-default", "workspace-write", "danger-full-access", "bypass"))
     start.add_argument("--work-profile", choices=WORK_PROFILES,
-                       help="Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore runs read-only and scribe writes only inside docs/")
+                       help="Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore writes exact task-bound evidence Documents and scribe writes only inside docs/")
     start.add_argument("--work-capability-binding-file", type=Path)
     start.add_argument("--verification-capability-binding-file", type=Path)
     start.add_argument("--max-revisions", type=int, default=DEFAULT_MAX_REVISIONS,

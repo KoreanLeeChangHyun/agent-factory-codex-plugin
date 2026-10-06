@@ -29,28 +29,8 @@ from storage.files import now, safe_read_json
 
 
 def finish_planning(state, structured, *, execute_next):
-    """Mirror the Codex Plan contract: keep plan.json, stop on a decision, record plan-only completion."""
-    from tasks.plan_receipt import record_plan, record_plan_only_receipt
-    text = str(structured.get("resultText", "")).strip()
-    if structured.get("status") == "failed" or not text:
-        raise ValueError("Claude planning result is invalid")
-    decision = structured.get("status") == "needs-human-decision"
-    record_plan(state, {"status": "needs-human-decision" if decision else "planned", "plan": text})
-    terminal = None
-    if decision:
-        terminal = {"status": "needs-human-decision", "resultPath": state["resultPath"], "resultText": text,
-                    "decisionKind": "clarification"}
-    elif not execute_next:
-        # Plan mode cannot write files. The host records only read-only completion.
-        record_plan_only_receipt(state)
-        terminal = {"status": "completed", "resultPath": state["resultPath"], "resultText": text}
-    elif safe_read_json(Path(state["statePath"])).get("cancelRequested"):
-        return False
-    if terminal is not None:
-        emit({"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal, ensure_ascii=False)}})
-        return False
-    emit({"type": "native.commentary", "text": "Planning is complete. Implementation is starting in the same Work session."})
-    return True
+    from tasks.plan_receipt import finish_planning as finish
+    return finish(state, structured, execute_next=execute_next, provider="Claude", emit=emit)
 
 
 def emit(event):
@@ -115,7 +95,9 @@ def main():
                        if key not in ("CODEX_THREAD_ID", "CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT")}
         from tasks import orchestrator_guard
         environment.pop(orchestrator_guard.ENV, None)
-        if orchestrator_guard.work_profile(state, session):
+        if orchestrator_guard.orchestrating(state, session):
+            environment.update(orchestrator_guard.environment(state))
+        elif orchestrator_guard.work_profile(state, session):
             environment.update(orchestrator_guard.profile_environment(state, session))
         phases = planning_phases(state)
         session_id = session.get("sessionId")

@@ -104,3 +104,83 @@ def record_attempt(state, attempt, snapshot):
         **{key: sum(value[key] for value in values) if all(value[key] is not None for value in values)
            else None for key in FIELDS},
     }
+
+
+def compare_orchestration(document, read_json):
+    """Compare supplied observations, never infer missing usage or task quality.
+
+    Run totals include retries. Cache input is a subset of input; reasoning is a
+    subset of output. Attempts and detail reads remain breakdowns, not additions.
+    Text byte counts are static transport observations, not model token savings.
+    """
+    import hashlib
+    from pathlib import Path
+    from storage.errors import ContractError
+
+    def fail(message):
+        raise ContractError('measurement_invalid', message)
+
+    if not isinstance(document, dict) or document.get('schemaVersion') != 1 or not isinstance(document.get('cases'), list):
+        fail('Use schemaVersion 1 and cases')
+
+    def arm(value):
+        if not isinstance(value, dict) or not isinstance(value.get('messages'), list) or not all(isinstance(item, str) for item in value['messages']):
+            fail('Each arm requires its complete messages array')
+        paths = value.get('runStatePaths', [])
+        if not isinstance(paths, list) or not all(isinstance(path, str) for path in paths):
+            fail('runStatePaths must contain observed state paths')
+        seen, runs = set(), []
+        for path in paths:
+            state = read_json(Path(path))
+            identity = (state.get('agentId'), state.get('runId'))
+            if not all(isinstance(item, str) and item for item in identity) or identity in seen:
+                fail('Each observed run must have a unique agentId/runId')
+            seen.add(identity)
+            usage = state.get('tokenUsage') or {}
+            if not isinstance(usage, dict):
+                fail('tokenUsage must be an observed object')
+            for key in FIELDS:
+                if usage.get(key) is not None and (type(usage[key]) is not int or usage[key] < 0):
+                    fail('Usage counters must be nonnegative integers or null')
+            for subset, whole in (('cachedInputTokens', 'inputTokens'), ('reasoningOutputTokens', 'outputTokens')):
+                if usage.get(subset) is not None and usage.get(whole) is not None and usage[subset] > usage[whole]:
+                    fail('Usage subset exceeds its parent counter')
+            attempts = state.get('usageAttempts', {})
+            runs.append({'agentId': identity[0], 'runId': identity[1], 'role': state.get('role'),
+                         'status': state.get('status'), 'failureClass': state.get('failureClass'),
+                         'source': path, 'requestHash': state.get('requestHash'),
+                         'taskId': state.get('taskBinding', {}).get('taskId'),
+                         'modelSettings': state.get('executionOptions', {}),
+                         'executionPolicy': state.get('executionPolicy'),
+                         'usage': {key: usage.get(key) for key in FIELDS},
+                         'coverage': usage.get('coverage', 'unavailable'), 'attempts': attempts,
+                         'cacheWriteTokens': None,
+                         'reportedAttemptCount': len(attempts),
+                         'retryCount': state['attempt'] - 1 if type(state.get('attempt')) is int and state['attempt'] >= 1 else None,
+                         'startedAt': state.get('startedAt'), 'finishedAt': state.get('finishedAt')})
+        roles = {}
+        for role in ('main', 'work', 'verification'):
+            group = [run for run in runs if run['role'] == role]
+            roles[role] = {key: sum(run['usage'][key] for run in group)
+                          if group and all(type(run['usage'][key]) is int for run in group) else None for key in FIELDS}
+            roles[role]['cacheWriteTokens'] = None  # Not exposed by the maintained run usage contract.
+        return {'staticInput': {'utf8Bytes': sum(len(item.encode('utf-8')) for item in value['messages']),
+                               'characters': sum(len(item) for item in value['messages']),
+                               'tokenEstimate': None},
+                'reportedModelUsageByRole': roles, 'runs': runs,
+                'detailReads': value.get('detailReads'),
+                'quality': value.get('quality'), 'allocationErrors': value.get('allocationErrors'),
+                'rework': value.get('rework'), 'elapsedSeconds': value.get('elapsedSeconds')}
+
+    cases = []
+    for case in document['cases']:
+        if not isinstance(case, dict) or not all(isinstance(case.get(key), str) and case[key].strip() for key in ('id', 'input', 'completionCriteria')):
+            fail('Each case needs id, the same original input and completionCriteria')
+        before, after = arm(case.get('before')), arm(case.get('after'))
+        cases.append({'id': case['id'], 'inputSha256': hashlib.sha256(case['input'].encode()).hexdigest(),
+                      'completionCriteria': case['completionCriteria'], 'before': before, 'after': after,
+                      'staticUtf8ByteDifference': after['staticInput']['utf8Bytes'] - before['staticInput']['utf8Bytes'],
+                      'modelTokenSavingsPercent': None})
+    return {'schemaVersion': 1, 'kind': 'orchestration-comparison', 'cases': cases,
+            'provenance': document.get('provenance'),
+            'accounting': 'Run usage includes attempts/retries; cached input and reasoning output are subsets. Detail read usage is already included in its run when reported. Missing observations are null, never zero. Static text bytes are not measured model token savings.'}

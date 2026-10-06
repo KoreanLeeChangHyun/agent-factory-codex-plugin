@@ -80,8 +80,9 @@ metadata:
 
 ### 5.1. Communication and development
 
-- `references/development.md`: shared checkout boundaries, changes, technical documentation, comments,
-  commits.
+- [`references/development.md#code-ownership-and-minimal-design`](references/development.md#code-ownership-and-minimal-design): required code ownership,
+  reuse and minimal-design rules, plus shared checkout boundaries, technical documentation,
+  comments and commits.
 - `references/work-contracts.md`: task-list contracts, required/optional fields, file-level
   change boundaries, amendments and result reconciliation. Use when preparing or executing a work contract.
 - `references/testing.md`: read before authoring or changing tests; covers meaningful

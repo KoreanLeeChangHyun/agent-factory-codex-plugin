@@ -22,6 +22,8 @@ metadata:
 | Script / usage | Operation | Rules |
 |---|---|---|
 | [`exec.py`](references/usage/exec.md) | One managed run | [Agent](../agent/SKILL.md) |
+| [`coordination.py`](references/usage/coordination.md) | Append Main-owned contract control/decision records | [Coordination records](../agent/references/role-exceptions.md#coordination-records) |
+| [`commit.py`](references/usage/commit.md) | Main-owned receipt-bound ordinary local commit | [Commit boundary](../agent/references/role-exceptions.md#ordinary-local-commit) |
 | [`loop.py`](references/usage/loop.md) | Announced Work/Verification loop | [Agent](../agent/SKILL.md) |
 | [`lessons.py`](references/usage/lessons.md) | Lessons and published rules | [Lessons](../document/references/lessons-learned.md#lifecycle-cli) |
 | [`migrate_runtime_lessons.py`](references/usage/migrate_runtime_lessons.md) | Merge legacy runtime captures by signature | [Lessons](../document/references/lessons-learned.md#runtime-capture) |

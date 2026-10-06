@@ -85,6 +85,7 @@ def create_run(
         "runtimeBinding": runtime.runtime_paths.resolve(project_root, create=True),
         "workingDirectory": str(runtime.worktrees.checked_path(session)) if "projectRoot" in session else str(project_root),
         "schemaVersion": runtime.SCHEMA_VERSION,
+        "roleBoundaryPolicy": 1,
         "runId": run_id,
         "agentId": agent_id,
         "role": session["role"],

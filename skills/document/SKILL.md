@@ -188,5 +188,12 @@ metadata:
 
 ## 10. Boundaries
 
+- Document writing follows the assigned file owner and role boundary in
+  [execution modes](../agent/references/execution-modes.md#role-specific-model-overrides).
+  Explorer manages its own assigned evidence/research package; scribe integrates shared
+  canonical Documents. Shared summaries/catalogs have one owner or a managed CLI.
+- Recording one's sources, work, checks, errors and judgment differences grants no
+  Specification adoption, rule publication or authority to edit another owner's record.
+
 - This Skill provides local project document authoring, storage and synchronization.
 - Document work does not authorize unrelated migration or deletion.

@@ -22,12 +22,16 @@ class JsonStringField:
     """
 
     def __init__(self, field: str = RESULT_FIELD):
-        self.marker = json.dumps(field)
+        self.field = field
         self.buffer = ""
         self.start = None
         self.decoded = ""
         self.position = 0
         self.closed = False
+        self.cursor = 0
+        self.state = "object"
+        self.key = None
+        self.invalid = False
 
     def feed(self, fragment: str) -> str:
         """Append raw JSON and return newly decoded field text."""
@@ -41,25 +45,67 @@ class JsonStringField:
         return self.decoded[before:]
 
     def _locate(self) -> bool:
-        index = self.buffer.find(self.marker)
-        while index >= 0:
-            cursor = index + len(self.marker)
-            while cursor < len(self.buffer) and self.buffer[cursor] in " \t\r\n":
-                cursor += 1
-            if cursor >= len(self.buffer):
-                return False
-            if self.buffer[cursor] == ":":
-                cursor += 1
-                while cursor < len(self.buffer) and self.buffer[cursor] in " \t\r\n":
-                    cursor += 1
-                if cursor >= len(self.buffer):
+        # Read root members in order. raw_decode skips each complete non-target
+        # value, including its nested objects/arrays and quoted field names.
+        decoder = json.JSONDecoder()
+        while self.cursor < len(self.buffer):
+            char = self.buffer[self.cursor]
+            if char in " \t\r\n":
+                self.cursor += 1
+                continue
+            if self.state == "object":
+                if char != "{":
+                    self.invalid = self.closed = True
                     return False
-                if self.buffer[cursor] != '"':
-                    self.closed = True  # Not a string value; nothing to stream.
+                self.state = "key"
+            elif self.state == "key":
+                if char == "}":
+                    self.closed = True
                     return False
-                self.start = self.position = cursor + 1
-                return True
-            index = self.buffer.find(self.marker, index + 1)
+                if char != '"':
+                    self.invalid = self.closed = True
+                    return False
+                try:
+                    self.key, self.cursor = decoder.raw_decode(self.buffer, self.cursor)
+                except json.JSONDecodeError:
+                    return False
+                self.state = "colon"
+                continue
+            elif self.state == "colon":
+                if char != ":":
+                    self.invalid = self.closed = True
+                    return False
+                self.state = "value"
+            elif self.state == "value":
+                if self.key == self.field:
+                    if char != '"':
+                        self.closed = True  # Not a string value; nothing to stream.
+                        return False
+                    self.start = self.position = self.cursor + 1
+                    return True
+                try:
+                    _, end = decoder.raw_decode(self.buffer, self.cursor)
+                except json.JSONDecodeError:
+                    tail = self.buffer[self.cursor:]
+                    if char not in '"{[-0123456789ntf' or (char in "ntf" and not any(
+                            literal.startswith(tail) for literal in ("null", "true", "false"))):
+                        self.invalid = self.closed = True
+                    return False
+                # Numbers can grow across fragments; wait for a delimiter.
+                if end == len(self.buffer) or self.buffer[end] not in " \t\r\n,}":
+                    return False
+                self.cursor = end
+                self.state = "separator"
+                continue
+            elif self.state == "separator":
+                if char == "}":
+                    self.closed = True
+                    return False
+                if char != ",":
+                    self.invalid = self.closed = True
+                    return False
+                self.state = "key"
+            self.cursor += 1
         return False
 
     def _decode(self) -> None:

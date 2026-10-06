@@ -16,6 +16,7 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runtime"))
 from storage import document_migration  # noqa: E402
+from tasks import orchestrator_guard  # noqa: E402
 
 
 MANIFEST_NAME = "migration-manifest.json"
@@ -203,6 +204,7 @@ def write_atomic(path: Path, content: bytes) -> None:
 
 def create_backup(root: Path, backup: Path, payload: dict[str, object],
                   plan: list[dict[str, object]]) -> None:
+    check_no_symlinks(backup, Path(backup.anchor))
     backup.mkdir(parents=True, exist_ok=True)
     check_no_symlinks(backup, backup.parent)
     for entry in plan:
@@ -236,6 +238,7 @@ def create_backup(root: Path, backup: Path, payload: dict[str, object],
 def validate_backup(backup: Path, payload: dict[str, object],
                     plan: list[dict[str, object]]) -> None:
     manifest = backup / MANIFEST_NAME
+    check_no_symlinks(manifest, Path(backup.anchor))
     if not manifest.is_file():
         raise ValueError(f"Apply requires a completed backup manifest: {manifest}")
     recorded = json.loads(manifest.read_text(encoding="utf-8"))
@@ -299,6 +302,8 @@ def apply_plan(plan: list[dict[str, object]], root: Path) -> dict[str, int]:
     for entry in plan:
         source = entry["source"]
         destination = entry["destination"]
+        check_no_symlinks(source, root)
+        check_no_symlinks(destination, root)
         if not source.exists():
             result["unchanged"] += 1
             continue
@@ -313,6 +318,11 @@ def apply_plan(plan: list[dict[str, object]], root: Path) -> dict[str, int]:
         if sha256_file(source) != entry["sourceSha256"]:
             raise ValueError(f"Source changed since planning: {source}")
         publish_new(destination, entry["expectedBytes"], source, entry["destinationSha256"])
+        check_no_symlinks(source, root)
+        check_no_symlinks(destination, root)
+        if (sha256_file(source) != entry["sourceSha256"]
+                or sha256_file(destination) != entry["destinationSha256"]):
+            raise ValueError(f"Move changed before source retirement: {source}")
         source.unlink()
         result["moved"] += 1
     source_parents = {entry["source"].parent for entry in plan}
@@ -328,12 +338,12 @@ def apply_plan(plan: list[dict[str, object]], root: Path) -> dict[str, int]:
 
 
 def public_plan(plan: list[dict[str, object]]) -> list[dict[str, object]]:
-    return [{key: entry[key] for key in ("sourceRelative", "destinationRelative", "linkChanges")}
+    return [{key: entry[key] for key in ("sourceRelative", "destinationRelative", "sourceSha256", "destinationSha256", "linkChanges")}
             for entry in plan]
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--operations", type=Path, help="Contract-listed file moves (required without --storage-layout)")
     parser.add_argument("--storage-layout", action="store_true", help="Migrate legacy JSON lessons and flat refined packages")
@@ -348,6 +358,10 @@ def main() -> int:
     parser.add_argument("--backup-dir", type=Path)
     args = parser.parse_args()
     try:
+        config = json.loads(os.environ.get(orchestrator_guard.ENV, "{}"))
+        restricted = config.get("profile") in orchestrator_guard.PROFILES
+        if restricted and not orchestrator_guard.migration_command(sys.argv[1:], config):
+            raise ValueError("Restricted Document migration requires captured roots, contract moves and an own-run document-backups destination")
         root = args.project_root.resolve(strict=True)
         if args.storage_layout:
             docs = (args.documents_root or root).resolve(strict=True)
@@ -373,10 +387,19 @@ def main() -> int:
         operations = args.operations.resolve(strict=True)
         if (args.backup or args.apply) and args.backup_dir is None:
             raise ValueError("--backup and --apply require --backup-dir")
+        if args.backup_dir is not None:
+            check_no_symlinks(args.backup_dir.absolute(), Path(args.backup_dir.absolute().anchor))
         backup = None if args.backup_dir is None else args.backup_dir.resolve()
         if backup is not None and (backup == root or root in backup.parents):
             raise ValueError("--backup-dir must be outside the project root")
         plan = build_plan(root, operations, args.task_id, backup)
+        if restricted:
+            docs = orchestrator_guard.scribe_root({"projectRoot": config["projectRoot"], "workingDirectory": config["documentsRoot"]})
+            if any(not orchestrator_guard.inside(entry[key], docs, None)
+                   for entry in plan for key in ("source", "destination")):
+                raise ValueError("Scribe move endpoints must stay inside the captured docs/ root")
+        if {entry["source"] for entry in plan} & {entry["destination"] for entry in plan}:
+            raise ValueError("Move sources and destinations must not overlap")
         payload = manifest_payload(root, operations, args.task_id, plan)
         if args.backup:
             classify(plan, backup_valid=False)

@@ -26,23 +26,24 @@ class CommentaryText:
 
     def __init__(self):
         self.buffer = ""
-        self.decoder = None
+        self.decoder = JsonStringField()
 
     def feed(self, fragment: str) -> str:
         if self.decoder is False:
             return fragment
-        if self.decoder is not None:
+        if self.decoder.start is not None:
             return self.decoder.feed(fragment)
         self.buffer += fragment
-        stripped = self.buffer.lstrip()
-        if not stripped:
-            return ""
-        if not stripped.startswith("{"):
+        decoded = self.decoder.feed(fragment)
+        if self.decoder.start is not None:
+            self.buffer = ""
+            return decoded
+        # Invalid JSON, a non-string resultText, or a complete root without
+        # resultText is ordinary commentary. Replay its buffered prefix once.
+        if self.decoder.closed:
             text, self.buffer, self.decoder = self.buffer, "", False
             return text
-        self.decoder = JsonStringField()
-        text, self.buffer = self.buffer, ""
-        return self.decoder.feed(text)
+        return ""
 
 
 def agent_message_stream(item: dict):

@@ -284,6 +284,10 @@ def operate(root, action, data, documents_root=None):
                 actual = {o['occurrenceId'] for r in found for o in r['occurrences']}
                 return {'missing': [x for x in expected if x not in actual]}
             required(data, ['query', 'scope'])
+            match = data.get('match', 'all')
+            scope_mode = data.get('scopeMode', 'exact')
+            if match not in ('all', 'any') or scope_mode not in ('exact', 'discover'):
+                raise ValueError('Expected match all/any and scopeMode exact/discover')
             terms = data['query'].casefold().split()
             def searchable(record):
                 text = json.dumps(record, ensure_ascii=False)
@@ -293,9 +297,17 @@ def operate(root, action, data, documents_root=None):
                     if path.exists():
                         text += '\n' + path.read_text(encoding='utf-8')
                 return text.casefold()
-            matches = [r for r in found if r['scope'] == data['scope'] and
-                       all(t in searchable(r) for t in terms)]
-            return {'records': matches, 'count': len(matches),
+            matches = []
+            for record in found:
+                if scope_mode == 'exact' and record['scope'] != data['scope']:
+                    continue
+                text = searchable(record)
+                predicate = all if match == 'all' else any
+                if predicate(t in text for t in terms):
+                    matches.append(record)
+            return {'records': matches, 'count': len(matches), 'match': match,
+                    'scopeMode': scope_mode, 'requestedScope': data['scope'],
+                    'discoveryOnly': scope_mode == 'discover',
                     'metrics': {kind: sum(a['outcome'] == kind for r in matches for a in r['applications'])
                                 for kind in ('success', 'recurrence', 'correction', 'unused')}}
         required(data, ['id'])

@@ -68,6 +68,10 @@ def requested_execution(runtime, args: argparse.Namespace) -> dict[str, Any]:
         value = getattr(args, argument, None)
         if value is not None:
             options[key] = value
+    context_file = getattr(args, "document_context_file", None)
+    if context_file is not None:
+        from execution.document_context import validate
+        options["documentContext"] = validate(runtime.safe_read_json(context_file))
     captured = getattr(args, "agent_permissions", None)
     if captured is not None:
         try:

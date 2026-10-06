@@ -25,9 +25,34 @@
   inferences and unresolved questions. Local implementations are not universal
   architecture rules.
 
+<a id="code-ownership-and-minimal-design"></a>
+
+### 1.1. Code ownership and minimal design
+
+- **MUST NOT independently duplicate an existing implementation of the same
+  responsibility or rule.** Before writing code, locate its owning module and callers;
+  reuse or extend that implementation when it owns the required behavior.
+- Paths that must behave alike—including live, completion and restoration paths—MUST
+  use the same interpretation rules and MUST be checked for consistency. Keep
+  intentional platform differences explicit, and identify generated copies separately
+  from hand-maintained sources with their ownership and synchronization relationship.
+- Add only the code needed to meet the current requirement, keeping it readable and
+  maintainable. Do not add generalization, speculative future flexibility,
+  pass-through wrappers or layers without a present need.
+- Create an abstraction only when it removes real duplication and reduces the total cost
+  of understanding or changing the behavior. Count tokens, review effort, and the files
+  and layers contributors must trace as costs. A small shared function MUST NOT be
+  expanded into a framework without a demonstrated need.
+- Treat duplicate implementations as a serious structural defect: they multiply the
+  places AI-assisted follow-up work must discover, change and validate, increasing the
+  risk of missed or inconsistent fixes. Preventing such duplication is a project
+  priority and a required rule.
+- Do not shorten or compress code at the expense of readability, required error
+  handling, validation or tests.
+
 <a id="commands-and-paths"></a>
 
-### 1.1. Commands and paths
+### 1.2. Commands and paths
 
 - Locate a file with a file listing, search or an explicit link before reading, editing
   or passing it to a command. Do not guess names from a feature, and do not reuse paths

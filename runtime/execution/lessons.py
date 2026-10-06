@@ -164,7 +164,7 @@ def is_saved(pending):
 
 
 def read_only(state):
-    return (state.get('workProfile') == 'explore'
+    return (state.get('workProfile') == 'explore' and state.get('roleBoundaryPolicy') != 1
             or state.get('executionPolicy', {}).get('sandboxPolicy', {}).get('type') == 'read-only')
 
 

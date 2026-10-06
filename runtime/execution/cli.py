@@ -36,6 +36,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--task-workspace-file", type=Path, help="Runtime-owned task Work Unit binding captured by loop.py")
     parser.add_argument("--task-list-file", type=Path)
     parser.add_argument("--task-id")
+    parser.add_argument("--document-context-file", type=Path, help="Explicit per-request document query, scope, required sources and selections JSON; does not grant authority")
     request = parser.add_mutually_exclusive_group()
     request.add_argument("--request-file", type=Path)
     request.add_argument("--message")
@@ -49,7 +50,7 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         help="Main delegation approval policy; omitted sends preserve the session policy",
     )
     parser.add_argument("--task-mode", choices=TASK_MODES, help="Captured execution route; new Main requests default to orchestrate")
-    parser.add_argument("--work-profile", choices=WORK_PROFILES, help="Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore runs read-only and scribe writes only inside docs/")
+    parser.add_argument("--work-profile", choices=WORK_PROFILES, help="Work profile Main chose (work = Expert, workLight = Worker, explore = Explorer, scribe = Scribe); selects no model; explore writes exact task-bound evidence Documents and scribe writes only inside docs/")
     parser.add_argument("--model")
     parser.add_argument("--provider", choices=("codex", "claude", "antigravity"))
     parser.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"))
@@ -143,6 +144,9 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     capability_parser.add_argument("--model")
     capability_parser.add_argument("--agent")
 
+    measurement_parser = commands.add_parser("measure", help="Compare same-input orchestration observations without launching models")
+    measurement_parser.add_argument("--input", type=Path, required=True, help="JSON cases with original input, completion criteria and before/after messages and run state paths")
+
     goal_parser = commands.add_parser("goal")
     add_project_argument(goal_parser)
     goal_parser.add_argument("--agent", required=True)
@@ -176,6 +180,20 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     add_project_argument(reset_parser)
     reset_parser.add_argument("--agent", required=True)
+
+    delete_parser = commands.add_parser("delete-task", help="Physically delete one ended task's private runtime history")
+    add_project_argument(delete_parser)
+    delete_parser.add_argument("--main-agent", required=True)
+    delete_parser.add_argument("--workflow-id", required=True)
+    delete_parser.add_argument("--task-id", required=True)
+    delete_parser.add_argument("--actor", choices=("human",), required=True)
+    delete_parser.add_argument("--authorization-reference", required=True)
+
+    agent_delete_parser = commands.add_parser("delete-agent", help="Permanently delete one inactive Main agent's private runtime records")
+    add_project_argument(agent_delete_parser)
+    agent_delete_parser.add_argument("--agent", required=True)
+    agent_delete_parser.add_argument("--actor", choices=("human",), required=True)
+    agent_delete_parser.add_argument("--authorization-reference", required=True)
 
     inbox_parser = commands.add_parser("inbox")
     add_project_argument(inbox_parser)

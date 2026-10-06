@@ -124,6 +124,8 @@ Read only the file for the operation at hand:
 - Before dispatching (Main):
   - `references/execution-modes.md`: captured routes, completion rules, runtime interface, Plan
     transitions and providers.
+  - `references/role-exceptions.md`: exact Explorer Document assignments, own/coordination records and receipt-bound ordinary Main commits.
+  - `references/task-allocation.md`: allocation judgment, brief evidence, optional captured records and compatibility.
   - `references/task-dispatch.md`: task binding, one-source announcement, ordered loop
     submission and worker assignment.
   - `references/orchestration.md`: chain sequencing, parallelism, Verification failure

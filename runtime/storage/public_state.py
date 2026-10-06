@@ -26,6 +26,8 @@ def public_state(state: dict[str, Any]) -> dict[str, Any]:
         "planProgress",
         "activity",
         "usageAttempts",
+        "documentContext",
+        "documentContextAttempts",
         "taskMode",
         "workProfile",
         "taskBinding",

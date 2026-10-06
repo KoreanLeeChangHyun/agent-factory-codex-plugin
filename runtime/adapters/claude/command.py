@@ -9,7 +9,7 @@ import uuid
 
 from adapters.claude.capabilities import MODELS
 from adapters.claude.control import goal_commands
-from adapters.claude.policy import effort, inspection_arguments, orchestrator_arguments, permission_arguments, profile_arguments, validate, work_subagent_arguments
+from adapters.claude.policy import effort, inspection_arguments, orchestrator_arguments, orchestrator_hook_arguments, permission_arguments, profile_arguments, validate, work_subagent_arguments
 from storage.files import atomic_write, atomic_write_json, safe_read_bytes, safe_read_json
 from tasks import orchestrator_guard
 from contracts.receipts import result_only_schema
@@ -67,10 +67,12 @@ def cli_command(session, state, parts, phase=None):
     if phase == "plan":
         command += ["--permission-mode", "plan", "--permission-prompts", "none"]
     elif state.get("role") == "main" and state.get("executionOptions", {}).get("taskMode") == "orchestrate":
-        command += orchestrator_arguments(root, directory)
+        command += orchestrator_arguments(root, directory) + orchestrator_hook_arguments()
     elif orchestrator_guard.work_profile(state, session):
         profile = orchestrator_guard.work_profile(state, session)
-        command += profile_arguments(root, profile, orchestrator_guard.scribe_root(session) if profile == "scribe" else None)
+        config = json.loads(orchestrator_guard.profile_environment(state, session)[orchestrator_guard.ENV])
+        command += profile_arguments(root, profile, config["writeRoot"] if profile == "scribe" else None,
+                                     config["writePaths"], directory)
     else:
         command += permission_arguments(session, working_directory)
     if phase == "plan" or (command[command.index("--permission-mode") + 1] == "dontAsk"

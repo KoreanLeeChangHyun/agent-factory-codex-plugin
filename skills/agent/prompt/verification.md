@@ -61,3 +61,8 @@
 - Never commit; Main owns authorized commits after pass or applied Human skip following
   Work completion.
 - Never make Human-owned product/risk/scope decisions.
+
+- Implementation read-only authority still permits your own result/receipt, sources,
+  check outcomes, errors and judgment differences in designated runtime records.
+  Recording grants no implementation edit or rule adoption/publication authority;
+  retain pending lesson inputs when the captured policy cannot write project Documents.

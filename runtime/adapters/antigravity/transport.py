@@ -34,28 +34,8 @@ HOST_MARKERS = ("CODEX_THREAD_ID", "CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT", "ANTI
 
 
 def finish_planning(state, structured, *, execute_next):
-    """Mirror the Codex Plan contract: keep plan.json, stop on a decision, record plan-only completion."""
-    from tasks.plan_receipt import record_plan, record_plan_only_receipt
-    text = str(structured.get("resultText", "")).strip()
-    if structured.get("status") == "failed" or not text:
-        raise ValueError("Antigravity planning result is invalid")
-    decision = structured.get("status") == "needs-human-decision"
-    record_plan(state, {"status": "needs-human-decision" if decision else "planned", "plan": text})
-    terminal = None
-    if decision:
-        terminal = {"status": "needs-human-decision", "resultPath": state["resultPath"], "resultText": text,
-                    "decisionKind": "clarification"}
-    elif not execute_next:
-        # The plan phase never skips permissions. The host records only read-only completion.
-        record_plan_only_receipt(state)
-        terminal = {"status": "completed", "resultPath": state["resultPath"], "resultText": text}
-    elif safe_read_json(Path(state["statePath"])).get("cancelRequested"):
-        return False
-    if terminal is not None:
-        emit({"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(terminal, ensure_ascii=False)}})
-        return False
-    emit({"type": "native.commentary", "text": "Planning is complete. Implementation is starting in the same Work session."})
-    return True
+    from tasks.plan_receipt import finish_planning as finish
+    return finish(state, structured, execute_next=execute_next, provider="Antigravity", emit=emit)
 
 
 def emit(event):

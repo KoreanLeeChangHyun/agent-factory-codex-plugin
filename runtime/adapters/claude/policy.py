@@ -51,7 +51,7 @@ def work_subagent_arguments(restricted=False):
             "hooks": [{"type": "command", "command": subagent_guard.HOOK_COMMAND, "timeout": 30}]}
     hooks = [hook]
     if restricted:
-        hooks.append({"matcher": "Bash", "hooks": [{"type": "command", "command": orchestrator_guard.HOOK_COMMAND, "timeout": 30}]})
+        hooks.append({"matcher": "Bash|Write|Edit|MultiEdit", "hooks": [{"type": "command", "command": orchestrator_guard.HOOK_COMMAND, "timeout": 30}]})
     return ["--settings", json.dumps({"hooks": {"PreToolUse": hooks}}), "--disallowedTools", "Workflow"]
 
 
@@ -65,8 +65,8 @@ def inspection_arguments(plugin_root):
 GIT_READS = ["Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)"]
 
 
-def profile_arguments(plugin_root, profile, write_root):
-    """Explorer reads and searches the web; Scribe also edits inside docs/ but has no web tools.
+def profile_arguments(plugin_root, profile, write_root, write_paths=(), run_directory=None):
+    """Explorer reads, searches and edits exact assigned evidence files; Scribe edits docs/ without web tools.
 
     dontAsk denies every tool not listed, under any authorized permission mode, so the profile only narrows it.
     Each may run only its Agent Factory Document scripts, never exec.py or loop.py."""
@@ -74,19 +74,29 @@ def profile_arguments(plugin_root, profile, write_root):
              *(f"Bash(python3 {plugin_root}/scripts/{name} *)" for name in orchestrator_guard.PROFILE_SCRIPTS[profile])]
     if profile == "explore":
         tools += ["WebSearch", "WebFetch"]
-    else:
-        files = "/" + str(write_root) + "/**"  # Claude permission rules spell absolute paths with a leading "//".
+        for path in write_paths:
+            tools += [f"Edit(/{path})", f"Write(/{path})"]
+        if run_directory:
+            tools += [f"Edit(/{run_directory}/**)", f"Write(/{run_directory}/**)"]
+    elif write_root:
+        files = "/" + str(write_root) + "/**"
         tools += [f"Edit({files})", f"Write({files})"]
     return ["--permission-mode", "dontAsk", "--permission-prompts", "none", "--allowedTools", ",".join(tools)]
 
 
 def orchestrator_arguments(plugin_root, run_directory):
-    """Orchestrate Main may read, write its own run files and run Agent Factory scripts; nothing else.
+    """Orchestrate Main reads/confirms links, writes own records and runs guarded managed scripts.
 
     The run's sandbox policy is unchanged so delegated Work keeps its own permissions."""
     # Claude permission rules spell absolute paths with a leading "//".
     run_files = "/" + str(run_directory) + "/**"
-    # No web tools: web search is research and is delegated to Work.
-    tools = ["Read", "Grep", "Glob", f"Edit({run_files})", f"Write({run_files})",
+    # Web tools support bounded known-context fact/link confirmation.
+    tools = ["Read", "Grep", "Glob", "WebSearch", "WebFetch", f"Edit({run_files})", f"Write({run_files})",
              f"Bash(python3 {plugin_root}/scripts/*)", *GIT_READS]
     return ["--permission-mode", "dontAsk", "--permission-prompts", "none", "--allowedTools", ",".join(tools)]
+
+
+def orchestrator_hook_arguments():
+    hook = {"matcher": "Bash|Write|Edit|MultiEdit", "hooks": [
+        {"type": "command", "command": orchestrator_guard.HOOK_COMMAND, "timeout": 30}]}
+    return ["--settings", json.dumps({"hooks": {"PreToolUse": [hook]}})]

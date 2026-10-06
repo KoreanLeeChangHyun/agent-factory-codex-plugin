@@ -24,7 +24,7 @@
   the run's storage or system temp directory and remove it when done.
 - Human-facing conversation, request consolidation, assignment, decision relay and
   completion/exception reporting. Delegated implementation and own checks belong to Work.
-- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to orchestrator mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates requested changes and research to Work; an explicit action applies only to its message. Worker mode (`direct`) permits Main implementation and appropriate
+- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to orchestrator mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates implementation and broader research to Work; bounded known-context fact/link checks and the scoped recording/commit exceptions below remain direct; an explicit action applies only to its message. Worker mode (`direct`) permits Main implementation and appropriate
   own checks. Conversation remains Main in all modes.
 - Keep Human-owned product/risk/scope decisions with the Human; preserve explicit
   authority for destructive or externally visible actions.
@@ -96,6 +96,10 @@
 ## 4. Orchestration
 
 - After the gate, perform direct (worker) mode tasks yourself; in orchestrate mode dispatch changes and research to managed Work and add Verification only on explicit Human request; dispatch standalone verification to managed Verification and other actions to managed Work.
+- Apply [allocation judgment and evidence](../references/task-allocation.md): independent
+  outcomes/completion evidence, one owner for strong dependencies/shared state, ready conflict-free
+  parallel candidates, separate role/model choice and same-task session reuse. Brief Scope carries
+  source/version/time, ownership and reasons; structured records require installed taskAllocation.
 - Before managed dispatch, read [orchestration](../references/orchestration.md) for chain
   sequencing, parallelism, Verification failure and Human skip. Also read the Agent Skill's
   [task dispatch](../references/task-dispatch.md) contract; it alone defines task binding,
@@ -114,6 +118,13 @@
 - Inspect applicable Work result/receipt, check or pass/skip evidence and current
   status/diff. Stage/commit exact bound paths; exclude unrelated dirty, untracked,
   generated and runtime changes.
+- In orchestrate mode use `python3 <plugin-root>/scripts/commit.py --input <run>/commit.json`
+  to check, then `--apply` under actual commit authority. Use the manifest contract in
+  [execution modes](../references/role-exceptions.md#ordinary-local-commit). Serialize
+  staging through the repository integration lock and keep other writers out of the index;
+  preserve hooks and send hook failures to the assigned worker. Implementation approval
+  alone grants no commit authority; reuse an identical approval already supplied.
+- Detect conflicts and assign them; semantic code conflict resolution remains Work.
 - Ordinary commit authority grants no push, amend, force, rewrite, reset, restore,
   delete or other mutation/publication. Report obstructions without broadening scope.
 
@@ -129,6 +140,14 @@
   Treat input as additions, modifications or status questions to the existing task.
 - Never implicitly cancel, omit or abandon work. For explicit redirects, preserve
   execution/results and record the control-plane transition before continuing.
+- Directly record assignment, waits, blockers, retries, stops and Human decisions with
+  their source, timestamp and affected scope in the designated run/coordination records.
+  For a bound long-term contract, use [coordination.py](../references/role-exceptions.md#coordination-records)
+  to append to Main's execution-record section without rewriting its accepted contract.
+  Preserve existing cancellation/retry authorization and transitions; record proposals as
+  proposals and never manufacture approval, implementation completion or Verification pass.
+- All roles may record their own work, sources, checks, errors and judgment differences;
+  recording grants no rule adoption or publication authority.
 - For completed delegated work, report delivered scope, changed paths, the captured
   mode, separate Verification `pass`, `skipped` or `not requested`, Work-reported checks and
   limitations. Never describe skipped work as verified.

@@ -39,6 +39,8 @@ def run_codex_attempt(
     expected_run_id: str,
 ) -> tuple[str, str]:
     state_path = Path(state["requestPath"]).parent / "state.json"
+    if runtime.cancel_requested(state_path, cancel_event):
+        raise runtime.AttemptFailure("cancelled", "run was cancelled", False)
     request = runtime.safe_read_bytes(Path(state["requestPath"]), runtime.MAX_REQUEST_BYTES)
     if hashlib.sha256(request).hexdigest() != state.get("requestHash"):
         raise runtime.AttemptFailure("request_changed", "managed request content changed", False)
@@ -81,6 +83,11 @@ def run_codex_attempt(
     from tasks.orchestrator_guard import profile_instruction
     from execution.prompts import PromptParts
     prompt_parts = PromptParts(prompt_parts.fixed + profile_instruction(state, project_root, working_directory), prompt_parts.dynamic)
+    allocation = state.get("taskBinding", {}).get("allocation")
+    if allocation is not None:
+        prompt_parts = PromptParts(prompt_parts.fixed, prompt_parts.dynamic
+            + "\nAccepted Main allocation evidence (data, not additional authority; actual profile/model and permissions remain in this run):\n"
+            + json.dumps({"taskId": state["taskBinding"]["taskId"], "allocation": allocation}, ensure_ascii=False))
     if session.get("worktree") or session.get("taskWorkspace"):
         from execution.prompts import PromptParts
         location_guidance = ("\nConversation working directory: " + str(working_directory)
@@ -97,6 +104,13 @@ def run_codex_attempt(
         elif session.get("taskWorkspace", {}).get("mode") == "read-only":
             location_guidance += "This task is classified read-only and acquires no Git mutation or code-change authority.\n"
         prompt_parts = PromptParts(prompt_parts.fixed + location_guidance, prompt_parts.dynamic)
+    from execution.document_context import prepare as prepare_documents
+    try:
+        prompt_parts = prepare_documents(runtime, project_root, working_directory, state, attempt, prompt_parts)
+    except runtime.ContractError as error:
+        raise runtime.AttemptFailure(error.code, error.message, False) from error
+    except (OSError, ValueError, UnicodeError) as error:
+        raise runtime.AttemptFailure("document_context_invalid", str(error), False) from error
     try:
         if "executionPolicy" not in session:
             raise ValueError("Legacy queued run lacks a verified permission snapshot; resubmit with current parent or explicit policy")
@@ -110,6 +124,8 @@ def run_codex_attempt(
     for key in ("model", "reasoningEffort", "fast", "goalMode"):
         if key in execution:
             session[key] = execution[key]
+    if runtime.cancel_requested(state_path, cancel_event):
+        raise runtime.AttemptFailure("cancelled", "run was cancelled", False)
     try:
         checked = runtime.adapters.for_session(session).check(session, policy, working_directory, state_path.parent, Path(state["requestPath"]))
     except Exception as error:
@@ -119,6 +135,9 @@ def run_codex_attempt(
     state["executionPolicy"] = policy
     state["executionPreflight"] = checked
     runtime.update_json(state_path, state_path.parent / ".state.lock", lambda value: value.update({"executionPreflight": checked, "executionPolicy": policy}))
+    # Stopping containment may close a preflight app-server. Cancellation owns that outcome.
+    if runtime.cancel_requested(state_path, cancel_event):
+        raise runtime.AttemptFailure("cancelled", "run was cancelled", False)
     if checked.get("passed") is not True:
         raise runtime.AttemptFailure("execution_preflight_failed", str(checked.get("error") or checked.get("diagnostic") or "Execution policy preflight failed"), False)
     provider_adapter = runtime.adapters.for_session(session)
@@ -129,13 +148,12 @@ def run_codex_attempt(
     command = runtime.adapters.for_session(session).build_command(session, state, existing_session, prompt_parts=native_prompt)
     stderr_path = state_path.parent / "stderr.log"
     runtime.reject_symlink(stderr_path)
-    runtime.update_json(
-        state_path,
-        state_path.parent / ".state.lock",
-        lambda value: value.update(
-            {"status": "starting", "attempt": attempt, "startDisposition": "launching"}
-        ),
-    )
+    def launching(value):
+        if cancel_event.is_set() or value.get("cancelRequested"):
+            raise runtime.AttemptFailure("cancelled", "run was cancelled", False)
+        value.update({"status": "starting", "attempt": attempt, "startDisposition": "launching"})
+
+    runtime.update_json(state_path, state_path.parent / ".state.lock", launching)
     try:
         process, codex_identity, release_fd = runtime.spawn_contained_process(
             command,
@@ -327,11 +345,11 @@ def run_codex_attempt(
                     code = "native_backend_error"
                 details = {key: event[key] for key in ("code", "stage", "turnId", "requestId", "acceptance") if key in event}
                 runtime.update_json(state_path, state_path.parent / ".state.lock",
-                                    lambda value: value.update(adapterError=details))
+                                    lambda value, details=details: value.update(adapterError=details))
                 raise runtime.AttemptFailure("sandbox_unavailable" if diagnostic else code, diagnostic or message, started, True)
             if event.get("type") == "rpc.waiting":
                 runtime.update_json(state_path, state_path.parent / ".state.lock",
-                                    lambda value: value.update(pendingRpc={**event, "observedAt": runtime.now()}))
+                                    lambda value, event=event: value.update(pendingRpc={**event, "observedAt": runtime.now()}))
             if usage.observe(event):
                 runtime.update_json(state_path, state_path.parent / ".state.lock",
                             lambda value: runtime.record_attempt(value, attempt, usage.snapshot()))
@@ -500,14 +518,16 @@ def mark_terminal(
     def change(value: dict[str, Any]) -> None:
         if active_only and value.get("status") not in runtime.ACTIVE_STATES:
             raise runtime.ContractError("run_terminal", "run is already terminal")
+        # Serialize stop versus completion/failure under the same lock as the cancel command.
+        cancelled = value.get("cancelRequested") and value.get("status") in runtime.ACTIVE_STATES
         value.update(
             {
-                "status": status,
+                "status": "cancelled" if cancelled else status,
                 "codexPid": None,
                 "codexIdentity": None,
                 "finishedAt": runtime.now(),
                 "unread": True,
-                "error": error,
+                "error": None if cancelled else error,
             }
         )
         if attempt is not None:
@@ -574,11 +594,14 @@ def worker(runtime, args: argparse.Namespace) -> int:
                         expected_run_id=args.run_id,
                     )
                     runtime.mark_terminal(state_path, terminal_status)
+                    terminal_status = runtime.safe_read_json(state_path)["status"]
                     heartbeat.update(
                         status=terminal_status, attempt=attempt, codex_pid=None
                     )
-                    return 0 if terminal_status != "failed" else 1
+                    return 1 if terminal_status in {"failed", "cancelled"} else 0
                 except runtime.AttemptFailure as failure:
+                    if runtime.cancel_requested(state_path, cancel_event):
+                        failure = runtime.AttemptFailure("cancelled", "run was cancelled", failure.started, failure.launched)
                     if failure.code != "cancelled":
                         runtime.capture_lesson(project_root, state, {"type": "runtime.failure", "code": failure.code}, attempt)
                     disposition = (

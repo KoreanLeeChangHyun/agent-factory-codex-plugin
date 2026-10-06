@@ -95,6 +95,47 @@
   return canonical Refined and legacy Processed records.
 - Catalog and search are read-only discovery operations. They do not activate a
   Refined, Progress or Lessons Learned Document as a Skill, change document authority or index `docs/skills/`.
+- Search defaults to the compatible `--match all` (all query substrings, case-insensitive).
+  Explicit `--match any` explores partial lexical matches, prioritizing term coverage before
+  frequency; it performs no translation or semantic authority inference. `--offset` pages
+  through `totalCount` with `nextOffset`, without changing the existing default page size.
+- Results add `documentId`, dependency SHA-256 hashes, a package `revision` and matching
+  source paths/ATX section anchors. These identify exact sources for caller-side reuse;
+  no persistent cache, automatic deduplication or new editable index is created.
+- Use the same search CLI with `--read-path <project-relative-path>` instead of `--query`
+  to read canonical Document text, or an explicitly selected `docs/skills/` entry/reference.
+  `--anchor <HTML-id-or-heading-slug>` selects a section including its children;
+  missing/ambiguous anchors fail instead of guessing. Fenced headings are ignored.
+  The response retains complete entry guidance, source metadata and dependency hashes.
+- Supply the returned `--revision <hash>` when reading to reject stale sources after
+  body, reference, attachment or projected status changes. Hashes are rebuilt live;
+  no timestamp-only cache can hide edits. There is no atomic multi-file snapshot against
+  concurrent editors. A selected section is a discovery aid: read linked mandatory rules,
+  decisions and exceptions before acting. Search rank never selects execution authority.
+- Managed document-dependent requests can supply `exec.py submit/send --document-context-file <json>`;
+  delegated task entries can instead carry the same `documentContext` object. Both are
+  captured per request and consumed by `runs/attempt.py` before the existing provider turn.
+  They are retrieval requirements, not execution approval, Skill activation or persistent session settings.
+- The object accepts `query`, exact `scope`, explicit `allowPartial`/`discoverScopes` booleans,
+  and `required`/`selections` lists of `{path, anchor?, revision?}` canonical sources.
+  Supply mandatory rules, Human decisions and exceptions in `required` independently of
+  query ranking. A conflicting task/CLI object is rejected. With no object, normal requests
+  perform no extra Document reads. Empty objects and unsafe paths are rejected.
+- Retrieval searches all pages with `all`, tries `any` only on a miss with `allowPartial`,
+  and explores other scopes only on a miss with `discoverScopes`. Cross-scope results retain
+  scope/status and `discoveryOnly`; discovery never grants applicability or authority.
+  Narrow matching sections retain complete entry text. Explicit mandatory/exception links
+  are followed recursively; ordinary references stay unloaded and listed as unassessed.
+  The cue recognizer is conservative, not a semantic completeness proof. Unselected sections,
+  external links and unclear dependencies stay visible; resolve required gaps by canonical
+  reading before acting. Missing required sources and stale explicit revisions block preparation.
+- Run status exposes `documentContext` and per-attempt `documentContextAttempts`: search
+  misses/failures, requeries, repeated path reads, sections, revisions, hashes, read latencies,
+  snapshot file bytes and delivered JSON bytes. Snapshot bytes exclude catalog parsing I/O;
+  `catalogReadBytes`, model input tokens, token estimates and document-cache counters are
+  unavailable (`null`). `modelUsageJoin` links the same run/attempt to existing `usageAttempts`
+  and `tokenUsage`; reported provider usage is not attributed to individual Document tokens.
+  No extra model call, persistent cache or copied editable source is created.
 - Reject malformed metadata, duplicate identities, links, unsupported package content
   and symlinks instead of silently omitting them from discovery.
 
@@ -139,3 +180,16 @@
 - Without `--storage-layout`, the existing contract-listed `--operations` preview/backup/apply
   interface remains available; `--documents-root` selects its physical file workspace too.
   No separate README catalog, database or document system is created.
+- Scribe uses the guard's own `<plugin-root>/scripts/migrate_document_paths.py` for authorized
+  contract-listed moves. Pass literal captured `--project-root` and `--documents-root`, plus
+  `--operations <CSV>` inside `docs/` or the current run. Each selected source and destination
+  must remain inside the captured document write root; symlinks and overlapping endpoints fail.
+- Preview returns source and expected destination SHA-256 hashes, including intentional link
+  adjustments. Run `--backup`, then `--apply` with the same
+  `--backup-dir <current-run>/document-backups/<name>`. Apply requires the completed matching
+  manifest and verified bytes. Re-run preview with that backup to check completed moves.
+  Backup data cannot replace run control records, use another run or escape through symlinks.
+- Scribe's CLI checks its captured scope again at execution; a hook decision does not bind
+  mutable CSV contents. Arbitrary shell/code execution and `--storage-layout` remain forbidden
+  for Scribe. These capabilities grant no new migration, directory creation or draft acceptance
+  authority. Storage-layout changes that update runtime lesson metadata use an authorized Work.

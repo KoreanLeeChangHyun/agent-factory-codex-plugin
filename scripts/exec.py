@@ -357,6 +357,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         })
     if input_images:
         dispatch_tuple["imageInputs"] = input_images
+    if binding and "documentContext" in binding:
+        if "documentContext" in execution_options and execution_options["documentContext"] != binding["documentContext"]:
+            raise ContractError("document_context_conflict", "Task and request document requirements differ")
+        execution_options["documentContext"] = binding["documentContext"]
     if execution_options:
         dispatch_tuple["executionOptions"] = execution_options
     if work_profile is not None:
@@ -474,6 +478,15 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
                     "deduplicated": True,
                 })
                 return 0
+        if not new_agent and binding is not None:
+            from tasks.allocation import preserve
+            prior_bindings = [value for value in iter_run_states(project_root, args.agent, strict=True)
+                              if value.get("taskBinding", {}).get("workflowId") == binding["workflowId"]
+                              and value.get("taskBinding", {}).get("taskId") == binding["taskId"]]
+            if prior_bindings:
+                prior = max(prior_bindings, key=lambda value: value.get("acceptedAt", ""))["taskBinding"]
+                if "allocation" in prior or "allocation" in binding:
+                    preserve(prior, binding)
         if new_agent:
             session = (
                 load_session(project_root, args.agent)
@@ -697,6 +710,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "rebind":
             emit(runtime_paths.rebind(args.runtime_home, args.project_id, args.from_root, args.project_root))
             return 0
+        if args.command == "measure":
+            from execution.usage import compare_orchestration
+            emit(compare_orchestration(safe_read_json(args.input), safe_read_json))
+            return 0
         if args.command == "capabilities":
             session = None
             if args.agent:
@@ -710,10 +727,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             # (2: receipt fields in the structured final output); `revisionLimitPause` marks loops whose
             # public state carries the structured `pause` a Human decides on.
             # `workIsolation`: Main runs accept --work-isolation on|off and loops inherit it.
-            # `restrictedWorkProfiles`: --work-profile also accepts explore (read-only) and scribe (docs/ only).
+            # `restrictedWorkProfiles`: --work-profile also accepts explore (assigned evidence docs) and scribe (docs/ only).
             for operation in ("submit", "send"):
-                capabilities[operation] = {**capabilities[operation], "workProfile": True, "restrictedWorkProfiles": True,
-                                           "failureClass": True,
+                capabilities[operation] = {**capabilities[operation], "workProfile": True, "restrictedWorkProfiles": True, "roleDirectExceptions": True,
+                                           "taskAllocation": True, "failureClass": True,
                                            "pendingLessons": True,
                                            "responseContract": receipt_contracts.RESPONSE_CONTRACTS[-1],
                                            "revisionLimitPause": True, "taskWorkspaces": True,
@@ -750,6 +767,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             return command_list(args)
         if args.command == "reset-conversation":
             return command_reset_conversation(args)
+        if args.command == "delete-task":
+            from tasks import history as task_history
+            emit(task_history.delete(sys.modules[__name__], args))
+            return 0
+        if args.command == "delete-agent":
+            from runs import deletion as agent_deletion
+            emit(agent_deletion.delete(sys.modules[__name__], args))
+            return 0
         if args.command == "inbox":
             return command_inbox(args)
         if args.command == "cancel":

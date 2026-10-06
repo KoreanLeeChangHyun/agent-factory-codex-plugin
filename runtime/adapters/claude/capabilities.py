@@ -4,7 +4,6 @@ import re
 from pathlib import Path
 import shutil
 import subprocess
-import time
 
 from tasks.modes import TASK_MODES
 from tasks.subagent_guard import ALLOWED_TYPE
@@ -24,30 +23,9 @@ THINKING_DISPLAY_VERSION = (2, 1, 40)
 
 def inspect_capabilities(executable, *, refresh=False, runtime_home=None, **_kwargs):
     """Probe `claude --help`; reuse a recent successful probe of the same binary and config home."""
-    identity = file = None
-    try:
-        from storage import paths
-        identity = _identity(executable)
-        file = paths.home_path(runtime_home) / "cache" / "native-capabilities" / "claude.json"
-    except (OSError, ValueError):
-        file = None
-    if file is not None and not refresh:
-        try:
-            cached = paths.read(file)
-            if (isinstance(cached, dict) and cached.get("identity") == identity
-                    and isinstance(cached.get("created"), (int, float))
-                    and 0 <= time.time() - cached["created"] < CAPABILITY_CACHE_TTL):
-                return cached["capabilities"]
-        except (OSError, ValueError, TypeError, KeyError):
-            pass  # Missing or unreadable cache: probe again.
-    result = _probe(executable)
-    if file is not None and result["diagnostic"] is None:
-        try:
-            paths.mkdir(file.parent)
-            paths.write(file, {"identity": identity, "created": time.time(), "capabilities": result})
-        except (OSError, ValueError):
-            pass  # A cache is an optimization; a failed write never fails the probe.
-    return result
+    from adapters.capability_cache import cached_capabilities
+    return cached_capabilities(executable, provider="claude", identify=_identity, probe=_probe,
+                               ttl=CAPABILITY_CACHE_TTL, refresh=refresh, runtime_home=runtime_home)
 
 
 def _identity(executable):

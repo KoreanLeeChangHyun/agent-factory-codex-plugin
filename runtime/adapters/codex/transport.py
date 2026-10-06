@@ -237,7 +237,8 @@ def activate_persisted_goal(rpc, thread_id, params, turn):
         config["model_reasoning_effort"] = turn["effort"]
     resume = {**params, "threadId": thread_id, "config": config,
               "developerInstructions": params["developerInstructions"] +
-              "\nMandatory final JSON contract for every Goal turn (runtime enforced):\n" + json.dumps(turn["outputSchema"])}
+              "\nMandatory final JSON contract for every Goal turn (runtime enforced):\n" +
+              json.dumps(turn["outputSchema"], ensure_ascii=False, sort_keys=True, separators=(",", ":"))}
     for key in ("model", "serviceTier"):
         if key in turn:
             resume[key] = turn[key]
@@ -428,6 +429,7 @@ class Bridge(NotificationHandlers):
         if prior and prior != self.thread_id:
             raise NativeError("Codex resumed a different session")
         delivery_record = None
+        pending_fixed_update = False
         if parts is not None:
             delivery_path = self.runtime.session_file(
                 Path(self.session["projectRoot"]), self.state["agentId"]
@@ -440,22 +442,7 @@ class Bridge(NotificationHandlers):
                 if error.code != "file_not_found":
                     raise
                 previous_delivery = None
-            if prior and previous_delivery != delivery_record:
-                # Resume restores a history baseline; changing configuration alone
-                # need not emit new developer text before the next compaction.
-                # Install updates once, before any model turn, as developer text.
-                # The durable configuration handles all later compactions.
-                try:
-                    self.rpc.call("thread/inject_items", {"threadId": self.thread_id, "items": [
-                        {"type": "message", "role": "developer", "content": [
-                            {"type": "input_text", "text": developer_instructions}]}]})
-                except RpcError as error:
-                    if error.code != -32601:
-                        raise
-                    # A definite method-not-found has no ambiguous side effect.
-                    # Older backends keep their historical full-prompt delivery.
-                    prompt = full_prompt
-                    delivery_record = None
+            pending_fixed_update = bool(prior and previous_delivery != delivery_record)
         emit({"type": "thread.started", "thread_id": self.thread_id})
         fast = self.session.get("fast") if self.state.get("goalAction") in (None, "resume", "reopen") else None
         models = []
@@ -521,6 +508,24 @@ class Bridge(NotificationHandlers):
                         self.set_goal(status="paused")
                 else:
                     raise NativeError("Goal needs a nonempty objective (--goal-objective)")
+        if pending_fixed_update and (not activate_goal or self.planning):
+            # Resume configuration need not replace history before compaction.
+            # A Goal activation installs the complete current contract itself;
+            # inject fixed-only updates only for turns that need them, before start.
+            try:
+                self.rpc.call("thread/inject_items", {"threadId": self.thread_id, "items": [
+                    {"type": "message", "role": "developer", "content": [
+                        {"type": "input_text", "text": developer_instructions}]}]})
+            except RpcError as error:
+                if error.code != -32601:
+                    raise
+                # Only definite method-not-found permits the historical fallback.
+                turn["input"][0]["text"] = full_prompt
+                if self.planning:
+                    self.execution_turn["input"][0]["text"] = (
+                        "Execute the plan in this same Work session within the already authorized request. "
+                        "Respect unresolved Human decisions. Complete the original result and receipt contract.\n" + full_prompt)
+                delivery_record = None
         if activate_goal and self.planning:
             # Keep Goal paused until an actual default-mode transition completes.
             self.goal_start = ({**params, "developerInstructions": full_prompt}, self.execution_turn)
