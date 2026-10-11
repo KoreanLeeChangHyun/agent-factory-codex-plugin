@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any
 
 from adapters.plan_progress import first_line
+from execution.usage import context_observation
+from execution.handoff import observe_runtime
 
 
 def cancel_requested(runtime, state_path: Path, cancel_event: threading.Event, reader=None) -> bool:
@@ -336,6 +338,7 @@ def run_codex_attempt(
                     "event_invalid", "codex emitted an invalid event", started, True
                 )
             runtime.capture_lesson(project_root, state, event, attempt)
+            observe_runtime(runtime, project_root, state, event)
             if event.get("type") == "error" and provider_adapter.fatal_error_events(session):
                 stop_attempt()
                 message = str(event.get("message", "Native Codex error"))
@@ -353,9 +356,10 @@ def run_codex_attempt(
             if usage.observe(event):
                 runtime.update_json(state_path, state_path.parent / ".state.lock",
                             lambda value: runtime.record_attempt(value, attempt, usage.snapshot()))
-            if (event.get("type") == "provider.context" and type(event.get("usedTokens")) is int
-                    and type(event.get("contextWindowTokens")) is int):
-                context_usage = {"usedTokens": event["usedTokens"], "contextWindowTokens": event["contextWindowTokens"]}
+            context_usage = context_observation(event, provider=state.get("provider", "codex"),
+                                                observed_at=runtime.now(),
+                                                provider_version=state.get("providerVersion"))
+            if context_usage is not None:
                 runtime.update_json(state_path, state_path.parent / ".state.lock",
                             lambda value: value.update({"contextUsage": {**(value.get("contextUsage") or {}), **context_usage}}))  # noqa: B023 - update_json calls the lambda before the next iteration
             if event.get("type") == "provider.rate_limits":
@@ -534,6 +538,9 @@ def mark_terminal(
             value["attempt"] = attempt
         if start_disposition is not None:
             value["startDisposition"] = start_disposition
+        if value.get("handoffBinding"):
+            from execution.handoff import finish_run
+            finish_run(runtime, runtime.resolve_project_root(Path(value["runtimeBinding"]["projectRoot"])), value)
 
     try:
         runtime.update_json(state_path, state_path.parent / ".state.lock", change)
@@ -682,4 +689,7 @@ def worker(runtime, args: argparse.Namespace) -> int:
             runtime.lesson_capture.apply_pending(project_root, state)
             runtime.update_json(state_path, state_path.parent / ".state.lock",
                                 lambda value: value.update(pendingLessons=len(runtime.lesson_capture.audit(state))))
+        # Queue the run's observed facts for a lesson writer that Main assigns; never written by Main.
+        with contextlib.suppress(Exception):
+            runtime.lesson_capture.collect(state)
         heartbeat.close()

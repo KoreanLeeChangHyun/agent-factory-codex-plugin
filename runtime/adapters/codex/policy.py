@@ -224,13 +224,15 @@ def command_params(policy, run_directory):
 GUARD_MATCHER = "^(Bash|apply_patch|.*(spawn|resume)_agent.*)$"
 
 
-def guard_hook_toml():
+def guard_hook_toml(matcher=GUARD_MATCHER):
     handler = f'{{type="command", command={json.dumps(orchestrator_guard.HOOK_COMMAND)}, timeout=30}}'
-    return f'hooks.PreToolUse=[{{matcher={json.dumps(GUARD_MATCHER)}, hooks=[{handler}]}}]'
+    return f'hooks.PreToolUse=[{{matcher={json.dumps(matcher)}, hooks=[{handler}]}}]'
 
 
 def guard_environment(state, session=None):
     """Variables arming the guard for this run: orchestrate Main, Explorer/Scribe, Work rules or none."""
+    if state.get("executionOptions", {}).get("handoffPreparationFor"):
+        return orchestrator_guard.preparation_environment(state)
     if orchestrator_guard.orchestrating(state, session):
         return orchestrator_guard.environment(state)
     if orchestrator_guard.work_profile(state, session):
@@ -241,13 +243,13 @@ def guard_environment(state, session=None):
 
 
 def app_server(session, state):
-    """App-server argv and environment; only orchestrate Main and Work runs carry the hook and its arming variable."""
+    """App-server argv/environment with the exact role or standby preparation guard."""
     command = [session["codex"], "app-server", "--listen", "stdio://"]
     environment = dict(os.environ)
     environment.pop(orchestrator_guard.ENV, None)
     arming = guard_environment(state, session)
     if arming:
-        command += ["-c", guard_hook_toml()]
+        command += ["-c", guard_hook_toml(".*" if state.get("executionOptions", {}).get("handoffPreparationFor") else GUARD_MATCHER)]
         environment.update(arming)
     return command, environment
 

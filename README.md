@@ -84,13 +84,17 @@ a bounded agent workflow, evidence exploration, and shared project conventions.
 - When you request consolidation, turn supported lessons into reusable project
   rules. Lesson records remain evidence; they do not automatically become accepted
   Specifications or trigger background changes.
+- The runtime keeps observed facts for each run (tool failures, failed runs, rework,
+  failed Verification and your corrections) and queues the run for lesson writing.
+  Main can add a fact it observed with `lessons.py note`; `lessons.py pending` lists or
+  closes queued runs, and `lessons.py brief` drafts a lesson-writing request for them.
 
 ## VS Code extension
 
 - This plugin is fully installable and usable on its own; the VS Code extension is optional.
 - The Agent Factory VS Code extension requires this plugin to be installed and
-  enabled at the identical semantic base version. For example, extension `1.0.28`
-  accepts plugin `1.0.28+codex.<token>`.
+  enabled at the identical semantic base version. For example, extension `1.0.29`
+  accepts plugin `1.0.29+codex.<token>`.
 
 - On activation, the extension checks whether the plugin is installed, enabled, and compatible,
   and attempts automatic installation when needed. An already active, compatible plugin is used without reinstalling.
@@ -124,6 +128,17 @@ The plugin exposes four public Skills:
   Plan·Work, Work·Verification, or Plan·Work·Verification.
 - Your selection applies only to that message. See the
   [execution guide](skills/agent/references/execution-modes.md) for details.
+- With a task type and the host's detected model catalog, `loop.py start --model-catalog-file`
+  recommends a Work model from your own `model-affinity.json` in the project runtime root.
+  Only detected models are chosen, a model you specify is kept, and without the file nothing
+  is recommended. See [task allocation](skills/agent/references/task-allocation.md#model-recommendation).
+- You can move a running or stopped loop's Work task to another agent and model with
+  `loop.py handoff`. The new session receives the original request, progress, changed paths,
+  remaining work and open findings; the earlier session stays read-only.
+- `operation_records.py` provides read-only lookup (`query`) and word search (`search`) over
+  tasks, sessions, decisions, observations and lessons, with each hit citing its source.
+  `supervise` classifies unfinished loops as normal, delayed, stuck or decision-needed and
+  records periodic one-line reports.
 - Research and interviews help gather evidence and clarify requirements.
 
 ### Models and sessions

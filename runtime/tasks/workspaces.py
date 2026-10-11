@@ -171,9 +171,10 @@ def bind(session, value):
 
 def paths_changed(unit):
     path = unit["path"]
-    names = worktrees.git(path, "diff", "--name-only", "HEAD", "-z").stdout
+    names = worktrees.git(path, "diff", "--name-only", "--no-renames", "HEAD", "-z").stdout
     names += worktrees.git(path, "ls-files", "--others", "--exclude-standard", "-z").stdout
-    return sorted({os.fsdecode(name) for name in names.split(b"\0") if name})
+    return sorted({os.fsdecode(name) for name in names.split(b"\0")
+                   if name and not worktrees.operational_path(os.fsdecode(name))})
 
 
 def check(unit, save, stage):
@@ -345,8 +346,7 @@ def integrate(runtime, state, work, receipt, save):
         raise ContractError("task_verification_required", "Wait for the requested Verification pass or recorded Human skip")
     value["workRunId"] = work["runId"]
     value["verification"] = "not requested" if mode in {"work", "plan-work"} else "skipped" if state.get("humanSkip") else "pass"
-    # Lessons the runtime recorded into this Work Unit are committed with the task.
-    allowed = set(receipt["changedPaths"]) | runtime.lesson_capture.recorded_paths(runtime.iter_run_states(Path(state["projectRoot"])), value["id"])
+    allowed = {path for path in receipt["changedPaths"] if not worktrees.operational_path(path)}
     require_checkout_idle(runtime, state, Path(value["path"]), "task_workspace_busy")
     for unit in value["repositories"]:
         if unit["phase"] == "merged":
@@ -370,6 +370,9 @@ def integrate(runtime, state, work, receipt, save):
                 raise ContractError("task_target_dirty", "Target checkout has a pending merge; Work Unit retained: " + str(target))
             require_checkout_idle(runtime, state, target, "task_target_busy", target=True)
             names = paths_changed(unit)
+            staged = worktrees.git(unit["path"], "diff", "--cached", "--name-only", "--no-renames", "-z").stdout
+            if any(worktrees.operational_path(os.fsdecode(name)) for name in staged.split(b"\0") if name):
+                raise ContractError("task_operational_lessons_staged", "Operational lessons are staged; preserve them locally and perform any authorized index migration directly in the document repository")
             prefix = Path(unit["relativePath"])
             changed = {str(prefix / name) for name in names}
             inherited = set(unit.get("mergePaths", []))

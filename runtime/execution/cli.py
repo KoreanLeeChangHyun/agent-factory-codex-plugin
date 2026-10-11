@@ -73,6 +73,8 @@ def add_request_arguments(parser: argparse.ArgumentParser) -> None:
         help="exact Work run checked by a Verification Agent (required for Verification runs)",
     )
     parser.add_argument("--dispatch-id", help="optional idempotency key: dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}; generated when omitted; reuse the same key only for recovery of the same request")
+    parser.add_argument("--handoff-experiment", action="store_true", help="Opt a newly created Main experiment into two-session handoff; never resets an existing conversation")
+    parser.add_argument("--handoff-preparation-for", help="Main-owned read preparation for an opted-in experiment; grants no response or task-assignment authority")
     parser.add_argument(
         "--capability-binding-file", type=Path,
         help="strict Agent capability/authority/effects binding to preserve in this run",
@@ -146,6 +148,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
     measurement_parser = commands.add_parser("measure", help="Compare same-input orchestration observations without launching models")
     measurement_parser.add_argument("--input", type=Path, required=True, help="JSON cases with original input, completion criteria and before/after messages and run state paths")
+
+    handoff_parser = commands.add_parser("handoff", help="Inspect or control an explicitly opted-in Main handoff experiment; launches no sessions")
+    add_project_argument(handoff_parser)
+    handoff_parser.add_argument("--agent", required=True)
+    handoff_parser.add_argument("action", choices=("status", "configure", "ready", "switch", "event"))
+    handoff_parser.add_argument("--input", type=Path)
+    add_read_page_arguments(handoff_parser)
 
     goal_parser = commands.add_parser("goal")
     add_project_argument(goal_parser)

@@ -68,6 +68,8 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--response-contract {1,2}`: Work response contract: 1 = the Agent writes receipt.json, 2 = receipt fields in the structured final output (default where the provider attaches the schema to the final turn)
 - `--verified-work-run-id VERIFIED_WORK_RUN_ID`: exact Work run checked by a Verification Agent (required for Verification runs)
 - `--dispatch-id DISPATCH_ID`: optional idempotency key: dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}; generated when omitted; reuse the same key only for recovery of the same request
+- `--handoff-experiment`: Opt a newly created Main experiment into two-session handoff; never resets an existing conversation
+- `--handoff-preparation-for HANDOFF_PREPARATION_FOR`: Main-owned read preparation for an opted-in experiment; grants no response or task-assignment authority
 - `--capability-binding-file CAPABILITY_BINDING_FILE`: strict Agent capability/authority/effects binding to preserve in this run
 - `--codex CODEX`
 - `--claude CLAUDE`
@@ -112,6 +114,8 @@ One of: `--request-file` | `--message` | `--input-file`
 - `--response-contract {1,2}`: Work response contract: 1 = the Agent writes receipt.json, 2 = receipt fields in the structured final output (default where the provider attaches the schema to the final turn)
 - `--verified-work-run-id VERIFIED_WORK_RUN_ID`: exact Work run checked by a Verification Agent (required for Verification runs)
 - `--dispatch-id DISPATCH_ID`: optional idempotency key: dispatch-[A-Za-z0-9][A-Za-z0-9._:-]{0,127}; generated when omitted; reuse the same key only for recovery of the same request
+- `--handoff-experiment`: Opt a newly created Main experiment into two-session handoff; never resets an existing conversation
+- `--handoff-preparation-for HANDOFF_PREPARATION_FOR`: Main-owned read preparation for an opted-in experiment; grants no response or task-assignment authority
 - `--capability-binding-file CAPABILITY_BINDING_FILE`: strict Agent capability/authority/effects binding to preserve in this run
 - `--codex CODEX`
 - `--sandbox {read-only,workspace-write,danger-full-access}`
@@ -160,6 +164,17 @@ Required: `--agent AGENT`, `--run-id RUN_ID`
 
 ## `measure`: Compare same-input orchestration observations without launching models
 Required: `--input INPUT`
+
+## `handoff`: Inspect or control an explicitly opted-in Main handoff experiment; launches no sessions
+Required: `--agent AGENT`, `action {status,configure,ready,switch,event}`
+- `--project-root PROJECT_ROOT`
+- `--runtime-home RUNTIME_HOME`
+- `--project-id PROJECT_ID`
+- `--input INPUT`
+- `--field FIELD`: Select a JSON Pointer before paging; strings are returned verbatim
+- `--offset OFFSET`: Zero-based Unicode character offset (enables paging)
+- `--length LENGTH`: Characters per page, default 4000; no total document limit
+- `--revision REVISION`: Require the SHA-256 returned by the first page; changed data fails closed
 
 ## `goal`
 Required: `--agent AGENT`, `action {get,refresh,pause,cancel,clear,disable,resume,reopen}`

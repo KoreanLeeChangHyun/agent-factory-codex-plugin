@@ -7,25 +7,26 @@
 - Every error that occurs during Agent work MUST be recorded, including tool, command,
   test, implementation and infrastructure errors, even when a retry succeeds or the error
   remains unresolved. Managed execution records observed failures as occurrences of
-  their [signature record](#runtime-capture); the Agent MUST create or update its own
-  record for an error whose cause it establishes, that changes its approach or that
-  the runtime does not capture.
+  their [signature record](#runtime-capture); the Agent's own record MUST cover an
+  error whose cause it establishes, that changes its approach or that the runtime does
+  not capture.
 - A test failure the task expects, such as a test-first red step, needs no Agent record;
   its runtime occurrence suffices. Record it when the failure or its cause was unexpected.
 - The Agent MUST also record observed differences between the Human's judgment and
   its own judgment, including corrections or rejected recommendations. A difference
   is not automatically an error by either party; do not infer disagreement from silence.
-- Record the error or judgment difference promptly once writing is possible, before completing or handing
-  off the task. Do not wait for a diagnosis or successful fix to start the record.
+- Main MUST NOT write lessons (`record`, `resolve`, `candidate`, `publish`). It keeps error and
+  judgment facts with sources in run records and delegates the lesson to Work or Scribe.
+- Other roles MUST NOT write lessons mid-task. Just before handoff, they MUST bundle only
+  the needed errors and judgment differences into one record.
 - Record an unknown cause as unknown and a missing solution as unresolved. Separate
   hypotheses and proposed remedies from confirmed causes and verified solutions.
 - Update the same record when the cause, remedy or verification becomes known.
   For a recurrence, append the occurrence and its outcome without erasing prior evidence.
 - If recording is blocked, report the storage failure and pending record content in
   the task result or handoff. Do not claim it was saved; persist it when access returns.
-- Lessons Learned is a mandatory documentation side effect of Agent error handling and reflection,
-  including Verification. It does not authorize changes to the implementation under
-  review, broader repairs, publication or destructive actions.
+- Lessons Learned is a mandatory documentation side effect, including for Verification; it
+  authorizes no implementation change, broader repair, publication or destructive action.
 
 <a id="package-and-metadata"></a>
 
@@ -51,6 +52,16 @@
   metadata on demand; unknown causes and unresolved outcomes stay unknown/unresolved.
 - Catalog and search discover these records. They never activate them as Skills or export
   them to hosts. `runtime` is a capture scope, not a document category or user folder.
+- Operational records under `docs/lessons-learned/` are local data excluded from Git,
+  including generated projections and scratch files. Recording creates a self-ignored
+  `docs/lessons-learned/.gitignore` unless `docs/.gitignore` already ends with
+  `/lessons-learned/`. A separate `docs` repository should track that outer configuration.
+  Already tracked records require explicit authorization to remove their exact paths from
+  the index with `git rm --cached`, preserving local files. Never force-add records.
+  Keep lesson implementation, tests, usage documentation and adopted Skills tracked.
+  Ignored records in an isolated Work Unit remain there after integration; cleanup may
+  stay pending to preserve them. A commit manifest may include an explicitly authorized,
+  already staged index removal with a null content hash, keeping the local body intact.
 - Keep one record for the same incident or known recurring cause. Separate error and
   judgment records may link to each other; judgment difference alone is not an error.
 
@@ -203,7 +214,7 @@
   and occurrence auditing before handoff.
 - Restricted-run hooks persist redacted rejection occurrences directly into the bound run's
   pending capture storage even when the provider emits no failed-tool event. The runtime
-  later records them where permitted. The hook preserves a pending runtime occurrence; only an authorized writable run replays it.
+  later records them where permitted.
 - `migrate_runtime_lessons.py` previews merging older per-occurrence captures into signature
   records, keeping each original ID and source on its occurrence; resolved, reviewed and
   Agent-written records stay. It changes files only with `--apply` and an empty backup directory,

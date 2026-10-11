@@ -15,6 +15,32 @@ import yaml
 from storage import paths
 
 FOLDERS = {'error': 'errors', 'judgment': 'judgment-differences'}
+# Repository-relative boundaries for a project checkout and a separate docs checkout.
+GIT_PREFIXES = ('docs/lessons-learned', 'lessons-learned')
+
+
+def operational_path(value):
+    return any(value == prefix or value.startswith(prefix + '/') for prefix in GIT_PREFIXES)
+
+
+def ensure_ignored(root, atomic):
+    """Keep generated bodies and scratch files local, even in a separate docs repository.
+
+    Existing tracked records require an explicitly authorized index migration; an ignore
+    file alone cannot untrack them. Never change their index from a recording operation.
+    """
+    outer = Path(root) / 'docs/.gitignore'
+    paths.inspect(outer, missing=True)
+    if outer.is_file() and outer.read_text(encoding='utf-8').splitlines()[-1:] == ['/lessons-learned/']:
+        return
+    path = Path(root) / 'docs/lessons-learned/.gitignore'
+    paths.inspect(path, missing=True)
+    text = path.read_text(encoding='utf-8') if path.exists() else ''
+    if text.splitlines()[-1:] != ['*']:
+        atomic(path, text + ('\n' if text and not text.endswith('\n') else '')
+               + '# Local operational lesson records, including generated files.\n*\n')
+
+
 MACHINE = frozenset(('id', 'category', 'title', 'language', 'sourceLanguage', 'scope', 'status',
     'occurrenceId', 'source', 'sources', 'lessonIds', 'relatedIds', 'legacyId', 'currentFileHash', 'runId', 'agentId',
     'recordedAt', 'recoveredAt', 'recoveredBy', 'ruleName', 'authority', 'caseId',

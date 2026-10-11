@@ -23,8 +23,8 @@ metadata:
 - Resolve installed Skills through the host; similarly named project files are not replacements.
 - Research and Interview are Convention activities, not additional Skills or roles.
 - Project guidance grants no additional execution or publication authority.
-- Whenever an error or observed Human/AI judgment difference occurs during Agent work, apply the mandatory
-  [Lessons Learned recording contract](../document/references/lessons-learned.md).
+- When an error or observed Human/AI judgment difference occurs during Agent work, apply the mandatory
+  [Lessons Learned recording contract](../document/references/lessons-learned.md#mandatory-recording), which defines who writes and when.
 
 <a id="human-communication"></a>
 

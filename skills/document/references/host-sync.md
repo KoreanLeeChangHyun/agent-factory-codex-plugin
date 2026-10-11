@@ -29,6 +29,9 @@
 - Run `python3 <plugin-root>/scripts/sync_documents.py --project-root <project-root>`
   after creating, modifying or deleting `docs/skills/` packages, using their actual project root.
   Inspect the result; resolve or report conflicts before claiming synchronization succeeded.
+- The default target is every supported host. A project that intentionally uses one host
+  selects it explicitly with repeatable `--host` (for example, `--host antigravity`); an
+  unselected host is neither checked nor created.
 - The plugin bundles no automatic hooks. Human edits synchronize only on a subsequent
   explicit invocation; this CLI is not a watcher. The legacy `--hook` entry is removed.
 - `docs/skills/` supplies only owned output under `.codex/skills/`, `.claude/skills/` and

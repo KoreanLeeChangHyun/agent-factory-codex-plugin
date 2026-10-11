@@ -108,8 +108,10 @@ PROFILE_SCRIPTS = {
 PROFILE_REASONS = {
     "explore": ("Explorer reads source and searches the web, writes only exact task-bound evidence Documents and own run records. "
                 "No code/configuration, shared Documents, Specifications, rule publication, agents or sub-agents."),
-    "scribe": ("Scribe runs write only inside the project's docs/ and use read-only shell commands; no web "
-               "lookups, execution/dispatch scripts or sub-agents. Document scripts, including lessons.py, are allowed. "
+    "scribe": ("Scribe researches, checks sources, writes, integrates and shortens Documents using public web search/read; "
+               "writes stay inside the project's docs/ and shell commands stay read-only. No code/configuration writes, "
+               "execution/dispatch scripts, sub-agents, commits, external publishing/writes or sensitive-data transmission. "
+               "Document scripts, including lessons.py, are allowed; drafts still require Human acceptance. "
                "Report changes needed elsewhere instead of making them."),
 }
 
@@ -270,6 +272,16 @@ def environment(state):
     """Provider-process variables that arm the guard for this orchestrate Main run."""
     return {ENV: json.dumps({"pluginRoots": plugin_roots(), "captureStatePath": state["statePath"], "roleBoundaryPolicy": state.get("roleBoundaryPolicy"), "writeRoot": str(Path(state["statePath"]).parent)},
                             sort_keys=True)}
+
+
+def preparation_environment(state):
+    """Standby keeps the selected permission policy, with read/own-record effects only."""
+    run_source = str(Path(state["statePath"]).parent)
+    return {ENV: json.dumps({"handoffPreparation": True, "pluginRoots": plugin_roots(),
+                            "captureStatePath": state["statePath"], "roleBoundaryPolicy": state.get("roleBoundaryPolicy"),
+                            "writeRoot": run_source, "runSource": run_source,
+                            "projectRoot": state["runtimeBinding"]["projectRoot"],
+                            "documentsRoot": state["runtimeBinding"]["projectRoot"]}, sort_keys=True)}
 
 
 def inside(path, root, cwd):
@@ -608,6 +620,12 @@ def allowed_segment(words, config, cwd, alone):
         return False  # Environment prefixes or a path could change which program runs.
     name, arguments = words[0], words[1:]
     if name in ("python3", "python"):
+        if config.get("handoffPreparation"):
+            if not arguments or not plugin_script(arguments[0], config, cwd):
+                return False
+            script = Path(arguments[0]).name
+            return (alone and ((script == "exec.py" and arguments[1:2] == ["status"])
+                              or (script == "lessons.py" and lesson_query(arguments[1:], config))))
         # Only a whole command, so no pipe can feed a script's output onward.
         if arguments and Path(arguments[0]).name == "migrate_document_paths.py" and config.get("profile"):
             # Older installed copies lack the CLI's execution-time scope checks.
@@ -666,6 +684,11 @@ def patch_paths(patch):
 def codex_decision(event, config):
     tool, arguments = event.get("tool_name"), event.get("tool_input") or {}
     cwd = event.get("cwd")
+    if config.get("handoffPreparation"):
+        if not work_decision(event):
+            return False
+        if tool not in {"Bash", "Write", "Edit", "MultiEdit", "apply_patch", "Read", "Grep", "Glob"}:
+            return False
     if tool == "Bash":
         return allowed_command(str(arguments.get("command", "")), config, cwd)
     if tool in ("Write", "Edit", "MultiEdit"):
@@ -704,7 +727,7 @@ def profile_decision(event, config, agy):
     """Explorer and Scribe: Main's read and shell rules with the profile's write root, never a sub-agent."""
     if agy:
         tool = (event.get("toolCall") or {}).get("name")
-        return config["profile"] == "explore" if tool in AGY_WEB else agy_decision(event, config)
+        return config["profile"] in PROFILES if tool in AGY_WEB else agy_decision(event, config)
     return work_decision(event) and codex_decision(event, config)
 
 
@@ -764,7 +787,7 @@ def profile_instruction(state, project_root, working_directory):
     command += " --input-json " + shlex.quote(json.dumps({"query": "<topic>", "scope": "<scope>"}))
     legacy = state.get("workProfile") == "explore" and state.get("roleBoundaryPolicy") != 1
     explorer = ("Historical Explorer authority is project read-only: retrieve/audit lessons and report pending records; do not write Documents. "
-                if legacy else "Explorer may retrieve/audit and record/resolve its own errors/judgment with source equal to this run directory, using bound roots. Rule publication stays forbidden. ")
+                if legacy else "Explorer may retrieve/audit, record one bundled error/judgment lesson after its work and resolve its own, with source equal to this run directory, using bound roots. Rule publication stays forbidden. ")
     assigned = (state.get("taskBinding") or {}).get("requiredFileOperations")
     paths = ([item["path"] for item in assigned if item.get("operation") in {"add", "modify"}]
              if assigned is not None else (state.get("taskBinding") or {}).get("documentPaths", []))

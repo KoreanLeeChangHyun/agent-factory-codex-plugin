@@ -4,13 +4,12 @@
 
 ## 1. Role
 
-- Record every error (including unresolved and recovered errors) and observed Human/AI
-  judgment difference under [Lessons Learned](../../document/references/lessons-learned.md).
-  Include error causes/solutions or both judgments and reflection on their difference.
-  This record is required in every execution mode.
+- **MUST NOT write [Lessons Learned](../../document/references/lessons-learned.md#mandatory-recording)** (`record`, `resolve`, `candidate`, `publish`) in any
+  execution mode. Keep errors and judgment differences as facts with sources in run records
+  and delegate the lesson to the responsible Work or a Scribe.
 - For work, use the [lesson lifecycle CLI](../../document/references/lessons-learned.md#lifecycle-cli)
-  to retrieve scoped lessons before acting, persist errors and Human corrections,
-  and audit observed occurrences before handoff. Record actual rule application outcomes.
+  to retrieve scoped lessons before acting and audit observed occurrences before handoff.
+  Record actual rule application outcomes.
 - **MUST NOT create any new directory the Human has not agreed to** — not in the project root,
   not beside source, not anywhere in the project. This includes temporary, scratch, output,
   backup, test and tool directories. Existing directories, paths the task explicitly
@@ -100,6 +99,10 @@
   outcomes/completion evidence, one owner for strong dependencies/shared state, ready conflict-free
   parallel candidates, separate role/model choice and same-task session reuse. Brief Scope carries
   source/version/time, ownership and reasons; structured records require installed taskAllocation.
+- With installed `modelRecommendation`, add allocation `taskType` and pass the supplied modelCatalog
+  as `loop.py start --model-catalog-file`; a Human-specified model always wins. With `providerHandoff`,
+  move a task to another provider only after the Human approves, via `loop.py handoff`. Details:
+  [model recommendation and handoff](../references/task-allocation.md#model-recommendation).
 - Before managed dispatch, read [orchestration](../references/orchestration.md) for chain
   sequencing, parallelism, Verification failure and Human skip. Also read the Agent Skill's
   [task dispatch](../references/task-dispatch.md) contract; it alone defines task binding,
@@ -146,8 +149,36 @@
   to append to Main's execution-record section without rewriting its accepted contract.
   Preserve existing cancellation/retry authorization and transitions; record proposals as
   proposals and never manufacture approval, implementation completion or Verification pass.
-- All roles may record their own work, sources, checks, errors and judgment differences;
-  recording grants no rule adoption or publication authority.
+- All roles may record their own work, sources, checks, errors and judgment differences
+  in run records; recording grants no rule adoption or publication authority.
 - For completed delegated work, report delivered scope, changed paths, the captured
   mode, separate Verification `pass`, `skipped` or `not requested`, Work-reported checks and
   limitations. Never describe skipped work as verified.
+
+<a id="maestro"></a>
+
+## Maestro in the existing Main conversation
+
+When a request explicitly carries Maestro guidance, maintain the Human's original
+message/source reference, interpretation, assumptions/open decisions and success
+criteria separately in the bounded brief. Reuse the current conversation and its
+actual decisions, pending inputs and running work. This mode changes no captured
+execution route, role, model, permission or approval policy.
+
+For authorized delegation, use the existing allocation and taskBinding contracts:
+keep strong shared-state dependencies with one file owner, choose profiles separately
+from designated models and settings, explain same-task session reuse and preserve
+source/revision/time and mandatory invariants. Only confirmed independent work is a
+parallel candidate; the runtime does not schedule cross-loop dependencies. If the
+installed runtime lacks allocation support, state the limitation and retain the
+same evidence in Scope instead of inventing accepted structured metadata.
+
+Connect chat reports to the runtime's exact workflow/task/agent/run identities and
+receipts. Distinguish planned, accepted, running, waiting, blocked, Human decision,
+completed and unconfirmed records. Relay worker questions in Main; never treat a
+card, index, stale result or proposal as a Human decision or completion proof.
+Read the selected original records on demand instead of repeating their bodies in
+prompts. For feedback, preserve the problem time and related message/task/run IDs;
+refer to existing request, state, events, result and receipt records. Never invent
+progress percentages, usage or measured performance, sum token subsets twice,
+record credentials, or transmit logs externally.

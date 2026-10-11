@@ -63,7 +63,6 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(PLUGIN_ROOT / "runtime"))
 from system import sandbox as sandbox_diagnostics
 from execution import lessons as lesson_capture
-from execution import worktrees
 from storage.files import response_operation
 from execution import policy as execution_policy
 from storage.errors import ContractError
@@ -140,6 +139,7 @@ from execution.cli import (
 
 # Diagnostic/refusal paths must load even where runtime imports cannot.
 if sys.platform in portable.SUPPORTED_PLATFORMS:
+    from execution import worktrees
     import adapters
     from storage import paths as runtime_paths
     from execution import images as image_input
@@ -220,6 +220,9 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     require_managed_platform()
     project_root = resolve_project_root(args.project_root)
     validate_id(args.agent, AGENT_ID, "agent_id")
+    parent_locator = os.environ.get("AGENT_FACTORY_PARENT_STATE")
+    if parent_locator and safe_read_json(Path(parent_locator)).get("executionOptions", {}).get("handoffPreparationFor"):
+        raise ContractError("handoff_invalid", "Standby preparation cannot submit responses or allocate tasks")
     if args.actor not in ACTORS:
         raise ContractError("actor_invalid", "actor is invalid")
     if getattr(args, "input_file", None) is not None:
@@ -261,6 +264,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
     else:
         role = load_session(project_root, args.agent).get("role")
     stored_session = None if new_agent else load_session(project_root, args.agent)
+    if not new_agent and getattr(args, "handoff_experiment", False):
+        raise ContractError("handoff_invalid", "Opt in only when creating a new Main experiment")
     # Not an execution option: the dispatch tuple records only what the caller requested.
     args.inherited_provider = execution_requests.inherited_provider(_runtime, args) if new_agent else None
     provider = adapters.provider_for(getattr(args, "model", None), getattr(args, "provider", None) or args.inherited_provider, stored_session)
@@ -344,6 +349,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         "executionPolicy": policy,
         "humanApprovalPolicy": human_approval_policy,
     }
+    if new_agent and getattr(args, "handoff_experiment", False):
+        dispatch_tuple["handoffExperiment"] = True
     if not new_agent and getattr(args, "codex", None) is not None:
         dispatch_tuple["requestedCodex"] = args.codex
     if binding is not None:
@@ -376,6 +383,12 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         locks.enter_context(file_lock(Path(runtime_paths.resolve(project_root)["runtimeRoot"]) / ".worktree.lock"))
         if parent is not None:
             locks.enter_context(file_lock(agent_directory(project_root, parent["agentId"]) / ".dispatch.lock"))
+        preparation_for = execution_options.get("handoffPreparationFor")
+        if preparation_for:
+            if preparation_for == args.agent:
+                raise ContractError("handoff_invalid", "Preparation requires the separately allocated standby")
+            if parent is None or parent["agentId"] != preparation_for:
+                locks.enter_context(file_lock(agent_directory(project_root, preparation_for) / ".dispatch.lock"))
         locks.enter_context(file_lock(agent_path / ".dispatch.lock"))
         if parent is not None:
             require_current_parent_conversation(project_root, parent)
@@ -496,6 +509,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             )
         else:
             session = load_session(project_root, args.agent)
+        from execution import handoff
+        handoff.check_dispatch(session, preparation_for=preparation_for, runtime=_runtime, root=project_root)
         if any(value.get("status") in ACTIVE_STATES for value in iter_run_states(project_root, args.agent, strict=True)):
             raise ContractError("session_busy", "An accepted or active run already owns this exact session")
         if parent is not None:
@@ -556,6 +571,8 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
                 effective = {**session, **execution_options}
         adapters.adapter(provider).validate_execution(effective, goal_action)
         image_input.validate_execution(images, effective)
+        if preparation_for:
+            handoff.begin_preparation(_runtime, project_root, session, preparation_for)
         state = create_run(
             project_root=project_root,
             agent_id=args.agent,
@@ -578,6 +595,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             task_workspace_id=dispatch_tuple.get("taskWorkspaceId"),
             response_contract=getattr(args, "response_contract", None),
         )
+        handoff.accept_run(_runtime, project_root, session, state)
         if policy_changed or human_approval_policy_changed or provider_changed or codex_changed:
             session_updates = {"humanApprovalPolicy": human_approval_policy}
             if provider_changed or codex_changed:
@@ -714,6 +732,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             from execution.usage import compare_orchestration
             emit(compare_orchestration(safe_read_json(args.input), safe_read_json))
             return 0
+        if args.command == "handoff":
+            from execution import handoff
+            return handoff.command(_runtime, args)
         if args.command == "capabilities":
             session = None
             if args.agent:
@@ -728,9 +749,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             # public state carries the structured `pause` a Human decides on.
             # `workIsolation`: Main runs accept --work-isolation on|off and loops inherit it.
             # `restrictedWorkProfiles`: --work-profile also accepts explore (assigned evidence docs) and scribe (docs/ only).
+            # `taskDomain`: allocation evidence accepts an optional `domain` work-area name.
+            # `projectDomains`: domains.py keeps the shared editable domain list; loop start links the allocation domain.
+            # `domainMembership`: every worker belongs to a real domain; loop start refuses an unplaced worker without an
+            # allocation domain, and domains.py has no placeholder/unclassified options (list reports unresolved workers).
+            # `modelRecommendation`: allocation `taskType` plus loop start --model-catalog-file records a detected-model recommendation.
+            # `providerHandoff`: loop.py handoff moves the current Work task to a new linked session on another provider/model.
             for operation in ("submit", "send"):
                 capabilities[operation] = {**capabilities[operation], "workProfile": True, "restrictedWorkProfiles": True, "roleDirectExceptions": True,
-                                           "taskAllocation": True, "failureClass": True,
+                                           "taskAllocation": True, "taskDomain": True, "projectDomains": True, "domainMembership": True, "failureClass": True,
+                                           "modelRecommendation": True, "providerHandoff": True,
                                            "pendingLessons": True,
                                            "responseContract": receipt_contracts.RESPONSE_CONTRACTS[-1],
                                            "revisionLimitPause": True, "taskWorkspaces": True,

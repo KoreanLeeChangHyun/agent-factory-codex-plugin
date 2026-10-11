@@ -4,8 +4,8 @@
 
 - Use the relevant Agent Factory Skills when the task calls for them.
 - Detailed contracts live in their owning Skills and are not duplicated here.
-- Record every error and observed Human/AI judgment difference using Document
-  `references/lessons-learned.md`, including unresolved and recovered errors.
+- Record errors, including unresolved and recovered ones, and observed Human/AI judgment
+  differences following Document `references/lessons-learned.md`, which defines who writes them and when.
   Follow that guide when consolidating accumulated lessons into Skill rules.
 
 <a id="reference-locations"></a>

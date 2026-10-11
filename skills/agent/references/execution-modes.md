@@ -170,12 +170,17 @@
   | `work` | Expert (heavy) | Authorized permissions |
   | `workLight` | Worker (light) | Authorized permissions |
   | `explore` | Explorer | Source reads, web lookups, exact assigned evidence Documents and own records |
-  | `scribe` | Scribe | Writes only inside `docs/`, no web lookups |
+  | `scribe` | Scribe | Public web search/read for Document research and source checks; writing, integration and shortening only inside `docs/` |
 
   Explorer and Scribe narrow tools below the authorized permissions and never widen them:
   Claude through an allowed-tool list, Codex and Antigravity through the runtime's tool guard.
   Each may run only its Agent Factory Document scripts, never `exec.py` or `loop.py`, and
   neither may start sub-agents, so only Main dispatches agents.
+- Scribe's web access grants no code/configuration writes, external writes or publishing,
+  sensitive-data transmission, dispatch or commits. Skills whose sources are outside
+  `docs/` remain outside its write scope; report the needed change for a code Work owner.
+  Report completed research separately from pending drafting, integration and Human acceptance.
+  A research result alone does not complete a follow-up role's work.
 - Use the [direct role exceptions](role-exceptions.md) for exact Explorer assignments,
   shared Document ownership, own records, captured authority and ordinary local commits.
 - A Scribe's changes are drafts for Human review. `loop.py start` rejects a scribe code

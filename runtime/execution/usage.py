@@ -7,6 +7,54 @@ FIELDS = ("inputTokens", "cachedInputTokens", "outputTokens", "reasoningOutputTo
 CLI_FIELDS = ("input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens")
 
 
+def context_observation(event, *, provider, observed_at, provider_version=None):
+    """Normalize inference-boundary occupancy separately from cumulative usage.
+
+    Token usage is an observation of the last inference, not an exact live
+    count while tools or new messages are being appended. Consumers must bind
+    it to its turn/session and invalidate it after those boundaries change.
+    """
+    if event.get("type") != "provider.context":
+        return None
+    used, window = event.get("usedTokens"), event.get("contextWindowTokens")
+    valid = type(used) is int and used >= 0 and type(window) is int and window > 0
+    return {
+        "schemaVersion": 1,
+        "availability": "observed" if valid else "unknown",
+        "usedTokens": used if valid else None,
+        "contextWindowTokens": window if valid else None,
+        "usedPercent": used / window * 100 if valid else None,
+        "provider": provider,
+        "providerVersion": provider_version,
+        "observedAt": observed_at,
+        "source": event.get("source"),
+        "sessionId": event.get("session_id"),
+        "turnId": event.get("turn_id"),
+        "estimated": event.get("estimated", True),
+        "observationPoint": "last-inference-boundary",
+    }
+
+
+def fresh_context_percent(observation, *, now, max_age_seconds, session_id, turn_id):
+    """Return unknown for stale/unbound data; the caller supplies freshness policy."""
+    from datetime import datetime
+    if not isinstance(observation, dict) or observation.get("availability") != "observed":
+        return None
+    if observation.get("sessionId") != session_id or observation.get("turnId") != turn_id:
+        return None
+    if not session_id or not turn_id or max_age_seconds <= 0:
+        return None
+    try:
+        age = (datetime.fromisoformat(now.replace("Z", "+00:00")) -
+               datetime.fromisoformat(observation["observedAt"].replace("Z", "+00:00"))).total_seconds()
+    except (TypeError, ValueError, KeyError, AttributeError):
+        return None
+    if age < 0 or age > max_age_seconds:
+        return None
+    used, window = observation.get("usedTokens"), observation.get("contextWindowTokens")
+    return used / window * 100 if type(used) is int and used >= 0 and type(window) is int and window > 0 else None
+
+
 def counts(value, names=FIELDS):
     if not isinstance(value, dict):
         return None

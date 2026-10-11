@@ -10,6 +10,7 @@ from contracts.receipts import validate_receipt
 from storage.errors import ContractError
 from storage.files import file_lock, safe_read_json
 from storage import paths as runtime_paths
+from storage.lessons import operational_path
 from tasks.orchestrator_guard import has_symlink
 
 
@@ -26,6 +27,12 @@ def git(repository, *arguments):
     if result.returncode:
         raise ContractError("commit_git_failed", result.stderr.decode("utf-8", "replace").strip())
     return result.stdout
+
+
+def lesson_removals(repository):
+    """Already staged index-only removals are the migration, never record content."""
+    names = git(repository, "diff", "--cached", "--name-only", "--no-renames", "--diff-filter=D", "-z")
+    return {os.fsdecode(name) for name in names.split(b"\0") if name and operational_path(os.fsdecode(name))}
 
 
 def evidence(root, main_state, proposal):
@@ -105,11 +112,14 @@ def validate(root, main_state, proposal):
     paths = proposal["paths"]
     if not isinstance(paths, list) or not paths or any(not isinstance(p, str) for p in paths) or len(set(paths)) != len(paths):
         fail("Select exact receipt-bound files")
+    removals = lesson_removals(repository) if any(operational_path(p) for p in paths) else set()
     for value in paths:
         if (not isinstance(value, str) or not value or Path(value).is_absolute() or ".." in Path(value).parts
                 or str(Path(value)) != value or "\\" in value or ".git" in Path(value).parts
                 or has_symlink(repository / value) or (repository / value).is_dir()):
             fail("Unsafe commit file path")
+        if operational_path(value) and value not in removals:
+            fail("Operational lesson records are local data; only staged index removals may be committed")
         project_path = str((repository / value).relative_to(root))
         if project_path not in receipt["changedPaths"]:
             fail("Commit path is not in the completed Work receipt")
@@ -132,11 +142,14 @@ def check_changes(repository, proposal, *, staged=False):
             fail("History operation or conflict is pending")
     if git(repository, "ls-files", "-u", "-z"):
         fail("Resolve code conflicts through assigned Work")
+    removals = lesson_removals(repository) if any(operational_path(p) for p in proposal["paths"]) else set()
     for value, expected in proposal["contentHashes"].items():
         path = repository / value
         if has_symlink(path) or path.is_dir():
             fail("File type changed")
-        actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+        # An authorized untracking keeps the local body. Its commit contains only a
+        # deletion, so later recording must not invalidate the migration manifest.
+        actual = None if value in removals else hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
         if actual != expected:
             fail("Approved file content changed")
     # Untracked additions appear in `git diff HEAD` only after staging. Keep the approved
@@ -168,7 +181,9 @@ def execute(root, main_state, proposal, *, apply=False):
         check_changes(repository, proposal)
         if not apply:
             return {"status": "ready", "repository": str(repository), "paths": proposal["paths"]}
-        git(repository, "add", "--", *proposal["paths"])
+        additions = [path for path in proposal["paths"] if not operational_path(path)]
+        if additions:
+            git(repository, "add", "--", *additions)
         check_changes(repository, proposal, staged=True)
         # Hooks run normally. A failure leaves the exact staged set for Main to report; never reset it.
         git(repository, "commit", "-m", proposal["message"])

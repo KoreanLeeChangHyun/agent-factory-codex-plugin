@@ -4,6 +4,7 @@ The project keeps one aggregate record per failure signature (provider, role, co
 exit code) and appends every occurrence to it; raw commands and outputs stay out of the project."""
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 from pathlib import Path
@@ -35,6 +36,12 @@ FIRST_WORD = {**{name: 'search' for name in SEARCH | {'find', 'fd'}}, 'git': 'gi
               **{name: 'script' for name in ('python', 'python3', 'node', 'uv', 'npx', 'deno', 'bun')},
               **{name: 'read' for name in ('cat', 'sed', 'head', 'tail', 'ls', 'wc', 'stat', 'jq', 'diff', 'test', '[', 'file', 'tree')}}
 CLAUDE_EXIT = re.compile(r'\AExit code -?\d+\s*')
+# Run-local lesson facts: what the system observed, for a later lesson writer. Agents never edit them.
+FACTS_NAME = 'lesson-facts.jsonl'
+PENDING_NAME = 'lesson-pending.json'
+# Markers loop.py writes into a rework request and a request carrying the Human's bound additions.
+REWORK = 'Address these failed Verification findings.'
+STEERING = '[Bound additions to this task; preserve captured authority]'
 
 
 def unwrap(command):
@@ -171,8 +178,8 @@ def read_only(state):
 def record_root(project_root, state):
     """Where a run's captures belong: the code Work Unit that holds the project's lessons, else the project.
 
-    An isolated run's lessons are committed and merged with its task instead of dirtying the
-    source checkout the task integrates into. Shared, read-only and unbound runs keep the project."""
+    An isolated run's lessons stay local to its document workspace and are excluded from
+    Git integration. Shared, read-only and unbound runs keep the project."""
     root = Path(project_root)
     workspace = state.get('taskWorkspace')
     if not isinstance(workspace, dict) or workspace.get('mode') != 'code':
@@ -320,6 +327,11 @@ def observe(project_root, state, event, attempt=0):
                'scope': 'runtime', 'signature': signature, 'symptom': title, 'cause': 'unknown',
                'solution': 'unresolved', 'verification': 'not checked'}
     pending = capture_dir / f'{key}.json'
+    try:
+        note_fact(run_dir, state, 'failure', occurrence, occurrenceId=occurrence, signature=signature,
+                  source=payload['source'], capture=str(pending))
+    except OSError:
+        pass  # The capture below still keeps the occurrence.
     if not pending.exists():
         pending.write_text(json.dumps(payload), encoding='utf-8')
         if signature['kind'] not in ('runtime', 'tool'):
@@ -421,3 +433,101 @@ def apply_pending(project_root, state, *, clock=time.monotonic):
             else:
                 receipt.write_text(json.dumps({**recorded, 'saved': False, 'applyAttempts': attempts + 1}), encoding='utf-8')
     return applied
+
+
+def read_facts(run_dir):
+    """The run's facts in observation order, one per fact ID; torn or foreign lines are skipped."""
+    path = Path(run_dir) / FACTS_NAME
+    if path.is_symlink() or not path.is_file():
+        return []
+    facts = {}
+    for line in path.read_text(encoding='utf-8').splitlines():
+        try:
+            fact = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(fact, dict) and isinstance(fact.get('factId'), str):
+            facts.setdefault(fact['factId'], fact)
+    return list(facts.values())
+
+
+def note_fact(run_dir, state, kind, key, **fields):
+    """Append one observed fact to the run; the same kind and key is kept once. Returns the new fact or None."""
+    run_dir = Path(run_dir)
+    path = run_dir / FACTS_NAME
+    if path.is_symlink():
+        raise OSError('Unsafe lesson fact file')
+    identity = hashlib.sha256(f'{state["runId"]}:{kind}:{key}'.encode()).hexdigest()[:24]
+    if any(fact['factId'] == identity for fact in read_facts(run_dir)):
+        return None
+    fact = {'factId': identity, 'kind': kind, 'observedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'agentId': state.get('agentId'), 'runId': state.get('runId'), 'role': state.get('role'), **fields}
+    with path.open('a', encoding='utf-8') as stream:
+        stream.write(json.dumps(fact, ensure_ascii=False) + '\n')
+    return fact
+
+
+def queue_pending(run_dir, state):
+    """Keep a lesson-writing item while the run has facts; a closed item stays closed until a new fact."""
+    run_dir = Path(run_dir)
+    facts = read_facts(run_dir)
+    if not facts:
+        return None
+    path = run_dir / PENDING_NAME
+    if path.is_symlink():
+        raise OSError('Unsafe lesson pending file')
+    try:
+        item = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        item = {}
+    if not isinstance(item, dict) or item.get('runId') != state.get('runId'):
+        item = {'schemaVersion': 1, 'agentId': state.get('agentId'), 'runId': state.get('runId'),
+                'role': state.get('role'), 'createdAt': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    if item.get('status') == 'closed' and item.get('factCount') == len(facts):
+        return item
+    item.update(status='pending', factCount=len(facts), statePath=state.get('statePath'))
+    item.pop('closedBy', None)
+    temporary = path.with_name('.' + PENDING_NAME + '.tmp')
+    temporary.write_text(json.dumps(item, ensure_ascii=False), encoding='utf-8')
+    temporary.replace(path)
+    return item
+
+
+def collect(state):
+    """At the end of a run, add the facts its own records show and queue it for a lesson writer.
+
+    Failed commands and tools were noted when observed. Here: a terminal failure, a failed
+    Verification receipt, a rework request and the Human's additions delivered with the request."""
+    run_dir = Path(state['statePath']).parent
+    current = json.loads(Path(state['statePath']).read_text(encoding='utf-8'))
+    if current.get('status') == 'failed':
+        error = current.get('error') if isinstance(current.get('error'), dict) else {}
+        note_fact(run_dir, current, 'run-failed', 'status', code=error.get('code'), statePath=current['statePath'])
+    try:
+        request = Path(current['requestPath']).read_text(encoding='utf-8')
+    except (KeyError, TypeError, OSError):
+        request = ''
+    if current.get('role') == 'work' and request.startswith(REWORK):
+        lines = dict(line.split(': ', 1) for line in request.splitlines() if ': ' in line)
+        note_fact(run_dir, current, 'rework', 'request', requestPath=current['requestPath'],
+                  previousWorkRunId=lines.get('Previous Work run'), verificationResult=lines.get('Verification result'),
+                  taskId=(current.get('taskBinding') or {}).get('taskId'))
+    if STEERING in request:
+        try:
+            additions = json.loads(request.split(STEERING, 1)[1])
+        except ValueError:
+            additions = []
+        for addition in additions if isinstance(additions, list) else []:
+            if isinstance(addition, dict) and isinstance(addition.get('id'), str):
+                note_fact(run_dir, current, 'human-correction', addition['id'], message=addition.get('message'),
+                          actor=addition.get('actor'), authorizationReference=addition.get('authorizationReference'),
+                          evidence=addition.get('evidence'), taskId=addition.get('taskId'))
+    if current.get('role') == 'verification' and current.get('receiptPath'):
+        try:
+            receipt = json.loads(Path(current['receiptPath']).read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            receipt = {}
+        if isinstance(receipt, dict) and receipt.get('decision') == 'fail':
+            note_fact(run_dir, current, 'verification-fail', 'receipt', resultPath=current.get('resultPath'),
+                      findingIds=[finding.get('id') for finding in receipt.get('findings') or [] if isinstance(finding, dict)])
+    return queue_pending(run_dir, current)

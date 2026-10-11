@@ -61,7 +61,11 @@ def check_submission(read_json, parent_path, parent, document):
         if task.get("requiredFileOperations") != announced.get("requiredFileOperations"):
             raise ContractError("task_announcement_contract_mismatch", "Required file operations differ from the announcement")
         for key in ("title", "description", "completionCriteria", "workspace", "documentPaths", "allocation"):
-            if task.get(key) != announced.get(key):
+            value = task.get(key)
+            if key == "allocation" and isinstance(value, dict):
+                # loop.py start records the detected-model recommendation after this announcement.
+                value = {name: item for name, item in value.items() if name != "modelRecommendation"}
+            if value != announced.get(key):
                 raise ContractError("task_announcement_metadata_mismatch", f"Task {task['id']!r} field {key!r} differs from the announcement")
 
 

@@ -17,6 +17,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runtime"))
 from storage import lessons as body_store  # noqa: E402
 from storage import paths as runtime_paths  # noqa: E402
+from execution import lessons as capture  # noqa: E402
 
 import yaml
 from catalog_documents import read_lesson  # noqa: E402
@@ -163,6 +164,8 @@ def read_records(root, documents_root=None):
     output = []
     for package in sorted(directory.iterdir()):
         path = safe(docroot, package.relative_to(docroot))
+        if path.name == '.gitignore' and path.is_file():
+            continue
         if package.name in body_store.FOLDERS.values() and path.is_dir():
             for body in sorted(path.iterdir()):
                 safe(docroot, body.relative_to(docroot))
@@ -213,6 +216,7 @@ def save(root, record, documents_root=None):
     journal = meta.with_suffix('.pending.json')
     if journal.exists():
         raise ValueError(f'Interrupted lesson write requires recovery: {journal}')
+    body_store.ensure_ignored(docroot, atomic)
     runtime_paths.write(journal, {'documentPath': stored['documentPath'],
                                  'previousMetadata': runtime_paths.read(meta) if meta.exists() else None,
                                  'previousBody': existing_text, 'nextBody': text, 'nextMetadata': stored})
@@ -221,6 +225,70 @@ def save(root, record, documents_root=None):
     journal.unlink()
     return {'id': name, 'path': path.relative_to(docroot).as_posix(),
             'metadataPath': str(meta), 'status': record['status']}
+
+
+FACT_KINDS = ('human-correction', 'judgment', 'note')
+
+
+def run_items(root, status='pending'):
+    """Lesson-writing items the runtime queued for this project's runs, oldest run first."""
+    binding = runtime_paths.resolve(root)
+    if not binding['registered']:
+        return []
+    items = []
+    for path in sorted(Path(binding['agentsRoot']).glob('*/runs/*/' + capture.PENDING_NAME)):
+        try:
+            item = None if path.is_symlink() else json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if isinstance(item, dict) and (status == 'all' or item.get('status') == status):
+            items.append({**item, 'runDirectory': str(path.parent)})
+    return sorted(items, key=lambda item: str(item.get('runId')))
+
+
+def run_directory(root, value):
+    """An existing run directory of this project, `<agentsRoot>/<agent>/runs/<run>`."""
+    binding = runtime_paths.resolve(root)
+    path = Path(value)
+    if (not binding['registered'] or not path.is_absolute() or path.is_symlink() or not (path / 'state.json').is_file()
+            or path.parent.name != 'runs' or path.parent.parent.parent != Path(binding['agentsRoot'])):
+        raise ValueError('run must be an existing run directory of this project')
+    return path
+
+
+def describe(fact):
+    detail = {key: value for key, value in fact.items()
+              if key not in ('factId', 'kind', 'observedAt', 'agentId', 'runId', 'role') and value not in (None, '', [])}
+    return f"  - [{fact['kind']}] {fact.get('observedAt')}: " + json.dumps(detail, ensure_ascii=False)
+
+
+def brief(root, items):
+    """A draft Scribe request for the queued facts; Main reviews, edits and assigns it."""
+    cli = 'python3 ' + str(Path(__file__).resolve())
+    close = json.dumps({'close': [item['runId'] for item in items], 'by': '<this Scribe run>'}, ensure_ascii=False)
+    facts = {item['runId']: capture.read_facts(item['runDirectory']) for item in items}
+    occurrences = [fact['occurrenceId'] for values in facts.values() for fact in values if fact.get('occurrenceId')]
+    lines = ['# Brief: 교훈 작성 위임 (Scribe, 초안)', '', '## Goal', '',
+             '- 아래 run에서 시스템이 수집한 사실을 검토해, 필요한 교훈을 사건별로 기록합니다.',
+             '- Main은 교훈을 쓰지 않으므로 이 작성은 이 run이 맡습니다.', '', '## Inputs', '',
+             f'- 프로젝트: `{root}`', f'- 대상 run {len(items)}건, 사실 {sum(map(len, facts.values()))}건']
+    for item in items:
+        lines += ['', f"### {item.get('agentId')} / {item['runId']} ({item.get('role')})", '',
+                  f"- run 디렉터리: `{item['runDirectory']}` (state.json, request.md, events.jsonl, 결과)", '- 사실:']
+        lines += [describe(fact) for fact in facts[item['runId']]]
+    lines += ['', '## Scope', '',
+              '- run의 요청·이벤트·결과를 읽어 원인·해결·검증을 근거로 채웁니다. 근거가 없으면 원인 미확인·미해결로 두고 꾸며내지 않습니다.',
+              f'- 오류는 `{cli} record --project-root {root} --input <json>`(category error)로 기록하고, 원인이 확인되면 `resolve`합니다. failure 사실은 occurrenceId와 source를 그대로 인용합니다.',
+              '- human-correction·judgment 사실은 사용자님 원문(evidence)과 응답을 함께 읽고 category judgment로 기록합니다.',
+              '- rework·verification-fail 사실은 Verification 결과와 이전 Work 결과를 비교해 원인을 찾습니다.',
+              '- 같은 원인은 한 사건 기록으로 묶고 occurrenceId를 보존합니다. 규칙 후보·게시(candidate·publish)는 하지 않습니다.',
+              '', '## Done', '',
+              '- 각 사실이 교훈에 반영되었거나, 반영하지 않은 이유가 보고됩니다.',
+              f"- `{cli} audit --project-root {root} --input-json '{json.dumps({'occurrenceIds': occurrences})}'`의 missing이 비어 있습니다.",
+              f"- 마친 뒤 `{cli} pending --project-root {root} --input-json '{close}'`로 대기 항목을 닫습니다.",
+              '', '## Report', '', '- 기록·해결한 교훈 id, 반영하지 않은 사실과 이유, audit 결과를 보고합니다.', '']
+    return {'brief': '\n'.join(lines), 'runIds': [item['runId'] for item in items],
+            'factCount': sum(map(len, facts.values())), 'occurrenceIds': occurrences}
 
 
 def find(root, name, documents_root=None):
@@ -240,7 +308,8 @@ def operate(root, action, data, documents_root=None):
     docroot = body_store.document_root(root, documents_root)
     check_root(docroot)
     # Queries must also work for Explorer without creating lock files.
-    with (contextlib.nullcontext() if action in ('check', 'retrieve', 'audit') else locked(root)):
+    with (contextlib.nullcontext() if action in ('check', 'retrieve', 'audit', 'brief')
+          or action == 'pending' and 'close' not in data else locked(root)):
         if action == 'check':
             return {'compatible': True, 'count': len(records(root, docroot)),
                     'supportedFormats': SUPPORTED_FORMATS, 'toolPath': str(Path(__file__).resolve())}
@@ -250,6 +319,43 @@ def operate(root, action, data, documents_root=None):
             required(data, ['id'])
             record = find(root, data['id'], docroot)
             return {'id': record['id'], 'status': record['status']}
+        if action == 'note':
+            # A run-record fact for a later lesson writer (e.g. a Human correction Main observed); not a lesson.
+            required(data, ['run', 'kind', 'reference', 'summary'])
+            if data['kind'] not in FACT_KINDS:
+                raise ValueError('kind must be one of ' + ', '.join(FACT_KINDS))
+            directory = run_directory(root, data['run'])
+            state = runtime_paths.read(directory / 'state.json')
+            fact = capture.note_fact(directory, state, data['kind'], data['reference'], reference=data['reference'],
+                                     summary=data['summary'], evidence=data.get('evidence'), recordedBy=data.get('recordedBy'))
+            return {'noted': fact is not None, 'pending': capture.queue_pending(directory, state)}
+        if action == 'pending':
+            if 'close' not in data:
+                status = data.get('status', 'pending')
+                if status not in ('pending', 'closed', 'all'):
+                    raise ValueError('status must be pending, closed or all')
+                return {'items': run_items(root, status)}
+            required(data, ['by'])
+            if not isinstance(data['close'], list) or not data['close']:
+                raise ValueError('close must be a nonempty list of run IDs')
+            closed = []
+            for item in run_items(root, 'all'):
+                if item['runId'] in data['close']:
+                    stored = {key: value for key, value in item.items() if key != 'runDirectory'}
+                    stored.update(status='closed', closedBy=data['by'], closedAt=stamp())
+                    atomic(Path(item['runDirectory']) / capture.PENDING_NAME, json.dumps(stored, ensure_ascii=False))
+                    closed.append(item['runId'])
+            return {'closed': closed, 'missing': [run for run in data['close'] if run not in closed]}
+        if action == 'brief':
+            runs = data.get('runIds')
+            items = run_items(root, 'pending' if runs is None else 'all')
+            if runs is not None:
+                if not isinstance(runs, list):
+                    raise ValueError('runIds must be a list of run IDs')
+                items = [item for item in items if item['runId'] in runs]
+            if not items:
+                return {'brief': None, 'runIds': [], 'factCount': 0, 'occurrenceIds': []}
+            return brief(root, items)
         if action == 'record':
             required(data, ['category', 'title', 'language', 'occurrenceId', 'source', 'scope'])
             if 'relatedIds' in data:
@@ -440,7 +546,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project-root', required=True, type=Path)
     parser.add_argument('--documents-root', type=Path, help='Physical workspace containing docs; runtime identity stays --project-root')
-    parser.add_argument('action', choices=['check', 'record', 'resolve', 'retrieve', 'audit', 'candidate', 'evaluate', 'publish', 'sync', 'apply', 'retire', 'recover'])
+    parser.add_argument('action', choices=['check', 'record', 'resolve', 'retrieve', 'audit', 'candidate', 'evaluate', 'publish', 'sync', 'apply', 'retire', 'recover', 'note', 'pending', 'brief'])
     inputs = parser.add_mutually_exclusive_group(required=True)
     inputs.add_argument('--input', type=Path)
     inputs.add_argument('--input-json', help='Inline JSON payload; avoids temporary input files for read-only queries')

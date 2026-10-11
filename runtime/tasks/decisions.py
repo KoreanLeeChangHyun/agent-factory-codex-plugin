@@ -11,6 +11,9 @@ from pathlib import Path
 
 from storage.errors import ContractError
 
+# What a decision asks about, why, what it affects and the options; each is null when unstated.
+DETAIL_FIELDS = ("target", "reason", "impact", "alternatives")
+
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
@@ -29,8 +32,11 @@ def capture(runtime, state, child):
                "kind": child.get("decisionKind") or "clarification",
                "scope": child.get("decisionScope"), "question": text}
     identity = "decision-" + digest(binding)[:24]
+    # Optional structure of the request; kept outside the hashed binding so identities stay stable.
+    details = child.get("decisionDetails") if isinstance(child.get("decisionDetails"), dict) else {}
     decision = state.setdefault("decisions", {}).setdefault(identity, {
         "id": identity, "questionHash": digest(binding), **binding,
+        **{key: details.get(key) for key in DETAIL_FIELDS},
         "status": "pending", "createdAt": runtime.now()})
     state["pendingDecisionId"] = identity
     return decision

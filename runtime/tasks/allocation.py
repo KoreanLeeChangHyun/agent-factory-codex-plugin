@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import PurePosixPath
 
 from storage.errors import ContractError
+from tasks import model_affinity
 
 
 def validate(tasks):
@@ -20,8 +21,8 @@ def validate(tasks):
     def text(value):
         return isinstance(value, str) and bool(value.strip())
 
-    def exact(value, keys):
-        if not isinstance(value, dict) or set(value) != set(keys):
+    def exact(value, keys, optional=()):
+        if not isinstance(value, dict) or not set(keys) <= set(value) <= set(keys) | set(optional):
             fail('Allocation fields must match schemaVersion 1')
 
     def evidence(item, dependency=False):
@@ -43,7 +44,22 @@ def validate(tasks):
         if 'allocation' not in task:
             continue  # Legacy briefs and historical task lists remain compatible.
         exact(value, {'schemaVersion', 'unitReason', 'profile', 'session', 'inputs',
-                      'dependencies', 'readScope', 'writeScopeReason', 'sharedResources', 'parallelCandidate'})
+                      'dependencies', 'readScope', 'writeScopeReason', 'sharedResources', 'parallelCandidate'},
+              optional={'domain', 'taskType', 'modelRecommendation'})
+        # Optional work area named by Main (for example "extension UI"); never a profile, role or model.
+        # Absent means unclassified; the runtime neither infers nor normalizes it beyond exact validation.
+        if 'domain' in value:
+            domain = value['domain']
+            if (not isinstance(domain, str) or not domain.strip() or domain != domain.strip() or len(domain) > 80
+                    or any(ord(character) < 32 or ord(character) == 127 for character in domain)):
+                fail('domain must be a trimmed single-line name of at most 80 characters')
+        # Optional task type Main classifies; the runtime then records its detected-model recommendation.
+        if 'taskType' in value and value['taskType'] not in model_affinity.TASK_TYPES:
+            fail('taskType must be one of ' + ', '.join(model_affinity.TASK_TYPES))
+        if 'modelRecommendation' in value:
+            if 'taskType' not in value:
+                fail('modelRecommendation requires taskType')
+            model_affinity.validate_record(value['modelRecommendation'], value['taskType'], fail)
         if type(value['schemaVersion']) is not int or value['schemaVersion'] != 1:
             fail('Unsupported allocation schemaVersion')
         if not text(value['unitReason']) or not text(value['writeScopeReason']):

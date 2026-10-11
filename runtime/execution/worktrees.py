@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 
 from storage.errors import ContractError
+from storage.lessons import GIT_PREFIXES, operational_path
 
 
 def git(root, *arguments, check=True, data=None):
@@ -25,7 +26,20 @@ def branch(root):
 
 
 def dirty(root):
-    return bool(git(root, "status", "--porcelain", "--untracked-files=all").stdout)
+    entries = git(root, "status", "--porcelain", "-z", "--untracked-files=all").stdout.split(b"\0")
+    index = 0
+    while index < len(entries):
+        entry = entries[index]
+        index += 1
+        if not entry:
+            continue
+        names = [os.fsdecode(entry[3:])]
+        if b"R" in entry[:2] or b"C" in entry[:2]:
+            names.append(os.fsdecode(entries[index]))
+            index += 1
+        if any(not operational_path(name) for name in names):
+            return True
+    return False
 
 
 def merge_pending(root):
@@ -135,11 +149,14 @@ def save(runtime, root, agent, value):
 
 def copy_changes(root, path):
     # Copy, never stash/reset the source. The new worktree starts at the same HEAD.
-    patch = git(root, "diff", "--binary", "HEAD", "--").stdout
+    patch = git(root, "diff", "--binary", "HEAD", "--", ".",
+                *(":(exclude)" + prefix for prefix in GIT_PREFIXES)).stdout
     if patch:
         git(path, "apply", "--binary", "-", data=patch)
     files = git(root, "ls-files", "--others", "--exclude-standard", "-z").stdout.split(b"\0")
     for name in filter(None, files):
+        if operational_path(os.fsdecode(name)):
+            continue
         relative = Path(os.fsdecode(name))
         source, target = root / relative, path / relative
         if source.is_symlink() or not source.resolve().is_relative_to(root):

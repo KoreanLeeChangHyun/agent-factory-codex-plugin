@@ -66,14 +66,13 @@ GIT_READS = ["Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git
 
 
 def profile_arguments(plugin_root, profile, write_root, write_paths=(), run_directory=None):
-    """Explorer reads, searches and edits exact assigned evidence files; Scribe edits docs/ without web tools.
+    """Explorer edits exact assigned evidence files; Scribe researches Documents and edits docs/.
 
     dontAsk denies every tool not listed, under any authorized permission mode, so the profile only narrows it.
     Each may run only its Agent Factory Document scripts, never exec.py or loop.py."""
-    tools = ["Read", "Grep", "Glob", *GIT_READS,
+    tools = ["Read", "Grep", "Glob", "WebSearch", "WebFetch", *GIT_READS,
              *(f"Bash(python3 {plugin_root}/scripts/{name} *)" for name in orchestrator_guard.PROFILE_SCRIPTS[profile])]
     if profile == "explore":
-        tools += ["WebSearch", "WebFetch"]
         for path in write_paths:
             tools += [f"Edit(/{path})", f"Write(/{path})"]
         if run_directory:

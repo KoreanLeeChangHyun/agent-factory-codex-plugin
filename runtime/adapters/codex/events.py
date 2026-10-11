@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from execution.streaming import JsonStringField
@@ -102,6 +103,19 @@ class NotificationHandlers:
         if isinstance(owner, str) and (owner == self.turn_id or owner in self.completed_turns):
             emit({"type": "token.usage", "turn_id": owner,
                   "tokenUsage": params.get("tokenUsage")})
+            usage = params.get("tokenUsage")
+            if isinstance(usage, dict) and owner == self.turn_id:
+                last = usage.get("last")
+                last = last if isinstance(last, dict) else {}
+                # Keep the provider's last-inference count and denominator;
+                # never substitute session-cumulative usage or catalog limits.
+                emit({"type": "provider.context", "turn_id": owner,
+                      "session_id": params.get("threadId"),
+                      "usedTokens": last.get("totalTokens"),
+                      "contextWindowTokens": usage.get("modelContextWindow"),
+                      "source": "thread/tokenUsage/updated.tokenUsage.last.totalTokens",
+                      "observedAt": datetime.now(timezone.utc).isoformat(),
+                      "estimated": True})
         return False
 
     def on_goal_updated(self, method, params):

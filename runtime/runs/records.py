@@ -283,6 +283,10 @@ def create_session(runtime, args: argparse.Namespace, project_root: Path) -> dic
         "createdAt": created_at,
         "updatedAt": created_at,
     }
+    if getattr(args, "handoff_experiment", False):
+        if role != "main":
+            raise runtime.ContractError("handoff_invalid", "Only a new Main experiment can opt in")
+        session["handoffExperiment"] = True
     runtime.atomic_write_json(path, session)
     return session
 

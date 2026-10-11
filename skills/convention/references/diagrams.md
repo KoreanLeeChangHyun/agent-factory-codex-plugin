@@ -14,6 +14,8 @@
   text; the linked JSON carries the structured representation.
 - Use an available, documented Archify schema; do not invent one or claim rendering
   support without an available renderer.
+- Read `archify.md` for architecture and sequence assets: the pinned official validator
+  and standalone [HTML delivery](archify.md). ERD has no Archify renderer in this integration.
 - Preserve existing diagrams when no supported conversion is available.
 
 - Ground labels and relationships in inspected code, schemas or accepted Specifications.

@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/tt-a1i/archify",
+  "version": "3.0.1",
+  "commit": "2ab3cae7ac2c2a55d7386ca789d03c4fcd31816c",
+  "archive": "https://codeload.github.com/tt-a1i/archify/tar.gz/2ab3cae7ac2c2a55d7386ca789d03c4fcd31816c",
+  "archiveSha256": "e14ccec6d5765e842aa77907431aa068410f2e44fe373e13eae786d7697b0888",
+  "treeSha256": "c0d46e17c7ca7626554253b62fa979c0a2558c7ac20c53e0d821c75e7876bf13",
+  "license": "MIT",
+  "node": ">=18"
+}

@@ -318,6 +318,8 @@ def build_catalog(root: Path, documents_root=None) -> dict:
         packages = []
         for child in sorted(source.iterdir()):
             check_path(child, root)
+            if kind == "lessons-learned" and child.name == ".gitignore" and child.is_file():
+                continue
             nested = (kind == "processed" and child.name in REFINED_CATEGORIES and not (child / "SKILL.md").exists())
             typed = kind == "lessons-learned" and child.name in body_store.FOLDERS.values()
             if nested or typed:

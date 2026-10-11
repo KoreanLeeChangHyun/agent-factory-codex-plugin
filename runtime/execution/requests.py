@@ -62,6 +62,10 @@ def resolve_human_approval_policy(runtime, args: argparse.Namespace, session: di
 
 def requested_execution(runtime, args: argparse.Namespace) -> dict[str, Any]:
     options = {}
+    preparation = getattr(args, "handoff_preparation_for", None)
+    if preparation is not None:
+        runtime.validate_id(preparation, runtime.AGENT_ID, "agent_id")
+        options["handoffPreparationFor"] = preparation
     if getattr(args, "provider", None) is not None:
         options["provider"] = args.provider
     for argument, key in (("task_mode", "taskMode"), ("model", "model"), ("reasoning_effort", "reasoningEffort"), ("fast", "fast"), ("goal_mode", "goalMode"), ("goal_objective", "goalObjective")):

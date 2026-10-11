@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Keep .codex/skills, .claude/skills and .agents/skills identical to the authoritative docs/skills source."""
+"""Synchronize selected project Skill hosts from the authoritative docs/skills source."""
 
 import argparse
 from contextlib import contextmanager, nullcontext
@@ -331,19 +331,22 @@ def sync_host(root, host, *, reconcile=False, dry_run=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
+    parser.add_argument("--host", action="append", choices=HOSTS,
+                        help="Synchronize only this host; repeat to select multiple hosts (default: all hosts).")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--reconcile", action="store_true",
                       help="Back up conflicting or interrupted output, then rebuild it from docs/skills.")
     mode.add_argument("--check", action="store_true",
                       help="Report hosts that differ from docs/skills; exit 1 when any differs. Changes nothing.")
     args = parser.parse_args()
+    hosts = tuple(dict.fromkeys(args.host)) if args.host else HOSTS
     try:
         if args.check:
-            drift, errors = check(args.project_root)
-            print(json.dumps({"hosts": list(HOSTS), "outdated": drift, "errors": errors}, ensure_ascii=False))
+            drift, errors = check(args.project_root, hosts=hosts)
+            print(json.dumps({"hosts": list(hosts), "outdated": drift, "errors": errors}, ensure_ascii=False))
             return 1 if drift or errors else 0
-        # Every run updates all hosts together so .codex, .claude and .agents never diverge.
-        operations = sync(args.project_root, reconcile=args.reconcile)
+        # Every selected host is preflighted before changes, so selected outputs never diverge.
+        operations = sync(args.project_root, reconcile=args.reconcile, hosts=hosts)
         print(json.dumps({"changes": operations}, ensure_ascii=False))
         return 0
     except (OSError, ValueError, TypeError) as error:
