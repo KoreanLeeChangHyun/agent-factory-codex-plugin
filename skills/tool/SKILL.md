@@ -27,6 +27,7 @@ metadata:
 | [`commit.py`](references/usage/commit.md) | Main-owned receipt-bound ordinary local commit | [Commit boundary](../agent/references/role-exceptions.md#ordinary-local-commit) |
 | [`loop.py`](references/usage/loop.md) | Announced Work/Verification loop | [Agent](../agent/SKILL.md) |
 | [`conductor.py`](references/usage/conductor.md) | Durable chat execution routing, observation and report delivery | [Agent](../agent/SKILL.md) |
+| [`conductor_queue.py`](references/usage/conductor_queue.md) | Multi-conductor chat queue: durable ingress, fenced turns, delivery recovery and UI feed | [Agent](../agent/SKILL.md) |
 | [`domains.py`](references/usage/domains.md) | Shared project domain list and worker memberships (Human-protected) | [Task allocation](../agent/references/task-allocation.md#project-domains) |
 | [`operation_records.py`](references/usage/operation_records.md) | Read-only Task/Session/Decision/Observation lookup and record search | [Agent](../agent/SKILL.md) |
 | [`lessons.py`](references/usage/lessons.md) | Lessons and published rules | [Lessons](../document/references/lessons-learned.md#lifecycle-cli) |

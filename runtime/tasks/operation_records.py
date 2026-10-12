@@ -264,6 +264,7 @@ def project_loop(agents_root, loop_path, failure_class=None):
                             if found[role]["agentId"] else None for role in found}},
             # Loops accepted before revisions were recorded have no number; the hash still binds content.
             "revision": {"requestHash": task.get("requestHash"), "number": task.get("requestRevision"),
+                         "userRevisionCount": task.get("userRevisionCount"),
                          "loopRevisionCount": state.get("revisionCount", 0),
                          "stateRevision": state.get("stateRevision", 0)},
             "status": status,

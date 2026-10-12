@@ -201,6 +201,91 @@ def emit(value):
     print(json.dumps(value, ensure_ascii=False), flush=True)
 
 
+def compact_fork(rpc, session, source_thread_id, last_turn_id):
+    """Fork a settled Main thread through its completed turn and compact only the fork.
+
+    The source thread is not resumed or changed, so it keeps answering while this
+    runs. Completion waits for the provider's own compaction result; failure and
+    an exited server are reported, never treated as ready.
+    """
+    rpc.call("initialize", {"clientInfo": {"name": "agent_factory", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
+    rpc.write({"method": "initialized"})
+    params = {"threadId": source_thread_id, "excludeTurns": True,
+              "cwd": session.get("workingDirectory", session["projectRoot"])}
+    if last_turn_id:
+        params["lastTurnId"] = last_turn_id
+    if session.get("model"):
+        params["model"] = session["model"]
+    fork = (rpc.call("thread/fork", params, timeout=None).get("thread") or {}).get("id")
+    if not isinstance(fork, str) or not fork or fork == source_thread_id:
+        raise NativeError("Codex did not create a distinct forked thread")
+    rpc.call("thread/compact/start", {"threadId": fork}, timeout=None)
+    turn_started = compacted = False
+    usage = None
+    while True:
+        try:
+            message = rpc.event()
+        except queue.Empty:
+            if rpc.process.poll() is not None:
+                raise NativeError("Codex app-server exited before the fork compaction finished")
+            continue
+        params = message.get("params") or {}
+        if params.get("threadId") != fork:
+            continue
+        method = message.get("method")
+        if method == "turn/started":
+            turn_started = True
+        elif method == "thread/compacted" or (method == "item/completed"
+                                               and (params.get("item") or {}).get("type") == "contextCompaction"):
+            compacted = True
+            if not turn_started:
+                return {"threadId": fork, "usage": usage}
+        elif method == "thread/tokenUsage/updated":
+            token_usage = params.get("tokenUsage") or {}
+            last, window = (token_usage.get("last") or {}).get("totalTokens"), token_usage.get("modelContextWindow")
+            if type(last) is int and type(window) is int and window > 0:
+                usage = {"usedTokens": last, "contextWindowTokens": window}
+        elif method == "turn/completed":
+            status = (params.get("turn") or {}).get("status")
+            if not compacted or status not in (None, "completed"):
+                raise NativeError(f"Fork compaction did not complete (turn status {status!r})")
+            return {"threadId": fork, "usage": usage}
+
+
+def standby_continuity_text(continuity):
+    """Original references for turns the previous native session answered after the fork point."""
+    runs = (continuity or {}).get("deltaRuns") or []
+    if not runs:
+        return None
+    lines = [
+        "[Agent Factory conversation continuity] This same conversation now continues in a compacted copy of its "
+        f"previous native session, taken through run {continuity.get('forkedThroughRunId')}. The previous session "
+        "answered the later turns below after that copy. Before answering the request above, read each original "
+        "request and result in order and treat them as part of this conversation. They are already handled: do not "
+        "repeat, re-dispatch or re-approve their work; their tasks, approvals and cancellations keep their recorded owners.",
+    ]
+    for run in runs:
+        lines.append(f"- {run.get('runId')} ({run.get('status')}): request {run.get('requestPath')}; "
+                     f"result {run.get('resultPath') or 'none'}; state {run.get('statePath')}")
+    return "\n".join(lines)
+
+
+def compact_fork_process(session, run, source_thread_id, last_turn_id):
+    """Own one app-server for the standby fork; the source run's role/guard configuration applies."""
+    def factory():
+        command, environment = codex_policy.app_server(session, run)
+        return subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                text=True, encoding="utf-8", bufsize=1, env=environment)
+    rpc = Rpc(factory(), process_factory=factory)
+    try:
+        return compact_fork(rpc, session, source_thread_id, last_turn_id)
+    finally:
+        with contextlib.suppress(Exception):
+            rpc.process.stdin.close()
+            rpc.process.terminate()
+            rpc.process.wait(timeout=2)
+
+
 # A Goal turn cannot carry a per-turn outputSchema, so its final message is constrained by
 # instructions only. One schema-constrained turn restates the result instead of failing finished work;
 # a final message that already satisfies the contract starts no extra turn.
@@ -456,6 +541,10 @@ class Bridge(NotificationHandlers):
                     break
         tier = service_tier(models, response.get("model", self.session.get("model", "")), fast)
         inputs = [{"type": "text", "text": prompt}]
+        continuity = standby_continuity_text(self.state.get("standbyContinuity"))
+        if continuity:
+            # Fallback paths below rewrite input[0]; the prompt stays first.
+            inputs.append({"type": "text", "text": continuity})
         inputs.extend({"type": "localImage", "path": image["path"]} for image in self.state.get("imageInputs", []))
         turn = {"threadId": self.thread_id, "input": inputs,
                 "cwd": self.session.get("workingDirectory", self.session["projectRoot"]),

@@ -6,6 +6,7 @@ not acquire Git authority merely because the runtime supports this module.
 from __future__ import annotations
 
 import hashlib
+import copy
 import os
 import subprocess
 from pathlib import Path
@@ -56,6 +57,23 @@ def plan(root, value, selected_unit=None, isolation=False):
     return {"mode": "code", "repositories": repositories}
 
 
+def reopen(state, task):
+    """Keep unfinished units; a correction after integration needs a new unit, not a new task."""
+    value = state.get("taskWorkspaces", {}).get(task["id"])
+    if not value:
+        return
+    units = value.get("repositories", [])
+    merged = [unit for unit in units if unit.get("phase") == "merged"]
+    if merged and len(merged) != len(units):
+        raise ContractError("revision_integration_incomplete", "Finish the recorded partial integration before reopening; all Work Units are preserved")
+    if not merged:
+        return
+    state.setdefault("taskWorkspaceHistory", {}).setdefault(task["id"], []).append(copy.deepcopy(value))
+    task["workspaceGeneration"] = task.get("workspaceGeneration", 0) + 1
+    state["taskWorkspaces"].pop(task["id"])
+    state["execution"].pop("taskWorkspacePath", None)
+
+
 def prepare(runtime, state, loop_path, save):
     config = state["execution"].get("workspacePlan")
     if not config:
@@ -77,7 +95,10 @@ def prepare(runtime, state, loop_path, save):
     value = records.get(task["taskId"])
     root = Path(state["projectRoot"])
     if value is None:
-        identity = hashlib.sha256((str(root) + "\0" + state["loopId"] + "\0" + task["workflowId"] + "\0" + task["taskId"]).encode()).hexdigest()[:24]
+        current = next((item for item in (state.get("workflow") or {}).get("tasks", []) if item["id"] == task["taskId"]), {})
+        generation = current.get("workspaceGeneration", 0)
+        suffix = "\0generation-" + str(generation) if generation else ""
+        identity = hashlib.sha256((str(root) + "\0" + state["loopId"] + "\0" + task["workflowId"] + "\0" + task["taskId"] + suffix).encode()).hexdigest()[:24]
         home = Path(runtime.runtime_paths.resolve(root)["runtimeRoot"]) / "worktrees" / ("task-" + identity)
         units = []
         for repo in config["repositories"]:
@@ -335,7 +356,7 @@ def require_checkout_idle(runtime, state, checkout, code, *, target=False):
         raise error
 
 
-def integrate(runtime, state, work, receipt, save):
+def integrate(runtime, state, work, receipt, save, *, cleanup_after=True):
     value = state.get("taskWorkspaces", {}).get(state["execution"]["taskBinding"]["taskId"])
     if value is None:
         return {"status": "complete"}
@@ -456,7 +477,8 @@ def integrate(runtime, state, work, receipt, save):
             save()
     value["phase"] = "merged"
     save()
-    cleanup(runtime, state, value, save)
+    if cleanup_after:
+        cleanup(runtime, state, value, save)
     return {"status": "complete"}
 
 

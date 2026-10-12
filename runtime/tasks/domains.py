@@ -366,3 +366,54 @@ def remove_worker(runtime_root, agent_id, actor, source, expected_revision=None)
         _event(document, by, "remove-worker", agentId=agent_id)
         return {"agentId": agent_id, "removed": True}
     return _mutate(runtime_root, expected_revision, change)
+
+
+def subdomain(runtime_root, domain_id, name, actor, source, expected_revision=None, write_scope=None):
+    """Add an explicit child area without migrating domains or legacy memberships."""
+    name, by = name_of(name), _actor(actor, source)
+    if write_scope is not None:
+        from tasks.conductor_intents import scope_paths
+        scope_paths(write_scope)
+
+    def change(document):
+        if not placeable(document, domain_id):
+            raise ContractError('domain_missing', 'Select an existing named domain before defining its child area')
+        children = document.setdefault('subdomains', [])
+        existing = next((item for item in children if item['domainId'] == domain_id and key(item['name']) == key(name)), None)
+        if existing:
+            if write_scope is not None and existing.get('writeScope') != write_scope:
+                if existing['setBy']['actor'] == 'human' and actor != 'human':
+                    raise ContractError('domain_protected', 'Only the Human changes this child area scope')
+                existing.update(writeScope=write_scope, setBy=by)
+            return {'subdomain': copy.deepcopy(existing)}
+        item = {'id': 'subdomain-' + uuid.uuid4().hex[:12], 'domainId': domain_id, 'name': name, 'setBy': by,
+                'writeScope': write_scope}
+        children.append(item)
+        _event(document, by, 'subdomain-create', domainId=domain_id, subdomainId=item['id'], name=name)
+        return {'subdomain': copy.deepcopy(item)}
+    return _mutate(runtime_root, expected_revision, change)
+
+
+def assign_subdomain(runtime_root, agent_id, domain_id, subdomain_id, actor, source):
+    """Keep the parent placement and its protection; new managed hires are assigned before submit."""
+    if not isinstance(agent_id, str) or not AGENT_ID.fullmatch(agent_id):
+        raise ContractError('domain_agent_invalid', 'Invalid worker agent ID')
+    by = _actor(actor, source)
+
+    def change(document):
+        child = next((item for item in document.get('subdomains', []) if item['id'] == subdomain_id and item['domainId'] == domain_id), None)
+        if not child or not placeable(document, domain_id):
+            raise ContractError('domain_missing', 'Select an existing domain and child area')
+        parent = document['assignments'].get(agent_id)
+        children = document.setdefault('subdomainAssignments', {})
+        old = children.get(agent_id)
+        if actor == 'ai' and ((parent and parent['setBy']['actor'] == 'human' and (parent['domainId'] != domain_id or old is None))
+                              or (old and old['setBy']['actor'] == 'human' and old['subdomainId'] != subdomain_id)):
+            raise ContractError('domain_protected', 'The Human placed this worker; its placement stays intact')
+        if not parent or parent['domainId'] != domain_id:
+            document['assignments'][agent_id] = {'domainId': domain_id, 'setBy': by}
+        if not old or old['subdomainId'] != subdomain_id:
+            children[agent_id] = {'domainId': domain_id, 'subdomainId': subdomain_id, 'setBy': by}
+            _event(document, by, 'subdomain-assign', agentId=agent_id, domainId=domain_id, subdomainId=subdomain_id)
+        return {'agentId': agent_id, 'domainId': domain_id, 'subdomainId': subdomain_id}
+    return _mutate(runtime_root, None, change)

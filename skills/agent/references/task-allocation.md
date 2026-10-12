@@ -4,7 +4,7 @@
 
 - Main decomposes independent outcomes with completion evidence; keep strong dependencies/shared
   state with one owner. Only ready, conflict-free work is a parallel candidate. File count,
-  elapsed time and worker count are not complexity limits.
+  elapsed time and performer count are not complexity limits.
 - Choose role/profile separately from model, effort, Fast and permissions: explore investigates;
   workLight handles settled local changes; work handles uncertain design/integration/diagnosis;
   scribe researches, checks sources, writes, integrates and shortens authorized Documents.
@@ -47,7 +47,7 @@
 | readScope | Nonempty path/source strings; descriptive, grants no permission. |
 | writeScopeReason | Nonempty explanation of the existing brief Scope or requiredFileOperations/documentPaths/workspace. No second write list. |
 | sharedResources | Entries: nonempty resource, evidence; boolean confirmed; ownerTaskId: self or an existing task ID. One resource has one owner. Unknown external ownership remains unresolved evidence. |
-| domain | Optional. Trimmed single-line work-area name (at most 80 characters) such as the product area the outcome belongs to, chosen by Main for this task. Not a profile, role or model. Omit it only when the worker already belongs to a domain; consumers never infer it from titles or history. |
+| domain | Optional. Trimmed single-line work-area name (at most 80 characters) such as the product area the outcome belongs to, chosen by Main for this task. Not a profile, role or model. Omit it only when the performer already belongs to a domain; consumers never infer it from titles or history. |
 | taskType | Optional. research, small-change, design-diagnosis or documentation, classified by Main. The runtime then adds `modelRecommendation`; never submit that field. |
 | parallelCandidate | Boolean judgment. True requires confirmed inputs/dependencies/ownership and ownership of declared resources; overlapping existing declared writes fail. |
 
@@ -71,31 +71,31 @@
 ## 2. Project domains
 
 - With installed `submit.projectDomains: true`, one editable project list of work-area domains and
-  worker memberships is shared by the Human (control center) and Main. Run `domains.py list` before
+  performer memberships is shared by the Human (control center) and Main. Run `domains.py list` before
   choosing an allocation `domain`; reuse an existing name (current or former) for the same work area
   and create a new name only when none fits. Never invent a fixed taxonomy or infer from titles alone.
-- With installed `submit.domainMembership: true`, every worker belongs to one real, named domain.
+- With installed `submit.domainMembership: true`, every performer belongs to one real, named domain.
   There is no unclassified state: `--placeholder`/`--unclassified` fail with `domain_membership_required`,
   names meaning "no domain" (`미분류`, `unclassified`, …) fail with `domain_name_reserved`, and Main must
   name the actual area, never a catch-all (`기타`, `기본`, `misc`, `general`, …). `loop.py start` refuses
-  a Work or Verification worker that has no domain unless the allocation names one Main may link;
-  a refused start registers nothing. `loop.py handoff` places the new session in the prior worker's domain.
+  a Work or Verification performer that has no domain unless the allocation names one Main may link;
+  a refused start registers nothing. `loop.py handoff` places the new session in the prior performer's domain.
 - `loop.py start` links the accepted allocation domain as Main's (`ai`) choice: a matching domain is
-  reused or created and the workers are placed in it, reported as `domainLink` (Work) and
-  `verificationDomainLink`. Without an allocation domain, place a new worker first with
+  reused or created and the performers are placed in it, reported as `domainLink` (Work) and
+  `verificationDomainLink`. Without an allocation domain, place a new performer first with
   `domains.py link --actor ai --source <run> --agent <id> --name <domain>`; `member` tells whether it belongs.
-- Human edits win. Main may not rename a domain the Human named or move a worker the Human placed;
+- Human edits win. Main may not rename a domain the Human named or move a performer the Human placed;
   such writes fail with `domain_protected` and a linked dispatch keeps going. Use `--expected-revision`
   from the last read; `domain_conflict` means reload.
 - The list is display/organization data. It never rewrites accepted allocation, taskBinding, receipts
   or run state; a renamed domain keeps former names so recorded tasks stay linked. Delete and merge
-  are not supported, and no write may leave a worker without a domain.
-- `list` also returns `unresolved`: workers recorded before membership was required (`unassigned`,
+  are not supported, and no write may leave a performer without a domain.
+- `list` also returns `unresolved`: performers recorded before membership was required (`unassigned`,
   a Human `legacy-unclassified` choice, an `unnamed-domain` provisional domain or a `missing-domain`),
-  removed workers included. `domains.py recover [--dry-run]` places only a worker with no entry whose
+  removed performers included. `domains.py recover [--dry-run]` places only a performer with no entry whose
   own runs and loops recorded exactly one allocation domain; the rest stay listed with `candidates`
   for an explicit `assign`. Only the Human resolves a Human legacy choice; naming a provisional domain
-  (`rename`) resolves its workers. Nothing is hidden, deleted or guessed.
+  (`rename`) resolves its performers. Nothing is hidden, deleted or guessed.
 
 <a id="model-recommendation"></a>
 

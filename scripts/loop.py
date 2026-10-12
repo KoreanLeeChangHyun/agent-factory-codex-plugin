@@ -44,7 +44,7 @@ STALE_CHECK_SECONDS = 30.0
 INTEGRATION_WAIT_ATTEMPTS = 150
 INTEGRATION_WAIT_ERRORS = {"task_target_busy", "task_workspace_busy", "lock_busy"}
 # Human-invoked commands that return a stopped loop to `active`.
-RESUMING_COMMANDS = {"recover-receipt", "extend-revisions", "answer", "steer", "retry-preparation", "handoff"}
+RESUMING_COMMANDS = {"recover-receipt", "extend-revisions", "answer", "steer", "revise", "retry-preparation", "handoff"}
 # Commands after which an active loop must have a driver; one is launched only when none holds the driver lock.
 DRIVER_ENSURING_COMMANDS = RESUMING_COMMANDS | {"reconcile", "skip"}
 # A handoff waits this long for a cancelled Work run to end before the new session may write.
@@ -259,6 +259,8 @@ class AgentRuntime:
         for key, value in role_model_options(execution, role, operation).items():
             if key == "model":
                 arguments.extend(["--model", str(value)])
+            elif key == "provider":
+                arguments.extend(["--provider", str(value)])
             elif key == "reasoningEffort":
                 arguments.extend(["--reasoning-effort", str(value)])
             elif key == "fast":
@@ -378,6 +380,7 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         "schemaVersion": SCHEMA_VERSION,
         "kind": "work-verification-loop",
         "taskWorkspaces": copy.deepcopy(state.get("taskWorkspaces", {})),
+        **({"taskWorkspaceHistory": copy.deepcopy(state["taskWorkspaceHistory"])} if state.get("taskWorkspaceHistory") else {}),
         "loopId": state["loopId"],
         "workflow": workflow,
         "contract": copy.deepcopy(state.get("contract")),
@@ -395,6 +398,10 @@ def public_state(state: dict[str, Any], child: dict[str, Any] | None = None) -> 
         **({"handoffs": copy.deepcopy(state["handoffs"])} if state.get("handoffs") else {}),
         # A completed Scribe's uncommitted draft and the Human's review decision.
         **({"draftReview": copy.deepcopy(state["draftReview"])} if state.get("draftReview") else {}),
+        # Reused or new workers checked at start; absent on loops accepted before team assignment.
+        **({"teamAssignment": copy.deepcopy(state["teamAssignment"])} if state.get("teamAssignment") else {}),
+        **({"dispatchHistory": copy.deepcopy(state["dispatchHistory"])} if state.get("dispatchHistory") else {}),
+        **({"userRevisions": copy.deepcopy(state["userRevisions"])} if state.get("userRevisions") else {}),
         "status": state["status"],
         "phase": state["phase"],
         "workAgentId": state["workAgentId"],
@@ -486,6 +493,7 @@ def prepare_dispatch(
         and not state.get("decisionContinuationPending")
         and not state.get("steeringContinuationPending")
         and not state.get("handoffContinuationPending")
+        and not state.get("userRevisionPending")
     ):
         raise agent_exec.ContractError("graph_transition_invalid", "a Work revision requires failed Verification")
     agent_id = assigned_agent(state, role)
@@ -497,16 +505,42 @@ def prepare_dispatch(
     if recovery_of_run_id is not None and operation != "send":
         raise agent_exec.ContractError("receipt_recovery_session_invalid", "Receipt recovery requires the existing Work session")
     content = agent_exec.safe_read_bytes(request_file, agent_exec.MAX_REQUEST_BYTES)
+    context = None
+    trigger = "initial" if state.get("latestWorkRunId") is None else "verification-revision"
+    if recovery_of_run_id is not None:
+        trigger = "receipt-recovery"
+    elif state.get("userRevisionPending"):
+        trigger = "user-revision"
+    elif state.get("decisionContinuationPending"):
+        trigger = "decision-answer"
+    elif state.get("handoffContinuationPending"):
+        trigger = "handoff"
+    elif state.get("integrationRevisionPending"):
+        trigger = "integration-repair"
+    elif state.get("steeringContinuationPending"):
+        trigger = "steering"
+        # The accepted original is already in the session; the queued additions
+        # below are the only new request content.
+        content = b"Apply the bound additions below."
     queued = [item for item in state.get("steering", []) if item["status"] == "queued"
               and item["taskId"] == state["execution"]["taskBinding"]["taskId"]]
     if role == "work" and queued:
+        trigger = "steering" if trigger == "initial" else trigger
         request_file = write_request(path.parent, "steering-" + uuid.uuid4().hex + ".md",
             content.decode("utf-8") + "\n\n[Bound additions to this task; preserve captured authority]\n"
             + json.dumps(queued, ensure_ascii=False))
         content = agent_exec.safe_read_bytes(request_file, agent_exec.MAX_REQUEST_BYTES)
+    if (role == "work" and state.get("latestWorkRunId") and recovery_of_run_id is None
+            and not state.get("handoffContinuationPending")
+            and state.get("execution", {}).get("taskBinding")):
+        from tasks import revisions
+        text, context = revisions.request(agent_exec, state, content.decode("utf-8"),
+            agent_id=agent_id, previous_run_id=state["latestWorkRunId"])
+        request_file = write_request(path.parent, "continuation-" + uuid.uuid4().hex + ".md", text)
+        content = agent_exec.safe_read_bytes(request_file, agent_exec.MAX_REQUEST_BYTES)
     workflow = state.get("workflow")
     if (role == "work" and workflow and recovery_of_run_id is None and not state.get("decisionContinuationPending")
-            and (queued or (not state.get("handoffContinuationPending")
+            and (queued or state.get("userRevisionPending") or (not state.get("handoffContinuationPending")
                             and (state.get("integrationRevisionPending") or state.get("lastVerificationDecision") == "fail")))):
         # A rework or a delivered change request raises the task's revision; recovery, answers and handoffs do not.
         # Tasks accepted before revisions were recorded keep no number rather than a guessed one.
@@ -527,7 +561,15 @@ def prepare_dispatch(
         "capabilityBindingPath": role_binding.get("path"),
         "capabilityBindingHash": role_binding.get("hash"),
         "steeringIds": [item["id"] for item in queued] if role == "work" else [],
+        "trigger": trigger if role == "work" else "verification",
+        "context": context,
+        "requestRevision": workflow["tasks"][workflow["index"]].get("requestRevision") if workflow else None,
     }
+    if state.get("userRevisionPending"):
+        state["pendingDispatch"]["userRevisionId"] = state.pop("userRevisionPending")
+        revision = next(item for item in state["userRevisions"]
+                        if item["id"] == state["pendingDispatch"]["userRevisionId"])
+        state["pendingDispatch"]["userRevisionNumber"] = revision["number"]
     if recovery_of_run_id is not None:
         state["pendingDispatch"]["recoveryOfRunId"] = recovery_of_run_id
     state["phase"] = f"{role}-dispatching"
@@ -685,6 +727,19 @@ def complete_pending_dispatch(
     for item in state.get("steering", []):
         if item["id"] in pending.get("steeringIds", []):
             item.update(status="delivered", continuationRunId=run_id, dispatchId=pending["dispatchId"])
+    if pending.get("userRevisionId"):
+        item = next(item for item in state["userRevisions"] if item["id"] == pending["userRevisionId"])
+        item.update(status="delivered", continuationRunId=run_id, dispatchId=pending["dispatchId"])
+    state.setdefault("dispatchHistory", []).append({
+        "runId": run_id, "agentId": pending["agentId"], "role": role,
+        "workflowId": state["execution"].get("taskBinding", {}).get("workflowId"),
+        "taskId": state["execution"].get("taskBinding", {}).get("taskId"),
+        "trigger": pending.get("trigger"), "context": pending.get("context"),
+        "requestRevision": pending.get("requestRevision"),
+        "userRevisionNumber": pending.get("userRevisionNumber"),
+        "requestPath": pending["requestPath"], "requestHash": pending["requestHash"],
+        "receiptRequestHash": pending["receiptRequestHash"], "dispatchId": pending["dispatchId"],
+    })
     save_loop_state(path, state)
     return run
 
@@ -824,10 +879,14 @@ def accept_loop(args: argparse.Namespace) -> dict[str, Any]:
     args.captured_allocation = agent_exec.safe_read_json(args.allocation_file) if getattr(args, "allocation_file", None) else None
     document = agent_exec.safe_read_json(args.task_list_file) if getattr(args, "task_list_file", None) else None
     declared = agent_exec.safe_read_json(args.workspace_file) if getattr(args, "workspace_file", None) else next((task.get("workspace") for task in (document or {}).get("tasks", []) if task.get("id") == getattr(args, "task_id", None)), None)
+    acceptance_id = getattr(args, "acceptance_id", None)
+    if acceptance_id is not None:
+        agent_exec.validate_id(acceptance_id, agent_exec.AGENT_ID, "acceptance_id")
     if declared is None:
         if args.work_isolation_enabled:
             raise agent_exec.ContractError("task_workspace_required", "Work isolation is on; supply --workspace-file with a code or read-only plan")
-        return start_loop_captured(args)
+        if acceptance_id is None:
+            return start_loop_captured(args)
     root = agent_exec.resolve_project_root(args.project_root)
     agent_exec.runtime_paths.resolve(root, create=True)
     agent_exec.validate_id(args.work_agent, agent_exec.AGENT_ID, "work_agent")
@@ -836,9 +895,10 @@ def accept_loop(args: argparse.Namespace) -> dict[str, Any]:
     parent = agent_exec.managed_parent_identity(root)
     if parent:
         selected = agent_exec.load_session(root, parent["agentId"]).get("worktree")
-    captured = workspaces.plan(root, declared, selected, args.work_isolation_enabled)
-    args.captured_workspace_plan = captured
-    if captured["mode"] != "code":
+    captured = workspaces.plan(root, declared, selected, args.work_isolation_enabled) if declared is not None else None
+    if captured is not None:
+        args.captured_workspace_plan = captured
+    if captured is not None and captured["mode"] != "code" and acceptance_id is None:
         return start_loop_captured(args)
     agent = agent_exec.agent_directory(root, args.work_agent, create=True)
     with agent_exec.file_lock(agent / ".task-workspace-start.lock"):
@@ -846,15 +906,21 @@ def accept_loop(args: argparse.Namespace) -> dict[str, Any]:
         acceptance = {"requestHash": request_hash, "workspace": captured,
                       "taskDocument": document, **({"allocation": args.captured_allocation} if args.captured_allocation is not None else {}), "options": {key: value for key, value in vars(args).items() if key in (
                           "task_id", "task_mode", "work_agent", "verification_agent", "work_model", "verification_model",
-                          "work_reasoning_effort", "verification_reasoning_effort", "work_fast", "verification_fast",
+                          "work_reasoning_effort", "verification_reasoning_effort", "work_fast", "verification_fast", "work_provider", "verification_provider", "work_human_approval_policy", "verification_human_approval_policy",
                           "work_execution_mode", "verification_execution_mode", "work_profile", "max_revisions", "receipt_recovery")},
                       **({"workIsolation": True} if args.work_isolation_enabled else {})}
+        if acceptance_id is not None:
+            acceptance["acceptanceId"] = acceptance_id
         args.workspace_acceptance_key = hashlib.sha256(json.dumps(acceptance, sort_keys=True).encode()).hexdigest()
         for previous_path in sorted((agent / "loops").glob("*/state.json")):
             previous = agent_exec.safe_read_json(previous_path)
-            if previous.get("acceptedRequestHash", previous.get("originalRequestHash")) != request_hash or not previous.get("execution", {}).get("workspacePlan"):
+            binding = previous.get("execution", {}).get("taskBinding") or {}
+            same_identity = (previous.get("acceptanceId") == acceptance_id if acceptance_id is not None else
+                             document is not None and binding.get("workflowId") == document.get("id") and binding.get("taskId") == getattr(args, "task_id", None))
+            if not same_identity:
                 continue
-            if (previous.get("workspaceAcceptanceKey") != args.workspace_acceptance_key or previous["execution"]["taskMode"] != args.task_mode or
+            if (previous.get("acceptedRequestHash", previous.get("originalRequestHash")) != request_hash or
+                    previous.get("workspaceAcceptanceKey") != args.workspace_acceptance_key or previous["execution"]["taskMode"] != args.task_mode or
                     previous.get("verificationAgentId") != args.verification_agent):
                 raise agent_exec.ContractError("task_workspace_acceptance_collision", "This task was already accepted with different workspace or route bindings")
             # A retried start returns the accepted loop; it must not launch a second driver for it.
@@ -864,6 +930,13 @@ def accept_loop(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
+    # The team assignment lock spans the worker check until the new loop is saved, never the dispatch.
+    with contextlib.ExitStack() as assignment:
+        args.team_assignment_hold = assignment
+        return _start_loop_captured(args)
+
+
+def _start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
     root = agent_exec.resolve_project_root(args.project_root)
     agent_exec.validate_id(args.work_agent, agent_exec.AGENT_ID, "work_agent")
     mode = getattr(args, "task_mode", "work-verification")
@@ -929,6 +1002,20 @@ def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
         task.setdefault("workAgentId", args.work_agent)
         if args.verification_agent:
             task.setdefault("verificationAgentId", args.verification_agent)
+    from tasks import team
+    reused = agent_exec.session_file(root, args.work_agent).exists()
+    recommendation = ((submitted_document["tasks"][0].get("allocation") or {}).get("modelRecommendation") or {})
+    if reused and work_model_override and recommendation.get("status") != "human-specified":
+        # A reused worker keeps its own model; only an explicit or Human-specified model is applied to it.
+        work_model_override = None
+    work_mode = getattr(args, "work_execution_mode", None)
+    requirements = {key: value for key, value in {
+        "model": getattr(args, "work_model", None) or (getattr(args, "model", None) if not reused else None) or work_model_override,
+        "reasoningEffort": getattr(args, "work_reasoning_effort", None), "fast": getattr(args, "work_fast", None),
+        "workProfile": work_profile, "provider": getattr(args, "work_provider", None),
+        "humanApprovalPolicy": ("bypass" if work_mode == "bypass" else "required") if work_mode else None}.items() if value is not None}
+    args.team_assignment_hold.enter_context(team.assignment_lock(agent_exec, root))
+    team_assignment = team.check_start(agent_exec, root, task_document["id"], tasks, requirements, args.verification_agent)
     binding = task_binding.validate(task_document, args.task_id, hashlib.sha256(request).hexdigest())
     task_requests = []
     for index, task in enumerate(tasks):
@@ -948,7 +1035,7 @@ def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
         request_path = directory / f"task-{index}.md"
         agent_exec.atomic_write(request_path, content)
         workflow_tasks.append({**task, "requestPath": str(request_path), "workStatus": "pending", "verificationStatus": "pending",
-                               "requestRevision": 1})
+                               "requestRevision": 1, "userRevisionCount": 0})
     task_list_path = directory / "task-list.json"
     agent_exec.atomic_write_json(task_list_path, task_document)
     original = directory / "original-request.md"
@@ -959,20 +1046,31 @@ def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
     role_permissions = {}
     for role in ("work", "verification"):
         permission_mode = getattr(args, role + "_execution_mode", None)
-        if permission_mode is None:
+        permission_file = getattr(args, role + "_execution_policy_file", None)
+        human_policy = getattr(args, role + "_human_approval_policy", None)
+        if permission_mode is not None and permission_file is not None:
+            raise agent_exec.ContractError('execution_policy_mismatch', 'Select either a role mode or an exact captured role policy')
+        if permission_mode is None and permission_file is None and human_policy is None:
             continue
         locator = os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV)
         if locator:
             captured = agent_exec.safe_read_json(Path(locator)).get("executionOptions", {}).get("agentPermissions", {}).get(role)
-            if captured is not None and permission_mode != captured:
+            if captured is not None and permission_mode is not None and permission_mode != captured:
                 raise agent_exec.ContractError("execution_policy_mismatch", "Role permission mode differs from captured Human selection")
-        selected = agent_exec.execution_policy.role_policy(permission_mode, policy, root)
+            parent_record = agent_exec.safe_read_json(Path(locator))
+            captured_human = 'bypass' if captured == 'bypass' else 'required' if captured else parent_record.get('humanApprovalPolicy', 'required')
+            if human_policy is not None and human_policy != captured_human:
+                raise agent_exec.ContractError('execution_policy_mismatch', 'Role Human approval policy differs from captured authorization')
+        if permission_file is not None:
+            selected = agent_exec.execution_policy.normalize(agent_exec.safe_read_json(permission_file))
+        else:
+            selected = agent_exec.execution_policy.role_policy(permission_mode or 'cli-default', policy, root)
         authorized = agent_exec.execution_policy.authorized_role_policy(role, policy, str(root))
         if os.environ.get(agent_exec.execution_policy.PARENT_STATE_ENV) and selected != (authorized or policy):
             raise agent_exec.ContractError("execution_policy_mismatch", "Role permissions differ from captured Human selection")
         role_path = directory / f"{role}-execution-policy.json"
         agent_exec.atomic_write_json(role_path, selected)
-        role_permissions[role] = {"policy": selected, "path": str(role_path), "humanApprovalPolicy": "bypass" if permission_mode == "bypass" else "required"}
+        role_permissions[role] = {"policy": selected, "path": str(role_path), "humanApprovalPolicy": human_policy or ("bypass" if permission_mode == "bypass" else "required")}
     capability_bindings: dict[str, dict[str, str | None]] = {}
     for role in ("work", "verification"):
         _binding_document, binding_bytes = agent_exec.read_capability_bindings(
@@ -1003,6 +1101,7 @@ def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
         "originalRequestHash": hashlib.sha256(request).hexdigest(),
         "acceptedRequestHash": hashlib.sha256(request).hexdigest(),
         **({"workspaceAcceptanceKey": args.workspace_acceptance_key} if getattr(args, "workspace_acceptance_key", None) else {}),
+        **({"acceptanceId": args.acceptance_id} if getattr(args, "acceptance_id", None) else {}),
         "capabilityBindings": capability_bindings,
         "workAgentId": args.work_agent,
         "verificationAgentId": args.verification_agent,
@@ -1027,7 +1126,7 @@ def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
                       **({"workspacePlans": workspace_plans} if workspace_plans else {}),
                       # Present only when the Human turned Work isolation on; integration then never waits for a Human.
                       **({"workIsolation": True} if isolation else {}),
-                      "agentModels": {role: {key: value for key, value in {"model": getattr(args, role + "_model", None) or (work_model_override if role == "work" else None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None), "fast": getattr(args, role + "_fast", None)}.items() if value is not None} for role in ("work", "verification")},
+                      "agentModels": {role: {key: value for key, value in {"provider": getattr(args, role + "_provider", None), "model": getattr(args, role + "_model", None) or (work_model_override if role == "work" else None), "reasoningEffort": getattr(args, role + "_reasoning_effort", None), "fast": getattr(args, role + "_fast", None)}.items() if value is not None} for role in ("work", "verification")},
                       "executionPolicy": policy, "executionPolicyPath": str(policy_path), "agentPermissions": role_permissions,
                       # Loops persisted before these fields keep the unbounded, explicit-recovery graph.
                       "maxRevisions": max_revisions, "receiptRecovery": getattr(args, "receipt_recovery", "auto"),
@@ -1035,10 +1134,13 @@ def start_loop_captured(args: argparse.Namespace) -> dict[str, Any]:
                       "responseContract": agent_exec.receipt_contracts.RESPONSE_CONTRACTS[-1],
                       # Loops started without the flag keep no profile record.
                       **({"workProfile": work_profile} if work_profile else {})},
+        # Which workers this loop reused or opened, checked under the assignment lock.
+        "teamAssignment": team_assignment,
         "createdAt": created,
         "updatedAt": created,
     }
     save_loop_state(path, state)
+    args.team_assignment_hold.close()
     try:
         dispatch(state, path, AgentRuntime(root, state["parentStatePath"]), role="work", request_file=original)
     except (agent_exec.ContractError, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
@@ -1079,13 +1181,20 @@ Receipt recovery evidence:
 - Preserved failed result: {recovery['failedResultPath']}
 - Preserved failed receipt: {recovery['failedReceiptPath']}
 """
+    binding = state.get("execution", {}).get("taskBinding") or {}
+    additions = [item for item in state.get("userRevisions", [])
+                 if item.get("taskId") == binding.get("taskId") and item.get("status") == "delivered"]
+    additions += [item for item in state.get("steering", [])
+                  if item.get("taskId") == binding.get("taskId") and item.get("status") == "delivered"]
+    addition_context = ("\nAccepted additions to this same task (check these as well as the original completion criteria):\n"
+                        + json.dumps(additions, ensure_ascii=False, indent=2)) if additions else ""
     return write_request(directory, f"verification-{work['runId']}.md", f"""Verify this Work result.
 
 Original request: {state['originalRequestPath']}
 Work run: {work['runId']}
 Work result: {work['resultPath']}
 Work receipt: {work['receiptPath']}
-{revision_context}{recovery_evidence}
+{revision_context}{recovery_evidence}{addition_context}
 """)
 
 
@@ -1378,7 +1487,7 @@ def finish_workflow_task(state, path, runtime, reason):
         task["workStatus"] = "completed"
         if reason == "pass":
             task["verificationStatus"] = "completed"
-        if workflow["index"] + 1 < len(workflow["tasks"]):
+        if not state.get("revisionOnlyTaskId") and workflow["index"] + 1 < len(workflow["tasks"]):
             workflow["index"] += 1
             next_task = workflow["tasks"][workflow["index"]]
             from tasks import binding as task_binding
@@ -1404,6 +1513,8 @@ def finish_workflow_task(state, path, runtime, reason):
             return public_state(state, state["currentChild"])
     state.update(status="completed", phase="ended", currentChild=None,
                  terminalReason={"code": reason, "message": "All submitted tasks completed"}, updatedAt=now())
+    if state.pop("revisionOnlyTaskId", None):
+        state["terminalReason"]["message"] = "The selected task revision completed; other task histories were preserved"
     if state["execution"].get("workProfile") == "scribe" and state.get("latestWorkRunId"):
         record_draft_review(state, runtime)
     if state.get("lifecycleVersion"):
@@ -1461,6 +1572,14 @@ def reconcile_loop(args: argparse.Namespace) -> dict[str, Any]:
         upgrade_execution_policy(state, path, args, root)
         runtime = AgentRuntime(root, state.get("parentStatePath"))
         if isinstance(state.get("pendingDispatch"), dict):
+            child = complete_pending_dispatch(state, path, runtime)
+            return public_state(state, child)
+        if state.get("userRevisionPending") and not state.get("currentChild"):
+            revision = next(item for item in state["userRevisions"] if item["id"] == state["userRevisionPending"])
+            request = Path(revision["requestPath"])
+            if hashlib.sha256(agent_exec.safe_read_bytes(request, agent_exec.MAX_REQUEST_BYTES)).hexdigest() != revision.get("deltaHash"):
+                raise agent_exec.ContractError("revision_binding_invalid", "The accepted correction changed before preparation completed")
+            prepare_dispatch(state, path, role="work", request_file=request)
             child = complete_pending_dispatch(state, path, runtime)
             return public_state(state, child)
         current = state.get("currentChild")
@@ -1630,10 +1749,79 @@ def steer_loop(args):
         return public_state(state)
 
 
+def revise_loop(args):
+    """Reopen one explicitly selected task with an authorized delta, retaining its accepted contract."""
+    if not args.authorization_reference.strip() or not args.decision_evidence.strip() or not args.message.strip():
+        raise agent_exec.ContractError("revision_evidence_required", "Provide the exact authorized correction and its reference")
+    root = agent_exec.resolve_project_root(args.project_root)
+    path, _ = read_state(root, args.work_agent, args.loop_id)
+    from tasks import team, binding as task_binding
+    with team.assignment_lock(agent_exec, root), agent_exec.file_lock(path.parent / ".loop.lock"):
+        state = agent_exec.safe_read_json(path)
+        workflow = state.get("workflow") or {}
+        selected = next((item for item in workflow.get("tasks", []) if item["id"] == args.task_id), None)
+        if workflow.get("id") != args.workflow_id or selected is None:
+            raise agent_exec.ContractError("revision_binding_invalid", "Correction must name the accepted workflow and task")
+        identity = hashlib.sha256((args.authorization_reference + "\0" + args.workflow_id + "\0" + args.task_id).encode()).hexdigest()
+        previous = next((item for item in state.get("userRevisions", []) if item["id"] == identity), None)
+        if previous:
+            if previous["message"] != args.message or previous["previousRunId"] != args.run_id:
+                raise agent_exec.ContractError("revision_conflict", "This reference already records a different correction")
+            return public_state(state)  # Lost acknowledgement never creates A-2.
+        if (state["status"] not in {"completed", "runtime-error", "failed"}
+                or selected.get("workRunId") != args.run_id or state.get("pendingDispatch")):
+            raise agent_exec.ContractError("revision_unavailable", "Correction must bind the selected task's latest ended Work run")
+        work_agent = selected.get("workAgentId", state["workAgentId"])
+        verification_agent = selected.get("verificationAgentId", state.get("verificationAgentId"))
+        observation = team.observe(agent_exec, root)
+        held = team.holds(observation)
+        verifies = state["execution"].get("taskMode", "work-verification") not in {"work", "plan-work"}
+        for agent in (work_agent, verification_agent if verifies else None):
+            if agent and team.availability(held.get(agent, [])) != "idle":
+                raise agent_exec.ContractError("revision_worker_busy", f"Worker {agent} still owns an active task or decision")
+        document = agent_exec.safe_read_json(Path(state["execution"]["taskListPath"]))
+        binding = task_binding.validate(document, args.task_id, selected["requestHash"])
+        expected = task_binding.validate({"id": workflow["id"], "title": workflow["title"], "tasks": workflow["tasks"]},
+                                        args.task_id, selected["requestHash"])
+        if binding != expected:
+            raise agent_exec.ContractError("task_binding_invalid", "The accepted task snapshot changed")
+        plans = state["execution"].get("workspacePlans", {})
+        if plans:
+            state["execution"]["workspacePlan"] = plans.get(args.task_id, state["execution"].get("defaultWorkspacePlan") or {"mode": "shared"})
+        from tasks import workspaces
+        workspaces.reopen(state, selected)
+        delta = write_request(path.parent, "user-revision-" + identity + ".md", args.message)
+        previous_request_hash = agent_exec.safe_read_json(agent_exec.state_file(root, work_agent, args.run_id)).get("requestHash")
+        selected["userRevisionCount"] = selected.get("userRevisionCount", 0) + 1
+        state.setdefault("userRevisions", []).append({"id": identity, "taskId": args.task_id,
+            "workflowId": args.workflow_id, "agentId": work_agent, "previousRunId": args.run_id, "message": args.message,
+            "requestPath": str(delta), "actor": args.actor, "authorizationReference": args.authorization_reference,
+            "decisionEvidence": args.decision_evidence, "number": selected["userRevisionCount"],
+            "baseRequestRevision": selected.get("requestRevision"), "baseRequestHash": previous_request_hash,
+            "originalRequestHash": selected["requestHash"],
+            "deltaHash": hashlib.sha256(args.message.encode("utf-8")).hexdigest(),
+            "status": "queued", "createdAt": now()})
+        workflow["index"] = workflow["tasks"].index(selected)
+        state["execution"]["taskBinding"] = binding
+        state.update(originalRequestPath=selected["requestPath"], originalRequestHash=selected["requestHash"],
+                     workAgentId=work_agent, verificationAgentId=verification_agent,
+                     latestWorkRunId=args.run_id, latestVerificationRunId=None, lastVerificationDecision=None,
+                     pendingFindingIds=[], revisionCount=0, currentChild=None, receiptRecovery=None,
+                     userRevisionPending=identity, revisionOnlyTaskId=args.task_id, status="active",
+                     terminalReason=None, controlPlaneError=None)
+        for key in ("completion", "draftReview", "humanSkip", "revisionLimitFindings"):
+            state.pop(key, None)
+        selected.update(workStatus="pending", verificationStatus="pending")
+        selected.pop("verificationRunId", None)  # Prior Verification remains in history, not the new round's state.
+        prepare_dispatch(state, path, role="work", request_file=delta)
+    # The durable intent holds the worker before the assignment lock is released.
+    return reconcile_loop(args)
+
+
 def resume_decision(state, path, decision, runtime):
     role = decision["role"]
     request = write_request(path.parent, decision["id"] + ".md",
-        agent_exec.safe_read_bytes(Path(decision["requestPath"]), agent_exec.MAX_REQUEST_BYTES).decode("utf-8")
+        "Previous request reference: " + decision["requestPath"]
         + "\n\n[Bound decision — same task and session]\n" + json.dumps(decision, ensure_ascii=False)
         + "\nApply only this exact answer within captured authority. Preserve prior results. Complete the remaining authorized steps and submit this run's result.")
     state.update(decisionContinuationPending=decision["id"], status="active", controlPlaneError=None)
@@ -2171,6 +2359,7 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--model-catalog-file", type=Path,
                        help="Host-supplied modelCatalog JSON; with allocation taskType the runtime records a detected-model recommendation and applies it only when no Work model is specified")
     start.add_argument("--request-file", type=Path, required=True)
+    start.add_argument("--acceptance-id", help="Explicit idempotency key for the same initial acceptance; distinct keys or new brief starts are distinct tasks even for identical text")
     start.add_argument("--workspace-file", type=Path, help="Captured code/shared/read-only plan with exact repositories, target branches and integration check argv arrays")
     start.add_argument("--work-isolation", action=argparse.BooleanOptionalAction, default=None,
                        help="Work isolation toggle; inherited from the managed Main run when captured there. On requires --workspace-file "
@@ -2185,6 +2374,9 @@ def build_parser() -> agent_exec.JsonArgumentParser:
     start.add_argument("--model")
     for role in ("work", "verification"):
         start.add_argument("--" + role + "-model")
+        start.add_argument("--" + role + "-provider", choices=("codex", "claude", "antigravity"))
+        start.add_argument("--" + role + "-execution-policy-file", type=Path, help="Exact captured role policy; preserves sandbox independently from Human approval")
+        start.add_argument("--" + role + "-human-approval-policy", choices=("bypass", "required"))
         start.add_argument("--" + role + "-reasoning-effort", choices=("none", "low", "medium", "high", "xhigh", "max"))
         start.add_argument("--" + role + "-fast", action=argparse.BooleanOptionalAction, default=None)
         start.add_argument("--" + role + "-execution-mode", choices=("cli-default", "workspace-write", "danger-full-access", "bypass"))
@@ -2196,14 +2388,14 @@ def build_parser() -> agent_exec.JsonArgumentParser:
                        help="Work revisions per task after failed Verification before the loop stops for a Human decision; 0 is unlimited")
     start.add_argument("--receipt-recovery", choices=("auto", "manual"), default="auto",
                        help="auto gives Work one repair turn for an allowlisted receipt failure; manual stops for recover-receipt")
-    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close", "stop-task", "refresh-progress", "extend-revisions", "answer", "steer", "retry-preparation", "review", "handoff"):
+    for name in ("status", "reconcile", "recover-receipt", "skip", "drive", "close", "stop-task", "refresh-progress", "extend-revisions", "answer", "steer", "revise", "retry-preparation", "review", "handoff"):
         command = commands.add_parser(name)
         agent_exec.add_project_argument(command)
         if name in {"reconcile", "recover-receipt", "drive", "extend-revisions"}:
             agent_exec.execution_policy.add_policy_arguments(command)
         command.add_argument("--work-agent", required=True)
         command.add_argument("--loop-id", required=True)
-        if name in {"skip", "close", "stop-task", "extend-revisions", "answer", "steer", "retry-preparation", "review", "handoff"}:
+        if name in {"skip", "close", "stop-task", "extend-revisions", "answer", "steer", "revise", "retry-preparation", "review", "handoff"}:
             command.add_argument("--actor", choices=agent_exec.ACTORS, required=True)
             command.add_argument("--authorization-reference", required=True)
             command.add_argument("--decision-evidence", required=True)
@@ -2215,6 +2407,11 @@ def build_parser() -> agent_exec.JsonArgumentParser:
             command.add_argument("--task-id", required=True)
             command.add_argument("--run-id", required=True)
             command.add_argument("--message", required=True, help="Authorized in-scope addition, delivered at the next safe Work turn boundary")
+        if name == "revise":
+            command.add_argument("--workflow-id", required=True)
+            command.add_argument("--task-id", required=True)
+            command.add_argument("--run-id", required=True, help="Latest ended Work run of this exact task")
+            command.add_argument("--message", required=True, help="Only the authorized correction, problem and acceptance checks; preserves original scope and authority")
         if name == "retry-preparation":
             command.add_argument("--task-id", required=True)
         if name == "stop-task":
@@ -2233,7 +2430,51 @@ def build_parser() -> agent_exec.JsonArgumentParser:
         if name == "extend-revisions":
             command.add_argument("--additional", type=int, default=1,
                                  help="Further Work revisions the Human authorizes after the limit stopped the loop")
+    # Read-only team views for Control Center and Main; they schedule nothing and accept no work.
+    team_roster = commands.add_parser("team-roster", help="Workers by domain with availability, current, queued, waiting and failed tasks")
+    team_candidates = commands.add_parser("team-candidates", help="Existing workers that fit a new task and every exclusion reason; Main still decides")
+    team_history = commands.add_parser("team-history", help="One worker's tasks with every run's exact request, result and receipt")
+    from execution.cli import add_read_page_arguments
+    for command in (team_roster, team_candidates, team_history):
+        agent_exec.add_project_argument(command)
+        add_read_page_arguments(command)
+    team_candidates.add_argument("--role", choices=("work", "verification"), required=True)
+    team_candidates.add_argument("--provider")
+    team_candidates.add_argument("--model", help="Exact model; workers are compared one by one, never merged by model name")
+    team_candidates.add_argument("--reasoning-effort", choices=("none", "low", "medium", "high", "xhigh", "max"))
+    team_candidates.add_argument("--fast", action=argparse.BooleanOptionalAction, default=None)
+    team_candidates.add_argument("--work-profile", choices=WORK_PROFILES)
+    team_candidates.add_argument("--human-approval-policy", choices=("required", "bypass"))
+    team_candidates.add_argument("--sandbox")
+    team_candidates.add_argument("--domain", help="Allocation domain name; same-domain workers are listed first, others stay eligible")
+    team_history.add_argument("--agent", required=True)
+    team_history.add_argument("--parent-agent", help="Owning Main agent of the selected task")
+    team_history.add_argument("--workflow-id")
+    team_history.add_argument("--task-id")
     return parser
+
+
+def team_roster(args):
+    from tasks import team
+    return team.roster(agent_exec, agent_exec.resolve_project_root(args.project_root))
+
+
+def team_candidates(args):
+    from tasks import team
+    requirements = {"role": args.role, "provider": args.provider, "model": args.model,
+                    "reasoningEffort": args.reasoning_effort, "fast": args.fast, "workProfile": args.work_profile,
+                    "humanApprovalPolicy": args.human_approval_policy, "sandbox": args.sandbox, "domain": args.domain}
+    return team.candidates(agent_exec, agent_exec.resolve_project_root(args.project_root),
+                           {key: value for key, value in requirements.items() if value is not None})
+
+
+def team_history(args):
+    from tasks import team
+    return team.history(agent_exec, agent_exec.resolve_project_root(args.project_root), args.agent,
+                        workflow_id=args.workflow_id, task_id=args.task_id, parent_agent=args.parent_agent)
+
+
+TEAM_COMMANDS = {"team-roster": team_roster, "team-candidates": team_candidates, "team-history": team_history}
 
 
 def emit(value: dict[str, Any]) -> None:
@@ -2247,11 +2488,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         agent_exec.response_operation.set({"schemaVersion": 1, "provider": "agent-factory", "script": "loop.py", "action": args.command})
         agent_exec.require_managed_platform()
         agent_exec.runtime_paths.resolve(args.project_root, home=args.runtime_home, project_id=args.project_id)
-        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop, "stop-task": stop_task, "refresh-progress": refresh_progress, "extend-revisions": extend_revisions, "answer": answer_decision, "steer": steer_loop}
+        handlers = {"start": start_loop, "status": status_loop, "reconcile": reconcile_loop, "recover-receipt": recover_receipt, "skip": skip_loop, "drive": drive_loop, "close": close_loop, "stop-task": stop_task, "refresh-progress": refresh_progress, "extend-revisions": extend_revisions, "answer": answer_decision, "steer": steer_loop, "revise": revise_loop}
         handlers["retry-preparation"] = retry_preparation
         handlers["review"] = review_draft
         handlers["handoff"] = handoff_loop
+        handlers.update(TEAM_COMMANDS)
         result = handlers[args.command](args)
+        if args.command in TEAM_COMMANDS:
+            # Lossless Unicode pages (--offset/--length/--revision) like exec.py status; whole JSON otherwise.
+            from runs import commands as run_commands
+            run_commands.emit_read_page(agent_exec, args, result)
+            return 0
         if args.command == "drive":
             # A stop for a decision or an error is reported at once, before the driver leaves.
             supervise(args, args.loop_id)

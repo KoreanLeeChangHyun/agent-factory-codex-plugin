@@ -27,9 +27,32 @@
   question, explanation and final report. Work and Verification results must also use
   the same register because Main or the host may surface them directly.
 
+<a id="role-names"></a>
+
+## 3. Role names
+
+- This section is the single definition of the Human-facing names for managed roles.
+  Provisional Human decision (2026-10-12, messages
+  `24f1bb5c-a1e3-4648-a136-ef6425413a74` and `60536373-90a0-4ed4-b05b-f7f8074179b8`).
+
+| Role | English name | Korean name |
+| --- | --- | --- |
+| Main (orchestrates and dispatches) | Conductor | 지휘자 |
+| Every dispatched Agent (umbrella term) | Performer | 수행자 |
+| `work` | Expert | 전문가 |
+| `workLight` | Worker | 작업자 |
+| `explore` | Explorer | 탐색자 |
+| `scribe` | Scribe | 기록자 |
+| `verification` | Verifier | 검증자 |
+
+- Describe the managed structure as conductor–performer (지휘자–수행자).
+- In Human-facing text, use these names. Call any dispatched Agent Performer (수행자);
+  use Worker (작업자) only for `workLight`, never for Agents in general. Keep literal profile
+  identifiers such as `workLight` unchanged.
+
 <a id="content-fidelity"></a>
 
-## 3. Content fidelity
+## 4. Content fidelity
 
 - Preserve source text, quotations, code, identifiers and structured data exactly when
   fidelity requires it; their contents are not the Agent's speaking register.

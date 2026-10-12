@@ -219,6 +219,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     worker_parser.add_argument("--agent", required=True)
     worker_parser.add_argument("--run-id", required=True)
 
+    standby_parser = commands.add_parser("_standby", help=argparse.SUPPRESS)
+    add_project_argument(standby_parser)
+    standby_parser.add_argument("--agent", required=True)
+    standby_parser.add_argument("--standby-id", required=True)
+
     bootstrap_parser = commands.add_parser("_bootstrap", help=argparse.SUPPRESS)
     bootstrap_parser.add_argument("--ready-fd", required=True, type=int)
     bootstrap_parser.add_argument("--release-fd", required=True, type=int)

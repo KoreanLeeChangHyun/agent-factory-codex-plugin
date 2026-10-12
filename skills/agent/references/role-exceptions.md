@@ -52,7 +52,7 @@
   paths, rechecks the index/content and invokes ordinary `git commit -m` with hooks enabled.
   All index writers must honor this lock/serialization; external editors/Git clients are not
   controlled by this tool. A concurrent or hook failure leaves progress for the assigned
-  worker; it never resets the index, bypasses hooks or silently repairs implementation.
+  performer; it never resets the index, bypasses hooks or silently repairs implementation.
 - This grants no push, amend, rebase, reset, force, deletion, implementation edits or semantic
   conflict resolution. Source changes are not installed-session updates or deployment evidence.
 

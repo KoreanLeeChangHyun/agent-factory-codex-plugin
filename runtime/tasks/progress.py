@@ -22,7 +22,8 @@ def snapshot(state):
         "workflowId": workflow.get("id"),
         "tasks": [{key: task.get(key) for key in (
             "id", "title", "workAgentId", "workRunId", "workStatus",
-            "verificationAgentId", "verificationRunId", "verificationStatus"
+            "verificationAgentId", "verificationRunId", "verificationStatus",
+            "requestRevision", "userRevisionCount"
         )} for task in workflow.get("tasks", [])],
         "terminalReason": state.get("terminalReason"),
         "humanSkip": state.get("humanSkip"),

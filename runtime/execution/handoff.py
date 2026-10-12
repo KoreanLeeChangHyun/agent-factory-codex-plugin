@@ -11,6 +11,7 @@ import contextlib
 import hashlib
 import json
 import os
+import sys
 import math
 from pathlib import Path
 
@@ -446,3 +447,244 @@ def finish_run(runtime, root, run):
         state["observation"] = observation
         session["handoff"] = state
     runtime.update_json(path, path.parent / ".session-state.lock", update)
+
+
+# Compacted standby for ordinary Codex Main conversations.
+#
+# Codex compacts a full thread inline when the next turn starts, so the Human
+# message waits for it. After a completed turn reaches the preparation
+# occupancy, a detached preparer forks the thread through that turn and
+# compacts only the fork while the current session keeps answering. The next
+# dispatch adopts a ready fork under the dispatch lock: the stable agent ID,
+# records, approvals and task ownership stay; only the native session changes.
+# Turns answered after the fork are passed as original references. Anything not
+# confirmed (failed, dead or unfinished preparer, pending decision, Goal,
+# experiment, changed session) keeps the current session.
+
+STANDBY_PREPARE_PERCENT = 70
+
+
+def standby_prepare_percent(session):
+    value = (session.get("standbyPolicy") or {}).get("preparePercent")
+    return value if type(value) in (int, float) and 0 < value < 100 else STANDBY_PREPARE_PERCENT
+
+
+def standby_eligible(session):
+    return (session.get("role") == "main" and session.get("provider", "codex") == "codex"
+            and session.get("backend") == "app-server" and bool(session.get("sessionId"))
+            and not session.get("handoffExperiment") and not session.get("handoff")
+            and not session.get("handoffReservedFor") and not session.get("goalMode")
+            and not session.get("goal") and not session.get("goalError"))
+
+
+def observed_percent(usage, session_id):
+    if not isinstance(usage, dict) or usage.get("availability") != "observed" or usage.get("sessionId") != session_id:
+        return None
+    used, window = usage.get("usedTokens"), usage.get("contextWindowTokens")
+    return used / window * 100 if type(used) is int and used >= 0 and type(window) is int and window > 0 else None
+
+
+def _identity_alive(runtime, identity):
+    if not isinstance(identity, dict):
+        return False
+    try:
+        return runtime.process_identity_status(identity) == "match"
+    except ContractError:
+        return False
+
+
+def standby_active(runtime, record):
+    """A preparer, or its scheduler before the preparer was recorded, is still running."""
+    if not record or record.get("status") != "preparing":
+        return False
+    return _identity_alive(runtime, record.get("preparer") or record.get("scheduler"))
+
+
+def launch_standby(runtime, root, agent_id, standby_id):
+    """Start the preparer outside the finishing worker; it records its own identity when it starts."""
+    command = [sys.executable, str(runtime.SCRIPT_PATH), "_standby", *runtime.runtime_paths.arguments(root),
+               "--project-root", str(root), "--agent", agent_id, "--standby-id", standby_id]
+    if sys.platform == "linux" and runtime.systemd_manager_usable():
+        # A worker's unit uses KillMode=control-group; a child there would end with the worker.
+        environment = runtime.agent_directory(root, agent_id) / "standby-environment"
+        runtime.atomic_write(environment, runtime.process_containment.systemd_environment_content())
+        unit = "agent-factory-standby-" + hashlib.sha256(standby_id.encode()).hexdigest()[:24] + ".service"
+        launched = runtime._systemd_command((
+            "systemd-run", "--user", f"--unit={unit}", "--collect", "--service-type=exec",
+            "--property=KillMode=control-group", f"--property=EnvironmentFile={environment}",
+            f"--working-directory={root}", "--", *command))
+        if launched.returncode != 0:
+            raise OSError("The standby preparer service was not accepted: " + launched.stderr.strip())
+        return None
+    import subprocess
+    process, identity, release = runtime.spawn_contained_process(
+        command, detach=True, cwd=root, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    runtime.release_contained_process(process, identity, release)
+    return identity
+
+
+def _update_standby(runtime, root, agent_id, standby_id, change):
+    path = runtime.session_file(root, agent_id)
+    def update(session):
+        record = session.get("standby")
+        if record and record.get("id") == standby_id:
+            change(session, record)
+        else:
+            change(session, None)
+    runtime.update_json(path, path.parent / ".session-state.lock", update)
+
+
+def schedule_standby(runtime, root, run):
+    """After a completed Main turn at the preparation occupancy, start one background preparer."""
+    if run.get("status") != "completed" or not run.get("agentId"):
+        return None
+    path = runtime.session_file(root, run["agentId"])
+    if not path.is_file():
+        return None
+    usage = run.get("contextUsage")
+    scheduled = {}
+    def update(session):
+        native = session.get("sessionId")
+        if not standby_eligible(session) or native != run.get("sessionId"):
+            return
+        percent = observed_percent(usage, native)
+        if percent is None or percent < standby_prepare_percent(session) or not usage.get("turnId"):
+            return
+        current = session.get("standby")
+        if current and current.get("sourceSessionId") == native and (
+                current.get("status") == "ready" or standby_active(runtime, current)):
+            return
+        if current:
+            session.setdefault("standbyHistory", []).append({**current, "status": "superseded", "endedAt": runtime.now()})
+        import uuid
+        record = {"schemaVersion": 1, "id": "standby-" + uuid.uuid4().hex, "status": "preparing",
+                  "sourceSessionId": native, "sourceRunId": run["runId"], "sourceTurnId": usage["turnId"],
+                  "sourceAcceptedAt": run.get("acceptedAt"), "preparePercent": standby_prepare_percent(session),
+                  "sourceUsage": {"usedTokens": usage.get("usedTokens"), "contextWindowTokens": usage.get("contextWindowTokens")},
+                  "requestedAt": runtime.now(), "scheduler": runtime.process_identity(os.getpid()), "preparer": None}
+        session["standby"] = record
+        scheduled.update(record)
+    runtime.update_json(path, path.parent / ".session-state.lock", update)
+    if not scheduled:
+        return None
+    try:
+        identity = launch_standby(runtime, root, run["agentId"], scheduled["id"])
+    except (ContractError, OSError) as error:
+        def failed(session, record):
+            if record and record["status"] == "preparing":
+                record.update(status="failed", error=str(error)[:2000], endedAt=runtime.now())
+        _update_standby(runtime, root, run["agentId"], scheduled["id"], failed)
+        return None
+    if identity:
+        def launched(session, record):
+            if record and record["status"] == "preparing" and record.get("preparer") is None:
+                record["preparer"] = identity
+        _update_standby(runtime, root, run["agentId"], scheduled["id"], launched)
+    return scheduled["id"]
+
+
+def prepare_standby(runtime, args):
+    """Detached preparer: fork and compact, then publish ready only for the same record and source."""
+    root = runtime.resolve_project_root(args.project_root)
+    runtime.validate_id(args.agent, runtime.AGENT_ID, "agent_id")
+    claimed = {}
+    def claim(session, record):
+        if not record or record["status"] != "preparing":
+            return
+        if session.get("sessionId") != record["sourceSessionId"] or not standby_eligible(session):
+            session.setdefault("standbyHistory", []).append({**record, "status": "superseded", "endedAt": runtime.now()})
+            session.pop("standby", None)
+            return
+        record["preparer"] = runtime.process_identity(os.getpid())
+        claimed.update(record)
+    _update_standby(runtime, root, args.agent, args.standby_id, claim)
+    if not claimed:
+        return 0
+    session = runtime.load_session(root, args.agent)
+    try:
+        run = runtime.find_run(root, args.agent, claimed["sourceRunId"])
+        from adapters.codex import transport
+        result = transport.compact_fork_process(session, run, claimed["sourceSessionId"], claimed["sourceTurnId"])
+    except Exception as error:  # Reported in the record; the current session keeps answering.
+        def failed(value, record):
+            if record and record["status"] == "preparing":
+                record.update(status="failed", error=str(error)[:2000], endedAt=runtime.now())
+        _update_standby(runtime, root, args.agent, args.standby_id, failed)
+        return 1
+    def ready(value, record):
+        if record and record["status"] == "preparing" and value.get("sessionId") == record["sourceSessionId"]:
+            record.update(status="ready", forkSessionId=result["threadId"], compactedUsage=result.get("usage"),
+                          readyAt=runtime.now())
+        else:
+            # Keep the created fork's identity on record; it is never adopted.
+            value.setdefault("standbyHistory", []).append({**claimed, "status": "superseded",
+                "forkSessionId": result["threadId"], "endedAt": runtime.now()})
+            if record:
+                value.pop("standby", None)
+    _update_standby(runtime, root, args.agent, args.standby_id, ready)
+    return 0
+
+
+def adopt_standby(runtime, root, agent_id, session):
+    """At a dispatch boundary (dispatch lock held, no active run), switch to a ready compacted fork.
+
+    Returns the adopted native session ID, or None when the current session keeps
+    answering. The switch is persisted before the run is created; continuity is
+    derived from that record, so a failed dispatch cannot drop later turns.
+    """
+    record = session.get("standby")
+    if not record or record.get("status") != "ready" or not standby_eligible(session):
+        return None
+    if record.get("sourceSessionId") != session.get("sessionId"):
+        return None
+    runs = sorted(runtime.iter_run_states(root, agent_id, strict=True), key=lambda value: value.get("acceptedAt", ""))
+    if any(value.get("status") in runtime.ACTIVE_STATES for value in runs):
+        return None
+    if runs and runs[-1].get("status") == "needs-human-decision":
+        return None  # The pending decision stays on its native session.
+    source = [value for value in runs if value.get("sessionId") == record["sourceSessionId"]
+              and value.get("acceptedAt", "") >= (record.get("sourceAcceptedAt") or "")]
+    observed = [value for value in source if observed_percent(value.get("contextUsage"), record["sourceSessionId"]) is not None]
+    percent = observed_percent(observed[-1]["contextUsage"], record["sourceSessionId"]) if observed else None
+    if percent is None or percent < record["preparePercent"]:
+        # The current session compacted itself after the fork; the fork is no longer needed.
+        def discard(value, current):
+            if current and current["status"] == "ready":
+                value.setdefault("standbyHistory", []).append({**current, "status": "discarded",
+                    "reason": "current session occupancy is below the preparation threshold", "endedAt": runtime.now()})
+                value.pop("standby", None)
+        _update_standby(runtime, root, agent_id, record["id"], discard)
+        return None
+    delta = [value["runId"] for value in source if value.get("acceptedAt", "") > (record.get("sourceAcceptedAt") or "")]
+    adopted = {}
+    def adopt(value, current):
+        if (not current or current["status"] != "ready" or value.get("sessionId") != current["sourceSessionId"]
+                or not standby_eligible(value)):
+            return
+        value["sessionId"] = current["forkSessionId"]
+        value.pop("standby", None)
+        value.setdefault("standbySwitches", []).append({**current, "status": "adopted", "adoptedAt": runtime.now(),
+                                                        "deltaRunIds": delta})
+        adopted["id"] = current["forkSessionId"]
+    _update_standby(runtime, root, agent_id, record["id"], adopt)
+    return adopted.get("id")
+
+
+def standby_continuity(runtime, root, agent_id, session):
+    """Original references for turns after the fork, until a run on the adopted session completes."""
+    switches = runtime.load_session(root, agent_id).get("standbySwitches") or []
+    switch = switches[-1] if switches else None
+    if not switch or switch.get("forkSessionId") != session.get("sessionId") or not switch.get("deltaRunIds"):
+        return None
+    runs = {value["runId"]: value for value in runtime.iter_run_states(root, agent_id, strict=True)}
+    if any(value.get("sessionId") == switch["forkSessionId"] and value.get("status") == "completed" for value in runs.values()):
+        return None
+    delta = []
+    for run_id in switch["deltaRunIds"]:
+        value = runs.get(run_id) or {}
+        result = value.get("resultPath")
+        delta.append({"runId": run_id, "status": value.get("status"), "requestPath": value.get("requestPath"),
+                      "resultPath": result if result and Path(result).is_file() else None,
+                      "statePath": value.get("statePath")})
+    return {"schemaVersion": 1, "standbyId": switch["id"], "fromSessionId": switch["sourceSessionId"],
+            "toSessionId": switch["forkSessionId"], "forkedThroughRunId": switch["sourceRunId"], "deltaRuns": delta}

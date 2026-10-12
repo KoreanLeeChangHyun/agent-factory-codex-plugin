@@ -97,7 +97,7 @@
   `destination`. Each task declares `requiredFileOperations` using the same operation
   fields (an empty list for read-only work). Derive these from the inspected contract
   file list. The announcement and submission validators reject out-of-scope required
-  operations and worker writes to Main's execution record before launching work.
+  operations and performer writes to Main's execution record before launching work.
   Historical accepted snapshots remain immutable; do not retrofit or replace them.
 - Historical contracts bound to `progress.md` keep that path and its original
   recording contract. Do not rewrite or migrate their accepted snapshots.

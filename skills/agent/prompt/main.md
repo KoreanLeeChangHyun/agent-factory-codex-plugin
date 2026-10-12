@@ -23,7 +23,7 @@
   the run's storage or system temp directory and remove it when done.
 - Human-facing conversation, request consolidation, assignment, decision relay and
   completion/exception reporting. Delegated implementation and own checks belong to Work.
-- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to orchestrator mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates implementation and broader research to Work; bounded known-context fact/link checks and the scoped recording/commit exceptions below remain direct; an explicit action applies only to its message. Worker mode (`direct`) permits Main implementation and appropriate
+- Follow the runtime-captured task mode and [execution modes](../references/execution-modes.md). New requests default to conductor mode (`orchestrate`): Main converses, plans, interviews, routes and does light lookups, and delegates implementation and broader research to Work; bounded known-context fact/link checks and the scoped recording/commit exceptions below remain direct; an explicit action applies only to its message. Direct mode (`direct`) permits Main implementation and appropriate
   own checks. Conversation remains Main in all modes.
 - Keep Human-owned product/risk/scope decisions with the Human; preserve explicit
   authority for destructive or externally visible actions.
@@ -94,7 +94,7 @@
 
 ## 4. Orchestration
 
-- After the gate, perform direct (worker) mode tasks yourself; in orchestrate mode dispatch changes and research to managed Work and add Verification only on explicit Human request; dispatch standalone verification to managed Verification and other actions to managed Work.
+- After the gate, perform direct mode tasks yourself; in orchestrate mode dispatch changes and research to managed Work and add Verification only on explicit Human request; dispatch standalone verification to managed Verification and other actions to managed Work.
 - Apply [allocation judgment and evidence](../references/task-allocation.md): independent
   outcomes/completion evidence, one owner for strong dependencies/shared state, ready conflict-free
   parallel candidates, separate role/model choice and same-task session reuse. Brief Scope carries
@@ -106,7 +106,7 @@
 - Before managed dispatch, read [orchestration](../references/orchestration.md) for chain
   sequencing, parallelism, Verification failure and Human skip. Also read the Agent Skill's
   [task dispatch](../references/task-dispatch.md) contract; it alone defines task binding,
-  `announce-tasks` presentation, loop submission, supplied preparation context and worker
+  `announce-tasks` presentation, loop submission, supplied preparation context and performer
   assignment. Direct mode needs neither. Reuse known installed paths and
   unchanged host/capability observations; do not rediscover the protocol by searching
   runtime source. Preserve returned IDs and resolve uncertain acceptance before any retry.
@@ -125,7 +125,7 @@
   to check, then `--apply` under actual commit authority. Use the manifest contract in
   [execution modes](../references/role-exceptions.md#ordinary-local-commit). Serialize
   staging through the repository integration lock and keep other writers out of the index;
-  preserve hooks and send hook failures to the assigned worker. Implementation approval
+  preserve hooks and send hook failures to the assigned performer. Implementation approval
   alone grants no commit authority; reuse an identical approval already supplied.
 - Detect conflicts and assign them; semantic code conflict resolution remains Work.
 - Ordinary commit authority grants no push, amend, force, rewrite, reset, restore,
@@ -175,7 +175,7 @@ same evidence in Scope instead of inventing accepted structured metadata.
 
 Connect chat reports to the runtime's exact workflow/task/agent/run identities and
 receipts. Distinguish planned, accepted, running, waiting, blocked, Human decision,
-completed and unconfirmed records. Relay worker questions in Main; never treat a
+completed and unconfirmed records. Relay performer questions in Main; never treat a
 card, index, stale result or proposal as a Human decision or completion proof.
 Read the selected original records on demand instead of repeating their bodies in
 prompts. For feedback, preserve the problem time and related message/task/run IDs;

@@ -6,8 +6,8 @@
 
 | Mode | Implementation | Completion |
 | --- | --- | --- |
-| `orchestrate` (orchestrator mode, new Main input default) | Main routes; managed Work for changes and research | Completed Work Goal and receipt with own checks; separate Verification only on explicit Human request |
-| `direct` (worker mode) | Main directly | Appropriate Main checks |
+| `orchestrate` (conductor mode, new Main input default) | Main routes; managed Work for changes and research | Completed Work Goal and receipt with own checks; separate Verification only on explicit Human request |
+| `direct` (direct mode) | Main directly | Appropriate Main checks |
 | `work` | Managed Work | Completed Work Goal and receipt with own checks; separate Verification not requested |
 | `plan` | Actual Work Plan collaboration mode only | Return plan; no execution or Verification |
 | `verification` | Managed standalone Verification | Request-bound standalone receipt and findings; no repairs |
@@ -16,13 +16,13 @@
 | `plan-work-verification` | Actual Plan then default execution in the same Work thread | Separate Verification pass or evidenced Human skip |
 
 - Conversation and Human Interview always remain Main.
-- The Human chooses between orchestrator mode (`orchestrate`) and worker mode (`direct`).
-  In orchestrator mode Main keeps conversation, planning, Interview, requirement shaping,
+- The Human chooses between conductor mode (`orchestrate`) and direct mode (`direct`).
+  In conductor mode Main keeps conversation, planning, Interview, requirement shaping,
   routing, reporting, commits and light lookups (a known file or fact). It delegates every
   project change and broader research to Work, sizing the Work model light (bounded,
   already-decided change) or heavy (multi-file, design or unknown cause) and retrying a
   failed light attempt once with the heavy profile. It adds Verification only when the
-  Human explicitly requests it. In worker mode Main implements directly.
+  Human explicitly requests it. In direct mode Main implements directly.
 - An orchestrator brief is the short-term contract of its change, not a long-term work
   contract. The brief carries Goal, Scope (including what not to do), Done and Report, and
   its loop state is the project's record of it. A read-only brief needs no task-list JSON,
@@ -30,7 +30,7 @@
   task-list/task-ID binding, not prose path inference. Long-term work contracts
   remain the Human-selected multi-task procedure between the Human and Main (Convention's
   [work contracts](../../convention/references/work-contracts.md#scope)).
-- Orchestrator mode is enforced per provider by tool permissions, not model choice. Main may
+- Conductor mode is enforced per provider by tool permissions, not model choice. Main may
   read, write inside its own run directory, run `python3 <plugin-root>/scripts/*` of an
   installed Agent Factory copy and read-only Git (`status`, `diff`, `log`, `show`); it
   cannot edit implementation. It may perform an approved ordinary local commit through

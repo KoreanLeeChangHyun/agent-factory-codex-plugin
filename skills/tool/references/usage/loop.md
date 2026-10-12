@@ -11,6 +11,7 @@ Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
 - `--task-id TASK_ID`: Selected task in --task-list-file
 - `--allocation-file ALLOCATION_FILE`: Optional schemaVersion 1 allocation evidence for a single brief; stored in its taskBinding, selects no model or authority
 - `--model-catalog-file MODEL_CATALOG_FILE`: Host-supplied modelCatalog JSON; with allocation taskType the runtime records a detected-model recommendation and applies it only when no Work model is specified
+- `--acceptance-id ACCEPTANCE_ID`: Explicit idempotency key for the same initial acceptance; distinct keys or new brief starts are distinct tasks even for identical text
 - `--workspace-file WORKSPACE_FILE`: Captured code/shared/read-only plan with exact repositories, target branches and integration check argv arrays
 - `--work-isolation | --no-work-isolation`: Work isolation toggle; inherited from the managed Main run when captured there. On requires --workspace-file (code or read-only), defaults targets to each repository's current branch and preserves unmergeable branches without a Human wait
 - `--requested-by {human}`: Recorded sender when the Human sent this request directly (control center); omitted for Main dispatch
@@ -24,10 +25,16 @@ Required: `--request-file REQUEST_FILE`, `--work-agent WORK_AGENT`
 - `--writable-root WRITABLE_ROOT`
 - `--model MODEL`
 - `--work-model WORK_MODEL`
+- `--work-provider {codex,claude,antigravity}`
+- `--work-execution-policy-file WORK_EXECUTION_POLICY_FILE`: Exact captured role policy; preserves sandbox independently from Human approval
+- `--work-human-approval-policy {bypass,required}`
 - `--work-reasoning-effort {none,low,medium,high,xhigh,max}`
 - `--work-fast | --no-work-fast`
 - `--work-execution-mode {cli-default,workspace-write,danger-full-access,bypass}`
 - `--verification-model VERIFICATION_MODEL`
+- `--verification-provider {codex,claude,antigravity}`
+- `--verification-execution-policy-file VERIFICATION_EXECUTION_POLICY_FILE`: Exact captured role policy; preserves sandbox independently from Human approval
+- `--verification-human-approval-policy {bypass,required}`
 - `--verification-reasoning-effort {none,low,medium,high,xhigh,max}`
 - `--verification-fast | --no-verification-fast`
 - `--verification-execution-mode {cli-default,workspace-write,danger-full-access,bypass}`
@@ -94,6 +101,9 @@ One of: `--response-file` | `--response-json`
 ## `steer`
 Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`, `--task-id TASK_ID`, `--run-id RUN_ID`, `--message MESSAGE`
 
+## `revise`
+Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`, `--workflow-id WORKFLOW_ID`, `--task-id TASK_ID`, `--run-id RUN_ID`, `--message MESSAGE`
+
 ## `retry-preparation`
 Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`, `--authorization-reference AUTHORIZATION_REFERENCE`, `--decision-evidence DECISION_EVIDENCE`, `--task-id TASK_ID`
 
@@ -106,3 +116,34 @@ Required: `--work-agent WORK_AGENT`, `--loop-id LOOP_ID`, `--actor {main,human}`
 - `--to-reasoning-effort {none,low,medium,high,xhigh,max}`
 - `--to-fast | --no-to-fast`
 - `--reason REASON`: Why the task moves, recorded in the handoff bundle
+
+## `team-roster`: Workers by domain with availability, current, queued, waiting and failed tasks
+- `--field FIELD`: Select a JSON Pointer before paging; strings are returned verbatim
+- `--offset OFFSET`: Zero-based Unicode character offset (enables paging)
+- `--length LENGTH`: Characters per page, default 4000; no total document limit
+- `--revision REVISION`: Require the SHA-256 returned by the first page; changed data fails closed
+
+## `team-candidates`: Existing workers that fit a new task and every exclusion reason; Main still decides
+Required: `--role {work,verification}`
+- `--field FIELD`: Select a JSON Pointer before paging; strings are returned verbatim
+- `--offset OFFSET`: Zero-based Unicode character offset (enables paging)
+- `--length LENGTH`: Characters per page, default 4000; no total document limit
+- `--revision REVISION`: Require the SHA-256 returned by the first page; changed data fails closed
+- `--provider PROVIDER`
+- `--model MODEL`: Exact model; workers are compared one by one, never merged by model name
+- `--reasoning-effort {none,low,medium,high,xhigh,max}`
+- `--fast | --no-fast`
+- `--work-profile {work,workLight,explore,scribe}`
+- `--human-approval-policy {required,bypass}`
+- `--sandbox SANDBOX`
+- `--domain DOMAIN`: Allocation domain name; same-domain workers are listed first, others stay eligible
+
+## `team-history`: One worker's tasks with every run's exact request, result and receipt
+Required: `--agent AGENT`
+- `--field FIELD`: Select a JSON Pointer before paging; strings are returned verbatim
+- `--offset OFFSET`: Zero-based Unicode character offset (enables paging)
+- `--length LENGTH`: Characters per page, default 4000; no total document limit
+- `--revision REVISION`: Require the SHA-256 returned by the first page; changed data fails closed
+- `--parent-agent PARENT_AGENT`: Owning Main agent of the selected task
+- `--workflow-id WORKFLOW_ID`
+- `--task-id TASK_ID`

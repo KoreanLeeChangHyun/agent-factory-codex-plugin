@@ -18,13 +18,15 @@ metadata:
 
 ## 1. Roles and graph
 
+- The conductor–performer structure and Human-facing names for its roles are defined in
+  Convention's [role names](../convention/references/communication.md#role-names).
 - Execution mode is captured per submitted task; conversation always remains Main.
 - The default for each new Main input is `orchestrate`; old saved selections do not apply. See [execution modes](references/execution-modes.md).
 
-- **orchestrate (orchestrator mode):** Main keeps conversation, planning, Interview, routing and
+- **orchestrate (conductor mode):** Main keeps conversation, planning, Interview, routing and
   light lookups; it delegates changes and research to Work (light or heavy model) and adds
   Verification only on explicit Human request.
-- **direct (worker mode):** Main performs bounded work and appropriate own checks directly.
+- **direct mode:** Main performs bounded work and appropriate own checks directly.
 - **plan:** Work uses actual Plan collaboration mode and returns only a plan; no implementation transition.
 - **verification:** managed standalone Verification of an explicit target, otherwise prior completed work in this chat; ask if no target is available. Its request-bound receipt cannot satisfy a Work loop.
 - **work:** Main delegates Goal execution and necessary own checks to Work, then reports; no
@@ -127,7 +129,7 @@ Read only the file for the operation at hand:
   - `references/role-exceptions.md`: exact Explorer Document assignments, own/coordination records and receipt-bound ordinary Main commits.
   - `references/task-allocation.md`: allocation judgment, brief evidence, optional captured records and compatibility.
   - `references/task-dispatch.md`: task binding, one-source announcement, ordered loop
-    submission and worker assignment.
+    submission and performer assignment.
   - `references/orchestration.md`: chain sequencing, parallelism, Verification failure
     and Human skip.
 - While a run executes or is inspected:

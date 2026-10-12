@@ -14,7 +14,7 @@
   [runtime progress and repair](../../agent/references/home-runtime.md#progress-projection).
   A missing or stale view is a reporting issue, not evidence that work completed.
 - Main owns the shared contract progress record and updates it from exact Work
-  results and Verification receipts. Workers return their progress in their results;
+  results and Verification receipts. Performers return their progress in their results;
   they do not need write authority over this shared record to finish in-scope work.
 - Preserve existing Refined documents with the `process` category unless migration is explicitly
   requested. New progress records use this type.
@@ -39,7 +39,7 @@
 - A direct-execution record documents work that ran without a contract. Its
   `progress.md` sets `record-type: direct-execution`, omits `contract-version` and has no
   `contract-v<N>.md`; the catalog lists it with no contract versions. Use it only to keep
-  existing contract-less records; new direct (worker mode) work needs no
+  existing contract-less records; new direct mode work needs no
   `docs/progress/` record unless the Human requests one. Do not write a contract after
   the fact to fill the gap.
 - Use `status` for a current snapshot and `worklog` for chronological progress.

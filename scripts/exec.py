@@ -498,8 +498,7 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
                               and value.get("taskBinding", {}).get("taskId") == binding["taskId"]]
             if prior_bindings:
                 prior = max(prior_bindings, key=lambda value: value.get("acceptedAt", ""))["taskBinding"]
-                if "allocation" in prior or "allocation" in binding:
-                    preserve(prior, binding)
+                preserve(prior, binding)
         if new_agent:
             session = (
                 load_session(project_root, args.agent)
@@ -573,6 +572,14 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
         image_input.validate_execution(images, effective)
         if preparation_for:
             handoff.begin_preparation(_runtime, project_root, session, preparation_for)
+        standby_continuity = None
+        if not new_agent and not preparation_for and goal_action is None and not provider_changed:
+            # A ready compacted fork answers instead of compacting the full thread inline.
+            adopted = handoff.adopt_standby(_runtime, project_root, args.agent, session)
+            if adopted:
+                session = {key: value for key, value in session.items() if key != "standby"}
+                session["sessionId"] = adopted
+            standby_continuity = handoff.standby_continuity(_runtime, project_root, args.agent, session)
         state = create_run(
             project_root=project_root,
             agent_id=args.agent,
@@ -596,6 +603,10 @@ def submit(args: argparse.Namespace, new_agent: bool) -> int:
             response_contract=getattr(args, "response_contract", None),
         )
         handoff.accept_run(_runtime, project_root, session, state)
+        if standby_continuity:
+            state["standbyContinuity"] = standby_continuity
+            update_json(Path(state["statePath"]), Path(state["statePath"]).parent / ".state.lock",
+                        lambda value: value.update(standbyContinuity=standby_continuity))
         if policy_changed or human_approval_policy_changed or provider_changed or codex_changed:
             session_updates = {"humanApprovalPolicy": human_approval_policy}
             if provider_changed or codex_changed:
@@ -811,6 +822,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             return command_reconcile(args)
         if args.command == "_worker":
             return worker(args)
+        if args.command == "_standby":
+            from execution import handoff
+            return handoff.prepare_standby(_runtime, args)
         if args.command == "_bootstrap":
             return containment_bootstrap(args)
         raise ContractError("invalid_command", "command is invalid")

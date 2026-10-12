@@ -1,8 +1,8 @@
 """Required task identity for delegated execution, independent of UI messages."""
 from __future__ import annotations
 import copy
-import hashlib
 import re
+import uuid
 from storage.errors import ContractError
 
 
@@ -87,9 +87,11 @@ def brief_document(request, allocation=None):
         if candidate and not re.fullmatch(r"(?:scope|done|report|constraints?)\s*:?", candidate, flags=re.I):
             title = candidate[:120]
             break
-    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
-    document = {"id": f"brief-{digest}", "title": title, "brief": True, "tasks": [
-        {"id": f"task-{digest}", "title": title, "description": text,
+    # A new acceptance is a new task even for identical text. Rework names the
+    # already accepted identity explicitly; a content hash is not that identity.
+    identity = uuid.uuid4().hex[:12]
+    document = {"id": f"brief-{identity}", "title": title, "brief": True, "tasks": [
+        {"id": f"task-{identity}", "title": title, "description": text,
          "completionCriteria": "The brief's stated result is produced and its own checks pass."}]}
 
     if allocation is not None:

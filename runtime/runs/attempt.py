@@ -548,6 +548,13 @@ def mark_terminal(
         if not active_only or error.code != "run_terminal":
             raise
         return False
+    if status == "completed":
+        try:
+            from execution.handoff import schedule_standby
+            value = runtime.safe_read_json(state_path)
+            schedule_standby(runtime, runtime.resolve_project_root(Path(value["runtimeBinding"]["projectRoot"])), value)
+        except Exception:  # Preparation is optional; the published terminal result stands.
+            pass
     return True
 
 

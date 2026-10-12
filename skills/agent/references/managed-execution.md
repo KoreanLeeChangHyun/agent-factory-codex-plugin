@@ -157,15 +157,15 @@
 - `task_repository_invalid` and `parent_session_invalid` are environment/binding failures,
   not Work failures. Preserve the accepted loop, results and parent identity. Do not
   switch `--project-root`, strip the managed parent environment or repeatedly assign a
-  stronger worker. A different project requires its own correctly bound Main request.
+  stronger performer. A different project requires its own correctly bound Main request.
 - Work sub-agents are limited per provider; see
   [enforcement](execution-modes.md#captured-routes).
 - Status reads retry a transient control-plane failure three times with backoff. A dispatch
   is never replayed; its durable intent is completed by `reconcile`.
-- The driver periodically runs exec `reconcile` for a running child, so a run whose worker
+- The driver periodically runs exec `reconcile` for a running child, so a run whose performer
   died becomes a recorded failure instead of an endless `running`.
-- A worker that cannot start fails its run (`worker_start_failed`). A stale run that never
-  launched a worker is resubmitted by exec `reconcile`, or cancelled when cancellation was
+- A performer that cannot start fails its run (`worker_start_failed`). A stale run that never
+  launched a performer is resubmitted by exec `reconcile`, or cancelled when cancellation was
   requested; `cancel` ends such a run immediately.
 - A loop whose first dispatch fails stops as `runtime-error`, keeping its dispatch intent for
   `reconcile`. Commands that leave a loop `active` launch a driver only when none runs; a

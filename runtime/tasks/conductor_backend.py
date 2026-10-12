@@ -16,6 +16,10 @@ class ManagedBackend:
     def __init__(self, conductor):
         self.conductor = conductor
         self.exec_path = files.PLUGIN_ROOT / 'scripts' / 'exec.py'
+        from tasks.conductor_workspaces import WorkUnits
+        self.work_units = WorkUnits(conductor.root, conductor.path)
+        from tasks.conductor_workflows import Workflows
+        self.workflows = Workflows(self)
 
     def call(self, arguments):
         binding = files.runtime_paths.arguments(self.conductor.root)
@@ -32,12 +36,22 @@ class ManagedBackend:
         return value
 
     def submit(self, request):
+        if request.get('verification'):
+            return self.workflows.start(request)
         run,session,message=request['run'],request['session'],request['message']
         config=session['settings']
+        if session.get('area'):
+            from tasks import domains
+            area = session['area']
+            # Membership precedes external session creation, respecting Human placements.
+            domains.assign_subdomain(self.conductor.path.parent, session['agentId'], area['domainId'], area['subdomainId'],
+                                     'ai', 'queue-dispatch:' + run['dispatchId'])
         # This native session belongs solely to the conductor. A provider handoff
         # creates a fresh agent, preserving the previous managed session untouched.
         command='send' if session['managedCreated'] else 'submit'
         arguments=[command,'--agent',session['agentId'],'--actor','main','--dispatch-id',run['dispatchId']]
+        if command=='submit' and self.conductor.chat_id == 'conductor-queue' and not session.get('area'):
+            raise ContractError('area_required', 'Queue hires require domain and child-area membership before session creation')
         if command=='submit':
             arguments.extend(['--role','work' if session['role']=='work' else 'main'])
         policy=request['policy']
@@ -59,6 +73,8 @@ class ManagedBackend:
         context={'message':message,'task':request['task'],'policy':policy,'handoff':session['handoff']}
         files.atomic_write(path,json.dumps(context,ensure_ascii=False,indent=2).encode('utf-8'))
         if session['role']=='work':
+            if request['task']['spec'].get('workProfile'):
+                arguments.extend(['--work-profile', request['task']['spec']['workProfile']])
             task=request['task']
             flow_id='conductor-'+hashlib.sha256((self.conductor.chat_id+':'+task['id']).encode()).hexdigest()[:32]
             announcement_request=self.conductor.path.with_name(flow_id+'.request.md')
@@ -85,15 +101,80 @@ class ManagedBackend:
             binding_path=path.with_suffix('.capabilities.json')
             files.atomic_write_json(binding_path,binding)
             arguments.extend(['--capability-binding-file',str(binding_path)])
+        if session['role'] == 'work':
+            workspace_file = self.work_units.prepare(request)
+            if workspace_file:
+                arguments.extend(['--task-workspace-file', str(workspace_file)])
         arguments.extend(['--request-file',str(path)])
         result=self.call(arguments)
         return result.get('run',result)
+
+    def workspace_action(self, ctx, action, authorization):
+        import exec as runtime
+        external = ctx['external']
+        work = runtime.find_run(self.conductor.root, external['agentId'], external['runId'])
+        receipt = runtime.validate_receipt(self.conductor.root, work, agent_id=external['agentId'], run_id=external['runId']) if action == 'integrate' else None
+        return self.work_units.action(ctx['delegationId'], action, work=work, receipt=receipt, authorization=authorization)
+
+    def workspace(self, task_id):
+        return self.work_units.snapshot(task_id)
+
+    def question(self, external):
+        if external.get('workflow'):
+            state = self.workflows.observe(external)['workflowState']
+            decision = state.get('pendingDecision') or {}
+            return {'text': decision.get('question') or decision.get('reason') or str(state.get('controlPlaneError')), 'decisionKind': decision.get('kind', 'clarification'), 'decisionScope': decision.get('scope'), 'decision': decision}
+        import exec as runtime
+        raw = runtime.find_run(self.conductor.root, external['agentId'], external['runId'])
+        text = runtime.safe_read_bytes(Path(raw['resultPath']), None).decode('utf-8') if raw.get('resultPath') else raw.get('response')
+        return {'text': text, 'resultPath': raw.get('resultPath'), 'decisionKind': raw.get('decisionKind'), 'decisionScope': raw.get('decisionScope')}
+
+    def completion(self, external):
+        if external.get('workflow'):
+            return self.workflows.completion(external)
+        import exec as runtime
+        raw = runtime.find_run(self.conductor.root, external['agentId'], external['runId'])
+        receipt = runtime.validate_receipt(self.conductor.root, raw, agent_id=external['agentId'], run_id=external['runId'])
+        return {'resultPath': raw.get('resultPath'), 'receiptPath': raw.get('receiptPath'), 'checks': receipt['tests']}
+
+    def health(self, external):
+        if external.get('workflow'):
+            state = self.workflows.observe(external)['workflowState']
+            stopped = not state.get('currentChild') and not state.get('stopPending')
+            if state.get('currentChild') and state['status'] in ('needs-human-decision','runtime-error','failed','cancelled'):
+                import exec as runtime
+                from runs.deletion import require_ended
+                child = state['currentChild']
+                raw = runtime.find_run(self.conductor.root, child['agentId'], child['runId'])
+                require_ended(runtime, raw)
+                stopped = True
+            return {'stopped': stopped, 'zombie': False}
+        import exec as runtime
+        from runs.deletion import require_ended
+        raw = runtime.find_run(self.conductor.root, external['agentId'], external['runId'])
+        stopped = False
+        try:
+            require_ended(runtime, raw)
+            stopped = True
+        except ContractError:
+            pass
+        from tasks.workspaces import run_owner_evidence
+        session = runtime.load_session(self.conductor.root, external['agentId'])
+        return {'stopped': stopped, 'zombie': raw.get('status') in ('running', 'starting') and run_owner_evidence(runtime, raw, self.conductor.root) == 'inactive',
+                'heartbeatStale': runtime.heartbeat_stale(raw, session), 'progress': raw.get('progressEvidence')}
+
+    def status(self, external):
+        if external.get('workflow'):
+            return self.workflows.observe(external)
+        return self.call(['status', '--agent', external['agentId'], '--run-id', external['runId']]).get('run') or {}
 
     def classify_error(self,error):
         from loop import failure_class
         return failure_class({'code':getattr(error,'code','start_ack_unknown')})
 
     def lookup(self, request):
+        if request.get('verification'):
+            return self.workflows.lookup(request)
         try:
             value=self.call(['status','--agent',request['session']['agentId'],
                              '--dispatch-id',request['run']['dispatchId']])

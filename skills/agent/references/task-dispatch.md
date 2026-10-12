@@ -7,13 +7,13 @@
 ## 1. Required task binding before dispatch
 
 - Register each task that has its own completion criteria as a separate entry in `tasks`,
-  independent of worker count.
+  independent of performer count.
   - Preserve the individual tasks communicated to the Human, including each task's identity,
     scope and completion criteria, so its progress, completion, waiting or blockage remains
     separately visible.
-  - For example, six announced tasks require six registered entries even when one worker
+  - For example, six announced tasks require six registered entries even when one performer
     executes them sequentially in the same session.
-  - Do not collapse them into one aggregate task because they share a worker or session.
+  - Do not collapse them into one aggregate task because they share a performer or session.
 - Every Work/Verification submission (including sends and standalone verification) requires
   `--task-list-file <json>` and `--task-id <id>`, except an orchestrator brief: `loop.py start`
   without them derives a single task from the brief (see
@@ -125,20 +125,20 @@
 - The engine validates and snapshots all requests before dispatch. Its detached driver executes
   the graph independently of Main and the chat panel.
 - Work-only routes advance after the Work receipt; Work–Verification routes advance only after a
-  passing Verification receipt, with failed findings returned to the same worker and verifier.
+  passing Verification receipt, with failed findings returned to the same performer and verifier.
 - Do not dispatch the next task from Main.
 - Runtime errors stop at their recorded recovery point.
 - The host renders the accepted full graph and each stage's stored status.
 
 <a id="worker-assignment"></a>
 
-## 5. Main-owned worker assignment
+## 5. Main-owned performer assignment
 
-### 5.1. Worker count and reuse
+### 5.1. Performer count and reuse
 
-- Main chooses worker count and session reuse from context continuity, dependencies, write
+- Main chooses performer count and session reuse from context continuity, dependencies, write
   overlap, shared resources and coordination cost.
-- Do not equate task count with worker count or create a worker for every domain automatically.
+- Do not equate task count with performer count or create a performer for every domain automatically.
 - Preserve the captured execution route and Human authority.
 
 ### 5.2. Per-task assignment in one loop
@@ -146,10 +146,10 @@
 - Each task may specify `workAgentId` and `verificationAgentId`. Omitted values use the
   corresponding start arguments.
 - The first task must use `--work-agent`; that ID remains the loop's storage/control identity for
-  status, reconcile, recovery and skip, even when later tasks use other workers.
+  status, reconcile, recovery and skip, even when later tasks use other performers.
 - All Work and Verification session identities must be disjoint across the list.
 - New assignees are submitted; existing sessions are sent the next request.
-- A failed Verification returns to that task's assigned worker and verifier.
+- A failed Verification returns to that task's assigned performer and verifier.
 - Assignments are captured with the immutable request snapshot; do not edit an accepted list to
   reassign running work.
 
@@ -157,12 +157,12 @@
 
 - Tasks within one loop still execute in list order.
 - For useful independent parallel chains, Main submits distinct lists with distinct workflow IDs
-  and worker/verifier sessions, preserving each returned loop ID.
-- Do not submit the same full list to multiple workers.
+  and performer/verifier sessions, preserving each returned loop ID.
+- Do not submit the same full list to multiple performers.
 - Sequence cross-chain integration only after its prerequisites complete. There is no automatic
   cross-loop dependency scheduler; Main must track that dependency explicitly.
-- Never share an active worker across parallel chains.
-- Reuse one worker for related sequential tasks when that is more efficient.
+- Never share an active performer across parallel chains.
+- Reuse one performer for related sequential tasks when that is more efficient.
 
 <a id="task-workspaces"></a>
 
